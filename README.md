@@ -7,11 +7,11 @@ Data Management Toolkit
 ## Install
 
 Requires node/npm to install. Before you can build the project, you must have the grunt command line utilities
-installed, so run this once:
+installed, so run the following commands once:
 
     npm install -g grunt grunt-cli
 
-Then cd into the root of the repository and type:
+Then cd into the root of the repository and run:
 
     npm install
 
@@ -21,7 +21,7 @@ Finally, when all node packages are installed, run:
 
 ## Build
 
-To build the client side code, type the following command from within the repository:
+To build the client side code, run the following command from within the repository:
 
     grunt
 
