@@ -17,7 +17,7 @@ module.exports = function (grunt) {
         stylus: {
             compile: {
                 files: {
-                    'clients/web/static/built/dmtk.min.css': ['stylesheets/*.styl']
+                    'clients/web/static/built/app.min.css': ['stylesheets/*.styl']
                 }
             }
         },
@@ -25,8 +25,12 @@ module.exports = function (grunt) {
         uglify: {
             app: {
                 files: {
-                    'clients/web/static/built/dmtk.min.js': [
-                        'clients/web/static/built/templates.js'
+                    'clients/web/static/built/app.min.js': [
+                        'clients/web/static/built/templates.js',
+                        'clients/web/src/*.js',
+                        'clients/web/src/models/*.js',
+                        'clients/web/src/collections/*.js',
+                        'clients/web/src/views/*.js'
                     ]
                 }
             },
