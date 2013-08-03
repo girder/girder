@@ -6,8 +6,15 @@ Data Management Toolkit
 
 ## Install
 
-Requires node/npm to install. Before you can build the project, you must have the grunt command line utilities
-installed, so run the following commands once:
+Prerequisites: [pip](https://pypi.python.org/pypi/pip) and [node.js](http://nodejs.org/).
+
+To run the server, you must install the [PyMongo](http://api.mongodb.org/python/current/)
+and [CherryPy](www.cherrypy.org) python packages:
+
+    pip install pymongo cherrypy
+
+Before you can build the client-side code project, you must install the [Grunt](http://gruntjs.com)
+command line utilities:
 
     npm install -g grunt grunt-cli
 
@@ -26,4 +33,11 @@ To build the client side code, run the following command from within the reposit
     grunt
 
 Run this command any time you change a JavaScript or CSS file under __clients/web__.
+
+## Run
+
+To run the server, just invoke the following script:
+
+    python server/main.py
+
 
