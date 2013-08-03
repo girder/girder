@@ -51,7 +51,7 @@ module.exports = function (grunt) {
             },
             js: {
                 files: ['clients/web/static/src/**/*.js'],
-                tasks: ['uglify'],
+                tasks: ['uglify:app'],
                 options: {failOnError: false}
             },
             jade: {
@@ -95,13 +95,14 @@ module.exports = function (grunt) {
     });
 
     // This task should be run once manually at install time.
-    grunt.registerTask('init', 'Initial install/setup tasks', function () {
+    grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         if (!fs.existsSync('server/conf/db.local.cfg')) {
             console.log('Creating local config file');
             fs.writeFileSync('server/conf/db.local.cfg', fs.readFileSync('server/conf/db.cfg'));
         }
     });
 
-    grunt.registerTask('build-js', ['jade', 'uglify']);
+    grunt.registerTask('build-js', ['jade', 'uglify:app']);
+    grunt.registerTask('init', ['setup', 'uglify:libs']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };
