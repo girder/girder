@@ -1,0 +1,10 @@
+doctype 5
+html(lang="en")
+  head
+    title= "DMTK"
+    each css in stylesheets
+      link(rel="stylesheet", href="static/#{css}")
+  body
+    each js in scripts
+      script(src="static/#{js}")
+

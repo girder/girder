@@ -1,6 +1,7 @@
 module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
+    var DEBUG = false;
 
     // Project configuration.
     grunt.initConfig({
@@ -17,12 +18,17 @@ module.exports = function (grunt) {
         stylus: {
             compile: {
                 files: {
-                    'clients/web/static/built/app.min.css': ['stylesheets/*.styl']
+                    'clients/web/static/built/app.min.css': [
+                        'clients/web/src/stylesheets/*.styl'
+                    ]
                 }
             }
         },
 
         uglify: {
+            options: {
+                beautify: DEBUG
+            },
             app: {
                 files: {
                     'clients/web/static/built/app.min.js': [
@@ -59,8 +65,13 @@ module.exports = function (grunt) {
                 options: {failOnError: false}
             },
             jade: {
-                files: ['templates/*.jade'],
+                files: ['clients/web/static/src/templates/*.jade'],
                 tasks: ['build-js'],
+                options: {failOnError: false}
+            },
+            jadeindex: {
+                files: ['clients/web/static/src/templates/index.jadehtml'],
+                tasks: ['jade-index'],
                 options: {failOnError: false}
             }
         }
@@ -98,6 +109,24 @@ module.exports = function (grunt) {
         console.log('Wrote ' + inputFiles.length + ' templates into ' + outputFile);
     });
 
+    grunt.registerTask('jade-index', 'Build index.html using jade', function () {
+        var jade = require('jade');
+        var buffer = fs.readFileSync('clients/web/src/templates/index.jadehtml');
+
+        var fn = jade.compile(buffer, {
+            client: false,
+            pretty: true
+        });
+        var html = fn({
+            stylesheets: ['lib/css/bootstrap.min.css',
+                          'built/app.min.css'],
+            scripts: ['built/libs.min.js',
+                      'built/app.min.js']
+        });
+        fs.writeFileSync('clients/web/static/built/index.html', html);
+        console.log('Built index.html.');
+    });
+
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         if (!fs.existsSync('server/conf/db.local.cfg')) {
@@ -106,7 +135,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('build-js', ['jade', 'uglify:app']);
+    grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
     grunt.registerTask('init', ['setup', 'uglify:libs']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };

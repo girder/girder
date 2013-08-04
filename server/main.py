@@ -11,7 +11,7 @@ class Webroot():
 
     def GET(self):
         return cherrypy.lib.static.serve_file(
-            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'index.html'),
+            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built', 'index.html'),
             content_type='text/html')
 
 if __name__ == '__main__':
