@@ -43,32 +43,34 @@ class Model():
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)
 
-    def find(self, params = None, offset = 0, limit = 50):
+    def find(self, params={}, offset=0, limit=50, sort=None, fields=None):
         """
         Search the collection by a set of parameters.
+        @param params The search document
+        @param offset The offset into the results
+        @param limit Maximum number of documents to return
+        @param sort List of (key, direction) pairs specifying the sort order
         """
-        # TODO
-        pass
+        return self.collection.find(spec=params, fields=fields, skip=offset,
+                                    limit=limit, sort=sort)
 
-    def save(self, obj):
+    def save(self, document):
         """
-        Create or update an object in the collection. If obj is a list,
-        inserts all of the documents. If it is a single record, simply calls save()
-        to either update or insert.
+        Create or update a document in the collection
         """
-        if type(obj) == list:
-            return self.collection.insert(obj)
-        elif type(obj) == dict:
-            return self.collection.save(obj)
-        else:
-            raise Exception('Model.save() should be passed a list or dict.')
+        assert type(document) == dict
 
-    def delete(self, obj):
+        document['_id'] = self.collection.save(document)
+        return document
+
+    def delete(self, document):
         """
         Delete an object from the collection; must have its _id set.
         """
-        # TODO
-        pass
+        assert type(document) == dict
+        assert document.has_key('_id')
+
+        return self.collection.remove({'_id' : document['_id']})
 
     def load(self, id):
         """
