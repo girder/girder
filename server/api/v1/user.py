@@ -13,5 +13,8 @@ class User(Resource):
 
     @Resource.endpoint
     def POST(self, **params):
-        #TODO
-        pass
+        self.requireParams(['firstName', 'lastName', 'login', 'password'], params)
+        return self.model.createUser(login=params['login'],
+                                     password=params['password'],
+                                     firstName=params['firstName'],
+                                     lastName=params['lastName'])
