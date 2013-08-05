@@ -15,20 +15,30 @@ class Webroot():
             content_type='text/html')
 
 if __name__ == '__main__':
+    cfgs = ['auth', 'db', 'server']
+    cfgs = [os.path.join(ROOT_DIR, 'server', 'conf', 'local.%s.cfg' % c) for c in cfgs]
+    [cherrypy.config.update(cfg) for cfg in cfgs]
+
     appconf = {
         '/' : {
             'request.dispatch' : cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root' : ROOT_DIR
+            'tools.staticdir.root' : ROOT_DIR,
+
+            'tools.sessions.on' : True,
+            'tools.sessions.locking' : 'explicit',
+            'tools.sessions.storage_type' : cherrypy.config['sessions']['storage'],
+            'tools.sessions.timeout' : cherrypy.config['sessions']['lifetime']
             },
         '/static' : {
             'tools.staticdir.on' : 'True',
             'tools.staticdir.dir' : 'clients/web/static',
             }
         }
-    cfgs = ['db', 'auth']
-    cfgs = [os.path.join(ROOT_DIR, 'server', 'conf', 'local.%s.cfg' % c) for c in cfgs]
+    if cherrypy.config['sessions']['storage'] == 'file':
+        appconf['/']['tools.sessions.storage_path'] = \
+            os.path.join(ROOT_DIR, cherrypy.config['sessions']['directory'])
+
     cherrypy.config.update(appconf)
-    [cherrypy.config.update(cfg) for cfg in cfgs]
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.

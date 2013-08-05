@@ -89,11 +89,16 @@ class Model():
 
     def load(self, id, objectId=True):
         """
-        Fetch a single object from the database using its id.
-        @param id The value for searching the _id field.
-        @param objectId Whether the id should be coerced to an ObjectId.
+        Fetch a single object or list of objects from the database using the _id field.
+        @param id The value for searching the _id field, or a list of _id's.
+        @param objectId Whether the id(s) should be coerced to ObjectId(s).
         """
-        if objectId:
-            id = ObjectId(id)
-        return self.collection.find_one({'_id' : id})
+        if type(id) is list:
+            if objectId:
+                l = [ObjectId(_id) for _id in id]
+            return self.collection.find({'_id' : {'$in' : l}})
+        else:
+            if objectId:
+                id = ObjectId(id)
+            return self.collection.find_one({'_id' : id})
 

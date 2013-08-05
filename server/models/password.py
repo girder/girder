@@ -8,7 +8,17 @@ from . import Model
 auth_cfg = cherrypy.config['auth']
 HASH_ALG = auth_cfg['hash_alg']
 
+def genToken(length=64):
+    """
+    Use this utility function to generate a random string of
+    a desired length.
+    """
+    return ''.join(random.choice(string.letters + string.digits) for x in range(length))
+
 class Password(Model):
+    """
+    This model deals with managing user passwords.
+    """
     def initialize(self):
         self.name = 'password'
 
@@ -57,9 +67,16 @@ class Password(Model):
 
     def encryptAndStore(self, password):
         """
-        Generates a random salt and stores the given password with it.
+        Encrypt and store the given password. The exact internal details and
+        mechanisms used for storage are abstracted away, but the guarantee is made that
+        once this method is called on a password and the returned salt and algorithm are
+        stored with the user document, calling Password.authenticate() with that user
+        document and the same password will return True.
         @param password The password to encrypt and store.
-        @return The salt that was used.
+        @return {tuple} (salt, hashAlg) The salt to store with the user document
+                                        and the algorithm used for secure storage.
+                                        Both should be stored in the corresponding user
+                                        document as 'salt' and 'hashAlg', respectively.
         """
         if type(password) is unicode:
             password = password.encode('utf-8')
@@ -67,7 +84,7 @@ class Password(Model):
         if HASH_ALG == 'bcrypt':
             """
             With bcrypt, we actually need the one-to-one correspondence of
-            hashed password to user, so we store it as the salt entry in
+            hashed password to user, so we store the hash as the salt entry in
             the user table.
             """
             salt = self._digest(alg=HASH_ALG, password=password)
@@ -77,7 +94,7 @@ class Password(Model):
             and store the hashed value in a separate table with no
             correspondence to the user.
             """
-            salt = ''.join(random.choice(string.letters + string.digits) for x in range(64))
+            salt = genToken()
             hash = self._digest(salt=salt, alg=HASH_ALG, password=password)
             self.save({'_id' : hash})
 

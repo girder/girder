@@ -1,8 +1,10 @@
 import cherrypy
+import datetime
 import json
 import sys
 import traceback
 
+from models import user as userModel
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):
@@ -21,6 +23,9 @@ class RestException(Exception):
 class Resource():
     exposed = True
 
+    def __init__(self):
+        self.userModel = userModel.User()
+
     def requireParams(self, required, provided):
         """
         Pass a list of required parameters.
@@ -28,6 +33,33 @@ class Resource():
         for param in required:
             if not provided.has_key(param):
                 raise RestException("Parameter '%s' is required." % param)
+
+    def getCurrentUser(self):
+        """
+        Returns the current user from the session or long-term cookie token.
+        Will return the user document from the database, or None if the user
+        is not logged in.
+        """
+        # First attempt to use the session
+        user = cherrypy.session.get('user', None)
+        if user is not None:
+            return user
+
+        # Next try long-term token
+        cookie = cherrypy.request.cookie
+        if cookie.has_key('auth_token'):
+            info = json.loads(cookie['auth_token'].value)
+            cursor = self.userModel.find(query={
+                'token' : info['token'].encode('ascii', 'ignore'),
+                '_id' : ObjectId(info['_id']),
+                'tokenExpires' : {'$gt' : datetime.datetime.now()}
+                }, limit=1)
+            if cursor.count() == 0: # bad or expired cookie
+                return None
+            else:
+                return cursor.next()
+        else: # user is not logged in
+            return None
 
     def getObjectById(self, model, id):
         """
