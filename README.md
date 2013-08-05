@@ -6,7 +6,7 @@ Data Management Toolkit
 
 ## Install
 
-Before you install, see the [Installing system prerequisites](docs/manual/prereqs.md)
+Before you install, see the [Installing system prerequisites](docs/manual/system_install.md)
 guide to make sure you have all required system packages installed.
 
 To run the server, you must install the [PyMongo](http://api.mongodb.org/python/current/)
@@ -37,7 +37,8 @@ Run this command any time you change a JavaScript or CSS file under __clients/we
 
 ## Run
 
-To run the server, just invoke the following script:
+To run the server, first [make sure that the Mongo daemon is running](docs/manual/run_mongo.md).
+Then, just invoke the server python script:
 
     python server/main.py
 
