@@ -6,8 +6,8 @@ Data Management Toolkit
 
 ## Install
 
-Prerequisites: [pip](https://pypi.python.org/pypi/pip), [MongoDB](http://www.mongodb.org/)
-and [node.js](http://nodejs.org/).
+Before you install, see the [Installing system prerequisites](docs/manual/prereqs.md)
+guide to make sure you have all required system packages installed.
 
 To run the server, you must install the [PyMongo](http://api.mongodb.org/python/current/)
 and [CherryPy](http://www.cherrypy.org) python packages:
