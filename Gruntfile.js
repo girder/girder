@@ -129,10 +129,20 @@ module.exports = function (grunt) {
 
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        if (!fs.existsSync('server/conf/db.local.cfg')) {
-            console.log('Creating local config file');
-            fs.writeFileSync('server/conf/db.local.cfg', fs.readFileSync('server/conf/db.cfg'));
-        }
+        // Copy all configuration files that don't already exist
+        var cfgDir = 'server/conf';
+        var configs = grunt.file.expand(cfgDir + '/*.cfg');
+        configs.forEach(function (config) {
+            var name = path.basename(config);
+            if (name.substring(0, 5) === 'local') {
+                return;
+            }
+            var local = cfgDir + '/local.' + name;
+            if (!fs.existsSync(local)) {
+                fs.writeFileSync(local, fs.readFileSync(config));
+                console.log('Created config ' + local + '.');
+            }
+        });
     });
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);

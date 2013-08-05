@@ -25,10 +25,10 @@ if __name__ == '__main__':
             'tools.staticdir.dir' : 'clients/web/static',
             }
         }
-    configs = ['db.local.cfg']
-    configs = [os.path.join(ROOT_DIR, 'server', 'conf', config) for config in configs]
+    cfgs = ['db', 'auth']
+    cfgs = [os.path.join(ROOT_DIR, 'server', 'conf', 'local.%s.cfg' % c) for c in cfgs]
     cherrypy.config.update(appconf)
-    [cherrypy.config.update(config) for config in configs]
+    [cherrypy.config.update(cfg) for cfg in cfgs]
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     root = api_main.addApiToNode(root)
 
     application = cherrypy.tree.mount(root, '/', appconf)
-    [application.merge(config) for config in configs]
+    [application.merge(cfg) for cfg in cfgs]
 
     cherrypy.engine.start()
     cherrypy.engine.block()

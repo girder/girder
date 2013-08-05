@@ -9,10 +9,9 @@ Data Management Toolkit
 Before you install, see the [Installing system prerequisites](docs/manual/system_install.md)
 guide to make sure you have all required system packages installed.
 
-To run the server, you must install the [PyMongo](http://api.mongodb.org/python/current/)
-and [CherryPy](http://www.cherrypy.org) python packages:
+To run the server, you must install the following python packages:
 
-    pip install pymongo cherrypy
+    pip install pymongo cherrypy bcrypt
 
 Before you can build the client-side code project, you must install the [Grunt](http://gruntjs.com)
 command line utilities:
