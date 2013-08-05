@@ -3,6 +3,8 @@ import json
 import sys
 import traceback
 
+from bson.objectid import ObjectId, InvalidId
+
 class RestException(Exception):
     """
     Throw a RestException in the case of any sort of
@@ -26,6 +28,21 @@ class Resource():
         for param in required:
             if not provided.has_key(param):
                 raise RestException("Parameter '%s' is required." % param)
+
+    def getObjectById(self, model, id):
+        """
+        This convenience method should be used to load a single
+        instance of a model that is indexed by the default ObjectId type.
+        @param model The model object to load from.
+        @param id The id of the object.
+        """
+        try:
+            obj = model.load(id, type(id) is not ObjectId)
+        except InvalidId:
+            raise RestException('Invalid object ID format.')
+        if obj is None:
+            raise RestException('Resource not found.')
+        return obj
 
     @classmethod
     def endpoint(cls, fun):

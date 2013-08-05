@@ -1,23 +1,36 @@
 import re
 
 from ..rest import Resource, RestException
-from models import user as userModel
+from models import user as userModel, password as passwordModel
 
 class User(Resource):
 
     def __init__(self):
-        self.model = userModel.User()
+        self.userModel = userModel.User()
+        self.passwordModel = passwordModel.Password()
 
-    @Resource.endpoint
-    def GET(self, id=None):
-        #TODO
-        return {'id': id}
+    def index(self, params):
+        return 'todo: index'
 
-    @Resource.endpoint
-    def POST(self, **params):
-        """
-        Use this endpoint to register a new user.
-        """
+    def login(self, params):
+        self.requireParams(['login', 'password'], params)
+        cursor = self.userModel.find({'login' : params['login']}, limit=1)
+        if cursor.count() == 0:
+            raise RestException('Login failed', code=403)
+
+        user = cursor.next()
+
+        if not self.passwordModel.authenticate(user, params['password']):
+            raise RestException('Login failed', code=403)
+
+        # TODO create session vars
+
+        return {'message' : 'Login succeeded'}
+
+    def logout(self, params):
+        return 'todo: logout'
+
+    def register(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
 
         login = params['login'].lower()
@@ -33,20 +46,43 @@ class User(Resource):
                 'fields' : ['email']
                 })
 
-        existing = self.model.find({'login' : login}, limit=1)
-        if existing.count() > 0:
+        existing = self.userModel.find({'login' : login}, limit=1)
+        if existing.count(True) > 0:
             raise RestException('That login is already registered.', extra={
                 'fields' : ['login']
                 })
 
-        existing = self.model.find({'email' : email}, limit=1)
-        if existing.count() > 0:
+        existing = self.userModel.find({'email' : email}, limit=1)
+        if existing.count(True) > 0:
             raise RestException('That email is already registered.', extra={
                 'fields' : ['email']
                 })
 
-        return self.model.createUser(login=login,
-                                     password=params['password'],
-                                     email=email,
-                                     firstName=params['firstName'],
-                                     lastName=params['lastName'])
+        return self.userModel.createUser(login=login,
+                                         password=params['password'],
+                                         email=email,
+                                         firstName=params['firstName'],
+                                         lastName=params['lastName'])
+
+    @Resource.endpoint
+    def GET(self, pathParam=None, **params):
+        if pathParam is None:
+            return self.index(params)
+        else: # assume it's a user id
+            return self.getObjectById(self.userModel, pathParam)
+
+    @Resource.endpoint
+    def POST(self, pathParam=None, **params):
+        """
+        Use this endpoint to register a new user, to login, or to logout.
+        """
+        if pathParam is None:
+            return self.register(params)
+        elif pathParam == 'login':
+            return self.login(params)
+        elif pathParam == 'logout':
+            return self.logout(params)
+        else:
+            raise RestException('Unsupported operation')
+
+

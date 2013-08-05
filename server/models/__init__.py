@@ -1,5 +1,6 @@
 import pymongo
 import cherrypy
+
 from bson.objectid import ObjectId
 
 # We setup our global database connection
@@ -28,30 +29,44 @@ class Model():
 
     def __init__(self):
         self.name = None
+        self._indices = []
         self.initialize()
 
-        assert self.name is not None
+        assert type(self.name) == str
 
         self.collection = db_connection[db_cfg['database']][self.name]
 
         assert isinstance(self.collection, pymongo.collection.Collection)
+        assert type(self._indices) == list
+
+        [self.collection.ensure_index(index) for index in self._indices]
+
+    def setIndexedFields(self, indices):
+        """
+        Subclasses should call this with a list of strings representing
+        fields that should be indexed in the database if there are any. Otherwise,
+        it is not necessary to call this method.
+        """
+        self._indices = indices
 
     def initialize(self):
         """
         Subclasses should override this and set the name of the collection as self.name.
+        Also, they should set any
         """
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)
 
-    def find(self, params={}, offset=0, limit=50, sort=None, fields=None):
+    def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
         Search the collection by a set of parameters.
-        @param params The search document
+        @param query The search query (see general MongoDB docs for "find()")
         @param offset The offset into the results
         @param limit Maximum number of documents to return
         @param sort List of (key, direction) pairs specifying the sort order
+        @param fields A mask (list of strings) for filtering result documents by key.
         """
-        return self.collection.find(spec=params, fields=fields, skip=offset,
+        return self.collection.find(spec=query, fields=fields, skip=offset,
                                     limit=limit, sort=sort)
 
     def save(self, document):
@@ -72,9 +87,13 @@ class Model():
 
         return self.collection.remove({'_id' : document['_id']})
 
-    def load(self, id):
+    def load(self, id, objectId=True):
         """
         Fetch a single object from the database using its id.
+        @param id The value for searching the _id field.
+        @param objectId Whether the id should be coerced to an ObjectId.
         """
-        return self.collection.find_one({'_id' : ObjectId(id)})
+        if objectId:
+            id = ObjectId(id)
+        return self.collection.find_one({'_id' : id})
 
