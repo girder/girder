@@ -13,13 +13,19 @@ class Folder(AccessControlledModel):
         """
         Create a new folder under the given parent. Validation should be done by the caller,
         including ensuring no siblings with duplicate names exist.
-        @param parent The parent document. Should be a folder, user, or community.
-        @param name The name of the folder.
-        @param [description=''] Description for the folder.
-        @param [parentType='folder'] What type the parent is: ('folder' | 'user' | 'community')
-        @param [public=False] Public read access flag.
-        @param [creator=None] User document representing the creator of this folder.
-        @return The folder document that was created.
+        :param parent: The parent document. Should be a folder, user, or community.
+        :type parent: dict
+        :param name: The name of the folder.
+        :type name: str
+        :param description: Description for the folder.
+        :type description: str
+        :param parentType: What type the parent is: ('folder' | 'user' | 'community')
+        :type parentType: str
+        :param public: Public read access flag.
+        :type public: bool
+        :param creator: User document representing the creator of this folder.
+        :type creator: dict
+        :returns: The folder document that was created.
         """
         assert parent.has_key('_id')
         assert type(public) is bool

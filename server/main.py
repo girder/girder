@@ -23,20 +23,12 @@ if __name__ == '__main__':
         '/' : {
             'request.dispatch' : cherrypy.dispatch.MethodDispatcher(),
             'tools.staticdir.root' : ROOT_DIR,
-
-            'tools.sessions.on' : True,
-            'tools.sessions.locking' : 'explicit',
-            'tools.sessions.storage_type' : cherrypy.config['sessions']['storage'],
-            'tools.sessions.timeout' : cherrypy.config['sessions']['lifetime']
             },
         '/static' : {
             'tools.staticdir.on' : 'True',
             'tools.staticdir.dir' : 'clients/web/static',
             }
         }
-    if cherrypy.config['sessions']['storage'] == 'file':
-        appconf['/']['tools.sessions.storage_path'] = \
-            os.path.join(ROOT_DIR, cherrypy.config['sessions']['directory'])
 
     cherrypy.config.update(appconf)
 
