@@ -3,15 +3,14 @@ import json
 import re
 
 from ..rest import Resource, RestException
-from models import user as userModel, password as passwordModel
+
 
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
 class User(Resource):
 
-    def __init__(self):
-        self.userModel = userModel.User()
-        self.passwordModel = passwordModel.Password()
+    def getRequiredModels(self):
+        return ['user', 'password']
 
     def _sendAuthTokenCookie(self, user):
         """ Helper method to send the long-term authentication token """

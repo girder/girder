@@ -1,4 +1,5 @@
 from v1 import user as user1,\
+               folder as folder1,\
                api_docs as api_docs1
 
 class ApiDocs():
@@ -17,6 +18,6 @@ def addApiToNode(node):
 def _addV1ToNode(node):
     node.v1 = api_docs1.ApiDocs()
     node.v1.user = user1.User()
-    # etc
+    node.v1.folder = folder1.Folder()
 
     return node

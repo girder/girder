@@ -1,10 +1,10 @@
 import cherrypy
 import datetime
+import importlib
 import json
 import sys
 import traceback
 
-from models import user as userModel
 from models import AccessException
 from bson.objectid import ObjectId, InvalidId
 
@@ -25,7 +25,48 @@ class Resource():
     exposed = True
 
     def __init__(self):
-        self.userModel = userModel.User()
+        """
+        If the subclass requests models to be set with getRequiredModels,
+        this will instantiate them. The user model is always loaded, as it
+        is needed by this base class.
+        """
+        modelList = self.getRequiredModels()
+        assert type(modelList) is list
+        modelList[:] = list(set(modelList + ['user']))
+
+        for model in modelList:
+            if type(model) is str:
+                # Default transform is e.g. 'user' -> 'User()'
+                modelName = model
+                className = model[0].upper() + model[1:]
+            elif type(model) is tuple:
+                # Custom class name e.g. 'some_thing' -> 'SomeThing()'
+                modelName = model[0]
+                className = model[1]
+            else:
+                raise Exception('Required models should be strings or tuples.')
+
+            try:
+                imported = importlib.import_module('models.%s' % modelName)
+            except ImportError:
+                raise Exception('Could not load model module "%s"' % modelName)
+
+            try:
+                constructor = getattr(imported, className)
+            except AttributeError:
+                raise Exception('Incorrect model class name "%s" for model "%s"' %
+                                (className, modelName))
+            setattr(self, '%sModel' % modelName, constructor())
+
+    def getRequiredModels(self):
+        """
+        Override this method in the subclass and have it return a list of models to
+        instantiate on the class. For example, if the returned list contains 'user',
+        it will setup self.userModel appropriately. The returned values in the list should
+        either be strings (e.g. 'user') or if necessary due to naming conventions, a 2-tuple
+        of the form ('model_module_name', 'ModelClassName').
+        """
+        return []
 
     def requireParams(self, required, provided):
         """
