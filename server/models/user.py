@@ -1,6 +1,6 @@
 import datetime
 
-from . import Model
+from .model_base import Model
 from .password import Password, genToken
 from .folder import Folder
 from constants import AccessType
@@ -15,8 +15,11 @@ class User(Model):
     def refreshToken(self, user, days=180):
         """
         Generate a new token and update the provided user document.
-        @param user The user document.
-        @param days Number of days token should be valid.
+        :param user: The user document.
+        :type user: dict
+        :param days: Number of days token should be valid.
+        :type days: int
+        :returns: The updated user document.
         """
         assert user.has_key('_id')
 
@@ -30,9 +33,11 @@ class User(Model):
         Create a new user with the given information. The user will be created
         with the default "Public" and "Private" folders. Validation must be done
         in advance by the caller.
-        @param [admin=False] Whether user is global administrator.
-        @param [tokenLifespan=180] Number of days the long-term token should last.
-        @return The user document that was created.
+        :param admin: Whether user is global administrator.
+        :type admin: bool
+        :param tokenLifespan: Number of days the long-term token should last.
+        :type tokenLifespan: int
+        :returns: The user document that was created.
         """
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 

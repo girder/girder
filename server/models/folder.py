@@ -1,6 +1,6 @@
 import datetime
 
-from . import AccessControlledModel
+from .model_base import AccessControlledModel
 
 class Folder(AccessControlledModel):
 

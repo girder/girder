@@ -25,7 +25,8 @@ class Folder(Resource):
             return self.index(params)
         else: # assume it's a folder id
             user = self.getCurrentUser()
-            folder = self.folderModel.load(id=pathParam, level=AccessType.READ, user=user)
+            folder = self.getObjectById(self.folderModel, id=pathParam,
+                                        checkAccess=True, user=user)
             return self._filter(folder)
 
     @Resource.endpoint
