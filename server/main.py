@@ -3,7 +3,7 @@ import os
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-class Webroot():
+class Webroot(object):
     """
     The webroot endpoint simply serves the main index.html file.
     """

@@ -3,7 +3,7 @@ import hashlib
 import random
 import string
 
-from . import Model
+from .model_base import Model
 
 auth_cfg = cherrypy.config['auth']
 HASH_ALG = auth_cfg['hash_alg']
