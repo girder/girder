@@ -1,7 +1,7 @@
 doctype 5
 html(lang="en")
   head
-    title= "DMTK"
+    title= "Girder"
     each css in stylesheets
       link(rel="stylesheet", href="static/#{css}")
   body

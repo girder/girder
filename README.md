@@ -1,8 +1,7 @@
-dmtk
-====
+Girder
+======
 
-Data Management Toolkit
-(working title)
+Data Management Toolkit (working title)
 
 ## Install
 
