@@ -28,6 +28,12 @@ class Resource(ModelImporter):
         self.initialize()
         self.requireModels(['user', 'token'])
 
+    def initialize(self):
+        """
+        Pure virtual method.
+        """
+        pass
+
     def filterDocument(self, doc, allow=[]):
         """
         This method will filter the given document to make it suitable to output to the user.
