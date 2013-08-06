@@ -2,12 +2,15 @@ import datetime
 
 from . import Model
 from .password import Password, genToken
+from .folder import Folder
+from constants import AccessType
 
 class User(Model):
     def initialize(self):
         self.name = 'user'
         self.setIndexedFields(['login', 'email'])
         self.passwordModel = Password()
+        self.folderModel = Folder()
 
     def refreshToken(self, user, days=180):
         """
@@ -39,17 +42,29 @@ class User(Model):
         now = datetime.datetime.now()
         lifespan = datetime.timedelta(days=tokenLifespan)
 
-        return self.save({
-          'login' : login,
-          'email' : email,
-          'firstName' : firstName,
-          'lastName' : lastName,
-          'salt' : salt,
-          'created' : now,
-          'token' : token,
-          'tokenExpires' : now + lifespan,
-          'hashAlg' : hashAlg,
-          #'folders' : [publicFolder['_id'], privateFolder['_id']],
-          'emailVerified' : False,
-          'admin' : admin
-          })
+        user = self.save({
+            'login' : login,
+            'email' : email,
+            'firstName' : firstName,
+            'lastName' : lastName,
+            'salt' : salt,
+            'created' : now,
+            'token' : token,
+            'tokenExpires' : now + lifespan,
+            'hashAlg' : hashAlg,
+            'emailVerified' : False,
+            'admin' : admin
+            })
+
+        # Create some default folders for the user and give the user admin access to them
+        publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',
+                                                     public=True, creator=user)
+        privateFolder = self.folderModel.createFolder(user, 'Private', parentType='user',
+                                                     public=False, creator=user)
+        self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
+        self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
+
+        user['folders'] = [publicFolder['_id'], privateFolder['_id']]
+
+        return self.save(user)
+

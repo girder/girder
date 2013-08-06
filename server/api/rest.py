@@ -5,6 +5,7 @@ import sys
 import traceback
 
 from models import user as userModel
+from models import AccessException
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):
@@ -89,11 +90,17 @@ class Resource():
             try:
                 val = fun(self, *args, **kwargs)
             except RestException as e:
+                # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
                 val = {'message' : e.message}
                 if e.extra is not None:
                     val['extra'] = e.extra
+            except AccessException as e:
+                # Handle any permission exceptions
+                cherrypy.response.status = 403
+                val = {'message': e.message}
             except:
+                # These are unexpected failures; send a 500 status and traceback
                 (t, value, tb) = sys.exc_info()
                 cherrypy.response.status = 500
                 val = {'message' : '%s: %s' % (t.__name__, str(value)),
