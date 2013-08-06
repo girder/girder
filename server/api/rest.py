@@ -5,7 +5,8 @@ import json
 import sys
 import traceback
 
-from models import AccessException
+from constants import AccessType
+from models.model_base import AccessException
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):
@@ -21,7 +22,7 @@ class RestException(Exception):
 
         Exception.__init__(self, message)
 
-class Resource():
+class Resource(object):
     exposed = True
 
     def __init__(self):
@@ -71,8 +72,10 @@ class Resource():
     def filterDocument(self, doc, allow=[]):
         """
         This method will filter the given document to make it suitable to output to the user.
-        @param doc The document to filter
-        @param allow The whitelist of fields to allow in the output document.
+        :param doc: The document to filter.
+        :type doc: dict
+        :param allow: The whitelist of fields to allow in the output document.
+        :type allow: List of strings
         """
         out = {}
         for field in allow:
@@ -116,16 +119,27 @@ class Resource():
         else: # user is not logged in
             return None
 
-    def getObjectById(self, model, id):
+    def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
-        @param model The model object to load from.
-        @param id The id of the object.
+        :param model: The model to load from.
+        :type model: Model
+        :param id: The id of the object.
+        :type id: string or ObjectId
+        :param checkAccess: If this is an AccessControlledObject, set this to True.
+        :type checkAccess: bool
+        :param user: If checkAccess=True, set this to the current user.
+        :type user: dict or None
+        :param level: If the model is an AccessControlledModel, you must
+                     pass the user requesting access
         """
-        print id
+        coerceId = type(id) is not ObjectId
         try:
-            obj = model.load(id=id, objectId=type(id) is not ObjectId)
+            if checkAccess is True:
+                obj = model.load(id=id, objectId=coerceId, user=user, level=level)
+            else:
+                obj = model.load(id=id, objectId=coerceId)
         except InvalidId:
             raise RestException('Invalid object ID format.')
         if obj is None:
