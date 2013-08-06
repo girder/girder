@@ -68,6 +68,19 @@ class Resource():
         """
         return []
 
+    def filterDocument(self, doc, allow=[]):
+        """
+        This method will filter the given document to make it suitable to output to the user.
+        @param doc The document to filter
+        @param allow The whitelist of fields to allow in the output document.
+        """
+        out = {}
+        for field in allow:
+            if doc.has_key(field):
+                out[field] = doc[field]
+
+        return out
+
     def requireParams(self, required, provided):
         """
         Pass a list of required parameters.
@@ -110,8 +123,9 @@ class Resource():
         @param model The model object to load from.
         @param id The id of the object.
         """
+        print id
         try:
-            obj = model.load(id, type(id) is not ObjectId)
+            obj = model.load(id=id, objectId=type(id) is not ObjectId)
         except InvalidId:
             raise RestException('Invalid object ID format.')
         if obj is None:

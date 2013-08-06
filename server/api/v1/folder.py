@@ -2,8 +2,16 @@ import cherrypy
 
 from ..rest import Resource, RestException
 from models import folder as folderModel
+from constants import AccessType
 
 class Folder(Resource):
+
+    def _filter(self, folder):
+        """
+        Filter a folder document for display to the user.
+        """
+        # TODO possibly write a folder filter with self.filterDocument
+        return folder
 
     def getRequiredModels(self):
         return ['folder']
@@ -16,7 +24,9 @@ class Folder(Resource):
         if pathParam is None:
             return self.index(params)
         else: # assume it's a folder id
-            return self.getObjectById(self.folderModel, pathParam)
+            user = self.getCurrentUser()
+            folder = self.folderModel.load(id=pathParam, level=AccessType.READ, user=user)
+            return self._filter(folder)
 
     @Resource.endpoint
     def POST(self, pathParam=None, **params):

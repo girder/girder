@@ -90,18 +90,13 @@ class Model():
 
     def load(self, id, objectId=True):
         """
-        Fetch a single object or list of objects from the database using the _id field.
-        @param id The value for searching the _id field, or a list of _id's.
-        @param objectId Whether the id(s) should be coerced to ObjectId(s).
+        Fetch a single object from the databse using its _id field.
+        @param id The value for searching the _id field.
+        @param [objectId=True] Whether the id(s) should be coerced to ObjectId(s).
         """
-        if type(id) is list:
-            if objectId:
-                l = [ObjectId(_id) for _id in id]
-            return self.collection.find({'_id' : {'$in' : l}})
-        else:
-            if objectId:
-                id = ObjectId(id)
-            return self.collection.find_one({'_id' : id})
+        if objectId and type(id) is not ObjectId:
+            id = ObjectId(id)
+        return self.collection.find_one({'_id' : id})
 
 
 class AccessControlledModel(Model):
@@ -225,7 +220,8 @@ class AccessControlledModel(Model):
                 if user.has_key('groups') and perms.has_key('groups') and\
                   self._hasGroupAccess(perms['groups'], user['groups'], level):
                     return True
-                elif perms.has_key('users') and self._hasUserAccess(perms, user['_id'], level):
+                elif perms.has_key('users') and\
+                  self._hasUserAccess(perms['users'], user['_id'], level):
                     return True
 
             return False
@@ -251,11 +247,11 @@ class AccessControlledModel(Model):
         @param [force=False] If you explicity want to circumvent access
                              checking on this resource, set this to True.
         """
-        doc = Model.load(id=id, objectId=objectId)
+        doc = Model.load(self, id=id, objectId=objectId)
 
         if not force:
-            # TODO this doesn't work when passed a list of ids yet.
             self.requireAccess(doc, user, level)
+
         return doc
 
 class AccessException(Exception):
