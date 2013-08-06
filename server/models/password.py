@@ -40,7 +40,8 @@ class Password(Model):
                 raise Exception('Bcrypt module is not installed. See local.auth.cfg.')
 
             if salt == False:
-                return bcrypt.hashpw(password, bcrypt.gensalt())
+                assert type(auth_cfg['bcrypt_rounds']) is int
+                return bcrypt.hashpw(password, bcrypt.gensalt(auth_cfg['bcrypt_rounds']))
             else:
                 return bcrypt.hashpw(password, salt)
         else:
