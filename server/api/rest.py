@@ -1,12 +1,11 @@
 import cherrypy
 import datetime
-import importlib
 import json
 import sys
 import traceback
 
 from constants import AccessType
-from models.model_base import AccessException
+from models.model_base import AccessException, ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):
@@ -22,52 +21,12 @@ class RestException(Exception):
 
         Exception.__init__(self, message)
 
-class Resource(object):
+class Resource(ModelImporter):
     exposed = True
 
     def __init__(self):
-        """
-        If the subclass requests models to be set with getRequiredModels,
-        this will instantiate them. The user model is always loaded, as it
-        is needed by this base class.
-        """
-        modelList = self.getRequiredModels()
-        assert type(modelList) is list
-        modelList[:] = list(set(modelList + ['user']))
-
-        for model in modelList:
-            if type(model) is str:
-                # Default transform is e.g. 'user' -> 'User()'
-                modelName = model
-                className = model[0].upper() + model[1:]
-            elif type(model) is tuple:
-                # Custom class name e.g. 'some_thing' -> 'SomeThing()'
-                modelName = model[0]
-                className = model[1]
-            else:
-                raise Exception('Required models should be strings or tuples.')
-
-            try:
-                imported = importlib.import_module('models.%s' % modelName)
-            except ImportError:
-                raise Exception('Could not load model module "%s"' % modelName)
-
-            try:
-                constructor = getattr(imported, className)
-            except AttributeError:
-                raise Exception('Incorrect model class name "%s" for model "%s"' %
-                                (className, modelName))
-            setattr(self, '%sModel' % modelName, constructor())
-
-    def getRequiredModels(self):
-        """
-        Override this method in the subclass and have it return a list of models to
-        instantiate on the class. For example, if the returned list contains 'user',
-        it will setup self.userModel appropriately. The returned values in the list should
-        either be strings (e.g. 'user') or if necessary due to naming conventions, a 2-tuple
-        of the form ('model_module_name', 'ModelClassName').
-        """
-        return []
+        self.initialize()
+        self.requireModels(['user', 'token'])
 
     def filterDocument(self, doc, allow=[]):
         """
@@ -94,28 +53,27 @@ class Resource(object):
 
     def getCurrentUser(self):
         """
-        Returns the current user from the session or long-term cookie token.
-        Will return the user document from the database, or None if the user
-        is not logged in.
+        Returns the current user from the long-term cookie token.
+        :returns: The user document from the database, or None if the user
+                  is not logged in or the cookie token is invalid or expired.
         """
-        # First attempt to use the session
-        user = cherrypy.session.get('user', None)
-        if user is not None:
-            return user
-
-        # Next try long-term token
         cookie = cherrypy.request.cookie
-        if cookie.has_key('auth_token'):
-            info = json.loads(cookie['auth_token'].value)
-            cursor = self.userModel.find(query={
-                'token' : info['token'].encode('ascii', 'ignore'),
-                '_id' : ObjectId(info['_id']),
-                'tokenExpires' : {'$gt' : datetime.datetime.now()}
-                }, limit=1)
-            if cursor.count() == 0: # bad or expired cookie
+        if cookie.has_key('authToken'):
+            info = json.loads(cookie['authToken'].value)
+            try:
+                userId = ObjectId(info['userId'])
+                tokenId = info['token']
+            except:
+                return None
+
+            user = self.userModel.load(userId)
+            token = self.tokenModel.load(info['token'], AccessType.ADMIN,
+                                         objectId=False, user=user)
+
+            if token is None or token['expires'] < datetime.datetime.now():
                 return None
             else:
-                return cursor.next()
+                return user
         else: # user is not logged in
             return None
 

@@ -4,30 +4,29 @@ import re
 
 from ..rest import Resource, RestException
 
-
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
 class User(Resource):
 
-    def getRequiredModels(self):
-        return ['user', 'password']
+    def initialize(self):
+        self.requireModels(['password', 'token', 'user'])
 
-    def _sendAuthTokenCookie(self, user):
-        """ Helper method to send the long-term authentication token """
+    def _sendAuthTokenCookie(self, user, token):
+        """ Helper method to send the authentication cookie """
         cookie = cherrypy.response.cookie
-        cookie['auth_token'] = json.dumps({
-            '_id' : str(user['_id']),
-            'token' : user['token']
+        cookie['authToken'] = json.dumps({
+            'userId' : str(user['_id']),
+            'token' : str(token['_id'])
             })
-        cookie['auth_token']['path'] = '/'
-        cookie['auth_token']['expires'] = COOKIE_LIFETIME * 3600 * 24
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = COOKIE_LIFETIME * 3600 * 24
 
     def _deleteAuthTokenCookie(self):
-        """ Helper method to kill the long-term authentication token """
+        """ Helper method to kill the authentication cookie """
         cookie = cherrypy.response.cookie
-        cookie['auth_token'] = ''
-        cookie['auth_token']['path'] = '/'
-        cookie['auth_token']['expires'] = 0
+        cookie['authToken'] = ''
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = 0
 
     def index(self, params):
         return 'todo: index'
@@ -45,28 +44,16 @@ class User(Resource):
 
         user = cursor.next()
 
-        # TODO condition this on "remember me" option?
-        user = self.userModel.refreshToken(user, days=COOKIE_LIFETIME)
-        self._sendAuthTokenCookie(user)
+        token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
+        self._sendAuthTokenCookie(user, token)
 
         if not self.passwordModel.authenticate(user, params['password']):
             raise RestException('Login failed.', code=403)
 
-        cherrypy.session.acquire_lock()
-        cherrypy.session['user'] = user
-        cherrypy.session.release_lock()
-
         return {'message' : 'Login succeeded.'}
 
     def logout(self):
-        cherrypy.session.acquire_lock()
-        cherrypy.session.clear()
-        cherrypy.session.release_lock()
-
-        cherrypy.lib.sessions.expire()
-
         self._deleteAuthTokenCookie()
-
         return {'message' : 'Logged out.'}
 
     def register(self, params):
@@ -101,15 +88,10 @@ class User(Resource):
                                          password=params['password'],
                                          email=email,
                                          firstName=params['firstName'],
-                                         lastName=params['lastName'],
-                                         tokenLifespan=COOKIE_LIFETIME)
+                                         lastName=params['lastName'])
 
-        # TODO possibly condition this on a "remember me" value?
-        self._sendAuthTokenCookie(user)
-
-        cherrypy.session.acquire_lock()
-        cherrypy.session['user'] = user
-        cherrypy.session.release_lock()
+        token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
+        self._sendAuthTokenCookie(user, token)
 
         return user
 
