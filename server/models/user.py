@@ -1,9 +1,9 @@
 import datetime
 
-from .model_base import Model
+from .model_base import AccessControlledModel
 from constants import AccessType
 
-class User(Model):
+class User(AccessControlledModel):
 
     def initialize(self):
         self.name = 'user'
@@ -11,7 +11,7 @@ class User(Model):
         self.setIndexedFields(['login', 'email'])
 
     def createUser(self, login, password, firstName, lastName, email,
-                   admin=False):
+                   admin=False, public=True):
         """
         Create a new user with the given information. The user will be created
         with the default "Public" and "Private" folders. Validation must be done
@@ -20,11 +20,13 @@ class User(Model):
         :type admin: bool
         :param tokenLifespan: Number of days the long-term token should last.
         :type tokenLifespan: int
+        :param public: Whether user is publicly visible.
+        :type public: bool
         :returns: The user document that was created.
         """
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 
-        user = self.save({
+        user = {
             'login' : login,
             'email' : email,
             'firstName' : firstName,
@@ -33,8 +35,11 @@ class User(Model):
             'created' : datetime.datetime.now(),
             'hashAlg' : hashAlg,
             'emailVerified' : False,
-            'admin' : admin
-            })
+            'admin' : admin,
+            'size' : 0
+            }
+        user = self.setPublic(user, public=public)
+        user = self.setUserAccess(user, user, level=AccessType.ADMIN)
 
         # Create some default folders for the user and give the user admin access to them
         publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',
@@ -44,7 +49,5 @@ class User(Model):
         self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
         self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
 
-        user['folders'] = [publicFolder['_id'], privateFolder['_id']]
-
-        return self.save(user)
+        return user
 

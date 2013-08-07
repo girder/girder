@@ -11,6 +11,13 @@ class User(Resource):
     def initialize(self):
         self.requireModels(['password', 'token', 'user'])
 
+    def _filter(self, user):
+        """
+        Helper to filter the user model.
+        """
+        # TODO stub
+        return user
+
     def _sendAuthTokenCookie(self, user, token):
         """ Helper method to send the authentication cookie """
         cookie = cherrypy.response.cookie
@@ -33,9 +40,9 @@ class User(Resource):
 
     def login(self, params):
         """
-        Login endpoint (user/login). Creates sessions and cookies.
-        @param login The login name.
-        @param password The user's password
+        Login endpoint. Sends a session cookie in the response on success.
+        :param login: The login name.
+        :param password: The user's password.
         """
         self.requireParams(['login', 'password'], params)
         cursor = self.userModel.find({'login' : params['login']}, limit=1)
@@ -93,14 +100,16 @@ class User(Resource):
         token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
         self._sendAuthTokenCookie(user, token)
 
-        return user
+        return self._filter(user)
 
     @Resource.endpoint
     def GET(self, pathParam=None, **params):
         if pathParam is None:
             return self.index(params)
         else: # assume it's a user id
-            return self.getObjectById(self.userModel, pathParam)
+            user = self.getCurrentUser()
+            return self._filter(self.getObjectById(self.userModel, id=pathParam,
+                                                   user=user, checkAccess=True))
 
     @Resource.endpoint
     def POST(self, pathParam=None, **params):

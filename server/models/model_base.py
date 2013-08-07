@@ -303,7 +303,7 @@ class AccessControlledModel(Model):
                 perm = 'Admin'
             raise AccessException("%s access denied for %s." % (perm, self.name))
 
-    def load(self, id, level, user=None, objectId=True, force=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False):
         """
         We override Model.load to also do permission checking.
         :param id: The id of the resource.
@@ -326,6 +326,14 @@ class AccessControlledModel(Model):
 class AccessException(Exception):
     """
     Represents denial of access to a resource.
+    """
+    def __init__(self, message):
+        # TODO log the error
+        Exception.__init__(self, message)
+
+class ValidationException(Exception):
+    """
+    Represents validation failure in the model layer.
     """
     def __init__(self, message):
         # TODO log the error

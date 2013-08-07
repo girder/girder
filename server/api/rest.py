@@ -72,7 +72,7 @@ class Resource(ModelImporter):
             except:
                 return None
 
-            user = self.userModel.load(userId)
+            user = self.userModel.load(userId, force=True)
             token = self.tokenModel.load(info['token'], AccessType.ADMIN,
                                          objectId=False, user=user)
 
@@ -83,7 +83,8 @@ class Resource(ModelImporter):
         else: # user is not logged in
             return None
 
-    def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ):
+    def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ,
+                      objectId=True):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
@@ -98,12 +99,11 @@ class Resource(ModelImporter):
         :param level: If the model is an AccessControlledModel, you must
                      pass the user requesting access
         """
-        coerceId = type(id) is not ObjectId
         try:
             if checkAccess is True:
-                obj = model.load(id=id, objectId=coerceId, user=user, level=level)
+                obj = model.load(id=id, objectId=objectId, user=user, level=level)
             else:
-                obj = model.load(id=id, objectId=coerceId)
+                obj = model.load(id=id, objectId=objectId)
         except InvalidId:
             raise RestException('Invalid object ID format.')
         if obj is None:

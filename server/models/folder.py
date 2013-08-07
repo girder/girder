@@ -8,11 +8,10 @@ class Folder(AccessControlledModel):
         self.name = 'folder'
         self.setIndexedFields(['parentId'])
 
-    def createFolder(self, parent, name, description='', parentType='folder', public=False,
+    def createFolder(self, parent, name, description='', parentType='folder', public=None,
                      creator=None):
         """
-        Create a new folder under the given parent. Validation should be done by the caller,
-        including ensuring no siblings with duplicate names exist.
+        Create a new folder under the given parent.
         :param parent: The parent document. Should be a folder, user, or community.
         :type parent: dict
         :param name: The name of the folder.
@@ -22,13 +21,15 @@ class Folder(AccessControlledModel):
         :param parentType: What type the parent is: ('folder' | 'user' | 'community')
         :type parentType: str
         :param public: Public read access flag.
-        :type public: bool
+        :type public: bool or None to inherit from parent
         :param creator: User document representing the creator of this folder.
         :type creator: dict
         :returns: The folder document that was created.
         """
         assert parent.has_key('_id')
-        assert type(public) is bool
+        assert public is None or type(public) is bool
+
+        # TODO validate that no sibling has the requested name
 
         now = datetime.datetime.now()
 
@@ -41,18 +42,20 @@ class Folder(AccessControlledModel):
                 'users' : []
             }
 
-        if creator is None or not creator.has_key('_id'):
+        if public is None:
+            # This means we should inherit permissions from parent or default to private
+            public = parent.get('public', False)
+
+        if creator is None:
             creatorId = None
         else:
-            creatorId = creator['_id']
+            creatorId = creator.get('_id', None)
 
         return self.save({
             'name' : name,
             'description' : description,
             'parentCollection' : parentType,
             'parentId' : parent['_id'],
-            'folders' : [],
-            'items' : [],
             'public' : public,
             'access' : access,
             'creatorId' : creatorId,
