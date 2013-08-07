@@ -1,6 +1,6 @@
 import datetime
 
-from .model_base import AccessControlledModel
+from .model_base import AccessControlledModel, ValidationException
 
 class Folder(AccessControlledModel):
 
@@ -29,7 +29,15 @@ class Folder(AccessControlledModel):
         assert parent.has_key('_id')
         assert public is None or type(public) is bool
 
-        # TODO validate that no sibling has the requested name
+        duplicates = self.find({
+            'parentId' : parent['_id'],
+            'name' : name,
+            'parentCollection' : parentType
+            }, limit=1, fields=['_id'])
+        if duplicates.count() != 0:
+            raise ValidationException('A folder with that name already exists here.')
+
+        # TODO validate that no sibling ITEM has the requested name either
 
         now = datetime.datetime.now()
 
