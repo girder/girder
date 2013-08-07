@@ -166,16 +166,14 @@ class Resource(ModelImporter):
             accepts = cherrypy.request.headers.elements('Accept')
             for accept in accepts:
                 cherrypy.response.headers['Content-Type'] = accept.value
-                if accept.value == 'application/json':
-                    break
-                elif accept.value == 'text/html':
+                if accept.value == 'text/html':
                     # Pretty-print and HTMLify the response for display in browser
                     resp = json.dumps(val, indent=4, sort_keys=True,
                                       separators=(',', ': '), default=str)
                     resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
                     resp = '<div style="font-family: monospace">' + resp + '</div>'
                     return resp
-
-            #Default behavior will just be normal JSON output
-            return json.dumps(val, default=str)
+                else:
+                    #Default behavior will just be normal JSON output
+                    return json.dumps(val, default=str)
         return wrapper
