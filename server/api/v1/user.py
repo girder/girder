@@ -45,7 +45,11 @@ class User(Resource):
         :param password: The user's password.
         """
         self.requireParams(['login', 'password'], params)
-        cursor = self.userModel.find({'login' : params['login']}, limit=1)
+
+        login = params['login'].lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+
+        cursor = self.userModel.find({loginField : login}, limit=1)
         if cursor.count() == 0:
             raise RestException('Login failed.', code=403)
 
@@ -66,8 +70,13 @@ class User(Resource):
     def register(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
 
-        login = params['login'].lower()
-        email = params['email'].lower()
+        login = params['login'].lower().strip()
+        email = params['email'].lower().strip()
+
+        if '@' in login:
+            raise RestException('Login may not have an "@" character.', extra={
+                'fields' : ['login']
+                })
 
         if len(params['password']) < 6:
             raise RestException('Password must be at least 6 characters.', extra={
@@ -103,24 +112,24 @@ class User(Resource):
         return self._filter(user)
 
     @Resource.endpoint
-    def GET(self, pathParam=None, **params):
-        if pathParam is None:
+    def GET(self, path, params):
+        if not path:
             return self.index(params)
         else: # assume it's a user id
             user = self.getCurrentUser()
-            return self._filter(self.getObjectById(self.userModel, id=pathParam,
+            return self._filter(self.getObjectById(self.userModel, id=path[0],
                                                    user=user, checkAccess=True))
 
     @Resource.endpoint
-    def POST(self, pathParam=None, **params):
+    def POST(self, path, params):
         """
         Use this endpoint to register a new user, to login, or to logout.
         """
-        if pathParam is None:
+        if not path:
             return self.register(params)
-        elif pathParam == 'login':
+        elif path[0] == 'login':
             return self.login(params)
-        elif pathParam == 'logout':
+        elif path[0] == 'logout':
             return self.logout()
         else:
-            raise RestException('Unsupported operation')
+            raise RestException('Unsupported operation.')

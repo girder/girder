@@ -268,23 +268,21 @@ class AccessControlledModel(Model):
         """
         if user is None:
             # Short-circuit the case of anonymous users
-            return level == AccessType.READ and doc.has_key('public') and doc['public'] == True
+            return level == AccessType.READ and doc.get('public', False) == True
         elif user['admin']:
             # Short-circuit the case of admins
             return True
         else:
             # Short-circuit the case of public resources
-            if level == AccessType.READ and doc.has_key('public') and doc['public'] == True:
+            if level == AccessType.READ and doc.get('public', False) == True:
                 return True
 
             # If all that fails, descend into real permission checking.
             if doc.has_key('access'):
                 perms = doc['access']
-                if user.has_key('groups') and perms.has_key('groups') and\
-                  self._hasGroupAccess(perms['groups'], user['groups'], level):
+                if self._hasGroupAccess(perms.get('groups', []), user.get('groups', []), level):
                     return True
-                elif perms.has_key('users') and\
-                  self._hasUserAccess(perms['users'], user['_id'], level):
+                elif self._hasUserAccess(perms.get('users', []), user['_id'], level):
                     return True
 
             return False

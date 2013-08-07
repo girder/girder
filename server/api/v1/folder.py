@@ -74,17 +74,17 @@ class Folder(Resource):
         return self._filter(folder)
 
     @Resource.endpoint
-    def GET(self, pathParam=None, **params):
-        if pathParam is None:
+    def GET(self, path, params):
+        if not path:
             return self.index(params)
         else: # assume it's a folder id
             user = self.getCurrentUser()
-            folder = self.getObjectById(self.folderModel, id=pathParam,
+            folder = self.getObjectById(self.folderModel, id=path[0],
                                         checkAccess=True, user=user)
             return self._filter(folder)
 
     @Resource.endpoint
-    def POST(self, pathParam=None, **params):
+    def POST(self, path, params):
         """
         Use this endpoint to create a new folder.
         """

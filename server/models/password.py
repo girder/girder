@@ -41,6 +41,8 @@ class Password(Model):
                 assert type(auth_cfg['bcrypt_rounds']) is int
                 return bcrypt.hashpw(password, bcrypt.gensalt(auth_cfg['bcrypt_rounds']))
             else:
+                if type(salt) is unicode:
+                    salt = salt.encode('utf-8')
                 return bcrypt.hashpw(password, salt)
         else:
             raise Exception('Unsupported hash algorithm: %s' % alg)
@@ -54,11 +56,6 @@ class Password(Model):
         :type password: str
         :returns: Whether authentication succeeded (bool).
         """
-        if type(password) is unicode:
-            password = password.encode('utf-8')
-        if type(user['salt']) is unicode:
-            user['salt'] = user['salt'].encode('utf-8')
-
         hash = self._digest(salt=user['salt'], alg=user['hashAlg'], password=password)
 
         if user['hashAlg'] == 'bcrypt':
@@ -80,8 +77,6 @@ class Password(Model):
                                           Both should be stored in the corresponding user
                                           document as 'salt' and 'hashAlg', respectively.
         """
-        if type(password) is unicode:
-            password = password.encode('utf-8')
 
         if HASH_ALG == 'bcrypt':
             """

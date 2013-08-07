@@ -126,12 +126,26 @@ class Resource(ModelImporter):
         All REST endpoints should use this decorator. It converts the return value
         of the underlying method to the appropriate output format and sets the relevant
         response headers. It also handles RestExceptions, which are 400-level
-        exceptions in the REST endpoints, and also handles any unexpected exceptions
-        using 500 status and including a useful traceback in those cases.
+        exceptions in the REST endpoints, AccessExceptions resulting from access denial,
+        and also handles any unexpected exceptions using 500 status and including a useful
+        traceback in those cases.
         """
         def wrapper(self, *args, **kwargs):
             try:
-                val = fun(self, *args, **kwargs)
+                # First, we should encode any unicode form data down into
+                # UTF-8 so the actual REST classes are always dealing with
+                # str types.
+                params = {}
+                for k, v in kwargs.iteritems():
+                    if type(v) is unicode:
+                        try:
+                            params[k] = v.encode('utf-8')
+                        except UnicodeEncodeError:
+                            raise RestException('Unicode encoding failure.')
+                    else:
+                        params[k] = v
+
+                val = fun(self, args, params)
             except RestException as e:
                 # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
