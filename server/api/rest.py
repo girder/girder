@@ -33,7 +33,7 @@ class Resource(ModelImporter):
 
     def initialize(self):
         """
-        Pure virtual method.
+        Subclasses should implement this method.
         """
         pass
 
@@ -165,17 +165,19 @@ class Resource(ModelImporter):
 
             accepts = cherrypy.request.headers.elements('Accept')
             for accept in accepts:
-                cherrypy.response.headers['Content-Type'] = accept.value
                 if accept.value == 'application/json':
                     break
                 elif accept.value == 'text/html':
                     # Pretty-print and HTMLify the response for display in browser
+                    cherrypy.response.headers['Content-Type'] = 'text/html'
                     resp = json.dumps(val, indent=4, sort_keys=True,
                                       separators=(',', ': '), default=str)
                     resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
                     resp = '<div style="font-family: monospace">' + resp + '</div>'
                     return resp
 
-            #Default behavior will just be normal JSON output
+            # Default behavior will just be normal JSON output. Keep this
+            # outside of the loop body in case no Accept header is passed.
+            cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.dumps(val, default=str)
         return wrapper
