@@ -69,11 +69,16 @@ class Model(ModelImporter):
 
         assert type(self.name) == str
 
-        self.collection = db_connection[db_cfg['database']][self.name]
+        if cherrypy.config['server']['mode'] == 'testing':
+            dbName = '%s_test' % db_cfg['database']
+        else:
+            dbName = db_cfg['database']
+        self.collection = db_connection[dbName][self.name]
 
         assert isinstance(self.collection, pymongo.collection.Collection)
         assert type(self._indices) == list
 
+        # TODO maybe this shouldn't be here if it's slow. This ctor gets called a lot.
         [self.collection.ensure_index(index) for index in self._indices]
 
     def setIndexedFields(self, indices):

@@ -15,8 +15,8 @@ class User(Resource):
         """
         Helper to filter the user model.
         """
-        # TODO stub
-        return user
+        return self.filterDocument(user, allow=['_id', 'login', 'email', 'public', 'size',
+                                                'firstName', 'lastName', 'admin', 'hashAlg'])
 
     def _sendAuthTokenCookie(self, user, token):
         """ Helper method to send the authentication cookie """
@@ -78,8 +78,8 @@ class User(Resource):
                 'fields' : ['login']
                 })
 
-        if len(params['password']) < 6:
-            raise RestException('Password must be at least 6 characters.', extra={
+        if not re.match(cherrypy.config['users']['password_regex'], params['password']):
+            raise RestException(cherrypy.config['users']['password_description'], extra={
                 'fields' : ['password']
                 })
 

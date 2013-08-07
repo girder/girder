@@ -14,7 +14,13 @@ class Webroot(object):
             os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built', 'index.html'),
             content_type='text/html')
 
-if __name__ == '__main__':
+def setupServer(test=False):
+    """
+    Function to setup the cherrypy server. It configures it, but does
+    not actually start it.
+    :param test: Set to True when running in the tests.
+    :type test: bool
+    """
     cfgs = ['auth', 'db', 'server']
     cfgs = [os.path.join(ROOT_DIR, 'server', 'conf', 'local.%s.cfg' % c) for c in cfgs]
     [cherrypy.config.update(cfg) for cfg in cfgs]
@@ -32,6 +38,10 @@ if __name__ == '__main__':
 
     cherrypy.config.update(appconf)
 
+    if test:
+        # Force the mode to be 'testing'
+        cherrypy.config.update({'server' : {'mode' : 'testing'}})
+
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
     from api import api_main
@@ -41,6 +51,12 @@ if __name__ == '__main__':
 
     application = cherrypy.tree.mount(root, '/', appconf)
     [application.merge(cfg) for cfg in cfgs]
+
+    if test:
+        application.merge({'server' : {'mode' : 'testing'}})
+
+if __name__ == '__main__':
+    setupServer()
 
     cherrypy.engine.start()
     cherrypy.engine.block()
