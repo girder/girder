@@ -6,15 +6,15 @@ from constants import AccessType
 
 class Folder(Resource):
 
+    def initialize(self):
+        self.requireModels(['folder'])
+
     def _filter(self, folder):
         """
         Filter a folder document for display to the user.
         """
         # TODO possibly write a folder filter with self.filterDocument
         return folder
-
-    def getRequiredModels(self):
-        return ['folder']
 
     def index(self, params):
         return 'todo: folder index'

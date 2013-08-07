@@ -1,34 +1,17 @@
 import datetime
 
 from .model_base import Model
-from .password import Password, genToken
-from .folder import Folder
 from constants import AccessType
 
 class User(Model):
+
     def initialize(self):
         self.name = 'user'
+        self.requireModels(['folder', 'password'])
         self.setIndexedFields(['login', 'email'])
-        self.passwordModel = Password()
-        self.folderModel = Folder()
-
-    def refreshToken(self, user, days=180):
-        """
-        Generate a new token and update the provided user document.
-        :param user: The user document.
-        :type user: dict
-        :param days: Number of days token should be valid.
-        :type days: int
-        :returns: The updated user document.
-        """
-        assert user.has_key('_id')
-
-        user['token'] = genToken()
-        user['tokenExpires'] = datetime.datetime.now() + datetime.timedelta(days=days)
-        return self.save(user)
 
     def createUser(self, login, password, firstName, lastName, email,
-                   admin=False, tokenLifespan=180):
+                   admin=False):
         """
         Create a new user with the given information. The user will be created
         with the default "Public" and "Private" folders. Validation must be done
@@ -41,21 +24,13 @@ class User(Model):
         """
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 
-        # Generate a token to be used for a long-term cookie. It is up to the caller
-        # to actually send the cookie to the user agent if desired.
-        token = genToken()
-        now = datetime.datetime.now()
-        lifespan = datetime.timedelta(days=tokenLifespan)
-
         user = self.save({
             'login' : login,
             'email' : email,
             'firstName' : firstName,
             'lastName' : lastName,
             'salt' : salt,
-            'created' : now,
-            'token' : token,
-            'tokenExpires' : now + lifespan,
+            'created' : datetime.datetime.now(),
             'hashAlg' : hashAlg,
             'emailVerified' : False,
             'admin' : admin
