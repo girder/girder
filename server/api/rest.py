@@ -25,6 +25,9 @@ class Resource(ModelImporter):
     exposed = True
 
     def __init__(self):
+        self._currentUser = None
+        self._setupCurrentUser = False
+
         self.initialize()
         self.requireModels(['user', 'token'])
 
@@ -59,10 +62,16 @@ class Resource(ModelImporter):
 
     def getCurrentUser(self):
         """
-        Returns the current user from the long-term cookie token.
+        Returns the current user from the long-term cookie token. This is a
+        lazy getter that will only attempt to load from the cookie once per
+        request, so subsequent calls this this function are inexpensive.
         :returns: The user document from the database, or None if the user
                   is not logged in or the cookie token is invalid or expired.
         """
+        if self._setupCurrentUser:
+            return self._currentUser
+
+        self._setupCurrentUser = True
         cookie = cherrypy.request.cookie
         if cookie.has_key('authToken'):
             info = json.loads(cookie['authToken'].value)
@@ -79,6 +88,7 @@ class Resource(ModelImporter):
             if token is None or token['expires'] < datetime.datetime.now():
                 return None
             else:
+                self._currentUser = user
                 return user
         else: # user is not logged in
             return None
