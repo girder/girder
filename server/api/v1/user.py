@@ -60,7 +60,13 @@ class User(Resource):
         if not self.passwordModel.authenticate(user, params['password']):
             raise RestException('Login failed.', code=403)
 
-        return {'message' : 'Login succeeded.'}
+        return {'message' : 'Login succeeded.',
+                'authToken' : {
+                    'token' : token['_id'],
+                    'expires' : token['expires'],
+                    'userId' : user['_id']
+                    }
+                }
 
     def logout(self):
         self._deleteAuthTokenCookie()

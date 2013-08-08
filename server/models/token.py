@@ -22,6 +22,11 @@ class Token(AccessControlledModel):
         self.name = 'token'
 
     def validate(self, doc):
+        # TODO one validation that might be nice would be adding a maximum
+        # number of tokens per user. If they exceeded the max, it would begin
+        # to delete the oldest ones. We have to support multiple valid tokens per
+        # user to support things like logging in from multiple machines, but we
+        # can still set a sensible maximum.
         return doc
 
     def cleanExpired(self):
@@ -37,9 +42,12 @@ class Token(AccessControlledModel):
         :type days: int
         :returns: The token document that was created.
         """
+        now = datetime.datetime.now()
         token = {
             '_id' : genToken(),
-            'expires' : datetime.datetime.now() + datetime.timedelta(days=days)
+            'created' : now,
+            'userId' : user['_id'],
+            'expires' : now + datetime.timedelta(days=days)
             }
         token = self.setUserAccess(token, user=user, level=AccessType.ADMIN, save=False)
         return self.save(token)

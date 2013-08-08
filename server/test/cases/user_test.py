@@ -91,6 +91,8 @@ class UserTestCase(base.TestCase):
         params['password'] = 'goodpassword'
         resp = self.request(path='/user/login', method='POST', params=params)
         self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ['authToken'])
+        self.assertHasKeys(resp.json['authToken'], ['token', 'expires', 'userId'])
 
         # Invalid login
         params['login'] = 'badlogin'

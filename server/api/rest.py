@@ -73,6 +73,8 @@ class Resource(ModelImporter):
             return self._currentUser
 
         self._setupCurrentUser = True
+        # TODO we should also allow them to pass the info in the params and check there too
+        # Params should be something like "userId" and "token"
         cookie = cherrypy.request.cookie
         if cookie.has_key('authToken'):
             info = json.loads(cookie['authToken'].value)
