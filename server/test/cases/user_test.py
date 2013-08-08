@@ -45,24 +45,27 @@ class UserTestCase(base.TestCase):
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)
-        self.assertStatus(resp, 400)
-        self.assertEqual('Login may not have an "@" character.', resp.json['message'])
-
-        params['login'] = 'goodlogin'
-        resp = self.request(path='/user', method='POST', params=params)
-        self.assertStatus(resp, 400)
+        self.assertValidationError(resp, 'password')
         self.assertEqual(cherrypy.config['users']['password_description'], resp.json['message'])
 
         params['password'] = 'goodpassword'
         resp = self.request(path='/user', method='POST', params=params)
-        self.assertStatus(resp, 400)
-        self.assertEqual('Invalid email address.', resp.json['message'])
+        self.assertValidationError(resp, 'login')
+
+        params['login'] = ' ' # something that violates the regex but doesn't contain @
+        resp = self.request(path='/user', method='POST', params=params)
+        self.assertValidationError(resp, 'login')
+        self.assertEqual(cherrypy.config['users']['login_description'], resp.json['message'])
+
+        params['login'] = 'goodlogin'
+        resp = self.request(path='/user', method='POST', params=params)
+        self.assertValidationError(resp, 'email')
 
         # Now successfully create the user
         params['email'] = 'good@email.com'
         resp = self.request(path='/user', method='POST', params=params)
-        self._verifyUserDocument(resp.json)
         self.assertStatusOk(resp)
+        self._verifyUserDocument(resp.json)
 
         self.assertEqual(resp.json['hashAlg'], 'bcrypt')
 

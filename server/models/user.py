@@ -1,6 +1,8 @@
+import cherrypy
 import datetime
+import re
 
-from .model_base import AccessControlledModel
+from .model_base import AccessControlledModel, ValidationException
 from constants import AccessType
 
 class User(AccessControlledModel):
@@ -9,6 +11,53 @@ class User(AccessControlledModel):
         self.name = 'user'
         self.requireModels(['folder', 'password'])
         self.setIndexedFields(['login', 'email'])
+
+    def validate(self, doc):
+        """
+        Validate the user every time it is stored in the database.
+        """
+        doc['login'] = doc.get('login', '').lower().strip()
+        doc['email'] = doc.get('email', '').lower().strip()
+        doc['fname'] = doc.get('firstName', '').strip()
+        doc['lname'] = doc.get('lastName', '').strip()
+
+        if not doc.get('salt', ''):
+            # Internal error, this should not happen
+            raise Exception('Tried to save user document with no salt.')
+
+        if not doc['fname']:
+            raise ValidationException('First name must not be empty.', 'firstName')
+
+        if not doc['lname']:
+            raise ValidationException('Last name must not be empty.', 'lastName')
+
+        if '@' in doc['login']:
+            # Hard-code this one so we can always easily distinguish email from login
+            raise ValidationException('Login may not contain "@".', 'login')
+
+        if not re.match(cherrypy.config['users']['login_regex'], doc['login']):
+            raise ValidationException(cherrypy.config['users']['login_description'], 'login')
+
+        if not re.match(cherrypy.config['users']['email_regex'], doc['email']):
+            raise ValidationException('Invalid email address.', 'email')
+
+        # Ensure unique logins
+        q = {'login' : doc['login']}
+        if doc.has_key('_id'):
+            q['_id'] = {'$ne' : doc['_id']}
+        existing = self.find(q, limit=1)
+        if existing.count(True) > 0:
+            raise ValidationException('That login is already registered.', 'login')
+
+        # Ensure unique emails
+        q = {'email' : doc['email']}
+        if doc.has_key('_id'):
+            q['_id'] = {'$ne' : doc['_id']}
+        existing = self.find(q, limit=1)
+        if existing.count(True) > 0:
+            raise ValidationException('That email is already registered.', 'email')
+
+        return doc
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
@@ -26,7 +75,7 @@ class User(AccessControlledModel):
         """
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 
-        user = {
+        user = self.save({
             'login' : login,
             'email' : email,
             'firstName' : firstName,
@@ -37,9 +86,12 @@ class User(AccessControlledModel):
             'emailVerified' : False,
             'admin' : admin,
             'size' : 0
-            }
-        user = self.setPublic(user, public=public)
-        user = self.setUserAccess(user, user, level=AccessType.ADMIN)
+            })
+
+        user = self.setPublic(user, public=public, save=False)
+        # Must have already saved the user prior to calling this since we are
+        # granting the user access on himself.
+        user = self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
         # Create some default folders for the user and give the user admin access to them
         publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',

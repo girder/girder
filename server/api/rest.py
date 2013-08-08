@@ -5,14 +5,14 @@ import sys
 import traceback
 
 from constants import AccessType
-from models.model_base import AccessException
+from models.model_base import AccessException, ValidationException
 from utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):
     """
-    Throw a RestException in the case of any sort of
-    incorrect request (i.e. user/client error). Permission failures
+    Throw a RestException in the case of any sort of incorrect
+    request (i.e. user/client error). Login and permission failures
     should set a 403 code; almost all other validation errors
     should use status 400, which is the default.
     """
@@ -150,19 +150,30 @@ class Resource(ModelImporter):
             except RestException as e:
                 # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
-                val = {'message' : e.message}
+                val = {'message' : e.message,
+                       'type' : 'rest'}
                 if e.extra is not None:
                     val['extra'] = e.extra
             except AccessException as e:
                 # Handle any permission exceptions
                 cherrypy.response.status = 403
-                val = {'message': e.message}
+                val = {'message': e.message,
+                       'type' : 'access'}
+            except ValidationException as e:
+                cherrypy.response.status = 400
+                val = {'message' : e.message,
+                       'type' : 'validation'}
+                if e.field is not None:
+                    val['field'] = e.field
             except:
-                # These are unexpected failures; send a 500 status and traceback
-                (t, value, tb) = sys.exc_info()
+                # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
+                (t, value, tb) = sys.exc_info()
                 val = {'message' : '%s: %s' % (t.__name__, str(value)),
-                       'trace' : traceback.extract_tb(tb)[1:]}
+                       'type' : 'internal'}
+                if cherrypy.config['server']['mode'] != 'production':
+                    # Unless we are in production mode, send a traceback too
+                    val['trace'] = traceback.extract_tb(tb)[1:]
 
             accepts = cherrypy.request.headers.elements('Accept')
             for accept in accepts:

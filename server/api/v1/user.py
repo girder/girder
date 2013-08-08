@@ -1,6 +1,5 @@
 import cherrypy
 import json
-import re
 
 from ..rest import Resource, RestException
 
@@ -70,39 +69,9 @@ class User(Resource):
     def register(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
 
-        login = params['login'].lower().strip()
-        email = params['email'].lower().strip()
-
-        if '@' in login:
-            raise RestException('Login may not have an "@" character.', extra={
-                'fields' : ['login']
-                })
-
-        if not re.match(cherrypy.config['users']['password_regex'], params['password']):
-            raise RestException(cherrypy.config['users']['password_description'], extra={
-                'fields' : ['password']
-                })
-
-        if not re.match(cherrypy.config['users']['email_regex'], email):
-            raise RestException('Invalid email address.', extra={
-                'fields' : ['email']
-                })
-
-        existing = self.userModel.find({'login' : login}, limit=1)
-        if existing.count(True) > 0:
-            raise RestException('That login is already registered.', extra={
-                'fields' : ['login']
-                })
-
-        existing = self.userModel.find({'email' : email}, limit=1)
-        if existing.count(True) > 0:
-            raise RestException('That email is already registered.', extra={
-                'fields' : ['email']
-                })
-
-        user = self.userModel.createUser(login=login,
+        user = self.userModel.createUser(login=params['login'],
                                          password=params['password'],
-                                         email=email,
+                                         email=params['email'],
                                          firstName=params['firstName'],
                                          lastName=params['lastName'])
 

@@ -7,9 +7,6 @@ import string
 from constants import AccessType
 from .model_base import AccessControlledModel
 
-auth_cfg = cherrypy.config['auth']
-HASH_ALG = auth_cfg['hash_alg']
-
 def genToken(length=64):
     """
     Use this utility function to generate a random string of
@@ -23,6 +20,9 @@ class Token(AccessControlledModel):
     """
     def initialize(self):
         self.name = 'token'
+
+    def validate(self, doc):
+        return doc
 
     def cleanExpired(self):
         # TODO
@@ -41,4 +41,6 @@ class Token(AccessControlledModel):
             '_id' : genToken(),
             'expires' : datetime.datetime.now() + datetime.timedelta(days=days)
             }
-        return self.setUserAccess(token, user=user, level=AccessType.ADMIN)
+        token = self.setUserAccess(token, user=user, level=AccessType.ADMIN, save=False)
+        return self.save(token)
+

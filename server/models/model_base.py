@@ -42,13 +42,20 @@ class Model(ModelImporter):
         """
         self._indices = indices
 
+    def validate(self, doc):
+        """
+        Models should implement this to validate the document before it enters the database.
+        It must return the document with any necessary filters applied, or throw a
+        ValidationException if validation of the document fails.
+        """
+        raise Exception('Must override validate() in %s model.' % self.__class__.__name__)
+
     def initialize(self):
         """
         Subclasses should override this and set the name of the collection as self.name.
-        Also, they should set any
+        Also, they should set any indexed fields that they require.
         """
-        raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__)
+        raise Exception('Must override initialize() in %s model' % self.__class__.__name__)
 
     def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
@@ -68,12 +75,19 @@ class Model(ModelImporter):
         return self.collection.find(spec=query, fields=fields, skip=offset,
                                     limit=limit, sort=sort)
 
-    def save(self, document):
+    def save(self, document, validate=True):
         """
-        Create or update a document in the collection
+        Create or update a document in the collection.
+        :param document: The document to save.
+        :type document: dict
+        :param validate: Whether to call the model's validate() before saving.
+        :type validate: bool
         """
-        assert type(document) == dict
+        if validate:
+            document = self.validate(document)
 
+        # This assertion will fail if validate() fails to return the document
+        assert type(document) is dict
         document['_id'] = self.collection.save(document)
         return document
 
@@ -150,7 +164,7 @@ class AccessControlledModel(Model):
                 })
 
         if save:
-            doc = self.save(doc)
+            doc = self.save(doc, validate=False)
 
         return doc
 
@@ -172,7 +186,7 @@ class AccessControlledModel(Model):
         doc['public'] = public
 
         if save:
-            doc = self.save(doc)
+            doc = self.save(doc, validate=False)
 
         return doc
 
@@ -279,6 +293,25 @@ class AccessControlledModel(Model):
 
         return doc
 
+    def copyAccessPolicies(self, src, dest, save=True):
+        """
+        Copies the set of access control policies from one document to another.
+        :param src: The source document to copy policies from.
+        :type src: dict
+        :param dest: The destination document to copy policies onto.
+        :type dest: dict
+        :param save: Whether to save the destination document after copying.
+        :type save: bool
+        :returns: The modified destination document.
+        """
+        dest['public'] = src.get('public', False)
+        if src.has_key('access'):
+            dest['access'] = src['access']
+
+        if save:
+            dest = self.save(dest, validate=False)
+        return dest
+
 class AccessException(Exception):
     """
     Represents denial of access to a resource.
@@ -289,8 +322,11 @@ class AccessException(Exception):
 
 class ValidationException(Exception):
     """
-    Represents validation failure in the model layer.
+    Represents validation failure in the model layer. Raise this with
+    a message and an optional field property. If one of these is thrown
+    in the model during a REST request, it will respond as a 400 status.
     """
-    def __init__(self, message):
-        # TODO log the error
+    def __init__(self, message, field=None):
+        self.field = field
+
         Exception.__init__(self, message)

@@ -8,6 +8,32 @@ class Folder(AccessControlledModel):
         self.name = 'folder'
         self.setIndexedFields(['parentId'])
 
+    def validate(self, doc):
+        doc['name'] = doc['name'].strip()
+        doc['description'] = doc['description'].strip()
+
+        if not doc['name']:
+            raise ValidationException('Folder name must not be empty.', 'name')
+
+        if not doc['parentCollection'] in ('folder', 'user', 'community'):
+            # Internal error; this shouldn't happen
+            raise Exception('Invalid folder parent type: %s.' % doc['parentCollection'])
+
+        q = {
+            'parentId' : doc['parentId'],
+            'name' : doc['name'],
+            'parentCollection' : doc['parentCollection']
+            }
+        if doc.has_key('_id'):
+            q['_id'] = {'$ne' : doc['parentId']}
+        duplicates = self.find(q, limit=1, fields=['_id'])
+        if duplicates.count() != 0:
+            raise ValidationException('A folder with that name already exists here.')
+
+        # TODO validate that no sibling ITEM has the requested name either
+
+        return doc
+
     def createFolder(self, parent, name, description='', parentType='folder', public=None,
                      creator=None):
         """
@@ -29,45 +55,33 @@ class Folder(AccessControlledModel):
         assert parent.has_key('_id')
         assert public is None or type(public) is bool
 
-        duplicates = self.find({
-            'parentId' : parent['_id'],
-            'name' : name,
-            'parentCollection' : parentType
-            }, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
-            raise ValidationException('A folder with that name already exists here.')
-
-        # TODO validate that no sibling ITEM has the requested name either
-
         now = datetime.datetime.now()
-
-        # If this is a subfolder, default permissions are inherited from the parent folder
-        if parentType == 'folder' and parent.has_key('access'):
-            access = parent['access']
-        else: # Otherwise use an empty set of permissions; caller will handle setting them
-            access = {
-                'groups' : [],
-                'users' : []
-            }
-
-        if public is None:
-            # This means we should inherit permissions from parent or default to private
-            public = parent.get('public', False)
 
         if creator is None:
             creatorId = None
         else:
             creatorId = creator.get('_id', None)
 
-        return self.save({
+        folder = {
             'name' : name,
             'description' : description,
             'parentCollection' : parentType,
             'parentId' : parent['_id'],
-            'public' : public,
-            'access' : access,
             'creatorId' : creatorId,
             'created' : now,
             'updated' : now,
             'size' : 0
-            })
+            }
+
+        # If this is a subfolder, default permissions are inherited from the parent folder
+        if parentType == 'folder':
+            folder = self.copyAccessPolicies(src=parent, dest=folder, save=False)
+
+        # Allow explicit public flag override if it's set.
+        if public is not None and type(public) is bool:
+            folder['public'] = public
+
+        # Now validate and save the folder.
+        folder = self.save(folder)
+
+        return folder

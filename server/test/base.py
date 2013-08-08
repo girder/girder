@@ -16,6 +16,10 @@ def startServer():
     function in their setUpModule() function.
     """
     setupServer(test=True)
+
+    # Make server quiet (won't announce start/stop or requests)
+    cherrypy.config.update({'environment' : 'embedded'})
+
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
 
@@ -59,7 +63,9 @@ class TestCase(unittest.TestCase, ModelImporter):
         :param code: The status code.
         :type code: int or str
         """
-        self.assertTrue(response.output_status.startswith(str(code)))
+        code = str(code)
+        msg = 'Response status was not %s' % code
+        self.assertTrue(response.output_status.startswith(code), msg)
 
     def assertHasKeys(self, obj, keys):
         """
@@ -80,6 +86,17 @@ class TestCase(unittest.TestCase, ModelImporter):
         """
         for k in keys:
             self.assertFalse(obj.has_key(k), 'Object contains key "%s"' % k)
+
+    def assertValidationError(self, response, field=None):
+        """
+        Assert that a ValidationException was thrown with the given field.
+        :param response: The response object.
+        :param field: The field that threw the validation exception.
+        :type field: str
+        """
+        self.assertStatus(response, 400)
+        self.assertEqual(response.json['type'], 'validation')
+        self.assertEqual(response.json.get('field', None), field)
 
     def assertMissingParameter(self, response, param):
         """

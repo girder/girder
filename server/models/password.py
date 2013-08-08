@@ -1,9 +1,10 @@
 import cherrypy
 import hashlib
 import random
+import re
 import string
 
-from .model_base import Model
+from .model_base import Model, ValidationException
 from .token import genToken
 
 class Password(Model):
@@ -45,6 +46,13 @@ class Password(Model):
         else:
             raise Exception('Unsupported hash algorithm: %s' % alg)
 
+    def validate(self, doc):
+        if not doc.get('_id', ''):
+            # Internal error, this should not happen
+            raise Exception('Attempting to store empty password.')
+
+        return doc
+
     def authenticate(self, user, password):
         """
         Authenticate a user.
@@ -75,6 +83,10 @@ class Password(Model):
                                           Both should be stored in the corresponding user
                                           document as 'salt' and 'hashAlg', respectively.
         """
+        # Normally this would go in validate() but password is a special case.
+        if not re.match(cherrypy.config['users']['password_regex'], password):
+            raise ValidationException(cherrypy.config['users']['password_description'], 'password')
+
         alg = cherrypy.config['auth']['hash_alg']
         if  alg == 'bcrypt':
             """
