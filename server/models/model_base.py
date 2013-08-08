@@ -77,7 +77,7 @@ class Model(ModelImporter):
         document['_id'] = self.collection.save(document)
         return document
 
-    def delete(self, document):
+    def remove(self, document):
         """
         Delete an object from the collection; must have its _id set.
         """
