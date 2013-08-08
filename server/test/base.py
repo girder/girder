@@ -5,6 +5,7 @@ import urllib
 
 from StringIO import StringIO
 from main import setupServer
+from utility.model_importer import ModelImporter
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -32,7 +33,7 @@ def dropTestDatabase():
     from models import db_connection
     db_connection.drop_database('%s_test' % cherrypy.config['database']['database'])
 
-class TestCase(unittest.TestCase):
+class TestCase(unittest.TestCase, ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for database and HTTP
     communication.
@@ -40,7 +41,7 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         """
         We want to start with a clean database each time, so we drop the test database
-        before each test method.
+        before each test.
         """
         dropTestDatabase()
 

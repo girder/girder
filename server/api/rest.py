@@ -5,7 +5,8 @@ import sys
 import traceback
 
 from constants import AccessType
-from models.model_base import AccessException, ModelImporter
+from models.model_base import AccessException
+from utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):

@@ -10,12 +10,21 @@ def tearDownModule():
     base.stopServer()
 
 class UserTestCase(base.TestCase):
+    def setUp(self):
+        base.TestCase.setUp(self)
+        self.requireModels(['user'])
+
     def _verifyAuthCookie(self, resp):
         self.assertTrue(resp.cookie.has_key('authToken'))
         cookieVal = json.loads(resp.cookie['authToken'].value)
         self.assertHasKeys(cookieVal, ['token', 'userId'])
         self.assertEqual(resp.cookie['authToken']['expires'],
                          cherrypy.config['sessions']['cookie_lifetime'] * 3600 * 24)
+
+    def _verifyUserDocument(self, doc):
+        self.assertHasKeys(doc, ['_id', 'firstName', 'lastName', 'email', 'login',
+                                       'admin', 'size', 'hashAlg'])
+        self.assertNotHasKeys(doc, ['salt'])
 
     def testRegisterAndLoginBcrypt(self):
         """
@@ -52,10 +61,9 @@ class UserTestCase(base.TestCase):
         # Now successfully create the user
         params['email'] = 'good@email.com'
         resp = self.request(path='/user', method='POST', params=params)
+        self._verifyUserDocument(resp.json)
         self.assertStatusOk(resp)
-        self.assertHasKeys(resp.json, ['_id', 'firstName', 'lastName', 'email', 'login',
-                                       'admin', 'size', 'hashAlg'])
-        self.assertNotHasKeys(resp.json, ['salt'])
+
         self.assertEqual(resp.json['hashAlg'], 'bcrypt')
 
         # Now that our user is created, try to login
@@ -109,9 +117,7 @@ class UserTestCase(base.TestCase):
         # Register a user with sha512 storage backend
         resp = self.request(path='/user', method='POST', params=params)
         self.assertStatusOk(resp)
-        self.assertHasKeys(resp.json, ['_id', 'firstName', 'lastName', 'email', 'login',
-                                       'admin', 'size', 'hashAlg'])
-        self.assertNotHasKeys(resp.json, ['salt'])
+        self._verifyUserDocument(resp.json)
         self.assertEqual(resp.json['hashAlg'], 'sha512')
 
         # Login unsuccessfully
@@ -133,6 +139,18 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
-
-
+    def testGetUser(self):
+        """
+        Tests for the GET user endpoint.
+        """
+        params = {
+            'email' : 'good@email.com',
+            'login' : 'goodlogin',
+            'firstName' : 'First',
+            'lastName' : 'Last',
+            'password' : 'goodpassword'
+            }
+        user = self.userModel.createUser(**params)
+        resp = self.request(path='/user/%s' % user['_id'])
+        self._verifyUserDocument(resp.json)
 
