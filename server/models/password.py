@@ -6,9 +6,6 @@ import string
 from .model_base import Model
 from .token import genToken
 
-auth_cfg = cherrypy.config['auth']
-HASH_ALG = auth_cfg['hash_alg']
-
 class Password(Model):
     """
     This model deals with managing user passwords.
@@ -38,8 +35,9 @@ class Password(Model):
                 raise Exception('Bcrypt module is not installed. See local.auth.cfg.')
 
             if salt is None:
-                assert type(auth_cfg['bcrypt_rounds']) is int
-                return bcrypt.hashpw(password, bcrypt.gensalt(auth_cfg['bcrypt_rounds']))
+                rounds = cherrypy.config['auth']['bcrypt_rounds']
+                assert type(rounds) is int
+                return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
                 if type(salt) is unicode:
                     salt = salt.encode('utf-8')
@@ -77,14 +75,14 @@ class Password(Model):
                                           Both should be stored in the corresponding user
                                           document as 'salt' and 'hashAlg', respectively.
         """
-
-        if HASH_ALG == 'bcrypt':
+        alg = cherrypy.config['auth']['hash_alg']
+        if  alg == 'bcrypt':
             """
             With bcrypt, we actually need the one-to-one correspondence of
             hashed password to user, so we store the hash as the salt entry in
             the user table.
             """
-            salt = self._digest(alg=HASH_ALG, password=password)
+            salt = self._digest(alg=alg, password=password)
         else:
             """
             With other hashing algorithms, we store the salt with the user
@@ -92,7 +90,7 @@ class Password(Model):
             correspondence to the user.
             """
             salt = genToken()
-            hash = self._digest(salt=salt, alg=HASH_ALG, password=password)
+            hash = self._digest(salt=salt, alg=alg, password=password)
             self.save({'_id' : hash})
 
-        return (salt, HASH_ALG)
+        return (salt, alg)
