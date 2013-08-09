@@ -4,6 +4,7 @@ function(add_python_test testName caseName)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/server"
     COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v test.cases.${caseName}_test
   )
+  set_property(TEST "Server_${testName}" PROPERTY RESOURCE_LOCK mongo cherrypy)
 endfunction()
 
 add_python_test(User user)
