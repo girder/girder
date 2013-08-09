@@ -67,6 +67,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         before each test.
         """
         dropTestDatabase()
+        self.requireModels(['token'])
 
     def assertStatusOk(self, response):
         """
@@ -140,7 +141,7 @@ class TestCase(unittest.TestCase, ModelImporter):
             resp = self.request(path=path, method=method, params=params)
             self.assertMissingParameter(resp, exclude)
 
-    def request(self, path='/', method='GET', params={}, prefix='/api/v1',
+    def request(self, path='/', method='GET', params={}, user=None, prefix='/api/v1',
                 isJson=True):
         """
         Make an HTTP request.
@@ -168,6 +169,14 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         app = cherrypy.tree.apps['']
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+
+        if user is not None:
+            token = self.tokenModel.createToken(user)
+            cookie = json.dumps({
+                'userId' : str(user['_id']),
+                'token' : str(token['_id'])
+                }).replace('"', "\\\"")
+            headers.append(('Cookie', 'authToken="%s"' % cookie))
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1', headers, fd)
         finally:
