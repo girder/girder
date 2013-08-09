@@ -24,8 +24,6 @@ class ModelImporter(object):
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
-    def __init__(self):
-        self._requiredModels = []
 
     def requireModels(self, modelList):
         """
@@ -47,7 +45,7 @@ class ModelImporter(object):
                 # Custom class name e.g. 'some_thing' -> 'SomeThing()'
                 modelName = model[0]
                 className = model[1]
-            else:
+            else: # pragma: no cover
                 raise Exception('Required models should be strings or tuples.')
 
             if hasattr(self, '%sModel' % modelName): # we already have this model
@@ -55,12 +53,12 @@ class ModelImporter(object):
 
             try:
                 imported = importlib.import_module('girder.models.%s' % modelName)
-            except ImportError:
+            except ImportError: # pragma: no cover
                 raise Exception('Could not load model module "%s"' % modelName)
 
             try:
                 constructor = getattr(imported, className)
-            except AttributeError:
+            except AttributeError: # pragma: no cover
                 raise Exception('Incorrect model class name "%s" for model "%s"' %
                                 (className, modelName))
             setattr(self, '%sModel' % modelName, constructor())

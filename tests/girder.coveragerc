@@ -1,0 +1,3 @@
+# Configuration for python coverage
+[run]
+branch = False
