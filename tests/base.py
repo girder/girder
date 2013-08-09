@@ -23,8 +23,8 @@ import unittest
 import urllib
 
 from StringIO import StringIO
-from girder.main import setupServer
 from girder.utility.model_importer import ModelImporter
+from girder.utility.server import setup as setupServer
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')

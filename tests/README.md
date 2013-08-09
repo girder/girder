@@ -2,21 +2,24 @@
 
 ## Running the tests
 
-To run the server side tests:
+Before you can run the tests, you'll need to configure the project with CMake.
 
-    cd girder
-    python -m unittest discover -s test/cases -t . -p '*_test.py' -v
+    mkdir ../girder-build
+    cd ../girder-build
+    cmake ../girder
 
-If you want to run only the tests in a specific module, follow this example:
+You only need to do that once. From then on, whenever you want to run the tests, just:
 
-    python -m unittest -v test.cases.user_test
+    cd girder-build
+    ctest
 
-> **Note**: The *-v* flag is optional and can be omitted if you do not want verbose output.
+There are many ways to filter tests when running CTest, or run the tests in parallel. More
+information about CTest can be found [here](http://www.cmake.org/cmake/help/v2.8.8/ctest.html).
 
 ## Creating tests
 
 The server side python tests are run using [unittest](http://docs.python.org/2/library/unittest.html).
-All of the actual test cases are stored under [girder/test/cases](cases).
+All of the actual test cases are stored under [tests/cases](cases).
 
 ### Adding to an existing test case
 
@@ -46,3 +49,11 @@ To start off, put the following code in the module (with appropriate class name 
 
 Then, in the **MyTestCase** class, just add functions that start with **test**, and they will
 automatically be run by unittest.
+
+Finally, you'll need to register your test in the [CMakeLists.txt](CMakeLists.txt) file in
+this directory. Just add a line like the ones already there. For example, if the test file you
+created was called module_test.py, you would add:
+
+    add_python_test(ModuleName module)
+
+Re-run cmake in the build directory, and then run ctest, and your test will be run.
