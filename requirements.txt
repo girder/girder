@@ -1,0 +1,5 @@
+CherryPy
+Sphinx
+bcrypt
+nose
+pymongo
