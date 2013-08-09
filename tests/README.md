@@ -16,6 +16,17 @@ You only need to do that once. From then on, whenever you want to run the tests,
 There are many ways to filter tests when running CTest, or run the tests in parallel. More
 information about CTest can be found [here](http://www.cmake.org/cmake/help/v2.8.8/ctest.html).
 
+## Running the tests with coverage tracing
+
+If you want to run coverage, make sure you have installed
+[coverage.py](http://nedbatchelder.com/code/coverage/):
+
+    pip install coverage
+
+And in your CMake configuration, set **PYTHON_COVERAGE** to **ON**. Then, configure
+with cmake and run **ctest**, and the coverage will be created. After the tests are run, you
+can find the HTML output from the coverage tool in the build directory under **python_coverage**.
+
 ## Creating tests
 
 The server side python tests are run using [unittest](http://docs.python.org/2/library/unittest.html).
@@ -51,9 +62,9 @@ Then, in the **MyTestCase** class, just add functions that start with **test**, 
 automatically be run by unittest.
 
 Finally, you'll need to register your test in the [CMakeLists.txt](CMakeLists.txt) file in
-this directory. Just add a line like the ones already there. For example, if the test file you
-created was called module_test.py, you would add:
+this directory. Just add a line like the ones already there at the bottom. For example, if the
+test file you created was called thing_test.py, you would add:
 
-    add_python_test(ModuleName module)
+    add_python_test(thing)
 
 Re-run cmake in the build directory, and then run ctest, and your test will be run.
