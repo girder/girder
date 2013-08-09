@@ -55,7 +55,7 @@ class Resource(ModelImporter):
         """
         Subclasses should implement this method.
         """
-        pass
+        pass # pragma: no cover
 
     def filterDocument(self, doc, allow=[]):
         """
@@ -99,7 +99,6 @@ class Resource(ModelImporter):
             info = json.loads(cookie['authToken'].value)
             try:
                 userId = ObjectId(info['userId'])
-                tokenId = info['token']
             except:
                 return None
 
@@ -200,7 +199,7 @@ class Resource(ModelImporter):
             for accept in accepts:
                 if accept.value == 'application/json':
                     break
-                elif accept.value == 'text/html':
+                elif accept.value == 'text/html': # pragma: no cover
                     # Pretty-print and HTMLify the response for display in browser
                     cherrypy.response.headers['Content-Type'] = 'text/html'
                     resp = json.dumps(val, indent=4, sort_keys=True,

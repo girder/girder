@@ -154,7 +154,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         :param isJson: Whether the response is a JSON object.
         :returns: The cherrypy response object from the request.
         """
-        headers = [('Host', '127.0.0.1')]
+        headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
         qs = fd = None
 
         if method in ['POST', 'PUT']:

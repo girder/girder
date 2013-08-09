@@ -44,7 +44,7 @@ class Model(ModelImporter):
         if cherrypy.config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
-            dbName = db_cfg['database']
+            dbName = db_cfg['database'] # pragma: no cover
         self.collection = db_connection[dbName][self.name]
 
         assert isinstance(self.collection, pymongo.collection.Collection)
@@ -67,14 +67,16 @@ class Model(ModelImporter):
         It must return the document with any necessary filters applied, or throw a
         ValidationException if validation of the document fails.
         """
-        raise Exception('Must override validate() in %s model.' % self.__class__.__name__)
+        raise Exception('Must override validate() in %s model.'
+                        % self.__class__.__name__) # pragma: no cover
 
     def initialize(self):
         """
         Subclasses should override this and set the name of the collection as self.name.
         Also, they should set any indexed fields that they require.
         """
-        raise Exception('Must override initialize() in %s model' % self.__class__.__name__)
+        raise Exception('Must override initialize() in %s model'
+                        % self.__class__.__name__) # pragma: no cover
 
     def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
