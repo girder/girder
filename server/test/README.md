@@ -54,6 +54,6 @@ Finally, you'll need to register your test in the [CMakeLists.txt](CMakeLists.tx
 this directory. Just add a line like the ones already there. For example, if the test file you
 created was called module_test.py, you would add:
 
-    add_test(ModuleName module)
+    add_python_test(ModuleName module)
 
 Re-run cmake in the build directory, and then run ctest, and your test will be run.
