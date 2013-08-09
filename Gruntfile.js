@@ -41,6 +41,18 @@ module.exports = function (grunt) {
             }
         },
 
+        shell: {
+            sphinx: {
+                command: [
+                    'cd docs',
+                    'make html'
+                ].join('&&'),
+                options: {
+                    stdout: true
+                }
+            }
+        },
+
         uglify: {
             options: {
                 beautify: DEBUG
@@ -163,5 +175,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
     grunt.registerTask('init', ['setup', 'uglify:libs']);
+    grunt.registerTask('docs', ['shell']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };
