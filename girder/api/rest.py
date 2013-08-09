@@ -23,9 +23,9 @@ import json
 import sys
 import traceback
 
-from constants import AccessType
-from models.model_base import AccessException, ValidationException
-from utility.model_importer import ModelImporter
+from girder.constants import AccessType
+from girder.models.model_base import AccessException, ValidationException
+from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 class RestException(Exception):

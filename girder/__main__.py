@@ -17,14 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
-"""
-Constants should be defined here.
-"""
-import os
+import cherrypy
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from .utility import server
 
-class AccessType:
-  READ = 0
-  WRITE = 1
-  ADMIN = 2
+
+if __name__ == '__main__':
+    server.setup()
+
+    cherrypy.engine.start()
+    cherrypy.engine.block()

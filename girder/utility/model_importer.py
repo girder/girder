@@ -54,7 +54,7 @@ class ModelImporter(object):
                 continue
 
             try:
-                imported = importlib.import_module('models.%s' % modelName)
+                imported = importlib.import_module('girder.models.%s' % modelName)
             except ImportError:
                 raise Exception('Could not load model module "%s"' % modelName)
 

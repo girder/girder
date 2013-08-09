@@ -22,7 +22,7 @@ import datetime
 import re
 
 from .model_base import AccessControlledModel, ValidationException
-from constants import AccessType
+from girder.constants import AccessType
 
 class User(AccessControlledModel):
 

@@ -17,10 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import os
+import cherrypy
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from girder.constants import ROOT_DIR
 
 class Webroot(object):
     """
@@ -33,7 +33,7 @@ class Webroot(object):
             os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built', 'index.html'),
             content_type='text/html')
 
-def setupServer(test=False):
+def setup(test=False):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
@@ -63,7 +63,7 @@ def setupServer(test=False):
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
-    from api import api_main
+    from girder.api import api_main
 
     root = Webroot()
     root = api_main.addApiToNode(root)
@@ -73,9 +73,3 @@ def setupServer(test=False):
 
     if test:
         application.merge({'server' : {'mode' : 'testing'}})
-
-if __name__ == '__main__':
-    setupServer()
-
-    cherrypy.engine.start()
-    cherrypy.engine.block()
