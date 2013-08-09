@@ -4,7 +4,7 @@
 
 To run the server side tests:
 
-    cd server
+    cd girder
     python -m unittest discover -s test/cases -t . -p '*_test.py' -v
 
 If you want to run only the tests in a specific module, follow this example:
@@ -16,7 +16,7 @@ If you want to run only the tests in a specific module, follow this example:
 ## Creating tests
 
 The server side python tests are run using [unittest](http://docs.python.org/2/library/unittest.html).
-All of the actual test cases are stored under [server/test/cases](cases).
+All of the actual test cases are stored under [girder/test/cases](cases).
 
 ### Adding to an existing test case
 

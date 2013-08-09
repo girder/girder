@@ -41,7 +41,7 @@ def setupServer(test=False):
     :type test: bool
     """
     cfgs = ['auth', 'db', 'server']
-    cfgs = [os.path.join(ROOT_DIR, 'server', 'conf', 'local.%s.cfg' % c) for c in cfgs]
+    cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c) for c in cfgs]
     [cherrypy.config.update(cfg) for cfg in cfgs]
 
     appconf = {
