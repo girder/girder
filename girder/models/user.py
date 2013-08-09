@@ -29,7 +29,7 @@ class User(AccessControlledModel):
     def initialize(self):
         self.name = 'user'
         self.requireModels(['folder', 'password'])
-        self.setIndexedFields(['login', 'email'])
+        self.ensureIndices(['login', 'email'])
 
     def validate(self, doc):
         """

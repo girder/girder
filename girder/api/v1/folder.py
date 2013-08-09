@@ -27,7 +27,7 @@ from ...constants import AccessType
 class Folder(Resource):
 
     def initialize(self):
-        self.requireModels(['folder'])
+        self.requireModels(['folder', 'user'])
 
     def _filter(self, folder):
         """
@@ -36,8 +36,41 @@ class Folder(Resource):
         # TODO possibly write a folder filter with self.filterDocument
         return folder
 
-    def index(self, params):
-        return 'todo: folder index'
+    def find(self, params):
+        """
+        Get a list of folders with given search parameters. Currently accepted modes are:
+
+        1. Searching by parentId and parentType.
+        2. Searching with full text search.
+
+        To search with full text search, pass the "text" parameter. To search by parent,
+        (i.e. list child folders) pass parentId and parentType, which must be one of
+        ('folder' | 'community' | 'user').
+        """
+        offset = int(params.get('offset', 0))
+        limit = int(params.get('limit', 50))
+
+        user = self.getCurrentUser()
+
+        if 'text' in params:
+            return self.folderModel.textSearch(params['text'], user=user,
+                                               offset=offset, limit=limit)
+        elif 'parentId' in params and 'parentType' in params:
+            parentType = params['parentType'].lower()
+            if parentType == 'user':
+                model = self.userModel
+            elif parentType == 'community':
+                pass #TODO community
+            elif parentType == 'folder':
+                model = self.folderModel
+            else:
+                raise RestException('The parentType must be user, community, or folder.')
+
+            parent = self.getObjectById(model, id=params['parentId'], user=user,
+                                        checkAccess=True, level=AccessType.READ)
+            return self.folderModel.childFolders(parentType=parentType, parent=parent, user=user,
+                                                 offset=offset, limit=limit)
+
 
     def createFolder(self, params):
         """
@@ -95,7 +128,7 @@ class Folder(Resource):
     @Resource.endpoint
     def GET(self, path, params):
         if not path:
-            return self.index(params)
+            return self.find(params)
         else: # assume it's a folder id
             user = self.getCurrentUser()
             folder = self.getObjectById(self.folderModel, id=path[0],

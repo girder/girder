@@ -17,6 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+import json
+
 from .. import base
 
 def setUpModule():
@@ -26,4 +29,34 @@ def tearDownModule():
     base.stopServer()
 
 class FolderTestCase(base.TestCase):
-    pass
+    def setUp(self):
+        base.TestCase.setUp(self)
+        self.requireModels(['folder', 'user'])
+
+    def testChildFolders(self):
+        # First create a user. This will create default public and private folders.
+        params = {
+            'email' : 'good@email.com',
+            'login' : 'goodlogin',
+            'firstName' : 'First',
+            'lastName' : 'Last',
+            'password' : 'goodpassword'
+            }
+        user = self.userModel.createUser(**params)
+
+        # We should only be able to see the public folder if we are anonymous
+        resp = self.request(path='/folder', method='GET', params={
+          'parentType' : 'user',
+          'parentId' : user['_id']
+          })
+        self.assertEqual(len(resp.json), 1)
+
+        # If we log in as the user, we should also be able to see the private folder
+        resp = self.request(path='/folder', method='GET', user=user, params={
+          'parentType' : 'user',
+          'parentId' : user['_id']
+          })
+        self.assertEqual(len(resp.json), 2)
+
+        # TODO a lot more testing here.
+
