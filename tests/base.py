@@ -25,6 +25,7 @@ import urllib
 from StringIO import StringIO
 from girder.utility.model_importer import ModelImporter
 from girder.utility.server import setup as setupServer
+from girder.constants import AccessType
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -117,6 +118,16 @@ class TestCase(unittest.TestCase, ModelImporter):
         self.assertStatus(response, 400)
         self.assertEqual(response.json['type'], 'validation')
         self.assertEqual(response.json.get('field', None), field)
+
+    def assertAccessDenied(self, response, level, modelName):
+        if level == AccessType.READ:
+            ls = 'Read'
+        elif level == AccessType.WRITE:
+            ls = 'Write'
+        else:
+            ls = 'Admin'
+        self.assertStatus(response, 403)
+        self.assertEqual('%s access denied for %s.' % (ls, modelName), response.json['message'])
 
     def assertMissingParameter(self, response, param):
         """

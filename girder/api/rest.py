@@ -169,7 +169,7 @@ class Resource(ModelImporter):
                        'type' : 'validation'}
                 if e.field is not None:
                     val['field'] = e.field
-            except:
+            except: # pragma: no cover
                 # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
                 (t, value, tb) = sys.exc_info()

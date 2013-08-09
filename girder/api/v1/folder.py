@@ -70,6 +70,8 @@ class Folder(Resource):
                                         checkAccess=True, level=AccessType.READ)
             return self.folderModel.childFolders(parentType=parentType, parent=parent, user=user,
                                                  offset=offset, limit=limit)
+        else:
+            raise RestException('Invalid search mode.')
 
 
     def createFolder(self, params):
@@ -111,12 +113,8 @@ class Folder(Resource):
         parent = self.getObjectById(model, id=params['parentId'], user=user,
                                     checkAccess=True, level=AccessType.WRITE)
 
-        try:
-            folder = self.folderModel.createFolder(parent=parent, parentType=parentType,
-                                                   name=name, description=description,
-                                                   creator=user, public=public)
-        except ValidationException as e:
-            raise RestException(e.message)
+        folder = self.folderModel.createFolder(parent=parent, parentType=parentType, creator=user,
+                                               description=description, name=name, public=public)
 
         if parentType == 'user':
             folder = self.folderModel.setUserAccess(folder, user=user, level=AccessType.ADMIN)
