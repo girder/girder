@@ -5,4 +5,8 @@ project(Girder)
 include(CTest)
 enable_testing()
 
-add_subdirectory(server)
+find_program(PYTHON_EXECUTABLE python)
+
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()

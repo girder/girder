@@ -23,8 +23,8 @@ import unittest
 import urllib
 
 from StringIO import StringIO
-from main import setupServer
-from utility.model_importer import ModelImporter
+from girder.utility.model_importer import ModelImporter
+from girder.utility.server import setup as setupServer
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -53,7 +53,7 @@ def dropTestDatabase():
     """
     Call this to clear all contents from the test database.
     """
-    from models import db_connection
+    from girder.models import db_connection
     db_connection.drop_database('%s_test' % cherrypy.config['database']['database'])
 
 class TestCase(unittest.TestCase, ModelImporter):

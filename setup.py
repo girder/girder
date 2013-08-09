@@ -17,11 +17,23 @@
 #  limitations under the License.
 ###############################################################################
 
-"""
-Constants should be defined here.
-"""
+from setuptools import setup, find_packages
 
-class AccessType:
-  READ = 0
-  WRITE = 1
-  ADMIN = 2
+
+with open('README.md') as f:
+    readme = f.read()
+
+with open('LICENSE') as f:
+    license = f.read()
+
+setup(
+    name='girder',
+    version='0.1',
+    description='A data management platform.',
+    long_description=readme,
+    author='Kitware',
+    author_email='kitware@kitware.com',
+    url='https://github.com/girder/girder',
+    license=license,
+    packages=find_packages(exclude=('tests', 'docs'))
+)

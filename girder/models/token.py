@@ -23,7 +23,7 @@ import hashlib
 import random
 import string
 
-from constants import AccessType
+from girder.constants import AccessType
 from .model_base import AccessControlledModel
 
 def genToken(length=64):

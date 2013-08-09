@@ -21,10 +21,10 @@ import cherrypy
 import pymongo
 
 from bson.objectid import ObjectId
-from constants import AccessType
-from utility.model_importer import ModelImporter
+from girder.constants import AccessType
+from girder.utility.model_importer import ModelImporter
 
-from . import db_cfg, db_connection
+from girder.models import db_cfg, db_connection
 
 class Model(ModelImporter):
     """
