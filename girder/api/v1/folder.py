@@ -20,9 +20,9 @@
 import cherrypy
 
 from ..rest import Resource, RestException
-from models import folder as folderModel
-from models.model_base import ValidationException
-from constants import AccessType
+from ...models import folder as folderModel
+from ...models.model_base import ValidationException
+from ...constants import AccessType
 
 class Folder(Resource):
 

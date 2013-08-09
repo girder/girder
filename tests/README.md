@@ -13,13 +13,13 @@ You only need to do that once. From then on, whenever you want to run the tests,
     cd girder-build
     ctest
 
-> **Note**: The *-v* flag is optional and can be omitted if you do not want verbose output.
+There are many ways to filter tests when running CTest, or run the tests in parallel. More
+information about CTest can be found [here](http://www.cmake.org/cmake/help/v2.8.8/ctest.html).
 
 ## Creating tests
 
-The server side python tests are run using
-[unittest](http://docs.python.org/2/library/unittest.html). All of the actual test cases are
-stored under [server/test/cases](cases).
+The server side python tests are run using [unittest](http://docs.python.org/2/library/unittest.html).
+All of the actual test cases are stored under [tests/cases](cases).
 
 ### Adding to an existing test case
 

@@ -38,6 +38,6 @@ Run this command any time you change a JavaScript or CSS file under __clients/we
 To run the server, first [make sure that the Mongo daemon is running](docs/manual/run_mongo.md).
 Then, just invoke the server python script:
 
-    python server/main.py
+    python girder/main.py
 
 

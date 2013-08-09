@@ -146,7 +146,7 @@ module.exports = function (grunt) {
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         // Copy all configuration files that don't already exist
-        var cfgDir = 'server/conf';
+        var cfgDir = 'girder/conf';
         var configs = grunt.file.expand(cfgDir + '/*.cfg');
         configs.forEach(function (config) {
             var name = path.basename(config);
