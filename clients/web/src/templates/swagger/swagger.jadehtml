@@ -3,6 +3,7 @@ html(lang="en")
   head
     title Girder - REST API Documentation
     link(href='//fonts.googleapis.com/css?family=Droid+Sans:400,700', rel='stylesheet', type='text/css')
+    link(href='../../static/lib/fontello/css/fontello.css', rel='stylesheet')
     link(href='../../static/built/swagger/css/hightlight.default.css', rel='stylesheet')
     link(href='../../static/built/swagger/css/screen.css', rel='stylesheet')
     link(href='../../static/built/swagger/docs.css', rel='stylesheet')
@@ -42,7 +43,8 @@ html(lang="en")
 
   body
     .docs-header
-      span Girder REST API Documentation &rsaquo;
+      span Girder REST API Documentation
+      i.icon-book-alt.right
     .docs-body
       p.
         Below you will find the list of all of the resource types exposed by the Girder
@@ -50,7 +52,12 @@ html(lang="en")
         endpoints related to each resource type.
       p.
         Clicking any of those endpoints will display detailed documentation about the purpose
-        of each endpoint and the input parameters and output values. You can even test out each
-        endpoint using this page&mdash;just type in the parameters you wish to pass and click
+        of each endpoint and the input parameters and output values. You can also call API
+        endpoints directly from this page by typing in the parameters you wish to pass and click
         "Try it out!"
+      p
+        b Warning:
+        |  This is not a sandbox&mdash;calls that you make from this page are the same as calling
+        | the API with any other client, so update or delete calls that you make will affect the
+        | actual data on the server.
     #swagger-ui-container.swagger-ui-wrap.docs-swagger-container
