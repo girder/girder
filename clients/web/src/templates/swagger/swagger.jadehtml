@@ -23,7 +23,7 @@ html(lang="en")
           discoveryUrl: window.location.origin + window.location.pathname + '/describe',
           dom_id: 'swagger-ui-container',
           supportHeaderParams: false,
-          supportedSubmitMethods: ['get', 'post', 'put'],
+          supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
           onComplete: function (swaggerApi, swaggerUi) {
             $('pre code').each(function (i, e) {
               hljs.highlightBlock(e)

@@ -81,6 +81,18 @@ _apis.append({
             Describe.errorResponse('ID was invalid.'),
             Describe.errorResponse('Read access was denied for the folder.', 403)
             ]
+        }, {
+        'httpMethod' : 'DELETE',
+        'nickname' : 'deleteFolderById',
+        'responseClass' : 'Folder',
+        'summary' : 'Delete a folder by ID.',
+        'parameters' : [
+            Describe.param('folderId', 'The ID of the folder.', paramType='path')
+            ],
+        'errorResponses' : [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse('Admin access was denied for the folder.', 403)
+            ]
         }]
     })
 
