@@ -17,12 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
+import cherrypy # pragma: no cover
 
-from .utility import server
+from .utility import server # pragma: no cover
 
-
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     server.setup()
 
     cherrypy.engine.start()

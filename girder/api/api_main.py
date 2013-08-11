@@ -36,6 +36,7 @@ def addApiToNode(node):
 
 def _addV1ToNode(node):
     node.v1 = api_docs1.ApiDocs()
+    node.v1.version = api_docs1.Version()
     node.v1.user = user1.User()
     node.v1.folder = folder1.Folder()
 

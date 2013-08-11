@@ -20,12 +20,13 @@
 import datetime
 
 from .model_base import AccessControlledModel, ValidationException
+from girder.constants import AccessType
 
 class Folder(AccessControlledModel):
 
     def initialize(self):
         self.name = 'folder'
-        self.setIndexedFields(['parentId'])
+        self.ensureIndices(['parentId'])
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -43,7 +44,7 @@ class Folder(AccessControlledModel):
             'name' : doc['name'],
             'parentCollection' : doc['parentCollection']
             }
-        if doc.has_key('_id'):
+        if '_id' in doc:
             q['_id'] = {'$ne' : doc['parentId']}
         duplicates = self.find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
@@ -52,6 +53,40 @@ class Folder(AccessControlledModel):
         # TODO validate that no sibling ITEM has the requested name either
 
         return doc
+
+    def textSearch(self, query, user=None, limit=50, offset=0):
+        """
+        Search for folders with full text search.
+        """
+        #TODO implement
+        return []
+
+    def childFolders(self, parent, parentType, user=None, limit=50, offset=0):
+        """
+        Get all child folders of a user, community, or folder, with access policy filtering.
+        :param parent: The parent object.
+        :type parentType: Type of the parent object.
+        :param parentType: The parent type.
+        :type parentType: 'user', 'folder', or 'community'
+        :param user: The user running the query. Only returns folders that this user can see.
+        :param limit: Result limit.
+        :param offset: Result offset.
+        """
+        # TODO support sort orders.
+        parentType = parentType.lower()
+        if not parentType in ('folder', 'user', 'community'):
+            raise ValidationException('The parentType must be folder, community, or user.')
+
+        q = {
+            'parentId' : parent['_id'],
+            'parentCollection' : parentType
+            }
+
+        # Perform the find; we'll do access-based filtering of the result set afterward.
+        cursor = self.find(q, limit=0)
+
+        return self.filterResultsByPermission(cursor=cursor, user=user, level=AccessType.READ,
+                                              limit=limit, offset=offset)
 
     def createFolder(self, parent, name, description='', parentType='folder', public=None,
                      creator=None):
@@ -71,8 +106,12 @@ class Folder(AccessControlledModel):
         :type creator: dict
         :returns: The folder document that was created.
         """
-        assert parent.has_key('_id')
+        assert '_id' in parent
         assert public is None or type(public) is bool
+
+        parentType = parentType.lower()
+        if not parentType in ('folder', 'user', 'community'):
+            raise ValidationException('The parentType must be folder, community, or user.')
 
         now = datetime.datetime.now()
 

@@ -45,9 +45,6 @@ class Resource(ModelImporter):
     exposed = True
 
     def __init__(self):
-        self._currentUser = None
-        self._setupCurrentUser = False
-
         self.initialize()
         self.requireModels(['user', 'token'])
 
@@ -80,39 +77,34 @@ class Resource(ModelImporter):
             if not provided.has_key(param):
                 raise RestException("Parameter '%s' is required." % param)
 
-    def getCurrentUser(self):
+    def getCurrentUser(self, returnToken=False):
         """
-        Returns the current user from the long-term cookie token. This is a
-        lazy getter that will only attempt to load from the cookie once per
-        request, so subsequent calls this this function are inexpensive.
+        Returns the current user from the long-term cookie token.
+        :param returnToken: Whether we should return a tuple that also contains the token.
+        :type returnToken: bool
         :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired.
+                  is not logged in or the cookie token is invalid or expired. If
+                  returnToken=True, returns a tuple of (user, token).
         """
-        if self._setupCurrentUser:
-            return self._currentUser
-
-        self._setupCurrentUser = True
-        # TODO we should also allow them to pass the info in the params and check there too
-        # Params should be something like "userId" and "token"
+        # TODO we should also allow them to pass the token in the params
         cookie = cherrypy.request.cookie
-        if cookie.has_key('authToken'):
+        if 'authToken' in cookie:
             info = json.loads(cookie['authToken'].value)
             try:
                 userId = ObjectId(info['userId'])
             except:
-                return None
+                return (None, None) if returnToken else None
 
             user = self.userModel.load(userId, force=True)
             token = self.tokenModel.load(info['token'], AccessType.ADMIN,
                                          objectId=False, user=user)
 
             if token is None or token['expires'] < datetime.datetime.now():
-                return None
+                return (None, token) if returnToken else None
             else:
-                self._currentUser = user
-                return user
+                return (user, token) if returnToken else user
         else: # user is not logged in
-            return None
+            return (None, None) if returnToken else None
 
     def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ,
                       objectId=True):
@@ -156,15 +148,7 @@ class Resource(ModelImporter):
                 # First, we should encode any unicode form data down into
                 # UTF-8 so the actual REST classes are always dealing with
                 # str types.
-                params = {}
-                for k, v in kwargs.iteritems():
-                    if type(v) is unicode:
-                        try:
-                            params[k] = v.encode('utf-8')
-                        except UnicodeEncodeError:
-                            raise RestException('Unicode encoding failure.')
-                    else:
-                        params[k] = v
+                params = {k: v.encode('utf-8') for (k, v) in kwargs.iteritems()}
 
                 val = fun(self, args, params)
             except RestException as e:
@@ -185,7 +169,7 @@ class Resource(ModelImporter):
                        'type' : 'validation'}
                 if e.field is not None:
                     val['field'] = e.field
-            except:
+            except: # pragma: no cover
                 # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
                 (t, value, tb) = sys.exc_info()
