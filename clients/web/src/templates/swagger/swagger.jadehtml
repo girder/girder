@@ -53,8 +53,8 @@ html(lang="en")
       p.
         Clicking any of those endpoints will display detailed documentation about the purpose
         of each endpoint and the input parameters and output values. You can also call API
-        endpoints directly from this page by typing in the parameters you wish to pass and click
-        "Try it out!"
+        endpoints directly from this page by typing in the parameters you wish to pass and then
+        clicking the "Try it out!" button.
       p
         b Warning:
         |  This is not a sandbox&mdash;calls that you make from this page are the same as calling

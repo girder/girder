@@ -151,16 +151,9 @@ module.exports = function (grunt) {
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
         var fn = jade.compile(buffer, {
-            client: false,
-            pretty: true
+            client: false
         });
-        var html = fn({
-            stylesheets: ['lib/css/bootstrap.min.css',
-                          'built/app.min.css'],
-            scripts: ['built/libs.min.js',
-                      'built/app.min.js']
-        });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', html);
+        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({}));
     });
 
     // Compile the jade templates into a single js file
@@ -199,7 +192,9 @@ module.exports = function (grunt) {
             pretty: true
         });
         var html = fn({
-            stylesheets: ['lib/css/bootstrap.min.css',
+            stylesheets: ['lib/bootstrap/css/bootstrap.min.css',
+                          'lib/fontello/css/fontello.css',
+                          'lib/fontello/css/animation.css',
                           'built/app.min.css'],
             scripts: ['built/libs.min.js',
                       'built/app.min.js']
