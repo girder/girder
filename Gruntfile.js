@@ -86,23 +86,28 @@ module.exports = function (grunt) {
 
         watch: {
             css: {
-                files: ['stylesheets/*.styl'],
+                files: ['clients/web/src/stylesheets/**/*.styl'],
                 tasks: ['stylus'],
                 options: {failOnError: false}
             },
             js: {
-                files: ['clients/web/static/src/**/*.js'],
+                files: ['clients/web/src/**/*.js'],
                 tasks: ['uglify:app'],
                 options: {failOnError: false}
             },
             jade: {
-                files: ['clients/web/static/src/templates/*.jade'],
+                files: ['clients/web/src/templates/*.jade'],
                 tasks: ['build-js'],
                 options: {failOnError: false}
             },
             jadeindex: {
-                files: ['clients/web/static/src/templates/index.jadehtml'],
+                files: ['clients/web/src/templates/index.jadehtml'],
                 tasks: ['jade-index'],
+                options: {failOnError: false}
+            },
+            swagger: {
+                files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
+                tasks: ['swagger-ui'],
                 options: {failOnError: false}
             }
         }
