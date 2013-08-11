@@ -21,7 +21,7 @@ and click **Import config** from the action menu. When prompted, select to uploa
 our custom set. Click on included ones to remove them from the set, or click on others to add
 them to the set. When done, download the set as a zip file and replace the existing
 [css/fontello.css](css/fontello.css) and all of the files in the [font](font) directory with
-the ones from the downloaded archive.
+the ones from the downloaded archive, as well as the [config.json](config.json) file.
 
 > **Important**: Only add icons from sets published under the [SIL](http://scripts.sil.org/OFL)
 license.
