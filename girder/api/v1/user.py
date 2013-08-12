@@ -21,11 +21,11 @@ import cherrypy
 import json
 
 from ..rest import Resource, RestException
+from .docs import user_docs
 
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
 class User(Resource):
-
     def initialize(self):
         self.requireModels(['password', 'token', 'user'])
 
@@ -62,22 +62,26 @@ class User(Resource):
         :param login: The login name.
         :param password: The user's password.
         """
-        self.requireParams(['login', 'password'], params)
+        (user, token) = self.getCurrentUser(returnToken=True)
 
-        login = params['login'].lower().strip()
-        loginField = 'email' if '@' in login else 'login'
+        # Only create and send a new cookie if they aren't already sending us a valid one.
+        if not user:
+            self.requireParams(['login', 'password'], params)
 
-        cursor = self.userModel.find({loginField : login}, limit=1)
-        if cursor.count() == 0:
-            raise RestException('Login failed.', code=403)
+            login = params['login'].lower().strip()
+            loginField = 'email' if '@' in login else 'login'
 
-        user = cursor.next()
+            cursor = self.userModel.find({loginField : login}, limit=1)
+            if cursor.count() == 0:
+                raise RestException('Login failed.', code=403)
 
-        token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
-        self._sendAuthTokenCookie(user, token)
+            user = cursor.next()
 
-        if not self.passwordModel.authenticate(user, params['password']):
-            raise RestException('Login failed.', code=403)
+            token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
+            self._sendAuthTokenCookie(user, token)
+
+            if not self.passwordModel.authenticate(user, params['password']):
+                raise RestException('Login failed.', code=403)
 
         return {'message' : 'Login succeeded.',
                 'authToken' : {
@@ -91,7 +95,7 @@ class User(Resource):
         self._deleteAuthTokenCookie()
         return {'message' : 'Logged out.'}
 
-    def register(self, params):
+    def createUser(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
 
         user = self.userModel.createUser(login=params['login'],
@@ -120,7 +124,7 @@ class User(Resource):
         Use this endpoint to register a new user, to login, or to logout.
         """
         if not path:
-            return self.register(params)
+            return self.createUser(params)
         elif path[0] == 'login':
             return self.login(params)
         elif path[0] == 'logout':

@@ -50,10 +50,11 @@ class Model(ModelImporter):
         assert isinstance(self.collection, pymongo.collection.Collection)
         assert type(self._indices) == list
 
-        # TODO maybe this shouldn't be here if it's slow. This ctor gets called a lot.
-        [self.collection.ensure_index(index) for index in self._indices]
+        for index in self._indices:
+            self.collection.ensure_index(index)
 
-    def setIndexedFields(self, indices):
+
+    def ensureIndices(self, indices):
         """
         Subclasses should call this with a list of strings representing
         fields that should be indexed in the database if there are any. Otherwise,
@@ -332,6 +333,32 @@ class AccessControlledModel(Model):
         if save:
             dest = self.save(dest, validate=False)
         return dest
+
+    def filterResultsByPermission(self, cursor, user, level, limit, offset):
+        """
+        Given a database result cursor, return only the results that the user has
+        the given level of access on, respecting the limit and offset specified.
+        :param cursor: The database cursor object from "find()".
+        :param user: The user to check policies against.
+        :param level: The access level.
+        :type level: AccessType
+        :param limit: The max size of the result set.
+        :param offset: The offset into the result set.
+        """
+        count = skipped = 0
+        results = []
+        for result in cursor:
+            if self.hasAccess(result, user=user, level=level):
+                if skipped < offset:
+                    skipped += 1
+                else:
+                    results.append(result)
+                    count += 1
+            if count == limit:
+                break
+
+        return results
+
 
 class AccessException(Exception):
     """
