@@ -2,7 +2,12 @@
 
 ## Running the tests
 
-Before you can run the tests, you'll need to configure the project with CMake.
+Before you can run the tests, you'll need to install
+[pep8](http://www.python.org/dev/peps/pep-0008/) for Python style checking.
+
+    pip install pep8
+
+Also, you'll need to configure the project with CMake.
 
     mkdir ../girder-build
     cd ../girder-build
