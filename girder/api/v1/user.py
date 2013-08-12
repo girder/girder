@@ -25,6 +25,7 @@ from .docs import user_docs
 
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
+
 class User(Resource):
     def initialize(self):
         self.requireModels(['password', 'token', 'user'])
@@ -40,8 +41,8 @@ class User(Resource):
         """ Helper method to send the authentication cookie """
         cookie = cherrypy.response.cookie
         cookie['authToken'] = json.dumps({
-            'userId' : str(user['_id']),
-            'token' : str(token['_id'])
+            'userId': str(user['_id']),
+            'token': str(token['_id'])
             })
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = COOKIE_LIFETIME * 3600 * 24
@@ -71,7 +72,7 @@ class User(Resource):
             login = params['login'].lower().strip()
             loginField = 'email' if '@' in login else 'login'
 
-            cursor = self.userModel.find({loginField : login}, limit=1)
+            cursor = self.userModel.find({loginField: login}, limit=1)
             if cursor.count() == 0:
                 raise RestException('Login failed.', code=403)
 
@@ -83,17 +84,17 @@ class User(Resource):
             if not self.passwordModel.authenticate(user, params['password']):
                 raise RestException('Login failed.', code=403)
 
-        return {'message' : 'Login succeeded.',
-                'authToken' : {
-                    'token' : token['_id'],
-                    'expires' : token['expires'],
-                    'userId' : user['_id']
+        return {'message': 'Login succeeded.',
+                'authToken': {
+                    'token': token['_id'],
+                    'expires': token['expires'],
+                    'userId': user['_id']
                     }
                 }
 
     def logout(self):
         self._deleteAuthTokenCookie()
-        return {'message' : 'Logged out.'}
+        return {'message': 'Logged out.'}
 
     def createUser(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
@@ -113,7 +114,7 @@ class User(Resource):
     def GET(self, path, params):
         if not path:
             return self.index(params)
-        else: # assume it's a user id
+        else:  # assume it's a user id
             user = self.getCurrentUser()
             return self._filter(self.getObjectById(self.userModel, id=path[0],
                                                    user=user, checkAccess=True))

@@ -31,6 +31,7 @@ backward compatibility in any way, we should increment the major version.
 """
 API_VERSION = "1.0.0"
 
+
 class ApiDocs(object):
     exposed = True
 
@@ -39,9 +40,10 @@ class ApiDocs(object):
             ROOT_DIR, 'clients', 'web', 'static', 'built', 'swagger', 'swagger.html'),
             content_type='text/html')
 
+
 class Describe(Resource):
     discovery = {
-        'apis' : []
+        'apis': []
         }
     resources = {}
     models = {}
@@ -53,12 +55,12 @@ class Describe(Resource):
         defaults, so you won't have to repeat yourself as much when declaring the APIs.
         """
         return {
-            'name' : name,
-            'description' : description,
-            'paramType' : paramType,
-            'dataType' : dataType,
-            'allowMultiple' : False,
-            'required' : required
+            'name': name,
+            'description': description,
+            'paramType': paramType,
+            'dataType': dataType,
+            'allowMultiple': False,
+            'required': required
             }
 
     @classmethod
@@ -68,8 +70,8 @@ class Describe(Resource):
         able to use the default parameter values for one of their responses.
         """
         return {
-            'reason' : reason,
-            'code' : code
+            'reason': reason,
+            'code': code
             }
 
     @classmethod
@@ -83,14 +85,13 @@ class Describe(Resource):
         :type apis: list or dict
         """
         cls.discovery['apis'].append({
-            'path' : '/%s' % resource
+            'path': '/%s' % resource
             })
 
         if type(apis) is list:
             cls.resources[resource] = apis
         else:
             cls.resources[resource] = [apis]
-
 
     @Resource.endpoint
     def GET(self, path, params):
@@ -113,4 +114,3 @@ class Describe(Resource):
         retVal['swaggerVersion'] = '1.1'
 
         return retVal
-

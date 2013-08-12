@@ -26,12 +26,14 @@ import string
 from girder.constants import AccessType
 from .model_base import AccessControlledModel
 
+
 def genToken(length=64):
     """
     Use this utility function to generate a random string of
     a desired length.
     """
     return ''.join(random.choice(string.letters + string.digits) for x in range(length))
+
 
 class Token(AccessControlledModel):
     """
@@ -63,11 +65,10 @@ class Token(AccessControlledModel):
         """
         now = datetime.datetime.now()
         token = {
-            '_id' : genToken(),
-            'created' : now,
-            'userId' : user['_id'],
-            'expires' : now + datetime.timedelta(days=days)
+            '_id': genToken(),
+            'created': now,
+            'userId': user['_id'],
+            'expires': now + datetime.timedelta(days=days)
             }
         token = self.setUserAccess(token, user=user, level=AccessType.ADMIN, save=False)
         return self.save(token)
-

@@ -30,6 +30,7 @@ from girder.constants import AccessType
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
 
+
 def startServer():
     """
     Test cases that communicate with the server should call this
@@ -38,10 +39,11 @@ def startServer():
     setupServer(test=True)
 
     # Make server quiet (won't announce start/stop or requests)
-    cherrypy.config.update({'environment' : 'embedded'})
+    cherrypy.config.update({'environment': 'embedded'})
 
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
+
 
 def stopServer():
     """
@@ -50,12 +52,14 @@ def stopServer():
     """
     cherrypy.engine.exit()
 
+
 def dropTestDatabase():
     """
     Call this to clear all contents from the test database.
     """
     from girder.models import db_connection
     db_connection.drop_database('%s_test' % cherrypy.config['database']['database'])
+
 
 class TestCase(unittest.TestCase, ModelImporter):
     """
@@ -96,7 +100,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type keys: list
         """
         for k in keys:
-            self.assertTrue(obj.has_key(k), 'Object does not contain key "%s"' % k)
+            self.assertTrue(k in obj, 'Object does not contain key "%s"' % k)
 
     def assertNotHasKeys(self, obj, keys):
         """
@@ -106,7 +110,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type keys: list
         """
         for k in keys:
-            self.assertFalse(obj.has_key(k), 'Object contains key "%s"' % k)
+            self.assertFalse(k in obj, 'Object contains key "%s"' % k)
 
     def assertValidationError(self, response, field=None):
         """
@@ -184,8 +188,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         if user is not None:
             token = self.tokenModel.createToken(user)
             cookie = json.dumps({
-                'userId' : str(user['_id']),
-                'token' : str(token['_id'])
+                'userId': str(user['_id']),
+                'token': str(token['_id'])
                 }).replace('"', "\\\"")
             headers.append(('Cookie', 'authToken="%s"' % cookie))
         try:

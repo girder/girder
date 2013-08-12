@@ -28,6 +28,7 @@ from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
+
 class RestException(Exception):
     """
     Throw a RestException in the case of any sort of incorrect
@@ -41,6 +42,7 @@ class RestException(Exception):
 
         Exception.__init__(self, message)
 
+
 class Resource(ModelImporter):
     exposed = True
 
@@ -52,7 +54,7 @@ class Resource(ModelImporter):
         """
         Subclasses should implement this method.
         """
-        pass # pragma: no cover
+        pass  # pragma: no cover
 
     def filterDocument(self, doc, allow=[]):
         """
@@ -64,7 +66,7 @@ class Resource(ModelImporter):
         """
         out = {}
         for field in allow:
-            if doc.has_key(field):
+            if field in doc:
                 out[field] = doc[field]
 
         return out
@@ -74,7 +76,7 @@ class Resource(ModelImporter):
         Pass a list of required parameters.
         """
         for param in required:
-            if not provided.has_key(param):
+            if not param in provided:
                 raise RestException("Parameter '%s' is required." % param)
 
     def getCurrentUser(self, returnToken=False):
@@ -103,7 +105,7 @@ class Resource(ModelImporter):
                 return (None, token) if returnToken else None
             else:
                 return (user, token) if returnToken else user
-        else: # user is not logged in
+        else:  # user is not logged in
             return (None, None) if returnToken else None
 
     def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ,
@@ -154,27 +156,27 @@ class Resource(ModelImporter):
             except RestException as e:
                 # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
-                val = {'message' : e.message,
-                       'type' : 'rest'}
+                val = {'message': e.message,
+                       'type': 'rest'}
                 if e.extra is not None:
                     val['extra'] = e.extra
             except AccessException as e:
                 # Handle any permission exceptions
                 cherrypy.response.status = 403
                 val = {'message': e.message,
-                       'type' : 'access'}
+                       'type': 'access'}
             except ValidationException as e:
                 cherrypy.response.status = 400
-                val = {'message' : e.message,
-                       'type' : 'validation'}
+                val = {'message': e.message,
+                       'type': 'validation'}
                 if e.field is not None:
                     val['field'] = e.field
-            except: # pragma: no cover
+            except:  # pragma: no cover
                 # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
                 (t, value, tb) = sys.exc_info()
-                val = {'message' : '%s: %s' % (t.__name__, str(value)),
-                       'type' : 'internal'}
+                val = {'message': '%s: %s' % (t.__name__, str(value)),
+                       'type': 'internal'}
                 if cherrypy.config['server']['mode'] != 'production':
                     # Unless we are in production mode, send a traceback too
                     val['trace'] = traceback.extract_tb(tb)[1:]
@@ -183,7 +185,7 @@ class Resource(ModelImporter):
             for accept in accepts:
                 if accept.value == 'application/json':
                     break
-                elif accept.value == 'text/html': # pragma: no cover
+                elif accept.value == 'text/html':  # pragma: no cover
                     # Pretty-print and HTMLify the response for display in browser
                     cherrypy.response.headers['Content-Type'] = 'text/html'
                     resp = json.dumps(val, indent=4, sort_keys=True,

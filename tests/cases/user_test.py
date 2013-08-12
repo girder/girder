@@ -22,11 +22,14 @@ import json
 
 from .. import base
 
+
 def setUpModule():
     base.startServer()
 
+
 def tearDownModule():
     base.stopServer()
+
 
 class UserTestCase(base.TestCase):
     def setUp(self):
@@ -34,7 +37,7 @@ class UserTestCase(base.TestCase):
         self.requireModels(['user'])
 
     def _verifyAuthCookie(self, resp):
-        self.assertTrue(resp.cookie.has_key('authToken'))
+        self.assertTrue('authToken' in resp.cookie)
         cookieVal = json.loads(resp.cookie['authToken'].value)
         self.assertHasKeys(cookieVal, ['token', 'userId'])
         self.assertEqual(resp.cookie['authToken']['expires'],
@@ -42,7 +45,7 @@ class UserTestCase(base.TestCase):
 
     def _verifyUserDocument(self, doc):
         self.assertHasKeys(doc, ['_id', 'firstName', 'lastName', 'email', 'login',
-                                       'admin', 'size', 'hashAlg'])
+                                 'admin', 'size', 'hashAlg'])
         self.assertNotHasKeys(doc, ['salt'])
 
     def testRegisterAndLoginBcrypt(self):
@@ -50,14 +53,14 @@ class UserTestCase(base.TestCase):
         Test user registration and logging in.
         """
         cherrypy.config['auth']['hash_alg'] = 'bcrypt'
-        cherrypy.config['auth']['bcrypt_rounds'] = 4 # Set this to minimum so test runs faster.
+        cherrypy.config['auth']['bcrypt_rounds'] = 4  # Set this to minimum so test runs faster.
 
         params = {
-            'email' : 'bad_email',
-            'login' : 'illegal@login',
-            'firstName' : 'First',
-            'lastName' : 'Last',
-            'password' : 'bad'
+            'email': 'bad_email',
+            'login': 'illegal@login',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'bad'
         }
         # First test all of the required parameters.
         self.ensureRequiredParams(path='/user', method='POST', required=params.keys())
@@ -71,7 +74,7 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
 
-        params['login'] = ' ' # something that violates the regex but doesn't contain @
+        params['login'] = ' '  # something that violates the regex but doesn't contain @
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
         self.assertEqual(cherrypy.config['users']['login_description'], resp.json['message'])
@@ -90,8 +93,8 @@ class UserTestCase(base.TestCase):
 
         # Now that our user is created, try to login
         params = {
-            'login' : 'incorrect@email.com',
-            'password' : 'badpassword'
+            'login': 'incorrect@email.com',
+            'password': 'badpassword'
         }
         self.ensureRequiredParams(path='/user/login', method='POST', required=params.keys())
 
@@ -131,11 +134,11 @@ class UserTestCase(base.TestCase):
         cherrypy.config['auth']['hash_alg'] = 'sha512'
 
         params = {
-            'email' : 'good@email.com',
-            'login' : 'goodlogin',
-            'firstName' : 'First',
-            'lastName' : 'Last',
-            'password' : 'goodpassword'
+            'email': 'good@email.com',
+            'login': 'goodlogin',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword'
         }
 
         # Register a user with sha512 storage backend
@@ -146,17 +149,17 @@ class UserTestCase(base.TestCase):
 
         # Login unsuccessfully
         resp = self.request(path='/user/login', method='POST', params={
-              'login' : params['login'],
-              'password' : params['password'] + '.'
-              })
+            'login': params['login'],
+            'password': params['password'] + '.'
+            })
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully
         resp = self.request(path='/user/login', method='POST', params={
-              'login' : params['login'],
-              'password' : params['password']
-              })
+            'login': params['login'],
+            'password': params['password']
+            })
         self.assertStatusOk(resp)
         self.assertEqual('Login succeeded.', resp.json['message'])
 
@@ -168,13 +171,12 @@ class UserTestCase(base.TestCase):
         Tests for the GET user endpoint.
         """
         params = {
-            'email' : 'good@email.com',
-            'login' : 'goodlogin',
-            'firstName' : 'First',
-            'lastName' : 'Last',
-            'password' : 'goodpassword'
+            'email': 'good@email.com',
+            'login': 'goodlogin',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword'
             }
         user = self.userModel.createUser(**params)
         resp = self.request(path='/user/%s' % user['_id'])
         self._verifyUserDocument(resp.json)
-

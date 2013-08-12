@@ -26,6 +26,7 @@ import string
 from .model_base import Model, ValidationException
 from .token import genToken
 
+
 class Password(Model):
     """
     This model deals with managing user passwords.
@@ -107,7 +108,7 @@ class Password(Model):
             raise ValidationException(cherrypy.config['users']['password_description'], 'password')
 
         alg = cherrypy.config['auth']['hash_alg']
-        if  alg == 'bcrypt':
+        if alg == 'bcrypt':
             """
             With bcrypt, we actually need the one-to-one correspondence of
             hashed password to user, so we store the hash as the salt entry in
@@ -122,6 +123,6 @@ class Password(Model):
             """
             salt = genToken()
             hash = self._digest(salt=salt, alg=alg, password=password)
-            self.save({'_id' : hash})
+            self.save({'_id': hash})
 
         return (salt, alg)

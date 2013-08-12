@@ -24,6 +24,7 @@ import re
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
+
 class User(AccessControlledModel):
 
     def initialize(self):
@@ -61,17 +62,17 @@ class User(AccessControlledModel):
             raise ValidationException('Invalid email address.', 'email')
 
         # Ensure unique logins
-        q = {'login' : doc['login']}
-        if doc.has_key('_id'):
-            q['_id'] = {'$ne' : doc['_id']}
+        q = {'login': doc['login']}
+        if '_id' in doc:
+            q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
             raise ValidationException('That login is already registered.', 'login')
 
         # Ensure unique emails
-        q = {'email' : doc['email']}
-        if doc.has_key('_id'):
-            q['_id'] = {'$ne' : doc['_id']}
+        q = {'email': doc['email']}
+        if '_id' in doc:
+            q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
             raise ValidationException('That email is already registered.', 'email')
@@ -95,16 +96,16 @@ class User(AccessControlledModel):
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 
         user = self.save({
-            'login' : login,
-            'email' : email,
-            'firstName' : firstName,
-            'lastName' : lastName,
-            'salt' : salt,
-            'created' : datetime.datetime.now(),
-            'hashAlg' : hashAlg,
-            'emailVerified' : False,
-            'admin' : admin,
-            'size' : 0
+            'login': login,
+            'email': email,
+            'firstName': firstName,
+            'lastName': lastName,
+            'salt': salt,
+            'created': datetime.datetime.now(),
+            'hashAlg': hashAlg,
+            'emailVerified': False,
+            'admin': admin,
+            'size': 0
             })
 
         user = self.setPublic(user, public=public, save=False)
@@ -116,9 +117,8 @@ class User(AccessControlledModel):
         publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',
                                                      public=True, creator=user)
         privateFolder = self.folderModel.createFolder(user, 'Private', parentType='user',
-                                                     public=False, creator=user)
+                                                      public=False, creator=user)
         self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
         self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
 
         return user
-

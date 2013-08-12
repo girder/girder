@@ -22,6 +22,7 @@ import datetime
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
+
 class Folder(AccessControlledModel):
 
     def initialize(self):
@@ -40,12 +41,12 @@ class Folder(AccessControlledModel):
             raise Exception('Invalid folder parent type: %s.' % doc['parentCollection'])
 
         q = {
-            'parentId' : doc['parentId'],
-            'name' : doc['name'],
-            'parentCollection' : doc['parentCollection']
+            'parentId': doc['parentId'],
+            'name': doc['name'],
+            'parentCollection': doc['parentCollection']
             }
         if '_id' in doc:
-            q['_id'] = {'$ne' : doc['parentId']}
+            q['_id'] = {'$ne': doc['parentId']}
         duplicates = self.find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
             raise ValidationException('A folder with that name already exists here.')
@@ -78,8 +79,8 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, community, or user.')
 
         q = {
-            'parentId' : parent['_id'],
-            'parentCollection' : parentType
+            'parentId': parent['_id'],
+            'parentCollection': parentType
             }
 
         # Perform the find; we'll do access-based filtering of the result set afterward.
@@ -121,14 +122,14 @@ class Folder(AccessControlledModel):
             creatorId = creator.get('_id', None)
 
         folder = {
-            'name' : name,
-            'description' : description,
-            'parentCollection' : parentType,
-            'parentId' : parent['_id'],
-            'creatorId' : creatorId,
-            'created' : now,
-            'updated' : now,
-            'size' : 0
+            'name': name,
+            'description': description,
+            'parentCollection': parentType,
+            'parentId': parent['_id'],
+            'creatorId': creatorId,
+            'created': now,
+            'updated': now,
+            'size': 0
             }
 
         # If this is a subfolder, default permissions are inherited from the parent folder

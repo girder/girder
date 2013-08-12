@@ -26,6 +26,7 @@ from girder.utility.model_importer import ModelImporter
 
 from girder.models import db_cfg, db_connection
 
+
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
@@ -44,7 +45,7 @@ class Model(ModelImporter):
         if cherrypy.config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
-            dbName = db_cfg['database'] # pragma: no cover
+            dbName = db_cfg['database']  # pragma: no cover
         self.collection = db_connection[dbName][self.name]
 
         assert isinstance(self.collection, pymongo.collection.Collection)
@@ -52,7 +53,6 @@ class Model(ModelImporter):
 
         for index in self._indices:
             self.collection.ensure_index(index)
-
 
     def ensureIndices(self, indices):
         """
@@ -69,7 +69,7 @@ class Model(ModelImporter):
         ValidationException if validation of the document fails.
         """
         raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__) # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def initialize(self):
         """
@@ -77,7 +77,7 @@ class Model(ModelImporter):
         Also, they should set any indexed fields that they require.
         """
         raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__) # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
@@ -118,9 +118,9 @@ class Model(ModelImporter):
         Delete an object from the collection; must have its _id set.
         """
         assert type(document) == dict
-        assert document.has_key('_id')
+        assert '_id' in document
 
-        return self.collection.remove({'_id' : document['_id']})
+        return self.collection.remove({'_id': document['_id']})
 
     def load(self, id, objectId=True):
         """
@@ -133,7 +133,7 @@ class Model(ModelImporter):
         """
         if objectId and type(id) is not ObjectId:
             id = ObjectId(id)
-        return self.collection.find_one({'_id' : id})
+        return self.collection.find_one({'_id': id})
 
 
 class AccessControlledModel(Model):
@@ -169,9 +169,9 @@ class AccessControlledModel(Model):
         if type(id) is not ObjectId:
             id = ObjectId(id)
 
-        if not doc.has_key('access'):
-            doc['access'] = {'groups' : [], 'users' : []}
-        if not doc['access'].has_key(entity):
+        if not 'access' in doc:
+            doc['access'] = {'groups': [], 'users': []}
+        if not entity in doc['access']:
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.
@@ -181,8 +181,8 @@ class AccessControlledModel(Model):
         # Now add in the new level for this entity unless we are removing access.
         if level is not None:
             doc['access'][entity].append({
-                'id' : id,
-                'level' : level
+                'id': id,
+                'level': level
                 })
 
         if save:
@@ -262,17 +262,17 @@ class AccessControlledModel(Model):
         """
         if user is None:
             # Short-circuit the case of anonymous users
-            return level == AccessType.READ and doc.get('public', False) == True
+            return level == AccessType.READ and doc.get('public', False) is True
         elif user['admin']:
             # Short-circuit the case of admins
             return True
         else:
             # Short-circuit the case of public resources
-            if level == AccessType.READ and doc.get('public', False) == True:
+            if level == AccessType.READ and doc.get('public', False) is True:
                 return True
 
             # If all that fails, descend into real permission checking.
-            if doc.has_key('access'):
+            if 'access' in doc:
                 perms = doc['access']
                 if self._hasGroupAccess(perms.get('groups', []), user.get('groups', []), level):
                     return True
@@ -327,7 +327,7 @@ class AccessControlledModel(Model):
         :returns: The modified destination document.
         """
         dest['public'] = src.get('public', False)
-        if src.has_key('access'):
+        if 'access' in src:
             dest['access'] = src['access']
 
         if save:
@@ -367,6 +367,7 @@ class AccessException(Exception):
     def __init__(self, message):
         # TODO log the error
         Exception.__init__(self, message)
+
 
 class ValidationException(Exception):
     """

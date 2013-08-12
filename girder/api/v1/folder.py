@@ -24,6 +24,7 @@ from ..rest import Resource, RestException
 from ...models.model_base import ValidationException
 from ...constants import AccessType
 
+
 class Folder(Resource):
 
     def initialize(self):
@@ -60,7 +61,7 @@ class Folder(Resource):
             if parentType == 'user':
                 model = self.userModel
             elif parentType == 'community':
-                pass #TODO community
+                pass  # TODO community
             elif parentType == 'folder':
                 model = self.folderModel
             else:
@@ -72,7 +73,6 @@ class Folder(Resource):
                                                  offset=offset, limit=limit)
         else:
             raise RestException('Invalid search mode.')
-
 
     def createFolder(self, params):
         """
@@ -106,7 +106,7 @@ class Folder(Resource):
         elif parentType == 'user':
             model = self.userModel
         elif parentType == 'community':
-            pass #TODO model = self.communityModel
+            pass  # TODO model = self.communityModel
         else:
             raise RestException('Set parentType to community, folder, or user.')
 
@@ -127,7 +127,7 @@ class Folder(Resource):
     def GET(self, path, params):
         if not path:
             return self.find(params)
-        else: # assume it's a folder id
+        else:  # assume it's a folder id
             user = self.getCurrentUser()
             folder = self.getObjectById(self.folderModel, id=path[0],
                                         checkAccess=True, user=user)
