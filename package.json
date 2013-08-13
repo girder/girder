@@ -18,6 +18,7 @@
     "jade": ">=0.34",
     "jquery-browser": "~1.10",
     "jshint": "1.0.0",
+    "swagger-ui": ">=1.1.15",
     "underscore": "~1.5"
   }
 }
