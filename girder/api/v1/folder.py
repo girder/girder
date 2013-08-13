@@ -19,8 +19,8 @@
 
 import cherrypy
 
+from .docs import folder_docs
 from ..rest import Resource, RestException
-from ...models import folder as folderModel
 from ...models.model_base import ValidationException
 from ...constants import AccessType
 
@@ -91,7 +91,7 @@ class Folder(Resource):
         parentType = params.get('parentType', 'folder').lower()
         name = params['name'].strip()
         description = params.get('description', '').strip()
-        public = params.get('public', None)
+        public = params.get('public')
 
         if public is not None:
             public = public.lower() == 'true'

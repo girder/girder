@@ -21,11 +21,11 @@ import cherrypy
 import json
 
 from ..rest import Resource, RestException
+from .docs import user_docs
 
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
 class User(Resource):
-
     def initialize(self):
         self.requireModels(['password', 'token', 'user'])
 
@@ -95,7 +95,7 @@ class User(Resource):
         self._deleteAuthTokenCookie()
         return {'message' : 'Logged out.'}
 
-    def register(self, params):
+    def createUser(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
 
         user = self.userModel.createUser(login=params['login'],
@@ -124,7 +124,7 @@ class User(Resource):
         Use this endpoint to register a new user, to login, or to logout.
         """
         if not path:
-            return self.register(params)
+            return self.createUser(params)
         elif path[0] == 'login':
             return self.login(params)
         elif path[0] == 'logout':
