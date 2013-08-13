@@ -146,17 +146,17 @@ class UserTestCase(base.TestCase):
 
         # Login unsuccessfully
         resp = self.request(path='/user/login', method='POST', params={
-          'login' : params['login'],
-          'password' : params['password'] + '.'
-          })
+              'login' : params['login'],
+              'password' : params['password'] + '.'
+              })
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully
         resp = self.request(path='/user/login', method='POST', params={
-          'login' : params['login'],
-          'password' : params['password']
-          })
+              'login' : params['login'],
+              'password' : params['password']
+              })
         self.assertStatusOk(resp)
         self.assertEqual('Login succeeded.', resp.json['message'])
 

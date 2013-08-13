@@ -17,9 +17,24 @@
 #  limitations under the License.
 ###############################################################################
 
-class ApiDocs():
+from ..rest import Resource
+
+class ApiDocs(object):
     exposed = True
 
     def GET(self):
-        # TODO
+        # TODO swagger
         return "should display version 1 api docs"
+
+class Version(Resource):
+    """
+    This endpoint will output the current semantic version of the API.
+    Whenever we add new return values or new options we should increment the maintenance
+    value. Whenever we add new endpoints, we should increment the minor version. If we break
+    backward compatibility in any way, we should increment the major version.
+    """
+    exposed = True
+
+    @Resource.endpoint
+    def GET(self, path, params):
+        return {'version': '1.0.0'}
