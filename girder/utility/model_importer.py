@@ -19,6 +19,10 @@
 
 import importlib
 
+# We want the models to essentially be singletons, so we cache the ones
+# we have already constructed in this lookup table bound to this module.
+modelInstances = {}
+
 
 class ModelImporter(object):
     """
@@ -26,18 +30,23 @@ class ModelImporter(object):
     should extend/mixin this class.
     """
 
-    def requireModels(self, modelList):
+    def requireModels(self, modelList, recursive=True):
         """
         Subclasses should call this to instantiate models members on themselves.
         :param modelList: The list of models that should be instantiated as
-                          members.
-        For example, if the returned list contains 'user', it will set
+        members. For example, if the returned list contains 'user', it will set
         self.userModel. The values in the list should either be strings
         (e.g. 'user') or if necessary due to naming conventions, a 2-tuple of
         the form ('model_module_name', 'ModelClassName').
-        :type modelList: list of str
+        :type modelList: string or list of strings or tuples
+        :param recursive: If this is a model class importing other models,
+        this should be set to False to avoid circular dependencies, which
+        would cause an infinite recursion otherwise.
+        :type recursive: bool
         """
-        assert type(modelList) is list
+        global modelInstances
+        if type(modelList) is str:
+            modelList = [modelList]
 
         for model in modelList:
             if type(model) is str:
@@ -51,18 +60,24 @@ class ModelImporter(object):
             else:  # pragma: no cover
                 raise Exception('Required models should be strings or tuples.')
 
-            if hasattr(self, '%sModel' % modelName):  # already instantiated
-                continue
+            memberName = '%sModel' % modelName
 
-            try:
-                imported = importlib.import_module('girder.models.%s' %
-                                                   modelName)
-            except ImportError:  # pragma: no cover
-                raise Exception('Could not load model module "%s"' % modelName)
+            if not memberName in modelInstances:
+                try:
+                    imported = importlib.import_module('girder.models.%s' %
+                                                       modelName)
+                except ImportError:  # pragma: no cover
+                    raise Exception('Could not load model module "%s"'
+                                    % modelName)
 
-            try:
-                constructor = getattr(imported, className)
-            except AttributeError:  # pragma: no cover
-                raise Exception('Incorrect model class name "%s" for model "%s"'
-                                % (className, modelName))
-            setattr(self, '%sModel' % modelName, constructor())
+                try:
+                    constructor = getattr(imported, className)
+                except AttributeError:  # pragma: no cover
+                    raise Exception('Incorrect model class name "%s" for '
+                                    'model "%s"' % (className, modelName))
+                # We MUST set the key before calling the ctor to allow for
+                # cyclical dependencies between models.
+                modelInstances[memberName] = ''
+                modelInstances[memberName] = constructor()
+
+            setattr(self, memberName, modelInstances[memberName])
