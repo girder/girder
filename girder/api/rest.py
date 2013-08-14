@@ -79,6 +79,17 @@ class Resource(ModelImporter):
             if not param in provided:
                 raise RestException("Parameter '%s' is required." % param)
 
+    def requireAdmin(self, user):
+        """
+        Calling this on a user will ensure that they have admin rights.
+        an AccessException.
+        :param user: The user to check admin flag on.
+        :type user: dict.
+        :raises AccessException: If the user is not an administrator.
+        """
+        if not user.get('admin', False) is True:
+            raise AccessException('Administrator access required.')
+
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.

@@ -54,8 +54,8 @@ class Folder(Resource):
         user = self.getCurrentUser()
 
         if 'text' in params:
-            return self.folderModel.textSearch(params['text'], user=user,
-                                               offset=offset, limit=limit)
+            return self.folderModel.search(params['text'], user=user,
+                                           offset=offset, limit=limit)
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType == 'user':
@@ -95,9 +95,6 @@ class Folder(Resource):
 
         if public is not None:
             public = public.lower() == 'true'
-
-        if not name:
-            raise RestException('Folder name cannot be empty.')
 
         user = self.getCurrentUser()
 

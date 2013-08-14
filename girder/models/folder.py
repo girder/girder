@@ -55,7 +55,7 @@ class Folder(AccessControlledModel):
 
         return doc
 
-    def textSearch(self, query, user=None, limit=50, offset=0):
+    def search(self, query, user=None, limit=50, offset=0):
         """
         Search for folders with full text search.
         """

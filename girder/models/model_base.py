@@ -263,7 +263,7 @@ class AccessControlledModel(Model):
         if user is None:
             # Short-circuit the case of anonymous users
             return level == AccessType.READ and doc.get('public', False) is True
-        elif user['admin']:
+        elif user.get('admin', False) is True:
             # Short-circuit the case of admins
             return True
         else:

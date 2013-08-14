@@ -17,9 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-from v1 import user as user1,\
+from v1 import api_docs as api_docs1,\
     folder as folder1,\
-    api_docs as api_docs1
+    user as user1
 
 
 class ApiDocs():
@@ -41,7 +41,7 @@ def _addV1ToNode(node):
     node.v1 = api_docs1.ApiDocs()
     node.v1.describe = api_docs1.Describe()
 
-    node.v1.user = user1.User()
     node.v1.folder = folder1.Folder()
+    node.v1.user = user1.User()
 
     return node
