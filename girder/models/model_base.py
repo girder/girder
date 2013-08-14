@@ -57,24 +57,25 @@ class Model(ModelImporter):
     def ensureIndices(self, indices):
         """
         Subclasses should call this with a list of strings representing
-        fields that should be indexed in the database if there are any. Otherwise,
-        it is not necessary to call this method.
+        fields that should be indexed in the database if there are any.
+        Otherwise, it is not necessary to call this method.
         """
         self._indices = indices
 
     def validate(self, doc):
         """
-        Models should implement this to validate the document before it enters the database.
-        It must return the document with any necessary filters applied, or throw a
-        ValidationException if validation of the document fails.
+        Models should implement this to validate the document before it enters
+        the database. It must return the document with any necessary filters
+        applied, or throw a ValidationException if validation of the document
+        fails.
         """
         raise Exception('Must override validate() in %s model.'
                         % self.__class__.__name__)  # pragma: no cover
 
     def initialize(self):
         """
-        Subclasses should override this and set the name of the collection as self.name.
-        Also, they should set any indexed fields that they require.
+        Subclasses should override this and set the name of the collection as
+        self.name. Also, they should set any indexed fields that they require.
         """
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
@@ -141,7 +142,8 @@ class AccessControlledModel(Model):
     Any model that has access control requirements should inherit from
     this class. It enforces permission checking in the load() method
     and provides convenient methods for testing and requiring user permissions.
-    It also provides methods for setting access control policies on the resource.
+    It also provides methods for setting access control policies on the
+    resource.
     """
 
     def _hasGroupAccess(self, perms, groupIds, level):
@@ -178,7 +180,7 @@ class AccessControlledModel(Model):
         doc['access'][entity][:] = [perm for perm in doc['access'][entity]
                                     if perm['id'] != id]
 
-        # Now add in the new level for this entity unless we are removing access.
+        # Add in the new level for this entity unless we are removing access.
         if level is not None:
             doc['access'][entity].append({
                 'id': id,
@@ -274,9 +276,11 @@ class AccessControlledModel(Model):
             # If all that fails, descend into real permission checking.
             if 'access' in doc:
                 perms = doc['access']
-                if self._hasGroupAccess(perms.get('groups', []), user.get('groups', []), level):
+                if self._hasGroupAccess(perms.get('groups', []),
+                                        user.get('groups', []), level):
                     return True
-                elif self._hasUserAccess(perms.get('users', []), user['_id'], level):
+                elif self._hasUserAccess(perms.get('users', []),
+                                         user['_id'], level):
                     return True
 
             return False
@@ -293,9 +297,11 @@ class AccessControlledModel(Model):
                 perm = 'Write'
             else:
                 perm = 'Admin'
-            raise AccessException("%s access denied for %s." % (perm, self.name))
+            raise AccessException("%s access denied for %s." %
+                                  (perm, self.name))
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False):
         """
         We override Model.load to also do permission checking.
         :param id: The id of the resource.
@@ -336,8 +342,9 @@ class AccessControlledModel(Model):
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset):
         """
-        Given a database result cursor, return only the results that the user has
-        the given level of access on, respecting the limit and offset specified.
+        Given a database result cursor, return only the results that the user
+        has the given level of access on, respecting the limit and offset
+        specified.
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
         :param level: The access level.

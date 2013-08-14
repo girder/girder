@@ -34,8 +34,9 @@ class User(Resource):
         """
         Helper to filter the user model.
         """
-        return self.filterDocument(user, allow=['_id', 'login', 'email', 'public', 'size',
-                                                'firstName', 'lastName', 'admin', 'hashAlg'])
+        return self.filterDocument(
+            user, allow=['_id', 'login', 'email', 'public', 'size',
+                         'firstName', 'lastName', 'admin', 'hashAlg'])
 
     def _sendAuthTokenCookie(self, user, token):
         """ Helper method to send the authentication cookie """
@@ -65,7 +66,8 @@ class User(Resource):
         """
         (user, token) = self.getCurrentUser(returnToken=True)
 
-        # Only create and send a new cookie if they aren't already sending us a valid one.
+        # Only create and send new cookie if user isn't already sending
+        # a valid one.
         if not user:
             self.requireParams(['login', 'password'], params)
 
@@ -97,7 +99,8 @@ class User(Resource):
         return {'message': 'Logged out.'}
 
     def createUser(self, params):
-        self.requireParams(['firstName', 'lastName', 'login', 'password', 'email'], params)
+        self.requireParams(['firstName', 'lastName', 'login', 'password',
+                            'email'], params)
 
         user = self.userModel.createUser(login=params['login'],
                                          password=params['password'],

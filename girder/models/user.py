@@ -46,17 +46,21 @@ class User(AccessControlledModel):
             raise Exception('Tried to save user document with no salt.')
 
         if not doc['fname']:
-            raise ValidationException('First name must not be empty.', 'firstName')
+            raise ValidationException('First name must not be empty.',
+                                      'firstName')
 
         if not doc['lname']:
-            raise ValidationException('Last name must not be empty.', 'lastName')
+            raise ValidationException('Last name must not be empty.',
+                                      'lastName')
 
         if '@' in doc['login']:
-            # Hard-code this one so we can always easily distinguish email from login
+            # Hard-code this constraint so we can always easily distinguish
+            # an email address from a login
             raise ValidationException('Login may not contain "@".', 'login')
 
         if not re.match(cherrypy.config['users']['login_regex'], doc['login']):
-            raise ValidationException(cherrypy.config['users']['login_description'], 'login')
+            raise ValidationException(
+                cherrypy.config['users']['login_description'], 'login')
 
         if not re.match(cherrypy.config['users']['email_regex'], doc['email']):
             raise ValidationException('Invalid email address.', 'email')
@@ -67,7 +71,8 @@ class User(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
-            raise ValidationException('That login is already registered.', 'login')
+            raise ValidationException('That login is already registered.',
+                                      'login')
 
         # Ensure unique emails
         q = {'email': doc['email']}
@@ -75,7 +80,8 @@ class User(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
-            raise ValidationException('That email is already registered.', 'email')
+            raise ValidationException('That email is already registered.',
+                                      'email')
 
         return doc
 
@@ -83,8 +89,7 @@ class User(AccessControlledModel):
                    admin=False, public=True):
         """
         Create a new user with the given information. The user will be created
-        with the default "Public" and "Private" folders. Validation must be done
-        in advance by the caller.
+        with the default "Public" and "Private" folders.
         :param admin: Whether user is global administrator.
         :type admin: bool
         :param tokenLifespan: Number of days the long-term token should last.
@@ -113,11 +118,15 @@ class User(AccessControlledModel):
         # granting the user access on himself.
         user = self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
-        # Create some default folders for the user and give the user admin access to them
-        publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',
+        # Create some default folders for the user and give the user admin
+        # access to them
+        publicFolder = self.folderModel.createFolder(user, 'Public',
+                                                     parentType='user',
                                                      public=True, creator=user)
-        privateFolder = self.folderModel.createFolder(user, 'Private', parentType='user',
-                                                      public=False, creator=user)
+        privateFolder = self.folderModel.createFolder(user, 'Private',
+                                                      parentType='user',
+                                                      public=False,
+                                                      creator=user)
         self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
         self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
 

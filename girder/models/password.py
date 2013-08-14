@@ -53,7 +53,8 @@ class Password(Model):
             try:
                 import bcrypt
             except ImportError:
-                raise Exception('Bcrypt module is not installed. See local.auth.cfg.')
+                raise Exception('Bcrypt module is not installed. '
+                                'See local.auth.cfg.')
 
             if salt is None:
                 rounds = cherrypy.config['auth']['bcrypt_rounds']
@@ -82,7 +83,8 @@ class Password(Model):
         :type password: str
         :returns: Whether authentication succeeded (bool).
         """
-        hash = self._digest(salt=user['salt'], alg=user['hashAlg'], password=password)
+        hash = self._digest(salt=user['salt'], alg=user['hashAlg'],
+                            password=password)
 
         if user['hashAlg'] == 'bcrypt':
             return hash == user['salt']
@@ -92,20 +94,22 @@ class Password(Model):
     def encryptAndStore(self, password):
         """
         Encrypt and store the given password. The exact internal details and
-        mechanisms used for storage are abstracted away, but the guarantee is made that
-        once this method is called on a password and the returned salt and algorithm are
-        stored with the user document, calling Password.authenticate() with that user
-        document and the same password will return True.
+        mechanisms used for storage are abstracted away, but the guarantee is
+        made that once this method is called on a password and the returned salt
+        and algorithm are stored with the user document, calling
+        Password.authenticate() with that user document and the same password
+        will return True.
         :param password: The password to encrypt and store.
         :type password: str
-        :returns: {tuple} (salt, hashAlg) The salt to store with the user document
-                                          and the algorithm used for secure storage.
-                                          Both should be stored in the corresponding user
-                                          document as 'salt' and 'hashAlg', respectively.
+        :returns: {tuple} (salt, hashAlg) The salt to store with the user
+        document and the algorithm used for secure storage. Both should be
+        stored in the corresponding user document as 'salt' and 'hashAlg',
+        respectively.
         """
         # Normally this would go in validate() but password is a special case.
         if not re.match(cherrypy.config['users']['password_regex'], password):
-            raise ValidationException(cherrypy.config['users']['password_description'], 'password')
+            raise ValidationException(
+                cherrypy.config['users']['password_description'], 'password')
 
         alg = cherrypy.config['auth']['hash_alg']
         if alg == 'bcrypt':

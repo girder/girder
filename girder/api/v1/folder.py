@@ -39,14 +39,15 @@ class Folder(Resource):
 
     def find(self, params):
         """
-        Get a list of folders with given search parameters. Currently accepted modes are:
+        Get a list of folders with given search parameters. Currently accepted
+        search modes are:
 
         1. Searching by parentId and parentType.
         2. Searching with full text search.
 
-        To search with full text search, pass the "text" parameter. To search by parent,
-        (i.e. list child folders) pass parentId and parentType, which must be one of
-        ('folder' | 'community' | 'user').
+        To search with full text search, pass the "text" parameter. To search
+        by parent, (i.e. list child folders) pass parentId and parentType,
+        which must be one of ('folder' | 'community' | 'user').
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))
@@ -65,12 +66,15 @@ class Folder(Resource):
             elif parentType == 'folder':
                 model = self.folderModel
             else:
-                raise RestException('The parentType must be user, community, or folder.')
+                raise RestException('The parentType must be user, community,'
+                                    ' or folder.')
 
-            parent = self.getObjectById(model, id=params['parentId'], user=user,
-                                        checkAccess=True, level=AccessType.READ)
-            return self.folderModel.childFolders(parentType=parentType, parent=parent, user=user,
-                                                 offset=offset, limit=limit)
+            parent = self.getObjectById(
+                model, id=params['parentId'], user=user, checkAccess=True,
+                level=AccessType.READ)
+            return self.folderModel.childFolders(
+                parentType=parentType, parent=parent, user=user, offset=offset,
+                limit=limit)
         else:
             raise RestException('Invalid search mode.')
 
@@ -110,11 +114,13 @@ class Folder(Resource):
         parent = self.getObjectById(model, id=params['parentId'], user=user,
                                     checkAccess=True, level=AccessType.WRITE)
 
-        folder = self.folderModel.createFolder(parent=parent, parentType=parentType, creator=user,
-                                               description=description, name=name, public=public)
+        folder = self.folderModel.createFolder(
+            parent=parent, name=name, parentType=parentType, creator=user,
+            description=description, public=public)
 
         if parentType == 'user':
-            folder = self.folderModel.setUserAccess(folder, user=user, level=AccessType.ADMIN)
+            folder = self.folderModel.setUserAccess(folder, user=user,
+                                                    level=AccessType.ADMIN)
         elif parentType == 'community':
             # TODO set appropriate top-level community folder permissions
             pass

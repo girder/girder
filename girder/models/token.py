@@ -32,7 +32,8 @@ def genToken(length=64):
     Use this utility function to generate a random string of
     a desired length.
     """
-    return ''.join(random.choice(string.letters + string.digits) for x in range(length))
+    return ''.join(random.choice(string.letters + string.digits)
+                   for x in range(length))
 
 
 class Token(AccessControlledModel):
@@ -45,9 +46,9 @@ class Token(AccessControlledModel):
     def validate(self, doc):
         # TODO one validation that might be nice would be adding a maximum
         # number of tokens per user. If they exceeded the max, it would begin
-        # to delete the oldest ones. We have to support multiple valid tokens per
-        # user to support things like logging in from multiple machines, but we
-        # can still set a sensible maximum.
+        # to delete the oldest ones. We have to support multiple valid tokens
+        # per user to support things like logging in from multiple machines, but
+        # we can still set a sensible maximum.
         return doc
 
     def cleanExpired(self):
@@ -70,5 +71,6 @@ class Token(AccessControlledModel):
             'userId': user['_id'],
             'expires': now + datetime.timedelta(days=days)
             }
-        token = self.setUserAccess(token, user=user, level=AccessType.ADMIN, save=False)
+        token = self.setUserAccess(token, user=user, level=AccessType.ADMIN,
+                                   save=False)
         return self.save(token)

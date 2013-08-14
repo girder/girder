@@ -37,8 +37,9 @@ _apis.append({
             Describe.param('password', "The user's requested password")
             ],
         'errorResponses': [
-            Describe.errorResponse('A parameter was invalid, or the specified login or email '
-                                   'already exists in the system.')
+            Describe.errorResponse(
+                'A parameter was invalid, or the specified login or email '
+                'already exists in the system.')
             ]
         }]
     })
@@ -52,7 +53,8 @@ _apis.append({
         'nickname': 'login',
         'returns': 'Authentication token',
         'summary': 'Log in to the system.',
-        'notes': 'Returns a cookie that should be passed back in future requests.',
+        'notes': 'Returns a cookie that should be passed back in future '
+                 'requests.',
         'parameters': [
             Describe.param('login', "Your email or login."),
             Describe.param('password', "Your password.")
@@ -89,7 +91,8 @@ _apis.append({
             ],
         'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
-            Describe.errorResponse('You do not have permission to see this user.', 403)
+            Describe.errorResponse('You do not have permission to see this '
+                                   'user.', 403)
             ]
         }]
     })

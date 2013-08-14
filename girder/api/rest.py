@@ -58,7 +58,8 @@ class Resource(ModelImporter):
 
     def filterDocument(self, doc, allow=[]):
         """
-        This method will filter the given document to make it suitable to output to the user.
+        This method will filter the given document to make it suitable to
+        output to the user.
         :param doc: The document to filter.
         :type doc: dict
         :param allow: The whitelist of fields to allow in the output document.
@@ -93,11 +94,12 @@ class Resource(ModelImporter):
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.
-        :param returnToken: Whether we should return a tuple that also contains the token.
+        :param returnToken: Whether we should return a tuple that also contains
+                            the token.
         :type returnToken: bool
         :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired. If
-                  returnToken=True, returns a tuple of (user, token).
+                  is not logged in or the cookie token is invalid or expired.
+                  If returnToken=True, returns a tuple of (user, token).
         """
         # TODO we should also allow them to pass the token in the params
         cookie = cherrypy.request.cookie
@@ -119,8 +121,8 @@ class Resource(ModelImporter):
         else:  # user is not logged in
             return (None, None) if returnToken else None
 
-    def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ,
-                      objectId=True):
+    def getObjectById(self, model, id, checkAccess=False, user=None,
+                      level=AccessType.READ, objectId=True):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
@@ -128,7 +130,8 @@ class Resource(ModelImporter):
         :type model: Model
         :param id: The id of the object.
         :type id: string or ObjectId
-        :param checkAccess: If this is an AccessControlledObject, set this to True.
+        :param checkAccess: Whether the object being request is an
+                            AccessControlledObject.
         :type checkAccess: bool
         :param user: If checkAccess=True, set this to the current user.
         :type user: dict or None
@@ -137,7 +140,8 @@ class Resource(ModelImporter):
         """
         try:
             if checkAccess is True:
-                obj = model.load(id=id, objectId=objectId, user=user, level=level)
+                obj = model.load(id=id, objectId=objectId, user=user,
+                                 level=level)
             else:
                 obj = model.load(id=id, objectId=objectId)
         except InvalidId:
@@ -149,12 +153,12 @@ class Resource(ModelImporter):
     @classmethod
     def endpoint(cls, fun):
         """
-        All REST endpoints should use this decorator. It converts the return value
-        of the underlying method to the appropriate output format and sets the relevant
-        response headers. It also handles RestExceptions, which are 400-level
-        exceptions in the REST endpoints, AccessExceptions resulting from access denial,
-        and also handles any unexpected exceptions using 500 status and including a useful
-        traceback in those cases.
+        All REST endpoints should use this decorator. It converts the return
+        value of the underlying method to the appropriate output format and
+        sets the relevant response headers. It also handles RestExceptions,
+        which are 400-level exceptions in the REST endpoints, AccessExceptions
+        resulting from access denial, and also handles any unexpected errors
+        using 500 status and including a useful traceback in those cases.
         """
         def wrapper(self, *args, **kwargs):
             try:
@@ -197,12 +201,12 @@ class Resource(ModelImporter):
                 if accept.value == 'application/json':
                     break
                 elif accept.value == 'text/html':  # pragma: no cover
-                    # Pretty-print and HTMLify the response for display in browser
+                    # Pretty-print and HTMLify the response for the browser
                     cherrypy.response.headers['Content-Type'] = 'text/html'
                     resp = json.dumps(val, indent=4, sort_keys=True,
                                       separators=(',', ': '), default=str)
                     resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
-                    resp = '<div style="font-family: monospace">' + resp + '</div>'
+                    resp = '<div style="font-family:monospace;">%s</div>' % resp
                     return resp
 
             # Default behavior will just be normal JSON output. Keep this

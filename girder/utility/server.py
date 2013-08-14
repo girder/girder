@@ -31,8 +31,8 @@ class Webroot(object):
 
     def GET(self):
         return cherrypy.lib.static.serve_file(
-            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built', 'index.html'),
-            content_type='text/html')
+            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built',
+                         'index.html'), content_type='text/html')
 
 
 def setup(test=False):
@@ -43,7 +43,8 @@ def setup(test=False):
     :type test: bool
     """
     cfgs = ['auth', 'db', 'server']
-    cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c) for c in cfgs]
+    cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c)
+            for c in cfgs]
     [cherrypy.config.update(cfg) for cfg in cfgs]
 
     appconf = {

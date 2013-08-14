@@ -40,12 +40,14 @@ class UserTestCase(base.TestCase):
         self.assertTrue('authToken' in resp.cookie)
         cookieVal = json.loads(resp.cookie['authToken'].value)
         self.assertHasKeys(cookieVal, ['token', 'userId'])
-        self.assertEqual(resp.cookie['authToken']['expires'],
-                         cherrypy.config['sessions']['cookie_lifetime'] * 3600 * 24)
+        self.assertEqual(
+            resp.cookie['authToken']['expires'],
+            cherrypy.config['sessions']['cookie_lifetime'] * 3600 * 24)
 
     def _verifyUserDocument(self, doc):
-        self.assertHasKeys(doc, ['_id', 'firstName', 'lastName', 'email', 'login',
-                                 'admin', 'size', 'hashAlg'])
+        self.assertHasKeys(
+            doc, ['_id', 'firstName', 'lastName', 'email', 'login', 'admin',
+                  'size', 'hashAlg'])
         self.assertNotHasKeys(doc, ['salt'])
 
     def testRegisterAndLoginBcrypt(self):
@@ -53,7 +55,8 @@ class UserTestCase(base.TestCase):
         Test user registration and logging in.
         """
         cherrypy.config['auth']['hash_alg'] = 'bcrypt'
-        cherrypy.config['auth']['bcrypt_rounds'] = 4  # Set this to minimum so test runs faster.
+        # Set this to minimum so test runs faster.
+        cherrypy.config['auth']['bcrypt_rounds'] = 4
 
         params = {
             'email': 'bad_email',
@@ -63,21 +66,25 @@ class UserTestCase(base.TestCase):
             'password': 'bad'
         }
         # First test all of the required parameters.
-        self.ensureRequiredParams(path='/user', method='POST', required=params.keys())
+        self.ensureRequiredParams(
+            path='/user', method='POST', required=params.keys())
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'password')
-        self.assertEqual(cherrypy.config['users']['password_description'], resp.json['message'])
+        self.assertEqual(cherrypy.config['users']['password_description'],
+                         resp.json['message'])
 
         params['password'] = 'goodpassword'
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
 
-        params['login'] = ' '  # something that violates the regex but doesn't contain @
+        # Make login something that violates the regex but doesn't contain @
+        params['login'] = ' '
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
-        self.assertEqual(cherrypy.config['users']['login_description'], resp.json['message'])
+        self.assertEqual(cherrypy.config['users']['login_description'],
+                         resp.json['message'])
 
         params['login'] = 'goodlogin'
         resp = self.request(path='/user', method='POST', params=params)
@@ -96,7 +103,8 @@ class UserTestCase(base.TestCase):
             'login': 'incorrect@email.com',
             'password': 'badpassword'
         }
-        self.ensureRequiredParams(path='/user/login', method='POST', required=params.keys())
+        self.ensureRequiredParams(
+            path='/user/login', method='POST', required=params.keys())
 
         # Login with unregistered email
         resp = self.request(path='/user/login', method='POST', params=params)
@@ -114,7 +122,8 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/login', method='POST', params=params)
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
-        self.assertHasKeys(resp.json['authToken'], ['token', 'expires', 'userId'])
+        self.assertHasKeys(
+            resp.json['authToken'], ['token', 'expires', 'userId'])
 
         # Invalid login
         params['login'] = 'badlogin'

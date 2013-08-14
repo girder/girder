@@ -25,9 +25,10 @@ from girder.constants import ROOT_DIR
 from ..rest import Resource, RestException
 
 """
-Whenever we add new return values or new options we should increment the maintenance
-value. Whenever we add new endpoints, we should increment the minor version. If we break
-backward compatibility in any way, we should increment the major version.
+Whenever we add new return values or new options we should increment the
+maintenance value. Whenever we add new endpoints, we should increment the minor
+version. If we break backward compatibility in any way, we should increment the
+major version.
 """
 API_VERSION = "1.0.0"
 
@@ -37,8 +38,8 @@ class ApiDocs(object):
 
     def GET(self, **params):
         return cherrypy.lib.static.serve_file(os.path.join(
-            ROOT_DIR, 'clients', 'web', 'static', 'built', 'swagger', 'swagger.html'),
-            content_type='text/html')
+            ROOT_DIR, 'clients', 'web', 'static', 'built', 'swagger',
+            'swagger.html'), content_type='text/html')
 
 
 class Describe(Resource):
@@ -49,10 +50,12 @@ class Describe(Resource):
     models = {}
 
     @classmethod
-    def param(cls, name, description, paramType='form', dataType='string', required=True):
+    def param(cls, name, description, paramType='form', dataType='string',
+              required=True):
         """
-        This helper will build a parameter declaration for you. It has the most common options as
-        defaults, so you won't have to repeat yourself as much when declaring the APIs.
+        This helper will build a parameter declaration for you. It has the most
+        common options as defaults, so you won't have to repeat yourself as much
+        when declaring the APIs.
         """
         return {
             'name': name,
@@ -66,8 +69,9 @@ class Describe(Resource):
     @classmethod
     def errorResponse(cls, reason='A parameter was invalid.', code=400):
         """
-        This helper will build an errorResponse declaration for you. Most endpoints will be
-        able to use the default parameter values for one of their responses.
+        This helper will build an errorResponse declaration for you. Most
+        endpoints will be able to use the default parameter values for one of
+        their responses.
         """
         return {
             'reason': reason,
@@ -77,8 +81,9 @@ class Describe(Resource):
     @classmethod
     def declareApi(cls, resource, apis):
         """
-        Rest modules should call this to document themselves. The specification can be found
-        at https://github.com/wordnik/swagger-core/wiki/API-Declaration.
+        Rest modules should call this to document themselves. The specification
+        can be found at:
+        https://github.com/wordnik/swagger-core/wiki/API-Declaration.
         :param resource: The name of the resource, e.g. 'user'
         :type resource: str
         :param apis: The object(s) to add to the list for this resource.
@@ -105,7 +110,8 @@ class Describe(Resource):
                 retVal['apis'] = resources[path[0]]
             else:
                 raise RestException('Invalid resource name "%s"' % path[0])
-            retVal['basePath'] = os.path.dirname(os.path.dirname(cherrypy.url()))
+            retVal['basePath'] = os.path.dirname(
+                os.path.dirname(cherrypy.url()))
         else:
             retVal['basePath'] = cherrypy.url()
             retVal['apis'] = self.__class__.discovery['apis']
