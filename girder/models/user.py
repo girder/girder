@@ -26,6 +26,9 @@ from girder.constants import AccessType
 
 
 class User(AccessControlledModel):
+    """
+    This model represents the users of the system.
+    """
 
     def initialize(self):
         self.name = 'user'
@@ -113,10 +116,10 @@ class User(AccessControlledModel):
             'size': 0
             })
 
-        user = self.setPublic(user, public=public, save=False)
+        self.setPublic(user, public=public)
         # Must have already saved the user prior to calling this since we are
         # granting the user access on himself.
-        user = self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
+        self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
         # Create some default folders for the user and give the user admin
         # access to them
@@ -127,7 +130,9 @@ class User(AccessControlledModel):
                                                       parentType='user',
                                                       public=False,
                                                       creator=user)
-        self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
-        self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
+        self.folderModel.setUserAccess(
+            publicFolder, user, AccessType.ADMIN, save=True)
+        self.folderModel.setUserAccess(
+            privateFolder, user, AccessType.ADMIN, save=True)
 
         return user

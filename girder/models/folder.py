@@ -24,6 +24,13 @@ from girder.constants import AccessType
 
 
 class Folder(AccessControlledModel):
+    """
+    Folders are used to store items and can also store other folders in
+    a hierarchical way, like a directory on a filesystem. Every folder has
+    its own set of access control policies, but by default the access
+    control list is inherited from the folder's parent folder, if it has one.
+    Top-level folders are ones whose parent is a user or a community.
+    """
 
     def initialize(self):
         self.name = 'folder'
@@ -47,11 +54,11 @@ class Folder(AccessControlledModel):
             'parentCollection': doc['parentCollection']
             }
         if '_id' in doc:
-            q['_id'] = {'$ne': doc['parentId']}
+            q['_id'] = {'$ne': doc['_id']}
         duplicates = self.find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
             raise ValidationException('A folder with that name already'
-                                      'exists here.')
+                                      'exists here.', 'name')
 
         # TODO validate that no sibling ITEM has the requested name either
 
@@ -80,8 +87,8 @@ class Folder(AccessControlledModel):
         # TODO support sort orders.
         parentType = parentType.lower()
         if not parentType in ('folder', 'user', 'community'):
-            raise ValidationException('The parentType must be folder, "\
-                "community, or user.')
+            raise ValidationException('The parentType must be folder, '
+                                      'community, or user.')
 
         q = {
             'parentId': parent['_id'],
@@ -145,14 +152,13 @@ class Folder(AccessControlledModel):
         # If this is a subfolder, default permissions are inherited from the
         # parent folder
         if parentType == 'folder':
-            folder = self.copyAccessPolicies(src=parent, dest=folder,
-                                             save=False)
+            self.copyAccessPolicies(src=parent, dest=folder)
 
         # Allow explicit public flag override if it's set.
         if public is not None and type(public) is bool:
-            folder['public'] = public
+            self.setPublic(folder, public=public)
 
         # Now validate and save the folder.
-        folder = self.save(folder)
+        self.save(folder)
 
         return folder

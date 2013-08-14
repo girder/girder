@@ -71,6 +71,5 @@ class Token(AccessControlledModel):
             'userId': user['_id'],
             'expires': now + datetime.timedelta(days=days)
             }
-        token = self.setUserAccess(token, user=user, level=AccessType.ADMIN,
-                                   save=False)
+        self.setUserAccess(token, user=user, level=AccessType.ADMIN)
         return self.save(token)

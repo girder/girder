@@ -192,7 +192,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setPublic(self, doc, public, save=True):
+    def setPublic(self, doc, public, save=False):
         """
         Set the flag for public read access on the object.
         :param doc: The document to update permissions on.
@@ -214,7 +214,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setGroupAccess(self, doc, group, level, save=True):
+    def setGroupAccess(self, doc, group, level, save=False):
         """
         Set group-level access on the resource.
         :param doc: The resource document to set access on.
@@ -232,7 +232,7 @@ class AccessControlledModel(Model):
         """
         return self._setAccess(doc, group['_id'], 'groups', level, save)
 
-    def setUserAccess(self, doc, user, level, save=True):
+    def setUserAccess(self, doc, user, level, save=False):
         """
         Set user-level access on the resource.
         :param doc: The resource document to set access on.
@@ -321,7 +321,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def copyAccessPolicies(self, src, dest, save=True):
+    def copyAccessPolicies(self, src, dest, save=False):
         """
         Copies the set of access control policies from one document to another.
         :param src: The source document to copy policies from.

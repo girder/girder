@@ -122,3 +122,11 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['name'], 'My public subfolder')
+
+        # Try to create a folder with same name
+        resp = self.request(
+            path='/folder', method='POST', user=self.user, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertValidationError(resp, 'name')
