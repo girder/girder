@@ -22,76 +22,90 @@ from ..api_docs import Describe
 _apis = []
 
 _apis.append({
-    'path' : '/folder',
-    'resource' : 'user',
-    'operations' : [{
-        'httpMethod' : 'GET',
-        'nickname' : 'findFolders',
-        'responseClass' : 'Folder',
-        'summary' : 'Search for folders by certain properties.',
-        'parameters' : [
-            Describe.param('parentType', "Type of the folder's parent: either 'user', "
-                           "'folder', or 'community' (default='folder').", required=False),
-            Describe.param('parentId', "The ID of the folder's parent.", required=False),
-            Describe.param('text', "Pass a full text search query.", required=False),
-            Describe.param('limit', "Result set size limit (default=50).", required=False,
-                           dataType='int'),
-            Describe.param('offset', "Offset into result set (default=0).", required=False,
-                           dataType='int')
+    'path': '/folder',
+    'resource': 'user',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'findFolders',
+        'responseClass': 'Folder',
+        'summary': 'Search for folders by certain properties.',
+        'parameters': [
+            Describe.param(
+                'parentType', "Type of the folder's parent: either 'user', "
+                              "'folder', or 'community' (default='folder').",
+                              required=False),
+            Describe.param(
+                'parentId', "The ID of the folder's parent.", required=False),
+            Describe.param(
+                'text', "Pass a full text search query.", required=False),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int')
             ],
-        'errorResponses' : [
+        'errorResponses': [
             Describe.errorResponse(),
-            Describe.errorResponse('Read access was denied on the parent resource.', 403)
+            Describe.errorResponse(
+                'Read access was denied on the parent resource.', 403)
             ]
         }, {
-        'httpMethod' : 'POST',
-        'nickname' : 'createFolder',
-        'responseClass' : 'Folder',
-        'summary' : 'Create a new folder.',
-        'parameters' : [
-            Describe.param('parentType', "Type of the folder's parent: either 'user', "
-                           "'folder', or 'community' (default='folder').", required=False),
+        'httpMethod': 'POST',
+        'nickname': 'createFolder',
+        'responseClass': 'Folder',
+        'summary': 'Create a new folder.',
+        'parameters': [
+            Describe.param(
+                'parentType', "Type of the folder's parent: either 'user', "
+                "'folder', or 'community' (default='folder').", required=False),
             Describe.param('parentId', "The ID of the folder's parent."),
             Describe.param('name', "Name of the folder."),
-            Describe.param('description', "Description of the folder.", required=False),
-            Describe.param('public', "If the folder should be public or private. By default, "
-                           "inherits the value from parent folder, or in the case of user or "
-                           "community parentType, defaults to False.",
-                           required=False, dataType='boolean')
+            Describe.param('description', "Description of the folder.",
+                           required=False),
+            Describe.param(
+                'public', "If the folder should be public or private. By "
+                "default, inherits the value from parent folder, or in the "
+                " case of user or community parentType, defaults to False.",
+                required=False, dataType='boolean')
             ],
-        'errorResponses' : [
+        'errorResponses': [
             Describe.errorResponse(),
             Describe.errorResponse('Write access was denied on the parent', 403)
             ]
-        } ]
+        }]
     })
 
 _apis.append({
-    'path' : '/folder/{folderId}',
-    'resource' : 'folder',
-    'operations' : [{
-        'httpMethod' : 'GET',
-        'nickname' : 'getFolderById',
-        'responseClass' : 'Folder',
-        'summary' : 'Get a folder by ID.',
-        'parameters' : [
-            Describe.param('folderId', 'The ID of the folder.', paramType='path')
+    'path': '/folder/{folderId}',
+    'resource': 'folder',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getFolderById',
+        'responseClass': 'Folder',
+        'summary': 'Get a folder by ID.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path')
             ],
-        'errorResponses' : [
+        'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
-            Describe.errorResponse('Read access was denied for the folder.', 403)
+            Describe.errorResponse(
+                'Read access was denied for the folder.', 403)
             ]
         }, {
-        'httpMethod' : 'DELETE',
-        'nickname' : 'deleteFolderById',
-        'responseClass' : 'Folder',
-        'summary' : 'Delete a folder by ID.',
-        'parameters' : [
-            Describe.param('folderId', 'The ID of the folder.', paramType='path')
+        'httpMethod': 'DELETE',
+        'nickname': 'deleteFolderById',
+        'responseClass': 'Folder',
+        'summary': 'Delete a folder by ID.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path')
             ],
-        'errorResponses' : [
+        'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
-            Describe.errorResponse('Admin access was denied for the folder.', 403)
+            Describe.errorResponse(
+                'Admin access was denied for the folder.', 403)
             ]
         }]
     })

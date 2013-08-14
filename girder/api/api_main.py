@@ -17,9 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from v1 import user as user1,\
-               folder as folder1,\
-               api_docs as api_docs1
+from v1 import api_docs as api_docs1,\
+    folder as folder1,\
+    user as user1
+
 
 class ApiDocs():
     exposed = True
@@ -28,17 +29,19 @@ class ApiDocs():
         # TODO
         return "should display links to available api versions"
 
+
 def addApiToNode(node):
     node.api = ApiDocs()
     node.api = _addV1ToNode(node.api)
 
     return node
 
+
 def _addV1ToNode(node):
     node.v1 = api_docs1.ApiDocs()
     node.v1.describe = api_docs1.Describe()
 
-    node.v1.user = user1.User()
     node.v1.folder = folder1.Folder()
+    node.v1.user = user1.User()
 
     return node

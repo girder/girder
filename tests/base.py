@@ -30,6 +30,7 @@ from girder.constants import AccessType
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
 
+
 def startServer():
     """
     Test cases that communicate with the server should call this
@@ -38,10 +39,11 @@ def startServer():
     setupServer(test=True)
 
     # Make server quiet (won't announce start/stop or requests)
-    cherrypy.config.update({'environment' : 'embedded'})
+    cherrypy.config.update({'environment': 'embedded'})
 
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
+
 
 def stopServer():
     """
@@ -50,22 +52,25 @@ def stopServer():
     """
     cherrypy.engine.exit()
 
+
 def dropTestDatabase():
     """
     Call this to clear all contents from the test database.
     """
     from girder.models import db_connection
-    db_connection.drop_database('%s_test' % cherrypy.config['database']['database'])
+    db_connection.drop_database('%s_test' %
+                                cherrypy.config['database']['database'])
+
 
 class TestCase(unittest.TestCase, ModelImporter):
     """
-    Test case base class for the application. Adds helpful utilities for database and HTTP
-    communication.
+    Test case base class for the application. Adds helpful utilities for
+    database and HTTP communication.
     """
     def setUp(self):
         """
-        We want to start with a clean database each time, so we drop the test database
-        before each test.
+        We want to start with a clean database each time, so we drop the test
+        database before each test.
         """
         dropTestDatabase()
         self.requireModels(['token'])
@@ -96,17 +101,18 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type keys: list
         """
         for k in keys:
-            self.assertTrue(obj.has_key(k), 'Object does not contain key "%s"' % k)
+            self.assertTrue(k in obj, 'Object does not contain key "%s"' % k)
 
     def assertNotHasKeys(self, obj, keys):
         """
-        Assert that the given object does not have any of the given list of keys.
+        Assert that the given object does not have any of the given list of
+        keys.
         :param obj: The dictionary object.
         :param keys: The keys it must not contain.
         :type keys: list
         """
         for k in keys:
-            self.assertFalse(obj.has_key(k), 'Object contains key "%s"' % k)
+            self.assertFalse(k in obj, 'Object contains key "%s"' % k)
 
     def assertValidationError(self, response, field=None):
         """
@@ -127,7 +133,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         else:
             ls = 'Admin'
         self.assertStatus(response, 403)
-        self.assertEqual('%s access denied for %s.' % (ls, modelName), response.json['message'])
+        self.assertEqual('%s access denied for %s.' % (ls, modelName),
+                         response.json['message'])
 
     def assertMissingParameter(self, response, param):
         """
@@ -136,7 +143,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         :param param: The name of the missing parameter.
         :type param: str
         """
-        self.assertEqual("Parameter '%s' is required." % param, response.json.get('message', ''))
+        self.assertEqual("Parameter '%s' is required." % param,
+                         response.json.get('message', ''))
         self.assertStatus(response, 400)
 
     def ensureRequiredParams(self, path='/', method='GET', required=()):
@@ -152,8 +160,8 @@ class TestCase(unittest.TestCase, ModelImporter):
             resp = self.request(path=path, method=method, params=params)
             self.assertMissingParameter(resp, exclude)
 
-    def request(self, path='/', method='GET', params={}, user=None, prefix='/api/v1',
-                isJson=True):
+    def request(self, path='/', method='GET', params={}, user=None,
+                prefix='/api/v1', isJson=True):
         """
         Make an HTTP request.
         :param path: The path part of the URI.
@@ -171,7 +179,8 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         if method in ['POST', 'PUT']:
             qs = urllib.urlencode(params)
-            headers.append(('Content-Type', 'application/x-www-form-urlencoded'))
+            headers.append(('Content-Type',
+                            'application/x-www-form-urlencoded'))
             headers.append(('Content-Length', '%d' % len(qs)))
             fd = StringIO(qs)
             qs = None
@@ -184,12 +193,13 @@ class TestCase(unittest.TestCase, ModelImporter):
         if user is not None:
             token = self.tokenModel.createToken(user)
             cookie = json.dumps({
-                'userId' : str(user['_id']),
-                'token' : str(token['_id'])
+                'userId': str(user['_id']),
+                'token': str(token['_id'])
                 }).replace('"', "\\\"")
             headers.append(('Cookie', 'authToken="%s"' % cookie))
         try:
-            response = request.run(method, prefix + path, qs, 'HTTP/1.1', headers, fd)
+            response = request.run(method, prefix + path, qs, 'HTTP/1.1',
+                                   headers, fd)
         finally:
             if fd:
                 fd.close()

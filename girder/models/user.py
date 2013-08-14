@@ -24,7 +24,11 @@ import re
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
+
 class User(AccessControlledModel):
+    """
+    This model represents the users of the system.
+    """
 
     def initialize(self):
         self.name = 'user'
@@ -45,36 +49,42 @@ class User(AccessControlledModel):
             raise Exception('Tried to save user document with no salt.')
 
         if not doc['fname']:
-            raise ValidationException('First name must not be empty.', 'firstName')
+            raise ValidationException('First name must not be empty.',
+                                      'firstName')
 
         if not doc['lname']:
-            raise ValidationException('Last name must not be empty.', 'lastName')
+            raise ValidationException('Last name must not be empty.',
+                                      'lastName')
 
         if '@' in doc['login']:
-            # Hard-code this one so we can always easily distinguish email from login
+            # Hard-code this constraint so we can always easily distinguish
+            # an email address from a login
             raise ValidationException('Login may not contain "@".', 'login')
 
         if not re.match(cherrypy.config['users']['login_regex'], doc['login']):
-            raise ValidationException(cherrypy.config['users']['login_description'], 'login')
+            raise ValidationException(
+                cherrypy.config['users']['login_description'], 'login')
 
         if not re.match(cherrypy.config['users']['email_regex'], doc['email']):
             raise ValidationException('Invalid email address.', 'email')
 
         # Ensure unique logins
-        q = {'login' : doc['login']}
-        if doc.has_key('_id'):
-            q['_id'] = {'$ne' : doc['_id']}
+        q = {'login': doc['login']}
+        if '_id' in doc:
+            q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
-            raise ValidationException('That login is already registered.', 'login')
+            raise ValidationException('That login is already registered.',
+                                      'login')
 
         # Ensure unique emails
-        q = {'email' : doc['email']}
-        if doc.has_key('_id'):
-            q['_id'] = {'$ne' : doc['_id']}
+        q = {'email': doc['email']}
+        if '_id' in doc:
+            q['_id'] = {'$ne': doc['_id']}
         existing = self.find(q, limit=1)
         if existing.count(True) > 0:
-            raise ValidationException('That email is already registered.', 'email')
+            raise ValidationException('That email is already registered.',
+                                      'email')
 
         return doc
 
@@ -82,8 +92,7 @@ class User(AccessControlledModel):
                    admin=False, public=True):
         """
         Create a new user with the given information. The user will be created
-        with the default "Public" and "Private" folders. Validation must be done
-        in advance by the caller.
+        with the default "Public" and "Private" folders.
         :param admin: Whether user is global administrator.
         :type admin: bool
         :param tokenLifespan: Number of days the long-term token should last.
@@ -95,30 +104,35 @@ class User(AccessControlledModel):
         (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
 
         user = self.save({
-            'login' : login,
-            'email' : email,
-            'firstName' : firstName,
-            'lastName' : lastName,
-            'salt' : salt,
-            'created' : datetime.datetime.now(),
-            'hashAlg' : hashAlg,
-            'emailVerified' : False,
-            'admin' : admin,
-            'size' : 0
+            'login': login,
+            'email': email,
+            'firstName': firstName,
+            'lastName': lastName,
+            'salt': salt,
+            'created': datetime.datetime.now(),
+            'hashAlg': hashAlg,
+            'emailVerified': False,
+            'admin': admin,
+            'size': 0
             })
 
-        user = self.setPublic(user, public=public, save=False)
+        self.setPublic(user, public=public)
         # Must have already saved the user prior to calling this since we are
         # granting the user access on himself.
-        user = self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
+        self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
-        # Create some default folders for the user and give the user admin access to them
-        publicFolder = self.folderModel.createFolder(user, 'Public', parentType='user',
+        # Create some default folders for the user and give the user admin
+        # access to them
+        publicFolder = self.folderModel.createFolder(user, 'Public',
+                                                     parentType='user',
                                                      public=True, creator=user)
-        privateFolder = self.folderModel.createFolder(user, 'Private', parentType='user',
-                                                     public=False, creator=user)
-        self.folderModel.setUserAccess(publicFolder, user, AccessType.ADMIN)
-        self.folderModel.setUserAccess(privateFolder, user, AccessType.ADMIN)
+        privateFolder = self.folderModel.createFolder(user, 'Private',
+                                                      parentType='user',
+                                                      public=False,
+                                                      creator=user)
+        self.folderModel.setUserAccess(
+            publicFolder, user, AccessType.ADMIN, save=True)
+        self.folderModel.setUserAccess(
+            privateFolder, user, AccessType.ADMIN, save=True)
 
         return user
-
