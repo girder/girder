@@ -20,6 +20,7 @@
 import cherrypy
 import datetime
 import json
+import pymongo
 import sys
 import traceback
 
@@ -90,6 +91,34 @@ class Resource(ModelImporter):
         """
         if not user.get('admin', False) is True:
             raise AccessException('Administrator access required.')
+
+    def getPagingParameters(self, params, defaultSortField=None):
+        """
+        Pass the URL parameters into this function if the request is for a
+        list of resources that should be paginated. It will return a tuple of
+        the form (limit, offset, sort) whose values should be passed directly
+        into the model methods that are finding the resources. If the client
+        did not pass the parameters, this always uses the same defaults of
+        limit=50, offset=0, sort='name', sortdir=pymongo.ASCENDING=1.
+        :param params: The URL query parameters.
+        :type params: dict
+        :param defaultSortField: If the client did not pass a 'sort' parameter,
+        set this to choose a default sort field. If None, the results will
+        be returned unsorted.
+        :type defaultSortField: str or None
+        """
+        offset = int(params.get('offset', 0))
+        limit = int(params.get('limit', 50))
+        sortdir = int(params.get('sortdir', pymongo.ASCENDING))
+
+        if 'sort' in params:
+            sort = [(params['sort'].strip(), sortdir)]
+        elif type(defaultSortField) is str:
+            sort = [(defaultSortField, sortdir)]
+        else:
+            sort = None
+
+        return (limit, offset, sort)
 
     def getCurrentUser(self, returnToken=False):
         """

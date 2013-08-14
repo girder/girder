@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource, RestException
@@ -47,16 +48,21 @@ class Folder(Resource):
 
         To search with full text search, pass the "text" parameter. To search
         by parent, (i.e. list child folders) pass parentId and parentType,
-        which must be one of ('folder' | 'community' | 'user').
+        which must be one of ('folder' | 'community' | 'user'). You can also
+        pass limit, offset, sort, and sortdir paramters.
+        :param limit: The result set size limit, default=50.
+        :param offset: Offset into the results, default=0.
+        :param sort: The field to sort by, default=name.
+        :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        offset = int(params.get('offset', 0))
-        limit = int(params.get('limit', 50))
+        (limit, offset, sort) = self.getPagingParameters(params, 'name')
 
         user = self.getCurrentUser()
 
         if 'text' in params:
             return self.folderModel.search(params['text'], user=user,
-                                           offset=offset, limit=limit)
+                                           offset=offset, limit=limit,
+                                           sort=sort)
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType == 'user':
@@ -74,7 +80,7 @@ class Folder(Resource):
                 level=AccessType.READ)
             return self.folderModel.childFolders(
                 parentType=parentType, parent=parent, user=user, offset=offset,
-                limit=limit)
+                limit=limit, sort=sort)
         else:
             raise RestException('Invalid search mode.')
 

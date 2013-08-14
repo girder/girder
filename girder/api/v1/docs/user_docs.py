@@ -19,9 +19,9 @@
 
 from ..api_docs import Describe
 
-_apis = []
+apis = []
 
-_apis.append({
+apis.append({
     'path': '/user',
     'resource': 'user',
     'operations': [{
@@ -44,7 +44,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/login',
     'resource': 'user',
     'responseClass': 'Token',
@@ -66,7 +66,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/logout',
     'resource': 'user',
     'operations': [{
@@ -78,7 +78,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/{userId}',
     'resource': 'user',
     'operations': [{
@@ -97,4 +97,4 @@ _apis.append({
         }]
     })
 
-Describe.declareApi('user', apis=_apis)
+Describe.declareApi('user', apis=apis)

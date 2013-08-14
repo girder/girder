@@ -70,14 +70,18 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
 
         # If we log in as the user, we should also be able to see the
-        # private folder
+        # private folder. Also test that our sortdir param works.
         resp = self.request(
             path='/folder', method='GET', user=self.user, params={
                 'parentType': 'user',
-                'parentId': self.user['_id']
+                'parentId': self.user['_id'],
+                'sort': 'name',
+                'sortdir': -1
             })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['name'], 'Public')
+        self.assertEqual(resp.json[1]['name'], 'Private')
 
     def testCreateFolder(self):
         self.ensureRequiredParams(
@@ -87,13 +91,15 @@ class FolderTestCase(base.TestCase):
         resp = self.request(
             path='/folder', method='GET', user=self.user, params={
                 'parentType': 'user',
-                'parentId': self.user['_id']
+                'parentId': self.user['_id'],
+                'sort': 'name',
+                'sortdir': 1
             })
-        publicFolder = resp.json[0]
-        privateFolder = resp.json[1]
+        privateFolder = resp.json[0]
+        publicFolder = resp.json[1]
 
-        self.assertEqual(publicFolder['name'], 'Public')
         self.assertEqual(privateFolder['name'], 'Private')
+        self.assertEqual(publicFolder['name'], 'Public')
 
         # Try to create a folder as anonymous; should fail
         resp = self.request(path='/folder', method='POST', params={

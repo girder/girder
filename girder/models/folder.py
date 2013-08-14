@@ -34,7 +34,8 @@ class Folder(AccessControlledModel):
 
     def initialize(self):
         self.name = 'folder'
-        self.ensureIndices(['parentId'])
+        self.ensureIndices(['parentId', 'name'])
+        self.requireModels(['item'])
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -48,6 +49,7 @@ class Folder(AccessControlledModel):
             raise Exception('Invalid folder parent type: %s.' %
                             doc['parentCollection'])
 
+        # Ensure unique name among sibling folders
         q = {
             'parentId': doc['parentId'],
             'name': doc['name'],
@@ -60,18 +62,47 @@ class Folder(AccessControlledModel):
             raise ValidationException('A folder with that name already'
                                       'exists here.', 'name')
 
-        # TODO validate that no sibling ITEM has the requested name either
+        # Ensure unique name among sibling items
+        q = {
+            'folderId': doc['parentId'],
+            'name': doc['name']
+            }
+        duplicates = self.itemModel.find(q, limit=1, fields=['_id'])
+        if duplicates.count() != 0:
+            raise ValidationException('An item with that name already'
+                                      'exists here.', 'name')
 
         return doc
 
-    def search(self, query, user=None, limit=50, offset=0):
+    def search(self, query, user=None, limit=50, offset=0, sort=None):
         """
         Search for folders with full text search.
         """
         #TODO implement
         return []
 
-    def childFolders(self, parent, parentType, user=None, limit=50, offset=0):
+    def childItems(self, folder, limit=50, offset=0, sort=None):
+        """
+        Get a list of child items in this folder.
+        :param folder: The parent folder.
+        :param limit: Result limit.
+        :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        :returns: List of child items in the folder.
+        """
+        q = {
+            'folderId': folder['_id']
+            }
+
+        cursor = self.itemModel.find(q, limit=limit, offset=offset, sort=sort)
+        items = []
+        for item in cursor:
+            items.append(item)
+
+        return items
+
+    def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
+                     sort=None):
         """
         Get all child folders of a user, community, or folder, with access
         policy filtering.
@@ -83,8 +114,9 @@ class Folder(AccessControlledModel):
                      user can see.
         :param limit: Result limit.
         :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        :returns: List of child folders.
         """
-        # TODO support sort orders.
         parentType = parentType.lower()
         if not parentType in ('folder', 'user', 'community'):
             raise ValidationException('The parentType must be folder, '
@@ -97,7 +129,7 @@ class Folder(AccessControlledModel):
 
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find(q, limit=0)
+        cursor = self.find(q, limit=0, sort=sort)
 
         return self.filterResultsByPermission(cursor=cursor, user=user,
                                               level=AccessType.READ,
@@ -159,6 +191,4 @@ class Folder(AccessControlledModel):
             self.setPublic(folder, public=public)
 
         # Now validate and save the folder.
-        self.save(folder)
-
-        return folder
+        return self.save(folder)
