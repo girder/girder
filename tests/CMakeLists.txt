@@ -1,33 +1,6 @@
 # Set this variable to the minimum coverage percentage to be considered passing
 set(COVERAGE_MINIMUM_PASS 80)
 
-set(py_coverage_rc "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc")
-
-function(add_python_test case)
-  set(name "Server_${case}")
-
-  if(PYTHON_COVERAGE)
-    add_test(
-      NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --append "--rcfile=${py_coverage_rc}"
-              --source=girder -m unittest -v tests.cases.${case}_test
-    )
-  else()
-    add_test(
-      NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.cases.${case}_test
-    )
-  endif()
-  set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
-
-  if(PYTHON_COVERAGE)
-    set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
-    set_property(TEST py_coverage APPEND PROPERTY DEPENDS ${name})
-  endif()
-endfunction()
-
 if(PYTHON_COVERAGE)
   add_test(
     NAME py_coverage_reset
@@ -45,6 +18,11 @@ if(PYTHON_COVERAGE)
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${PROJECT_BINARY_DIR}/python_coverage"
   )
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
+endif()
+
+if(PYTHON_STYLE_TESTS)
+  add_python_style_test(pep8_style_core "${PROJECT_SOURCE_DIR}/girder")
+  add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
 endif()
 
 add_python_test(user)

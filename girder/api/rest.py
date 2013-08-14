@@ -28,6 +28,7 @@ from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
+
 class RestException(Exception):
     """
     Throw a RestException in the case of any sort of incorrect
@@ -41,6 +42,7 @@ class RestException(Exception):
 
         Exception.__init__(self, message)
 
+
 class Resource(ModelImporter):
     exposed = True
 
@@ -52,11 +54,12 @@ class Resource(ModelImporter):
         """
         Subclasses should implement this method.
         """
-        pass # pragma: no cover
+        pass  # pragma: no cover
 
     def filterDocument(self, doc, allow=[]):
         """
-        This method will filter the given document to make it suitable to output to the user.
+        This method will filter the given document to make it suitable to
+        output to the user.
         :param doc: The document to filter.
         :type doc: dict
         :param allow: The whitelist of fields to allow in the output document.
@@ -64,7 +67,7 @@ class Resource(ModelImporter):
         """
         out = {}
         for field in allow:
-            if doc.has_key(field):
+            if field in doc:
                 out[field] = doc[field]
 
         return out
@@ -74,17 +77,29 @@ class Resource(ModelImporter):
         Pass a list of required parameters.
         """
         for param in required:
-            if not provided.has_key(param):
+            if not param in provided:
                 raise RestException("Parameter '%s' is required." % param)
+
+    def requireAdmin(self, user):
+        """
+        Calling this on a user will ensure that they have admin rights.
+        an AccessException.
+        :param user: The user to check admin flag on.
+        :type user: dict.
+        :raises AccessException: If the user is not an administrator.
+        """
+        if not user.get('admin', False) is True:
+            raise AccessException('Administrator access required.')
 
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.
-        :param returnToken: Whether we should return a tuple that also contains the token.
+        :param returnToken: Whether we should return a tuple that also contains
+                            the token.
         :type returnToken: bool
         :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired. If
-                  returnToken=True, returns a tuple of (user, token).
+                  is not logged in or the cookie token is invalid or expired.
+                  If returnToken=True, returns a tuple of (user, token).
         """
         # TODO we should also allow them to pass the token in the params
         cookie = cherrypy.request.cookie
@@ -103,11 +118,11 @@ class Resource(ModelImporter):
                 return (None, token) if returnToken else None
             else:
                 return (user, token) if returnToken else user
-        else: # user is not logged in
+        else:  # user is not logged in
             return (None, None) if returnToken else None
 
-    def getObjectById(self, model, id, checkAccess=False, user=None, level=AccessType.READ,
-                      objectId=True):
+    def getObjectById(self, model, id, checkAccess=False, user=None,
+                      level=AccessType.READ, objectId=True):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
@@ -115,7 +130,8 @@ class Resource(ModelImporter):
         :type model: Model
         :param id: The id of the object.
         :type id: string or ObjectId
-        :param checkAccess: If this is an AccessControlledObject, set this to True.
+        :param checkAccess: Whether the object being request is an
+                            AccessControlledObject.
         :type checkAccess: bool
         :param user: If checkAccess=True, set this to the current user.
         :type user: dict or None
@@ -124,7 +140,8 @@ class Resource(ModelImporter):
         """
         try:
             if checkAccess is True:
-                obj = model.load(id=id, objectId=objectId, user=user, level=level)
+                obj = model.load(id=id, objectId=objectId, user=user,
+                                 level=level)
             else:
                 obj = model.load(id=id, objectId=objectId)
         except InvalidId:
@@ -136,12 +153,12 @@ class Resource(ModelImporter):
     @classmethod
     def endpoint(cls, fun):
         """
-        All REST endpoints should use this decorator. It converts the return value
-        of the underlying method to the appropriate output format and sets the relevant
-        response headers. It also handles RestExceptions, which are 400-level
-        exceptions in the REST endpoints, AccessExceptions resulting from access denial,
-        and also handles any unexpected exceptions using 500 status and including a useful
-        traceback in those cases.
+        All REST endpoints should use this decorator. It converts the return
+        value of the underlying method to the appropriate output format and
+        sets the relevant response headers. It also handles RestExceptions,
+        which are 400-level exceptions in the REST endpoints, AccessExceptions
+        resulting from access denial, and also handles any unexpected errors
+        using 500 status and including a useful traceback in those cases.
         """
         def wrapper(self, *args, **kwargs):
             try:
@@ -154,27 +171,27 @@ class Resource(ModelImporter):
             except RestException as e:
                 # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
-                val = {'message' : e.message,
-                       'type' : 'rest'}
+                val = {'message': e.message,
+                       'type': 'rest'}
                 if e.extra is not None:
                     val['extra'] = e.extra
             except AccessException as e:
                 # Handle any permission exceptions
                 cherrypy.response.status = 403
                 val = {'message': e.message,
-                       'type' : 'access'}
+                       'type': 'access'}
             except ValidationException as e:
                 cherrypy.response.status = 400
-                val = {'message' : e.message,
-                       'type' : 'validation'}
+                val = {'message': e.message,
+                       'type': 'validation'}
                 if e.field is not None:
                     val['field'] = e.field
-            except: # pragma: no cover
+            except:  # pragma: no cover
                 # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
                 (t, value, tb) = sys.exc_info()
-                val = {'message' : '%s: %s' % (t.__name__, str(value)),
-                       'type' : 'internal'}
+                val = {'message': '%s: %s' % (t.__name__, str(value)),
+                       'type': 'internal'}
                 if cherrypy.config['server']['mode'] != 'production':
                     # Unless we are in production mode, send a traceback too
                     val['trace'] = traceback.extract_tb(tb)[1:]
@@ -183,13 +200,13 @@ class Resource(ModelImporter):
             for accept in accepts:
                 if accept.value == 'application/json':
                     break
-                elif accept.value == 'text/html': # pragma: no cover
-                    # Pretty-print and HTMLify the response for display in browser
+                elif accept.value == 'text/html':  # pragma: no cover
+                    # Pretty-print and HTMLify the response for the browser
                     cherrypy.response.headers['Content-Type'] = 'text/html'
                     resp = json.dumps(val, indent=4, sort_keys=True,
                                       separators=(',', ': '), default=str)
                     resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
-                    resp = '<div style="font-family: monospace">' + resp + '</div>'
+                    resp = '<div style="font-family:monospace;">%s</div>' % resp
                     return resp
 
             # Default behavior will just be normal JSON output. Keep this

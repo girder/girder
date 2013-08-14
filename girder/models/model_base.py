@@ -26,6 +26,7 @@ from girder.utility.model_importer import ModelImporter
 
 from girder.models import db_cfg, db_connection
 
+
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
@@ -44,7 +45,7 @@ class Model(ModelImporter):
         if cherrypy.config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
-            dbName = db_cfg['database'] # pragma: no cover
+            dbName = db_cfg['database']  # pragma: no cover
         self.collection = db_connection[dbName][self.name]
 
         assert isinstance(self.collection, pymongo.collection.Collection)
@@ -53,31 +54,31 @@ class Model(ModelImporter):
         for index in self._indices:
             self.collection.ensure_index(index)
 
-
     def ensureIndices(self, indices):
         """
         Subclasses should call this with a list of strings representing
-        fields that should be indexed in the database if there are any. Otherwise,
-        it is not necessary to call this method.
+        fields that should be indexed in the database if there are any.
+        Otherwise, it is not necessary to call this method.
         """
         self._indices = indices
 
     def validate(self, doc):
         """
-        Models should implement this to validate the document before it enters the database.
-        It must return the document with any necessary filters applied, or throw a
-        ValidationException if validation of the document fails.
+        Models should implement this to validate the document before it enters
+        the database. It must return the document with any necessary filters
+        applied, or throw a ValidationException if validation of the document
+        fails.
         """
         raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__) # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def initialize(self):
         """
-        Subclasses should override this and set the name of the collection as self.name.
-        Also, they should set any indexed fields that they require.
+        Subclasses should override this and set the name of the collection as
+        self.name. Also, they should set any indexed fields that they require.
         """
         raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__) # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
@@ -118,9 +119,9 @@ class Model(ModelImporter):
         Delete an object from the collection; must have its _id set.
         """
         assert type(document) == dict
-        assert document.has_key('_id')
+        assert '_id' in document
 
-        return self.collection.remove({'_id' : document['_id']})
+        return self.collection.remove({'_id': document['_id']})
 
     def load(self, id, objectId=True):
         """
@@ -133,7 +134,7 @@ class Model(ModelImporter):
         """
         if objectId and type(id) is not ObjectId:
             id = ObjectId(id)
-        return self.collection.find_one({'_id' : id})
+        return self.collection.find_one({'_id': id})
 
 
 class AccessControlledModel(Model):
@@ -141,7 +142,8 @@ class AccessControlledModel(Model):
     Any model that has access control requirements should inherit from
     this class. It enforces permission checking in the load() method
     and provides convenient methods for testing and requiring user permissions.
-    It also provides methods for setting access control policies on the resource.
+    It also provides methods for setting access control policies on the
+    resource.
     """
 
     def _hasGroupAccess(self, perms, groupIds, level):
@@ -169,20 +171,20 @@ class AccessControlledModel(Model):
         if type(id) is not ObjectId:
             id = ObjectId(id)
 
-        if not doc.has_key('access'):
-            doc['access'] = {'groups' : [], 'users' : []}
-        if not doc['access'].has_key(entity):
+        if not 'access' in doc:
+            doc['access'] = {'groups': [], 'users': []}
+        if not entity in doc['access']:
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.
         doc['access'][entity][:] = [perm for perm in doc['access'][entity]
                                     if perm['id'] != id]
 
-        # Now add in the new level for this entity unless we are removing access.
+        # Add in the new level for this entity unless we are removing access.
         if level is not None:
             doc['access'][entity].append({
-                'id' : id,
-                'level' : level
+                'id': id,
+                'level': level
                 })
 
         if save:
@@ -190,7 +192,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setPublic(self, doc, public, save=True):
+    def setPublic(self, doc, public, save=False):
         """
         Set the flag for public read access on the object.
         :param doc: The document to update permissions on.
@@ -212,7 +214,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setGroupAccess(self, doc, group, level, save=True):
+    def setGroupAccess(self, doc, group, level, save=False):
         """
         Set group-level access on the resource.
         :param doc: The resource document to set access on.
@@ -230,7 +232,7 @@ class AccessControlledModel(Model):
         """
         return self._setAccess(doc, group['_id'], 'groups', level, save)
 
-    def setUserAccess(self, doc, user, level, save=True):
+    def setUserAccess(self, doc, user, level, save=False):
         """
         Set user-level access on the resource.
         :param doc: The resource document to set access on.
@@ -262,21 +264,23 @@ class AccessControlledModel(Model):
         """
         if user is None:
             # Short-circuit the case of anonymous users
-            return level == AccessType.READ and doc.get('public', False) == True
-        elif user['admin']:
+            return level == AccessType.READ and doc.get('public', False) is True
+        elif user.get('admin', False) is True:
             # Short-circuit the case of admins
             return True
         else:
             # Short-circuit the case of public resources
-            if level == AccessType.READ and doc.get('public', False) == True:
+            if level == AccessType.READ and doc.get('public', False) is True:
                 return True
 
             # If all that fails, descend into real permission checking.
-            if doc.has_key('access'):
+            if 'access' in doc:
                 perms = doc['access']
-                if self._hasGroupAccess(perms.get('groups', []), user.get('groups', []), level):
+                if self._hasGroupAccess(perms.get('groups', []),
+                                        user.get('groups', []), level):
                     return True
-                elif self._hasUserAccess(perms.get('users', []), user['_id'], level):
+                elif self._hasUserAccess(perms.get('users', []),
+                                         user['_id'], level):
                     return True
 
             return False
@@ -293,9 +297,11 @@ class AccessControlledModel(Model):
                 perm = 'Write'
             else:
                 perm = 'Admin'
-            raise AccessException("%s access denied for %s." % (perm, self.name))
+            raise AccessException("%s access denied for %s." %
+                                  (perm, self.name))
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False):
         """
         We override Model.load to also do permission checking.
         :param id: The id of the resource.
@@ -315,7 +321,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def copyAccessPolicies(self, src, dest, save=True):
+    def copyAccessPolicies(self, src, dest, save=False):
         """
         Copies the set of access control policies from one document to another.
         :param src: The source document to copy policies from.
@@ -327,7 +333,7 @@ class AccessControlledModel(Model):
         :returns: The modified destination document.
         """
         dest['public'] = src.get('public', False)
-        if src.has_key('access'):
+        if 'access' in src:
             dest['access'] = src['access']
 
         if save:
@@ -336,8 +342,9 @@ class AccessControlledModel(Model):
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset):
         """
-        Given a database result cursor, return only the results that the user has
-        the given level of access on, respecting the limit and offset specified.
+        Given a database result cursor, return only the results that the user
+        has the given level of access on, respecting the limit and offset
+        specified.
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
         :param level: The access level.
@@ -367,6 +374,7 @@ class AccessException(Exception):
     def __init__(self, message):
         # TODO log the error
         Exception.__init__(self, message)
+
 
 class ValidationException(Exception):
     """

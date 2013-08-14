@@ -22,6 +22,7 @@ import cherrypy
 
 from girder.constants import ROOT_DIR
 
+
 class Webroot(object):
     """
     The webroot endpoint simply serves the main index.html file.
@@ -30,8 +31,9 @@ class Webroot(object):
 
     def GET(self):
         return cherrypy.lib.static.serve_file(
-            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built', 'index.html'),
-            content_type='text/html')
+            os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'built',
+                         'index.html'), content_type='text/html')
+
 
 def setup(test=False):
     """
@@ -41,17 +43,18 @@ def setup(test=False):
     :type test: bool
     """
     cfgs = ['auth', 'db', 'server']
-    cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c) for c in cfgs]
+    cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c)
+            for c in cfgs]
     [cherrypy.config.update(cfg) for cfg in cfgs]
 
     appconf = {
-        '/' : {
-            'request.dispatch' : cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root' : ROOT_DIR,
+        '/': {
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+            'tools.staticdir.root': ROOT_DIR,
             },
-        '/static' : {
-            'tools.staticdir.on' : 'True',
-            'tools.staticdir.dir' : 'clients/web/static',
+        '/static': {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'clients/web/static',
             }
         }
 
@@ -59,7 +62,7 @@ def setup(test=False):
 
     if test:
         # Force the mode to be 'testing'
-        cherrypy.config.update({'server' : {'mode' : 'testing'}})
+        cherrypy.config.update({'server': {'mode': 'testing'}})
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
@@ -72,4 +75,4 @@ def setup(test=False):
     [application.merge(cfg) for cfg in cfgs]
 
     if test:
-        application.merge({'server' : {'mode' : 'testing'}})
+        application.merge({'server': {'mode': 'testing'}})
