@@ -1,5 +1,5 @@
 CherryPy
 Sphinx
+pymongo
 bcrypt
 nose
-pymongo
