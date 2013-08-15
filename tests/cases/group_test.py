@@ -36,19 +36,67 @@ class GroupTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.requireModels(['user', 'group'])
+        self.requireModels(['user', 'folder', 'group'])
 
         # Create a set of users so we can work with these groups
         self.users = [self.userModel.createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1, 2]]
 
-    def testGroupIndex(self):
+    def testDeleteGroupDeletesAccessReferences(self):
+        """
+        This test ensures that when a group is deleted, references to it in
+        various access-control lists are also removed.
+        """
+        # Create a couple of groups
+        group1 = self.groupModel.createGroup('g1', self.users[0])
+        group2 = self.groupModel.createGroup('g2', self.users[0])
+
+        # Create a folder and give both groups some access on it
+        folder = self.folderModel.createFolder(
+            parent=self.users[0], name='x', parentType='user', public=False,
+            creator=self.users[0])
+        self.folderModel.setGroupAccess(folder, group1, AccessType.WRITE)
+        self.folderModel.setGroupAccess(folder, group2, AccessType.READ)
+        folder = self.folderModel.save(folder)
+
+        self.assertEqual(len(folder['access']['groups']), 2)
+
+        # Delete group 1; folder access list should no longer contain it
+        self.groupModel.remove(group1)
+        group1 = self.groupModel.load(group1['_id'])
+        folder = self.folderModel.load(folder['_id'], force=True)
+
+        self.assertEqual(group1, None)
+        self.assertEqual(len(folder['access']['groups']), 1)
+
+    def testGetGroups(self):
         """
         Test the GET endpoints for groups, including getting a single
         group and getting the list of all groups.
         """
-        pass  # TODO
+        privateGroup = self.groupModel.createGroup(
+            'private ', self.users[0], public=False)
+        publicGroup = self.groupModel.createGroup(
+            'public ', self.users[0], public=True)
+
+        # Anonymous user should be able to see the public group
+        resp = self.request(
+            path='/group/%s' % publicGroup['_id'], method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'public')
+
+        # Anonymous user should not be able to see the private group
+        resp = self.request(
+            path='/group/%s' % privateGroup['_id'], method='GET')
+        self.assertStatus(resp, 403)
+
+        # User 0 should be able to see the private group
+        resp = self.request(
+            path='/group/%s' % privateGroup['_id'], method='GET',
+            user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'private')
 
     def testGroupAccess(self):
         """
@@ -194,6 +242,13 @@ class GroupTestCase(base.TestCase):
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Admin access denied for group.')
 
+        # User 1 should not be able to delete the group
+        resp = self.request(
+            path='/group/%s' % privateGroup['_id'], user=self.users[1],
+            method='DELETE')
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Admin access denied for group.')
+
         # User 0 should be able to remove user 1
         params['userId'] = self.users[1]['_id']
         resp = self.request(
@@ -201,3 +256,19 @@ class GroupTestCase(base.TestCase):
             method='PUT', params=params)
         self.assertStatusOk(resp)
         self.assertEqual(len(self.groupModel.getMembers(privateGroup)), 1)
+
+        # User 0 should be able to delete the group
+        self.users[0] = self.userModel.load(self.users[0]['_id'], force=True)
+        self.assertEqual(len(self.users[0]['groups']), 2)
+        resp = self.request(
+            path='/group/%s' % privateGroup['_id'], user=self.users[0],
+            method='DELETE')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], 'Deleted the %s group.'
+                         % privateGroup['name'])
+        privateGroup = self.groupModel.load(privateGroup['_id'], force=True)
+        self.assertTrue(privateGroup is None)
+
+        # Make sure group reference was removed from user 0
+        self.users[0] = self.userModel.load(self.users[0]['_id'], force=True)
+        self.assertEqual(len(self.users[0]['groups']), 1)

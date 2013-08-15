@@ -47,7 +47,7 @@ class Group(AccessControlledModel):
 
     def initialize(self):
         self.name = 'group'
-        self.requireModels(['user'])
+        self.requireModels(['folder', 'user'])
         self.ensureIndices(['lowerName'])
 
     def validate(self, doc):
@@ -85,11 +85,42 @@ class Group(AccessControlledModel):
         else:
             # Perform the find; we'll do access-based filtering of the result
             # set afterward.
-            cursor = self.find(q, limit=0, sort=sort)
+            cursor = self.find({}, limit=0, sort=sort)
 
             return self.filterResultsByPermission(cursor=cursor, user=user,
                                                   level=AccessType.READ,
                                                   limit=limit, offset=offset)
+
+    def remove(self, group):
+        """
+        Delete a group, and all references to it in the database.
+        :param group: The group document to delete.
+        :type group: dict
+        """
+
+        # Remove references to this group from user group membership lists
+        self.userModel.update({
+            'groups': group['_id']
+        }, {
+            '$pull': {'groups': group['_id']}
+        })
+
+        acQuery = {
+            'access.groups.id': group['_id']
+        }
+        acUpdate = {
+            '$pull': {
+                'access.groups': {'id': group['_id']}
+            }
+        }
+
+        # Remove references to this group from access-controlled collections.
+        self.update(acQuery, acUpdate)
+        self.folderModel.update(acQuery, acUpdate)
+        self.userModel.update(acQuery, acUpdate)
+
+        # Finally, delete the document itself
+        AccessControlledModel.remove(self, group)
 
     def getMembers(self, group, offset=0, limit=50, sort=None):
         """
@@ -101,9 +132,7 @@ class Group(AccessControlledModel):
         :returns: List of user documents.
         """
         q = {
-            'groups': {
-                '$all': [group['_id']]
-            }
+            'groups': group['_id']
         }
         cursor = self.userModel.find(q, offset=offset, limit=limit, sort=sort)
         users = []

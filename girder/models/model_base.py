@@ -114,11 +114,29 @@ class Model(ModelImporter):
         document['_id'] = self.collection.save(document)
         return document
 
+    def update(self, query, update):
+        """
+        This method should be used for updating multiple documents in the
+        collection. This is useful for things like removing all references in
+        this collection to a document that is being deleted from another
+        collection.
+
+        This is a thin wrapper around pymongo db.collection.update().
+
+        For updating a single document, use the save() model method instead.
+
+        :param query: The query for finding documents to update. It's the same
+        format as would be passed to find().
+        :type query: dict
+        :param update: The update specifier.
+        :type update: dict
+        """
+        self.collection.update(query, update, multi=True)
+
     def remove(self, document):
         """
         Delete an object from the collection; must have its _id set.
         """
-        assert type(document) == dict
         assert '_id' in document
 
         return self.collection.remove({'_id': document['_id']})

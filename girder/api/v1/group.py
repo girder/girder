@@ -147,6 +147,22 @@ class Group(Resource):
         return self.groupModel.removeUser(group, userToRemove)
 
     @Resource.endpoint
+    def DELETE(self, path, params):
+        """
+        Delete an entire group.
+        """
+        if not path:
+            raise RestException(
+                'Path parameter should be the group ID to delete.')
+
+        user = self.getCurrentUser()
+        group = self.getObjectById(self.groupModel, id=path[0], user=user,
+                                   checkAccess=True, level=AccessType.ADMIN)
+
+        self.groupModel.remove(group)
+        return {'message': 'Deleted the %s group.' % group['name']}
+
+    @Resource.endpoint
     def GET(self, path, params):
         if not path:
             return self.find(params)
