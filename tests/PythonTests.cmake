@@ -10,7 +10,7 @@ function(add_python_style_test name input)
 endfunction()
 
 function(add_python_test case)
-  set(name "Server_${case}")
+  set(name "server_${case}")
 
   if(PYTHON_COVERAGE)
     add_test(

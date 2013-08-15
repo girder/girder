@@ -19,7 +19,9 @@
 
 import datetime
 
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel,\
+    ValidationException,\
+    AccessException
 from girder.constants import AccessType
 
 
@@ -100,7 +102,7 @@ class Group(AccessControlledModel):
         """
         q = {
             'groups': {
-                '$all': group['_id']
+                '$all': [group['_id']]
             }
         }
         cursor = self.userModel.find(q, offset=offset, limit=limit, sort=sort)
@@ -137,12 +139,12 @@ class Group(AccessControlledModel):
 
         for invite in user['groupInvites']:
             if invite['groupId'] == group['_id']:
-                self.addUser(user, group, invite['level'])
-                user.remove(invite)
+                self.addUser(group, user, level=invite['level'])
+                user['groupInvites'].remove(invite)
                 self.userModel.save(user, validate=False)
                 break
         else:
-            raise ValidationException('User was not invited to this group.')
+            raise AccessException('User was not invited to this group.')
 
         return group
 
@@ -155,6 +157,9 @@ class Group(AccessControlledModel):
         """
         # User has to be able to see the group to join it
         self.setUserAccess(group, user, AccessType.READ, save=True)
+
+        if group['_id'] in user.get('groups', []):
+            raise ValidationException('User is already in this group.')
 
         if not 'groupInvites' in user:
             user['groupInvites'] = []
@@ -202,10 +207,6 @@ class Group(AccessControlledModel):
 
         now = datetime.datetime.now()
 
-        if not type(creator) is dict or not '_id' in creator:
-            # Internal error -- this shouldn't be called without a user.
-            raise Exception('Creator must be a user.')
-
         group = {
             'name': name,
             'description': description,
@@ -220,6 +221,6 @@ class Group(AccessControlledModel):
 
         # We make the creator a member of this group and also grant them
         # admin access over the group.
-        self.addUser(creator, group, level=AccessType.ADMIN)
+        self.addUser(group, creator, level=AccessType.ADMIN)
 
         return group

@@ -70,6 +70,9 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
+        if user is None:
+            raise AccessException('Must be logged in to create a group.')
+
         group = self.groupModel.createGroup(
             name=name, creator=user, description=description, public=public)
 
@@ -110,9 +113,12 @@ class Group(Resource):
         userToInvite = self.getObjectById(
             self.userModel, user=user, id=params['userId'], checkAccess=True)
 
+        if userToInvite['_id'] == user['_id']:
+            raise RestException('Cannot invite yourself to a group.')
+
         # Can only invite into access levels that you yourself have
         self.groupModel.requireAccess(group, user, level)
-        self.groupModel.inviteUser(group, user, level)
+        self.groupModel.inviteUser(group, userToInvite, level)
 
         return {'message': 'Invitation sent.'}
 
