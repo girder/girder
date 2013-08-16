@@ -39,6 +39,7 @@ def setup(test=False):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
+
     :param test: Set to True when running in the tests.
     :type test: bool
     """

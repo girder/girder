@@ -22,6 +22,8 @@ import json
 
 from .. import base
 
+from girder.constants import AccessType
+
 
 def setUpModule():
     base.startServer()
@@ -32,9 +34,6 @@ def tearDownModule():
 
 
 class UserTestCase(base.TestCase):
-    def setUp(self):
-        base.TestCase.setUp(self)
-        self.requireModels(['user'])
 
     def _verifyAuthCookie(self, resp):
         self.assertTrue('authToken' in resp.cookie)
@@ -186,6 +185,51 @@ class UserTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
             }
-        user = self.userModel.createUser(**params)
+        user = self.model('user').createUser(**params)
         resp = self.request(path='/user/%s' % user['_id'])
         self._verifyUserDocument(resp.json)
+
+    def testDeleteUser(self):
+        """
+        Test the behavior of deleting users.
+        """
+        # Create a couple of users
+        users = [self.model('user').createUser(
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            for num in [0, 1]]
+
+        # Create a folder and give both users some access on it
+        folder = self.model('folder').createFolder(
+            parent=users[0], name='x', parentType='user', public=False,
+            creator=users[0])
+        self.model('folder').setUserAccess(folder, users[0], AccessType.WRITE)
+        self.model('folder').setUserAccess(folder, users[1], AccessType.READ)
+        folder = self.model('folder').save(folder)
+
+        self.assertEqual(len(folder['access']['users']), 2)
+
+        token = self.model('token').createToken(users[1])
+
+        # Make sure non-admin users can't delete other users
+        resp = self.request(path='/user/%s' % users[1]['_id'], method='DELETE',
+                            user=users[0])
+        self.assertStatus(resp, 403)
+
+        # Delete user 1
+        resp = self.request(path='/user/%s' % users[1]['_id'], method='DELETE',
+                            user=users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            resp.json['message'], 'Deleted user %s.' % users[1]['login'])
+
+        users[1] = self.model('user').load(users[1]['_id'], force=True)
+        folder = self.model('folder').load(folder['_id'], force=True)
+        token = self.model('token').load(token['_id'], force=True,
+                                         objectId=False)
+
+        # Make sure user and token were deleted
+        self.assertEqual(users[1], None)
+        self.assertEqual(token, None)
+
+        # Make sure access control references for the user were deleted
+        self.assertEqual(len(folder['access']['users']), 1)

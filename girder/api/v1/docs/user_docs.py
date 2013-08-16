@@ -19,9 +19,9 @@
 
 from ..api_docs import Describe
 
-_apis = []
+apis = []
 
-_apis.append({
+apis.append({
     'path': '/user',
     'resource': 'user',
     'operations': [{
@@ -44,7 +44,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/login',
     'resource': 'user',
     'responseClass': 'Token',
@@ -66,7 +66,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/logout',
     'resource': 'user',
     'operations': [{
@@ -78,7 +78,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/user/{userId}',
     'resource': 'user',
     'operations': [{
@@ -94,7 +94,20 @@ _apis.append({
             Describe.errorResponse('You do not have permission to see this '
                                    'user.', 403)
             ]
+        }, {
+        'httpMethod': 'DELETE',
+        'nickname': 'deleteUserById',
+        'responseClass': 'User',
+        'summary': 'Delete a user by ID.',
+        'parameters': [
+            Describe.param('userId', 'The ID of the user.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse('You do not have permission to delete this '
+                                   'user.', 403)
+            ]
         }]
     })
 
-Describe.declareApi('user', apis=_apis)
+Describe.declareApi('user', apis=apis)

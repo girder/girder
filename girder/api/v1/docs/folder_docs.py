@@ -19,11 +19,11 @@
 
 from ..api_docs import Describe
 
-_apis = []
+apis = []
 
-_apis.append({
+apis.append({
     'path': '/folder',
-    'resource': 'user',
+    'resource': 'folder',
     'operations': [{
         'httpMethod': 'GET',
         'nickname': 'findFolders',
@@ -76,7 +76,7 @@ _apis.append({
         }]
     })
 
-_apis.append({
+apis.append({
     'path': '/folder/{folderId}',
     'resource': 'folder',
     'operations': [{
@@ -96,7 +96,6 @@ _apis.append({
         }, {
         'httpMethod': 'DELETE',
         'nickname': 'deleteFolderById',
-        'responseClass': 'Folder',
         'summary': 'Delete a folder by ID.',
         'parameters': [
             Describe.param(
@@ -110,4 +109,4 @@ _apis.append({
         }]
     })
 
-Describe.declareApi('folder', apis=_apis)
+Describe.declareApi('folder', apis=apis)

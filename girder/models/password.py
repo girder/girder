@@ -37,6 +37,7 @@ class Password(Model):
     def _digest(self, alg, password, salt=None):
         """
         Helper method to perform the password digest.
+
         :param alg: The hash algorithm to use.
         :type alg: str - 'sha512' | 'bcrypt'
         :param password: The password to digest.
@@ -77,6 +78,7 @@ class Password(Model):
     def authenticate(self, user, password):
         """
         Authenticate a user.
+
         :param user: The user document.
         :type user: dict
         :param password: The attempted password.
@@ -99,6 +101,7 @@ class Password(Model):
         and algorithm are stored with the user document, calling
         Password.authenticate() with that user document and the same password
         will return True.
+
         :param password: The password to encrypt and store.
         :type password: str
         :returns: {tuple} (salt, hashAlg) The salt to store with the user

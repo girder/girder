@@ -19,50 +19,84 @@
 
 import importlib
 
+# We want the models to essentially be singletons, so we keep this centralized
+# cache of instantiated models that have been lazy-loaded.
+_modelInstances = {'core': {}}
+
+
+def _camelcase(value):
+    """
+    Helper method to convert module name to class name.
+    """
+    return ''.join(str.capitalize(x) if x else '_' for x in value.split("_"))
+
+
+def _instantiateCoreModel(model):
+    global _modelInstances
+    className = _camelcase(model)
+
+    try:
+        imported = importlib.import_module('girder.models.%s' % model)
+    except ImportError:  # pragma: no cover
+        raise Exception('Could not load model module "%s"' % model)
+
+    try:
+        constructor = getattr(imported, className)
+    except AttributeError:  # pragma: no cover
+        raise Exception('Incorrect model class name "%s" for model "%s".'
+                        % (className, model))
+
+    _modelInstances['core'][model] = constructor()
+
+
+def _instantiatePluginModel(model, plugin):
+    global _modelInstances
+    className = _camelcase(model)
+
+    try:
+        imported = importlib.import_module(
+            'girder.plugins.%s.models.%s' % (plugin, model))
+    except ImportError:  # pragma: no cover
+        raise Exception('Could not load plugin model "%s" (%s).'
+                        % (model, plugin))
+
+    try:
+        constructor = getattr(imported, className)
+    except AttributeError:  # pragma: no cover
+        raise Exception('Incorrect model class name "%s" for model "%s (%s)".'
+                        % (className, model, plugin))
+
+    _modelInstances[plugin][model] = constructor()
+
 
 class ModelImporter(object):
     """
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
-
-    def requireModels(self, modelList):
+    def model(self, model):
         """
-        Subclasses should call this to instantiate models members on themselves.
-        :param modelList: The list of models that should be instantiated as
-                          members.
-        For example, if the returned list contains 'user', it will set
-        self.userModel. The values in the list should either be strings
-        (e.g. 'user') or if necessary due to naming conventions, a 2-tuple of
-        the form ('model_module_name', 'ModelClassName').
-        :type modelList: list of str
+        Call this to get the instance of the specified core model. It will be
+        lazy-instantiated.
+
+        :param model: The name of the model to get. This is the module name,
+        e.g. "folder". The class name must be the upper-camelcased version of
+        that module name, e.g. "Folder".
+        :type model: string.
+        :returns: The instantiated model, which is a singleton.
         """
-        assert type(modelList) is list
+        global _modelInstances
+        if not model in _modelInstances['core']:
+            _instantiateCoreModel(model)
 
-        for model in modelList:
-            if type(model) is str:
-                # Default transform is e.g. 'user' -> 'User()'
-                modelName = model
-                className = model[0].upper() + model[1:]
-            elif type(model) is tuple:
-                # Custom class name e.g. 'some_thing' -> 'SomeThing()'
-                modelName = model[0]
-                className = model[1]
-            else:  # pragma: no cover
-                raise Exception('Required models should be strings or tuples.')
+        return _modelInstances['core'][model]
 
-            if hasattr(self, '%sModel' % modelName):  # already instantiated
-                continue
+    def pluginModel(self, model, plugin):
+        """
+        Just like model(), but loads the model from the specified plugin.
+        """
+        global _modelInstances
+        if not model in _modelInstances[plugin]:
+            _instantiatePluginModel(model, plugin)
 
-            try:
-                imported = importlib.import_module('girder.models.%s' %
-                                                   modelName)
-            except ImportError:  # pragma: no cover
-                raise Exception('Could not load model module "%s"' % modelName)
-
-            try:
-                constructor = getattr(imported, className)
-            except AttributeError:  # pragma: no cover
-                raise Exception('Incorrect model class name "%s" for model "%s"'
-                                % (className, modelName))
-            setattr(self, '%sModel' % modelName, constructor())
+        return _modelInstances[plugin][model]

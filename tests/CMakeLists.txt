@@ -25,5 +25,6 @@ if(PYTHON_STYLE_TESTS)
   add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
 endif()
 
-add_python_test(user)
 add_python_test(folder)
+add_python_test(group)
+add_python_test(user)

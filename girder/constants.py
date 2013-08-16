@@ -26,6 +26,19 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class AccessType:
+    """
+    Represents the level of access granted to a user or group on an
+    AccessControlledModel. Having a higher access level on a resource also
+    confers all of the privileges of the lower levels.
+
+    Semantically, READ access on a resource means that the user can see all
+    the information pertaining to the resource, but cannot modify it.
+
+    WRITE access usually means the user can modify aspects of the resource.
+
+    ADMIN access confers total control; the user can delete the resource and
+    also manage permissions for other users on it.
+    """
     READ = 0
     WRITE = 1
     ADMIN = 2
