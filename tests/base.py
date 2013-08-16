@@ -91,7 +91,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type code: int or str
         """
         code = str(code)
-        msg = 'Response status was not %s' % code
+        msg = 'Response status was %s, not %s.' % (response.output_status, code)
         self.assertTrue(response.output_status.startswith(code), msg)
 
     def assertHasKeys(self, obj, keys):

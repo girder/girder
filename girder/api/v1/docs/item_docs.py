@@ -22,22 +22,20 @@ from ..api_docs import Describe
 apis = []
 
 apis.append({
-    'path': '/folder',
-    'resource': 'folder',
+    'path': '/item',
+    'resource': 'item',
     'operations': [{
         'httpMethod': 'GET',
-        'nickname': 'findFolders',
-        'responseClass': 'Folder',
-        'summary': 'Search for folders by certain properties.',
+        'nickname': 'findItems',
+        'responseClass': 'Item',
+        'summary': 'Search for items by certain properties.',
         'parameters': [
             Describe.param(
-                'parentType', "Type of the folder's parent: either 'user', "
-                              "'folder', or 'community' (default='folder').",
-                              required=False),
+                'folderId', "Pass this to get the list of all items in a "
+                "single folder.", required=False),
             Describe.param(
-                'parentId', "The ID of the folder's parent.", required=False),
-            Describe.param(
-                'text', "Pass a full text search query.", required=False),
+                'text', "Pass this to perform a full text search for items.",
+                required=False),
             Describe.param(
                 'limit', "Result set size limit (default=50).", required=False,
                 dataType='int'),
@@ -45,7 +43,7 @@ apis.append({
                 'offset', "Offset into result set (default=0).", required=False,
                 dataType='int'),
             Describe.param(
-                'sort', "Field to sort the folder list by (default=name)",
+                'sort', "Field to sort the item list by (default=name)",
                 required=False),
             Describe.param(
                 'sortdir', "1 for ascending, -1 for descending (default=1)",
@@ -54,65 +52,58 @@ apis.append({
         'errorResponses': [
             Describe.errorResponse(),
             Describe.errorResponse(
-                'Read access was denied on the parent resource.', 403)
+                'Read access was denied on the parent folder.', 403)
             ]
         }, {
         'httpMethod': 'POST',
-        'nickname': 'createFolder',
-        'responseClass': 'Folder',
-        'summary': 'Create a new folder.',
+        'nickname': 'createItem',
+        'responseClass': 'Item',
+        'summary': 'Create a new item.',
         'parameters': [
-            Describe.param(
-                'parentType', "Type of the folder's parent: either 'user', "
-                "'folder', or 'community' (default='folder').", required=False),
-            Describe.param('parentId', "The ID of the folder's parent."),
-            Describe.param('name', "Name of the folder."),
-            Describe.param('description', "Description of the folder.",
-                           required=False),
-            Describe.param(
-                'public', "If the folder should be public or private. By "
-                "default, inherits the value from parent folder, or in the "
-                " case of user or community parentType, defaults to False.",
-                required=False, dataType='boolean')
+            Describe.param('folderId', "The ID of the parent folder."),
+            Describe.param('name', "Name for the item."),
+            Describe.param('description', "Description for the item.",
+                           required=False)
             ],
         'errorResponses': [
             Describe.errorResponse(),
-            Describe.errorResponse('Write access was denied on the parent', 403)
+            Describe.errorResponse('Write access was denied on the parent '
+                                   'folder.', 403)
             ]
         }]
     })
 
 apis.append({
-    'path': '/folder/{folderId}',
-    'resource': 'folder',
+    'path': '/item/{itemId}',
+    'resource': 'item',
     'operations': [{
         'httpMethod': 'GET',
-        'nickname': 'getFolderById',
-        'responseClass': 'Folder',
-        'summary': 'Get a folder by ID.',
+        'nickname': 'getItemById',
+        'responseClass': 'Item',
+        'summary': 'Get an item by ID.',
         'parameters': [
             Describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'itemId', 'The ID of the item.', paramType='path')
             ],
         'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
             Describe.errorResponse(
-                'Read access was denied for the folder.', 403)
+                'Read access was denied for the item.', 403)
             ]
         }, {
         'httpMethod': 'DELETE',
-        'nickname': 'deleteFolderById',
-        'summary': 'Delete a folder by ID.',
+        'nickname': 'deleteItemById',
+        'summary': 'Delete an item by ID.',
         'parameters': [
             Describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'itemId', 'The ID of the item.', paramType='path')
             ],
         'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
             Describe.errorResponse(
-                'Admin access was denied for the folder.', 403)
+                'Admin access was denied for the item.', 403)
             ]
         }]
     })
 
-Describe.declareApi('folder', apis=apis)
+Describe.declareApi('item', apis=apis)

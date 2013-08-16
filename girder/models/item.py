@@ -65,6 +65,36 @@ class Item(Model):
 
         return doc
 
+    def remove(self, item):
+        """
+        Delete an item, and all references to it in the database.
+
+        :param item: The item document to delete.
+        :type item: dict
+        """
+
+        # TODO delete everything underneath this item
+
+        # Delete the item itself
+        Model.remove(self, item)
+
+    def search(self, query, user=None, limit=50, offset=0, sort=None):
+        """
+        Search for items with full text search.
+
+        TODO
+        1. Find all items that match the text search.
+        2. Filter them by ensuring read access on their parent folder. As we
+        fetch parent folders, keep a cache dict mapping folder ID to either
+        (True | False), representing whether the user has read access to that
+        folder, so we can lookup in the cache quickly without having to run to
+        the database to check every time. There should be a high cache hit rate
+        since items with similar text have a good chance of residing in the
+        same folder, or a small set of folders.
+        """
+        folderAccess = {}
+        return []
+
     def createItem(self, name, creator, folder, description=''):
         """
         Create a new item. The creator will be given admin access to it.
@@ -87,7 +117,9 @@ class Item(Model):
         return self.save({
             'name': name,
             'description': description,
+            'folderId': folder['_id'],
             'creatorId': creator['_id'],
             'created': now,
-            'updated': now
+            'updated': now,
+            'size': 0
             })
