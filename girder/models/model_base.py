@@ -68,6 +68,9 @@ class Model(ModelImporter):
         the database. It must return the document with any necessary filters
         applied, or throw a ValidationException if validation of the document
         fails.
+
+        :param doc: The document to validate before saving to the collection.
+        :type doc: dict
         """
         raise Exception('Must override validate() in %s model.'
                         % self.__class__.__name__)  # pragma: no cover
@@ -83,6 +86,7 @@ class Model(ModelImporter):
     def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
         """
         Search the collection by a set of parameters.
+
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
         :param offset: The offset into the results
@@ -101,6 +105,7 @@ class Model(ModelImporter):
     def save(self, document, validate=True):
         """
         Create or update a document in the collection.
+
         :param document: The document to save.
         :type document: dict
         :param validate: Whether to call the model's validate() before saving.
@@ -114,18 +119,46 @@ class Model(ModelImporter):
         document['_id'] = self.collection.save(document)
         return document
 
+    def update(self, query, update):
+        """
+        This method should be used for updating multiple documents in the
+        collection. This is useful for things like removing all references in
+        this collection to a document that is being deleted from another
+        collection.
+
+        This is a thin wrapper around pymongo db.collection.update().
+
+        For updating a single document, use the save() model method instead.
+
+        :param query: The query for finding documents to update. It's the same
+        format as would be passed to find().
+        :type query: dict
+        :param update: The update specifier.
+        :type update: dict
+        """
+        self.collection.update(query, update, multi=True)
+
     def remove(self, document):
         """
         Delete an object from the collection; must have its _id set.
         """
-        assert type(document) == dict
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']})
+        return self.collection.remove({'_id': document['_id']}, True)
+
+    def removeWithQuery(self, query, justOne=False):
+        """
+        Remove all documents matching a given query from the collection.
+        For safety reasons, you may not pass an empty query.
+        """
+        assert query
+
+        return self.collection.remove(query, justOne)
 
     def load(self, id, objectId=True):
         """
         Fetch a single object from the databse using its _id field.
+
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
         :param objectId: Whether the id should be coerced to ObjectId type.
@@ -195,6 +228,7 @@ class AccessControlledModel(Model):
     def setPublic(self, doc, public, save=False):
         """
         Set the flag for public read access on the object.
+
         :param doc: The document to update permissions on.
         :type doc: dict
         :param public: Flag for public read access.
@@ -217,6 +251,7 @@ class AccessControlledModel(Model):
     def setGroupAccess(self, doc, group, level, save=False):
         """
         Set group-level access on the resource.
+
         :param doc: The resource document to set access on.
         :type doc: dict
         :param group: The group to grant or remove access to.
@@ -235,6 +270,7 @@ class AccessControlledModel(Model):
     def setUserAccess(self, doc, user, level, save=False):
         """
         Set user-level access on the resource.
+
         :param doc: The resource document to set access on.
         :type doc: dict
         :param user: The user to grant or remove access to.
@@ -254,6 +290,7 @@ class AccessControlledModel(Model):
         """
         This method looks through the object's permission set and determines
         whether the user has the given permission level on the object.
+
         :param doc: The document to check permission on.
         :type doc: dict
         :param user: The user to check against.
@@ -304,6 +341,7 @@ class AccessControlledModel(Model):
              force=False):
         """
         We override Model.load to also do permission checking.
+
         :param id: The id of the resource.
         :type id: string or ObjectId
         :param user: The user to check access against.
@@ -324,6 +362,7 @@ class AccessControlledModel(Model):
     def copyAccessPolicies(self, src, dest, save=False):
         """
         Copies the set of access control policies from one document to another.
+
         :param src: The source document to copy policies from.
         :type src: dict
         :param dest: The destination document to copy policies onto.
@@ -345,6 +384,7 @@ class AccessControlledModel(Model):
         Given a database result cursor, return only the results that the user
         has the given level of access on, respecting the limit and offset
         specified.
+
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
         :param level: The access level.

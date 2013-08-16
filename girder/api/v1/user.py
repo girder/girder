@@ -20,15 +20,15 @@
 import cherrypy
 import json
 
+from ...constants import AccessType
 from ..rest import Resource, RestException
 from .docs import user_docs
+
 
 COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
 
 class User(Resource):
-    def initialize(self):
-        self.requireModels(['password', 'token', 'user'])
 
     def _filter(self, user):
         """
@@ -61,6 +61,7 @@ class User(Resource):
     def login(self, params):
         """
         Login endpoint. Sends a session cookie in the response on success.
+
         :param login: The login name.
         :param password: The user's password.
         """
@@ -74,16 +75,17 @@ class User(Resource):
             login = params['login'].lower().strip()
             loginField = 'email' if '@' in login else 'login'
 
-            cursor = self.userModel.find({loginField: login}, limit=1)
+            cursor = self.model('user').find({loginField: login}, limit=1)
             if cursor.count() == 0:
                 raise RestException('Login failed.', code=403)
 
             user = cursor.next()
 
-            token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
+            token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
             self._sendAuthTokenCookie(user, token)
 
-            if not self.passwordModel.authenticate(user, params['password']):
+            if not self.model('password').authenticate(user,
+                                                       params['password']):
                 raise RestException('Login failed.', code=403)
 
         return {'message': 'Login succeeded.',
@@ -102,16 +104,32 @@ class User(Resource):
         self.requireParams(['firstName', 'lastName', 'login', 'password',
                             'email'], params)
 
-        user = self.userModel.createUser(login=params['login'],
-                                         password=params['password'],
-                                         email=params['email'],
-                                         firstName=params['firstName'],
-                                         lastName=params['lastName'])
+        user = self.model('user').createUser(
+            login=params['login'], password=params['password'],
+            email=params['email'], firstName=params['firstName'],
+            lastName=params['lastName'])
 
-        token = self.tokenModel.createToken(user, days=COOKIE_LIFETIME)
+        token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
         self._sendAuthTokenCookie(user, token)
 
         return self._filter(user)
+
+    @Resource.endpoint
+    def DELETE(self, path, params):
+        """
+        Delete a user account.
+        """
+        if not path:
+            raise RestException(
+                'Path parameter should be the user ID to delete.')
+
+        user = self.getCurrentUser()
+        userToDelete = self.getObjectById(
+            self.model('user'), id=path[0], user=user, checkAccess=True,
+            level=AccessType.ADMIN)
+
+        self.model('user').remove(userToDelete)
+        return {'message': 'Deleted user %s.' % userToDelete['login']}
 
     @Resource.endpoint
     def GET(self, path, params):
@@ -119,8 +137,8 @@ class User(Resource):
             return self.index(params)
         else:  # assume it's a user id
             user = self.getCurrentUser()
-            return self._filter(self.getObjectById(self.userModel, id=path[0],
-                                                   user=user, checkAccess=True))
+            return self._filter(self.getObjectById(
+                self.model('user'), id=path[0], user=user, checkAccess=True))
 
     @Resource.endpoint
     def POST(self, path, params):

@@ -20,6 +20,7 @@
 import cherrypy
 import datetime
 import json
+import pymongo
 import sys
 import traceback
 
@@ -48,7 +49,6 @@ class Resource(ModelImporter):
 
     def __init__(self):
         self.initialize()
-        self.requireModels(['user', 'token'])
 
     def initialize(self):
         """
@@ -60,6 +60,7 @@ class Resource(ModelImporter):
         """
         This method will filter the given document to make it suitable to
         output to the user.
+
         :param doc: The document to filter.
         :type doc: dict
         :param allow: The whitelist of fields to allow in the output document.
@@ -84,6 +85,7 @@ class Resource(ModelImporter):
         """
         Calling this on a user will ensure that they have admin rights.
         an AccessException.
+
         :param user: The user to check admin flag on.
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
@@ -91,9 +93,39 @@ class Resource(ModelImporter):
         if not user.get('admin', False) is True:
             raise AccessException('Administrator access required.')
 
+    def getPagingParameters(self, params, defaultSortField=None):
+        """
+        Pass the URL parameters into this function if the request is for a
+        list of resources that should be paginated. It will return a tuple of
+        the form (limit, offset, sort) whose values should be passed directly
+        into the model methods that are finding the resources. If the client
+        did not pass the parameters, this always uses the same defaults of
+        limit=50, offset=0, sort='name', sortdir=pymongo.ASCENDING=1.
+
+        :param params: The URL query parameters.
+        :type params: dict
+        :param defaultSortField: If the client did not pass a 'sort' parameter,
+        set this to choose a default sort field. If None, the results will
+        be returned unsorted.
+        :type defaultSortField: str or None
+        """
+        offset = int(params.get('offset', 0))
+        limit = int(params.get('limit', 50))
+        sortdir = int(params.get('sortdir', pymongo.ASCENDING))
+
+        if 'sort' in params:
+            sort = [(params['sort'].strip(), sortdir)]
+        elif type(defaultSortField) is str:
+            sort = [(defaultSortField, sortdir)]
+        else:
+            sort = None
+
+        return (limit, offset, sort)
+
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.
+
         :param returnToken: Whether we should return a tuple that also contains
                             the token.
         :type returnToken: bool
@@ -110,9 +142,9 @@ class Resource(ModelImporter):
             except:
                 return (None, None) if returnToken else None
 
-            user = self.userModel.load(userId, force=True)
-            token = self.tokenModel.load(info['token'], AccessType.ADMIN,
-                                         objectId=False, user=user)
+            user = self.model('user').load(userId, force=True)
+            token = self.model('token').load(info['token'], AccessType.ADMIN,
+                                             objectId=False, user=user)
 
             if token is None or token['expires'] < datetime.datetime.now():
                 return (None, token) if returnToken else None
@@ -126,6 +158,7 @@ class Resource(ModelImporter):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
+
         :param model: The model to load from.
         :type model: Model
         :param id: The id of the object.

@@ -32,7 +32,6 @@ class User(AccessControlledModel):
 
     def initialize(self):
         self.name = 'user'
-        self.requireModels(['folder', 'password'])
         self.ensureIndices(['login', 'email'])
 
     def validate(self, doc):
@@ -88,11 +87,51 @@ class User(AccessControlledModel):
 
         return doc
 
+    def remove(self, user):
+        """
+        Delete a user, and all references to it in the database.
+
+        :param user: The user document to delete.
+        :type user: dict
+        """
+        # Remove creator references on folders and items
+        creatorQuery = {
+            'creatorId': user['_id']
+        }
+        creatorUpdate = {
+            '$set': {'creatorId': None}
+        }
+        self.model('folder').update(creatorQuery, creatorUpdate)
+        self.model('item').update(creatorQuery, creatorUpdate)
+
+        # Remove references to this group from access-controlled collections.
+        acQuery = {
+            'access.users.id': user['_id']
+        }
+        acUpdate = {
+            '$pull': {
+                'access.users': {'id': user['_id']}
+            }
+        }
+
+        self.update(acQuery, acUpdate)
+        self.model('group').update(acQuery, acUpdate)
+        self.model('folder').update(acQuery, acUpdate)
+
+        # Delete all authentication tokens owned by this user
+        self.model('token').removeWithQuery({'userId': user['_id']})
+
+        # TODO delete all of the folders under this user recursively
+
+        # Finally, delete the user document itself
+        AccessControlledModel.remove(self, user)
+
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
         """
         Create a new user with the given information. The user will be created
         with the default "Public" and "Private" folders.
+
         :param admin: Whether user is global administrator.
         :type admin: bool
         :param tokenLifespan: Number of days the long-term token should last.
@@ -101,7 +140,7 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
-        (salt, hashAlg) = self.passwordModel.encryptAndStore(password)
+        (salt, hashAlg) = self.model('password').encryptAndStore(password)
 
         user = self.save({
             'login': login,
@@ -123,16 +162,13 @@ class User(AccessControlledModel):
 
         # Create some default folders for the user and give the user admin
         # access to them
-        publicFolder = self.folderModel.createFolder(user, 'Public',
-                                                     parentType='user',
-                                                     public=True, creator=user)
-        privateFolder = self.folderModel.createFolder(user, 'Private',
-                                                      parentType='user',
-                                                      public=False,
-                                                      creator=user)
-        self.folderModel.setUserAccess(
+        publicFolder = self.model('folder').createFolder(
+            user, 'Public', parentType='user', public=True, creator=user)
+        privateFolder = self.model('folder').createFolder(
+            user, 'Private', parentType='user', public=False, creator=user)
+        self.model('folder').setUserAccess(
             publicFolder, user, AccessType.ADMIN, save=True)
-        self.folderModel.setUserAccess(
+        self.model('folder').setUserAccess(
             privateFolder, user, AccessType.ADMIN, save=True)
 
         return user
