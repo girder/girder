@@ -94,6 +94,19 @@ apis.append({
             Describe.errorResponse('You do not have permission to see this '
                                    'user.', 403)
             ]
+        }, {
+        'httpMethod': 'DELETE',
+        'nickname': 'deleteUserById',
+        'responseClass': 'User',
+        'summary': 'Delete a user by ID.',
+        'parameters': [
+            Describe.param('userId', 'The ID of the user.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse('You do not have permission to delete this '
+                                   'user.', 403)
+            ]
         }]
     })
 

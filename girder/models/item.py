@@ -31,7 +31,6 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'group'
-        self.requireModels(['folder'])
         self.ensureIndices(['lowerName'])
 
     def validate(self, doc):
@@ -59,7 +58,7 @@ class Item(Model):
             'name': doc['name'],
             'parentCollection': 'folder'
             }
-        duplicates = self.folderModel.find(q, limit=1, fields=['_id'])
+        duplicates = self.model('folder').find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
             raise ValidationException('A folder with that name already'
                                       'exists here.', 'name')

@@ -36,10 +36,8 @@ class GroupTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.requireModels(['user', 'folder', 'group'])
-
         # Create a set of users so we can work with these groups
-        self.users = [self.userModel.createUser(
+        self.users = [self.model('user').createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1, 2]]
 
@@ -49,23 +47,23 @@ class GroupTestCase(base.TestCase):
         various access-control lists are also removed.
         """
         # Create a couple of groups
-        group1 = self.groupModel.createGroup('g1', self.users[0])
-        group2 = self.groupModel.createGroup('g2', self.users[0])
+        group1 = self.model('group').createGroup('g1', self.users[0])
+        group2 = self.model('group').createGroup('g2', self.users[0])
 
         # Create a folder and give both groups some access on it
-        folder = self.folderModel.createFolder(
+        folder = self.model('folder').createFolder(
             parent=self.users[0], name='x', parentType='user', public=False,
             creator=self.users[0])
-        self.folderModel.setGroupAccess(folder, group1, AccessType.WRITE)
-        self.folderModel.setGroupAccess(folder, group2, AccessType.READ)
-        folder = self.folderModel.save(folder)
+        self.model('folder').setGroupAccess(folder, group1, AccessType.WRITE)
+        self.model('folder').setGroupAccess(folder, group2, AccessType.READ)
+        folder = self.model('folder').save(folder)
 
         self.assertEqual(len(folder['access']['groups']), 2)
 
         # Delete group 1; folder access list should no longer contain it
-        self.groupModel.remove(group1)
-        group1 = self.groupModel.load(group1['_id'])
-        folder = self.folderModel.load(folder['_id'], force=True)
+        self.model('group').remove(group1)
+        group1 = self.model('group').load(group1['_id'])
+        folder = self.model('folder').load(folder['_id'], force=True)
 
         self.assertEqual(group1, None)
         self.assertEqual(len(folder['access']['groups']), 1)
@@ -75,9 +73,9 @@ class GroupTestCase(base.TestCase):
         Test the GET endpoints for groups, including getting a single
         group and getting the list of all groups.
         """
-        privateGroup = self.groupModel.createGroup(
+        privateGroup = self.model('group').createGroup(
             'private ', self.users[0], public=False)
-        publicGroup = self.groupModel.createGroup(
+        publicGroup = self.model('group').createGroup(
             'public ', self.users[0], public=True)
 
         # Anonymous user should be able to see the public group
@@ -126,12 +124,12 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(resp.json['description'],
                          params['description'].strip())
 
-        publicGroup = self.groupModel.load(resp.json['_id'], force=True)
+        publicGroup = self.model('group').load(resp.json['_id'], force=True)
 
         # User 1 should be able to see the public group
-        self.assertTrue(self.groupModel.hasAccess(
+        self.assertTrue(self.model('group').hasAccess(
             publicGroup, self.users[0], AccessType.ADMIN))
-        self.assertTrue(self.groupModel.hasAccess(
+        self.assertTrue(self.model('group').hasAccess(
             publicGroup, self.users[1], AccessType.READ))
 
         # User 1 should not be able to join the public group without invite.
@@ -156,15 +154,15 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], params['name'].strip())
         self.assertEqual(resp.json['description'],
                          params['description'].strip())
-        privateGroup = self.groupModel.load(resp.json['_id'], force=True)
+        privateGroup = self.model('group').load(resp.json['_id'], force=True)
 
         # User 1 should not be able to see it
-        self.assertTrue(self.groupModel.hasAccess(
+        self.assertTrue(self.model('group').hasAccess(
             privateGroup, self.users[0], AccessType.ADMIN))
-        self.assertFalse(self.groupModel.hasAccess(
+        self.assertFalse(self.model('group').hasAccess(
             privateGroup, self.users[1], AccessType.READ))
 
-        self.assertEqual(len(self.groupModel.getMembers(privateGroup)), 1)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
         # Invite user 1 to join the private group as member
         params = {
@@ -177,17 +175,18 @@ class GroupTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Reload user and group since they've changed in the database
-        self.users[1] = self.userModel.load(self.users[1]['_id'], force=True)
-        privateGroup = self.groupModel.load(privateGroup['_id'], force=True)
+        self.users[1] = self.model('user').load(
+            self.users[1]['_id'], force=True)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
 
         # User object should now have an invitation set on it
         self.assertTrue(privateGroup['_id'] in [
             invite['groupId'] for invite in self.users[1]['groupInvites']])
 
         # User 1 should now be able to see the group, but should not be in it.
-        self.assertTrue(self.groupModel.hasAccess(
+        self.assertTrue(self.model('group').hasAccess(
             privateGroup, self.users[1], AccessType.READ))
-        self.assertEqual(len(self.groupModel.getMembers(privateGroup)), 1)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
         # Have user 1 join the group
         resp = self.request(
@@ -196,15 +195,16 @@ class GroupTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Reload user and group since they've changed in the database
-        self.users[1] = self.userModel.load(self.users[1]['_id'], force=True)
-        privateGroup = self.groupModel.load(privateGroup['_id'], force=True)
+        self.users[1] = self.model('user').load(
+            self.users[1]['_id'], force=True)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
 
         # Invitation should be gone from user 1
         self.assertFalse(privateGroup['_id'] in [
             invite['groupId'] for invite in self.users[1]['groupInvites']])
 
         # User 1 should be a member of the group
-        self.assertEqual(len(self.groupModel.getMembers(privateGroup)), 2)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
 
         # User 1 should not be able to invite other members
         params = {
@@ -217,8 +217,8 @@ class GroupTestCase(base.TestCase):
         self.assertStatus(resp, 403)
 
         # We give user 1 write access
-        self.groupModel.setUserAccess(privateGroup, self.users[1],
-                                      AccessType.WRITE, save=True)
+        self.model('group').setUserAccess(privateGroup, self.users[1],
+                                          AccessType.WRITE, save=True)
 
         # User 1 should not be able to invite anyone as admin
         params['level'] = AccessType.ADMIN
@@ -255,10 +255,11 @@ class GroupTestCase(base.TestCase):
             path='/group/%s/remove' % privateGroup['_id'], user=self.users[0],
             method='PUT', params=params)
         self.assertStatusOk(resp)
-        self.assertEqual(len(self.groupModel.getMembers(privateGroup)), 1)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
         # User 0 should be able to delete the group
-        self.users[0] = self.userModel.load(self.users[0]['_id'], force=True)
+        self.users[0] = self.model('user').load(
+            self.users[0]['_id'], force=True)
         self.assertEqual(len(self.users[0]['groups']), 2)
         resp = self.request(
             path='/group/%s' % privateGroup['_id'], user=self.users[0],
@@ -266,9 +267,10 @@ class GroupTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], 'Deleted the %s group.'
                          % privateGroup['name'])
-        privateGroup = self.groupModel.load(privateGroup['_id'], force=True)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
         self.assertTrue(privateGroup is None)
 
         # Make sure group reference was removed from user 0
-        self.users[0] = self.userModel.load(self.users[0]['_id'], force=True)
+        self.users[0] = self.model('user').load(
+            self.users[0]['_id'], force=True)
         self.assertEqual(len(self.users[0]['groups']), 1)

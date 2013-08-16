@@ -47,7 +47,6 @@ class Group(AccessControlledModel):
 
     def initialize(self):
         self.name = 'group'
-        self.requireModels(['folder', 'user'])
         self.ensureIndices(['lowerName'])
 
     def validate(self, doc):
@@ -99,7 +98,7 @@ class Group(AccessControlledModel):
         """
 
         # Remove references to this group from user group membership lists
-        self.userModel.update({
+        self.model('user').update({
             'groups': group['_id']
         }, {
             '$pull': {'groups': group['_id']}
@@ -116,8 +115,8 @@ class Group(AccessControlledModel):
 
         # Remove references to this group from access-controlled collections.
         self.update(acQuery, acUpdate)
-        self.folderModel.update(acQuery, acUpdate)
-        self.userModel.update(acQuery, acUpdate)
+        self.model('folder').update(acQuery, acUpdate)
+        self.model('user').update(acQuery, acUpdate)
 
         # Finally, delete the document itself
         AccessControlledModel.remove(self, group)
@@ -134,7 +133,8 @@ class Group(AccessControlledModel):
         q = {
             'groups': group['_id']
         }
-        cursor = self.userModel.find(q, offset=offset, limit=limit, sort=sort)
+        cursor = self.model('user').find(
+            q, offset=offset, limit=limit, sort=sort)
         users = []
         for user in cursor:
             users.append(user)
@@ -153,7 +153,7 @@ class Group(AccessControlledModel):
 
         if not group['_id'] in user['groups']:
             user['groups'].append(group['_id'])
-            self.userModel.save(user, validate=False)
+            self.model('user').save(user, validate=False)
 
         self.setUserAccess(group, user, level, save=True)
 
@@ -170,7 +170,7 @@ class Group(AccessControlledModel):
             if invite['groupId'] == group['_id']:
                 self.addUser(group, user, level=invite['level'])
                 user['groupInvites'].remove(invite)
-                self.userModel.save(user, validate=False)
+                self.model('user').save(user, validate=False)
                 break
         else:
             raise AccessException('User was not invited to this group.')
@@ -203,7 +203,7 @@ class Group(AccessControlledModel):
                 'level': level
                 })
 
-        return self.userModel.save(user, validate=False)
+        return self.model('user').save(user, validate=False)
 
     def removeUser(self, group, user):
         """
@@ -212,7 +212,7 @@ class Group(AccessControlledModel):
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])
-            self.userModel.save(user, validate=False)
+            self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
         self.setUserAccess(group, user, level=None, save=True)

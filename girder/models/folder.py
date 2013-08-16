@@ -35,7 +35,6 @@ class Folder(AccessControlledModel):
     def initialize(self):
         self.name = 'folder'
         self.ensureIndices(['parentId', 'name'])
-        self.requireModels(['item'])
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -67,7 +66,7 @@ class Folder(AccessControlledModel):
             'folderId': doc['parentId'],
             'name': doc['name']
             }
-        duplicates = self.itemModel.find(q, limit=1, fields=['_id'])
+        duplicates = self.model('item').find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
             raise ValidationException('An item with that name already'
                                       'exists here.', 'name')
@@ -94,7 +93,8 @@ class Folder(AccessControlledModel):
             'folderId': folder['_id']
             }
 
-        cursor = self.itemModel.find(q, limit=limit, offset=offset, sort=sort)
+        cursor = self.model('item').find(
+            q, limit=limit, offset=offset, sort=sort)
         items = []
         for item in cursor:
             items.append(item)

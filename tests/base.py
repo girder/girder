@@ -73,7 +73,6 @@ class TestCase(unittest.TestCase, ModelImporter):
         database before each test.
         """
         dropTestDatabase()
-        self.requireModels(['token'])
 
     def assertStatusOk(self, response):
         """
@@ -191,7 +190,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
 
         if user is not None:
-            token = self.tokenModel.createToken(user)
+            token = self.model('token').createToken(user)
             cookie = json.dumps({
                 'userId': str(user['_id']),
                 'token': str(token['_id'])

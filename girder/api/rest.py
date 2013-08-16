@@ -49,7 +49,6 @@ class Resource(ModelImporter):
 
     def __init__(self):
         self.initialize()
-        self.requireModels(['user', 'token'])
 
     def initialize(self):
         """
@@ -139,9 +138,9 @@ class Resource(ModelImporter):
             except:
                 return (None, None) if returnToken else None
 
-            user = self.userModel.load(userId, force=True)
-            token = self.tokenModel.load(info['token'], AccessType.ADMIN,
-                                         objectId=False, user=user)
+            user = self.model('user').load(userId, force=True)
+            token = self.model('token').load(info['token'], AccessType.ADMIN,
+                                             objectId=False, user=user)
 
             if token is None or token['expires'] < datetime.datetime.now():
                 return (None, token) if returnToken else None

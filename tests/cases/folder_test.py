@@ -36,7 +36,6 @@ def tearDownModule():
 class FolderTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
-        self.requireModels(['folder', 'user'])
 
         user = {
             'email': 'good@email.com',
@@ -45,7 +44,7 @@ class FolderTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
             }
-        self.user = self.userModel.createUser(**user)
+        self.user = self.model('user').createUser(**user)
 
     def testChildFolders(self):
         # Test with some bad parameters

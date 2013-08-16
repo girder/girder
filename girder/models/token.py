@@ -52,8 +52,14 @@ class Token(AccessControlledModel):
         return doc
 
     def cleanExpired(self):
-        # TODO
-        pass
+        """
+        Remove all expired tokens from the database.
+        """
+        self.removeWithQuery({
+            'expires': {
+                '$lt': datetime.datetime.now()
+            }
+        })
 
     def createToken(self, user, days=180):
         """

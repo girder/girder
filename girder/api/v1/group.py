@@ -28,9 +28,6 @@ from ...constants import AccessType
 
 class Group(Resource):
 
-    def initialize(self):
-        self.requireModels(['group', 'user'])
-
     def _filter(self, group):
         """
         Filter a group document for display to the user.
@@ -51,8 +48,8 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        return self.groupModel.search(text=params.get('text'), user=user,
-                                      offset=offset, limit=limit, sort=sort)
+        return self.model('group').search(text=params.get('text'), user=user,
+                                          offset=offset, limit=limit, sort=sort)
 
     def createGroup(self, params):
         """
@@ -73,7 +70,7 @@ class Group(Resource):
         if user is None:
             raise AccessException('Must be logged in to create a group.')
 
-        group = self.groupModel.createGroup(
+        group = self.model('group').createGroup(
             name=name, creator=user, description=description, public=public)
 
         return self._filter(group)
@@ -86,14 +83,14 @@ class Group(Resource):
         :param public: Public read access flag.
         :type public: bool
         """
-        self.groupModel.requireAccess(group, user, AccessType.WRITE)
+        self.model('group').requireAccess(group, user, AccessType.WRITE)
         # TODO implement updating of a group document
 
     def joinGroup(self, group, user):
         """
         Accept a group invitation.
         """
-        return self.groupModel.joinGroup(group, user)
+        return self.model('group').joinGroup(group, user)
 
     def inviteToGroup(self, group, user, params):
         """
@@ -106,19 +103,20 @@ class Group(Resource):
         :type params: dict
         """
         self.requireParams(['userId'], params)
-        self.groupModel.requireAccess(group, user, AccessType.WRITE)
+        self.model('group').requireAccess(group, user, AccessType.WRITE)
 
         level = int(params.get('level', AccessType.READ))
 
         userToInvite = self.getObjectById(
-            self.userModel, user=user, id=params['userId'], checkAccess=True)
+            self.model('user'), user=user, id=params['userId'],
+            checkAccess=True)
 
         if userToInvite['_id'] == user['_id']:
             raise RestException('Cannot invite yourself to a group.')
 
         # Can only invite into access levels that you yourself have
-        self.groupModel.requireAccess(group, user, level)
-        self.groupModel.inviteUser(group, userToInvite, level)
+        self.model('group').requireAccess(group, user, level)
+        self.model('group').inviteUser(group, userToInvite, level)
 
         return {'message': 'Invitation sent.'}
 
@@ -129,7 +127,7 @@ class Group(Resource):
         """
         if 'userId' in params:
             userToRemove = self.getObjectById(
-                self.userModel, user=user, id=params['userId'],
+                self.model('user'), user=user, id=params['userId'],
                 checkAccess=True)
         else:
             # Assume user is removing himself from the group
@@ -139,12 +137,13 @@ class Group(Resource):
         # access level as they do, and you must have at least write access
         # to remove any user other than yourself.
         if user['_id'] != userToRemove['_id']:
-            if self.groupModel.hasAccess(group, userToRemove, AccessType.ADMIN):
-                self.groupModel.requireAccess(group, user, AccessType.ADMIN)
+            if self.model('group').hasAccess(group, userToRemove,
+                                             AccessType.ADMIN):
+                self.model('group').requireAccess(group, user, AccessType.ADMIN)
             else:
-                self.groupModel.requireAccess(group, user, AccessType.WRITE)
+                self.model('group').requireAccess(group, user, AccessType.WRITE)
 
-        return self.groupModel.removeUser(group, userToRemove)
+        return self.model('group').removeUser(group, userToRemove)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -156,10 +155,10 @@ class Group(Resource):
                 'Path parameter should be the group ID to delete.')
 
         user = self.getCurrentUser()
-        group = self.getObjectById(self.groupModel, id=path[0], user=user,
+        group = self.getObjectById(self.model('group'), id=path[0], user=user,
                                    checkAccess=True, level=AccessType.ADMIN)
 
-        self.groupModel.remove(group)
+        self.model('group').remove(group)
         return {'message': 'Deleted the %s group.' % group['name']}
 
     @Resource.endpoint
@@ -168,7 +167,7 @@ class Group(Resource):
             return self.find(params)
         else:  # assume it's an ID
             user = self.getCurrentUser()
-            group = self.getObjectById(self.groupModel, id=path[0],
+            group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
             return self._filter(group)
 
@@ -185,7 +184,7 @@ class Group(Resource):
             raise RestException('Must have a path parameter.')
 
         user = self.getCurrentUser()
-        group = self.getObjectById(self.groupModel, id=path[0], user=user,
+        group = self.getObjectById(self.model('group'), id=path[0], user=user,
                                    checkAccess=True)
 
         if len(path) == 1:

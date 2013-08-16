@@ -28,9 +28,6 @@ from ...constants import AccessType
 
 class Folder(Resource):
 
-    def initialize(self):
-        self.requireModels(['folder', 'user'])
-
     def _filter(self, folder):
         """
         Filter a folder document for display to the user.
@@ -60,17 +57,17 @@ class Folder(Resource):
         user = self.getCurrentUser()
 
         if 'text' in params:
-            return self.folderModel.search(params['text'], user=user,
-                                           offset=offset, limit=limit,
-                                           sort=sort)
+            return self.model('folder').search(
+                params['text'], user=user, offset=offset, limit=limit,
+                sort=sort)
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType == 'user':
-                model = self.userModel
+                model = self.model('user')
             elif parentType == 'community':
                 pass  # TODO community
             elif parentType == 'folder':
-                model = self.folderModel
+                model = self.model('folder')
             else:
                 raise RestException('The parentType must be user, community,'
                                     ' or folder.')
@@ -78,7 +75,7 @@ class Folder(Resource):
             parent = self.getObjectById(
                 model, id=params['parentId'], user=user, checkAccess=True,
                 level=AccessType.READ)
-            return self.folderModel.childFolders(
+            return self.model('folder').childFolders(
                 parentType=parentType, parent=parent, user=user, offset=offset,
                 limit=limit, sort=sort)
         else:
@@ -108,25 +105,21 @@ class Folder(Resource):
 
         user = self.getCurrentUser()
 
-        if parentType == 'folder':
-            model = self.folderModel
-        elif parentType == 'user':
-            model = self.userModel
-        elif parentType == 'community':
-            pass  # TODO model = self.communityModel
-        else:
+        if parentType not in ('folder', 'user', 'community'):
             raise RestException('Set parentType to community, folder, or user.')
+
+        model = self.model(parentType)
 
         parent = self.getObjectById(model, id=params['parentId'], user=user,
                                     checkAccess=True, level=AccessType.WRITE)
 
-        folder = self.folderModel.createFolder(
+        folder = self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public)
 
         if parentType == 'user':
-            folder = self.folderModel.setUserAccess(folder, user=user,
-                                                    level=AccessType.ADMIN)
+            folder = self.model('folder').setUserAccess(
+                folder, user=user, level=AccessType.ADMIN)
         elif parentType == 'community':
             # TODO set appropriate top-level community folder permissions
             pass
@@ -138,7 +131,7 @@ class Folder(Resource):
             return self.find(params)
         else:  # assume it's a folder id
             user = self.getCurrentUser()
-            folder = self.getObjectById(self.folderModel, id=path[0],
+            folder = self.getObjectById(self.model('folder'), id=path[0],
                                         checkAccess=True, user=user)
             return self._filter(folder)
 
