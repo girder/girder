@@ -90,6 +90,7 @@ class User(AccessControlledModel):
     def remove(self, user):
         """
         Delete a user, and all references to it in the database.
+
         :param user: The user document to delete.
         :type user: dict
         """
@@ -130,6 +131,7 @@ class User(AccessControlledModel):
         """
         Create a new user with the given information. The user will be created
         with the default "Public" and "Private" folders.
+
         :param admin: Whether user is global administrator.
         :type admin: bool
         :param tokenLifespan: Number of days the long-term token should last.

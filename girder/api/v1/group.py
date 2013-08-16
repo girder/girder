@@ -54,6 +54,7 @@ class Group(Resource):
     def createGroup(self, params):
         """
         Create a new folder.
+
         :param name: The name of the group to create. Must be unique.
         :param description: Group description.
         :param public: Public read access flag.
@@ -78,6 +79,7 @@ class Group(Resource):
     def updateGroup(self, group, user, params):
         """
         Update the group.
+
         :param name: Name for the group. Must be unique.
         :param description: Description for the group.
         :param public: Public read access flag.
@@ -95,6 +97,7 @@ class Group(Resource):
     def inviteToGroup(self, group, user, params):
         """
         Invite the user to join the group.
+
         :param group: The group to invite the user to.
         :param user: The user doing the invitation.
         :param params: Optionally Pass a 'level' param with an AccessType

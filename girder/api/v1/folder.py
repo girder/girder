@@ -47,6 +47,7 @@ class Folder(Resource):
         by parent, (i.e. list child folders) pass parentId and parentType,
         which must be one of ('folder' | 'community' | 'user'). You can also
         pass limit, offset, sort, and sortdir paramters.
+
         :param limit: The result set size limit, default=50.
         :param offset: Offset into the results, default=0.
         :param sort: The field to sort by, default=name.
@@ -84,6 +85,7 @@ class Folder(Resource):
     def createFolder(self, params):
         """
         Create a new folder.
+
         :param parentId: The _id of the parent folder.
         :type parentId: str
         :param parentType: The type of the parent of this folder.

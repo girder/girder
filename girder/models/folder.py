@@ -83,6 +83,7 @@ class Folder(AccessControlledModel):
     def childItems(self, folder, limit=50, offset=0, sort=None):
         """
         Get a list of child items in this folder.
+
         :param folder: The parent folder.
         :param limit: Result limit.
         :param offset: Result offset.
@@ -106,6 +107,7 @@ class Folder(AccessControlledModel):
         """
         Get all child folders of a user, community, or folder, with access
         policy filtering.
+
         :param parent: The parent object.
         :type parentType: Type of the parent object.
         :param parentType: The parent type.
@@ -139,6 +141,7 @@ class Folder(AccessControlledModel):
                      public=None, creator=None):
         """
         Create a new folder under the given parent.
+
         :param parent: The parent document. Should be a folder, user, or
                        community.
         :type parent: dict

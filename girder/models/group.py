@@ -72,6 +72,7 @@ class Group(AccessControlledModel):
     def search(self, text=None, user=None, limit=50, offset=0, sort=None):
         """
         Search for groups or simply list all visible groups.
+
         :param text: Pass this to perform a text search of all groups.
         :param user: The user to search as.
         :param limit: Result set size limit.
@@ -93,6 +94,7 @@ class Group(AccessControlledModel):
     def remove(self, group):
         """
         Delete a group, and all references to it in the database.
+
         :param group: The group document to delete.
         :type group: dict
         """
@@ -124,6 +126,7 @@ class Group(AccessControlledModel):
     def getMembers(self, group, offset=0, limit=50, sort=None):
         """
         Return the list of all users who belong to this group.
+
         :param group: The group to list members on.
         :param offset: Offset into the result set of users.
         :param limit: Result set size limit.
@@ -222,6 +225,7 @@ class Group(AccessControlledModel):
     def createGroup(self, name, creator, description='', public=True):
         """
         Create a new group. The creator will be given admin access to it.
+
         :param name: The name of the folder.
         :type name: str
         :param description: Description for the folder.

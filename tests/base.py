@@ -77,6 +77,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def assertStatusOk(self, response):
         """
         Call this to assert that the response yielded a 200 OK output_status.
+
         :param response: The response object.
         """
         self.assertStatus(response, 200)
@@ -84,6 +85,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def assertStatus(self, response, code):
         """
         Call this to assert that a given HTTP status code was returned.
+
         :param response: The response object.
         :param code: The status code.
         :type code: int or str
@@ -95,6 +97,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def assertHasKeys(self, obj, keys):
         """
         Assert that the given object has the given list of keys.
+
         :param obj: The dictionary object.
         :param keys: The keys it must contain.
         :type keys: list
@@ -106,6 +109,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         """
         Assert that the given object does not have any of the given list of
         keys.
+
         :param obj: The dictionary object.
         :param keys: The keys it must not contain.
         :type keys: list
@@ -116,6 +120,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def assertValidationError(self, response, field=None):
         """
         Assert that a ValidationException was thrown with the given field.
+
         :param response: The response object.
         :param field: The field that threw the validation exception.
         :type field: str
@@ -138,6 +143,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def assertMissingParameter(self, response, param):
         """
         Assert that the response was a "parameter missing" error response.
+
         :param response: The response object.
         :param param: The name of the missing parameter.
         :type param: str
@@ -149,6 +155,7 @@ class TestCase(unittest.TestCase, ModelImporter):
     def ensureRequiredParams(self, path='/', method='GET', required=()):
         """
         Ensure that a set of parameters is required by the endpoint.
+
         :param path: The endpoint path to test.
         :param method: The HTTP method of the endpoint.
         :param required: The required parameter set.
@@ -163,6 +170,7 @@ class TestCase(unittest.TestCase, ModelImporter):
                 prefix='/api/v1', isJson=True):
         """
         Make an HTTP request.
+
         :param path: The path part of the URI.
         :type path: str
         :param method: The HTTP method.

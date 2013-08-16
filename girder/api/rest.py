@@ -60,6 +60,7 @@ class Resource(ModelImporter):
         """
         This method will filter the given document to make it suitable to
         output to the user.
+
         :param doc: The document to filter.
         :type doc: dict
         :param allow: The whitelist of fields to allow in the output document.
@@ -84,6 +85,7 @@ class Resource(ModelImporter):
         """
         Calling this on a user will ensure that they have admin rights.
         an AccessException.
+
         :param user: The user to check admin flag on.
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
@@ -99,6 +101,7 @@ class Resource(ModelImporter):
         into the model methods that are finding the resources. If the client
         did not pass the parameters, this always uses the same defaults of
         limit=50, offset=0, sort='name', sortdir=pymongo.ASCENDING=1.
+
         :param params: The URL query parameters.
         :type params: dict
         :param defaultSortField: If the client did not pass a 'sort' parameter,
@@ -122,6 +125,7 @@ class Resource(ModelImporter):
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.
+
         :param returnToken: Whether we should return a tuple that also contains
                             the token.
         :type returnToken: bool
@@ -154,6 +158,7 @@ class Resource(ModelImporter):
         """
         This convenience method should be used to load a single
         instance of a model that is indexed by the default ObjectId type.
+
         :param model: The model to load from.
         :type model: Model
         :param id: The id of the object.

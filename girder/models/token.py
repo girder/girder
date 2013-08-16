@@ -64,6 +64,7 @@ class Token(AccessControlledModel):
     def createToken(self, user, days=180):
         """
         Creates a new token for the user.
+
         :param user: The user to create the session for.
         :type user: dict
         :param days: The lifespan of the session in days.

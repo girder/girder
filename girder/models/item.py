@@ -68,6 +68,7 @@ class Item(Model):
     def createItem(self, name, creator, folder, description=''):
         """
         Create a new item. The creator will be given admin access to it.
+
         :param name: The name of the item.
         :type name: str
         :param description: Description for the folder.

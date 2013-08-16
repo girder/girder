@@ -61,6 +61,7 @@ class User(Resource):
     def login(self, params):
         """
         Login endpoint. Sends a session cookie in the response on success.
+
         :param login: The login name.
         :param password: The user's password.
         """
