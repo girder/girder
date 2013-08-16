@@ -50,7 +50,7 @@ class Describe(Resource):
     models = {}
 
     @classmethod
-    def param(cls, name, description, paramType='form', dataType='string',
+    def param(cls, name, description, paramType='query', dataType='string',
               required=True):
         """
         This helper will build a parameter declaration for you. It has the most

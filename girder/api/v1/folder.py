@@ -35,7 +35,7 @@ class Folder(Resource):
         # TODO possibly write a folder filter with self.filterDocument
         return folder
 
-    def find(self, params):
+    def find(self, user, params):
         """
         Get a list of folders with given search parameters. Currently accepted
         search modes are:
@@ -55,34 +55,27 @@ class Folder(Resource):
         """
         (limit, offset, sort) = self.getPagingParameters(params, 'name')
 
-        user = self.getCurrentUser()
-
         if 'text' in params:
             return self.model('folder').search(
                 params['text'], user=user, offset=offset, limit=limit,
                 sort=sort)
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
-            if parentType == 'user':
-                model = self.model('user')
-            elif parentType == 'community':
-                pass  # TODO community
-            elif parentType == 'folder':
-                model = self.model('folder')
-            else:
+            if not parentType in ('community', 'folder', 'user'):
                 raise RestException('The parentType must be user, community,'
                                     ' or folder.')
 
             parent = self.getObjectById(
-                model, id=params['parentId'], user=user, checkAccess=True,
-                level=AccessType.READ)
+                self.model(parentType), id=params['parentId'], user=user,
+                checkAccess=True, level=AccessType.READ)
+
             return self.model('folder').childFolders(
                 parentType=parentType, parent=parent, user=user, offset=offset,
                 limit=limit, sort=sort)
         else:
             raise RestException('Invalid search mode.')
 
-    def createFolder(self, params):
+    def createFolder(self, user, params):
         """
         Create a new folder.
 
@@ -104,8 +97,6 @@ class Folder(Resource):
 
         if public is not None:
             public = public.lower() == 'true'
-
-        user = self.getCurrentUser()
 
         if parentType not in ('folder', 'user', 'community'):
             raise RestException('Set parentType to community, folder, or user.')
@@ -129,10 +120,10 @@ class Folder(Resource):
 
     @Resource.endpoint
     def GET(self, path, params):
+        user = self.getCurrentUser()
         if not path:
-            return self.find(params)
+            return self.find(user, params)
         else:  # assume it's a folder id
-            user = self.getCurrentUser()
             folder = self.getObjectById(self.model('folder'), id=path[0],
                                         checkAccess=True, user=user)
             return self._filter(folder)
@@ -142,4 +133,5 @@ class Folder(Resource):
         """
         Use this endpoint to create a new folder.
         """
-        return self.createFolder(params)
+        user = self.getCurrentUser()
+        return self.createFolder(user, params)
