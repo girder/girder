@@ -77,7 +77,7 @@ class Folder(AccessControlledModel):
         """
         Search for folders with full text search.
         """
-        #TODO implement
+        # TODO implement
         return []
 
     def childItems(self, folder, limit=50, offset=0, sort=None):
@@ -96,11 +96,7 @@ class Folder(AccessControlledModel):
 
         cursor = self.model('item').find(
             q, limit=limit, offset=offset, sort=sort)
-        items = []
-        for item in cursor:
-            items.append(item)
-
-        return items
+        return [item for item in cursor]
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
                      sort=None):
