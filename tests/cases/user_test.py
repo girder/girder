@@ -222,9 +222,10 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.json['message'], 'Deleted user %s.' % users[1]['login'])
 
-        users[1] = self.groupModel.load(users[1]['_id'])
+        users[1] = self.model('user').load(users[1]['_id'], force=True)
         folder = self.model('folder').load(folder['_id'], force=True)
-        token = self.tokenModel.load(token['_id'], force=True)
+        token = self.model('token').load(token['_id'], force=True,
+                                         objectId=False)
 
         # Make sure user and token were deleted
         self.assertEqual(users[1], None)

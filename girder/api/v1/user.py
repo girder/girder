@@ -124,7 +124,7 @@ class User(Resource):
 
         user = self.getCurrentUser()
         userToDelete = self.getObjectById(
-            self.model('group'), id=path[0], user=user, checkAccess=True,
+            self.model('user'), id=path[0], user=user, checkAccess=True,
             level=AccessType.ADMIN)
 
         self.model('user').remove(userToDelete)
