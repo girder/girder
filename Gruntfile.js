@@ -27,7 +27,7 @@ module.exports = function (grunt) {
         },
 
         jade: {
-            inputDir: 'templates',
+            inputDir: 'clients/web/src/templates',
             outputFile: 'clients/web/static/built/templates.js'
         },
 
@@ -35,7 +35,8 @@ module.exports = function (grunt) {
             compile: {
                 files: {
                     'clients/web/static/built/app.min.css': [
-                        'clients/web/src/stylesheets/*.styl'
+                        'clients/web/src/stylesheets/**/*.styl',
+                        '!clients/web/src/stylesheets/apidocs/*.styl'
                     ],
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
@@ -64,10 +65,13 @@ module.exports = function (grunt) {
                 files: {
                     'clients/web/static/built/app.min.js': [
                         'clients/web/static/built/templates.js',
-                        'clients/web/src/*.js',
-                        'clients/web/src/models/*.js',
-                        'clients/web/src/collections/*.js',
-                        'clients/web/src/views/*.js'
+                        'clients/web/src/init.js',
+                        'clients/web/src/app.js',
+                        'clients/web/src/router.js',
+                        'clients/web/src/utility.js',
+                        'clients/web/src/models/**/*.js',
+                        'clients/web/src/collections/**/*.js',
+                        'clients/web/src/views/**/*.js'
                     ]
                 }
             },
@@ -96,7 +100,7 @@ module.exports = function (grunt) {
                 options: {failOnError: false}
             },
             jade: {
-                files: ['clients/web/src/templates/*.jade'],
+                files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js'],
                 options: {failOnError: false}
             },
@@ -163,7 +167,7 @@ module.exports = function (grunt) {
         var jade = require('jade');
 
         var task = this;
-        var inputFiles = grunt.file.expand(config.inputDir+"/*.jade");
+        var inputFiles = grunt.file.expand(config.inputDir+"/**/*.jade");
 
         fs.writeFileSync(outputFile, '\nvar jade=jade||{};jade.templates=jade.templates||{};\n');
 
