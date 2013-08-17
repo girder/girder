@@ -4,40 +4,38 @@
  */
 girder.views.LayoutGlobalNavView = Backbone.View.extend({
     events: {
-        'click .g-nav-link': 'navLinkClicked'
+        'click .g-nav-link': function (event) {
+            var link = $(event.currentTarget);
+
+            this.$('.g-global-nav-li').removeClass('g-active');
+            link.parent().addClass('g-active');
+            girder.events.trigger('g:navigateTo',
+                                  girder.views[link.attr('g-target')]);
+        }
     },
 
     render: function () {
         var navItems = [{
             'name': 'Collections',
             'icon': 'icon-sitemap',
-            'target': 'collections'
+            'target': 'CollectionsView'
         }, {
             'name': 'Users',
             'icon': 'icon-user',
-            'target': 'users'
+            'target': 'UsersView'
         }, {
             'name': 'Groups',
             'icon': 'icon-users',
-            'target': 'groups'
+            'target': 'GroupsView'
         }, {
             'name': 'Search',
             'icon': 'icon-search',
-            'target': 'search'
+            'target': 'SearchView'
         }];
         this.$el.html(jade.templates.layoutGlobalNav({
             navItems: navItems
         }));
 
         return this;
-    },
-
-    navLinkClicked: function (event) {
-        var link = $(event.currentTarget);
-
-        this.$('.g-global-nav-li').removeClass('g-active');
-        link.parent().addClass('g-active');
-
-        this.trigger('navigateTo', link.attr('g-target'));
     }
 });

@@ -35,7 +35,7 @@ class User(Resource):
         Helper to filter the user model.
         """
         return self.filterDocument(
-            user, allow=['_id', 'login', 'email', 'public', 'size',
+            user, allow=['_id', 'access', 'login', 'email', 'public', 'size',
                          'firstName', 'lastName', 'admin', 'hashAlg'])
 
     def _sendAuthTokenCookie(self, user, token):
@@ -88,7 +88,7 @@ class User(Resource):
                                                        params['password']):
                 raise RestException('Login failed.', code=403)
 
-        return {'message': 'Login succeeded.',
+        return {'user': self._filter(user),
                 'authToken': {
                     'token': token['_id'],
                     'expires': token['expires'],
@@ -135,6 +135,8 @@ class User(Resource):
     def GET(self, path, params):
         if not path:
             return self.index(params)
+        elif path[0] == 'me':
+            return self._filter(self.getCurrentUser())
         else:  # assume it's a user id
             user = self.getCurrentUser()
             return self._filter(self.getObjectById(
