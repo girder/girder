@@ -1,0 +1,49 @@
+$navLinkBorder=1px solid #e0e0e0
+$emptyBorder=1px solid transparent
+
+.g-nav-link
+  display block
+  line-height 1.9
+  font-size 17px
+  color #4a4a4a
+  padding-left 12px
+  i
+    color #888
+    margin 3px
+
+ul.g-global-nav
+  padding-left 0
+
+  >li
+    border $emptyBorder
+    list-style-type none
+    text-decoration none
+
+  >li:hover:not(.g-active)
+    background-color #fafafa
+    .g-nav-link:after
+      content ""
+      position absolute
+      width 4px
+      top -1px
+      bottom -1px;
+      right -1px;
+      background-color #ffcc00
+    .g-nav-link
+      position relative
+      color #222
+    i
+      color #333
+
+  >li.g-active
+    pointer-events none
+    cursor default
+    background-color white
+    border-top $navLinkBorder
+    border-bottom $navLinkBorder
+    border-left $navLinkBorder
+    box-shadow -1px 1px 3px rgba(0,0,0,0.05)
+    .g-nav-link
+      color black
+    i
+      color black

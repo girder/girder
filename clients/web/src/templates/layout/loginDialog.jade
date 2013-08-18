@@ -1,0 +1,22 @@
+.modal-dialog
+  .modal-content
+    form#g-login-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Log In
+      .modal-body
+        .form-group
+          label.control-label(for="g-login") Login or Email
+          input#g-login.form-control(type="text", placeholder="Enter login")
+        .form-group
+          label.control-label(for="g-password") Password
+          input#g-password.form-control(type="password", placeholder="Enter password")
+        .g-validation-failed-message
+        .g-bottom-message
+          | Don't have an account yet?
+          a.g-register-link  Register here.
+      .modal-footer
+        a.btn.btn-default(data-dismiss="modal") Close
+        button#g-login-button.btn.btn-primary(type="submit")
+          i.icon-login
+          |  Login

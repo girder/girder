@@ -66,6 +66,9 @@ class Resource(ModelImporter):
         :param allow: The whitelist of fields to allow in the output document.
         :type allow: List of strings
         """
+        if doc is None:
+            return None
+
         out = {}
         for field in allow:
             if field in doc:
