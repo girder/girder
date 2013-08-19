@@ -3,27 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Girder's documentation!
-==================================
-
-Contents:
-
+Girder: High-Performance Data Management
+========================================
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: girder
-   :members:
-.. automodule:: girder.api
-   :members:
-.. automodule:: girder.models
-   :members:
-.. automodule:: girder.utility
-   :members:
-.. automodule:: girder.constants
-   :members:
+   prerequisites
+   installation
+   build-docs
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
