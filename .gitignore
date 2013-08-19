@@ -3,3 +3,4 @@ node_modules
 docs/_build
 docs/_output
 .coverage
+girder.egg-info
