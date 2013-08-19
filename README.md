@@ -42,5 +42,7 @@ To run the server, first make sure the mongo daemon is running. To manually star
 Then, just run:
 
     python -m girder
+    
+Then open http://localhost:8080/ in your web browser, and you should see the application.
 
 
