@@ -2,6 +2,7 @@ doctype 5
 html(lang="en")
   head
     title= "Girder"
+    link(rel="stylesheet", href="//fonts.googleapis.com/css?family=Droid+Sans:400,700")
     each css in stylesheets
       link(rel="stylesheet", href="static/#{css}")
   body
