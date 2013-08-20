@@ -93,7 +93,8 @@ class User(Resource):
                     'token': token['_id'],
                     'expires': token['expires'],
                     'userId': user['_id']
-                    }
+                    },
+                'message': 'Login succeeded.'
                 }
 
     def logout(self):
