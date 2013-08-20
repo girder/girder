@@ -5,7 +5,7 @@ Data Management Toolkit (working title)
 
 ## Install
 
-Before you install, see the [Installing system prerequisites](docs/manual/system_install.md)
+Before you install, see the [Installing system prerequisites](docs/prerequisites.rst)
 guide to make sure you have all required system packages installed.
 
 To run the server, you must install the following python packages:
