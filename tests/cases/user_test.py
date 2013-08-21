@@ -170,6 +170,8 @@ class UserTestCase(base.TestCase):
             })
         self.assertStatusOk(resp)
         self.assertEqual('Login succeeded.', resp.json['message'])
+        self.assertEqual('good@email.com', resp.json['user']['email'])
+        self._verifyUserDocument(resp.json['user'])
 
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
