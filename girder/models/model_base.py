@@ -24,7 +24,7 @@ from bson.objectid import ObjectId
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
-from girder.models import db_cfg, db_connection
+from girder.models import getDbConfig, getDbConnection
 
 
 class Model(ModelImporter):
@@ -42,6 +42,8 @@ class Model(ModelImporter):
 
         assert type(self.name) == str
 
+        db_cfg = getDbConfig()
+        db_connection = getDbConnection()
         if cherrypy.config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
@@ -130,8 +132,8 @@ class Model(ModelImporter):
 
         For updating a single document, use the save() model method instead.
 
-        :param query: The query for finding documents to update. It's the same
-        format as would be passed to find().
+        :param query: The query for finding documents to update. It's
+                      the same format as would be passed to find().
         :type query: dict
         :param update: The update specifier.
         :type update: dict

@@ -27,6 +27,7 @@ from ...constants import AccessType
 
 
 class Folder(Resource):
+    """API Endpoint for folders."""
 
     def _filter(self, folder):
         """
