@@ -20,7 +20,7 @@ if(PYTHON_STYLE_TESTS)
 endif()
 
 if(JAVASCRIPT_STYLE_TESTS)
-  find_program(JSLINT_EXECUTABLE jslint)
+  find_program(JSHINT_EXECUTABLE jshint ${PROJECT_SOURCE_DIR}/node_modules/jshint/bin)
 endif()
 
 if(BUILD_TESTING)

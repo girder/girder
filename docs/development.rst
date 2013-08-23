@@ -107,16 +107,4 @@ Developing the server can be done...
 Client Development
 ------------------
 
-Coding Style
-^^^^^^^^^^^^
-
-For the JavaScript client included in Girder, we adhere to the JSLint coding
-style guidelines. Though many think it is an overly-opinionated tool, we find
-that such tools lend to consistent code bases. When adding a new JavaScript
-file to the web client, be sure to add it to the style check listing in
-`tests/clients/web/CMakeLists.txt`.
-
-In order to run these tests, you must first install jslint. This can be done
-through a variety of means including the recommended `npm` method: ::
-
-    npm install -g jslint
+Info goes here...

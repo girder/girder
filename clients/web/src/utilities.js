@@ -37,12 +37,12 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-    if (sizeBytes == 0) {
+    if (sizeBytes === 0) {
         return 'no space';
     }
 
     var units = ['B', 'KB', 'MB', ' GB', 'TB'];
-    for (var i = 0; sizeBytes > 1024; i++) {
+    for (var i = 0; sizeBytes > 1024; i += 1) {
         sizeBytes /= 1024;
     }
 
