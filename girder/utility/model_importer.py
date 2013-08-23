@@ -79,10 +79,11 @@ class ModelImporter(object):
         Call this to get the instance of the specified core model. It will be
         lazy-instantiated.
 
-        :param model: The name of the model to get. This is the module name,
-        e.g. "folder". The class name must be the upper-camelcased version of
-        that module name, e.g. "Folder".
-        :type model: string.
+        :param model: The name of the model to get. This is the module
+                      name, e.g. "folder". The class name must be the
+                      upper-camelcased version of that module name, e.g.
+                      "Folder".
+        :type model: string
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances

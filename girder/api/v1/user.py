@@ -25,10 +25,12 @@ from ..rest import Resource, RestException
 from .docs import user_docs
 
 
-COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
-
-
 class User(Resource):
+    """API Endpoint for users in the system."""
+
+    def initialize(self):
+        """Initialize the cookie lifetime."""
+        self.COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
     def _filter(self, user):
         """
@@ -46,7 +48,7 @@ class User(Resource):
             'token': str(token['_id'])
             })
         cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = COOKIE_LIFETIME * 3600 * 24
+        cookie['authToken']['expires'] = self.COOKIE_LIFETIME * 3600 * 24
 
     def _deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
@@ -81,7 +83,8 @@ class User(Resource):
 
             user = cursor.next()
 
-            token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
+            token = self.model('token').createToken(user,
+                                                    days=self.COOKIE_LIFETIME)
             self._sendAuthTokenCookie(user, token)
 
             if not self.model('password').authenticate(user,
@@ -93,7 +96,8 @@ class User(Resource):
                     'token': token['_id'],
                     'expires': token['expires'],
                     'userId': user['_id']
-                    }
+                    },
+                'message': 'Login succeeded.'
                 }
 
     def logout(self):
@@ -109,7 +113,8 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'])
 
-        token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
+        token = self.model('token').createToken(user,
+                                                days=self.COOKIE_LIFETIME)
         self._sendAuthTokenCookie(user, token)
 
         return self._filter(user)

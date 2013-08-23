@@ -27,6 +27,7 @@ from ...constants import AccessType
 
 
 class Group(Resource):
+    """API Endpoint for groups."""
 
     def _filter(self, group):
         """

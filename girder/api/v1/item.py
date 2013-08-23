@@ -27,6 +27,7 @@ from ...constants import AccessType
 
 
 class Item(Resource):
+    """API endpoint for items"""
 
     def _filter(self, item):
         """

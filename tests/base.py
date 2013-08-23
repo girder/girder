@@ -57,7 +57,8 @@ def dropTestDatabase():
     """
     Call this to clear all contents from the test database.
     """
-    from girder.models import db_connection
+    from girder.models import getDbConnection
+    db_connection = getDbConnection()
     db_connection.drop_database('%s_test' %
                                 cherrypy.config['database']['database'])
 
