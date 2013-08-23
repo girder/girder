@@ -135,3 +135,35 @@ class FolderTestCase(base.TestCase):
                 'parentId': publicFolder['_id']
             })
         self.assertValidationError(resp, 'name')
+
+    def testDeleteFolder(self):
+        # Requesting with no path should fail
+        resp = self.request(path='/folder', method='DELETE', user=self.user)
+        self.assertStatus(resp, 400)
+
+        # Grab one of the user's top level folders
+        folders = self.model('folder').childFolders(
+            parent=self.user, parentType='user', user=self.user, limit=1)
+
+        # Add a subfolder and an item to that folder
+        subfolder = self.model('folder').createFolder(
+            folders[0], 'sub', parentType='folder', creator=self.user)
+        item = self.model('item').createItem(
+            'item', creator=self.user, folder=subfolder)
+
+        self.assertTrue('_id' in subfolder)
+        self.assertTrue('_id' in item)
+
+        # Delete the folder
+        resp = self.request(path='/folder/%s' % folders[0]['_id'],
+                            method='DELETE', user=self.user)
+        self.assertStatusOk(resp)
+
+        # Make sure the folder, its subfolder, and its item were all deleted
+        folder = self.model('folder').load(folders[0]['_id'], force=True)
+        subfolder = self.model('folder').load(subfolder['_id'], force=True)
+        item = self.model('item').load(item['_id'])
+
+        self.assertEqual(folder, None)
+        self.assertEqual(subfolder, None)
+        self.assertEqual(item, None)
