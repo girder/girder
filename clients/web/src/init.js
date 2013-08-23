@@ -6,8 +6,15 @@ var girder = {
     views: {},
     apiRoot: '/api/v1',
     currentUser: null,
-    pages: {},
     events: _.extend({}, Backbone.Events),
+
+    /**
+     * Constants and enums:
+     */
+    SORT_ASC: 1,
+    SORT_DESC: -1,
+    MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+             'August', 'September', 'October', 'November', 'December'],
 
     /**
      * Make a request to the REST API. Bind a "done" handler to the return

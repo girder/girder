@@ -45,8 +45,14 @@ girder.App = Backbone.View.extend({
      * @param [settings={}] Settings to pass to the view initialize() method.
      */
     navigateTo: function (view, settings) {
+        var container = this.$('#g-app-body-container');
+
         settings = settings || {};
+
         if (view) {
+            // Unbind all events added by the previous occupant of this container.
+            container.off();
+
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container')
             });

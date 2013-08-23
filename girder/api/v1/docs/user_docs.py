@@ -25,6 +25,28 @@ apis.append({
     'path': '/user',
     'resource': 'user',
     'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'findUsers',
+        'responseClass': 'User',
+        'summary': 'List or search for users.',
+        'parameters': [
+            Describe.param(
+                'text', "Pass this to perform a full text search for items.",
+                required=False),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            Describe.param(
+                'sort', "Field to sort the user list by (default=lastName)",
+                required=False),
+            Describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='int')
+            ]
+        }, {
         'httpMethod': 'POST',
         'nickname': 'createUser',
         'responseClass': 'User',
