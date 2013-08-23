@@ -43,7 +43,7 @@ class User(AccessControlledModel):
         doc['fname'] = doc.get('firstName', '').strip()
         doc['lname'] = doc.get('lastName', '').strip()
 
-        if not doc.get('salt', ''):
+        if not doc.get('salt', ''):  # pragma: no cover
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
 
@@ -121,10 +121,39 @@ class User(AccessControlledModel):
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})
 
-        # TODO delete all of the folders under this user recursively
+        # Delete all of the folders under this user
+        folders = self.model('folder').find({
+            'parentId': user['_id'],
+            'parentCollection': 'user'
+            }, limit=0)
+        for folder in folders:
+            self.model('folder').remove(folder)
 
         # Finally, delete the user document itself
         AccessControlledModel.remove(self, user)
+
+    def search(self, text=None, user=None, limit=50, offset=0, sort=None):
+        """
+        List all users. Since users are access-controlled, this will filter
+        them by access policy.
+
+        :param text: Pass this to perform a full-text search for users.
+        :param user: The user running the query. Only returns users that this
+                     user can see.
+        :param limit: Result limit.
+        :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        :returns: List of users.
+        """
+        # TODO support full-text search
+
+        # Perform the find; we'll do access-based filtering of the result set
+        # afterward.
+        cursor = self.find({}, limit=0, sort=sort)
+
+        return self.filterResultsByPermission(cursor=cursor, user=user,
+                                              level=AccessType.READ,
+                                              limit=limit, offset=offset)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
@@ -134,8 +163,6 @@ class User(AccessControlledModel):
 
         :param admin: Whether user is global administrator.
         :type admin: bool
-        :param tokenLifespan: Number of days the long-term token should last.
-        :type tokenLifespan: int
         :param public: Whether user is publicly visible.
         :type public: bool
         :returns: The user document that was created.

@@ -38,7 +38,7 @@ class User(Resource):
         """
         return self.filterDocument(
             user, allow=['_id', 'access', 'login', 'email', 'public', 'size',
-                         'firstName', 'lastName', 'admin', 'hashAlg'])
+                         'firstName', 'lastName', 'admin', 'created', 'groups'])
 
     def _sendAuthTokenCookie(self, user, token):
         """ Helper method to send the authentication cookie """
@@ -57,8 +57,22 @@ class User(Resource):
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = 0
 
-    def index(self, params):
-        return 'todo: index'
+    def find(self, user, params):
+        """
+        Get a list of users. You can pass a "text" parameter to filter the
+        users by a full text search string.
+
+        :param [text]: Full text search.
+        :param limit: The result set size limit, default=50.
+        :param offset: Offset into the results, default=0.
+        :param sort: The field to sort by, default=name.
+        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        """
+        (limit, offset, sort) = self.getPagingParameters(params, 'lastName')
+
+        return [self._filter(user) for user in self.model('user').search(
+                text=params.get('text'), user=user,
+                offset=offset, limit=limit, sort=sort)]
 
     def login(self, params):
         """
@@ -138,12 +152,12 @@ class User(Resource):
 
     @Resource.endpoint
     def GET(self, path, params):
+        user = self.getCurrentUser()
         if not path:
-            return self.index(params)
-        elif path[0] == 'me':
-            return self._filter(self.getCurrentUser())
+            return self.find(user, params)
+        elif path[0] == 'me':  # return the current user
+            return self._filter(user)
         else:  # assume it's a user id
-            user = self.getCurrentUser()
             return self._filter(self.getObjectById(
                 self.model('user'), id=path[0], user=user, checkAccess=True))
 

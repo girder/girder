@@ -1,0 +1,19 @@
+each user in users
+  .g-user-list-entry
+    .g-user-right-column
+      .g-user-joined
+        i.icon-clock
+        | Joined on
+        span.g-user-joined-date  #{girder.formatDate(user.get('created'), girder.DATE_DAY)}
+      if (user.get('size') !== undefined)
+        .g-space-used
+          i.icon-floppy
+          | Currently using
+          span.g-user-space-used  #{girder.formatSize(user.get('size'))}
+    .g-user-title
+      a.g-user-link(g-user-cid="#{user.cid}")
+        b #{user.get('firstName')} #{user.get('lastName')}
+    .g-user-subtitle
+      span.g-user-login  #{user.get('login')}
+    .g-clear-right
+

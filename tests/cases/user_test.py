@@ -46,7 +46,7 @@ class UserTestCase(base.TestCase):
     def _verifyUserDocument(self, doc):
         self.assertHasKeys(
             doc, ['_id', 'firstName', 'lastName', 'email', 'login', 'admin',
-                  'size', 'hashAlg'])
+                  'size'])
         self.assertNotHasKeys(doc, ['salt'])
 
     def testRegisterAndLoginBcrypt(self):
@@ -95,7 +95,8 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
 
-        self.assertEqual(resp.json['hashAlg'], 'bcrypt')
+        user = self.model('user').load(resp.json['_id'], force=True)
+        self.assertEqual(user['hashAlg'], 'bcrypt')
 
         # Now that our user is created, try to login
         params = {
@@ -153,7 +154,9 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='POST', params=params)
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
-        self.assertEqual(resp.json['hashAlg'], 'sha512')
+
+        user = self.model('user').load(resp.json['_id'], force=True)
+        self.assertEqual(user['hashAlg'], 'sha512')
 
         # Login unsuccessfully
         resp = self.request(path='/user/login', method='POST', params={
@@ -235,3 +238,32 @@ class UserTestCase(base.TestCase):
 
         # Make sure access control references for the user were deleted
         self.assertEqual(len(folder['access']['users']), 1)
+
+        # Delete user 0
+        resp = self.request(path='/user/%s' % users[0]['_id'], method='DELETE',
+                            user=users[0])
+        self.assertStatusOk(resp)
+
+        # Make sure the user's folder was deleted
+        folder = self.model('folder').load(folder['_id'], force=True)
+        self.assertEqual(folder, None)
+
+    def testUserIndex(self):
+        """
+        Test user list endpoint.
+        """
+        # Create some users.
+        users = [self.model('user').createUser(
+            'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
+            for x in ['c', 'a', 'b']]
+        resp = self.request(path='/user', method='GET', params={
+            'limit': 2,
+            'offset': 1
+            })
+        self.assertStatusOk(resp)
+
+        # Make sure the limit, order, and offset are respected, and that our
+        # default sorting is by lastName.
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['lastName'], 'b_usr')
+        self.assertEqual(resp.json[1]['lastName'], 'c_usr')
