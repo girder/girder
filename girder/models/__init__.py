@@ -22,6 +22,7 @@ import cherrypy
 
 _db_connection = None
 
+
 def getDbConfig():
     """Get the database configuration object from the cherrypy config.
     """
