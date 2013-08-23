@@ -18,8 +18,7 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
                 type: 'POST'
             }).done(_.bind(function () {
                 girder.currentUser = null;
-                girder.events.trigger('g:logout');
-                this.render();
+                girder.events.trigger('g:login');
             }, this));
         },
 

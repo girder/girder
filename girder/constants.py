@@ -39,6 +39,7 @@ class AccessType:
     ADMIN access confers total control; the user can delete the resource and
     also manage permissions for other users on it.
     """
+    NONE = -1
     READ = 0
     WRITE = 1
     ADMIN = 2

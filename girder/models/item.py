@@ -30,7 +30,7 @@ class Item(Model):
     """
 
     def initialize(self):
-        self.name = 'group'
+        self.name = 'item'
         self.ensureIndices(['lowerName'])
 
     def validate(self, doc):

@@ -1,0 +1,19 @@
+- var idx = 0
+each obj in links
+  li
+    a.g-breadcrumb-link(g-index="#{idx}")
+      if (obj.type == 'user')
+        i.icon-user
+      else if(obj.type == 'collection')
+        i.icon-sitemap
+      | #{obj.model.get('name') || obj.model.name()}
+  - idx += 1
+
+if current
+  li.active
+    if (current.type == 'user')
+      i.icon-user
+    else if(current.type == 'collection')
+      i.icon-sitemap
+    | #{current.model.get('name') || current.model.name()}
+

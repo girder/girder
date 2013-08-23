@@ -43,10 +43,14 @@ class UserTestCase(base.TestCase):
             resp.cookie['authToken']['expires'],
             cherrypy.config['sessions']['cookie_lifetime'] * 3600 * 24)
 
-    def _verifyUserDocument(self, doc):
+    def _verifyUserDocument(self, doc, admin=True):
         self.assertHasKeys(
-            doc, ['_id', 'firstName', 'lastName', 'email', 'login', 'admin',
-                  'size'])
+            doc, ['_id', 'firstName', 'lastName', 'public', 'login', 'admin'])
+        if admin:
+            self.assertHasKeys(doc, ['email', 'size'])
+        else:
+            self.assertNotHasKeys(doc, ['access', 'email', 'size'])
+
         self.assertNotHasKeys(doc, ['salt'])
 
     def testRegisterAndLoginBcrypt(self):
@@ -192,7 +196,7 @@ class UserTestCase(base.TestCase):
             }
         user = self.model('user').createUser(**params)
         resp = self.request(path='/user/%s' % user['_id'])
-        self._verifyUserDocument(resp.json)
+        self._verifyUserDocument(resp.json, admin=False)
 
     def testDeleteUser(self):
         """

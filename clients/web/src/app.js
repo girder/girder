@@ -24,7 +24,7 @@ girder.App = Backbone.View.extend({
     render: function () {
         this.$el.html(jade.templates.layout());
 
-        new girder.views.LayoutGlobalNavView({
+        this.globalNavView = new girder.views.LayoutGlobalNavView({
             el: this.$('#g-global-nav-container')
         }).render();
 
@@ -46,6 +46,8 @@ girder.App = Backbone.View.extend({
      */
     navigateTo: function (view, settings) {
         var container = this.$('#g-app-body-container');
+
+        this.globalNavView.deactivateAll();
 
         settings = settings || {};
 

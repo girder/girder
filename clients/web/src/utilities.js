@@ -48,3 +48,30 @@ girder.formatSize = function (sizeBytes) {
 
     return sizeBytes.toFixed(1) + ' ' + units[i];
 };
+
+/**
+ * Prompt the user to confirm an action.
+ * @param [text] The text to prompt the user with.
+ * @param [yesText] The text for the confirm button.
+ * @param [yesClass] Class string to apply to the confirm button.
+ * @param [noText] The text for the no/cancel button.
+ * @param confirmCallback Callback function when the user confirms the action.
+ */
+girder.confirm = function (params) {
+    params = _.extend({
+        text: 'Are you sure?',
+        yesText: 'Yes',
+        yesClass: 'btn-danger',
+        noText: 'Cancel'
+    }, params);
+    $('#g-dialog-container').html(jade.templates.confirmDialog({
+        params: params
+    })).modal();
+
+    $('#g-dialog-container').find('.modal-body>p').html(params.text);
+
+    $('#g-confirm-button').unbind('click').click(function () {
+        $('#g-dialog-container').modal('hide');
+        params.confirmCallback();
+    });
+};

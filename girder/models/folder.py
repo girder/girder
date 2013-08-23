@@ -58,7 +58,7 @@ class Folder(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         duplicates = self.find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
-            raise ValidationException('A folder with that name already'
+            raise ValidationException('A folder with that name already '
                                       'exists here.', 'name')
 
         # Ensure unique name among sibling items
@@ -68,7 +68,7 @@ class Folder(AccessControlledModel):
             }
         duplicates = self.model('item').find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
-            raise ValidationException('An item with that name already'
+            raise ValidationException('An item with that name already '
                                       'exists here.', 'name')
 
         return doc

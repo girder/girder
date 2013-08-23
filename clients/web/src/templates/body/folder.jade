@@ -1,0 +1,10 @@
+.g-folder-name #{folder.get('name')}
+.g-folder-description #{folder.get('description')}
+.g-folder-buttons
+  button.g-folder-actions.btn.btn-default.dropdown-toggle(data-toggle="dropdown")
+    i.icon-gear
+    span.caret
+  if (folder.get('_accessLevel') >= girder.AccessType.ADMIN)
+    button.g-folder-permissions.btn.btn-success(data-toggle="tooltip",
+                                                title="Permissions")
+      i.icon-key

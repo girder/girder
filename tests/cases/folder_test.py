@@ -68,6 +68,13 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
 
+        # Test GET on the result folder
+        resp = self.request(
+            path='/folder/%s' % str(resp.json[0]['_id']))
+        self.assertStatusOk(resp)
+        self.assertEqual(type(resp.json), dict)
+        self.assertFalse('access' in resp.json)
+
         # If we log in as the user, we should also be able to see the
         # private folder. Also test that our sortdir param works.
         resp = self.request(
@@ -117,6 +124,9 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(resp.json['parentId'], publicFolder['_id'])
         self.assertEqual(resp.json['parentCollection'], 'folder')
         self.assertTrue(resp.json['public'])
+        folder = self.model('folder').load(resp.json['_id'], force=True)
+        self.assertTrue(self.model('folder').hasAccess(
+            folder, self.user, AccessType.ADMIN))
 
         # Now fetch the children of Public, we should see it
         resp = self.request(

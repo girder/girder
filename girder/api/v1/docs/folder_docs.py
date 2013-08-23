@@ -112,6 +112,60 @@ apis.append({
             Describe.errorResponse(
                 'Admin access was denied for the folder.', 403)
             ]
+        },  {
+        'httpMethod': 'PUT',
+        'nickname': 'updateFolderById',
+        'summary': 'Update a folder by ID.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path'),
+            Describe.param('name', "Name of the folder."),
+            Describe.param('description', "Description of the folder.",
+                           required=False),
+            Describe.param(
+                'public', "If the folder should be public or private.",
+                required=False, dataType='boolean')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Write access was denied for the folder.', 403)
+            ]
+        }]
+    })
+
+apis.append({
+    'path': '/folder/{folderId}/access',
+    'resource': 'folder',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getFolderAccess',
+        'responseClass': 'Folder',
+        'summary': 'Get the access control list for a folder.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Admin access was denied for the folder.', 403)
+            ]
+        }, {
+        'httpMethod': 'PUT',
+        'nickname': 'updateFolderAccess',
+        'summary': 'Update the access control list for a folder.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path'),
+            Describe.param(
+                'access', 'The JSON-encoded access control list.')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Admin access was denied for the folder.', 403)
+            ]
         }]
     })
 
