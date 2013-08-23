@@ -239,6 +239,15 @@ class UserTestCase(base.TestCase):
         # Make sure access control references for the user were deleted
         self.assertEqual(len(folder['access']['users']), 1)
 
+        # Delete user 0
+        resp = self.request(path='/user/%s' % users[0]['_id'], method='DELETE',
+                            user=users[0])
+        self.assertStatusOk(resp)
+
+        # Make sure the user's folder was deleted
+        folder = self.model('folder').load(folder['_id'], force=True)
+        self.assertEqual(folder, None)
+
     def testUserIndex(self):
         """
         Test user list endpoint.

@@ -20,6 +20,7 @@
 import pymongo
 import cherrypy
 
+_db_connection = None
 
 def getDbConfig():
     """Get the database configuration object from the cherrypy config.
@@ -29,8 +30,13 @@ def getDbConfig():
 
 def getDbConnection():
     """Get a MongoClient object that is connected to the configured
-    database.
+    database. Lazy getter so we only have one connection per instance.
     """
+    global _db_connection
+
+    if _db_connection is not None:
+        return _db_connection
+
     db_cfg = getDbConfig()
     if db_cfg['user'] == '':
         _db_uri = 'mongodb://%s:%d' % (db_cfg['host'], db_cfg['port'])
@@ -44,6 +50,6 @@ def getDbConnection():
                                                    db_cfg['host'],
                                                    db_cfg['port'])
 
-    db_connection = pymongo.MongoClient(_db_uri)
+    _db_connection = pymongo.MongoClient(_db_uri)
     print "Connected to MongoDB: %s" % _db_uri_redacted
-    return db_connection
+    return _db_connection
