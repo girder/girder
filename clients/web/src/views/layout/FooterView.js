@@ -6,6 +6,7 @@ girder.views.LayoutFooterView = Backbone.View.extend({
     },
 
     render: function () {
+        "use strict";
         this.$el.html(jade.templates.layoutFooter());
         return this;
     }

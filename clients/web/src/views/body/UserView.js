@@ -6,6 +6,7 @@ girder.views.UserView = Backbone.View.extend({
     },
 
     initialize: function (settings) {
+        "use strict";
         // If user model is already passed, there is no need to fetch.
         if (settings.user) {
             this.model = settings.user;
@@ -14,6 +15,7 @@ girder.views.UserView = Backbone.View.extend({
     },
 
     render: function () {
+        "use strict";
         /*this.$el.html(jade.templates.userList({
             users: this.collection.models,
             girder: girder

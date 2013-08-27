@@ -4,9 +4,10 @@
 girder.views.RegisterView = Backbone.View.extend({
     events: {
         'submit #g-register-form': function () {
+            "use strict";
             this.$('.form-group').removeClass('has-error');
 
-            if (this.$('#g-password').val() != this.$('#g-password2').val()) {
+            if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
                 this.$('#g-group-password,#g-group-password2').addClass('has-error');
                 this.$('#g-password').focus();
                 this.$('.g-validation-failed-message').text('Passwords must match.');
@@ -44,11 +45,13 @@ girder.views.RegisterView = Backbone.View.extend({
         },
 
         'click a.g-login-link': function () {
+            "use strict";
             girder.events.trigger('g:loginUi');
         }
     },
 
     render: function () {
+        "use strict";
         var view = this;
         this.$el.html(jade.templates.registerDialog())
             .off('shown.bs.modal').on('shown.bs.modal', function () {

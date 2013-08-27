@@ -2,6 +2,7 @@ girder.App = Backbone.View.extend({
     el: 'body',
 
     initialize: function (settings) {
+        "use strict";
         girder.restRequest({
             path: 'user/me'
         }).done(_.bind(function (user) {
@@ -22,6 +23,7 @@ girder.App = Backbone.View.extend({
     },
 
     render: function () {
+        "use strict";
         this.$el.html(jade.templates.layout());
 
         new girder.views.LayoutGlobalNavView({
@@ -45,6 +47,7 @@ girder.App = Backbone.View.extend({
      * @param [settings={}] Settings to pass to the view initialize() method.
      */
     navigateTo: function (view, settings) {
+        "use strict";
         var container = this.$('#g-app-body-container');
 
         settings = settings || {};
@@ -70,6 +73,7 @@ girder.App = Backbone.View.extend({
      * Show a dialog allowing a user to login or register.
      */
     loginDialog: function () {
+        "use strict";
         if (!this.loginView) {
             this.loginView = new girder.views.LoginView({
                 el: this.$('#g-dialog-container')
@@ -79,6 +83,7 @@ girder.App = Backbone.View.extend({
     },
 
     registerDialog: function () {
+        "use strict";
         if (!this.registerView) {
             this.registerView = new girder.views.RegisterView({
                 el: this.$('#g-dialog-container')
