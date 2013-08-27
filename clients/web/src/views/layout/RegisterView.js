@@ -4,7 +4,6 @@
 girder.views.RegisterView = Backbone.View.extend({
     events: {
         'submit #g-register-form': function () {
-            "use strict";
             this.$('.form-group').removeClass('has-error');
 
             if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
@@ -45,13 +44,11 @@ girder.views.RegisterView = Backbone.View.extend({
         },
 
         'click a.g-login-link': function () {
-            "use strict";
             girder.events.trigger('g:loginUi');
         }
     },
 
     render: function () {
-        "use strict";
         var view = this;
         this.$el.html(jade.templates.registerDialog())
             .off('shown.bs.modal').on('shown.bs.modal', function () {

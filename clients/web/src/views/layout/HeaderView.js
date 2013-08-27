@@ -7,7 +7,6 @@ girder.views.LayoutHeaderView = Backbone.View.extend({
     },
 
     render: function () {
-        "use strict";
         this.$el.html(jade.templates.layoutHeader());
 
         new girder.views.LayoutHeaderUserView({

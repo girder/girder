@@ -8,7 +8,6 @@ girder.collections.UserCollection = Backbone.Collection.extend({
     PAGE_LIMIT: 50,
 
     fetch: function (params) {
-        "use strict";
         girder.restRequest({
             path: 'user',
             data: _.extend({

@@ -5,7 +5,6 @@
 girder.views.LayoutGlobalNavView = Backbone.View.extend({
     events: {
         'click .g-nav-link': function (event) {
-            "use strict";
             var link = $(event.currentTarget);
 
             this.$('.g-global-nav-li').removeClass('g-active');
@@ -16,7 +15,6 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
     },
 
     render: function () {
-        "use strict";
         var navItems = [{
             'name': 'Collections',
             'icon': 'icon-sitemap',

@@ -4,7 +4,6 @@
 girder.views.UsersView = Backbone.View.extend({
     events: {
         'click a.g-user-link': function (event) {
-            "use strict" ;
             var cid = $(event.currentTarget).attr('g-user-cid');
             var params = {
                 user: this.collection.get(cid)
@@ -14,7 +13,6 @@ girder.views.UsersView = Backbone.View.extend({
     },
 
     initialize: function () {
-        "use strict";
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -22,7 +20,6 @@ girder.views.UsersView = Backbone.View.extend({
     },
 
     render: function () {
-        "use strict";
         this.$el.html(jade.templates.userList({
             users: this.collection.models,
             girder: girder

@@ -12,7 +12,6 @@ girder.DATE_SECOND = 3;
  * @param resolution The resolution, defaults to 'day'. Minimum is month.
  */
 girder.formatDate = function (datestr, resolution) {
-    "use strict";
     var date = new Date(datestr);
     var output = girder.MONTHS[date.getMonth()];
 
@@ -38,12 +37,11 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-    "use strict";
     if (sizeBytes === 0) {
         return 'no space';
     }
 
-    var units = ['B', 'KB', 'MB', ' GB', 'TB'];
+    var units = ['B', 'KB', 'MB', 'GB', 'TB'];
     for (var i = 0; sizeBytes > 1024; i += 1) {
         sizeBytes /= 1024;
     }

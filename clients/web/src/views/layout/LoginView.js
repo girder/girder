@@ -4,7 +4,6 @@
 girder.views.LoginView = Backbone.View.extend({
     events: {
         'submit #g-login-form': function () {
-            "use strict";
             girder.restRequest({
                 path: 'user/login',
                 type: 'POST',
@@ -29,13 +28,11 @@ girder.views.LoginView = Backbone.View.extend({
         },
 
         'click a.g-register-link': function () {
-            "use strict";
             girder.events.trigger('g:registerUi');
         }
     },
 
     render: function () {
-        "use strict";
         var view = this;
         this.$el.html(jade.templates.loginDialog())
             .off('shown.bs.modal').on('shown.bs.modal', function () {

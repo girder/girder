@@ -1,13 +1,15 @@
 /*global girder:true*/
 /*global console:true*/
 
+"use strict";
+
 /*
  * Some cross-browser globals
  */
 if (!window.console) {
     var console = {
-        log: function() {},
-        error: function() {}
+        log: function () {},
+        error: function () {}
     };
 }
 
@@ -43,7 +45,6 @@ var girder = {
      * @param [type='GET'] The HTTP method to invoke.
      */
     restRequest: function (opts) {
-        "use strict";
         var defaults = {
             dataType: 'json',
             type: 'GET',
@@ -67,6 +68,5 @@ var girder = {
 
 // When all scripts are loaded, we invoke the application
 $(function () {
-    "use strict";
     var app = new girder.App({});
 });
