@@ -49,7 +49,6 @@ To install all of the prerequisites at once just use: ::
 
     brew install python mongodb node
 
-.. note:: This is a note admonition.
-   OSX ships with python in /usr/bin, so you might need to change your PATH or
-   explicitly run /usr/local/bin/python when invoking the server so that you
-   use the version with the correct site packages installed.
+.. note:: OSX ships with python in /usr/bin, so you might need to change your
+   PATH or explicitly run /usr/local/bin/python when invoking the server so
+   that you use the version with the correct site packages installed.
