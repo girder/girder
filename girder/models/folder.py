@@ -92,8 +92,8 @@ class Folder(AccessControlledModel):
             'parentId': folder['_id'],
             'parentCollection': 'folder'
             }, limit=0)
-        for folder in folders:
-            self.remove(folder)
+        for subfolder in folders:
+            self.remove(subfolder)
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)
