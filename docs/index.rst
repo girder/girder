@@ -12,6 +12,7 @@ Girder: High-Performance Data Management
    installation
    build-docs
    api-docs
+   development
 
 Indices and tables
 ------------------

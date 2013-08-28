@@ -1,3 +1,18 @@
+/*global girder:true*/
+/*global console:true*/
+
+"use strict";
+
+/*
+ * Some cross-browser globals
+ */
+if (!window.console) {
+    var console = {
+        log: function () {},
+        error: function () {}
+    };
+}
+
 // This script must be invoked first to declare the girder namespace
 var girder = {
     routes: {},
@@ -42,7 +57,7 @@ var girder = {
             }
         };
 
-        if (opts.path.substring(0, 1) != '/') {
+        if (opts.path.substring(0, 1) !== '/') {
             opts.path = '/' + opts.path;
         }
         opts.url = girder.apiRoot + opts.path;
@@ -53,5 +68,5 @@ var girder = {
 
 // When all scripts are loaded, we invoke the application
 $(function () {
-    new girder.App({});
+    var app = new girder.App({});
 });
