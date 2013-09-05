@@ -2,7 +2,7 @@ girder.models.FolderModel = Backbone.Model.extend({
     /**
      * Delete the folder on the server.
      */
-    delete: function () {
+    deleteFolder: function () {
         girder.restRequest({
             path: 'folder/' + this.get('_id'),
             type: 'DELETE'

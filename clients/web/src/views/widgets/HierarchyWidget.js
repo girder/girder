@@ -130,7 +130,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                   this.parentModel.get('name') + '</b>?',
             yesText: 'Delete',
             confirmCallback: function () {
-                view.parentModel.delete().on('g:deleted', function () {
+                view.parentModel.deleteFolder().on('g:deleted', function () {
                     this.breadcrumbs.pop();
                     var parent = this.breadcrumbs.slice(-1)[0];
                     this.parentType = parent.type;
@@ -138,7 +138,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                     this.render();
                 }, view);
             }
-        }
+        };
         girder.confirm(params);
     },
 

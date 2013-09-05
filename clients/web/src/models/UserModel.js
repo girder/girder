@@ -6,7 +6,7 @@ girder.models.UserModel = Backbone.Model.extend({
     fetch: function () {
         girder.restRequest({
             path: 'user/' + this.get('_id'),
-            error: null,
+            error: null
         }).done(_.bind(function (resp) {
             this.set(resp);
             this.trigger('g:fetched');
