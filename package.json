@@ -20,5 +20,9 @@
     "jshint": "1.0.0",
     "swagger-ui": ">=1.1.15",
     "underscore": "~1.5"
+  },
+
+  "devDependencies": {
+    "phantomjs": "~1.9.1"
   }
 }

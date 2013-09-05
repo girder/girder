@@ -47,7 +47,6 @@ def setup(test=False):
     cfgs = [os.path.join(ROOT_DIR, 'girder', 'conf', 'local.%s.cfg' % c)
             for c in cfgs]
     [cherrypy.config.update(cfg) for cfg in cfgs]
-
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
@@ -58,6 +57,16 @@ def setup(test=False):
             'tools.staticdir.dir': 'clients/web/static',
             }
         }
+    if test:
+	appconf['/src'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'clients/web/src',
+            }
+        appconf['/test'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'clients/web/test',
+            }
+        print appconf
 
     cherrypy.config.update(appconf)
 

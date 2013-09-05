@@ -22,7 +22,13 @@ import cherrypy  # pragma: no cover
 from .utility import server  # pragma: no cover
 
 if __name__ == '__main__':  # pragma: no cover
-    server.setup()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        test = True
+    else:
+        test = False
+    server.setup(test)
+
 
     cherrypy.engine.start()
     cherrypy.engine.block()
