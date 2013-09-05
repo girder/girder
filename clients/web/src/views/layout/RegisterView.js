@@ -6,7 +6,7 @@ girder.views.RegisterView = Backbone.View.extend({
         'submit #g-register-form': function () {
             this.$('.form-group').removeClass('has-error');
 
-            if (this.$('#g-password').val() != this.$('#g-password2').val()) {
+            if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
                 this.$('#g-group-password,#g-group-password2').addClass('has-error');
                 this.$('#g-password').focus();
                 this.$('.g-validation-failed-message').text('Passwords must match.');

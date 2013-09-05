@@ -27,6 +27,7 @@ from ...constants import AccessType
 
 
 class Group(Resource):
+    """API Endpoint for groups."""
 
     def _filter(self, group):
         """
@@ -100,9 +101,11 @@ class Group(Resource):
 
         :param group: The group to invite the user to.
         :param user: The user doing the invitation.
-        :param params: Optionally Pass a 'level' param with an AccessType
-        value (0-2) to grant the user that access level when they join.
-        Also must pass a 'userId' param, which is the ID of the user to invite.
+        :param params: Optionally Pass a 'level' param with an
+                       AccessType value (0-2) to grant the user that
+                       access level when they join. Also must pass a
+                       'userId' param, which is the ID of the user to
+                       invite.
         :type params: dict
         """
         self.requireParams(['userId'], params)

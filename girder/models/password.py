@@ -104,10 +104,10 @@ class Password(Model):
 
         :param password: The password to encrypt and store.
         :type password: str
-        :returns: {tuple} (salt, hashAlg) The salt to store with the user
-        document and the algorithm used for secure storage. Both should be
-        stored in the corresponding user document as 'salt' and 'hashAlg',
-        respectively.
+        :returns: {tuple} (salt, hashAlg) The salt to store with the
+                  user document and the algorithm used for secure
+                  storage. Both should be stored in the corresponding
+                  user document as 'salt' and 'hashAlg' respectively.
         """
         # Normally this would go in validate() but password is a special case.
         if not re.match(cherrypy.config['users']['password_regex'], password):

@@ -11,6 +11,8 @@ Girder: High-Performance Data Management
    prerequisites
    installation
    build-docs
+   api-docs
+   development
 
 Indices and tables
 ------------------

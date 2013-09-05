@@ -1,3 +1,18 @@
+/*global girder:true*/
+/*global console:true*/
+
+"use strict";
+
+/*
+ * Some cross-browser globals
+ */
+if (!window.console) {
+    var console = {
+        log: function () {},
+        error: function () {}
+    };
+}
+
 // This script must be invoked first to declare the girder namespace
 var girder = {
     routes: {},
@@ -6,8 +21,15 @@ var girder = {
     views: {},
     apiRoot: '/api/v1',
     currentUser: null,
-    pages: {},
     events: _.extend({}, Backbone.Events),
+
+    /**
+     * Constants and enums:
+     */
+    SORT_ASC: 1,
+    SORT_DESC: -1,
+    MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+             'August', 'September', 'October', 'November', 'December'],
 
     /**
      * Make a request to the REST API. Bind a "done" handler to the return
@@ -35,7 +57,7 @@ var girder = {
             }
         };
 
-        if (opts.path.substring(0, 1) != '/') {
+        if (opts.path.substring(0, 1) !== '/') {
             opts.path = '/' + opts.path;
         }
         opts.url = girder.apiRoot + opts.path;
@@ -46,5 +68,5 @@ var girder = {
 
 // When all scripts are loaded, we invoke the application
 $(function () {
-    new girder.App({});
+    var app = new girder.App({});
 });

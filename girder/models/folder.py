@@ -73,6 +73,31 @@ class Folder(AccessControlledModel):
 
         return doc
 
+    def remove(self, folder):
+        """
+        Delete a folder recursively.
+
+        :param folder: The folder document to delete.
+        :type folder: dict
+        """
+        # Delete all child items
+        items = self.model('item').find({
+            'folderId': folder['_id']
+        }, limit=0)
+        for item in items:
+            self.model('item').remove(item)
+
+        # Delete all child folders
+        folders = self.find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+            }, limit=0)
+        for subfolder in folders:
+            self.remove(subfolder)
+
+        # Delete this folder
+        AccessControlledModel.remove(self, folder)
+
     def search(self, query, user=None, limit=50, offset=0, sort=None):
         """
         Search for folders with full text search.

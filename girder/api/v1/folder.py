@@ -27,6 +27,7 @@ from ...constants import AccessType
 
 
 class Folder(Resource):
+    """API Endpoint for folders."""
 
     def _filter(self, folder):
         """
@@ -117,6 +118,23 @@ class Folder(Resource):
             # TODO set appropriate top-level community folder permissions
             pass
         return self._filter(folder)
+
+    @Resource.endpoint
+    def DELETE(self, path, params):
+        """
+        Delete a folder recursively.
+        """
+        if not path:
+            raise RestException(
+                'Path parameter should be the folder ID to delete.')
+
+        user = self.getCurrentUser()
+        folder = self.getObjectById(
+            self.model('folder'), id=path[0], user=user, checkAccess=True,
+            level=AccessType.ADMIN)
+
+        self.model('folder').remove(folder)
+        return {'message': 'Deleted folder %s.' % folder['name']}
 
     @Resource.endpoint
     def GET(self, path, params):

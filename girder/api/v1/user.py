@@ -25,10 +25,12 @@ from ..rest import Resource, RestException
 from .docs import user_docs
 
 
-COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
-
-
 class User(Resource):
+    """API Endpoint for users in the system."""
+
+    def initialize(self):
+        """Initialize the cookie lifetime."""
+        self.COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
 
     def _filter(self, user):
         """
@@ -36,7 +38,7 @@ class User(Resource):
         """
         return self.filterDocument(
             user, allow=['_id', 'access', 'login', 'email', 'public', 'size',
-                         'firstName', 'lastName', 'admin', 'hashAlg'])
+                         'firstName', 'lastName', 'admin', 'created', 'groups'])
 
     def _sendAuthTokenCookie(self, user, token):
         """ Helper method to send the authentication cookie """
@@ -46,7 +48,7 @@ class User(Resource):
             'token': str(token['_id'])
             })
         cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = COOKIE_LIFETIME * 3600 * 24
+        cookie['authToken']['expires'] = self.COOKIE_LIFETIME * 3600 * 24
 
     def _deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
@@ -55,8 +57,22 @@ class User(Resource):
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = 0
 
-    def index(self, params):
-        return 'todo: index'
+    def find(self, user, params):
+        """
+        Get a list of users. You can pass a "text" parameter to filter the
+        users by a full text search string.
+
+        :param [text]: Full text search.
+        :param limit: The result set size limit, default=50.
+        :param offset: Offset into the results, default=0.
+        :param sort: The field to sort by, default=name.
+        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        """
+        (limit, offset, sort) = self.getPagingParameters(params, 'lastName')
+
+        return [self._filter(user) for user in self.model('user').search(
+                text=params.get('text'), user=user,
+                offset=offset, limit=limit, sort=sort)]
 
     def login(self, params):
         """
@@ -81,7 +97,8 @@ class User(Resource):
 
             user = cursor.next()
 
-            token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
+            token = self.model('token').createToken(user,
+                                                    days=self.COOKIE_LIFETIME)
             self._sendAuthTokenCookie(user, token)
 
             if not self.model('password').authenticate(user,
@@ -93,7 +110,8 @@ class User(Resource):
                     'token': token['_id'],
                     'expires': token['expires'],
                     'userId': user['_id']
-                    }
+                    },
+                'message': 'Login succeeded.'
                 }
 
     def logout(self):
@@ -109,7 +127,8 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'])
 
-        token = self.model('token').createToken(user, days=COOKIE_LIFETIME)
+        token = self.model('token').createToken(user,
+                                                days=self.COOKIE_LIFETIME)
         self._sendAuthTokenCookie(user, token)
 
         return self._filter(user)
@@ -133,12 +152,12 @@ class User(Resource):
 
     @Resource.endpoint
     def GET(self, path, params):
+        user = self.getCurrentUser()
         if not path:
-            return self.index(params)
-        elif path[0] == 'me':
-            return self._filter(self.getCurrentUser())
+            return self.find(user, params)
+        elif path[0] == 'me':  # return the current user
+            return self._filter(user)
         else:  # assume it's a user id
-            user = self.getCurrentUser()
             return self._filter(self.getObjectById(
                 self.model('user'), id=path[0], user=user, checkAccess=True))
 
