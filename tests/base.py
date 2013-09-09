@@ -153,7 +153,8 @@ class TestCase(unittest.TestCase, ModelImporter):
                          response.json.get('message', ''))
         self.assertStatus(response, 400)
 
-    def ensureRequiredParams(self, path='/', method='GET', required=()):
+    def ensureRequiredParams(self, path='/', method='GET', required=(),
+                             user=None):
         """
         Ensure that a set of parameters is required by the endpoint.
 
@@ -164,7 +165,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         """
         for exclude in required:
             params = dict.fromkeys([p for p in required if p != exclude], '')
-            resp = self.request(path=path, method=method, params=params)
+            resp = self.request(path=path, method=method, params=params,
+                                user=user)
             self.assertMissingParameter(resp, exclude)
 
     def request(self, path='/', method='GET', params={}, user=None,

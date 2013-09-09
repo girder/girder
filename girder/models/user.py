@@ -94,17 +94,18 @@ class User(AccessControlledModel):
         :param user: The user document to delete.
         :type user: dict
         """
-        # Remove creator references on folders and items
+        # Remove creator references for this user.
         creatorQuery = {
             'creatorId': user['_id']
         }
         creatorUpdate = {
             '$set': {'creatorId': None}
         }
+        self.model('collection').update(creatorQuery, creatorUpdate)
         self.model('folder').update(creatorQuery, creatorUpdate)
         self.model('item').update(creatorQuery, creatorUpdate)
 
-        # Remove references to this group from access-controlled collections.
+        # Remove references to this user from access-controlled resources.
         acQuery = {
             'access.users.id': user['_id']
         }
@@ -113,10 +114,10 @@ class User(AccessControlledModel):
                 'access.users': {'id': user['_id']}
             }
         }
-
         self.update(acQuery, acUpdate)
-        self.model('group').update(acQuery, acUpdate)
+        self.model('collection').update(acQuery, acUpdate)
         self.model('folder').update(acQuery, acUpdate)
+        self.model('group').update(acQuery, acUpdate)
 
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})

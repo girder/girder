@@ -32,7 +32,7 @@ apis.append({
         'parameters': [
             Describe.param(
                 'parentType', "Type of the folder's parent: either 'user', "
-                              "'folder', or 'community' (default='folder').",
+                              "'folder', or 'collection' (default='folder').",
                               required=False),
             Describe.param(
                 'parentId', "The ID of the folder's parent.", required=False),
@@ -64,7 +64,8 @@ apis.append({
         'parameters': [
             Describe.param(
                 'parentType', "Type of the folder's parent: either 'user', "
-                "'folder', or 'community' (default='folder').", required=False),
+                "'folder', or 'collection' (default='folder').",
+                required=False),
             Describe.param('parentId', "The ID of the folder's parent."),
             Describe.param('name', "Name of the folder."),
             Describe.param('description', "Description of the folder.",
@@ -72,7 +73,7 @@ apis.append({
             Describe.param(
                 'public', "If the folder should be public or private. By "
                 "default, inherits the value from parent folder, or in the "
-                " case of user or community parentType, defaults to False.",
+                " case of user or collection parentType, defaults to False.",
                 required=False, dataType='boolean')
             ],
         'errorResponses': [
