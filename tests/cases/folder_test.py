@@ -58,7 +58,7 @@ class FolderTestCase(base.TestCase):
             })
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
-                         'The parentType must be user, community, or folder.')
+                         'The parentType must be user, collection, or folder.')
 
         # We should only be able to see the public folder if we are anonymous
         resp = self.request(path='/folder', method='GET', params={

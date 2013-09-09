@@ -117,6 +117,7 @@ class Group(AccessControlledModel):
 
         # Remove references to this group from access-controlled collections.
         self.update(acQuery, acUpdate)
+        self.model('collection').update(acQuery, acUpdate)
         self.model('folder').update(acQuery, acUpdate)
         self.model('user').update(acQuery, acUpdate)
 
