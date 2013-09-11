@@ -28,7 +28,7 @@ Then you can see the tests in action:
 
 You can also run this on the command line (phantomjs is in the npm .bin dir, you'll need to issue the path to it if this is not in your PATH)
 
-phantomjs PATH_TO_GIRDER/clients/web/test/lib/blanket/phantom_jasmine_runner.js http://localhost:8080/static/jasmine/SpecRunner.html
+phantomjs PATH_TO_GIRDER/clients/web/test/lib/blanket/phantom_jasmine_runner.js http://localhost:8080/static/jasmine/TestRunner.html
 
 
 ## TODO
