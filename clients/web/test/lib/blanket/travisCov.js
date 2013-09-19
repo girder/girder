@@ -57,14 +57,21 @@ return true;
         };
         data.source.forEach(function(line, num){
           num++;
+          var coverageLine;
           if (data[num] === 0) {
             ret.misses++;
             ret.sloc++;
-          } else if (data[num] !== undefined) {
+            coverageLine = "0";
+	  } else if (data[num] !== undefined) {
             ret.hits++;
             ret.sloc++;
-          }
-        });
+            coverageLine = data[num];
+          } else {
+            coverageLine = 'U';
+	  }
+          coverageLine = coverageLine + " " + line;
+          console.log(coverageLine);
+	});
         ret.coverage = ret.hits / ret.sloc * 100;
 
         return [ret.hits,ret.sloc,ret.coverage];
