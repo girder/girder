@@ -4,44 +4,37 @@
 <head>
   <title>Jasmine Spec Runner</title>
 
-  <link rel="shortcut icon" type="image/png" href="jasmine-1.3.1/jasmine_favicon.png">
+  <link rel="shortcut icon" type="image/png" href="lib/jasmine-1.3.1/jasmine_favicon.png">
   <link rel="stylesheet" type="text/css" href="lib/jasmine-1.3.1/jasmine.css">
   <script type="text/javascript" src="lib/jasmine-1.3.1/jasmine.js"></script>
   <script type="text/javascript" src="lib/jasmine-1.3.1/jasmine-html.js"></script>
- 
- 
- 
- 
+
   <script type="text/javascript" src="lib/blanket/blanket.min.js"></script>
   <script type="text/javascript" src="lib/blanket/jasmine-blanket.js"></script>
   <script type="text/javascript" src="lib/blanket/console_runner.js"></script>
- 
- 
-  <script type="text/javascript" src="/static/built/libs.min.js"></script>
-  <script type="text/javascript" src="/static/built/templates.js"></script>
-
-  <script type="text/javascript" src="/src/init.js" ></script>
-  <script type="text/javascript" src="/src/app.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/FooterView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/GlobalNavView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/HeaderView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/HeaderUserView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/LoginView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/layout/RegisterView.js" data-cover></script>
-  <script type="text/javascript" src="/src/views/body/UsersView.js" data-cover></script>
-  <script type="text/javascript" src="/src/models/UserModel.js" data-cover></script>
 
 
+  <script type="text/javascript" src="../static/built/libs.min.js"></script>
+  <script type="text/javascript" src="../static/built/templates.js"></script>
 
-
+  <script type="text/javascript" src="../src/init.js" ></script>
+  <script type="text/javascript" src="../src/app.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/FooterView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/GlobalNavView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/HeaderView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/HeaderUserView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/LoginView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/layout/RegisterView.js" data-cover></script>
+  <script type="text/javascript" src="../src/views/body/UsersView.js" data-cover></script>
+  <script type="text/javascript" src="../src/models/UserModel.js" data-cover></script>
 
   <!-- include spec files here... -->
   <script type="text/javascript" src="spec/userSpec.js"></script>
 
 
   <script type="text/javascript">
-    (function() {
-      window.blanketTestJasmineExpected=2; 
+    (function () {
+      window.blanketTestJasmineExpected=2;
       var jasmineEnv = jasmine.getEnv();
       jasmineEnv.updateInterval = 1000;
 
@@ -55,9 +48,9 @@
       jasmine.getEnv().execute();
 
 
-      jasmineEnv.specFilter = function(spec) {
+      /*jasmineEnv.specFilter = function(spec) {
         return htmlReporter.specFilter(spec);
-      };
+      };*/
 
       var currentWindowOnload = window.onload;
 
