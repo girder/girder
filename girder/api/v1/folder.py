@@ -66,10 +66,10 @@ class Folder(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
-            return [self._filter(folder, user) for folder in
-                    self.model('folder').search(
-                        params['text'], user=user, offset=offset, limit=limit,
-                        sort=sort)]
+            return self.model('folder').textSearch(
+                params['text'], user=user, limit=limit, project={
+                    'name': 1
+                })
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if not parentType in ('collection', 'folder', 'user'):

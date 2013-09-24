@@ -48,6 +48,10 @@ class Group(AccessControlledModel):
     def initialize(self):
         self.name = 'group'
         self.ensureIndices(['lowerName'])
+        self.ensureTextIndex({
+            'name': 10,
+            'description': 1
+        })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -69,7 +73,7 @@ class Group(AccessControlledModel):
 
         return doc
 
-    def search(self, text=None, user=None, limit=50, offset=0, sort=None):
+    def list(self, user=None, limit=50, offset=0, sort=None):
         """
         Search for groups or simply list all visible groups.
 
@@ -79,18 +83,14 @@ class Group(AccessControlledModel):
         :param offset: Offset into the results.
         :param sort: The sort direction.
         """
-        if text:
-            # TODO text search
-            pass
-        else:
-            # Perform the find; we'll do access-based filtering of the result
-            # set afterward.
-            cursor = self.find({}, limit=0, sort=sort)
+        # Perform the find; we'll do access-based filtering of the result
+        # set afterward.
+        cursor = self.find({}, limit=0, sort=sort)
 
-            for r in self.filterResultsByPermission(cursor=cursor, user=user,
-                                                    level=AccessType.READ,
-                                                    limit=limit, offset=offset):
-                yield r
+        for r in self.filterResultsByPermission(cursor=cursor, user=user,
+                                                level=AccessType.READ,
+                                                limit=limit, offset=offset):
+            yield r
 
     def remove(self, group):
         """

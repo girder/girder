@@ -54,9 +54,8 @@ class Collection(Resource):
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
-        return [self._filter(c, user) for c in self.model('collection').search(
-                text=params.get('text'), user=user,
-                offset=offset, limit=limit, sort=sort)]
+        return [self._filter(c, user) for c in self.model('collection').list(
+                user=user, offset=offset, limit=limit, sort=sort)]
 
     def createCollection(self, user, params):
         self.requireParams(['name'], params)

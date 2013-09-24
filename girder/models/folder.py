@@ -35,6 +35,10 @@ class Folder(AccessControlledModel):
     def initialize(self):
         self.name = 'folder'
         self.ensureIndices(['parentId', 'name'])
+        self.ensureTextIndex({
+            'name': 10,
+            'description': 1
+        })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -105,13 +109,6 @@ class Folder(AccessControlledModel):
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)
-
-    def search(self, query, user=None, limit=50, offset=0, sort=None):
-        """
-        Search for folders with full text search.
-        """
-        # TODO implement
-        return []
 
     def childItems(self, folder, limit=50, offset=0, sort=None):
         """

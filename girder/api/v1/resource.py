@@ -32,7 +32,44 @@ class Resource(BaseResource):
     """API Endpoint for folders."""
 
     def search(self, user, params):
-        return []
+        """
+        This endpoint can be used to text search against multiple different
+        model types at once.
+        :param q: The search query string.
+        :param types: A JSON list of types to search.
+        :type types: str
+        :param limit: The result limit per type. Defaults to 10.
+        """
+        self.requireParams(['q', 'types'], params)
+
+        limit = int(params.get('limit', 10))
+
+        results = {}
+        types = json.loads(params['types'])
+
+        if 'collection' in types:
+            results['user'] = self.model('collection').textSearch(
+                params['q'], user=user, limit=limit, project={
+                    'name': 1
+                })
+        if 'folder' in types:
+            results['folder'] = self.model('').textSearch(
+                params['q'], user=user, limit=limit, project={
+                    'name': 1
+                })
+        if 'group' in types:
+            results['group'] = self.model('group').textSearch(
+                params['q'], user=user, limit=limit, project={
+                    'name': 1
+                })
+        if 'user' in types:
+            results['user'] = self.model('user').textSearch(
+                params['q'], user=user, limit=limit, project={
+                    'firstName': 1,
+                    'lastName': 1,
+                    'login': 1
+                })
+        return results
 
     @BaseResource.endpoint
     def GET(self, path, params):
