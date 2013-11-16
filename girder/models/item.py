@@ -73,7 +73,20 @@ class Item(Model):
         :type item: dict
         """
 
-        # TODO delete everything underneath this item
+        # Delete all files in this item
+        files = self.model('file').find({
+            'itemId': item['_id']
+        }, limit=0)
+        for file in files:
+            self.model('file').remove(file)
+
+        # Delete pending uploads into this item
+        uploads = self.model('upload').find({
+            'parentId': item['_id'],
+            'parentType': 'item'
+        }, limit=0)
+        for upload in uploads:
+            self.model('upload').remove(upload)
 
         # Delete the item itself
         Model.remove(self, item)

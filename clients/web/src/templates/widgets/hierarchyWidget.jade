@@ -13,11 +13,14 @@
 
   .g-folder-header-buttons
     if (type == 'folder')
-      button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder details")
-        i.icon-info
+      if (level >= AccessType.WRITE)
+        button.g-upload-here-button.btn.btn-sm.btn-success(title="Upload here")
+          i.icon-upload
       if (level >= AccessType.ADMIN)
         button.g-folder-access-button.btn.btn-sm.btn-warning(title="Access control")
           i.icon-key-inv
+      button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder details")
+        i.icon-info
     .btn-group
       button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(data-toggle="dropdown")
         i.icon-folder-open

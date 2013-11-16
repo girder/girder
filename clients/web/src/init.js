@@ -26,6 +26,7 @@ var girder = {
     /**
      * Constants and enums:
      */
+    UPLOAD_CHUNK_SIZE: 1024 * 1024 * 64, // 64MB
     SORT_ASC: 1,
     SORT_DESC: -1,
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',

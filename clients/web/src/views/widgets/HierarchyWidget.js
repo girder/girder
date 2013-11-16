@@ -4,7 +4,8 @@
 girder.views.HierarchyWidget = Backbone.View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
-        'click a.g-delete-folder': 'deleteFolderDialog'
+        'click a.g-delete-folder': 'deleteFolderDialog',
+        'click .g-upload-here-button': 'uploadDialog'
     },
 
     initialize: function (settings) {
@@ -30,6 +31,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         var view = this;
         this.$('.g-folder-info-button').tooltip();
         this.$('.g-folder-access-button').tooltip();
+        this.$('.g-upload-here-button').tooltip();
         this.$('.g-select-all').tooltip().unbind('change').change(function () {
             view.folderListView.checkAll(this.checked);
 
@@ -53,6 +55,10 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             this.parentModel = this.breadcrumbs[idx].model;
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
 
+            if (this.uploadWidget) {
+                this.uploadWidget.folder = this.parentModel;
+            }
+
             this.render();
         }, this);
 
@@ -69,6 +75,10 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         });
         this.folderListView.on('g:folderClicked', function (folder) {
             this.descend(folder);
+
+            if (this.uploadWidget) {
+                this.uploadWidget.folder = folder;
+            }
         }, this).off('g:checkboxesChanged')
                 .on('g:checkboxesChanged', this.updateChecked, this);
 
@@ -140,6 +150,26 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             }
         };
         girder.confirm(params);
+    },
+
+    /**
+     * Show and handle the upload dialog
+     */
+    uploadDialog: function () {
+        var container = $('#g-dialog-container');
+
+        if (!this.uploadWidget) {
+            this.uploadWidget = new girder.views.UploadWidget({
+                el: container,
+                folder: this.parentModel
+            }).on('g:itemComplete', function (item) {
+                console.log(item);
+            }, this).on('g:finished', function () {
+                console.log('all done!');
+            }, this);
+        }
+
+        this.uploadWidget.render();
     },
 
     /**

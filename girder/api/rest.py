@@ -201,7 +201,12 @@ class Resource(ModelImporter):
                 # First, we should encode any unicode form data down into
                 # UTF-8 so the actual REST classes are always dealing with
                 # str types.
-                params = {k: v.encode('utf-8') for (k, v) in kwargs.iteritems()}
+                params = {}
+                for (k, v) in kwargs.iteritems():
+                    if type(v) in (str, unicode):
+                        params[k] = v.encode('utf-8')
+                    else:
+                        params[k] = v
 
                 val = fun(self, args, params)
             except RestException as e:

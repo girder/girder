@@ -91,9 +91,17 @@ class Folder(AccessControlledModel):
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-            }, limit=0)
+        }, limit=0)
         for subfolder in folders:
             self.remove(subfolder)
+
+        # Delete pending uploads into this folder
+        uploads = self.model('upload').find({
+            'parentId': folder['_id'],
+            'parentType': 'folder'
+        }, limit=0)
+        for upload in uploads:
+            self.model('upload').remove(upload)
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)

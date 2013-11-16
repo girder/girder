@@ -22,7 +22,6 @@ import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource, RestException
-from ...models.model_base import ValidationException
 from ...constants import AccessType
 
 
