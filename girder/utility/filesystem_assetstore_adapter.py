@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import stat
 import tempfile
 
 from hashlib import sha512
@@ -30,7 +31,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         self.assetstoreRoot = assetstoreRoot
         self.tempDir = os.path.join(assetstoreRoot, 'temp')
         if not os.path.exists(self.tempDir):
-            os.mkdir(self.tempDir)
+            os.makedirs(self.tempDir)
 
     def initUpload(self, upload):
         """
@@ -40,7 +41,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         fd, path = tempfile.mkstemp(dir=self.tempDir)
         os.close(fd)  # Must close this file descriptor or it will leak
         upload['tempFile'] = path
-        upload['sha512'] = sha512_state.serializeHex(sha512())
+        upload['sha512state'] = sha512_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -48,7 +49,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Appends the chunk into the temporary file.
         """
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = sha512_state.restoreHex(upload['sha512'])
+        checksum = sha512_state.restoreHex(upload['sha512state'])
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
             while True:
@@ -61,12 +62,31 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         chunk.close()
 
         # Persist the internal state of the checksum
-        upload['sha512'] = sha512_state.serializeHex(checksum)
+        upload['sha512state'] = sha512_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
     def finalizeUpload(self, upload, file):
-        # TODO move the temp file into its proper assetstore location
-        # For testing for now, just kill the file
-        os.remove(upload['tempFile'])
+        """
+        Moves the file into its permanent content-addressed location within the
+        assetstore. Directory hierarchy yields 256^2 buckets.
+        """
+        hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
+        dir = os.path.join(self.assetstoreRoot, hash[0:2], hash[2:4])
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        path = os.path.join(dir, hash)
+
+        if os.path.exists(path):
+            # Already have this file stored, just delete temp file.
+            os.remove(upload['tempFile'])
+        else:
+            # Move the temp file to permanent location in the assetstore.
+            os.rename(upload['tempFile'], path)
+            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+
+        file['sha512'] = hash
+        file['path'] = path
+
         return file

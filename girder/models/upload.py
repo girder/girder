@@ -21,7 +21,7 @@ import cherrypy
 import datetime
 
 from .model_base import Model, ValidationException
-from girder.utility import assetstore_adapter_factory
+from girder.utility import assetstore_utilities
 
 
 class Upload(Model):
@@ -32,8 +32,7 @@ class Upload(Model):
     """
     def initialize(self):
         self.name = 'upload'
-        self.assetstoreAdapter =\
-            assetstore_adapter_factory.getAssetstoreAdapter()
+        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter()
 
     def validate(self, doc):
         if doc['size'] < 0:

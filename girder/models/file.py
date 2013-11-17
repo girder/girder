@@ -21,7 +21,7 @@ import cherrypy
 import datetime
 
 from .model_base import Model, ValidationException
-from girder.utility import assetstore_adapter_factory
+from girder.utility import assetstore_utilities
 
 
 class File(Model):
@@ -30,8 +30,8 @@ class File(Model):
     """
     def initialize(self):
         self.name = 'file'
-        self.assetstoreAdapter =\
-            assetstore_adapter_factory.getAssetstoreAdapter()
+        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter()
+        self.assetstore = assetstore_utilities.getCurrentAssetstore()
 
     def remove(self, file):
         self.assetstoreAdapter.deleteFile(file)
@@ -58,4 +58,9 @@ class File(Model):
             'name': name,
             'size': size
         }
+
+        # Propagate size up to item
+        item['size'] += size
+        self.model('item').save(item)
+
         return self.save(file)

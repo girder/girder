@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from girder.constants import ROOT_DIR
 
@@ -33,7 +35,8 @@ def getAssetstoreAdapter():
     global assetstoreAdapter
     if assetstoreAdapter is None:
         # TODO base the assetstore adapter singleton on the server config
-        assetstoreAdapter = FilesystemAssetstoreAdapter(ROOT_DIR)
+        assetstoreAdapter = FilesystemAssetstoreAdapter(
+            os.path.join(ROOT_DIR, 'assetstore'))
 
     return assetstoreAdapter
 
