@@ -40,28 +40,32 @@ class Item(Model):
         if not doc['name']:
             raise ValidationException('Item name must not be empty.', 'name')
 
-        # Ensure unique name among sibling items
-        q = {
-            'name': doc['name'],
-            'folderId': doc['folderId']
+        # Ensure unique name among sibling items and folders. If the desired
+        # name collides with an existing item or folder, we will append (n)
+        # onto the end of the name, incrementing n until the name is unique.
+        name = doc['name']
+        n = 0
+        while True:
+            q = {
+                'name': name,
+                'folderId': doc['folderId']
             }
-        if '_id' in doc:
-            q['_id'] = {'$ne': doc['_id']}
-        duplicates = self.find(q, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
-            raise ValidationException('An item with that name already'
-                                      'exists in that folder.', 'name')
+            if '_id' in doc:
+                q['_id'] = {'$ne': doc['_id']}
+            dupItems = self.find(q, limit=1, fields=['_id'])
 
-        # Ensure unique name among sibling folders
-        q = {
-            'parentId': doc['folderId'],
-            'name': doc['name'],
-            'parentCollection': 'folder'
+            q = {
+                'parentId': doc['folderId'],
+                'name': name,
+                'parentCollection': 'folder'
             }
-        duplicates = self.model('folder').find(q, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
-            raise ValidationException('A folder with that name already'
-                                      'exists here.', 'name')
+            dupFolders = self.model('folder').find(q, limit=1, fields=['_id'])
+            if dupItems.count() + dupFolders.count() == 0:
+                doc['name'] = name
+                break
+            else:
+                n += 1
+                name = '%s (%d)' % (doc['name'], n)
 
         return doc
 

@@ -23,6 +23,7 @@ from girder.constants import ROOT_DIR
 assetstoreAdapter = None
 currentAssetstore = None
 
+
 def getAssetstoreAdapter():
     """
     This is a factory method that will return the appropriate assetstore adapter
@@ -35,6 +36,7 @@ def getAssetstoreAdapter():
         assetstoreAdapter = FilesystemAssetstoreAdapter(ROOT_DIR)
 
     return assetstoreAdapter
+
 
 def getCurrentAssetstore():
     """

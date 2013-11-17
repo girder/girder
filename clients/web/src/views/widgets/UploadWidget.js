@@ -70,8 +70,8 @@ girder.views.UploadWidget = Backbone.View.extend({
             _.each(this.files, function (file) {
                 this.totalSize += file.size;
             }, this);
-            this.$('.g-overall-progress-message').text(
-                'Selected ' + this.files.length + ' files (' +
+            this.$('.g-overall-progress-message').html('<i class="icon-ok"/>' +
+                ' Selected ' + this.files.length + ' files (' +
                 girder.formatSize(this.totalSize) +
                 ') -- Press start button');
             this.$('.g-start-upload').removeClass('disabled');
@@ -213,8 +213,9 @@ girder.views.UploadWidget = Backbone.View.extend({
         this.$('.g-progress-overall>.progress-bar').css('width',
             Math.ceil(100 * (this.overallProgress + loaded) / this.totalSize) +
             '%');
-        this.$('.g-current-progress-message').html('<b>' + file.name +
-            '</b> - ' + girder.formatSize(this.startByte + loaded) + ' / ' +
+        this.$('.g-current-progress-message').html(
+            '<i class="icon-doc-text"/><b>' + file.name + '</b> - ' +
+            girder.formatSize(this.startByte + loaded) + ' / ' +
             girder.formatSize(file.size));
         this.$('.g-overall-progress-message').html('Uploading file ' +
             (this.currentIndex + 1) + ' of ' + this.files.length + ' - ' +
