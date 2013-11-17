@@ -8,7 +8,32 @@
 girder.views.UploadWidget = Backbone.View.extend({
     events: {
         'submit #g-upload-form': 'startUpload',
-        'change #g-files': 'filesChanged'
+        'change #g-files': function () {
+            this.files = this.$('#g-files')[0].files;
+            this.filesChanged();
+        },
+        'click .g-drop-zone': function (e) {
+            this.$('#g-files').click();
+        },
+        'dragenter .g-drop-zone': function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            e.originalEvent.dataTransfer.dropEffect = 'copy';
+            this.$('.g-drop-zone')
+                .addClass('g-dropzone-show')
+                .html('<i class="icon-bullseye"/> Drop files here');
+        },
+        'dragleave .g-drop-zone': function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.$('.g-drop-zone')
+                .removeClass('g-dropzone-show')
+                .html('<i class="icon-docs"/> Browse or drop files');
+        },
+        'dragover .g-drop-zone': function (e) {
+            e.preventDefault();
+        },
+        'drop .g-drop-zone': 'filesDropped'
     },
 
     initialize: function (settings) {
@@ -25,8 +50,17 @@ girder.views.UploadWidget = Backbone.View.extend({
         return this;
     },
 
+    filesDropped: function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        this.$('.g-drop-zone')
+            .removeClass('g-dropzone-show')
+            .html('<i class="icon-docs"/> Browse or drop files');
+        this.files = e.originalEvent.dataTransfer.files;
+        this.filesChanged();
+    },
+
     filesChanged: function () {
-        this.files = this.$('#g-files')[0].files;
         if (this.files.length === 0) {
             this.$('.g-upload-progress-message').text('No files selected');
             this.$('.g-start-upload').addClass('disabled');

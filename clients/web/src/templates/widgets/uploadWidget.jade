@@ -9,8 +9,10 @@
           b Destination:&nbsp;
           i.icon-folder-open
           | #{folder.get('name')}
-        .g-drag-test Drag files here or click to browse
-        .form-group
+        .g-drop-zone
+          i.icon-docs
+          |  Browse or drop files
+        .form-group.hide
           input#g-files(type="file", multiple)
         .g-current-progress-message
         .g-progress-current.progress.progress-striped.hide
