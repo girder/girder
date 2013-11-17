@@ -64,7 +64,10 @@ girder.views.UploadWidget = Backbone.View.extend({
      */
     _uploadNextFile: function () {
         if (this.currentIndex >= this.files.length) {
-            return; // All files have finished
+            // All files have finished
+            this.$el.modal('hide');
+            this.trigger('g:uploadFinished');
+            return;
         }
 
         if (this.resumeUploadId) {

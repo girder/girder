@@ -162,10 +162,9 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             this.uploadWidget = new girder.views.UploadWidget({
                 el: container,
                 folder: this.parentModel
-            }).on('g:itemComplete', function (item) {
-                console.log(item);
-            }, this).on('g:finished', function () {
-                console.log('all done!');
+            }).on('g:uploadFinished', function () {
+                // When upload is finished, refresh the folder view
+                this.render();
             }, this);
         }
 
