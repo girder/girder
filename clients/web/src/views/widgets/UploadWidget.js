@@ -8,6 +8,7 @@
 girder.views.UploadWidget = Backbone.View.extend({
     events: {
         'submit #g-upload-form': 'startUpload',
+        'click .g-resume-upload': 'resumeUpload',
         'change #g-files': function () {
             this.files = this.$('#g-files')[0].files;
             this.filesChanged();
@@ -75,6 +76,9 @@ girder.views.UploadWidget = Backbone.View.extend({
                 girder.formatSize(this.totalSize) +
                 ') -- Press start button');
             this.$('.g-start-upload').removeClass('disabled');
+            this.$('.g-progress-overall,.g-progress-current').addClass('hide');
+            this.$('.g-current-progress-message').html('');
+            this.$('.g-upload-error-message').html('');
         }
     },
 
@@ -83,11 +87,28 @@ girder.views.UploadWidget = Backbone.View.extend({
 
         this.$('.g-start-upload').addClass('disabled');
         this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
+        this.$('.g-upload-error-message').html('');
 
         this.currentIndex = 0;
         this.overallProgress = 0;
         this.resumeUploadId = null;
         this._uploadNextFile();
+    },
+
+    resumeUpload: function () {
+        this.$('.g-upload-error-message').html('');
+
+        // Request the actual offset we need to start at
+        girder.restRequest({
+            path: 'file/offset',
+            type: 'GET',
+            data: {
+                'uploadId': this.resumeUploadId
+            }
+        }).done(_.bind(function (resp) {
+            this.startByte = resp.offset;
+            this._uploadChunk(this.resumeUploadId);
+        }, this));
     },
 
     /**
@@ -104,35 +125,29 @@ girder.views.UploadWidget = Backbone.View.extend({
             return;
         }
 
-        if (this.resumeUploadId) {
-            // Resume the upload that was interrupted
-            this._uploadChunk(this.resumeUploadId);
-        }
-        else {
-            var file = this.files[this.currentIndex];
-            // Authenticate and generate the upload token for this file
-            girder.restRequest({
-                path: 'file',
-                type: 'POST',
-                data: {
-                    'parentType': 'folder',
-                    'parentId': this.folder.get('_id'),
-                    'name': file.name,
-                    'size': file.size
-                }
-            }).done(_.bind(function (upload) {
-                if (file.size > 0) {
-                    // Begin uploading chunks of this file
-                    this.startByte = 0;
-                    this._uploadChunk(upload._id);
-                }
-                else {
-                    // Empty file, so we are done
-                    this.currentIndex += 1;
-                    this._uploadNextFile();
-                }
-            }, this));
-        }
+        var file = this.files[this.currentIndex];
+        // Authenticate and generate the upload token for this file
+        girder.restRequest({
+            path: 'file',
+            type: 'POST',
+            data: {
+                'parentType': 'folder',
+                'parentId': this.folder.get('_id'),
+                'name': file.name,
+                'size': file.size
+            }
+        }).done(_.bind(function (upload) {
+            if (file.size > 0) {
+                // Begin uploading chunks of this file
+                this.startByte = 0;
+                this._uploadChunk(upload._id);
+            }
+            else {
+                // Empty file, so we are done
+                this.currentIndex += 1;
+                this._uploadNextFile();
+            }
+        }, this));
     },
 
     /**
@@ -174,9 +189,19 @@ girder.views.UploadWidget = Backbone.View.extend({
                     view._uploadChunk(uploadId);
                 }
             },
-            error: function (e) {
-                // TODO show some error message and enable resume mode
-                this.resumeUploadId = uploadId;
+            error: function (xhr) {
+                var text = 'Error: ';
+
+                if (xhr.status === 0) {
+                    text += 'Connection to the server interrupted.';
+                }
+                else {
+                    text += xhr.responseJSON.message;
+                }
+                text += ' <a class="g-resume-upload">' +
+                    'Click to resume upload</a>';
+                view.$('.g-upload-error-message').html(text);
+                view.resumeUploadId = uploadId;
             },
             xhr: function () {
                 // Custom XHR so we can register a progress handler

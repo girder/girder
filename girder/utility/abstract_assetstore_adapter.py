@@ -54,6 +54,16 @@ class AbstractAssetstoreAdapter(object):
         raise Exception('Must override finalizeUpload in %s.'
                         % self.__class__.__name__)  # pragma: no cover
 
+    def requestOffset(self, upload):
+        """
+        Request the offset for resuming an interrupted upload. Default behavior
+        simply returns the 'received' field of the upload document. This method
+        exists because in some cases, such as when the server crashes, it's
+        possible that the received field is not accurate, so adapters may
+        implement this to provide the actual next byte required.
+        """
+        return upload['received']
+
     def deleteFile(self, file):
         """
         This is called when a File is deleted to allow the adapter to remove

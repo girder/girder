@@ -50,6 +50,19 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
+
+        if self.requestOffset(upload) > upload['received']:
+            # This probably means the server died midway through writing last
+            # chunk to disk, and the database record was not updated. This means
+            # we need to update the sha512 state with the difference.
+            with open(upload['tempFile'], 'rb') as tempFile:
+                tempFile.seek(upload['received'])
+                while True:
+                    data = tempFile.read(65536)
+                    if not data:
+                        break
+                    checksum.update(data)
+
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
             while True:
@@ -65,6 +78,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['sha512state'] = sha512_state.serializeHex(checksum)
         upload['received'] += size
         return upload
+
+    def requestOffset(self, upload):
+        """
+        Returns the size of the temp file.
+        """
+        return os.stat(upload['tempFile']).st_size
 
     def finalizeUpload(self, upload, file):
         """

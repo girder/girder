@@ -65,6 +65,22 @@ class File(Resource):
             self.model('upload').finalizeUpload(upload)
             return {'message': 'Empty file, upload complete.'}
 
+    def requestOffset(self, user, params):
+        """
+        This should be called when resuming an interrupted upload. It will
+        report the offset into the upload that should be used to resume.
+        :param uploadId: The _id of the temp upload record being resumed.
+        :returns: The offset in bytes that the client should use.
+        """
+        self.requireParams(['uploadId'], params)
+        upload = self.getObjectById(self.model('upload'), id=params['uploadId'])
+        offset = self.model('upload').requestOffset(upload)
+        upload['received'] = offset
+        self.model('upload').save(upload)
+
+        return {'offset': offset}
+
+
     def readChunk(self, user, params):
         """
         After the temporary upload record has been created (see initUpload),
@@ -93,6 +109,15 @@ class File(Resource):
                 % (upload['received'], offset))
 
         self.model('upload').handleChunk(upload, params['chunk'].file)
+
+    @Resource.endpoint
+    def GET(self, path, params):
+        user = self.getCurrentUser()
+
+        if not path:
+            raise RestException('Invalid path format for GET request')
+        elif path[0] == 'offset':
+            return self.requestOffset(user, params)
 
     @Resource.endpoint
     def POST(self, path, params):

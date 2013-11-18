@@ -58,6 +58,13 @@ class Upload(Model):
         if upload['received'] == upload['size']:
             self.finalizeUpload(upload)
 
+    def requestOffset(self, upload):
+        """
+        Requests the offset that should be used to resume uploading. This
+        makes the request from the assetstore adapter.
+        """
+        return self.assetstoreAdapter.requestOffset(upload)
+
     def finalizeUpload(self, upload):
         """
         This should only be called manually in the case of creating an
