@@ -20,34 +20,44 @@
 import os
 
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
-from girder.constants import ROOT_DIR
+from .model_importer import ModelImporter
+from girder.constants import AssetstoreType
 
 assetstoreAdapter = None
 currentAssetstore = None
 
 
-def getAssetstoreAdapter():
+def getAssetstoreAdapter(refresh=False):
     """
     This is a factory method that will return the appropriate assetstore adapter
     based on the server's configuration. The returned object will conform to
     the interface of the AbstractAssetstoreAdapter.
+    :param refresh: Set this to True to force a reinitialization.
+    :type refresh: bool
     """
     global assetstoreAdapter
-    if assetstoreAdapter is None:
-        # TODO base the assetstore adapter singleton on the server config
-        assetstoreAdapter = FilesystemAssetstoreAdapter(
-            os.path.join(ROOT_DIR, 'assetstore'))
+    if assetstoreAdapter is None or refresh:
+        assetstore = getCurrentAssetstore()
+        if assetstore['type'] == AssetstoreType.FILESYSTEM:
+            assetstoreAdapter = FilesystemAssetstoreAdapter(assetstore['root'])
+        elif assetstore['type'] == AssetstoreType.GRIDFS:
+            raise Exception('GridFS assetstore adapter not implemented.')
+        elif assetstore['type'] == AssetstoreType.S3:
+            raise Exception('S3 assetstore adapter not implemented.')
 
     return assetstoreAdapter
 
 
-def getCurrentAssetstore():
+def getCurrentAssetstore(refresh=False):
     """
     Returns the singleton assetstore document representing the current
     assetstore, i.e. the assetstore that uploads will be placed into.
+    :param refresh: Set this to True to force a reinitialization.
+    :type refresh: bool
     """
     global currentAssetstore
-    if currentAssetstore is None:
-        currentAssetstore = 1  # TODO set this to current assetstore
+    if currentAssetstore is None or refresh:
+        assetstoreModel = ModelImporter().model('assetstore')
+        currentAssetstore = assetstoreModel.getCurrent()
 
     return currentAssetstore

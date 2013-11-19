@@ -16,6 +16,23 @@
 
 
 class AbstractAssetstoreAdapter(object):
+    """
+    This defines the interace to be used by all assetstore adapters.
+    """
+
+    def capacityInfo(self, assetstore):
+        """
+        Assetstore types that are able to report how much free and/or total
+        capacity they have should override this method. Default behavior is to
+        report both quantities as unknown.
+        :returns: A dict with 'free' and 'total' keys whose values are
+                  either bytes (ints) or None for an unknown quantity.
+        """
+        return {
+            'free': None,
+            'total': None
+        }
+
     def initUpload(self, upload):
         """
         This must be called before any chunks are uploaded to do any

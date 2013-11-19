@@ -24,6 +24,14 @@ import os
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+class AssetstoreType:
+    """
+    All possible assetstore implementation types.
+    """
+    FILESYSTEM = 0,
+    GRIDFS = 1,
+    S3 = 2
+
 
 class AccessType:
     """

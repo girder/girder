@@ -27,11 +27,30 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 
 class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
+    """
+    This assetstore type stores files on the filesystem underneath a root
+    directory. Files are named by their SHA-512 hash, which avoids duplication
+    of file content.
+    """
     def __init__(self, assetstoreRoot):
+        """
+        :param assetstoreRoot: The root directory of the assestore.
+        """
         self.assetstoreRoot = assetstoreRoot
         self.tempDir = os.path.join(assetstoreRoot, 'temp')
         if not os.path.exists(self.tempDir):
             os.makedirs(self.tempDir)
+
+    def capacityInfo(self, assetstore):
+        """
+        For filesystem assetstores, we just need to report the free and total
+        space on the filesystem where the assetstore lives.
+        """
+        stat = os.statfvs(assetstore['root'])
+        return {
+            'free': stat.f_bavail * stat.f_frsize,
+            'total': stat.f_blocks * stat.f_frsize
+        }
 
     def initUpload(self, upload):
         """
