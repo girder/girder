@@ -80,7 +80,6 @@ class File(Resource):
 
         return {'offset': offset}
 
-
     def readChunk(self, user, params):
         """
         After the temporary upload record has been created (see initUpload),

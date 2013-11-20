@@ -16,6 +16,10 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
         }
     },
 
+    initialize: function () {
+        girder.events.on('g:highlightItem', this.selectForView, this);
+    },
+
     render: function () {
         var navItems = [{
             'name': 'Collections',
@@ -39,6 +43,15 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
         }));
 
         return this;
+    },
+
+    /**
+     * Highlight the item with the given target attribute, which is the name
+     * of the view it navigates to.
+     */
+    selectForView: function (viewName) {
+        this.deactivateAll();
+        this.$('[g-target="' + viewName + '"]').parent().addClass('g-active');
     },
 
     deactivateAll: function () {

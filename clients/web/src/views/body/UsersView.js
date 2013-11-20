@@ -24,6 +24,13 @@ girder.views.UsersView = Backbone.View.extend({
             users: this.collection.models,
             girder: girder
         }));
+        girder.router.navigate('users');
+
         return this;
     }
+});
+
+girder.router.route('users', 'users', function () {
+    girder.events.trigger('g:navigateTo', girder.views.UsersView);
+    girder.events.trigger('g:highlightItem', 'UsersView');
 });

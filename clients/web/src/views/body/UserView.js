@@ -30,6 +30,9 @@ girder.views.UserView = Backbone.View.extend({
             parentModel: this.model,
             el: this.$('.g-user-hierarchy-container')
         });
+
+        girder.router.navigate('user/' + this.model.get('_id'));
+
         return this;
     },
 
@@ -44,4 +47,18 @@ girder.views.UserView = Backbone.View.extend({
             girder.events.trigger('g:navigateTo', girder.views.UsersView);
         }, this).fetch();
     }
+});
+
+girder.router.route('user/:id', 'user', function (id) {
+    // Fetch the user by id, then render the view.
+    var user = new girder.models.UserModel();
+    user.set({
+        _id: id
+    }).on('g:fetched', function () {
+        girder.events.trigger('g:navigateTo', girder.views.UserView, {
+            user: user
+        }, user);
+    }, this).on('g:error', function () {
+        girder.events.trigger('g:navigateTo', girder.views.UsersView);
+    }, this).fetch();
 });

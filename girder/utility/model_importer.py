@@ -95,8 +95,20 @@ class ModelImporter(object):
     def pluginModel(self, model, plugin):
         """
         Just like model(), but loads the model from the specified plugin.
+
+        :param model: The name of the model to get. This is the module
+                      name, e.g. "folder". The class name must be the
+                      upper-camelcased version of that module name, e.g.
+                      "Folder".
+        :type model: string
+        :param plugin: The name of the plugin to load the model from
+        :type plugin: string
+        :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
+        if not plugin in _modelInstances:
+            _modelInstances[plugin] = {}
+
         if not model in _modelInstances[plugin]:
             _instantiatePluginModel(model, plugin)
 

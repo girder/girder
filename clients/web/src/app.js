@@ -9,12 +9,12 @@ girder.App = Backbone.View.extend({
                 girder.currentUser = new girder.models.UserModel(user);
             }
             this.render();
-        }, this));
 
-        Backbone.history.start({
-            pushState: false,
-            root: settings.root
-        });
+            // Once we've rendered the layout, we can start up the routing.
+            Backbone.history.start({
+                pushState: false
+            });
+        }, this));
 
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
@@ -63,8 +63,6 @@ girder.App = Backbone.View.extend({
              */
             /*jshint -W055 */
             this.bodyView = new view(settings);
-
-            // TODO trigger router.navigate()
         }
         else {
             console.error('Undefined page.');

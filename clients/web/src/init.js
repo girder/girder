@@ -15,7 +15,6 @@ if (!window.console) {
 
 // This script must be invoked first to declare the girder namespace
 var girder = {
-    routes: {},
     models: {},
     collections: {},
     views: {},
