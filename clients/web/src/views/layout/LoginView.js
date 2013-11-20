@@ -35,9 +35,9 @@ girder.views.LoginView = Backbone.View.extend({
     render: function () {
         var view = this;
         this.$el.html(jade.templates.loginDialog())
-            .off('shown.bs.modal').on('shown.bs.modal', function () {
+            .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
-            }).modal();
+            });
         this.$('#g-login').focus();
 
         return this;

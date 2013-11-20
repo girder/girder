@@ -46,7 +46,7 @@ girder.views.UploadWidget = Backbone.View.extend({
     render: function () {
         this.$el.html(jade.templates.uploadWidget({
             folder: this.folder
-        })).modal();
+        })).girderModal(this);
 
         return this;
     },

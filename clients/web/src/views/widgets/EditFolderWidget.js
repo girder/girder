@@ -32,9 +32,9 @@ girder.views.EditFolderWidget = Backbone.View.extend({
     render: function () {
         var view = this;
         this.$el.html(jade.templates.editFolderWidget())
-            .off('shown.bs.modal').on('shown.bs.modal', function () {
+            .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();
-            }).modal();
+            });
         this.$('#g-name').focus();
 
         return this;
