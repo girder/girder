@@ -3,7 +3,9 @@
  */
 girder.views.LoginView = Backbone.View.extend({
     events: {
-        'submit #g-login-form': function () {
+        'submit #g-login-form': function (e) {
+            e.preventDefault();
+
             girder.restRequest({
                 path: 'user/login',
                 type: 'POST',
@@ -24,7 +26,6 @@ girder.views.LoginView = Backbone.View.extend({
 
             this.$('#g-login-button').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-            return false;
         },
 
         'click a.g-register-link': function () {

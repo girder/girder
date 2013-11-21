@@ -16,8 +16,7 @@ girder.views.UserView = Backbone.View.extend({
         }
 
         // This page should be re-rendered if the user logs in or out
-        girder.events.off('g:login', this.userChanged)
-                     .on('g:login', this.userChanged, this);
+        girder.events.on('g:login', this.userChanged, this);
     },
 
     render: function () {

@@ -32,6 +32,10 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
             girder.events.trigger('g:navigateTo', girder.views.UserSettingsView, {
                 user: girder.currentUser
             });
+        },
+
+        'click a.g-admin': function () {
+            girder.events.trigger('g:navigateTo', girder.views.AdminView);
         }
     },
 

@@ -3,14 +3,16 @@
  */
 girder.views.RegisterView = Backbone.View.extend({
     events: {
-        'submit #g-register-form': function () {
+        'submit #g-register-form': function (e) {
+            e.preventDefault();
+
             this.$('.form-group').removeClass('has-error');
 
             if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
                 this.$('#g-group-password,#g-group-password2').addClass('has-error');
                 this.$('#g-password').focus();
                 this.$('.g-validation-failed-message').text('Passwords must match.');
-                return false;
+                return;
             }
             girder.restRequest({
                 path: 'user',
@@ -40,7 +42,6 @@ girder.views.RegisterView = Backbone.View.extend({
 
             this.$('#g-register-button').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-            return false;
         },
 
         'click a.g-login-link': function () {
