@@ -23,27 +23,23 @@ from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.constants import AssetstoreType
 
-assetstoreAdapter = None
 currentAssetstore = None
 
-
-def getAssetstoreAdapter(refresh=False):
+def getAssetstoreAdapter(assetstore):
     """
     This is a factory method that will return the appropriate assetstore adapter
-    based on the server's configuration. The returned object will conform to
+    for the current assetstore. The returned object will conform to
     the interface of the AbstractAssetstoreAdapter.
-    :param refresh: Set this to True to force a reinitialization.
-    :type refresh: bool
+    :param assetstore: The assetstore document used to instantiate the adapter.
+    :type assetstore: dict
+    :returns: An adapter descending from AbstractAssetstoreAdapter
     """
-    global assetstoreAdapter
-    if assetstoreAdapter is None or refresh:
-        assetstore = getCurrentAssetstore()
-        if assetstore['type'] == AssetstoreType.FILESYSTEM:
-            assetstoreAdapter = FilesystemAssetstoreAdapter(assetstore['root'])
-        elif assetstore['type'] == AssetstoreType.GRIDFS:
-            raise Exception('GridFS assetstore adapter not implemented.')
-        elif assetstore['type'] == AssetstoreType.S3:
-            raise Exception('S3 assetstore adapter not implemented.')
+    if assetstore['type'] == AssetstoreType.FILESYSTEM:
+        assetstoreAdapter = FilesystemAssetstoreAdapter(assetstore['root'])
+    elif assetstore['type'] == AssetstoreType.GRIDFS:
+        raise Exception('GridFS assetstore adapter not implemented.')
+    elif assetstore['type'] == AssetstoreType.S3:
+        raise Exception('S3 assetstore adapter not implemented.')
 
     return assetstoreAdapter
 

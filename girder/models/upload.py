@@ -32,7 +32,8 @@ class Upload(Model):
     """
     def initialize(self):
         self.name = 'upload'
-        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter()
+        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter(
+            assetstore_utilities.getCurrentAssetstore())
 
     def validate(self, doc):
         if doc['size'] < 0:

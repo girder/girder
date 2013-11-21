@@ -46,7 +46,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         For filesystem assetstores, we just need to report the free and total
         space on the filesystem where the assetstore lives.
         """
-        stat = os.statfvs(assetstore['root'])
+        stat = os.statvfs(assetstore['root'])
         return {
             'free': stat.f_bavail * stat.f_frsize,
             'total': stat.f_blocks * stat.f_frsize

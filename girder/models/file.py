@@ -30,8 +30,9 @@ class File(Model):
     """
     def initialize(self):
         self.name = 'file'
-        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter()
         self.assetstore = assetstore_utilities.getCurrentAssetstore()
+        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter(
+            self.assetstore)
 
     def remove(self, file):
         self.assetstoreAdapter.deleteFile(file)
@@ -54,7 +55,7 @@ class File(Model):
             'created': datetime.datetime.now(),
             'itemId': item['_id'],
             'creatorId': creator['_id'],
-            #'assetstoreId': TODO get current assetstore Id
+            'assetstoreId': self.assetstore['_id'],
             'name': name,
             'size': size
         }

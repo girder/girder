@@ -43,7 +43,11 @@ class Assetstore(Model):
             raise ValidationException('An assetstore with that name already '
                                       'exists.', 'name')
 
-        # Filesystem assetstores must have their directory created
+        # Name must not be empty
+        if not doc['name']:
+            raise ValidationException('Name must not be empty', 'name')
+
+        # Filesystem assetstores must have their directory exist and writeable
         if doc['type'] == AssetstoreType.FILESYSTEM:
             if not os.path.isabs(doc['root']):
                 raise ValidationException('You must provide an absolute path '
@@ -83,7 +87,13 @@ class Assetstore(Model):
         :returns: List of users.
         """
         cursor = self.find({}, limit=limit, offset=offset, sort=sort)
-        return [result for result in cursor]
+        assetstores = []
+        for assetstore in cursor:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            assetstore['capacity'] = adapter.capacityInfo(assetstore)
+            assetstores.append(assetstore)
+
+        return assetstores
 
     def createFilesystemAssetstore(self, name, root):
         return self.save({
