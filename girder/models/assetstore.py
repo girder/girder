@@ -45,6 +45,9 @@ class Assetstore(Model):
 
         # Filesystem assetstores must have their directory created
         if doc['type'] == AssetstoreType.FILESYSTEM:
+            if not os.path.isabs(doc['root']):
+                raise ValidationException('You must provide an absolute path '
+                                          'for the root directory.', 'root')
             if not os.path.isdir(doc['root']):
                 try:
                     os.makedirs(doc['root'])
