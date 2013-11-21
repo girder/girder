@@ -23,6 +23,7 @@ import pymongo
 
 #from .docs import assetstore_docs
 from ..rest import Resource, RestException
+from girder.constants import AssetstoreType
 
 
 class Assetstore(Resource):
@@ -55,4 +56,24 @@ class Assetstore(Resource):
 
     @Resource.endpoint
     def POST(self, path, params):
+        """
+        Create a new assetstore
+        """
         self.requireAdmin(self.getCurrentUser())
+        self.requireParams(['type', 'name'], params)
+
+        assetstoreType = int(params['type'])
+
+        if assetstoreType == AssetstoreType.FILESYSTEM:
+            self.requireParams(['root'], params)
+            return self.model('assetstore').createFilesystemAssetstore(
+                name=params['name'], root=params['root'])
+        elif assetstoreType == AssetstoreType.GRIDFS:
+            self.requireParams(['db'], params)
+            return self.model('assetstore').createGridFSAssetstore(
+                name=params['name'], db=params['db'])
+        elif assetstoreType == AssetstoreType.S3:
+            return self.model('assetstore').createS3Assetstore(
+                name=params['name'])
+        else:
+            raise RestException('Invalid type parameter')

@@ -7,6 +7,7 @@ girder.views.AssetstoresView = Backbone.View.extend({
     },
 
     initialize: function () {
+
         // Fetch all of the current assetstores
         if (girder.currentUser && girder.currentUser.get('admin')) {
             this.collection = new girder.collections.AssetstoreCollection();
@@ -27,10 +28,20 @@ girder.views.AssetstoresView = Backbone.View.extend({
             return;
         }
         this.$el.html(jade.templates.assetstores());
+        this.newAssetstoreWidget = new girder.views.NewAssetstoreWidget({
+            el: this.$('#g-new-assetstore-container')
+        });
+        this.newAssetstoreWidget
+            .off().on('g:created', this.addAssetstore, this).render();
 
         girder.router.navigate('assetstores');
 
         return this;
+    },
+
+    addAssetstore: function (assetstore) {
+        // TODO add the assetstore in the list
+        console.log(assetstore);
     }
 });
 

@@ -21,9 +21,9 @@ import cherrypy
 import datetime
 import os
 
-from .model_base import Model
+from .model_base import Model, ValidationException
 from girder.utility import assetstore_utilities
-from girder.constants import AssetstoreType, ROOT_DIR
+from girder.constants import AssetstoreType
 
 
 class Assetstore(Model):
@@ -31,9 +31,43 @@ class Assetstore(Model):
     This model represents an assetstore, an abstract repository of Files.
     """
     def initialize(self):
-        self.name = 'upload'
+        self.name = 'assetstore'
 
     def validate(self, doc):
+        # Ensure no duplicate names
+        q = {'name': doc['name']}
+        if '_id' in doc:
+            q['_id'] = {'$ne': doc['_id']}
+        duplicates = self.find(q, limit=1, fields=['_id'])
+        if duplicates.count() != 0:
+            raise ValidationException('An assetstore with that name already '
+                                      'exists.', 'name')
+
+        # Filesystem assetstores must have their directory created
+        if doc['type'] == AssetstoreType.FILESYSTEM:
+            if not os.path.isdir(doc['root']):
+                try:
+                    os.makedirs(doc['root'])
+                except OSError:
+                    raise ValidationException('Could not make directory "%s".'
+                                              % doc['root'], 'root')
+            if not os.access(doc['root'], os.W_OK):
+                raise ValidationException('Unable to write into directory "%s".'
+                                          % doc['root'], 'root')
+
+
+        # If no current assetstore exists yet, set this one as the current.
+        current = self.find({'current': True}, limit=1, fields=['_id'])
+        if current.count() == 0:
+            doc['current'] = True
+        if 'current' not in doc:
+            doc['current'] = False
+
+        # If we are setting this as current, we should unmark all other
+        # assetstores that have the current flag.
+        if doc['current'] is True:
+            self.update({'current': True}, {'$set': {'current': False}})
+
         return doc
 
     def list(self, limit=50, offset=0, sort=None):
@@ -48,19 +82,27 @@ class Assetstore(Model):
         cursor = self.find({}, limit=limit, offset=offset, sort=sort)
         return [result for result in cursor]
 
+    def createFilesystemAssetstore(self, name, root):
+        return self.save({
+            'type': AssetstoreType.FILESYSTEM,
+            'created': datetime.datetime.now(),
+            'name': name,
+            'root': root
+        })
+
+    def createGridFSAssetstore(self, name, db):
+        raise Exception('GridFS assetstore not implemented yet.')
+
+    def createS3Assetstore(self, name):
+        raise Exception('S3 assetstore not implemented yet.')
+
     def getCurrent(self):
         """
-        Returns the current assetstore. If none exists, this will create the
-        initial one based on the server configuration files and return it. If
-        the server configuration files are malformed or insufficient, this will
-        throw a 500 error.
+        Returns the current assetstore. If none exists, this will raise a 500
+        exception.
         """
-        # TODO this is a dummy for testing. We should return the real one.
-        currentAssetstore = {
-            'type': AssetstoreType.FILESYSTEM,
-            'root': os.path.join(ROOT_DIR, 'assetstore')
-        }
-        return currentAssetstore
+        cursor = self.find({'current': True}, limit=1)
+        if cursor.count() == 0:
+            raise Exception('No current assetstore is set.')
 
-    def createAssetstore(self):
-        pass
+        return cursor.next()

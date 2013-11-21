@@ -29,8 +29,8 @@ class AssetstoreType:
     """
     All possible assetstore implementation types.
     """
-    FILESYSTEM = 0,
-    GRIDFS = 1,
+    FILESYSTEM = 0
+    GRIDFS = 1
     S3 = 2
 
 
