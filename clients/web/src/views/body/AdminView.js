@@ -1,8 +1,14 @@
 /**
- * This view shows a single user's page.
+ * This view shows the admin console, which links to all available admin pages.
  */
 girder.views.AdminView = Backbone.View.extend({
     events: {
+        'click .g-server-config': function () {
+            girder.events.trigger('g:navigateTo', girder.views.AdminConfig);
+        },
+        'click .g-assetstore-config': function () {
+            girder.events.trigger('g:navigateTo', girder.views.AssetstoresView);
+        }
     },
 
     initialize: function () {

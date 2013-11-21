@@ -36,6 +36,18 @@ class Assetstore(Model):
     def validate(self, doc):
         return doc
 
+    def list(self, limit=50, offset=0, sort=None):
+        """
+        List all assetstores.
+
+        :param limit: Result limit.
+        :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        :returns: List of users.
+        """
+        cursor = self.find({}, limit=limit, offset=offset, sort=sort)
+        return [result for result in cursor]
+
     def getCurrent(self):
         """
         Returns the current assetstore. If none exists, this will create the

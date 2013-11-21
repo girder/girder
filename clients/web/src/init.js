@@ -36,6 +36,11 @@ var girder = {
         WRITE: 1,
         ADMIN: 2
     },
+    AssetstoreType: {
+        FILESYSTEM: 0,
+        GRIDFS: 1,
+        S3: 2
+    },
 
     /**
      * Make a request to the REST API. Bind a "done" handler to the return

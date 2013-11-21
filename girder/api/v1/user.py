@@ -80,7 +80,7 @@ class User(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'lastName')
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
 
         return [self._filter(user, currentUser)
                 for user in self.model('user').search(

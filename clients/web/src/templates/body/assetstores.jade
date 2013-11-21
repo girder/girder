@@ -1,0 +1,86 @@
+.panel-group#g-assetstore-accordion
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-fs-tab")
+          i.icon-hdd
+          |  Create new
+          b  Filesystem
+          |  assetstore
+    #g-create-fs-tab.panel-collapse.collapse
+      .panel-body
+        p.
+          This type of assetstore will store files in a directory on the
+          local filesystem, using content-addressed storage to ensure that
+          data is never duplicated on disk. Just specify the root directory
+          that files will be stored under.
+        p.
+          If the specified root directory does not already exist, the server
+          will attempt to create it.
+        form#g-new-fs-form(role="form")
+          .form-group
+            label.control-label(for="g-new-fs-name") Assetstore Name
+            input.input-sm.form-control#g-new-fs-name(type="text",
+                                                      placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-fs-root") Root Directory
+            input.input-sm.form-control#g-new-fs-root(
+              type="text", placeholder="Root Directory")
+          #g-new-fs-error.g-validation-failed-message
+          input.btn.btn-sm.btn-primary(type="submit", value="Create")
+
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-gridfs-tab")
+          i.icon-leaf
+          |  Create new
+          b  GridFS
+          |  assetstore
+    #g-create-gridfs-tab.panel-collapse.collapse
+      .panel-body
+        p
+          | This type of assetstore uses mongoDB's
+          a(target="_blank",
+            href="http://docs.mongodb.org/manual/core/gridfs/")  GridFS
+          |  storage engine. The files should be stored in a separate database
+          |  from the rest of the server's information to avoid locking issues.
+        form#g-new-gridfs-form(role="form")
+          .form-group
+            label.control-label(for="g-new-gridfs-name") Assetstore Name
+            input.input-sm.form-control#g-new-gridfs-name(type="text",
+                                                          placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-gridfs-db") Database Name
+            input.input-sm.form-control#g-new-gridfs-db(
+              type="text", placeholder="Database Name")
+          #g-new-gridfs-error.g-validation-failed-message
+          input.btn.btn-sm.btn-primary(type="submit", value="Create")
+
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-s3-tab")
+          i.icon-upload-cloud
+          |  Create new
+          b  Amazon S3
+          |  assetstore
+    #g-create-s3-tab.panel-collapse.collapse
+      .panel-body
+        p
+          | This type of assetstore keeps files on an
+          a(target="_blank", href="http://aws.amazon.com/s3/")  Amazon S3
+          |  server.
+        form#g-new-s3-form(role="form")
+          .form-group
+            label.control-label(for="g-new-s3-name") Assetstore Name
+            input.input-sm.form-control#g-new-s3-name(type="text",
+                                                      placeholder="Name")
+          #g-new-s3-error.g-validation-failed-message
+          input.btn.btn-sm.btn-primary(type="submit", value="Create")
+
