@@ -35,21 +35,21 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     directory. Files are named by their SHA-512 hash, which avoids duplication
     of file content.
     """
-    def __init__(self, assetstoreRoot):
+    def __init__(self, assetstore):
         """
-        :param assetstoreRoot: The root directory of the assestore.
+        :param assetstore: The assetstore to act on.
         """
-        self.assetstoreRoot = assetstoreRoot
-        self.tempDir = os.path.join(assetstoreRoot, 'temp')
+        self.assetstore = assetstore
+        self.tempDir = os.path.join(assetstore['root'], 'temp')
         if not os.path.exists(self.tempDir):
             os.makedirs(self.tempDir)
 
-    def capacityInfo(self, assetstore):
+    def capacityInfo(self):
         """
         For filesystem assetstores, we just need to report the free and total
         space on the filesystem where the assetstore lives.
         """
-        stat = os.statvfs(assetstore['root'])
+        stat = os.statvfs(self.assetstore['root'])
         return {
             'free': stat.f_bavail * stat.f_frsize,
             'total': stat.f_blocks * stat.f_frsize
@@ -113,7 +113,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
         hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
-        dir = os.path.join(self.assetstoreRoot, hash[0:2], hash[2:4])
+        dir = os.path.join(self.assetstore['root'], hash[0:2], hash[2:4])
         if not os.path.exists(dir):
             os.makedirs(dir)
 
@@ -137,7 +137,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Returns a generator function that will be used to stream the file from
         disk to the response.
         """
-        path = os.path.join(self.assetstoreRoot, file['path'])
+        path = os.path.join(self.assetstore['root'], file['path'])
         if not os.path.isfile(path):
             raise Exception('File %s does not exist.' % path)
 

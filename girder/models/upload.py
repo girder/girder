@@ -32,8 +32,6 @@ class Upload(Model):
     """
     def initialize(self):
         self.name = 'upload'
-        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter(
-            assetstore_utilities.getCurrentAssetstore())
 
     def validate(self, doc):
         if doc['size'] < 0:
@@ -41,6 +39,9 @@ class Upload(Model):
         if doc['received'] > doc['size']:
             raise ValidationException('Received bytes must not be larger than '
                                       'the total size of the upload.')
+
+        doc['updated'] = datetime.datetime.now()
+
         return doc
 
     def handleChunk(self, upload, chunk):
@@ -53,24 +54,31 @@ class Upload(Model):
         :param chunk: The file object representing the chunk that was uploaded.
         :type chunk: file
         """
-        upload = self.save(self.assetstoreAdapter.uploadChunk(upload, chunk))
+        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        upload = self.save(adapter.uploadChunk(upload, chunk))
 
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
-            self.finalizeUpload(upload)
+            self.finalizeUpload(upload, assetstore)
 
     def requestOffset(self, upload):
         """
         Requests the offset that should be used to resume uploading. This
         makes the request from the assetstore adapter.
         """
-        return self.assetstoreAdapter.requestOffset(upload)
+        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        return adapter.requestOffset(upload)
 
-    def finalizeUpload(self, upload):
+    def finalizeUpload(self, upload, assetstore=None):
         """
         This should only be called manually in the case of creating an
-        empty file, i.e. one that has no chunks. It simply
+        empty file, i.e. one that has no chunks.
         """
+        if assetstore is None:
+            assetstore = self.model('assetstore').load(upload['assetstoreId'])
+
         if upload['parentType'] == 'folder':
             # Create a new item with the name of the file.
             item = self.model('item').createItem(
@@ -82,9 +90,10 @@ class Upload(Model):
 
         file = self.model('file').createFile(
             item=item, name=upload['name'], size=upload['size'],
-            creator={'_id': upload['userId']})
+            creator={'_id': upload['userId']}, assetstore=assetstore)
 
-        file = self.assetstoreAdapter.finalizeUpload(upload, file)
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        file = adapter.finalizeUpload(upload, file)
         self.model('file').save(file)
         self.remove(upload)
 
@@ -106,16 +115,20 @@ class Upload(Model):
         :type size: int
         :returns: The upload document that was created.
         """
+        assetstore = self.model('assetstore').getCurrent()
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.now()
+
         upload = {
             'created': now,
             'updated': now,
             'userId': user['_id'],
             'parentType': parentType.lower(),
             'parentId': parent['_id'],
+            'assetstoreId': assetstore['_id'],
             'size': size,
             'name': name,
             'received': 0
             }
-        upload = self.assetstoreAdapter.initUpload(upload)
+        upload = adapter.initUpload(upload)
         return self.save(upload)

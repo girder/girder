@@ -89,7 +89,7 @@ class Assetstore(Model):
         assetstores = []
         for assetstore in cursor:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            assetstore['capacity'] = adapter.capacityInfo(assetstore)
+            assetstore['capacity'] = adapter.capacityInfo()
             assetstores.append(assetstore)
 
         return assetstores

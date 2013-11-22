@@ -30,9 +30,6 @@ class File(Model):
     """
     def initialize(self):
         self.name = 'file'
-        self.assetstore = assetstore_utilities.getCurrentAssetstore()
-        self.assetstoreAdapter = assetstore_utilities.getAssetstoreAdapter(
-            self.assetstore)
 
     def remove(self, file):
         """
@@ -60,11 +57,12 @@ class File(Model):
 
         return doc
 
-    def createFile(self, creator, item, name, size):
+    def createFile(self, creator, item, name, size, assetstore):
         """
         Create a new file record in the database.
         :param item: The parent item.
         :param creator: The user creating the file.
+        :param assetstore: The assetstore this file is stored in.
         :param name: The filename.
         :type name: str
         :param size: The size of the file in bytes.
@@ -74,7 +72,7 @@ class File(Model):
             'created': datetime.datetime.now(),
             'itemId': item['_id'],
             'creatorId': creator['_id'],
-            'assetstoreId': self.assetstore['_id'],
+            'assetstoreId': assetstore['_id'],
             'name': name,
             'size': size
         }
