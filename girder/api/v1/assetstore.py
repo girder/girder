@@ -21,7 +21,7 @@ import cherrypy
 import os
 import pymongo
 
-#from .docs import assetstore_docs
+from .docs import assetstore_docs
 from ..rest import Resource, RestException
 from girder.constants import AssetstoreType
 
