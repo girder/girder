@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import os
 import stat
 import tempfile
@@ -24,6 +25,8 @@ import tempfile
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
+
+BUF_SIZE = 65536
 
 
 class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -77,7 +80,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             with open(upload['tempFile'], 'rb') as tempFile:
                 tempFile.seek(upload['received'])
                 while True:
-                    data = tempFile.read(65536)
+                    data = tempFile.read(BUF_SIZE)
                     if not data:
                         break
                     checksum.update(data)
@@ -85,7 +88,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
             while True:
-                data = chunk.read(65536)
+                data = chunk.read(BUF_SIZE)
                 if not data:
                     break
                 size += len(data)
@@ -128,3 +131,27 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['path'] = path
 
         return file
+
+    def downloadFile(self, file):
+        """
+        Returns a generator function that will be used to stream the file from
+        disk to the response.
+        """
+        path = os.path.join(self.assetstoreRoot, file['path'])
+        if not os.path.isfile(path):
+            raise Exception('File %s does not exist' % path)
+
+        cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="%s"' % file['name']
+        cherrypy.response.headers['Content-Length'] = file['size']
+
+        def stream():
+            with open(path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    yield data
+
+        return stream

@@ -94,7 +94,10 @@ class AbstractAssetstoreAdapter(object):
 
     def downloadFile(self, file):
         """
-        Downloads a file to the user.
+        This method is in charge of returning a value to the RESTful endpoint
+        that can be used to download the file. This can return a generator
+        function that streams the file directly, or can modify the cherrypy
+        request headers and perform a redirect and return None, for example.
         :param file: The file document being downloaded.
         :type file: dict
         """

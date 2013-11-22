@@ -109,6 +109,17 @@ class File(Resource):
 
         self.model('upload').handleChunk(upload, params['chunk'].file)
 
+    def download(self, user, fileId):
+        """
+        Defers to the underlying assetstore adapter to stream a file out.
+        Requires read permission on the folder that contains the file's item.
+        """
+        file = self.getObjectById(self.model('file'), id=fileId)
+        item = self.getObjectById(self.model('item'), id=file['itemId'])
+        self.getObjectById(self.model('folder'), id=item['folderId'],
+                           checkAccess=True, user=user)
+        return self.model('file').download(file)
+
     @Resource.endpoint
     def GET(self, path, params):
         user = self.getCurrentUser()
@@ -117,6 +128,10 @@ class File(Resource):
             raise RestException('Invalid path format for GET request')
         elif path[0] == 'offset':
             return self.requestOffset(user, params)
+        elif len(path) == 1: #  Assume it's an id
+            pass # TODO get by id
+        elif path[1] == 'download':
+            return self.download(user, fileId=path[0])
 
     @Resource.endpoint
     def POST(self, path, params):

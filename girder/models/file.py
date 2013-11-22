@@ -35,10 +35,29 @@ class File(Model):
             self.assetstore)
 
     def remove(self, file):
-        self.assetstoreAdapter.deleteFile(file)
+        """
+        Use the appropriate assetstore adapter for whatever assetstore the
+        file is stored in, and call deleteFile on it, then delete the file
+        record from the database.
+        """
+        assetstore = self.model('assetstore').load(file['assetstoreId'])
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        adapter.deleteFile(file)
         Model.remove(self, file)
 
+    def download(self, file):
+        """
+        Use the appropriate assetstore adapter for whatever assetstore the
+        file is stored in, and call downloadFile on it.
+        """
+        assetstore = self.model('assetstore').load(file['assetstoreId'])
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        return adapter.downloadFile(file)
+
     def validate(self, doc):
+        if not 'name' in doc or not doc['name']:
+            raise ValidationException('File name must not be empty.', 'name')
+
         return doc
 
     def createFile(self, creator, item, name, size):
