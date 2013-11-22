@@ -132,22 +132,25 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file):
+    def downloadFile(self, file, offset=0):
         """
         Returns a generator function that will be used to stream the file from
         disk to the response.
         """
         path = os.path.join(self.assetstoreRoot, file['path'])
         if not os.path.isfile(path):
-            raise Exception('File %s does not exist' % path)
+            raise Exception('File %s does not exist.' % path)
 
         cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
         cherrypy.response.headers['Content-Disposition'] = \
             'attachment; filename="%s"' % file['name']
-        cherrypy.response.headers['Content-Length'] = file['size']
+        cherrypy.response.headers['Content-Length'] = file['size'] - offset
 
         def stream():
             with open(path, 'rb') as f:
+                if offset > 0:
+                    f.seek(offset)
+
                 while True:
                     data = f.read(BUF_SIZE)
                     if not data:

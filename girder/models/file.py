@@ -45,14 +45,14 @@ class File(Model):
         adapter.deleteFile(file)
         Model.remove(self, file)
 
-    def download(self, file):
+    def download(self, file, offset=0):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call downloadFile on it.
         """
         assetstore = self.model('assetstore').load(file['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        return adapter.downloadFile(file)
+        return adapter.downloadFile(file, offset)
 
     def validate(self, doc):
         if not 'name' in doc or not doc['name']:

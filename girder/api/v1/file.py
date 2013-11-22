@@ -109,16 +109,18 @@ class File(Resource):
 
         self.model('upload').handleChunk(upload, params['chunk'].file)
 
-    def download(self, user, fileId):
+    def download(self, user, params, fileId):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
+        offset = int(params.get('offset', 0))
+
         file = self.getObjectById(self.model('file'), id=fileId)
         item = self.getObjectById(self.model('item'), id=file['itemId'])
         self.getObjectById(self.model('folder'), id=item['folderId'],
                            checkAccess=True, user=user)
-        return self.model('file').download(file)
+        return self.model('file').download(file, offset)
 
     @Resource.endpoint
     def GET(self, path, params):
@@ -131,7 +133,7 @@ class File(Resource):
         elif len(path) == 1: #  Assume it's an id
             pass # TODO get by id
         elif path[1] == 'download':
-            return self.download(user, fileId=path[0])
+            return self.download(user, params=params, fileId=path[0])
 
     @Resource.endpoint
     def POST(self, path, params):
