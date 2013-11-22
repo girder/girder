@@ -25,6 +25,7 @@ from girder.constants import AssetstoreType
 
 currentAssetstore = None
 
+
 def getAssetstoreAdapter(assetstore):
     """
     This is a factory method that will return the appropriate assetstore adapter

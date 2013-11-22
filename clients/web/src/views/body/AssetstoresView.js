@@ -68,7 +68,7 @@ girder.views.AssetstoresView = Backbone.View.extend({
                     sliceMargin: 2,
                     shadow: false,
                     highlightMouseOver: false
-                },
+                }
             },
             legend: {
                 show: true,

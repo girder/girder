@@ -220,13 +220,13 @@ class UserTestCase(base.TestCase):
         token = self.model('token').createToken(users[1])
 
         # Make sure non-admin users can't delete other users
-        resp = self.request(path='/user/%s' % users[1]['_id'], method='DELETE',
-                            user=users[0])
+        resp = self.request(path='/user/%s' % users[0]['_id'], method='DELETE',
+                            user=users[1])
         self.assertStatus(resp, 403)
 
-        # Delete user 1
+        # Delete user 1 as admin, should work
         resp = self.request(path='/user/%s' % users[1]['_id'], method='DELETE',
-                            user=users[1])
+                            user=users[0])
         self.assertStatusOk(resp)
         self.assertEqual(
             resp.json['message'], 'Deleted user %s.' % users[1]['login'])

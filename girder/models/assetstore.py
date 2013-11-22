@@ -62,7 +62,6 @@ class Assetstore(Model):
                 raise ValidationException('Unable to write into directory "%s".'
                                           % doc['root'], 'root')
 
-
         # If no current assetstore exists yet, set this one as the current.
         current = self.find({'current': True}, limit=1, fields=['_id'])
         if current.count() == 0:

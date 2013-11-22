@@ -214,7 +214,7 @@ class Resource(ModelImporter):
 
                 val = fun(self, args, params)
 
-                if type(val) is types.FunctionType:
+                if isinstance(val, types.FunctionType):
                     # If the endpoint returned a function, we assume it's a
                     # generator function for a streaming response.
                     cherrypy.request.config['response.stream'] = True

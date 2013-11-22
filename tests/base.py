@@ -19,13 +19,14 @@
 
 import cherrypy
 import json
+import os
 import unittest
 import urllib
 
 from StringIO import StringIO
 from girder.utility.model_importer import ModelImporter
 from girder.utility.server import setup as setupServer
-from girder.constants import AccessType
+from girder.constants import AccessType, ROOT_DIR
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -71,9 +72,12 @@ class TestCase(unittest.TestCase, ModelImporter):
     def setUp(self):
         """
         We want to start with a clean database each time, so we drop the test
-        database before each test.
+        database before each test. We then add an assetstore so the file model
+        can be used without 500 errors.
         """
         dropTestDatabase()
+        self.model('assetstore').createFilesystemAssetstore(
+            name='Test', root=os.path.join(ROOT_DIR, 'tests', 'assetstore'))
 
     def assertStatusOk(self, response):
         """

@@ -130,8 +130,8 @@ class File(Resource):
             raise RestException('Invalid path format for GET request')
         elif path[0] == 'offset':
             return self.requestOffset(user, params)
-        elif len(path) == 1: #  Assume it's an id
-            pass # TODO get by id
+        elif len(path) == 1:  # Assume it's an id
+            pass  # TODO get by id
         elif path[1] == 'download':
             return self.download(user, params=params, fileId=path[0])
 

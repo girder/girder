@@ -8,6 +8,9 @@ girder.views.AdminView = Backbone.View.extend({
         },
         'click .g-assetstore-config': function () {
             girder.events.trigger('g:navigateTo', girder.views.AssetstoresView);
+        },
+        'click .g-plugins-config': function () {
+            girder.events.trigger('g:navigateTo', girder.views.PluginsView);
         }
     },
 

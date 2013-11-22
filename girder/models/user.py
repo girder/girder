@@ -85,6 +85,11 @@ class User(AccessControlledModel):
             raise ValidationException('That email is already registered.',
                                       'email')
 
+        # If this is the first user being created, make it an admin
+        existing = self.find({}, limit=1)
+        if existing.count(True) == 0:
+            doc['admin'] = True
+
         return doc
 
     def remove(self, user):
