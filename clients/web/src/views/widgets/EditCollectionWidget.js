@@ -50,7 +50,6 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             error: null // don't do default error behavior
         }).done(_.bind(function (resp) {
             this.$el.modal('hide');
-            console.log('here');
             this.trigger('g:saved', resp);
         }, this)).error(_.bind(function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
@@ -67,7 +66,6 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             error: null // don't do default error behavior
         }).done(_.bind(function (resp) {
             this.$el.modal('hide');
-            console.log('here now');
             this.trigger('g:saved', resp);
         }, this)).error(_.bind(function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
