@@ -23,6 +23,7 @@ import json
 import pymongo
 import sys
 import traceback
+import types
 
 from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
@@ -93,7 +94,8 @@ class Resource(ModelImporter):
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
-        if not user.get('admin', False) is True:
+
+        if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
     def getPagingParameters(self, params, defaultSortField=None):
@@ -195,15 +197,30 @@ class Resource(ModelImporter):
         which are 400-level exceptions in the REST endpoints, AccessExceptions
         resulting from access denial, and also handles any unexpected errors
         using 500 status and including a useful traceback in those cases.
+
+        If you want a streamed response, simply return a generator function
+        from the inner method.
         """
         def wrapper(self, *args, **kwargs):
             try:
                 # First, we should encode any unicode form data down into
                 # UTF-8 so the actual REST classes are always dealing with
                 # str types.
-                params = {k: v.encode('utf-8') for (k, v) in kwargs.iteritems()}
+                params = {}
+                for k, v in kwargs.iteritems():
+                    if type(v) in (str, unicode):
+                        params[k] = v.encode('utf-8')
+                    else:
+                        params[k] = v  # pragma: no cover
 
                 val = fun(self, args, params)
+
+                if isinstance(val, types.FunctionType):
+                    # If the endpoint returned a function, we assume it's a
+                    # generator function for a streaming response.
+                    cherrypy.request.config['response.stream'] = True
+                    return val()
+
             except RestException as e:
                 # Handle all user-error exceptions from the rest layer
                 cherrypy.response.status = e.code
@@ -225,7 +242,7 @@ class Resource(ModelImporter):
             except:  # pragma: no cover
                 # These are unexpected failures; send a 500 status
                 cherrypy.response.status = 500
-                (t, value, tb) = sys.exc_info()
+                t, value, tb = sys.exc_info()
                 val = {'message': '%s: %s' % (t.__name__, str(value)),
                        'type': 'internal'}
                 if cherrypy.config['server']['mode'] != 'production':

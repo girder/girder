@@ -7,11 +7,17 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
         'click .g-nav-link': function (event) {
             var link = $(event.currentTarget);
 
-            this.$('.g-global-nav-li').removeClass('g-active');
-            link.parent().addClass('g-active');
             girder.events.trigger('g:navigateTo',
                                   girder.views[link.attr('g-target')]);
+
+            // Must call this after calling navigateTo, since that
+            // deactivates all global nav links.
+            link.parent().addClass('g-active');
         }
+    },
+
+    initialize: function () {
+        girder.events.on('g:highlightItem', this.selectForView, this);
     },
 
     render: function () {
@@ -37,5 +43,18 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
         }));
 
         return this;
+    },
+
+    /**
+     * Highlight the item with the given target attribute, which is the name
+     * of the view it navigates to.
+     */
+    selectForView: function (viewName) {
+        this.deactivateAll();
+        this.$('[g-target="' + viewName + '"]').parent().addClass('g-active');
+    },
+
+    deactivateAll: function () {
+        this.$('.g-global-nav-li').removeClass('g-active');
     }
 });

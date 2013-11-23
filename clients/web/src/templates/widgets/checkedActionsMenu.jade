@@ -1,0 +1,18 @@
+li.g-checked-menu-header.dropdown-header(role="presentation")
+  if (folderCount)
+    i.icon-folder
+    span.g-checked-folder-count #{folderCount}
+  if (itemCount)
+    i.icon-doc-text-inv
+    span.g-checked-item-count #{itemCount}
+li
+  a.g-download-checked
+    i.icon-download
+    | Download checked resources
+
+if (minLevel >= AccessType.ADMIN)
+  li.g-admin.divider
+  li.g-admin
+    a.g-download-checked
+      i.icon-trash
+      | Delete checked resources

@@ -1,7 +1,6 @@
 girder.collections.UserCollection = Backbone.Collection.extend({
     model: girder.models.UserModel,
 
-    offset: 0,
     sort: 'lastName',
     sortDir: girder.SORT_ASC,
 
@@ -12,7 +11,7 @@ girder.collections.UserCollection = Backbone.Collection.extend({
             path: 'user',
             data: _.extend({
                 'limit': this.PAGE_LIMIT,
-                'offset': this.offset,
+                'offset': this.length,
                 'sort': this.sort,
                 'sortdir': this.sortDir
             }, params || {})

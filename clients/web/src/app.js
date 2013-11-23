@@ -9,12 +9,12 @@ girder.App = Backbone.View.extend({
                 girder.currentUser = new girder.models.UserModel(user);
             }
             this.render();
-        }, this));
 
-        Backbone.history.start({
-            pushState: false,
-            root: settings.root
-        });
+            // Once we've rendered the layout, we can start up the routing.
+            Backbone.history.start({
+                pushState: false
+            });
+        }, this));
 
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
@@ -24,7 +24,7 @@ girder.App = Backbone.View.extend({
     render: function () {
         this.$el.html(jade.templates.layout());
 
-        new girder.views.LayoutGlobalNavView({
+        this.globalNavView = new girder.views.LayoutGlobalNavView({
             el: this.$('#g-global-nav-container')
         }).render();
 
@@ -47,11 +47,18 @@ girder.App = Backbone.View.extend({
     navigateTo: function (view, settings) {
         var container = this.$('#g-app-body-container');
 
+        this.globalNavView.deactivateAll();
+
         settings = settings || {};
 
         if (view) {
-            // Unbind all events added by the previous occupant of this container.
+            // Unbind all local events added by the previous body view.
             container.off();
+
+            // Unbind all globally registered events from the previous view.
+            if (this.bodyView) {
+                girder.events.off(null, null, this.bodyView);
+            }
 
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container')
@@ -61,8 +68,6 @@ girder.App = Backbone.View.extend({
              */
             /*jshint -W055 */
             this.bodyView = new view(settings);
-
-            // TODO trigger router.navigate()
         }
         else {
             console.error('Undefined page.');
