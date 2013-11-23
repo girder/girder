@@ -3,6 +3,9 @@
  */
 girder.views.CollectionView = Backbone.View.extend({
     events: {
+        'click button.g-collection-edit-button' : function () {
+            this.editCollection();
+        }
     },
 
     initialize: function (settings) {
@@ -15,6 +18,20 @@ girder.views.CollectionView = Backbone.View.extend({
             console.error('Implement fetch then render collection');
         }
 
+    },
+
+    editCollection: function () {
+        var container = $('#g-dialog-container');
+
+        if (!this.editCollectionWidget) {
+            this.editCollectionWidget = new girder.views.EditCollectionWidget({
+                el: container,
+                collection: this.model
+            }).off('g:saved').on('g:saved', function (collection) {
+                this.render();
+            }, this);
+        }
+        this.editCollectionWidget.render();
     },
 
     render: function () {

@@ -135,3 +135,18 @@ class Collection(AccessControlledModel):
                 publicFolder, creator, AccessType.ADMIN, save=True)
 
         return collection
+
+    def updateCollection(self, collection):
+        """
+        Updates a collection.
+
+        :param collection: The collection document to update
+        :type collection: dict
+        :returns: The collection document that was edited.
+        """
+        collection['updated'] = datetime.datetime.now()
+
+        # Validate and save the collection
+        self.save(collection)
+
+        return collection

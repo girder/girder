@@ -24,10 +24,11 @@ girder.formatDate = function (datestr, resolution) {
     output += ' ' + date.getFullYear();
 
     if (resolution >= girder.DATE_MINUTE) {
-        output += date.getHours() + ':' + date.getMinutes();
+        output += ' ' + date.getHours() + ':' +
+            ('0'+date.getMinutes()).slice(-2);
     }
     if (resolution >= girder.DATE_SECOND) {
-        output += ':' + date.getSeconds();
+        output += ':' + ('0'+date.getSeconds()).slice(-2);
     }
 
     return output;

@@ -33,7 +33,8 @@ class Collection(Resource):
         Helper to filter the collection model.
         """
         return self.filterDocument(
-            user, allow=['_id', 'name', 'description', 'public'])
+            user, allow=['_id', 'name', 'description', 'public',
+            'created', 'updated', 'size'])
 
     def find(self, user, params):
         """
@@ -62,6 +63,15 @@ class Collection(Resource):
             public=public, creator=user)
 
         return self._filter(collection)
+
+    def updateCollection(self, path, user, params):
+        collection = self.getObjectById(
+            self.model('collection'), id=path[0], user=user, checkAccess=True,
+            level=AccessType.ADMIN)
+        modifiedCollection = dict(collection.items() + params.items())
+        updatedCollection = self.model('collection').updateCollection(
+            modifiedCollection)
+        return self._filter(updatedCollection)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -93,9 +103,23 @@ class Collection(Resource):
     @Resource.endpoint
     def POST(self, path, params):
         """
-        Use this endpoint to create a new collection. Requires admin.
+        Use this endpoint to create a new collection. Requires global
+        administrative access.
         """
         user = self.getCurrentUser()
         self.requireAdmin(user)
 
         return self.createCollection(user, params)
+
+    @Resource.endpoint
+    def PUT(self, path, params):
+        """
+        Use this endpoint to edit a collection. Requires admin access
+        to that collection.
+        """
+        if not path:
+            raise RestException(
+                'Path parameter should be the collection ID to edit.')
+
+        user = self.getCurrentUser()
+        return self.updateCollection(path, user, params)

@@ -84,6 +84,26 @@ apis.append({
                                    'collection.', 403)
             ]
         }, {
+        'httpMethod': 'PUT',
+        'nickname': 'editCollectionById',
+        'responseClass': 'Collection',
+        'summary': 'Edit a collection by ID.',
+        'parameters': [
+            Describe.param(
+                'collectionId', 'The ID of the collection.', paramType='path'),
+            Describe.param('name', "Name for the collection. Must be unique.",
+                           required=False),
+            Describe.param('description', "Collection description.",
+                           required=False),
+            Describe.param('public', "Public read access flag.",
+                           dataType='boolean')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse('You do not have permission to edit this '
+                                   'collection.', 403)
+            ]
+        }, {
         'httpMethod': 'DELETE',
         'nickname': 'deleteCollectionById',
         'responseClass': 'Collection',
