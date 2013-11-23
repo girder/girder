@@ -28,13 +28,18 @@ from .docs import collection_docs
 class Collection(Resource):
     """API Endpoint for collections."""
 
-    def _filter(self, user):
+    def _filter(self, collection, currentUser):
         """
         Helper to filter the collection model.
         """
-        return self.filterDocument(
-            user, allow=['_id', 'name', 'description', 'public',
+        filtered = self.filterDocument(
+            collection, allow=['_id', 'name', 'description', 'public',
             'created', 'updated', 'size'])
+
+        filtered['_accessLevel'] = self.model('collection').getAccessLevel(
+            collection, currentUser)
+
+        return filtered
 
     def find(self, user, params):
         """
@@ -49,7 +54,7 @@ class Collection(Resource):
         """
         (limit, offset, sort) = self.getPagingParameters(params, 'name')
 
-        return [self._filter(c) for c in self.model('collection').search(
+        return [self._filter(c, user) for c in self.model('collection').search(
                 text=params.get('text'), user=user,
                 offset=offset, limit=limit, sort=sort)]
 
@@ -62,7 +67,7 @@ class Collection(Resource):
             name=params['name'], description=params.get('description'),
             public=public, creator=user)
 
-        return self._filter(collection)
+        return self._filter(collection, user)
 
     def updateCollection(self, path, user, params):
         collection = self.getObjectById(
@@ -71,7 +76,7 @@ class Collection(Resource):
         modifiedCollection = dict(collection.items() + params.items())
         updatedCollection = self.model('collection').updateCollection(
             modifiedCollection)
-        return self._filter(updatedCollection)
+        return self._filter(updatedCollection, user)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -98,7 +103,7 @@ class Collection(Resource):
         else:  # assume it's a collection id
             return self._filter(self.getObjectById(
                 self.model('collection'), id=path[0], user=user,
-                checkAccess=True))
+                checkAccess=True), user)
 
     @Resource.endpoint
     def POST(self, path, params):
