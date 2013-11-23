@@ -21,7 +21,6 @@ import cherrypy
 import json
 import os
 
-from bson.objectid import ObjectId
 from hashlib import sha512
 from .. import base
 
@@ -34,6 +33,8 @@ def setUpModule():
 
 def tearDownModule():
     base.stopServer()
+
+chunk1, chunk2 = ('hello ', 'world')
 
 
 class FileTestCase(base.TestCase):
@@ -59,25 +60,39 @@ class FileTestCase(base.TestCase):
                 self.publicFolder = folder
             else:
                 self.privateFolder = folder
-        self.assetstore = self.model('assetstore').getCurrent()
 
-    def _testEmptyUpload(self):
+    def _testEmptyUpload(self, name):
         """
         Uploads an empty file to the server.
         """
-        pass
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.privateFolder['_id'],
+                'name': name,
+                'size': 0
+            })
+        self.assertStatusOk(resp)
 
-    def _testUploadFile(self):
+        file = resp.json
+
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['size'], 0)
+        self.assertEqual(file['name'], name)
+        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+
+        return file
+
+    def _testUploadFile(self, name):
         """
         Uploads a non-empty file to the server.
         """
-        chunk1, chunk2 = ('hello ', 'world')
         # Initialize the upload
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
                 'parentType': 'folder',
                 'parentId': self.privateFolder['_id'],
-                'name': 'helloWorld.txt',
+                'name': name,
                 'size': len(chunk1) + len(chunk2)
             })
         self.assertStatusOk(resp)
@@ -93,7 +108,7 @@ class FileTestCase(base.TestCase):
 
         # Attempting to send second chunk with incorrect offset should fail
         fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'helloWorld.txt', chunk2)]
+        files = [('chunk', name, chunk2)]
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
@@ -111,18 +126,26 @@ class FileTestCase(base.TestCase):
 
         file = resp.json
 
-        self.assertEqual(self.model('assetstore').getCurrent()['_id'],
-                         ObjectId(file['assetstoreId']))
-        self.assertEqual(file['name'], 'helloWorld.txt')
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['name'], name)
         self.assertEqual(file['size'], len(chunk1 + chunk2))
 
         return file
 
-    def _testDownloadFile(self, file):
+    def _testDownloadFile(self, file, contents):
         """
         Downloads the previously uploaded file from the server.
+        :param file: The file object to download.
+        :type file: dict
+        :param contents: The expected contents.
+        :type contents: str
         """
-        pass
+        resp = self.request(path='/file/%s/download' % str(file['_id']),
+                            method='GET', user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+
+        self.assertEqual(contents, resp.collapse_body())
 
     def _testDeleteFile(self, file):
         """
@@ -137,22 +160,47 @@ class FileTestCase(base.TestCase):
         Test usage of the Filesystem assetstore type.
         """
         root = os.path.join(ROOT_DIR, 'tests', 'assetstore')
-        self.model('assetstore').remove(self.assetstore)
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=root)
+        self.assetstore = assetstore
 
-        self._testEmptyUpload()
+        # First clean out the temp directory
+        for tempname in os.listdir(os.path.join(root, 'temp')):
+            os.remove(os.path.join(root, 'temp', tempname))
 
-        file = self._testUploadFile()
+        # Upload the two-chunk file
+        file = self._testUploadFile('helloWorld1.txt')
 
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
-        hash = sha512('hello world').hexdigest()
+        hash = sha512(chunk1 + chunk2).hexdigest()
         self.assertEqual(hash, file['sha512'])
-        path = os.path.join(root, file['path'])
-        self.assertTrue(os.path.isfile(path))
+        self.assertFalse(os.path.isabs(file['path']))
+        abspath = os.path.join(root, file['path'])
 
-        self._testDownloadFile(file)
+        self.assertTrue(os.path.isfile(abspath))
+        self.assertEqual(os.stat(abspath).st_size, file['size'])
+
+        self._testDownloadFile(file, chunk1 + chunk2)
 
         self._testDeleteFile(file)
-        self.assertFalse(os.path.isfile(path))
+        self.assertFalse(os.path.isfile(abspath))
+
+        # Upload two empty files to test duplication in the assetstore
+        empty1 = self._testEmptyUpload('empty1.txt')
+        empty2 = self._testEmptyUpload('empty2.txt')
+        hash = sha512().hexdigest()
+        abspath = os.path.join(root, empty1['path'])
+        self.assertEqual((hash, hash), (empty1['sha512'], empty2['sha512']))
+        self.assertTrue(os.path.isfile(abspath))
+        self.assertEqual(os.stat(abspath).st_size, 0)
+
+        self._testDownloadFile(empty1, '')
+
+        # Deleting one of the duplicate files but not the other should
+        # leave the file within the assetstore. Deleting both should remove it.
+        self._testDeleteFile(empty1)
+        self.assertTrue(os.path.isfile(abspath))
+        self._testDeleteFile(empty2)
+        self.assertFalse(os.path.isfile(abspath))

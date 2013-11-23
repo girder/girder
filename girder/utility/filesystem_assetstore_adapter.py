@@ -25,6 +25,7 @@ import tempfile
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from .model_importer import ModelImporter
 
 BUF_SIZE = 65536
 
@@ -35,6 +36,14 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     directory. Files are named by their SHA-512 hash, which avoids duplication
     of file content.
     """
+
+    @staticmethod
+    def fileIndexFields():
+        """
+        File documents should have an index on their sha512 field.
+        """
+        return ['sha512']
+
     def __init__(self, assetstore):
         """
         :param assetstore: The assetstore to act on.
@@ -113,19 +122,22 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
         hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
-        dir = os.path.join(self.assetstore['root'], hash[0:2], hash[2:4])
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        dir = os.path.join(hash[0:2], hash[2:4])
+        absdir = os.path.join(self.assetstore['root'], dir)
 
         path = os.path.join(dir, hash)
+        abspath = os.path.join(self.assetstore['root'], path)
 
-        if os.path.exists(path):
+        if not os.path.exists(absdir):
+            os.makedirs(absdir)
+
+        if os.path.exists(abspath):
             # Already have this file stored, just delete temp file.
             os.remove(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
-            os.rename(upload['tempFile'], path)
-            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+            os.rename(upload['tempFile'], abspath)
+            os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
 
         file['sha512'] = hash
         file['path'] = path
@@ -161,6 +173,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def deleteFile(self, file):
         """
-        Deletes the file from disk.
+        Deletes the file from disk if it is the only File in this assetstore
+        with the given sha512.
         """
-        os.remove(os.path.join(self.assetstore['root'], file['path']))
+        q = {
+            'sha512': file['sha512'],
+            'assetstoreId': self.assetstore['_id']
+        }
+        matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+        if matching.count() == 1:
+            os.remove(os.path.join(self.assetstore['root'], file['path']))

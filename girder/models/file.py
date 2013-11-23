@@ -30,6 +30,8 @@ class File(Model):
     """
     def initialize(self):
         self.name = 'file'
+        self.ensureIndices(
+            ['itemId', 'assetstoreId'] + assetstore_utilities.fileIndexFields())
 
     def remove(self, file):
         """

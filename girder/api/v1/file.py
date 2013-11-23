@@ -63,8 +63,7 @@ class File(Resource):
         if upload['size'] > 0:
             return upload
         else:
-            self.model('upload').finalizeUpload(upload)
-            return {'message': 'Empty file, upload complete.'}
+            return self.model('upload').finalizeUpload(upload)
 
     def requestOffset(self, user, params):
         """

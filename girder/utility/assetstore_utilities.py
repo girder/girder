@@ -41,3 +41,13 @@ def getAssetstoreAdapter(assetstore):
         raise Exception('S3 assetstore adapter not implemented.')
 
     return assetstoreAdapter
+
+
+def fileIndexFields():
+    """
+    This will return a set of all required index fields from all of the
+    different assetstore types.
+    """
+    return list(set(FilesystemAssetstoreAdapter.fileIndexFields()))
+    # + GridFSAssetstoreAdapter.fileIndexFields()
+    # + S3AssetstoreAdapter.fileIndexFields()
