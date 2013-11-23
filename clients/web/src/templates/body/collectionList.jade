@@ -1,0 +1,15 @@
+each collection in collections
+  .g-collection-list-entry
+    .g-collection-right-column
+    .g-collection-title
+      a.g-collection-link(g-collection-cid="#{collection.cid}")
+        b #{collection.get('name')}
+    .g-collection-subtitle
+      span.g-collection-description  #{collection.get('description')}
+    .g-clear-right
+
+if (girder.currentUser.get('admin'))
+  .g-collection-menu
+    button.g-collection-create-button.btn.btn-small
+      i.icon-plus-squared
+      |  Create Collection
