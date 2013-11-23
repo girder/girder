@@ -10,6 +10,9 @@ girder.views.CollectionsView = Backbone.View.extend({
             };
             girder.events.trigger('g:navigateTo', girder.views.CollectionView,
                 params);
+        },
+        'click button.g-collection-create-button': function (event) {
+            this.createFolderDialog();
         }
     },
 
@@ -18,6 +21,31 @@ girder.views.CollectionsView = Backbone.View.extend({
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+    },
+
+    /**
+     * Prompt the user to create a new collection
+     */
+    createFolderDialog: function () {
+        var container = $('#g-dialog-container');
+
+        if (!this.editCollectionWidget) {
+            this.editCollectionWidget = new girder.views.EditCollectionWidget({
+                el: container
+            }).off('g:saved').on('g:saved', function (collection) {
+                this.insertCollection(collection);
+            }, this);
+        }
+        this.editCollectionWidget.render();
+    },
+
+    /**
+     * Add a new collection to the system
+     */
+    insertCollection: function (collection) {
+        console.log(collection);
+        this.collection.add(collection);
+        this.render();
     },
 
     render: function () {

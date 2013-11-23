@@ -98,4 +98,4 @@ class Collection(Resource):
         user = self.getCurrentUser()
         self.requireAdmin(user)
 
-        self.createCollection(user, params)
+        return self.createCollection(user, params)

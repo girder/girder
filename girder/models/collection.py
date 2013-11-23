@@ -35,7 +35,8 @@ class Collection(AccessControlledModel):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
-        doc['description'] = doc['description'].strip()
+        if doc['description']:
+            doc['description'] = doc['description'].strip()
 
         if not doc['name']:
             raise ValidationException(
