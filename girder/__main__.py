@@ -19,7 +19,7 @@
 
 import cherrypy  # pragma: no cover
 
-from .utility import server  # pragma: no cover
+from girder.utility import server  # pragma: no cover
 
 if __name__ == '__main__':  # pragma: no cover
     server.setup()
