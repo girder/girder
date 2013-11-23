@@ -158,3 +158,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                     yield data
 
         return stream
+
+    def deleteFile(self, file):
+        """
+        Deletes the file from disk.
+        """
+        os.remove(os.path.join(self.assetstore['root'], file['path']))

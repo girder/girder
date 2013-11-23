@@ -37,9 +37,6 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-    if (sizeBytes === 0) {
-        return 'no space';
-    }
 
     // If it's > 1GB, report to two decimal places, otherwise just one.
     var precision = sizeBytes > 1073741824 ? 2 : 1;

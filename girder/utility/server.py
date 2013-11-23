@@ -52,6 +52,7 @@ def setup(test=False):
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'tools.staticdir.root': ROOT_DIR,
+            'request.show_tracebacks': test
             },
         '/static': {
             'tools.staticdir.on': 'True',

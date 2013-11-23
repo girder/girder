@@ -211,7 +211,7 @@ class Resource(ModelImporter):
                     if type(v) in (str, unicode):
                         params[k] = v.encode('utf-8')
                     else:
-                        params[k] = v
+                        params[k] = v  # pragma: no cover
 
                 val = fun(self, args, params)
 

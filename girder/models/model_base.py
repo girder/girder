@@ -380,8 +380,8 @@ class AccessControlledModel(Model):
             user['name'] = '%s %s' % (userDoc['firstName'], userDoc['lastName'])
 
         for grp in acList['groups']:
-            grpDoc = self.model('user').load(
-                user['id'], force=True, fields=['name'])
+            grpDoc = self.model('group').load(
+                grp['id'], force=True, fields=['name'])
             grp['name'] = grpDoc['name']
 
         return acList

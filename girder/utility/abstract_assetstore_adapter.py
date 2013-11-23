@@ -31,7 +31,7 @@ class AbstractAssetstoreAdapter(object):
         return {
             'free': None,
             'total': None
-        }
+        }  # pragma: no cover
 
     def initUpload(self, upload):
         """
@@ -42,7 +42,7 @@ class AbstractAssetstoreAdapter(object):
         :param upload: The upload document to optionally augment.
         :type upload: dict
         """
-        return upload
+        return upload  # pragma: no cover
 
     def uploadChunk(self, upload, chunk):
         """
@@ -79,7 +79,7 @@ class AbstractAssetstoreAdapter(object):
         possible that the received field is not accurate, so adapters may
         implement this to provide the actual next byte required.
         """
-        return upload['received']
+        return upload['received']  # pragma: no cover
 
     def deleteFile(self, file):
         """

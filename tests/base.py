@@ -17,11 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
+import codecs
 import cherrypy
+import io
 import json
+import mimetypes
 import os
+import sys
 import unittest
 import urllib
+import uuid
 
 from StringIO import StringIO
 from girder.utility.model_importer import ModelImporter
@@ -173,6 +178,17 @@ class TestCase(unittest.TestCase, ModelImporter):
                                 user=user)
             self.assertMissingParameter(resp, exclude)
 
+    def _genCookie(self, user):
+        """
+        Helper method for creating an authentication cookie for the user.
+        """
+        token = self.model('token').createToken(user)
+        cookie = json.dumps({
+            'userId': str(user['_id']),
+            'token': str(token['_id'])
+            }).replace('"', "\\\"")
+        return 'authToken="%s"' % cookie
+
     def request(self, path='/', method='GET', params={}, user=None,
                 prefix='/api/v1', isJson=True):
         """
@@ -203,26 +219,130 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         app = cherrypy.tree.apps['']
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+        request.show_tracebacks = True
 
         if user is not None:
-            token = self.model('token').createToken(user)
-            cookie = json.dumps({
-                'userId': str(user['_id']),
-                'token': str(token['_id'])
-                }).replace('"', "\\\"")
-            headers.append(('Cookie', 'authToken="%s"' % cookie))
+            headers.append(('Cookie', self._genCookie(user)))
+
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
                                    headers, fd)
         finally:
             if fd:
                 fd.close()
-                fd = None
 
         if isJson:
-            response.json = json.loads(response.collapse_body())
+            try:
+                response.json = json.loads(response.collapse_body())
+            except:
+                print response.collapse_body()
+                raise AssertionError('Did not receive JSON response')
 
         if response.output_status.startswith('500'):
             raise AssertionError("Internal server error: %s" % response.body)
 
         return response
+
+    def multipartRequest(self, fields, files, path, method='POST', user=None,
+                         prefix='/api/v1', isJson=True):
+        """
+        Make an HTTP request with multipart/form-data encoding. This can be
+        used to send files with the request.
+
+        :param fields: List of (name, value) tuples.
+        :param files: List of (name, filename, content) tuples.
+        :param path: The path part of the URI.
+        :type path: str
+        :param method: The HTTP method.
+        :type method: str
+        :param prefix: The prefix to use before the path.
+        :param isJson: Whether the response is a JSON object.
+        :returns: The cherrypy response object from the request.
+        """
+        contentType, body, size = MultipartFormdataEncoder().encode(
+            fields, files)
+
+        headers = [('Host', '127.0.0.1'),
+                   ('Accept', 'application/json'),
+                   ('Content-Type', contentType),
+                   ('Content-Length', str(size))]
+
+        app = cherrypy.tree.apps['']
+        request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+        request.show_tracebacks = True
+
+        if user is not None:
+            headers.append(('Cookie', self._genCookie(user)))
+
+        fd = io.BytesIO(body)
+        try:
+            response = request.run(method, prefix + path, None, 'HTTP/1.1',
+                                   headers, fd)
+        finally:
+            fd.close()
+
+        if isJson:
+            try:
+                response.json = json.loads(response.collapse_body())
+            except:
+                print response.collapse_body()
+                raise AssertionError('Did not receive JSON response')
+
+        if response.output_status.startswith('500'):
+            raise AssertionError("Internal server error: %s" % response.body)
+
+        return response
+
+
+class MultipartFormdataEncoder(object):
+    """
+    This class is adapted from http://stackoverflow.com/a/18888633/2550451
+
+    It is used as a helper for creating multipart/form-data requests to
+    simulate file uploads.
+    """
+    def __init__(self):
+        self.boundary = uuid.uuid4().hex
+        self.contentType = \
+            'multipart/form-data; boundary={}'.format(self.boundary)
+
+    @classmethod
+    def u(cls, s):
+        if sys.hexversion < 0x03000000 and isinstance(s, str):
+            s = s.decode('utf-8')
+        if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+            s = s.decode('utf-8')
+        return s
+
+    def iter(self, fields, files):
+        encoder = codecs.getencoder('utf-8')
+        for (key, value) in fields:
+            key = self.u(key)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u('Content-Disposition: form-data; '
+                                 'name="{}"\r\n').format(key))
+            yield encoder('\r\n')
+            if isinstance(value, int) or isinstance(value, float):
+                value = str(value)
+            yield encoder(self.u(value))
+            yield encoder('\r\n')
+        for (key, filename, content) in files:
+            key = self.u(key)
+            filename = self.u(filename)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u('Content-Disposition: form-data; name="{}";'
+                          ' filename="{}"\r\n').format(key, filename))
+            yield encoder('Content-Type: application/octet-stream\r\n')
+            yield encoder('\r\n')
+
+            yield (content, len(content))
+            yield encoder('\r\n')
+        yield encoder('--{}--\r\n'.format(self.boundary))
+
+    def encode(self, fields, files):
+        body = io.BytesIO()
+        size = 0
+        for chunk, chunkLen in self.iter(fields, files):
+            body.write(chunk)
+            size += chunkLen
+        return self.contentType, body.getvalue(), size

@@ -26,6 +26,7 @@ if(PYTHON_STYLE_TESTS)
 endif()
 
 add_python_test(collection)
+add_python_test(file)
 add_python_test(folder)
 add_python_test(group)
 add_python_test(item)

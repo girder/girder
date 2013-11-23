@@ -60,7 +60,7 @@ class Upload(Model):
 
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
-            self.finalizeUpload(upload, assetstore)
+            return self.finalizeUpload(upload, assetstore)
 
     def requestOffset(self, upload):
         """
@@ -96,6 +96,8 @@ class Upload(Model):
         file = adapter.finalizeUpload(upload, file)
         self.model('file').save(file)
         self.remove(upload)
+
+        return file
 
     def createUpload(self, user, name, parentType, parent, size):
         """

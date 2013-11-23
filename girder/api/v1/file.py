@@ -24,6 +24,7 @@ import pymongo
 from .docs import file_docs
 from ..rest import Resource, RestException
 from ...constants import AccessType
+from girder.models.model_base import AccessException
 
 
 class File(Resource):
@@ -100,14 +101,14 @@ class File(Resource):
         offset = int(params['offset'])
 
         if upload['userId'] != user['_id']:
-            raise RestException('You did not initiate this upload.', 403)
+            raise AccessException('You did not initiate this upload.')
 
         if upload['received'] != offset:
             raise RestException(
                 'Server has received %s bytes, but client sent offset %s.'
                 % (upload['received'], offset))
 
-        self.model('upload').handleChunk(upload, params['chunk'].file)
+        return self.model('upload').handleChunk(upload, params['chunk'].file)
 
     def download(self, user, params, fileId):
         """
@@ -143,7 +144,7 @@ class File(Resource):
         user = self.getCurrentUser()
 
         if not user:
-            raise RestException('Must be logged in to upload', 403)
+            raise AccessException('Must be logged in to upload.')
 
         if not path:  # POST /file/ means init new upload
             return self.initUpload(user, params)
@@ -151,3 +152,21 @@ class File(Resource):
             return self.readChunk(user, params)
         else:
             raise RestException('Invalid path format for POST request')
+
+    @Resource.endpoint
+    def DELETE(self, path, params):
+        """
+        Use this endpoint to delete files.
+        """
+        user = self.getCurrentUser()
+
+        if not path:
+            raise RestException('Invalid path format for DELETE request')
+
+        file = self.getObjectById(self.model('file'), id=path[0])
+        item = self.getObjectById(self.model('item'), id=file['itemId'])
+        self.getObjectById(
+            self.model('folder'), id=item['folderId'], user=user,
+            checkAccess=True, level=AccessType.ADMIN)
+
+        self.model('file').remove(file)
