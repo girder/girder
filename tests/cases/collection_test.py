@@ -37,15 +37,6 @@ class CollectionTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        user = {
-            'email': 'good@email.com',
-            'login': 'goodlogin',
-            'firstName': 'First',
-            'lastName': 'Last',
-            'password': 'goodpassword'
-            }
-        self.user = self.model('user').createUser(**user)
-
         admin = {
             'email': 'admin@email.com',
             'login': 'admin',
@@ -55,6 +46,16 @@ class CollectionTestCase(base.TestCase):
             'admin': True
             }
         self.admin = self.model('user').createUser(**admin)
+
+        user = {
+            'email': 'good@email.com',
+            'login': 'goodlogin',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword',
+            'admin': False
+            }
+        self.user = self.model('user').createUser(**user)
 
         coll = {
             'name': 'Test Collection',
