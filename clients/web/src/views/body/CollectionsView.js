@@ -43,7 +43,6 @@ girder.views.CollectionsView = Backbone.View.extend({
      * Add a new collection to the system
      */
     insertCollection: function (collection) {
-        console.log(collection);
         this.collection.add(collection);
         this.render();
     },
