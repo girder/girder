@@ -25,10 +25,10 @@ girder.formatDate = function (datestr, resolution) {
 
     if (resolution >= girder.DATE_MINUTE) {
         output += ' ' + date.getHours() + ':' +
-            ('0'+date.getMinutes()).slice(-2);
+            ('0' + date.getMinutes()).slice(-2);
     }
     if (resolution >= girder.DATE_SECOND) {
-        output += ':' + ('0'+date.getSeconds()).slice(-2);
+        output += ':' + ('0' + date.getSeconds()).slice(-2);
     }
 
     return output;

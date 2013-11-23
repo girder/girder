@@ -34,7 +34,7 @@ class Collection(Resource):
         """
         filtered = self.filterDocument(
             collection, allow=['_id', 'name', 'description', 'public',
-            'created', 'updated', 'size'])
+                               'created', 'updated', 'size'])
 
         filtered['_accessLevel'] = self.model('collection').getAccessLevel(
             collection, currentUser)

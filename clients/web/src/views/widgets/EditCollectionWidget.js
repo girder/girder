@@ -10,8 +10,8 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             };
 
             if (this.collection) {
-                this.collection.set('name', fields['name']);
-                this.collection.set('description', fields['description']);
+                this.collection.set('name', fields.name);
+                this.collection.set('description', fields.description);
                 this.updateCollection(fields);
             }
             else {
@@ -31,7 +31,9 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editCollectionWidget({'collection':view.collection}))
+        this.$el.html(
+            jade.templates.editCollectionWidget(
+                {'collection': view.collection}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').val(view.collection.get('name'));
                 view.$('#g-description').val(view.collection.get('description'));
