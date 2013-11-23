@@ -1,7 +1,7 @@
 Girder
 ======
 
-Data Management Toolkit (working title)
+Data Management Toolkit
 
 ## Install
 

@@ -52,7 +52,7 @@ class Folder(Resource):
 
         To search with full text search, pass the "text" parameter. To search
         by parent, (i.e. list child folders) pass parentId and parentType,
-        which must be one of ('folder' | 'community' | 'user'). You can also
+        which must be one of ('folder' | 'collection' | 'user'). You can also
         pass limit, offset, sort, and sortdir paramters.
 
         :param limit: The result set size limit, default=50.
@@ -69,8 +69,8 @@ class Folder(Resource):
                         sort=sort)]
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
-            if not parentType in ('community', 'folder', 'user'):
-                raise RestException('The parentType must be user, community,'
+            if not parentType in ('collection', 'folder', 'user'):
+                raise RestException('The parentType must be user, collection,'
                                     ' or folder.')
 
             parent = self.getObjectById(
@@ -103,7 +103,7 @@ class Folder(Resource):
         :param parentId: The _id of the parent folder.
         :type parentId: str
         :param parentType: The type of the parent of this folder.
-        :type parentType: str - 'user', 'community', or 'folder'
+        :type parentType: str - 'user', 'collection', or 'folder'
         :param name: The name of the folder to create.
         :param description: Folder description.
         :param public: Public read access flag.
@@ -119,8 +119,9 @@ class Folder(Resource):
         if public is not None:
             public = public.lower() == 'true'
 
-        if parentType not in ('folder', 'user', 'community'):
-            raise RestException('Set parentType to community, folder, or user.')
+        if parentType not in ('folder', 'user', 'collection'):
+            raise RestException('Set parentType to collection, folder, '
+                                'or user.')
 
         model = self.model(parentType)
 
@@ -134,7 +135,7 @@ class Folder(Resource):
         if parentType == 'user':
             folder = self.model('folder').setUserAccess(
                 folder, user=user, level=AccessType.ADMIN, save=True)
-        elif parentType == 'community':
+        elif parentType == 'collection':
             # TODO set appropriate top-level community folder permissions
             pass
         return self._filter(folder, user)

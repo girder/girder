@@ -94,7 +94,8 @@ class Resource(ModelImporter):
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
-        if user is None or not user.get('admin', False) is True:
+
+        if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
     def getPagingParameters(self, params, defaultSortField=None):
