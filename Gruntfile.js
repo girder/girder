@@ -82,7 +82,9 @@ module.exports = function (grunt) {
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
-                        'clients/web/lib/js/bootstrap.min.js'
+                        'clients/web/lib/js/bootstrap.min.js',
+                        'clients/web/lib/js/jquery.jqplot.min.js',
+                        'clients/web/lib/js/jqplot.pieRenderer.min.js'
                     ]
                 }
             }
@@ -199,6 +201,7 @@ module.exports = function (grunt) {
             stylesheets: ['lib/bootstrap/css/bootstrap.min.css',
                           'lib/fontello/css/fontello.css',
                           'lib/fontello/css/animation.css',
+                          'lib/jqplot/css/jquery.jqplot.min.css',
                           'built/app.min.css'],
             scripts: ['built/libs.min.js',
                       'built/app.min.js']

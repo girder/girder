@@ -18,8 +18,7 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
                 type: 'POST'
             }).done(_.bind(function () {
                 girder.currentUser = null;
-                girder.events.trigger('g:logout');
-                this.render();
+                girder.events.trigger('g:login');
             }, this));
         },
 
@@ -33,6 +32,10 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
             girder.events.trigger('g:navigateTo', girder.views.UserSettingsView, {
                 user: girder.currentUser
             });
+        },
+
+        'click a.g-admin': function () {
+            girder.events.trigger('g:navigateTo', girder.views.AdminView);
         }
     },
 

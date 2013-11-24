@@ -22,19 +22,25 @@ import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource, RestException
-from ...models.model_base import ValidationException
 from ...constants import AccessType
 
 
 class Folder(Resource):
     """API Endpoint for folders."""
 
-    def _filter(self, folder):
+    def _filter(self, folder, user):
         """
         Filter a folder document for display to the user.
         """
-        # TODO possibly write a folder filter with self.filterDocument
-        return folder
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
+                'size', 'parentId', 'parentCollection', 'creatorId']
+
+        filtered = self.filterDocument(folder, allow=keys)
+
+        filtered['_accessLevel'] = self.model('folder').getAccessLevel(
+            folder, user)
+
+        return filtered
 
     def find(self, user, params):
         """
@@ -46,7 +52,7 @@ class Folder(Resource):
 
         To search with full text search, pass the "text" parameter. To search
         by parent, (i.e. list child folders) pass parentId and parentType,
-        which must be one of ('folder' | 'community' | 'user'). You can also
+        which must be one of ('folder' | 'collection' | 'user'). You can also
         pass limit, offset, sort, and sortdir paramters.
 
         :param limit: The result set size limit, default=50.
@@ -57,24 +63,38 @@ class Folder(Resource):
         (limit, offset, sort) = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
-            return self.model('folder').search(
-                params['text'], user=user, offset=offset, limit=limit,
-                sort=sort)
+            return [self._filter(folder, user) for folder in
+                    self.model('folder').search(
+                        params['text'], user=user, offset=offset, limit=limit,
+                        sort=sort)]
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
-            if not parentType in ('community', 'folder', 'user'):
-                raise RestException('The parentType must be user, community,'
+            if not parentType in ('collection', 'folder', 'user'):
+                raise RestException('The parentType must be user, collection,'
                                     ' or folder.')
 
             parent = self.getObjectById(
                 self.model(parentType), id=params['parentId'], user=user,
                 checkAccess=True, level=AccessType.READ)
 
-            return self.model('folder').childFolders(
-                parentType=parentType, parent=parent, user=user, offset=offset,
-                limit=limit, sort=sort)
+            return [self._filter(folder, user) for folder in
+                    self.model('folder').childFolders(
+                        parentType=parentType, parent=parent, user=user,
+                        offset=offset, limit=limit, sort=sort)]
         else:
             raise RestException('Invalid search mode.')
+
+    def updateFolder(self, folder, user, params):
+        """
+        Update the folder.
+
+        :param name: Name for the folder.
+        :param description: Description for the folder.
+        :param public: Public read access flag.
+        :type public: bool
+        """
+        self.model('folder').requireAccess(folder, user, AccessType.WRITE)
+        # TODO implement updating of a folder
 
     def createFolder(self, user, params):
         """
@@ -83,7 +103,7 @@ class Folder(Resource):
         :param parentId: The _id of the parent folder.
         :type parentId: str
         :param parentType: The type of the parent of this folder.
-        :type parentType: str - 'user', 'community', or 'folder'
+        :type parentType: str - 'user', 'collection', or 'folder'
         :param name: The name of the folder to create.
         :param description: Folder description.
         :param public: Public read access flag.
@@ -99,8 +119,9 @@ class Folder(Resource):
         if public is not None:
             public = public.lower() == 'true'
 
-        if parentType not in ('folder', 'user', 'community'):
-            raise RestException('Set parentType to community, folder, or user.')
+        if parentType not in ('folder', 'user', 'collection'):
+            raise RestException('Set parentType to collection, folder, '
+                                'or user.')
 
         model = self.model(parentType)
 
@@ -113,11 +134,11 @@ class Folder(Resource):
 
         if parentType == 'user':
             folder = self.model('folder').setUserAccess(
-                folder, user=user, level=AccessType.ADMIN)
-        elif parentType == 'community':
+                folder, user=user, level=AccessType.ADMIN, save=True)
+        elif parentType == 'collection':
             # TODO set appropriate top-level community folder permissions
             pass
-        return self._filter(folder)
+        return self._filter(folder, user)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -141,10 +162,15 @@ class Folder(Resource):
         user = self.getCurrentUser()
         if not path:
             return self.find(user, params)
-        else:  # assume it's a folder id
+        elif len(path) == 1:  # Just get a folder by ID
             folder = self.getObjectById(self.model('folder'), id=path[0],
                                         checkAccess=True, user=user)
-            return self._filter(folder)
+            return self._filter(folder, user)
+        elif path[1] == 'access':
+            folder = self.getObjectById(
+                self.model('folder'), id=path[0], checkAccess=True, user=user,
+                level=AccessType.ADMIN)
+            return self.model('folder').getFullAccessList(folder)
 
     @Resource.endpoint
     def POST(self, path, params):
@@ -153,3 +179,23 @@ class Folder(Resource):
         """
         user = self.getCurrentUser()
         return self.createFolder(user, params)
+
+    @Resource.endpoint
+    def PUT(self, path, params):
+        """
+        Use this endpoint to update an existing folder.
+        """
+        if not path:
+            raise RestException('Must have a path parameter.')
+
+        user = self.getCurrentUser()
+        folder = self.getObjectById(self.model('folder'), id=path[0], user=user,
+                                    checkAccess=True)
+
+        if len(path) == 1:
+            return self.updateFolder(folder, user, params)
+        elif path[1] == 'access':
+            self.requireParams(['access'], params)
+            self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
+            return self.model('folder').setAccessList(
+                folder, params['access'], save=True)

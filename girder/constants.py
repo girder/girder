@@ -25,6 +25,15 @@ import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+class AssetstoreType:
+    """
+    All possible assetstore implementation types.
+    """
+    FILESYSTEM = 0
+    GRIDFS = 1
+    S3 = 2
+
+
 class AccessType:
     """
     Represents the level of access granted to a user or group on an
@@ -39,6 +48,7 @@ class AccessType:
     ADMIN access confers total control; the user can delete the resource and
     also manage permissions for other users on it.
     """
+    NONE = -1
     READ = 0
     WRITE = 1
     ADMIN = 2

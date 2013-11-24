@@ -1,3 +1,1 @@
-girder.routes.Router = Backbone.Router.extend({
-
-});
+girder.router = new Backbone.Router();

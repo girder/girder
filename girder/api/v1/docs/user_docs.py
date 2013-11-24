@@ -67,6 +67,17 @@ apis.append({
     })
 
 apis.append({
+    'path': '/user/me',
+    'resource': 'user',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getCurrentUser',
+        'responseClass': 'User',
+        'summary': 'Retrieve the currently logged-in user information.'
+        }]
+    })
+
+apis.append({
     'path': '/user/login',
     'resource': 'user',
     'responseClass': 'Token',

@@ -146,18 +146,18 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']}, True)
+        return self.collection.remove({'_id': document['_id']})
 
-    def removeWithQuery(self, query, justOne=False):
+    def removeWithQuery(self, query):
         """
         Remove all documents matching a given query from the collection.
         For safety reasons, you may not pass an empty query.
         """
         assert query
 
-        return self.collection.remove(query, justOne)
+        return self.collection.remove(query)
 
-    def load(self, id, objectId=True):
+    def load(self, id, objectId=True, fields=None):
         """
         Fetch a single object from the databse using its _id field.
 
@@ -165,11 +165,13 @@ class Model(ModelImporter):
         :type id: string or ObjectId
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
+        :param fields: Fields list to include. Also can be a dict for
+                       exclusion. See pymongo docs for how to use this arg.
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
             id = ObjectId(id)
-        return self.collection.find_one({'_id': id})
+        return self.collection.find_one({'_id': id}, fields=fields)
 
 
 class AccessControlledModel(Model):
@@ -250,6 +252,61 @@ class AccessControlledModel(Model):
 
         return doc
 
+    def setAccessList(self, doc, access, save=False):
+        """
+        Set the entire access control list to the given value. This also saves
+        the resource in its new state to the database.
+
+        :param doc: The resource to update.
+        :type doc: dict
+        :param access: The new access control list to set on the object.
+        :type access: dict
+        :param save: Whether to save after updating.
+        :type save: boolean
+        :returns: The updated resource.
+        """
+
+        # First coerce the access list value into a valid form.
+        acList = {
+            'users': [],
+            'groups': []
+        }
+
+        for userAccess in access.get('users', []):
+            if 'id' in userAccess and 'level' in userAccess:
+                if not userAccess['level'] in (AccessType.READ,
+                                               AccessType.WRITE,
+                                               AccessType.ADMIN):
+                    raise ValidationException('Invalid access level', 'access')
+
+                acList['users'].append({
+                    'id': userAccess['id'],
+                    'level': userAccess['level']
+                })
+            else:
+                raise ValidationException('Invalid access list', 'access')
+
+        for groupAccess in access.get('groups', []):
+            if 'id' in groupAccess and 'level' in groupAccess:
+                if not groupAccess['level'] in (AccessType.READ,
+                                                AccessType.WRITE,
+                                                AccessType.ADMIN):
+                    raise ValidationException('Invalid access level', 'access')
+
+                acList['groups'].append({
+                    'id': groupAccess['id'],
+                    'level': groupAccess['level']
+                })
+            else:
+                raise ValidationException('Invalid access list', 'access')
+
+        doc['access'] = acList
+
+        if save:
+            doc = self.save(doc, validate=False)
+
+        return doc
+
     def setGroupAccess(self, doc, group, level, save=False):
         """
         Set group-level access on the resource.
@@ -268,6 +325,66 @@ class AccessControlledModel(Model):
         :returns: The updated resource document.
         """
         return self._setAccess(doc, group['_id'], 'groups', level, save)
+
+    def getAccessLevel(self, doc, user):
+        """
+        Return the maximum access level for a given user on a given object.
+        This can be useful for alerting the user which set of actions they are
+        able to perform on the object in advance of trying to call them.
+
+        :param doc: The object to check access on.
+        :param user: The user to get the access level for.
+        :returns: The max AccessType available for the user on the object.
+        """
+        if user is None:
+            if doc.get('public', False):
+                return AccessType.READ
+            else:
+                return AccessType.NONE
+        elif user.get('admin', False):
+            return AccessType.ADMIN
+        else:
+            access = doc.get('access', {})
+            level = AccessType.NONE
+
+            for group in access.get('groups', []):
+                if group['id'] in user.get('groups', []):
+                    level = max(level, group['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            for userAccess in access.get('users', []):
+                if userAccess['id'] == user['_id']:
+                    level = max(level, userAccess['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            return level
+
+    def getFullAccessList(self, doc):
+        """
+        Return an object representing the full access list on this document.
+        This simply includes the names of the users and groups with the access
+        list.
+        """
+        acList = {
+            'users': doc['access'].get('users', []),
+            'groups': doc['access'].get('groups', [])
+        }
+
+        for user in acList['users']:
+            userDoc = self.model('user').load(
+                user['id'], force=True,
+                fields=['firstName', 'lastName', 'login'])
+            user['login'] = userDoc['login']
+            user['name'] = '%s %s' % (userDoc['firstName'], userDoc['lastName'])
+
+        for grp in acList['groups']:
+            grpDoc = self.model('group').load(
+                grp['id'], force=True, fields=['name'])
+            grp['name'] = grpDoc['name']
+
+        return acList
 
     def setUserAccess(self, doc, user, level, save=False):
         """
@@ -340,7 +457,7 @@ class AccessControlledModel(Model):
                                   (perm, self.name))
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False):
+             force=False, fields=None):
         """
         We override Model.load to also do permission checking.
 
@@ -354,7 +471,7 @@ class AccessControlledModel(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)

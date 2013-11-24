@@ -29,11 +29,13 @@ from ...constants import AccessType
 class Group(Resource):
     """API Endpoint for groups."""
 
-    def _filter(self, group):
+    def _filter(self, group, user):
         """
         Filter a group document for display to the user.
         """
-        return group
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+
+        return self.filterDocument(group, allow=keys)
 
     def find(self, params):
         """
@@ -75,7 +77,7 @@ class Group(Resource):
         group = self.model('group').createGroup(
             name=name, creator=user, description=description, public=public)
 
-        return self._filter(group)
+        return self._filter(group, user)
 
     def updateGroup(self, group, user, params):
         """
@@ -171,11 +173,14 @@ class Group(Resource):
     def GET(self, path, params):
         if not path:
             return self.find(params)
+        elif path[0] == 'access':
+            # TODO get full access list
+            pass
         else:  # assume it's an ID
             user = self.getCurrentUser()
             group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
-            return self._filter(group)
+            return self._filter(group, user)
 
     @Resource.endpoint
     def POST(self, path, params):
@@ -201,5 +206,10 @@ class Group(Resource):
             return self.joinGroup(group, user)
         elif path[1] == 'remove':
             return self.removeFromGroup(group, user, params)
+        elif path[1] == 'access':
+            self.requireParams(['access'], params)
+            self.model('group').requireAccess(group, user, AccessType.ADMIN)
+            return self.model('group').setAccessList(
+                group, params['access'], save=True)
         else:
             raise RestException('Invalid group update action.')
