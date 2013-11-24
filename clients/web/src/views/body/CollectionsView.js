@@ -21,6 +21,9 @@ girder.views.CollectionsView = Backbone.View.extend({
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        // This page should be re-rendered if the user logs in or out
+        girder.events.on('g:login', this.userChanged, this);
     },
 
     /**
@@ -55,6 +58,15 @@ girder.views.CollectionsView = Backbone.View.extend({
         girder.router.navigate('collections');
 
         return this;
+    },
+
+    userChanged: function () {
+        // When the user changes, we should refresh the page to reveal the
+        // appropriate collections
+        this.collection.reset();
+        this.collection.off('g:fetched').on('g:fetched', function () {
+            this.render();
+        }, this).fetch();
     }
 });
 
