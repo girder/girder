@@ -4,3 +4,4 @@ docs/_build
 docs/_output
 .coverage
 girder.egg-info
+.DS_Store

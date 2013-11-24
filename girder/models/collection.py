@@ -35,7 +35,8 @@ class Collection(AccessControlledModel):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
-        doc['description'] = doc['description'].strip()
+        if doc['description']:
+            doc['description'] = doc['description'].strip()
 
         if not doc['name']:
             raise ValidationException(
@@ -132,5 +133,20 @@ class Collection(AccessControlledModel):
                 creator=creator)
             self.model('folder').setUserAccess(
                 publicFolder, creator, AccessType.ADMIN, save=True)
+
+        return collection
+
+    def updateCollection(self, collection):
+        """
+        Updates a collection.
+
+        :param collection: The collection document to update
+        :type collection: dict
+        :returns: The collection document that was edited.
+        """
+        collection['updated'] = datetime.datetime.now()
+
+        # Validate and save the collection
+        self.save(collection)
 
         return collection
