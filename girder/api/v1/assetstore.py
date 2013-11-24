@@ -70,7 +70,7 @@ class Assetstore(Resource):
                 name=params['name'], root=params['root'])
         elif assetstoreType == AssetstoreType.GRIDFS:
             self.requireParams(['db'], params)
-            return self.model('assetstore').createGridFSAssetstore(
+            return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:
             return self.model('assetstore').createS3Assetstore(

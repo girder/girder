@@ -25,6 +25,7 @@ from hashlib import sha512
 from .. import base
 
 from girder.constants import AccessType, ROOT_DIR
+from girder.models import getDbConnection
 
 
 def setUpModule():
@@ -147,6 +148,14 @@ class FileTestCase(base.TestCase):
 
         self.assertEqual(contents, resp.collapse_body())
 
+        # Test downloading with an offset
+        resp = self.request(path='/file/%s/download' % str(file['_id']),
+                            method='GET', user=self.user, isJson=False,
+                            params={'offset': 1})
+        self.assertStatusOk(resp)
+
+        self.assertEqual(contents[1:], resp.collapse_body())
+
     def _testDeleteFile(self, file):
         """
         Deletes the previously uploaded file from the server.
@@ -200,7 +209,42 @@ class FileTestCase(base.TestCase):
 
         # Deleting one of the duplicate files but not the other should
         # leave the file within the assetstore. Deleting both should remove it.
+
         self._testDeleteFile(empty1)
         self.assertTrue(os.path.isfile(abspath))
         self._testDeleteFile(empty2)
         self.assertFalse(os.path.isfile(abspath))
+
+    def testGridFsAssetstore(self):
+        """
+        Test usage of the GridFS assetstore type.
+        """
+        # Clear the assetstore database
+        conn = getDbConnection()
+        conn.drop_database('girder_assetstore_test')
+
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test', db='girder_assetstore_test')
+        self.assetstore = assetstore
+
+        chunkColl = conn['girder_assetstore_test']['chunk']
+
+        # Upload the two-chunk file
+        file = self._testUploadFile('helloWorld1.txt')
+        hash = sha512(chunk1 + chunk2).hexdigest()
+        self.assertEqual(hash, file['sha512'])
+
+        # We should have two chunks in the database
+        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
+
+        self._testDownloadFile(file, chunk1 + chunk2)
+
+        # Delete the file, make sure chunks are gone from database
+        self._testDeleteFile(file)
+        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 0)
+
+        empty = self._testEmptyUpload('empty.txt')
+        self.assertEqual(sha512().hexdigest(), empty['sha512'])
+        self._testDownloadFile(empty, '')
+        self._testDeleteFile(empty)

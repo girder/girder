@@ -20,7 +20,7 @@ class AbstractAssetstoreAdapter(object):
     This defines the interace to be used by all assetstore adapters.
     """
 
-    def capacityInfo(self, assetstore):
+    def capacityInfo(self):
         """
         Assetstore types that are able to report how much free and/or total
         capacity they have should override this method. Default behavior is to
@@ -68,8 +68,7 @@ class AbstractAssetstoreAdapter(object):
         :type file: dict
         :returns: The file document with optional modifications.
         """
-        raise Exception('Must override finalizeUpload in %s.'
-                        % self.__class__.__name__)  # pragma: no cover
+        return file
 
     def requestOffset(self, upload):
         """
@@ -79,7 +78,7 @@ class AbstractAssetstoreAdapter(object):
         possible that the received field is not accurate, so adapters may
         implement this to provide the actual next byte required.
         """
-        return upload['received']  # pragma: no cover
+        return upload['received']
 
     def deleteFile(self, file):
         """

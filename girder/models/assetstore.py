@@ -45,7 +45,7 @@ class Assetstore(Model):
 
         # Name must not be empty
         if not doc['name']:
-            raise ValidationException('Name must not be empty', 'name')
+            raise ValidationException('Name must not be empty.', 'name')
 
         # Filesystem assetstores must have their directory exist and writeable
         if doc['type'] == AssetstoreType.FILESYSTEM:
@@ -61,6 +61,14 @@ class Assetstore(Model):
             if not os.access(doc['root'], os.W_OK):
                 raise ValidationException('Unable to write into directory "%s".'
                                           % doc['root'], 'root')
+
+        if doc['type'] == AssetstoreType.GRIDFS:
+            if not doc['db']:
+                raise ValidationException('Database Name must not be empty.',
+                                          'db')
+            if '.' in doc['db'] or ' ' in doc['db']:
+                raise ValidationException('Database Name cannot contain spaces'
+                                          ' or periods.', 'db')
 
         # If no current assetstore exists yet, set this one as the current.
         current = self.find({'current': True}, limit=1, fields=['_id'])
@@ -102,8 +110,13 @@ class Assetstore(Model):
             'root': root
         })
 
-    def createGridFSAssetstore(self, name, db):
-        raise Exception('GridFS assetstore not implemented yet.')
+    def createGridFsAssetstore(self, name, db):
+        return self.save({
+            'type': AssetstoreType.GRIDFS,
+            'created': datetime.datetime.now(),
+            'name': name,
+            'db': db
+        })
 
     def createS3Assetstore(self, name):
         raise Exception('S3 assetstore not implemented yet.')

@@ -146,16 +146,16 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']}, True)
+        return self.collection.remove({'_id': document['_id']})
 
-    def removeWithQuery(self, query, justOne=False):
+    def removeWithQuery(self, query):
         """
         Remove all documents matching a given query from the collection.
         For safety reasons, you may not pass an empty query.
         """
         assert query
 
-        return self.collection.remove(query, justOne)
+        return self.collection.remove(query)
 
     def load(self, id, objectId=True, fields=None):
         """
