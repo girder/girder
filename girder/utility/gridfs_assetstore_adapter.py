@@ -29,7 +29,9 @@ from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
 
-CHUNK_SIZE = 2097152  # 2MB chunks
+# 2MB chunks. Clients must not send any chunks that are smaller than this
+# unless they are sending the final chunk.
+CHUNK_SIZE = 2097152
 
 
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -68,6 +70,19 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
 
+        # This bit of code will only do anything if there is a discrepancy
+        # between the received count of the upload record and the length of
+        # the file stored as chunks in the database. This code simply updates
+        # the sha512 state with the difference before reading the bytes sent
+        # from the user.
+        if self.requestOffset(upload) > upload['received']:
+            cursor = self.chunkColl.find({
+                'uuid': upload['chunkUuid'],
+                'n': {'$gte': upload['received'] // CHUNK_SIZE}
+            }, fields=['data']).sort('n', pymongo.ASCENDING)
+            for result in cursor:
+                checksum.update(result['data'])
+
         cursor = self.chunkColl.find({
             'uuid': upload['chunkUuid']
         }).sort('n', pymongo.DESCENDING).limit(1)
@@ -77,8 +92,6 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             n = cursor[0]['n'] + 1
 
         size = 0
-
-        # TODO detect corrupted state and correct it
 
         while True:
             data = chunk.read(CHUNK_SIZE)
@@ -98,6 +111,23 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['sha512state'] = sha512_state.serializeHex(checksum)
         upload['received'] += size
         return upload
+
+    def requestOffset(self, upload):
+        """
+        The offset will be the CHUNK_SIZE * total number of chunks in the
+        database for this file. We return the max of that and the received
+        count because in testing mode we are uploading chunks that are smaller
+        than the CHUNK_SIZE, which in practice will not work.
+        """
+        cursor = self.chunkColl.find({
+            'uuid': upload['chunkUuid']
+        }).sort('n', pymongo.DESCENDING).limit(1)
+        if cursor.count(True) == 0:
+            offset = 0
+        else:
+            offset = cursor[0]['n'] * CHUNK_SIZE
+
+        return max(offset, upload['received'])
 
     def finalizeUpload(self, upload, file):
         """
