@@ -36,7 +36,8 @@ girder.views.CollectionView = Backbone.View.extend({
 
     render: function () {
         this.$el.html(jade.templates.collectionPage({
-            collection: this.model
+            collection: this.model,
+            girder: girder
         }));
 
         this.hierarchyWidget = new girder.views.HierarchyWidget({

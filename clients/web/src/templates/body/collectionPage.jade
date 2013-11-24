@@ -1,7 +1,10 @@
 .g-collection-header
-  button.g-collection-edit-button.btn.btn-warning.btn-small
-    i.icon-edit
-    |  Edit
+
+  if (collection.get('_accessLevel') >= girder.AccessType.WRITE)
+    button.g-collection-edit-button.btn.btn-warning.btn-small
+      i.icon-edit
+      |  Edit
+
   .g-collection-name #{collection.get('name')}
   .g-collection-description #{collection.get('description')}
   .g-clear-right
