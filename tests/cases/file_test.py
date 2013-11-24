@@ -175,8 +175,10 @@ class FileTestCase(base.TestCase):
         self.assetstore = assetstore
 
         # First clean out the temp directory
-        for tempname in os.listdir(os.path.join(root, 'temp')):
-            os.remove(os.path.join(root, 'temp', tempname))
+        tmpdir = os.path.join(root, 'temp')
+        if os.path.isdir(tmpdir):
+            for tempname in os.listdir(tmpdir):
+                os.remove(os.path.join(tmpdir, tempname))
 
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
