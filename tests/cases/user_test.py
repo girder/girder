@@ -78,7 +78,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(cherrypy.config['users']['password_description'],
                          resp.json['message'])
 
-        params['password'] = 'goodpassword'
+        params['password'] = 'good:password'
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
 
@@ -120,7 +120,7 @@ class UserTestCase(base.TestCase):
 
         # Login successfully with email
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='good@email.com:goodpassword')
+                            basicAuth='good@email.com:good:password')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
         self.assertHasKeys(
@@ -129,13 +129,13 @@ class UserTestCase(base.TestCase):
 
         # Invalid login
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='badlogin:goodpassword')
+                            basicAuth='badlogin:good:password')
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='goodlogin:goodpassword')
+                            basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
 
         # Make sure we got a nice cookie
