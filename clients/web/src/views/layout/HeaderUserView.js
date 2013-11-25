@@ -14,8 +14,8 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
 
         'click a.g-logout': function () {
             girder.restRequest({
-                path: 'user/logout',
-                type: 'POST'
+                path: 'user/authentication',
+                type: 'DELETE'
             }).done(_.bind(function () {
                 girder.currentUser = null;
                 girder.events.trigger('g:login');

@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import base64
 import cherrypy
 import json
 
@@ -87,21 +88,30 @@ class User(Resource):
                     text=params.get('text'), user=currentUser,
                     offset=offset, limit=limit, sort=sort)]
 
-    def login(self, params):
+    def login(self):
         """
-        Login endpoint. Sends a session cookie in the response on success.
-
-        :param login: The login name.
-        :param password: The user's password.
+        Login endpoint. Sends an auth cookie in the response on success.
+        The caller is expected to use HTTP Basic Authentication when calling
+        this endpoint.
         """
-        (user, token) = self.getCurrentUser(returnToken=True)
+        user, token = self.getCurrentUser(returnToken=True)
 
         # Only create and send new cookie if user isn't already sending
         # a valid one.
         if not user:
-            self.requireParams(['login', 'password'], params)
+            authHeader = cherrypy.request.headers.get('Authorization')
 
-            login = params['login'].lower().strip()
+            if not authHeader or not authHeader[0:6] == 'Basic ':
+                raise RestException('Use HTTP Basic Authentication', 401)
+
+            try:
+                credentials = base64.b64decode(authHeader[6:])
+            except:
+                raise RestException('Invalid HTTP Authorization header')
+
+            login, password = credentials.split(':', 1)
+
+            login = login.lower().strip()
             loginField = 'email' if '@' in login else 'login'
 
             cursor = self.model('user').find({loginField: login}, limit=1)
@@ -114,8 +124,7 @@ class User(Resource):
                                                     days=self.COOKIE_LIFETIME)
             self._sendAuthTokenCookie(user, token)
 
-            if not self.model('password').authenticate(user,
-                                                       params['password']):
+            if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
         return {'user': self._filter(user, user),
@@ -152,16 +161,19 @@ class User(Resource):
         Delete a user account.
         """
         if not path:
-            raise RestException(
-                'Path parameter should be the user ID to delete.')
+            raise RestException('Unsupported operation.')
+        elif path[0] == 'authentication':
+            return self.logout()
+        elif len(path) == 1:  # Keep this check to make sure user wants this.
+            user = self.getCurrentUser()
+            userToDelete = self.getObjectById(
+                self.model('user'), id=path[0], user=user, checkAccess=True,
+                level=AccessType.ADMIN)
 
-        user = self.getCurrentUser()
-        userToDelete = self.getObjectById(
-            self.model('user'), id=path[0], user=user, checkAccess=True,
-            level=AccessType.ADMIN)
-
-        self.model('user').remove(userToDelete)
-        return {'message': 'Deleted user %s.' % userToDelete['login']}
+            self.model('user').remove(userToDelete)
+            return {'message': 'Deleted user %s.' % userToDelete['login']}
+        else:
+            raise RestException('Unsupported operation.')
 
     @Resource.endpoint
     def GET(self, path, params):
@@ -170,6 +182,8 @@ class User(Resource):
             return self.find(user, params)
         elif path[0] == 'me':  # return the current user
             return self._filter(user, user)
+        elif path[0] == 'authentication':  # login with basic auth
+            return self.login()
         else:  # assume it's a user id
             return self._filter(self.getObjectById(
                 self.model('user'), id=path[0], user=user, checkAccess=True),
@@ -178,13 +192,9 @@ class User(Resource):
     @Resource.endpoint
     def POST(self, path, params):
         """
-        Use this endpoint to register a new user, to login, or to logout.
+        Use this endpoint to register a new user.
         """
         if not path:
             return self.createUser(params)
-        elif path[0] == 'login':
-            return self.login(params)
-        elif path[0] == 'logout':
-            return self.logout()
         else:
             raise RestException('Unsupported operation.')

@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import base64
 import codecs
 import cherrypy
 import io
@@ -190,7 +191,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         return 'authToken="%s"' % cookie
 
     def request(self, path='/', method='GET', params={}, user=None,
-                prefix='/api/v1', isJson=True):
+                prefix='/api/v1', isJson=True, basicAuth=None):
         """
         Make an HTTP request.
 
@@ -202,6 +203,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type params: dict
         :param prefix: The prefix to use before the path.
         :param isJson: Whether the response is a JSON object.
+        :param basicAuth: A string to pass with the Authorization: Basic header
+                          of the form 'login:password'
         :returns: The cherrypy response object from the request.
         """
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
@@ -223,6 +226,10 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         if user is not None:
             headers.append(('Cookie', self._genCookie(user)))
+
+        if basicAuth is not None:
+            authToken = base64.b64encode(basicAuth)
+            headers.append(('Authorization', 'Basic {}'.format(authToken)))
 
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
