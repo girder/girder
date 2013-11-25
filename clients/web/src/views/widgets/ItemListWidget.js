@@ -10,7 +10,9 @@ girder.views.ItemListWidget = Backbone.View.extend({
     },
 
     initialize: function (settings) {
+        this.checked = [];
         this.collection = new girder.collections.ItemCollection();
+        this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch({

@@ -1,1 +1,3 @@
-girder.models.ItemModel = Backbone.Model.extend();
+girder.models.ItemModel = girder.Model.extend({
+    resourceName: 'item'
+});

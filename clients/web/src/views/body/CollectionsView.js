@@ -32,14 +32,11 @@ girder.views.CollectionsView = Backbone.View.extend({
     createFolderDialog: function () {
         var container = $('#g-dialog-container');
 
-        if (!this.editCollectionWidget) {
-            this.editCollectionWidget = new girder.views.EditCollectionWidget({
-                el: container
-            }).off('g:saved').on('g:saved', function (collection) {
-                this.insertCollection(collection);
-            }, this);
-        }
-        this.editCollectionWidget.render();
+        new girder.views.EditCollectionWidget({
+            el: container
+        }).off('g:saved').on('g:saved', function (collection) {
+            this.insertCollection(collection);
+        }, this).render();
     },
 
     /**

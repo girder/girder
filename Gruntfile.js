@@ -69,6 +69,8 @@ module.exports = function (grunt) {
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
                         'clients/web/src/utilities.js',
+                        'clients/web/src/collection.js',
+                        'clients/web/src/model.js',
                         'clients/web/src/models/**/*.js',
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'

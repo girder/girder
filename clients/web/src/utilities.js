@@ -77,6 +77,26 @@ girder.confirm = function (params) {
 };
 
 /**
+ * This comparator can be used by collections that wish to sort their
+ * records in a case-insensitive manner.
+ */
+girder.caseInsensitiveComparator = function (model1, model2) {
+    var a1 = model1.get(this.sortField),
+        a2 = model2.get(this.sortField);
+
+    if (typeof(a1) === 'string') {
+        a1 = a1.toLowerCase();
+        a2 = a2.toLowerCase();
+    }
+    if (a1 > a2) {
+        return this.sortDir;
+    }
+    else {
+        return -this.sortDir;
+    }
+};
+
+/**
  * Define jQuery plugins within this scope.
  */
 (function ($) {
