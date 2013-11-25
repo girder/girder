@@ -51,7 +51,7 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             this.trigger('g:saved', collection);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -64,7 +64,7 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             this.trigger('g:saved', this.collection);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }

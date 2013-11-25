@@ -147,6 +147,4 @@ class Collection(AccessControlledModel):
         collection['updated'] = datetime.datetime.now()
 
         # Validate and save the collection
-        self.save(collection)
-
-        return collection
+        return self.save(collection)

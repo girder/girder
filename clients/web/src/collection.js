@@ -69,8 +69,9 @@ girder.Collection = Backbone.Collection.extend({
                 else {
                     this.reset(list);
                 }
-                this.trigger('g:changed');
             }
+
+            this.trigger('g:changed');
         }, this));
     }
 });
