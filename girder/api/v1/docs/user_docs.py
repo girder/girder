@@ -90,7 +90,7 @@ apis.append({
                  'Sends a cookie that should be passed back in future '
                  'requests.',
         'errorResponses': [
-            Describe.errorResponse('Missing Authentication header.'),
+            Describe.errorResponse('Missing Authorization header.', 401),
             Describe.errorResponse('Invalid login or password.', 403)
             ]
         }, {
