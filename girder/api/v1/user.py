@@ -53,8 +53,10 @@ class User(Resource):
 
         return filtered
 
-    def _sendAuthTokenCookie(self, user, token):
+    def _sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
+        token = self.model('token').createToken(user, days=self.COOKIE_LIFETIME)
+
         cookie = cherrypy.response.cookie
         cookie['authToken'] = json.dumps({
             'userId': str(user['_id']),
@@ -62,6 +64,8 @@ class User(Resource):
             })
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = self.COOKIE_LIFETIME * 3600 * 24
+
+        return token
 
     def _deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
@@ -123,9 +127,7 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
-            token = self.model('token').createToken(user,
-                                                    days=self.COOKIE_LIFETIME)
-            self._sendAuthTokenCookie(user, token)
+            token = self._sendAuthTokenCookie(user)
 
         return {'user': self._filter(user, user),
                 'authToken': {
@@ -149,9 +151,7 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'])
 
-        token = self.model('token').createToken(user,
-                                                days=self.COOKIE_LIFETIME)
-        self._sendAuthTokenCookie(user, token)
+        self._sendAuthTokenCookie(user)
 
         return self._filter(user, user)
 
