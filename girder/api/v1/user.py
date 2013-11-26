@@ -120,12 +120,12 @@ class User(Resource):
 
             user = cursor.next()
 
+            if not self.model('password').authenticate(user, password):
+                raise RestException('Login failed.', code=403)
+
             token = self.model('token').createToken(user,
                                                     days=self.COOKIE_LIFETIME)
             self._sendAuthTokenCookie(user, token)
-
-            if not self.model('password').authenticate(user, password):
-                raise RestException('Login failed.', code=403)
 
         return {'user': self._filter(user, user),
                 'authToken': {
