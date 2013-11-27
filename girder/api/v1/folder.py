@@ -60,7 +60,7 @@ class Folder(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
             return [self._filter(folder, user) for folder in
@@ -171,6 +171,12 @@ class Folder(Resource):
                 self.model('folder'), id=path[0], checkAccess=True, user=user,
                 level=AccessType.ADMIN)
             return self.model('folder').getFullAccessList(folder)
+        elif path[1] == 'download':
+            folder = self.getObjectById(
+                self.model('folder'), id=path[0], checkAccess=True, user=user)
+            return self.download(folder, user)
+        else:
+            raise RestException('Unsupported operation.')
 
     @Resource.endpoint
     def POST(self, path, params):

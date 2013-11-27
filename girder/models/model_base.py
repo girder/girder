@@ -500,9 +500,9 @@ class AccessControlledModel(Model):
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset):
         """
-        Given a database result cursor, return only the results that the user
-        has the given level of access on, respecting the limit and offset
-        specified.
+        Given a database result cursor, this generator will yield only the
+        results that the user has the given level of access on, respecting the
+        limit and offset specified.
 
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
@@ -512,18 +512,15 @@ class AccessControlledModel(Model):
         :param offset: The offset into the result set.
         """
         count = skipped = 0
-        results = []
         for result in cursor:
             if self.hasAccess(result, user=user, level=level):
                 if skipped < offset:
                     skipped += 1
                 else:
-                    results.append(result)
+                    yield result
                     count += 1
             if count == limit:
                 break
-
-        return results
 
 
 class AccessException(Exception):

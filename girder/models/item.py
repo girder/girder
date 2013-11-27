@@ -31,7 +31,7 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(['lowerName'])
+        self.ensureIndices(['folderId', 'lowerName'])
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -109,8 +109,7 @@ class Item(Model):
         since items with similar text have a good chance of residing in the
         same folder, or a small set of folders.
         """
-        folderAccess = {}
-        return []
+        pass
 
     def createItem(self, name, creator, folder, description=''):
         """

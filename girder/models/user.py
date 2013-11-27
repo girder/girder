@@ -157,9 +157,10 @@ class User(AccessControlledModel):
         # afterward.
         cursor = self.find({}, limit=0, sort=sort)
 
-        return self.filterResultsByPermission(cursor=cursor, user=user,
-                                              level=AccessType.READ,
-                                              limit=limit, offset=offset)
+        for r in self.filterResultsByPermission(cursor=cursor, user=user,
+                                                level=AccessType.READ,
+                                                limit=limit, offset=offset):
+            yield r
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):

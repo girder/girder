@@ -54,7 +54,7 @@ class Item(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
             return self.model('item').search(
@@ -66,8 +66,8 @@ class Item(Resource):
                 self.model('folder'), id=params['folderId'], user=user,
                 checkAccess=True, level=AccessType.READ)
 
-            return self.model('folder').childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort)
+            return [item for item in self.model('folder').childItems(
+                folder=folder, limit=limit, offset=offset, sort=sort)]
         else:
             raise RestException('Invalid search mode.')
 
