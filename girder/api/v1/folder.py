@@ -18,11 +18,13 @@
 ###############################################################################
 
 import cherrypy
+import os
 import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource, RestException
 from ...constants import AccessType
+from ...utility import ziputil
 
 
 class Folder(Resource):
@@ -83,6 +85,40 @@ class Folder(Resource):
                         offset=offset, limit=limit, sort=sort)]
         else:
             raise RestException('Invalid search mode.')
+
+    def download(self, folder, user):
+        """
+        Returns a generator function that will be used to stream out a zip
+        file containing this folder's contents, filtered by permissions.
+        """
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="{}{}"'.format(folder['name'], '.zip')
+
+        def stream():
+            zip = ziputil.ZipGenerator(folder['name'])
+            for data in self._downloadFolder(folder, zip, user):
+                yield data
+
+            yield zip.footer()
+        return stream
+
+    def _downloadFolder(self, folder, zip, user, path=''):
+        """
+        Helper method to recurse through folders and download files in them.
+        """
+        for sub in self.model('folder').childFolders(parentType='folder',
+                                                     parent=folder, user=user,
+                                                     limit=0):
+            for data in self._downloadFolder(sub, zip, user, os.path.join(
+                                             path, sub['name'])):
+                yield data
+        for item in self.model('folder').childItems(folder=folder, limit=0):
+            for file in self.model('item').childFiles(item=item, limit=0):
+                for data in zip.addFile(self.model('file')
+                               .download(file, headers=False), os.path.join(
+                                   path, file['name'])):
+                    yield data
 
     def updateFolder(self, folder, user, params):
         """

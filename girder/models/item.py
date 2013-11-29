@@ -69,6 +69,24 @@ class Item(Model):
 
         return doc
 
+    def childFiles(self, item, limit=50, offset=0, sort=None):
+        """
+        Generator function that yields child files in the item.
+
+        :param item: The parent item.
+        :param limit: Result limit.
+        :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        """
+        q = {
+            'itemId': item['_id']
+            }
+
+        cursor = self.model('file').find(
+            q, limit=limit, offset=offset, sort=sort)
+        for file in cursor:
+            yield file
+
     def remove(self, item):
         """
         Delete an item, and all references to it in the database.

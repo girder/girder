@@ -91,7 +91,7 @@ class AbstractAssetstoreAdapter(object):
         raise Exception('Must override deleteFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def downloadFile(self, file, offset=0):
+    def downloadFile(self, file, offset=0, headers=True):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
@@ -101,6 +101,8 @@ class AbstractAssetstoreAdapter(object):
         :type file: dict
         :param offset: Offset in bytes to start the download at.
         :type offset: int
+        :param headers: Flag for whether headers should be sent on the response.
+        :type headers: bool
         """
         raise Exception('Must override downloadFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover

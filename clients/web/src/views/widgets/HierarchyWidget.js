@@ -4,6 +4,7 @@
 girder.views.HierarchyWidget = Backbone.View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
+        'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
         'click .g-upload-here-button': 'uploadDialog'
     },
@@ -202,6 +203,11 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             folderCount: folders.length,
             itemCount: items.length
         });
+    },
+
+    downloadFolder: function () {
+        window.location = girder.apiRoot + '/folder/' +
+           this.parentModel.get('_id') + '/download';
     }
 });
 

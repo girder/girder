@@ -218,7 +218,7 @@ class Resource(ModelImporter):
                 if isinstance(val, types.FunctionType):
                     # If the endpoint returned a function, we assume it's a
                     # generator function for a streaming response.
-                    cherrypy.request.config['response.stream'] = True
+                    cherrypy.response.stream = True
                     return val()
 
             except RestException as e:
