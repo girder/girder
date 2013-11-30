@@ -18,8 +18,10 @@
 ###############################################################################
 
 import cherrypy
+import io
 import json
 import os
+import zipfile
 
 from hashlib import sha512
 from .. import base
@@ -156,6 +158,48 @@ class FileTestCase(base.TestCase):
 
         self.assertEqual(contents[1:], resp.collapse_body())
 
+    def _testDownloadFolder(self):
+        """
+        Test downloading an entire folder as a zip file.
+        """
+        # Create a subfolder
+        resp = self.request(
+            path='/folder', method='POST', user=self.user, params={
+                'name': 'Test',
+                'parentId': self.privateFolder['_id']
+            })
+        test = resp.json
+        contents = os.urandom(1024 * 1024)  # Generate random file contents
+
+        # Upload the file into that subfolder
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': test['_id'],
+                'name': 'random.bin',
+                'size': len(contents)
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'random.bin', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the folder
+        resp = self.request(
+            path='/folder/%s/download' % str(self.privateFolder['_id']),
+            method='GET', user=self.user, isJson=False)
+        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        extracted = zip.read('Private/Test/random.bin')
+        self.assertEqual(extracted, contents)
+
     def _testDeleteFile(self, file):
         """
         Deletes the previously uploaded file from the server.
@@ -194,6 +238,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(os.stat(abspath).st_size, file['size'])
 
         self._testDownloadFile(file, chunk1 + chunk2)
+        self._testDownloadFolder()
 
         self._testDeleteFile(file)
         self.assertFalse(os.path.isfile(abspath))
@@ -241,6 +286,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
 
         self._testDownloadFile(file, chunk1 + chunk2)
+        self._testDownloadFolder()
 
         # Delete the file, make sure chunks are gone from database
         self._testDeleteFile(file)
