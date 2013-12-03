@@ -29,7 +29,7 @@ girder.views.CollectionView = Backbone.View.extend({
         if (!this.editCollectionWidget) {
             this.editCollectionWidget = new girder.views.EditCollectionWidget({
                 el: container,
-                collection: this.model
+                model: this.model
             }).off('g:saved').on('g:saved', function (collection) {
                 this.render();
             }, this);
