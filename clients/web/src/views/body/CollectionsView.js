@@ -46,6 +46,12 @@ girder.views.CollectionsView = Backbone.View.extend({
             collections: this.collection.models,
             girder: girder
         }));
+
+        new girder.views.PaginateWidget({
+            el: this.$('.g-collection-pagination'),
+            collection: this.collection
+        }).render();
+
         girder.router.navigate('collections');
 
         return this;

@@ -9,7 +9,7 @@ girder.Collection = Backbone.Collection.extend({
     sortDir: girder.SORT_ASC,
 
     // Number of records to fetch per page
-    pageLimit: 50,
+    pageLimit: 25,
     offset: 0,
 
     /**
@@ -21,12 +21,43 @@ girder.Collection = Backbone.Collection.extend({
     append: false,
 
     /**
+     * Returns a boolean of whether or not this collection has previous pages,
+     * i.e. if the offset of the current page start is > 0
+     */
+    hasPreviousPage: function () {
+        return this.offset - this.length > 0;
+    },
+
+    /**
      * After you have called fetch() on a collection, this method will tell
      * you whether there are more pages remaining to be fetched, or if you
      * have hit the end.
      */
-    hasMorePages: function () {
+    hasNextPage: function () {
         return this._hasMorePages;
+    },
+
+    /**
+     * Fetch the previous page of this collection, emitting g:changed when done.
+     */
+    fetchPreviousPage: function (params) {
+        this.offset = Math.max(0, this.offset - this.length - this.pageLimit);
+        this.fetch(params);
+    },
+
+    /**
+     * Fetch the previous page of this collection, emitting g:changed when done.
+     */
+    fetchNextPage: function (params) {
+        this.fetch(params);
+    },
+
+    /**
+     * Return the 0-indexed page number of the current page. Add 1 to this
+     * result when displaying it to the user.
+     */
+    pageNum: function (params) {
+        return Math.ceil((this.offset - this.length) / this.pageLimit);
     },
 
     /**

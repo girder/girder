@@ -34,7 +34,7 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
         this.$el.html(jade.templates.editCollectionWidget({
                 collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
-            if (this.model) {
+            if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));
                 view.$('#g-description').val(view.model.get('description'));
             }
@@ -59,11 +59,10 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
     },
 
     updateCollection: function (fields) {
-        console.log(fields);
-        this.collection.set(fields);
-        this.collection.on('g:saved', function () {
+        this.model.set(fields);
+        this.model.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', this.collection);
+            this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');
