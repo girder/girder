@@ -6,12 +6,13 @@ girder.views.LoginView = Backbone.View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
+            var authStr = btoa(this.$('#g-login').val() + ':' +
+                               this.$('#g-password').val());
             girder.restRequest({
-                path: 'user/login',
-                type: 'POST',
-                data: {
-                    login: this.$('#g-login').val(),
-                    password: this.$('#g-password').val()
+                path: 'user/authentication',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Basic ' + authStr
                 },
                 error: null // don't do default error behavior
             }).done(_.bind(function (resp) {

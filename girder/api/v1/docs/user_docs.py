@@ -78,32 +78,23 @@ apis.append({
     })
 
 apis.append({
-    'path': '/user/login',
+    'path': '/user/authentication',
     'resource': 'user',
     'responseClass': 'Token',
     'operations': [{
-        'httpMethod': 'POST',
+        'httpMethod': 'GET',
         'nickname': 'login',
         'returns': 'Authentication token',
         'summary': 'Log in to the system.',
-        'notes': 'Returns a cookie that should be passed back in future '
+        'notes': 'Pass your username and password using HTTP Basic Auth. '
+                 'Sends a cookie that should be passed back in future '
                  'requests.',
-        'parameters': [
-            Describe.param('login', "Your email or login."),
-            Describe.param('password', "Your password.")
-            ],
         'errorResponses': [
-            Describe.errorResponse('Missing parameter'),
+            Describe.errorResponse('Missing Authorization header.', 401),
             Describe.errorResponse('Invalid login or password.', 403)
             ]
-        }]
-    })
-
-apis.append({
-    'path': '/user/logout',
-    'resource': 'user',
-    'operations': [{
-        'httpMethod': 'POST',
+        }, {
+        'httpMethod': 'DELETE',
         'nickname': 'logout',
         'responseClass': 'Token',
         'summary': 'Log out of the system.',

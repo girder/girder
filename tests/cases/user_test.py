@@ -78,7 +78,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(cherrypy.config['users']['password_description'],
                          resp.json['message'])
 
-        params['password'] = 'goodpassword'
+        params['password'] = 'good:password'
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
 
@@ -102,42 +102,40 @@ class UserTestCase(base.TestCase):
         user = self.model('user').load(resp.json['_id'], force=True)
         self.assertEqual(user['hashAlg'], 'bcrypt')
 
-        # Now that our user is created, try to login
-        params = {
-            'login': 'incorrect@email.com',
-            'password': 'badpassword'
-        }
-        self.ensureRequiredParams(
-            path='/user/login', method='POST', required=params.keys())
+        # Try logging in without basic auth, should get 401
+        resp = self.request(path='/user/authentication', method='GET')
+        self.assertStatus(resp, 401)
 
         # Login with unregistered email
-        resp = self.request(path='/user/login', method='POST', params=params)
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='incorrect@email.com:badpassword')
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Correct email, but wrong password
-        params['login'] = 'good@email.com'
-        resp = self.request(path='/user/login', method='POST', params=params)
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='good@email.com:badpassword')
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully with email
-        params['password'] = 'goodpassword'
-        resp = self.request(path='/user/login', method='POST', params=params)
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='good@email.com:good:password')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
         self.assertHasKeys(
             resp.json['authToken'], ['token', 'expires', 'userId'])
+        self._verifyAuthCookie(resp)
 
         # Invalid login
-        params['login'] = 'badlogin'
-        resp = self.request(path='/user/login', method='POST', params=params)
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='badlogin:good:password')
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully with login
-        params['login'] = 'goodlogin'
-        resp = self.request(path='/user/login', method='POST', params=params)
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
 
         # Make sure we got a nice cookie
@@ -163,18 +161,14 @@ class UserTestCase(base.TestCase):
         self.assertEqual(user['hashAlg'], 'sha512')
 
         # Login unsuccessfully
-        resp = self.request(path='/user/login', method='POST', params={
-            'login': params['login'],
-            'password': params['password'] + '.'
-            })
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:badpassword')
         self.assertStatus(resp, 403)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully
-        resp = self.request(path='/user/login', method='POST', params={
-            'login': params['login'],
-            'password': params['password']
-            })
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:goodpassword')
         self.assertStatusOk(resp)
         self.assertEqual('Login succeeded.', resp.json['message'])
         self.assertEqual('good@email.com', resp.json['user']['email'])
