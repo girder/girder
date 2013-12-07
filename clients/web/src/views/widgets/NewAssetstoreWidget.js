@@ -44,17 +44,14 @@ girder.views.NewAssetstoreWidget = Backbone.View.extend({
         this.$('.g-new-assetstore-submit').addClass('disabled');
         container.empty();
 
-        girder.restRequest({
-            path: 'assetstore',
-            type: 'POST',
-            data: data,
-            error: null
-        }).done(_.bind(function (assetstore) {
-            this.trigger('g:created', assetstore);
-        }, this)).error(_.bind(function (err) {
-            container.text(err.responseJSON.message);
-        }, this)).complete(_.bind(function () {
+        var assetstore = new girder.models.AssetstoreModel();
+        assetstore.set(data);
+        assetstore.on('g:saved', function () {
             this.$('.g-new-assetstore-submit').removeClass('disabled');
-        }, this));
+            this.trigger('g:created', assetstore);
+        }, this).on('g:error', function (err) {
+            this.$('.g-new-assetstore-submit').removeClass('disabled');
+            container.text(err.responseJSON.message);
+        }, this).save();
     }
 });

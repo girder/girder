@@ -1,23 +1,9 @@
-girder.collections.UserCollection = Backbone.Collection.extend({
+girder.collections.UserCollection = girder.Collection.extend({
+    resourceName: 'user',
     model: girder.models.UserModel,
 
-    sort: 'lastName',
-    sortDir: girder.SORT_ASC,
+    // Override default sort field
+    sortField: 'lastName',
 
-    PAGE_LIMIT: 50,
-
-    fetch: function (params) {
-        girder.restRequest({
-            path: 'user',
-            data: _.extend({
-                'limit': this.PAGE_LIMIT,
-                'offset': this.length,
-                'sort': this.sort,
-                'sortdir': this.sortDir
-            }, params || {})
-        }).done(_.bind(function (users) {
-            this.add(users);
-            this.trigger('g:changed');
-        }, this));
-    }
+    comparator: girder.caseInsensitiveComparator
 });

@@ -73,10 +73,13 @@ class Collection(Resource):
         collection = self.getObjectById(
             self.model('collection'), id=path[0], user=user, checkAccess=True,
             level=AccessType.ADMIN)
-        modifiedCollection = dict(collection.items() + params.items())
-        updatedCollection = self.model('collection').updateCollection(
-            modifiedCollection)
-        return self._filter(updatedCollection, user)
+
+        collection['name'] = params.get('name', collection['name']).strip()
+        collection['description'] = params.get(
+            'description', collection['description']).strip()
+
+        collection = self.model('collection').updateCollection(collection)
+        return self._filter(collection, user)
 
     @Resource.endpoint
     def DELETE(self, path, params):

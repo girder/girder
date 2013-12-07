@@ -41,39 +41,30 @@ girder.views.EditFolderWidget = Backbone.View.extend({
     },
 
     createFolder: function (fields) {
-        girder.restRequest({
-            path: 'folder',
-            type: 'POST',
-            data: _.extend(fields, {
-                parentType: this.parentType,
-                parentId: this.parentModel.get('_id')
-            }),
-            error: null // don't do default error behavior
-        }).done(_.bind(function (resp) {
+        var folder = new girder.models.FolderModel();
+        folder.set(_.extend(fields, {
+            parentType: this.parentType,
+            parentId: this.parentModel.get('_id')
+        }));
+        folder.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', resp);
-        }, this)).error(_.bind(function (err) {
+            this.trigger('g:saved', folder);
+        }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-folder').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
-        }, this));
+        }, this).save();
     },
 
     updateFolder: function (fields) {
-        girder.restRequest({
-            path: 'folder/' + this.folder.get('_id'),
-            type: 'PUT',
-            data: fields,
-            error: null // don't do default error behavior
-        }).done(_.bind(function (resp) {
+        this.folder.set(fields);
+        this.folder.off().on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', resp);
-        }, this)).error(_.bind(function (err) {
+            this.trigger('g:saved', this.folder);
+        }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-folder').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
-        }, this));
-
-
+        }, this).save();
     }
 });

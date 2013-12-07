@@ -55,10 +55,6 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             this.parentModel = this.breadcrumbs[idx].model;
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
 
-            if (this.uploadWidget) {
-                this.uploadWidget.folder = this.parentModel;
-            }
-
             this.render();
         }, this);
 
@@ -117,17 +113,14 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     createFolderDialog: function () {
         var container = $('#g-dialog-container');
 
-        if (!this.editFolderWidget) {
-            this.editFolderWidget = new girder.views.EditFolderWidget({
+        new girder.views.EditFolderWidget({
                 el: container,
                 parentType: this.parentType,
                 parentModel: this.parentModel
-            }).off('g:saved').on('g:saved', function (folder) {
+        }).on('g:saved', function (folder) {
                 this.folderListView.insertFolder(folder);
                 this.updateChecked();
-            }, this);
-        }
-        this.editFolderWidget.render();
+        }, this).render();
     },
 
     /**
@@ -140,7 +133,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                   this.parentModel.get('name') + '</b>?',
             yesText: 'Delete',
             confirmCallback: function () {
-                view.parentModel.deleteFolder().on('g:deleted', function () {
+                view.parentModel.destroy().on('g:deleted', function () {
                     this.breadcrumbs.pop();
                     var parent = this.breadcrumbs.slice(-1)[0];
                     this.parentType = parent.type;
@@ -158,17 +151,13 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     uploadDialog: function () {
         var container = $('#g-dialog-container');
 
-        if (!this.uploadWidget) {
-            this.uploadWidget = new girder.views.UploadWidget({
-                el: container,
-                folder: this.parentModel
-            }).on('g:uploadFinished', function () {
-                // When upload is finished, refresh the folder view
-                this.render();
-            }, this);
-        }
-
-        this.uploadWidget.render();
+        new girder.views.UploadWidget({
+            el: container,
+            folder: this.parentModel
+        }).on('g:uploadFinished', function () {
+            // When upload is finished, refresh the folder view
+            this.render();
+        }, this).render();
     },
 
     /**

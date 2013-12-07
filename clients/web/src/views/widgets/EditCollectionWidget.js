@@ -31,48 +31,41 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(
-            jade.templates.editCollectionWidget(
-                {'collection': view.collection}))
-            .girderModal(this).on('shown.bs.modal', function () {
-                view.$('#g-name').val(view.collection.get('name'));
-                view.$('#g-description').val(view.collection.get('description'));
-                view.$('#g-name').focus();
-            });
+        this.$el.html(jade.templates.editCollectionWidget({
+                collection: view.collection
+        })).girderModal(this).on('shown.bs.modal', function () {
+            view.$('#g-name').val(view.collection.get('name'));
+            view.$('#g-description').val(view.collection.get('description'));
+            view.$('#g-name').focus();
+        });
         this.$('#g-name').focus();
 
         return this;
     },
 
     createCollection: function (fields) {
-        girder.restRequest({
-            path: 'collection',
-            type: 'POST',
-            data: fields,
-            error: null // don't do default error behavior
-        }).done(_.bind(function (resp) {
+        var collection = new girder.models.CollectionModel();
+        collection.set(fields);
+        collection.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', resp);
-        }, this)).error(_.bind(function (err) {
+            this.trigger('g:saved', collection);
+        }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
-        }, this));
+        }, this).save();
     },
 
     updateCollection: function (fields) {
-        girder.restRequest({
-            path: 'collection/' + this.collection.get('_id'),
-            type: 'PUT',
-            data: fields,
-            error: null // don't do default error behavior
-        }).done(_.bind(function (resp) {
+        console.log(fields);
+        this.collection.set(fields);
+        this.collection.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', resp);
-        }, this)).error(_.bind(function (err) {
+            this.trigger('g:saved', this.collection);
+        }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
-        }, this));
+        }, this).save();
     }
 });
