@@ -21,14 +21,6 @@ ul.g-global-nav
 
   >li:hover:not(.g-active)
     background-color #fafafa
-    .g-nav-link:after
-      content ""
-      position absolute
-      width 4px
-      top -1px
-      bottom -1px;
-      right -1px;
-      background-color #ffcc00
     .g-nav-link
       position relative
       color #222
@@ -47,3 +39,37 @@ ul.g-global-nav
       color black
     i
       color black
+
+@media (max-width: 720px)
+  .g-nav-link
+    display inline-block
+    padding 0 10px 0 6px
+
+  ul.g-global-nav
+    width 100%
+    border-bottom $navLinkBorder
+    >li
+      display inline-block
+      padding 4px 5px
+      border $emptyBorder
+    >li.g-active
+      box-shadow none
+      border-bottom $emptyBorder
+      border-left $navLinkBorder
+      border-right $navLinkBorder
+      border-top $navLinkBorder
+    >li:not(.g-active)
+      background-color #f1f1f1
+
+@media (min-width: 721px)
+  ul.g-global-nav
+    >li:hover:not(.g-active)
+      .g-nav-link:after
+        content ""
+        position absolute
+        width 4px
+        top -1px
+        bottom -1px
+        right -1px
+        background-color #ffcc00
+
