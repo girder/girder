@@ -8,6 +8,9 @@ girder.views.FolderListWidget = Backbone.View.extend({
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');
             this.trigger('g:folderClicked', this.collection.get(cid));
+        },
+        'click a.g-show-more-folders': function () {
+            this.collection.fetchNextPage();
         }
     },
 
@@ -26,7 +29,8 @@ girder.views.FolderListWidget = Backbone.View.extend({
     render: function () {
         this.checked = [];
         this.$el.html(jade.templates.folderList({
-            folders: this.collection.models
+            folders: this.collection.models,
+            hasMore: this.collection.hasNextPage()
         }));
 
         var view = this;

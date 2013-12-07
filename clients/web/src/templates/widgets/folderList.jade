@@ -5,3 +5,8 @@ ul.g-folder-list
       a.g-folder-list-link(g-folder-cid="#{folder.cid}")
         i.icon-folder
         | #{folder.get('name')}
+  if (hasMore)
+    li.g-show-more
+      a.g-show-more-folders
+        i.icon-level-down
+        | Show more folders...

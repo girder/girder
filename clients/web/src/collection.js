@@ -49,7 +49,7 @@ girder.Collection = Backbone.Collection.extend({
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
     fetchNextPage: function (params) {
-        this.fetch(params);
+        this.fetch(_.extend(this.params, params || {}));
     },
 
     /**
@@ -72,6 +72,7 @@ girder.Collection = Backbone.Collection.extend({
             return;
         }
 
+        this.params = params || {};
         girder.restRequest({
             path: this.resourceName,
             data: _.extend({
@@ -79,7 +80,7 @@ girder.Collection = Backbone.Collection.extend({
                 'offset': this.offset,
                 'sort': this.sortField,
                 'sortdir': this.sortDir
-            }, params || {})
+            }, this.params)
         }).done(_.bind(function (list) {
             if (list.length > this.pageLimit) {
                 // This means we have more pages to display still. Pop off
