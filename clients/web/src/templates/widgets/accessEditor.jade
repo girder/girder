@@ -23,7 +23,7 @@
                                   checked=(public ? "checked" : undefined))
             i.icon-globe
             | Public &mdash; Anyone can view this resource
-      .g-ac-list
+      #g-ac-list-groups.g-ac-list
         each groupAccess in accessList.groups
           .g-group-access-entry(groupId="#{groupAccess.id}")
             .g-access-col-left
@@ -38,6 +38,7 @@
                 option(value="#{accessTypes.ADMIN}") Is owner
               a.g-action-remove-access(title="Remove access")
                 i.icon-block
+      #g-ac-list-users.g-ac-list
         each userAccess in accessList.users
           .g-user-access-entry(userId="#{userAccess.id}")
             .g-access-col-left
