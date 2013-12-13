@@ -6,6 +6,13 @@ girder.Model = Backbone.Model.extend({
     resourceName: null,
 
     /**
+     * Get the name for this resource. By default, just the name attribute.
+     */
+    name: function () {
+        return this.get('name');
+    },
+
+    /**
      * Save this model to the server. If this is a new model, meaning it has no
      * _id attribute, this will create it. If the _id is set, we update the
      * existing model. Triggers g:saved on success, and g:error on error.

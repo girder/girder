@@ -6,7 +6,8 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
-        'click .g-upload-here-button': 'uploadDialog'
+        'click .g-upload-here-button': 'uploadDialog',
+        'click .g-folder-access-button': 'editFolderAccess'
     },
 
     initialize: function (settings) {
@@ -30,10 +31,19 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         }));
 
         var view = this;
-        this.$('.g-folder-info-button').tooltip();
-        this.$('.g-folder-access-button').tooltip();
-        this.$('.g-upload-here-button').tooltip();
-        this.$('.g-select-all').tooltip().unbind('change').change(function () {
+        this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
+               '.g-upload-here-button,.g-checked-actions-button').tooltip({
+            container: 'body',
+            animation: false,
+            delay: {show: 100}
+        });
+        this.$('.g-folder-actions-button').tooltip({
+            container: 'body',
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
+        this.$('.g-select-all').unbind('change').change(function () {
             view.folderListView.checkAll(this.checked);
 
             if (view.itemListView) {
@@ -112,10 +122,8 @@ girder.views.HierarchyWidget = Backbone.View.extend({
      * Prompt the user to create a new subfolder in the current folder.
      */
     createFolderDialog: function () {
-        var container = $('#g-dialog-container');
-
         new girder.views.EditFolderWidget({
-                el: container,
+                el: $('#g-dialog-container'),
                 parentType: this.parentType,
                 parentModel: this.parentModel
         }).on('g:saved', function (folder) {
@@ -197,6 +205,17 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     downloadFolder: function () {
         window.location = girder.apiRoot + '/folder/' +
            this.parentModel.get('_id') + '/download';
+    },
+
+    editFolderAccess: function () {
+
+        new girder.views.AccessWidget({
+                el: $('#g-dialog-container'),
+                modelType: this.parentType,
+                model: this.parentModel
+        }).on('g:saved', function (folder) {
+                // need to do anything?
+        }, this);
     }
 });
 
