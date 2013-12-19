@@ -24,6 +24,12 @@ girder.views.UsersView = Backbone.View.extend({
             users: this.collection.models,
             girder: girder
         }));
+
+        new girder.views.PaginateWidget({
+            el: this.$('.g-user-pagination'),
+            collection: this.collection
+        }).render();
+
         girder.router.navigate('users');
 
         return this;

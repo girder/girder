@@ -9,9 +9,9 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
                 description: this.$('#g-description').val()
             };
 
-            if (this.collection) {
-                this.collection.set('name', fields.name);
-                this.collection.set('description', fields.description);
+            if (this.model) {
+                this.model.set('name', fields.name);
+                this.model.set('description', fields.description);
                 this.updateCollection(fields);
             }
             else {
@@ -26,16 +26,18 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
     },
 
     initialize: function (settings) {
-        this.collection = settings.collection || null;
+        this.model = settings.model || null;
     },
 
     render: function () {
         var view = this;
         this.$el.html(jade.templates.editCollectionWidget({
-                collection: view.collection
+                collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').val(view.collection.get('name'));
-            view.$('#g-description').val(view.collection.get('description'));
+            if (view.model) {
+                view.$('#g-name').val(view.model.get('name'));
+                view.$('#g-description').val(view.model.get('description'));
+            }
             view.$('#g-name').focus();
         });
         this.$('#g-name').focus();
@@ -57,11 +59,10 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
     },
 
     updateCollection: function (fields) {
-        console.log(fields);
-        this.collection.set(fields);
-        this.collection.on('g:saved', function () {
+        this.model.set(fields);
+        this.model.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', this.collection);
+            this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');

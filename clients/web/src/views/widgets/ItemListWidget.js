@@ -6,6 +6,9 @@ girder.views.ItemListWidget = Backbone.View.extend({
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
             this.trigger('g:itemClicked', this.collection.get(cid));
+        },
+        'click a.g-show-more-items': function () {
+            this.collection.fetchNextPage();
         }
     },
 
@@ -23,7 +26,8 @@ girder.views.ItemListWidget = Backbone.View.extend({
     render: function () {
         this.checked = [];
         this.$el.html(jade.templates.itemList({
-            items: this.collection.models
+            items: this.collection.models,
+            hasMore: this.collection.hasNextPage()
         }));
 
         var view = this;

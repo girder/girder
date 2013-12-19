@@ -16,11 +16,8 @@
     margin-left 12px
     padding 4px 8px
 
-
 .g-folder-header-buttons
   float right
-
-
 
 .g-hierarchy-breadcrumb-bar
   ol.breadcrumb
@@ -38,12 +35,16 @@
   padding 0
   list-style-type none
 
-  >.g-folder-list-entry,>.g-item-list-entry
-    padding 4px 5px 3px
-    background-color #fbfbfb
+  >li
     border-bottom 1px solid #f0f0f0
-    font-size 15px
     box-sizing border-box
+    padding 4px 5px 3px
+
+  >.g-folder-list-entry,>.g-item-list-entry
+    background-color #fbfbfb
+    font-size 15px
+  >.g-show-more
+    background-image linear-gradient(to bottom, #f6f6f6 0%, #fff 10px)
 
   .g-list-checkbox
     font-size 16px

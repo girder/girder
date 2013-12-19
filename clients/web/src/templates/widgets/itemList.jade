@@ -5,3 +5,8 @@ ul.g-item-list
       a.g-item-list-link(g-item-cid="#{item.cid}")
         i.icon-doc-text-inv
         | #{item.get('name')}
+  if (hasMore)
+    li.g-show-more
+      a.g-show-more-items
+        i.icon-level-down
+        | Show more items...
