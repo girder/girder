@@ -115,13 +115,12 @@ class Folder(AccessControlledModel):
 
     def childItems(self, folder, limit=50, offset=0, sort=None):
         """
-        Get a list of child items in this folder.
+        Generator function that yields child items in a folder.
 
         :param folder: The parent folder.
         :param limit: Result limit.
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
-        :returns: List of child items in the folder.
         """
         q = {
             'folderId': folder['_id']
@@ -129,13 +128,14 @@ class Folder(AccessControlledModel):
 
         cursor = self.model('item').find(
             q, limit=limit, offset=offset, sort=sort)
-        return [item for item in cursor]
+        for item in cursor:
+            yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
                      sort=None):
         """
-        Get all child folders of a user, collection, or folder, with access
-        policy filtering.
+        This generator will yield child folders of a user, collection, or
+        folder, with access policy filtering.
 
         :param parent: The parent object.
         :type parentType: Type of the parent object.
@@ -146,7 +146,6 @@ class Folder(AccessControlledModel):
         :param limit: Result limit.
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
-        :returns: List of child folders.
         """
         parentType = parentType.lower()
         if not parentType in ('folder', 'user', 'collection'):
@@ -162,9 +161,10 @@ class Folder(AccessControlledModel):
         # afterward.
         cursor = self.find(q, limit=0, sort=sort)
 
-        return self.filterResultsByPermission(cursor=cursor, user=user,
-                                              level=AccessType.READ,
-                                              limit=limit, offset=offset)
+        for r in self.filterResultsByPermission(cursor=cursor, user=user,
+                                                level=AccessType.READ,
+                                                limit=limit, offset=offset):
+            yield r
 
     def createFolder(self, parent, name, description='', parentType='folder',
                      public=None, creator=None):

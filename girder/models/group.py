@@ -81,15 +81,16 @@ class Group(AccessControlledModel):
         """
         if text:
             # TODO text search
-            return []
+            pass
         else:
             # Perform the find; we'll do access-based filtering of the result
             # set afterward.
             cursor = self.find({}, limit=0, sort=sort)
 
-            return self.filterResultsByPermission(cursor=cursor, user=user,
-                                                  level=AccessType.READ,
-                                                  limit=limit, offset=offset)
+            for r in self.filterResultsByPermission(cursor=cursor, user=user,
+                                                    level=AccessType.READ,
+                                                    limit=limit, offset=offset):
+                yield r
 
     def remove(self, group):
         """

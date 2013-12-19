@@ -31,7 +31,7 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(['lowerName'])
+        self.ensureIndices(['folderId', 'lowerName'])
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -68,6 +68,24 @@ class Item(Model):
                 name = '%s (%d)' % (doc['name'], n)
 
         return doc
+
+    def childFiles(self, item, limit=50, offset=0, sort=None):
+        """
+        Generator function that yields child files in the item.
+
+        :param item: The parent item.
+        :param limit: Result limit.
+        :param offset: Result offset.
+        :param sort: The sort structure to pass to pymongo.
+        """
+        q = {
+            'itemId': item['_id']
+            }
+
+        cursor = self.model('file').find(
+            q, limit=limit, offset=offset, sort=sort)
+        for file in cursor:
+            yield file
 
     def remove(self, item):
         """
@@ -109,8 +127,7 @@ class Item(Model):
         since items with similar text have a good chance of residing in the
         same folder, or a small set of folders.
         """
-        folderAccess = {}
-        return []
+        pass
 
     def createItem(self, name, creator, folder, description=''):
         """

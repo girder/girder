@@ -52,7 +52,7 @@ class Collection(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'name')
 
         return [self._filter(c, user) for c in self.model('collection').search(
                 text=params.get('text'), user=user,

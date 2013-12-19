@@ -144,7 +144,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file, offset=0):
+    def downloadFile(self, file, offset=0, headers=True):
         """
         Returns a generator function that will be used to stream the file from
         disk to the response.
@@ -153,10 +153,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.path.isfile(path):
             raise Exception('File %s does not exist.' % path)
 
-        cherrypy.response.headers['Content-Type'] = 'application/octet-stream'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="%s"' % file['name']
-        cherrypy.response.headers['Content-Length'] = file['size'] - offset
+        if headers:
+            cherrypy.response.headers['Content-Type'] = \
+                'application/octet-stream'
+            cherrypy.response.headers['Content-Disposition'] = \
+                'attachment; filename="%s"' % file['name']
+            cherrypy.response.headers['Content-Length'] = file['size'] - offset
 
         def stream():
             with open(path, 'rb') as f:

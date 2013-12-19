@@ -47,12 +47,13 @@ class Group(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'name')
 
         user = self.getCurrentUser()
 
-        return self.model('group').search(text=params.get('text'), user=user,
-                                          offset=offset, limit=limit, sort=sort)
+        return [group for group in self.model('group').search(
+            text=params.get('text'), user=user, offset=offset, limit=limit,
+            sort=sort)]
 
     def createGroup(self, params):
         """
