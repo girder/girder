@@ -239,11 +239,11 @@ girder.views.UploadWidget = Backbone.View.extend({
             Math.ceil(100 * (this.overallProgress + loaded) / this.totalSize) +
             '%');
         this.$('.g-current-progress-message').html(
-            '<i class="icon-doc-text"/><b>' + file.name + '</b> - ' +
+            '<i class="icon-doc-text"/>'+ (this.currentIndex + 1) + ' of ' +
+            this.files.length + ' - <b>' + file.name + '</b>: ' +
             girder.formatSize(this.startByte + loaded) + ' / ' +
             girder.formatSize(file.size));
-        this.$('.g-overall-progress-message').html('Uploading file ' +
-            (this.currentIndex + 1) + ' of ' + this.files.length + ' - ' +
+        this.$('.g-overall-progress-message').html('Overall progress: ' +
             girder.formatSize(this.overallProgress + loaded) + ' / ' +
             girder.formatSize(this.totalSize));
     }
