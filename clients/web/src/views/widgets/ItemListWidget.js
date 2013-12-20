@@ -17,6 +17,7 @@ girder.views.ItemListWidget = Backbone.View.extend({
         this.collection = new girder.collections.ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
+            this.trigger('g:changed');
             this.render();
         }, this).fetch({
             folderId: settings.folderId
@@ -52,6 +53,7 @@ girder.views.ItemListWidget = Backbone.View.extend({
      */
     insertItem: function (item) {
         this.collection.add(item);
+        this.trigger('g:changed');
         this.render();
     },
 

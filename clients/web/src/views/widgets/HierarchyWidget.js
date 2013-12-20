@@ -10,6 +10,18 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         'click .g-folder-access-button': 'editFolderAccess'
     },
 
+    /**
+     * If both the child folders and child items have been fetched, and
+     * there are neither of either type in this parent container, we should
+     * show the "empty container" message.
+     */
+    _childCountCheck: function () {
+        var container = this.$('.g-empty-parent-message').addClass('hide');
+        if (this.folderCount === 0 && this.itemCount === 0) {
+            container.removeClass('hide');
+        }
+    },
+
     initialize: function (settings) {
         this.parentType = settings.parentType || 'folder';
         this.parentModel = settings.parentModel;
@@ -23,6 +35,9 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     },
 
     render: function () {
+        this.folderCount = null;
+        this.itemCount = null;
+
         this.$el.html(jade.templates.hierarchyWidget({
             type: this.parentType,
             model: this.parentModel,
@@ -87,7 +102,11 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                 this.uploadWidget.folder = folder;
             }
         }, this).off('g:checkboxesChanged')
-                .on('g:checkboxesChanged', this.updateChecked, this);
+                .on('g:checkboxesChanged', this.updateChecked, this)
+                .off('g:changed').on('g:changed', function () {
+            this.folderCount = this.folderListView.collection.length;
+            this._childCountCheck();
+        }, this);
 
         if (this.parentType === 'folder') {
             // Setup the child item list view
@@ -100,7 +119,14 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                     item: item
                 });
             }, this).off('g:checkboxesChanged')
-                    .on('g:checkboxesChanged', this.updateChecked, this);
+                    .on('g:checkboxesChanged', this.updateChecked, this)
+                    .off('g:changed').on('g:changed', function () {
+                this.itemCount = this.itemListView.collection.length;
+                this._childCountCheck();
+            }, this);
+        }
+        else {
+            this.itemCount = 0;
         }
         return this;
     },

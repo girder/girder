@@ -20,6 +20,7 @@ girder.views.FolderListWidget = Backbone.View.extend({
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
+            this.trigger('g:changed');
         }, this).fetch({
             parentType: settings.parentType || 'folder',
             parentId: settings.parentId
@@ -55,6 +56,7 @@ girder.views.FolderListWidget = Backbone.View.extend({
      */
     insertFolder: function (folder) {
         this.collection.add(folder);
+        this.trigger('g:changed');
         this.render();
     },
 

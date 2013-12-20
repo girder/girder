@@ -18,9 +18,9 @@
           i.icon-upload
       if (level >= AccessType.ADMIN)
         button.g-folder-access-button.btn.btn-sm.btn-warning(title="Access control")
-          i.icon-key-inv
+          i.icon-lock
       button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder details")
-        i.icon-info
+        i.icon-list-bullet
     .btn-group
       button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
         data-toggle="dropdown", title="Folder actions")
@@ -49,3 +49,6 @@
   .g-clear-right
 .g-folder-list-container
 .g-item-list-container
+.g-empty-parent-message.hide
+  i.icon-info-circled
+  |  This folder is empty.
