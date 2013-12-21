@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import json
 import os
 import pymongo
 
@@ -239,5 +240,13 @@ class Folder(Resource):
         elif path[1] == 'access':
             self.requireParams(['access'], params)
             self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
-            return self.model('folder').setAccessList(
-                folder, params['access'], save=True)
+
+            public = params.get('public', 'false').lower() == 'true'
+            self.model('folder').setPublic(folder, public)
+
+            try:
+                access = json.loads(params['access'])
+                return self.model('folder').setAccessList(
+                    folder, access, save=True)
+            except ValueError:
+                raise RestException('The access parameter must be JSON.')

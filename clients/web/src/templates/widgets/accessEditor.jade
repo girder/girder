@@ -25,7 +25,7 @@
             | Public &mdash; Anyone can view this resource
       #g-ac-list-groups.g-ac-list
         each groupAccess in accessList.groups
-          .g-group-access-entry(groupId="#{groupAccess.id}")
+          .g-group-access-entry(groupid="#{groupAccess.id}")
             .g-access-col-left
               .g-access-icon: i.icon-users
               .g-access-desc
@@ -33,14 +33,17 @@
                 .g-desc-subtitle #{groupAccess.description}
             .g-access-col-right
               select
-                option(value="#{accessTypes.READ}") Can read
-                option(value="#{accessTypes.WRITE}") Can edit
-                option(value="#{accessTypes.ADMIN}") Is owner
+                - var sel=null; if (userAccess.level == accessTypes.READ) sel='selected';
+                option(value="#{accessTypes.READ}", selected=sel) Can read
+                - var sel=null; if (userAccess.level == accessTypes.WRITE) sel='selected';
+                option(value="#{accessTypes.WRITE}", selected=sel) Can edit
+                - var sel=null; if (userAccess.level == accessTypes.ADMIN) sel='selected';
+                option(value="#{accessTypes.ADMIN}", selected=sel) Is owner
               a.g-action-remove-access(title="Remove access")
                 i.icon-block
       #g-ac-list-users.g-ac-list
         each userAccess in accessList.users
-          .g-user-access-entry(userId="#{userAccess.id}")
+          .g-user-access-entry(userid="#{userAccess.id}")
             .g-access-col-left
               .g-access-icon: i.icon-user
               .g-access-desc
@@ -48,9 +51,12 @@
                 .g-desc-subtitle #{userAccess.login}
             .g-access-col-right
               select
-                option(value="#{accessTypes.READ}") Can read
-                option(value="#{accessTypes.WRITE}") Can edit
-                option(value="#{accessTypes.ADMIN}") Is owner
+                - var sel=null; if (userAccess.level == accessTypes.READ) sel='selected';
+                option(value="#{accessTypes.READ}", selected=sel) Can read
+                - var sel=null; if (userAccess.level == accessTypes.WRITE) sel='selected';
+                option(value="#{accessTypes.WRITE}", selected=sel) Can edit
+                - var sel=null; if (userAccess.level == accessTypes.ADMIN) sel='selected';
+                option(value="#{accessTypes.ADMIN}", selected=sel) Is owner
               a.g-action-remove-access(title="Remove access")
                 i.icon-block
 

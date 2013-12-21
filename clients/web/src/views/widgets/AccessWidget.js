@@ -46,9 +46,40 @@ girder.views.AccessWidget = Backbone.View.extend({
     saveAccessList: function (event) {
         $(event.currentTarget).attr('disabled', 'disabled');
 
-        // TODO build the access list from the UI, send
-        // it up to the appropriate endpoint. In the case of
-        // a folder, prompt for setting it recursively.
+        // Rebuild the access list
+        var acList = {
+            users: [],
+            groups: []
+        };
+
+        _.each(this.$('.g-group-access-entry'), function (el) {
+            var $el = $(el);
+            acList.groups.push({
+                name: $el.find('.g-desc-title').html(),
+                id: $el.attr('groupid'),
+                level: parseInt($el.find('.g-access-col-right>select').val())
+            });
+        }, this);
+
+        _.each(this.$('.g-user-access-entry'), function (el) {
+            var $el = $(el);
+            acList.users.push({
+                login: $el.find('.g-desc-subtitle').html(),
+                name: $el.find('.g-desc-title').html(),
+                id: $el.attr('userid'),
+                level: parseInt($el.find('.g-access-col-right>select').val())
+            });
+        }, this);
+
+        this.model.set({
+            access: acList,
+            public: this.$('#g-access-public').is(':checked')
+        });
+
+        this.model.off('g:accessListSaved')
+                  .on('g:accessListSaved', function () {
+            this.$el.modal('hide');
+        }, this).updateAccess();
     },
 
     removeAccessEntry: function (event) {

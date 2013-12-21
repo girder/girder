@@ -160,7 +160,9 @@ apis.append({
             Describe.param(
                 'folderId', 'The ID of the folder.', paramType='path'),
             Describe.param(
-                'access', 'The JSON-encoded access control list.')
+                'access', 'The JSON-encoded access control list.'),
+            Describe.param(
+                'public', 'Public access flag.', dataType='bool')
             ],
         'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
