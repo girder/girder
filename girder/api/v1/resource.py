@@ -17,36 +17,29 @@
 #  limitations under the License.
 ###############################################################################
 
-from v1 import api_docs, assetstore, file, collection, folder, group, item,\
-               resource, user
+import cherrypy
+import json
+import os
+import pymongo
+
+from .docs import folder_docs
+from ..rest import Resource as BaseResource, RestException
+from ...constants import AccessType
+from ...utility import ziputil
 
 
-class ApiDocs():
-    exposed = True
+class Resource(BaseResource):
+    """API Endpoint for folders."""
 
-    def GET(self):
-        # TODO
-        return "should display links to available api versions"
+    def search(self, user, params):
+        return []
 
-
-def addApiToNode(node):
-    node.api = ApiDocs()
-    node.api = _addV1ToNode(node.api)
-
-    return node
-
-
-def _addV1ToNode(node):
-    node.v1 = api_docs.ApiDocs()
-    node.v1.describe = api_docs.Describe()
-
-    node.v1.assetstore = assetstore.Assetstore()
-    node.v1.file = file.File()
-    node.v1.collection = collection.Collection()
-    node.v1.folder = folder.Folder()
-    node.v1.group = group.Group()
-    node.v1.item = item.Item()
-    node.v1.resource = resource.Resource()
-    node.v1.user = user.User()
-
-    return node
+    @BaseResource.endpoint
+    def GET(self, path, params):
+        user = self.getCurrentUser()
+        if not path:
+            raise RestException('Unsupported operation.')
+        elif path[0] == 'search':
+            return self.search(user, params)
+        else:
+            raise RestException('Unsupported operation.')

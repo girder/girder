@@ -1,0 +1,6 @@
+each result in results
+  li.g-search-result(role="presentation")
+    a(role="menuitem", tabindex="-1") #{result}
+if results.length == 0
+  li.g-no-search-results.disabled(role="presentation")
+    a(role="menuitem", tabindex="-1") No results found

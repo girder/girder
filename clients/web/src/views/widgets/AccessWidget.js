@@ -38,9 +38,19 @@ girder.views.AccessWidget = Backbone.View.extend({
             delay: {show: 100}
         });
 
+        new girder.views.SearchFieldWidget({
+            el: this.$('.g-search-field-container'),
+            placeholder: 'Start typing a name...',
+            types: ['group', 'user']
+        }).on('g:resultClicked', this.addEntry, this).render();
+
         this.privacyChanged();
 
         return this;
+    },
+
+    addEntry: function (entry) {
+        console.log(entry);
     },
 
     saveAccessList: function (event) {
