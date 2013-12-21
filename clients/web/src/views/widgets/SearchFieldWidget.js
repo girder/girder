@@ -19,7 +19,16 @@ girder.views.SearchFieldWidget = Backbone.View.extend({
             else {
                 this._doSearch(q);
             }
-        }
+        },
+        'click .g-search-result>a': function (e) {
+            var link = $(e.currentTarget);
+
+            this.trigger('g:resultClicked', {
+                type: link.attr('resourcetype'),
+                id: link.attr('resourceid'),
+                text: link.text()
+            });
+        },
     },
 
     initialize: function (settings) {
@@ -39,10 +48,27 @@ girder.views.SearchFieldWidget = Backbone.View.extend({
     },
 
     /**
-     * Parent widgets should call this if they wish to hide the result list.
+     * Parent views should call this if they wish to hide the result list.
      */
     hideResults: function () {
         this.$('.dropdown').removeClass('open');
+        return this;
+    },
+
+    /**
+     * Parent views should call this if they wish to clear the search text.
+     */
+    clearText: function () {
+        this.$('.g-search-field').val('');
+        return this;
+    },
+
+    /**
+     * Parent views should call this if they wish to reset the search widget,
+     * i.e. clear it and hide any results.
+     */
+    resetState: function () {
+        return this.hideResults().clearText();
     },
 
     _doSearch: function (q) {

@@ -206,13 +206,11 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.
         var minLevel = girder.AccessType.ADMIN;
-        if (minLevel > girder.AccessType.READ) {
-            _.every(folders, function (cid) {
-                var folder = this.folderListView.collection.get(cid);
-                minLevel = Math.min(minLevel, folder.get('_accessLevel'));
-                return minLevel > girder.AccessType.READ; // acts as 'break'
-            }, this);
-        }
+        _.every(folders, function (cid) {
+            var folder = this.folderListView.collection.get(cid);
+            minLevel = Math.min(minLevel, folder.get('_accessLevel'));
+            return minLevel > girder.AccessType.READ; // acts as 'break'
+        }, this);
 
         if (this.itemListView) {
             items = this.itemListView.checked;

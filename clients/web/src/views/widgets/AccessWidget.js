@@ -26,10 +26,30 @@ girder.views.AccessWidget = Backbone.View.extend({
         this.$el.html(jade.templates.accessEditor({
             model: this.model,
             modelType: this.modelType,
-            accessList: this.model.get('access'),
-            public: this.model.get('public'),
-            accessTypes: girder.AccessType
+            public: this.model.get('public')
         })).girderModal(this);
+
+        _.each(this.model.get('access').groups, function (groupAccess) {
+            this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+                accessTypes: girder.AccessType,
+                type: 'group',
+                entry: _.extend(groupAccess, {
+                    title: groupAccess.name,
+                    subtitle: groupAccess.description
+                })
+            }));
+        }, this);
+
+        _.each(this.model.get('access').users, function (userAccess) {
+            this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+                accessTypes: girder.AccessType,
+                type: 'user',
+                entry: _.extend(userAccess, {
+                    title: userAccess.name,
+                    subtitle: userAccess.login
+                })
+            }));
+        }, this);
 
         this.$('.g-action-remove-access').tooltip({
             container: '.modal',
@@ -38,19 +58,81 @@ girder.views.AccessWidget = Backbone.View.extend({
             delay: {show: 100}
         });
 
-        new girder.views.SearchFieldWidget({
+        this.searchWidget = new girder.views.SearchFieldWidget({
             el: this.$('.g-search-field-container'),
             placeholder: 'Start typing a name...',
             types: ['group', 'user']
-        }).on('g:resultClicked', this.addEntry, this).render();
+        }).off().on('g:resultClicked', this.addEntry, this).render();
 
         this.privacyChanged();
 
         return this;
     },
 
+    /**
+     * Add a new user or group entry to the access control list UI. If the
+     * given user or group already has an entry there, this does nothing.
+     */
     addEntry: function (entry) {
-        console.log(entry);
+        this.searchWidget.resetState();
+        if (entry.type === 'user') {
+            this._addUserEntry(entry);
+        }
+        else if (entry.type === 'group') {
+            this._addGroupEntry(entry);
+        }
+    },
+
+    _addUserEntry: function (entry) {
+        var exists = false;
+        _.every(this.model.get('access').users, function (user) {
+            if (user.id === entry.id) {
+                exists = true;
+            }
+            return !exists;
+        }, this);
+
+        if (!exists) {
+            var model = new girder.models.UserModel();
+            model.set('_id', entry.id).on('g:fetched', function () {
+                this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+                    accessTypes: girder.AccessType,
+                    type: 'user',
+                    entry: {
+                        title: model.name(),
+                        subtitle: model.get('login'),
+                        id: entry.id,
+                        level: girder.AccessType.READ
+                    }
+                }));
+            }, this).fetch();
+        }
+    },
+
+    _addGroupEntry: function (entry) {
+        var exists = false;
+        _.every(this.model.get('access').groups, function (group) {
+            if (group.id === entry.id) {
+                exists = true;
+            }
+            return !exists;
+        }, this);
+
+        if (!exists) {
+            var model = new girder.models.GroupModel();
+            model.set('_id', entry.id).on('g:fetched', function () {
+                this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+                    accessTypes: girder.AccessType,
+                    type: 'group',
+                    entry: {
+                        title: model.name(),
+                        subtitle: model.get('description'),
+                        id: entry.id,
+                        level: girder.AccessType.READ
+                    }
+                }));
+            }, this).fetch();
+        }
     },
 
     saveAccessList: function (event) {
@@ -66,7 +148,7 @@ girder.views.AccessWidget = Backbone.View.extend({
             var $el = $(el);
             acList.groups.push({
                 name: $el.find('.g-desc-title').html(),
-                id: $el.attr('groupid'),
+                id: $el.attr('resourceid'),
                 level: parseInt($el.find('.g-access-col-right>select').val())
             });
         }, this);
@@ -76,7 +158,7 @@ girder.views.AccessWidget = Backbone.View.extend({
             acList.users.push({
                 login: $el.find('.g-desc-subtitle').html(),
                 name: $el.find('.g-desc-title').html(),
-                id: $el.attr('userid'),
+                id: $el.attr('resourceid'),
                 level: parseInt($el.find('.g-access-col-right>select').val())
             });
         }, this);
