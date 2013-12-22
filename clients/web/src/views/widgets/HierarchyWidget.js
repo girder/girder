@@ -149,12 +149,12 @@ girder.views.HierarchyWidget = Backbone.View.extend({
      */
     createFolderDialog: function () {
         new girder.views.EditFolderWidget({
-                el: $('#g-dialog-container'),
-                parentType: this.parentType,
-                parentModel: this.parentModel
+            el: $('#g-dialog-container'),
+            parentType: this.parentType,
+            parentModel: this.parentModel
         }).on('g:saved', function (folder) {
-                this.folderListView.insertFolder(folder);
-                this.updateChecked();
+            this.folderListView.insertFolder(folder);
+            this.updateChecked();
         }, this).render();
     },
 

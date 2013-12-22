@@ -149,7 +149,8 @@ girder.views.AccessWidget = Backbone.View.extend({
             acList.groups.push({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
-                level: parseInt($el.find('.g-access-col-right>select').val())
+                level: parseInt(
+                    $el.find('.g-access-col-right>select').val(), 10)
             });
         }, this);
 
@@ -159,7 +160,8 @@ girder.views.AccessWidget = Backbone.View.extend({
                 login: $el.find('.g-desc-subtitle').html(),
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
-                level: parseInt($el.find('.g-access-col-right>select').val())
+                level: parseInt(
+                    $el.find('.g-access-col-right>select').val(), 10)
             });
         }, this);
 

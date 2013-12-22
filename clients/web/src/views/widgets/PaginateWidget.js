@@ -25,7 +25,7 @@ girder.views.PaginateWidget = Backbone.View.extend({
      */
     render: function () {
         this.$el.html(jade.templates.paginateWidget({
-                collection: this.collection
+            collection: this.collection
         }));
 
         if (this.collection.hasNextPage()) {

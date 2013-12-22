@@ -21,6 +21,7 @@ import cherrypy
 import io
 import json
 import os
+import shutil
 import zipfile
 
 from hashlib import sha512
@@ -28,6 +29,7 @@ from .. import base
 
 from girder.constants import AccessType, ROOT_DIR
 from girder.models import getDbConnection
+from girder.utility.model_importer import ModelImporter
 
 
 def setUpModule():
@@ -217,6 +219,9 @@ class FileTestCase(base.TestCase):
         assetstore = self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=root)
         self.assetstore = assetstore
+
+        # Clean out the test assetstore on disk
+        shutil.rmtree(assetstore['root'])
 
         # First clean out the temp directory
         tmpdir = os.path.join(root, 'temp')

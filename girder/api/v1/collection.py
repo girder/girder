@@ -157,6 +157,3 @@ class Collection(Resource):
                 raise RestException('The access parameter must be JSON.')
         else:
             raise RestException('Invalid path for collection PUT.')
-
-
-

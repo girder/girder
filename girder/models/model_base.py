@@ -590,6 +590,7 @@ class AccessControlledModel(Model):
         return [r for r in self.filterSearchResults(
             results, user=user, limit=limit)]
 
+
 class AccessException(Exception):
     """
     Represents denial of access to a resource.

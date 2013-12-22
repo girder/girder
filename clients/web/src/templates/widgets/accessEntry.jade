@@ -8,7 +8,7 @@ div(class="g-#{type}-access-entry", resourceid="#{entry.id}")
   .g-access-col-right
     select
       - var sel=null; if (entry.level == accessTypes.READ) sel='selected';
-      option(value="#{accessTypes.READ}", selected=sel) Can read
+      option(value="#{accessTypes.READ}", selected=sel) Can view
       - var sel=null; if (entry.level == accessTypes.WRITE) sel='selected';
       option(value="#{accessTypes.WRITE}", selected=sel) Can edit
       - var sel=null; if (entry.level == accessTypes.ADMIN) sel='selected';

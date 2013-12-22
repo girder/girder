@@ -18,7 +18,7 @@
 ###############################################################################
 
 from v1 import api_docs, assetstore, file, collection, folder, group, item,\
-               resource, user
+    resource, user
 
 
 class ApiDocs():

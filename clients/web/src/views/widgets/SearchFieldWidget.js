@@ -28,7 +28,7 @@ girder.views.SearchFieldWidget = Backbone.View.extend({
                 id: link.attr('resourceid'),
                 text: link.text()
             });
-        },
+        }
     },
 
     initialize: function (settings) {
@@ -115,9 +115,9 @@ girder.views.SearchFieldWidget = Backbone.View.extend({
                             icon = 'doc-text-inv';
                         }
                         else {
-                           // TODO plugin callback to render results
-                           text = '[unknown type]';
-                           icon = 'attention';
+                            // TODO plugin callback to render results
+                            text = '[unknown type]';
+                            icon = 'attention';
                         }
                         resources.push({
                             type: type,

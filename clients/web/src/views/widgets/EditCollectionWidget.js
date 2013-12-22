@@ -32,7 +32,7 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
     render: function () {
         var view = this;
         this.$el.html(jade.templates.editCollectionWidget({
-                collection: view.model
+            collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));

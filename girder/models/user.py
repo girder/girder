@@ -39,7 +39,6 @@ class User(AccessControlledModel):
             'lastName': 1
         }, language='none')
 
-
     def validate(self, doc):
         """
         Validate the user every time it is stored in the database.
