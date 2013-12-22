@@ -23,8 +23,12 @@
                                   checked=(public ? "checked" : undefined))
             i.icon-globe
             | Public &mdash; Anyone can view this resource
-      #g-ac-list-groups.g-ac-list
-      #g-ac-list-users.g-ac-list
+      .g-ac-list-title
+        i.icon-key-1
+        |  Permissions
+      .g-ac-list
+        #g-ac-list-groups
+        #g-ac-list-users
 
       .g-grant-access-container
         form(role="form")
@@ -34,5 +38,5 @@
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss="modal") Close
       button.g-save-access-list.btn.btn-small.btn-primary(type="submit")
-        i.icon-key-1
+        i.icon-ok
         |  Save
