@@ -45,7 +45,10 @@ class Resource(BaseResource):
         limit = int(params.get('limit', 10))
 
         results = {}
-        types = json.loads(params['types'])
+        try:
+            types = json.loads(params['types'])
+        except ValueError:
+            raise RestException('The types parameter must be JSON.')
 
         if 'collection' in types:
             results['collection'] = self.model('collection').textSearch(
@@ -53,7 +56,7 @@ class Resource(BaseResource):
                     'name': 1
                 })
         if 'folder' in types:
-            results['folder'] = self.model('').textSearch(
+            results['folder'] = self.model('folder').textSearch(
                 params['q'], user=user, limit=limit, project={
                     'name': 1
                 })

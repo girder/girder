@@ -29,7 +29,6 @@ from .. import base
 
 from girder.constants import AccessType, ROOT_DIR
 from girder.models import getDbConnection
-from girder.utility.model_importer import ModelImporter
 
 
 def setUpModule():
