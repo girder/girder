@@ -321,7 +321,7 @@ class AccessControlledModel(Model):
                     raise ValidationException('Invalid access level', 'access')
 
                 acList['users'].append({
-                    'id': userAccess['id'],
+                    'id': ObjectId(userAccess['id']),
                     'level': userAccess['level']
                 })
             else:
@@ -335,7 +335,7 @@ class AccessControlledModel(Model):
                     raise ValidationException('Invalid access level', 'access')
 
                 acList['groups'].append({
-                    'id': groupAccess['id'],
+                    'id': ObjectId(groupAccess['id']),
                     'level': groupAccess['level']
                 })
             else:

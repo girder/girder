@@ -4,8 +4,10 @@ each obj in links
     a.g-breadcrumb-link(g-index="#{idx}")
       if (obj.type == 'user')
         i.icon-user
+        | &nbsp;
       else if(obj.type == 'collection')
         i.icon-sitemap
+        | &nbsp;
       | #{obj.model.get('name') || obj.model.name()}
   - idx += 1
 
@@ -13,7 +15,8 @@ if current
   li.active
     if (current.type == 'user')
       i.icon-user
+      | &nbsp;
     else if(current.type == 'collection')
       i.icon-sitemap
+      | &nbsp;
     | #{current.model.get('name') || current.model.name()}
-

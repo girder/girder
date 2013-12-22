@@ -13,6 +13,9 @@ girder.views.CollectionsView = Backbone.View.extend({
         },
         'click button.g-collection-create-button': function (event) {
             this.createCollectionDialog();
+        },
+        'submit .g-collections-search-form': function (event) {
+            event.preventDefault();
         }
     },
 

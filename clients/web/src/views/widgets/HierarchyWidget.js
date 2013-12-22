@@ -232,13 +232,12 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     },
 
     editFolderAccess: function () {
-
         new girder.views.AccessWidget({
-                el: $('#g-dialog-container'),
-                modelType: this.parentType,
-                model: this.parentModel
+            el: $('#g-dialog-container'),
+            modelType: this.parentType,
+            model: this.parentModel
         }).on('g:saved', function (folder) {
-                // need to do anything?
+            // need to do anything?
         }, this);
     }
 });

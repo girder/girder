@@ -9,6 +9,9 @@ girder.views.UsersView = Backbone.View.extend({
                 user: this.collection.get(cid)
             };
             girder.events.trigger('g:navigateTo', girder.views.UserView, params);
+        },
+        'submit .g-user-search-form': function (event) {
+            event.preventDefault();
         }
     },
 

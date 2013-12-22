@@ -68,10 +68,10 @@ class Collection(Resource):
 
         return self._filter(collection, user)
 
-    def updateCollection(self, path, user, params):
+    def updateCollection(self, id, user, params):
         collection = self.getObjectById(
-            self.model('collection'), id=path[0], user=user, checkAccess=True,
-            level=AccessType.ADMIN)
+            self.model('collection'), id=id, user=user, checkAccess=True,
+            level=AccessType.WRITE)
 
         collection['name'] = params.get('name', collection['name']).strip()
         collection['description'] = params.get(
@@ -102,10 +102,17 @@ class Collection(Resource):
         user = self.getCurrentUser()
         if not path:
             return self.find(user, params)
-        else:  # assume it's a collection id
+        elif len(path) == 1:  # assume it's a collection id
             return self._filter(self.getObjectById(
                 self.model('collection'), id=path[0], user=user,
                 checkAccess=True), user)
+        elif path[1] == 'access':
+            collection = self.getObjectById(
+                self.model('collection'), id=path[0], checkAccess=True,
+                user=user, level=AccessType.ADMIN)
+            return self.model('collection').getFullAccessList(collection)
+        else:
+            raise RestException('Invalid path for collection GET.')
 
     @Resource.endpoint
     def POST(self, path, params):
@@ -124,9 +131,32 @@ class Collection(Resource):
         Use this endpoint to edit a collection. Requires admin access
         to that collection.
         """
+        user = self.getCurrentUser()
+
         if not path:
             raise RestException(
                 'Path parameter should be the collection ID to edit.')
+        elif len(path) == 1:
+            return self.updateCollection(path[0], user, params)
+        elif path[1] == 'access':
+            collection = self.getObjectById(
+                self.model('collection'), id=path[0], user=user,
+                checkAccess=True)
+            self.requireParams(['access'], params)
+            self.model('collection').requireAccess(
+                collection, user, AccessType.ADMIN)
 
-        user = self.getCurrentUser()
-        return self.updateCollection(path, user, params)
+            public = params.get('public', 'false').lower() == 'true'
+            self.model('collection').setPublic(collection, public)
+
+            try:
+                access = json.loads(params['access'])
+                return self.model('collection').setAccessList(
+                    collection, access, save=True)
+            except ValueError:
+                raise RestException('The access parameter must be JSON.')
+        else:
+            raise RestException('Invalid path for collection PUT.')
+
+
+

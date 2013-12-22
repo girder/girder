@@ -3,9 +3,8 @@
  */
 girder.views.CollectionView = Backbone.View.extend({
     events: {
-        'click button.g-collection-edit-button' : function () {
-            this.editCollection();
-        }
+        'click .g-edit-collection': 'editCollection',
+        'click .g-collection-access-control': 'editAccess'
     },
 
     initialize: function (settings) {
@@ -49,6 +48,13 @@ girder.views.CollectionView = Backbone.View.extend({
             el: this.$('.g-collection-hierarchy-container')
         });
 
+        this.$('.g-collection-actions-button').tooltip({
+            container: 'body',
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
+
         girder.router.navigate('collection/' + this.model.get('_id'));
 
         return this;
@@ -66,6 +72,16 @@ girder.views.CollectionView = Backbone.View.extend({
             girder.events.trigger('g:navigateTo',
                 girder.views.CollectionsView);
         }, this).fetch();
+    },
+
+    editAccess: function () {
+        new girder.views.AccessWidget({
+            el: $('#g-dialog-container'),
+            modelType: 'collection',
+            model: this.model
+        }).on('g:saved', function (collection) {
+            // need to do anything?
+        }, this);
     }
 
 });
