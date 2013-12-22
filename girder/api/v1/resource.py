@@ -48,7 +48,7 @@ class Resource(BaseResource):
         types = json.loads(params['types'])
 
         if 'collection' in types:
-            results['user'] = self.model('collection').textSearch(
+            results['collection'] = self.model('collection').textSearch(
                 params['q'], user=user, limit=limit, project={
                     'name': 1
                 })

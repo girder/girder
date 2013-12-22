@@ -32,6 +32,10 @@ class Collection(AccessControlledModel):
     def initialize(self):
         self.name = 'collection'
         self.ensureIndices(['name'])
+        self.ensureTextIndex({
+            'name': 10,
+            'description': 1
+        })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()

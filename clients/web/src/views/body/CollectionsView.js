@@ -52,9 +52,28 @@ girder.views.CollectionsView = Backbone.View.extend({
             collection: this.collection
         }).render();
 
+        new girder.views.SearchFieldWidget({
+            el: this.$('.g-collections-search-container'),
+            placeholder: 'Search collections...',
+            types: ['collection']
+        }).off().on('g:resultClicked', this._gotoCollection, this).render();
+
         girder.router.navigate('collections');
 
         return this;
+    },
+
+    /**
+     * When the user clicks a search result collection, this helper method
+     * will navigate them to the view for that specific collection.
+     */
+    _gotoCollection: function (result) {
+        var collection = new girder.models.CollectionModel();
+        collection.set('_id', result.id).on('g:fetched', function () {
+            girder.events.trigger('g:navigateTo', girder.views.CollectionView, {
+                collection: collection
+            });
+        }, this).fetch();
     },
 
     userChanged: function () {
