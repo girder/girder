@@ -184,4 +184,6 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         matching = ModelImporter().model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
-            os.remove(os.path.join(self.assetstore['root'], file['path']))
+            path = os.path.join(self.assetstore['root'], file['path'])
+            if os.path.isfile(path):
+                os.remove(path)

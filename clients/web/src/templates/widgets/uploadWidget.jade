@@ -4,11 +4,10 @@
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title Upload Files
-      .modal-body
-        .g-folder-dest-container
-          b Destination:&nbsp;
+        .g-dialog-subtitle
           i.icon-folder-open
           | #{folder.get('name')}
+      .modal-body
         .g-drop-zone
           i.icon-docs
           |  Browse or drop files
