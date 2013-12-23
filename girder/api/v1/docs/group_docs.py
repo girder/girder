@@ -98,7 +98,7 @@ apis.append({
             Describe.param(
                 'name', 'The name to set on the group.', required=False),
             Describe.param(
-                'Description', 'The description to set on the group.',
+                'description', 'The description to set on the group.',
                 required=False),
             Describe.param(
                 'public', 'Whether group should be publicly visible',
@@ -126,10 +126,10 @@ apis.append({
     })
 
 apis.append({
-    'path': '/group/{groupId}/invite',
+    'path': '/group/{groupId}/invitation',
     'resource': 'group',
     'operations': [{
-        'httpMethod': 'PUT',
+        'httpMethod': 'POST',
         'nickname': 'inviteToGroup',
         'responseClass': 'Group',
         'summary': 'Invite a user to join a group.',
@@ -150,10 +150,10 @@ apis.append({
     })
 
 apis.append({
-    'path': '/group/{groupId}/join',
+    'path': '/group/{groupId}/member',
     'resource': 'group',
     'operations': [{
-        'httpMethod': 'PUT',
+        'httpMethod': 'POST',
         'nickname': 'joinGroup',
         'responseClass': 'Group',
         'summary': 'Accept an invitation to join a group.',
@@ -166,14 +166,8 @@ apis.append({
             Describe.errorResponse(
                 'You were not invited to this group.', 403)
             ]
-        }]
-    })
-
-apis.append({
-    'path': '/group/{groupId}/remove',
-    'resource': 'group',
-    'operations': [{
-        'httpMethod': 'PUT',
+        }, {
+        'httpMethod': 'DELETE',
         'nickname': 'removeFromGroup',
         'responseClass': 'Group',
         'summary': 'Remove yourself or another user from a group.',

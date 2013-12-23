@@ -212,12 +212,18 @@ class Group(AccessControlledModel):
 
     def removeUser(self, group, user):
         """
-        Remove the user from the group.
+        Remove the user from the group. If the user is not in the group but
+        has an outstanding invitation to the group, the invitation will be
+        revoked.
         """
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])
-            self.model('user').save(user, validate=False)
+
+        # Remove any outstanding invitations for this group
+        l = lambda inv: not inv['groupId'] == group['_id']
+        user['groupInvites'] = filter(l, user.get('groupInvites', []))
+        self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
         self.setUserAccess(group, user, level=None, save=True)

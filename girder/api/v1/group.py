@@ -35,7 +35,9 @@ class Group(Resource):
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
 
-        return self.filterDocument(group, allow=keys)
+        group = self.filterDocument(group, allow=keys)
+        group['_accessLevel'] = self.model('group').getAccessLevel(group, user)
+        return group
 
     def find(self, params):
         """
@@ -51,7 +53,7 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        return [group for group in self.model('group').list(
+        return [self._filter(group, user) for group in self.model('group').list(
             user=user, offset=offset, limit=limit, sort=sort)]
 
     def createGroup(self, params):
@@ -155,39 +157,60 @@ class Group(Resource):
 
     @Resource.endpoint
     def DELETE(self, path, params):
-        """
-        Delete an entire group.
-        """
         if not path:
             raise RestException(
                 'Path parameter should be the group ID to delete.')
 
         user = self.getCurrentUser()
-        group = self.getObjectById(self.model('group'), id=path[0], user=user,
-                                   checkAccess=True, level=AccessType.ADMIN)
 
-        self.model('group').remove(group)
-        return {'message': 'Deleted the %s group.' % group['name']}
+        if len(path) == 1:
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user, checkAccess=True,
+                level=AccessType.ADMIN)
+            self.model('group').remove(group)
+            return {'message': 'Deleted the %s group.' % group['name']}
+        elif path[1] == 'member':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user, checkAccess=True,
+                level=AccessType.WRITE)
+            return self.removeFromGroup(group, user, params)
+        else:
+            raise RestException('Invalid group DELETE action.')
 
     @Resource.endpoint
     def GET(self, path, params):
         if not path:
             return self.find(params)
-        elif path[0] == 'access':
-            # TODO get full access list
-            pass
-        else:  # assume it's an ID
-            user = self.getCurrentUser()
+
+        user = self.getCurrentUser()
+
+        if len(path) == 1:
             group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
             return self._filter(group, user)
+        elif path[1] == 'access':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], checkAccess=True, user=user,
+                level=AccessType.ADMIN)
+            return self.model('group').getFullAccessList(group)
+        else:
+            raise RestException('Invalid group GET action.')
 
     @Resource.endpoint
     def POST(self, path, params):
-        """
-        Use this endpoint to create a new folder.
-        """
-        return self.createGroup(params)
+        if not path:
+            return self.createGroup(params)
+
+        user = self.getCurrentUser()
+        group = self.getObjectById(self.model('group'), id=path[0], user=user,
+                                   checkAccess=True)
+
+        if len(path) == 2 and path[1] == 'invitation':
+            return self.inviteToGroup(group, user, params)
+        elif len(path) == 2 and path[1] == 'member':
+            return self.joinGroup(group, user)
+        else:
+            raise RestException('Invalid path for group POST.')
 
     @Resource.endpoint
     def PUT(self, path, params):
@@ -200,12 +223,6 @@ class Group(Resource):
 
         if len(path) == 1:
             return self.updateGroup(group, user, params)
-        elif path[1] == 'invite':
-            return self.inviteToGroup(group, user, params)
-        elif path[1] == 'join':
-            return self.joinGroup(group, user)
-        elif path[1] == 'remove':
-            return self.removeFromGroup(group, user, params)
         elif path[1] == 'access':
             self.requireParams(['access'], params)
             self.model('group').requireAccess(group, user, AccessType.ADMIN)
