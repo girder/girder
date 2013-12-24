@@ -1,0 +1,62 @@
+.g-group-header
+
+  .btn-group.pull-right
+    button.g-group-actions-button.btn.btn-default.dropdown-toggle(
+        data-toggle="dropdown", title="Group actions")
+        i.icon-users
+        |  Actions
+        i.icon-down-dir
+    ul.g-group-actions-menu.dropdown-menu.pull-right(role="menu")
+      if (isMember)
+        li(role="presentation")
+          a.g-group-leave(role="menuitem")
+            i.icon-block
+            | Leave group
+      else if (isInvited)
+        li(role="presentation")
+          a.g-group-join(role="menuitem")
+            i.icon-login
+            | Join group
+      else if (girder.currentUser)
+        li(role="presentation")
+          a.g-group-request-invite(role="menuitem")
+            i.icon-export
+            | Request membership
+      if (group.get('_accessLevel') >= girder.AccessType.WRITE)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-edit-group(role="menuitem")
+            i.icon-edit
+            | Edit group
+        li(role="presentation")
+          a.g-group-invite(role="menuitem")
+            i.icon-mail-alt
+            | Invite user
+      if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-group-delete(role="menuitem")
+            i.icon-trash
+            | Delete group
+
+  .g-group-name #{group.get('name')}
+  .g-group-description #{group.get('description')}
+  .g-clear-right
+
+if (girder.currentUser)
+    if (isMember)
+      .g-group-status-container.g-member
+        i.icon-ok
+        |  You are a member of this group.
+    else if (isInvited)
+      .g-group-status-container.g-invited
+        i.icon-mail-alt
+        |  You have been invited to this group.
+        a.g-group-join  Join group
+    else
+      .g-group-status-container.g-nonmember
+        i.icon-minus-circled
+        |  You are not a member of this group.
+        a.g-group-request-invite  Request membership
+
+.g-group-members-container

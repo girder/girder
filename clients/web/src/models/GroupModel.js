@@ -1,3 +1,3 @@
-girder.models.GroupModel = girder.Model.extend({
+girder.models.GroupModel = girder.AccessControlledModel.extend({
     resourceName: 'group'
 });

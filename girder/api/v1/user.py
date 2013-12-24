@@ -41,10 +41,10 @@ class User(Resource):
             return None
 
         keys = ['_id', 'login', 'public', 'firstName', 'lastName', 'admin',
-                'created', 'groups']
+                'created']
 
         if self.model('user').hasAccess(user, currentUser, AccessType.ADMIN):
-            keys.extend(['size', 'email'])
+            keys.extend(['size', 'email', 'groups', 'groupInvites'])
 
         filtered = self.filterDocument(user, allow=keys)
 
