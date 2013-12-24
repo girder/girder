@@ -1,0 +1,19 @@
+.g-group-members-header
+  i.icon-users
+  |  Members
+.g-group-members-body
+  ul.g-group-members
+    each member in members
+      li(userid="#{member.get('_id')}")
+        a.g-member-name
+          i.icon-user
+          |  #{member.name()}
+        .g-group-member-controls.pull-right
+          if level >= accessType.ADMIN
+            a.g-group-member-remove(title="Promote to moderator or admin")
+              i.icon-up-circled
+          if level >= accessType.WRITE
+            a.g-group-member-remove(title="Remove user from the group")
+              i.icon-block
+.g-group-members-footer
+  .g-member-pagination

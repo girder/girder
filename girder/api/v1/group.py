@@ -182,7 +182,7 @@ class Group(Resource):
             group = self.getObjectById(
                 self.model('group'), id=path[0], user=user, checkAccess=True,
                 level=AccessType.READ)
-            return self.removeFromGroup(group, params)
+            return self.removeFromGroup(group, user, params)
         else:
             raise RestException('Invalid group DELETE action.')
 
@@ -197,6 +197,11 @@ class Group(Resource):
             group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
             return self._filter(group, user)
+        elif path[1] == 'access':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], checkAccess=True, user=user,
+                level=AccessType.READ)
+            return group['access']
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,

@@ -11,14 +11,17 @@ girder.views.GroupView = Backbone.View.extend({
         if (settings.group) {
             this.model = settings.group;
             this.render();
-
-            // This page should be re-rendered if the user logs in or out
-            girder.events.on('g:login', this.userChanged, this);
         }
-        else {
-            console.error('Implement fetch then render group');
-        }
+        else if (settings.id) {
+            this.model = new girder.models.GroupModel();
+            this.model.set('_id', settings.id);
 
+            this.model.on('g:fetched', function () {
+                this.render();
+            }, this).fetch();
+        }
+        // This page should be re-rendered if the user logs in or out
+        girder.events.on('g:login', this.userChanged, this);
     },
 
     editGroup: function () {
@@ -62,6 +65,11 @@ girder.views.GroupView = Backbone.View.extend({
             isInvited: this.isInvited,
             isMember: this.isMember
         }));
+
+        this.membersWidget = new girder.views.GroupMembersWidget({
+            el: this.$('.g-group-members-container'),
+            group: this.model
+        });
 
         this.$('.g-group-actions-button').tooltip({
             container: 'body',

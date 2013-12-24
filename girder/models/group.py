@@ -42,7 +42,8 @@ class Group(AccessControlledModel):
     Users with READ access on the group can see the group and its members.
     Users with WRITE access on the group can add and remove members and
     change the name or description.
-    Users with ADMIN access can delete the entire group.
+    Users with ADMIN access can promote group members to grant them WRITE or
+    ADMIN access, and can also delete the entire group.
 
     This model uses a custom implementation of the access control methods,
     because it uses only a subset of its capabilities and provides a more
@@ -169,7 +170,8 @@ class Group(AccessControlledModel):
         Add the user to the group. Records membership in the group in the
         user document, and also grants the specified access level on the
         group itself to the user. Any group member has at least read access on
-        the group.
+        the group. If the user already belongs to the group, this method can
+        be used to change their access level within it.
         """
         if not 'groups' in user:
             user['groups'] = []
@@ -359,9 +361,12 @@ class Group(AccessControlledModel):
     def setUserAccess(self, doc, user, level, save=False):
         """
         This override is used because we only need to augment the access
-        parameter in the case of WRITE access and above since READ access is
+        field in the case of WRITE access and above since READ access is
         implied by membership or invitation.
         """
         if level > AccessType.READ:
             AccessControlledModel.setUserAccess(
                 self, doc, user, level, save=True)
+        else:
+            AccessControlledModel.setUserAccess(
+                self, doc, user, level=None, save=True)

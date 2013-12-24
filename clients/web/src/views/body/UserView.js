@@ -25,8 +25,13 @@
                     this.render();
                 }
             }
-            else {
-                console.error('Implement fetch then render user');
+            else if (settings.id) {
+                this.model = new girder.models.UserModel();
+                this.model.set('_id', settings.id);
+
+                this.model.on('g:fetched', function () {
+                    this.render();
+                }, this).fetch();
             }
 
             // This page should be re-rendered if the user logs in or out

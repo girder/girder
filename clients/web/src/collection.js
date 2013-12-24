@@ -12,6 +12,9 @@ girder.Collection = Backbone.Collection.extend({
     pageLimit: 25,
     offset: 0,
 
+    // Alternative fetch URL
+    altUrl: null,
+
     /**
      * Append mode can be used to append pages to the collection rather than
      * simply replacing its contents when a new page is fetched. For the sake
@@ -74,7 +77,7 @@ girder.Collection = Backbone.Collection.extend({
 
         this.params = params || {};
         girder.restRequest({
-            path: this.resourceName,
+            path: this.altUrl || this.resourceName,
             data: _.extend({
                 'limit': this.pageLimit + 1,
                 'offset': this.offset,

@@ -212,4 +212,24 @@ apis.append({
         }]
     })
 
+apis.append({
+    'path': '/group/{groupId}/access',
+    'resource': 'group',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getGroupAccess',
+        'responseClass': 'Group',
+        'summary': 'Get the access control list for a group.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the group.', 403)
+            ]
+        }]
+    })
+
 Describe.declareApi('group', apis=apis)
