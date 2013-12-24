@@ -153,6 +153,32 @@ apis.append({
     'path': '/group/{groupId}/member',
     'resource': 'group',
     'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getGroupMembers',
+        'responseClass': 'Group',
+        'summary': 'List members of a group.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            Describe.param(
+                'sort', "Field to sort the member list by (default=lastName)",
+                required=False),
+            Describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='int')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'You were not invited to this group.', 403)
+            ]
+        }, {
         'httpMethod': 'POST',
         'nickname': 'joinGroup',
         'responseClass': 'Group',
@@ -182,41 +208,6 @@ apis.append({
             Describe.errorResponse(),
             Describe.errorResponse(
                 "You don't have permission to remove that user.", 403)
-            ]
-        }]
-    })
-
-apis.append({
-    'path': '/group/{groupId}/access',
-    'resource': 'group',
-    'operations': [{
-        'httpMethod': 'GET',
-        'nickname': 'getGroupAccess',
-        'responseClass': 'Group',
-        'summary': 'Get the access control list for a group.',
-        'parameters': [
-            Describe.param(
-                'groupId', 'The ID of the group.', paramType='path')
-            ],
-        'errorResponses': [
-            Describe.errorResponse('ID was invalid.'),
-            Describe.errorResponse(
-                'Admin access was denied for the group.', 403)
-            ]
-        }, {
-        'httpMethod': 'PUT',
-        'nickname': 'updateGroupAccess',
-        'summary': 'Update the access control list for a group.',
-        'parameters': [
-            Describe.param(
-                'groupId', 'The ID of the group.', paramType='path'),
-            Describe.param(
-                'access', 'The JSON-encoded access control list.')
-            ],
-        'errorResponses': [
-            Describe.errorResponse('ID was invalid.'),
-            Describe.errorResponse(
-                'Admin access was denied for the group.', 403)
             ]
         }]
     })

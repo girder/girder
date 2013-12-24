@@ -457,7 +457,7 @@ class AccessControlledModel(Model):
         :type user: dict
         :param level: The access level.
         :type level: AccessType
-        :returns: The updated resource document.
+        :returns: Whether the access is granted.
         """
         if user is None:
             # Short-circuit the case of anonymous users

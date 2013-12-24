@@ -188,11 +188,6 @@ class Group(Resource):
             group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
             return self._filter(group, user)
-        elif path[1] == 'access':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.ADMIN)
-            return self.model('group').getFullAccessList(group)
         else:
             raise RestException('Invalid group GET action.')
 
@@ -223,10 +218,5 @@ class Group(Resource):
 
         if len(path) == 1:
             return self.updateGroup(group, user, params)
-        elif path[1] == 'access':
-            self.requireParams(['access'], params)
-            self.model('group').requireAccess(group, user, AccessType.ADMIN)
-            return self.model('group').setAccessList(
-                group, params['access'], save=True)
         else:
             raise RestException('Invalid group update action.')

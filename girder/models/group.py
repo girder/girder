@@ -36,13 +36,22 @@ class Group(AccessControlledModel):
     common use case for querying membership, which involves checking access
     control policies, which is always done relative to a specific user. The
     task of querying all members within a group is much less common and
-    typically only performed ona single group at a time, so doing a find on the
+    typically only performed on a single group at a time, so doing a find on the
     indexed group list in the user collection is sufficiently fast.
 
     Users with READ access on the group can see the group and its members.
     Users with WRITE access on the group can add and remove members and
     change the name or description.
     Users with ADMIN access can delete the entire group.
+
+    This model uses a custom implementation of the access control methods,
+    because it uses only a subset of its capabilities and provides a more
+    optimized implementation for that subset. Specifically: read access is
+    implied by membership in the group or having an invitation to join the
+    group, so we don't store read access in the access document as normal.
+    Another constraint is that write and admin access on the group can only be
+    granted to members of the group. Also, group permissions are not allowed
+    on groups for the sake of simplicity.
     """
 
     def initialize(self):
@@ -189,9 +198,6 @@ class Group(AccessControlledModel):
         Once they accept the invitation, they will be given the specified level
         of access.
         """
-        # User has to be able to see the group to join it
-        self.setUserAccess(group, user, AccessType.READ, save=True)
-
         if group['_id'] in user.get('groups', []):
             raise ValidationException('User is already in this group.')
 
@@ -265,3 +271,88 @@ class Group(AccessControlledModel):
         self.addUser(group, creator, level=AccessType.ADMIN)
 
         return group
+
+    def hasAccess(self, doc, user=None, level=AccessType.READ):
+        """
+        This overrides the default AccessControlledModel behavior for checking
+        access to perform an optimized subset of the access control behavior.
+
+        :param doc: The group to check permission on.
+        :type doc: dict
+        :param user: The user to check against.
+        :type user: dict
+        :param level: The access level.
+        :type level: AccessType
+        :returns: Whether the access is granted.
+        """
+        if user is None:
+            # Short-circuit the case of anonymous users
+            return level == AccessType.READ and doc.get('public', False) is True
+        elif user.get('admin', False) is True:
+            # Short-circuit the case of admins
+            return True
+        elif level == AccessType.READ:
+            # For read access, just check user document for membership or public
+            return doc.get('public', False) is True or\
+                doc['_id'] in user.get('groups', []) or\
+                doc['_id'] in [i['groupId'] for i in
+                               user.get('groupInvites', [])]
+        else:
+            # Check the actual permissions document for >=WRITE access
+            return self._hasUserAccess(doc.get('access', {}).get('users', []),
+                                       user['_id'], level)
+
+    def getAccessLevel(self, doc, user):
+        """
+        Return the maximum access level for a given user on the group.
+
+        :param doc: The group to check access on.
+        :param user: The user to get the access level for.
+        :returns: The max AccessType available for the user on the object.
+        """
+        if user is None:
+            if doc.get('public', False):
+                return AccessType.READ
+            else:
+                return AccessType.NONE
+        elif user.get('admin', False):
+            return AccessType.ADMIN
+        else:
+            access = doc.get('access', {})
+            level = AccessType.NONE
+
+            if doc['_id'] in user.get('groups', []):
+                level = AccessType.READ
+            elif doc['_id'] in [i['groupId'] for i in
+                                user.get('groupInvites', [])]:
+                return AccessType.READ
+
+            for userAccess in access.get('users', []):
+                if userAccess['id'] == user['_id']:
+                    level = max(level, userAccess['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            return level
+
+    def setAccessList(self, doc, access, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def getFullAccessList(self, doc):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def setGroupAccess(self, doc, group, level, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def copyAccessPolicies(self, src, dest, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def setUserAccess(self, doc, user, level, save=False):
+        """
+        This override is used because we only need to augment the access
+        parameter in the case of WRITE access and above since READ access is
+        implied by membership or invitation.
+        """
+        if level > AccessType.READ:
+            AccessControlledModel.setUserAccess(
+                self, doc, user, level, save=True)

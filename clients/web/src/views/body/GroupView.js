@@ -10,28 +10,6 @@ girder.views.GroupView = Backbone.View.extend({
         // If group model is already passed, there is no need to fetch.
         if (settings.group) {
             this.model = settings.group;
-            console.log(this.model);
-
-            this.isMember = false;
-            this.isInvited = false;
-
-            if (girder.currentUser) {
-                _.every(girder.currentUser.get('groups'), function (groupId) {
-                    if (groupId === this.model.get('_id')) {
-                        this.isMember = true;
-                        return false; // 'break;'
-                    }
-                    return true;
-                }, this);
-
-                _.every(girder.currentUser.get('groupInvites'), function (inv) {
-                    if (inv['groupId'] === this.model.get('_id')) {
-                        this.isInvited = true;
-                        return false; // 'break;'
-                    }
-                    return true;
-                }, this);
-        }
             this.render();
 
             // This page should be re-rendered if the user logs in or out
@@ -58,6 +36,26 @@ girder.views.GroupView = Backbone.View.extend({
     },
 
     render: function () {
+        this.isMember = false;
+        this.isInvited = false;
+
+        if (girder.currentUser) {
+            _.every(girder.currentUser.get('groups'), function (groupId) {
+                if (groupId === this.model.get('_id')) {
+                    this.isMember = true;
+                    return false; // 'break;'
+                }
+                return true;
+            }, this);
+
+            _.every(girder.currentUser.get('groupInvites'), function (inv) {
+                if (inv.groupId === this.model.get('_id')) {
+                    this.isInvited = true;
+                    return false; // 'break;'
+                }
+                return true;
+            }, this);
+        }
         this.$el.html(jade.templates.groupPage({
             group: this.model,
             girder: girder,
