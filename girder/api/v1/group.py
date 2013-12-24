@@ -99,6 +99,15 @@ class Group(Resource):
         """
         return self.model('group').joinGroup(group, user)
 
+    def listMembers(self, group, params):
+        """
+        Paginated member list of group members.
+        """
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
+
+        return [g for g in self.model('group').listMembers(
+            group, offset=offset, limit=limit, sort=sort)]
+
     def inviteToGroup(self, group, user, params):
         """
         Invite the user to join the group.
@@ -172,8 +181,8 @@ class Group(Resource):
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.WRITE)
-            return self.removeFromGroup(group, user, params)
+                level=AccessType.READ)
+            return self.removeFromGroup(group, params)
         else:
             raise RestException('Invalid group DELETE action.')
 
@@ -188,6 +197,11 @@ class Group(Resource):
             group = self.getObjectById(self.model('group'), id=path[0],
                                        checkAccess=True, user=user)
             return self._filter(group, user)
+        elif path[1] == 'member':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], checkAccess=True, user=user,
+                level=AccessType.ADMIN)
+            return self.listMembers(group, params)
         else:
             raise RestException('Invalid group GET action.')
 

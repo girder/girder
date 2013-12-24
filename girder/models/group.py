@@ -101,6 +101,15 @@ class Group(AccessControlledModel):
                                                 limit=limit, offset=offset):
             yield r
 
+    def listMembers(self, group, offset=0, limit=50, sort=None):
+        """
+        List members of the group, with names, ids, and logins.
+        """
+        fields = ['_id', 'firstName', 'lastName', 'login']
+        return self.model('user').find({
+            'groups': group['_id']
+        }, fields=fields, limit=limit, offset=offset, sort=sort)
+
     def remove(self, group):
         """
         Delete a group, and all references to it in the database.
