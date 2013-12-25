@@ -20,3 +20,8 @@ if current
       i.icon-sitemap
       | &nbsp;
     | #{current.get('name') || current.name()}
+
+if (idx > 0)
+  .pull-right
+    a.g-hierarchy-level-up(title="Go up one level")
+      i.icon-level-up
