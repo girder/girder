@@ -37,6 +37,12 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
             collection: this.membersColl
         }).render();
 
+        this.userSearch = new girder.views.SearchFieldWidget({
+            el: this.$('.g-group-invite-container'),
+            placeholder: 'Invite a user to join...',
+            types: ['user']
+        }).off().on('g:resultClicked', this._inviteUser, this).render();
+
         this.$('.g-group-member-remove,.g-group-member-promote').tooltip({
             container: 'body',
             placement: 'left',
@@ -45,5 +51,21 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
         });
 
         return this;
+    },
+
+    /**
+     * When user searches and clicks a user, this method is called and a
+     * dialog is opened allowing the user to select a role to invite into.
+     */
+    _inviteUser: function (user) {
+        this.userSearch.resetState();
+
+        new girder.views.InviteUserDialog({
+            el: $('#g-dialog-container'),
+            group: this.model,
+            user: user
+        }).on('g:accepted', function () {
+            // what to do once we are done?
+        }, this).render();
     }
 });

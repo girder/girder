@@ -3,7 +3,8 @@
  */
 girder.views.GroupView = Backbone.View.extend({
     events: {
-        'click .g-edit-group': 'editGroup'
+        'click .g-edit-group': 'editGroup',
+        'click .g-group-invite': 'invitationDialog'
     },
 
     initialize: function (settings) {
@@ -91,11 +92,9 @@ girder.views.GroupView = Backbone.View.extend({
         }, this).on('g:error', function () {
             // Current user no longer has read access to this group, so we
             // send them back to the group list page.
-            girder.events.trigger('g:navigateTo',
-                girder.views.GroupsView);
+            girder.events.trigger('g:navigateTo', girder.views.GroupsView);
         }, this).fetch();
     }
-
 });
 
 girder.router.route('group/:id', 'group', function (id) {

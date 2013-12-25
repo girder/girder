@@ -28,10 +28,6 @@
           a.g-edit-group(role="menuitem")
             i.icon-edit
             | Edit group
-        li(role="presentation")
-          a.g-group-invite(role="menuitem")
-            i.icon-mail-alt
-            | Invite user
       if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
         li.divider(role="presentation")
         li(role="presentation")
