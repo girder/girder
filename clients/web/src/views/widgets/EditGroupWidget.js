@@ -1,9 +1,9 @@
 /**
- * This widget is used to create a new collection or edit an existing one.
+ * This widget is used to create a new group or edit an existing one.
  */
-girder.views.EditCollectionWidget = Backbone.View.extend({
+girder.views.EditGroupWidget = Backbone.View.extend({
     events: {
-        'submit #g-collection-edit-form': function (e) {
+        'submit #g-group-edit-form': function (e) {
             e.preventDefault();
 
             var fields = {
@@ -12,15 +12,13 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
             };
 
             if (this.model) {
-                this.model.set('name', fields.name);
-                this.model.set('description', fields.description);
-                this.updateCollection(fields);
+                this.updateGroup(fields);
             }
             else {
-                this.createCollection(fields);
+                this.createGroup(fields);
             }
 
-            this.$('button.g-save-collection').addClass('disabled');
+            this.$('button.g-save-group').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -31,13 +29,14 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editCollectionWidget({
-            collection: view.model
+        this.$el.html(jade.templates.editGroupWidget({
+            group: this.model
         })).girderModal(this).on('shown.bs.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));
                 view.$('#g-description').val(view.model.get('description'));
             }
+
             view.$('#g-name').focus();
         });
         this.$('#g-name').focus();
@@ -45,27 +44,27 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
         return this;
     },
 
-    createCollection: function (fields) {
-        var collection = new girder.models.CollectionModel();
-        collection.set(fields);
-        collection.on('g:saved', function () {
+    createGroup: function (fields) {
+        var group = new girder.models.GroupModel();
+        group.set(fields);
+        group.on('g:saved', function () {
             this.$el.modal('hide');
-            this.trigger('g:saved', collection);
+            this.trigger('g:saved', group);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-group').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
 
-    updateCollection: function (fields) {
+    updateGroup: function (fields) {
         this.model.set(fields);
-        this.model.on('g:saved', function () {
+        this.model.off().on('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-group').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }

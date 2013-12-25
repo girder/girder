@@ -89,8 +89,8 @@ girder.views.GroupView = Backbone.View.extend({
         this.model.off('g:fetched').on('g:fetched', function () {
             this.render();
         }, this).on('g:error', function () {
-            // Current user no longer has read access to this user, so we
-            // send them back to the user list page.
+            // Current user no longer has read access to this group, so we
+            // send them back to the group list page.
             girder.events.trigger('g:navigateTo',
                 girder.views.GroupsView);
         }, this).fetch();

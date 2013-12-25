@@ -81,7 +81,7 @@ class Group(Resource):
 
         return self._filter(group, user)
 
-    def updateGroup(self, group, user, params):
+    def updateGroup(self, id, user, params):
         """
         Update the group.
 
@@ -90,8 +90,16 @@ class Group(Resource):
         :param public: Public read access flag.
         :type public: bool
         """
-        self.model('group').requireAccess(group, user, AccessType.WRITE)
-        # TODO implement updating of a group document
+        group = self.getObjectById(
+            self.model('group'), id=id, user=user, checkAccess=True,
+            level=AccessType.WRITE)
+
+        group['name'] = params.get('name', group['name']).strip()
+        group['description'] = params.get(
+            'description', group['description']).strip()
+
+        group = self.model('group').updateGroup(group)
+        return self._filter(group, user)
 
     def joinGroup(self, group, user):
         """
@@ -181,7 +189,7 @@ class Group(Resource):
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.READ)
+                level=AccessType.WRITE)
             return self.removeFromGroup(group, user, params)
         else:
             raise RestException('Invalid group DELETE action.')
@@ -205,7 +213,7 @@ class Group(Resource):
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.ADMIN)
+                level=AccessType.READ)
             return self.listMembers(group, params)
         else:
             raise RestException('Invalid group GET action.')
@@ -232,10 +240,8 @@ class Group(Resource):
             raise RestException('Must have a path parameter.')
 
         user = self.getCurrentUser()
-        group = self.getObjectById(self.model('group'), id=path[0], user=user,
-                                   checkAccess=True)
 
         if len(path) == 1:
-            return self.updateGroup(group, user, params)
+            return self.updateGroup(path[0], user, params)
         else:
             raise RestException('Invalid group update action.')

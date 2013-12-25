@@ -283,6 +283,19 @@ class Group(AccessControlledModel):
 
         return group
 
+    def updateGroup(self, group):
+        """
+        Updates a group.
+
+        :param group: The group document to update
+        :type group: dict
+        :returns: The group document that was edited.
+        """
+        group['updated'] = datetime.datetime.now()
+
+        # Validate and save the group
+        return self.save(group)
+
     def hasAccess(self, doc, user=None, level=AccessType.READ):
         """
         This overrides the default AccessControlledModel behavior for checking
