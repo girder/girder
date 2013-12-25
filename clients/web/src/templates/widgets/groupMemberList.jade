@@ -10,7 +10,7 @@
           |  #{member.name()}
         .g-group-member-controls.pull-right
           if level >= accessType.ADMIN
-            a.g-group-member-remove(title="Promote to moderator or admin")
+            a.g-group-member-promote(title="Promote to moderator or admin")
               i.icon-up-circled
           if level >= accessType.WRITE
             a.g-group-member-remove(title="Remove user from the group")

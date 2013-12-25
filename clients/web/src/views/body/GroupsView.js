@@ -12,6 +12,9 @@ girder.views.GroupsView = Backbone.View.extend({
         },
         'submit .g-group-search-form': function (event) {
             event.preventDefault();
+        },
+        'click .g-group-create-button': function () {
+            this.createGroupDialog();
         }
     },
 
@@ -42,6 +45,27 @@ girder.views.GroupsView = Backbone.View.extend({
         girder.router.navigate('groups');
 
         return this;
+    },
+
+    /**
+     * Prompt the user to create a new group
+     */
+    createGroupDialog: function () {
+        var container = $('#g-dialog-container');
+
+        new girder.views.EditGroupWidget({
+            el: container
+        }).off('g:saved').on('g:saved', function (group) {
+            // Since the user has now joined this group, we can append its ID
+            // to their groups list
+            var userGroups = girder.currentUser.get('groups') || [];
+            userGroups.push(group.get('_id'));
+            girder.currentUser.set('groups', userGroups);
+
+            girder.events.trigger('g:navigateTo', girder.views.GroupView, {
+                group: group
+            });
+        }, this).render();
     },
 
     /**

@@ -16,6 +16,13 @@ each group in groups
         i.icon-clock
         | Created on
         span.g-group-created-date  #{girder.formatDate(group.get('created'), girder.DATE_DAY)}
+      .g-group-privacy
+        if (group.get('public'))
+          i.icon-globe
+          | Public group
+        else
+          i.icon-lock
+          | Private group
     .g-group-title
       a.g-group-link(g-group-cid="#{group.cid}")
         b #{group.get('name')}
