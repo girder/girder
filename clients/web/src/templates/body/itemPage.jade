@@ -1,0 +1,18 @@
+.g-item-header
+  .g-item-name #{item.get('name')}
+  .g-item-description #{item.get('description')}
+  .g-item-size Size: #{girder.formatSize(item.get('size'))}
+  .g-item-created
+    i.icon-clock
+    | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
+  .g-item-updated
+    i.icon-clock
+    | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
+
+.g-item-metadata
+  .g-item-metadata-header Metadata
+  .g-item-metadata-container
+
+.g-item-files
+  .g-item-header-container Files
+  .g-item-files-container
