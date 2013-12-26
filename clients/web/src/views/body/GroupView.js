@@ -5,7 +5,8 @@ girder.views.GroupView = Backbone.View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
         'click .g-group-invite': 'invitationDialog',
-        'click .g-group-join': 'joinGroup'
+        'click .g-group-join': 'joinGroup',
+        'click .g-group-leave': 'leaveGroup'
     },
 
     initialize: function (settings) {
@@ -110,8 +111,19 @@ girder.views.GroupView = Backbone.View.extend({
         }, this).joinGroup();
     },
 
+    leaveGroup: function () {
+        var view = this;
+        girder.confirm({
+            text: 'Are you sure you want to leave this group?',
+            confirmCallback: function () {
+                view.model.off('g:removed').on('g:removed', function () {
+                    view.render();
+                }).removeMember(girder.currentUser.get('_id'));
+            }
+        });
+    },
+
     removeMember: function (user) {
-        console.log(user);
         this.model.off('g:removed').on('g:removed', function () {
             this.render();
         }, this).removeMember(user.get('_id'));
