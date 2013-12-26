@@ -6,7 +6,8 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-edit-group': 'editGroup',
         'click .g-group-invite': 'invitationDialog',
         'click .g-group-join': 'joinGroup',
-        'click .g-group-leave': 'leaveGroup'
+        'click .g-group-leave': 'leaveGroup',
+        'click .g-group-delete': 'deleteGroup'
     },
 
     initialize: function (settings) {
@@ -39,6 +40,20 @@ girder.views.GroupView = Backbone.View.extend({
             }, this);
         }
         this.editGroupWidget.render();
+    },
+
+    deleteGroup: function () {
+        var view = this;
+        girder.confirm({
+            text: 'Are you sure you want to delete the group <b>' +
+            view.model.get('name') + '</b>?',
+            confirmCallback: function () {
+                view.model.on('g:deleted', function () {
+                    girder.events.trigger('g:navigateTo',
+                        girder.views.GroupsView);
+                }).destroy();
+            }
+        });
     },
 
     render: function () {
