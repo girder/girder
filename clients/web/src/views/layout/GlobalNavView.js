@@ -33,10 +33,6 @@ girder.views.LayoutGlobalNavView = Backbone.View.extend({
             'name': 'Groups',
             'icon': 'icon-users',
             'target': 'GroupsView'
-        }, {
-            'name': 'Search',
-            'icon': 'icon-search',
-            'target': 'SearchView'
         }];
         this.$el.html(jade.templates.layoutGlobalNav({
             navItems: navItems

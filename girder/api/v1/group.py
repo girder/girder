@@ -51,9 +51,8 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        return [group for group in self.model('group').search(
-            text=params.get('text'), user=user, offset=offset, limit=limit,
-            sort=sort)]
+        return [group for group in self.model('group').list(
+            user=user, offset=offset, limit=limit, sort=sort)]
 
     def createGroup(self, params):
         """

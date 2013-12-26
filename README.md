@@ -35,14 +35,15 @@ Run this command any time you change a JavaScript or CSS file under __clients/we
 
 ## Run
 
-To run the server, first make sure the mongo daemon is running. To manually start it, run:
+To run the server, first make sure the mongo daemon is running and has text search enabled.
+To manually start it, run:
 
-    mongod &
+    mongod --setParameter textSearchEnabled=true &
 
 Then, just run:
 
     python -m girder
-    
+
 Then open http://localhost:8080/ in your web browser, and you should see the application.
 
 

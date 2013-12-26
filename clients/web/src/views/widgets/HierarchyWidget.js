@@ -6,7 +6,20 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
-        'click .g-upload-here-button': 'uploadDialog'
+        'click .g-upload-here-button': 'uploadDialog',
+        'click .g-folder-access-button': 'editFolderAccess'
+    },
+
+    /**
+     * If both the child folders and child items have been fetched, and
+     * there are neither of either type in this parent container, we should
+     * show the "empty container" message.
+     */
+    _childCountCheck: function () {
+        var container = this.$('.g-empty-parent-message').addClass('hide');
+        if (this.folderCount === 0 && this.itemCount === 0) {
+            container.removeClass('hide');
+        }
     },
 
     initialize: function (settings) {
@@ -22,6 +35,9 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     },
 
     render: function () {
+        this.folderCount = null;
+        this.itemCount = null;
+
         this.$el.html(jade.templates.hierarchyWidget({
             type: this.parentType,
             model: this.parentModel,
@@ -30,10 +46,19 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         }));
 
         var view = this;
-        this.$('.g-folder-info-button').tooltip();
-        this.$('.g-folder-access-button').tooltip();
-        this.$('.g-upload-here-button').tooltip();
-        this.$('.g-select-all').tooltip().unbind('change').change(function () {
+        this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
+               '.g-upload-here-button,.g-checked-actions-button').tooltip({
+            container: 'body',
+            animation: false,
+            delay: {show: 100}
+        });
+        this.$('.g-folder-actions-button').tooltip({
+            container: 'body',
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
+        this.$('.g-select-all').unbind('change').change(function () {
             view.folderListView.checkAll(this.checked);
 
             if (view.itemListView) {
@@ -77,7 +102,11 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                 this.uploadWidget.folder = folder;
             }
         }, this).off('g:checkboxesChanged')
-                .on('g:checkboxesChanged', this.updateChecked, this);
+                .on('g:checkboxesChanged', this.updateChecked, this)
+                .off('g:changed').on('g:changed', function () {
+            this.folderCount = this.folderListView.collection.length;
+            this._childCountCheck();
+        }, this);
 
         if (this.parentType === 'folder') {
             // Setup the child item list view
@@ -90,7 +119,14 @@ girder.views.HierarchyWidget = Backbone.View.extend({
                     item: item
                 });
             }, this).off('g:checkboxesChanged')
-                    .on('g:checkboxesChanged', this.updateChecked, this);
+                    .on('g:checkboxesChanged', this.updateChecked, this)
+                    .off('g:changed').on('g:changed', function () {
+                this.itemCount = this.itemListView.collection.length;
+                this._childCountCheck();
+            }, this);
+        }
+        else {
+            this.itemCount = 0;
         }
         return this;
     },
@@ -112,15 +148,13 @@ girder.views.HierarchyWidget = Backbone.View.extend({
      * Prompt the user to create a new subfolder in the current folder.
      */
     createFolderDialog: function () {
-        var container = $('#g-dialog-container');
-
         new girder.views.EditFolderWidget({
-                el: container,
-                parentType: this.parentType,
-                parentModel: this.parentModel
+            el: $('#g-dialog-container'),
+            parentType: this.parentType,
+            parentModel: this.parentModel
         }).on('g:saved', function (folder) {
-                this.folderListView.insertFolder(folder);
-                this.updateChecked();
+            this.folderListView.insertFolder(folder);
+            this.updateChecked();
         }, this).render();
     },
 
@@ -172,13 +206,11 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.
         var minLevel = girder.AccessType.ADMIN;
-        if (minLevel > girder.AccessType.READ) {
-            _.every(folders, function (cid) {
-                var folder = this.folderListView.collection.get(cid);
-                minLevel = Math.min(minLevel, folder.get('_accessLevel'));
-                return minLevel > girder.AccessType.READ; // acts as 'break'
-            }, this);
-        }
+        _.every(folders, function (cid) {
+            var folder = this.folderListView.collection.get(cid);
+            minLevel = Math.min(minLevel, folder.get('_accessLevel'));
+            return minLevel > girder.AccessType.READ; // acts as 'break'
+        }, this);
 
         if (this.itemListView) {
             items = this.itemListView.checked;
@@ -197,6 +229,16 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     downloadFolder: function () {
         window.location = girder.apiRoot + '/folder/' +
            this.parentModel.get('_id') + '/download';
+    },
+
+    editFolderAccess: function () {
+        new girder.views.AccessWidget({
+            el: $('#g-dialog-container'),
+            modelType: this.parentType,
+            model: this.parentModel
+        }).on('g:saved', function (folder) {
+            // need to do anything?
+        }, this);
     }
 });
 

@@ -17,7 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-from v1 import api_docs, assetstore, file, collection, folder, group, item, user
+from v1 import api_docs, assetstore, file, collection, folder, group, item,\
+    resource, user
 
 
 class ApiDocs():
@@ -45,6 +46,7 @@ def _addV1ToNode(node):
     node.v1.folder = folder.Folder()
     node.v1.group = group.Group()
     node.v1.item = item.Item()
+    node.v1.resource = resource.Resource()
     node.v1.user = user.User()
 
     return node

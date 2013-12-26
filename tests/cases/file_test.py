@@ -21,6 +21,7 @@ import cherrypy
 import io
 import json
 import os
+import shutil
 import zipfile
 
 from hashlib import sha512
@@ -217,6 +218,9 @@ class FileTestCase(base.TestCase):
         assetstore = self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=root)
         self.assetstore = assetstore
+
+        # Clean out the test assetstore on disk
+        shutil.rmtree(assetstore['root'])
 
         # First clean out the temp directory
         tmpdir = os.path.join(root, 'temp')

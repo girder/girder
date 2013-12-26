@@ -32,6 +32,10 @@ class Collection(AccessControlledModel):
     def initialize(self):
         self.name = 'collection'
         self.ensureIndices(['name'])
+        self.ensureTextIndex({
+            'name': 10,
+            'description': 1
+        })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -73,12 +77,10 @@ class Collection(AccessControlledModel):
         # Delete this collection
         AccessControlledModel.remove(self, collection)
 
-    def search(self, text=None, user=None, limit=50, offset=0, sort=None):
+    def list(self, user=None, limit=50, offset=0, sort=None):
         """
         Search for collections with full text search.
         """
-        # TODO implement full text search
-
         cursor = self.find({}, limit=0, sort=sort)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=user,

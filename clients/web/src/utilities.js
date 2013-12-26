@@ -41,7 +41,13 @@ girder.formatSize = function (sizeBytes) {
 
     // If it's > 1GB, report to two decimal places, otherwise just one.
     var precision = sizeBytes > 1073741824 ? 2 : 1;
-    for (var i = 0; sizeBytes > 1024; i += 1) {
+
+    // If we are just reporting bytes, no need for decimal places.
+    if (sizeBytes < 1024) {
+        precision = 0;
+    }
+
+    for (var i = 0; sizeBytes >= 1024; i += 1) {
         sizeBytes /= 1024;
     }
 

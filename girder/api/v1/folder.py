@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import json
 import os
 import pymongo
 
@@ -65,10 +66,10 @@ class Folder(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
-            return [self._filter(folder, user) for folder in
-                    self.model('folder').search(
-                        params['text'], user=user, offset=offset, limit=limit,
-                        sort=sort)]
+            return self.model('folder').textSearch(
+                params['text'], user=user, limit=limit, project={
+                    'name': 1
+                })
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if not parentType in ('collection', 'folder', 'user'):
@@ -239,5 +240,13 @@ class Folder(Resource):
         elif path[1] == 'access':
             self.requireParams(['access'], params)
             self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
-            return self.model('folder').setAccessList(
-                folder, params['access'], save=True)
+
+            public = params.get('public', 'false').lower() == 'true'
+            self.model('folder').setPublic(folder, public)
+
+            try:
+                access = json.loads(params['access'])
+                return self.model('folder').setAccessList(
+                    folder, access, save=True)
+            except ValueError:
+                raise RestException('The access parameter must be JSON.')

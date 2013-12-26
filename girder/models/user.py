@@ -33,6 +33,11 @@ class User(AccessControlledModel):
     def initialize(self):
         self.name = 'user'
         self.ensureIndices(['login', 'email'])
+        self.ensureTextIndex({
+            'login': 1,
+            'firstName': 1,
+            'lastName': 1
+        }, language='none')
 
     def validate(self, doc):
         """

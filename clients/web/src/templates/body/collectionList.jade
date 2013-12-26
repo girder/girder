@@ -2,8 +2,7 @@
 
   .g-collection-pagination
   form.g-collection-search-form.form-inline(role="form")
-    .form-group
-      input.input-sm.form-control(type="text", placeholder="Search collections")
+    .form-group.g-collections-search-container
 
   if (girder.currentUser && girder.currentUser.get('admin'))
     button.g-collection-create-button.btn.btn-sm.btn-default
