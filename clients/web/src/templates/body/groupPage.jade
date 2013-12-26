@@ -43,7 +43,12 @@ if (girder.currentUser)
     if (isMember)
       .g-group-status-container.g-member
         i.icon-ok
-        |  You are a member of this group.
+        if (group.get('_accessLevel') < girder.AccessType.WRITE)
+          |  You are a <b>member</b> of this group.
+        else if (group.get('_accessLevel') < girder.AccessType.ADMIN)
+          |  You are a <b>moderator</b> of this group.
+        else
+          |  You are an <b>administrator</b> of this group.
     else if (isInvited)
       .g-group-status-container.g-invited
         i.icon-mail-alt

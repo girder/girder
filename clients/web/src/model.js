@@ -70,7 +70,7 @@ girder.Model = Backbone.Model.extend({
     },
 
     /**
-     * Delete the folder on the server.
+     * Delete the model on the server.
      */
     destroy: function () {
         if (this.resourceName === null) {

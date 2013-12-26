@@ -4,7 +4,8 @@
 girder.views.GroupView = Backbone.View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
-        'click .g-group-invite': 'invitationDialog'
+        'click .g-group-invite': 'invitationDialog',
+        'click .g-group-join': 'joinGroup'
     },
 
     initialize: function (settings) {
@@ -70,7 +71,14 @@ girder.views.GroupView = Backbone.View.extend({
         this.membersWidget = new girder.views.GroupMembersWidget({
             el: this.$('.g-group-members-container'),
             group: this.model
-        });
+        }).off().on('g:sendInvite', function (params) {
+            this.model.off('g:invited').on('g:invited', function () {
+                this.render();
+            }, this).off('g:error').on('g:error', function (err) {
+                // TODO don't alert, show something useful
+                alert(err.responseJSON.message);
+            }, this).sendInvitation(params.user.id, params.level);
+        }, this).on('g:removeMember', this.removeMember, this);
 
         this.$('.g-group-actions-button').tooltip({
             container: 'body',
@@ -94,6 +102,19 @@ girder.views.GroupView = Backbone.View.extend({
             // send them back to the group list page.
             girder.events.trigger('g:navigateTo', girder.views.GroupsView);
         }, this).fetch();
+    },
+
+    joinGroup: function () {
+        this.model.off('g:joined').on('g:joined', function () {
+            this.render();
+        }, this).joinGroup();
+    },
+
+    removeMember: function (user) {
+        console.log(user);
+        this.model.off('g:removed').on('g:removed', function () {
+            this.render();
+        }, this).removeMember(user.get('_id'));
     }
 });
 

@@ -34,9 +34,10 @@ class Group(Resource):
         Filter a group document for display to the user.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+        accessLevel = self.model('group').getAccessLevel(group, user)
 
         group = self.filterDocument(group, allow=keys)
-        group['_accessLevel'] = self.model('group').getAccessLevel(group, user)
+        group['_accessLevel'] = accessLevel
         return group
 
     def find(self, params):
@@ -138,9 +139,6 @@ class Group(Resource):
             self.model('user'), user=user, id=params['userId'],
             checkAccess=True)
 
-        if userToInvite['_id'] == user['_id']:
-            raise RestException('Cannot invite yourself to a group.')
-
         # Can only invite into access levels that you yourself have
         self.model('group').requireAccess(group, user, level)
         self.model('group').inviteUser(group, userToInvite, level)
@@ -159,6 +157,8 @@ class Group(Resource):
         else:
             # Assume user is removing himself from the group
             userToRemove = user
+
+        #print userToRemove
 
         # If removing someone else, you must have at least as high an
         # access level as they do, and you must have at least write access

@@ -9,7 +9,7 @@
 .g-group-members-body
   ul.g-group-members
     each member in members
-      li(userid="#{member.get('_id')}")
+      li(cid="#{member.cid}")
         a.g-member-name
           i.icon-user
           |  #{member.name()} (#{member.get('login')})

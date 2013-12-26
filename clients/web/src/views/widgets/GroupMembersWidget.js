@@ -4,13 +4,25 @@
 girder.views.GroupMembersWidget = Backbone.View.extend({
     events: {
         'click a.g-member-name': function (e) {
+            var model = this.membersColl.get(
+                $(e.currentTarget).parents('li').attr('cid'));
             girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: $(e.currentTarget).parents('li').attr('userid')
+                id: model.get('_id')
             });
         },
 
         'click a.g-group-member-remove': function (e) {
+            var view = this;
+            var user = this.membersColl.get(
+                $(e.currentTarget).parents('li').attr('cid'));
 
+            girder.confirm({
+                text: 'Are you sure you want to remove <b> ' + user.name() +
+                '</b> from this group?',
+                confirmCallback: function () {
+                    view.trigger('g:removeMember', user);
+                }
+            });
         }
     },
 
@@ -64,13 +76,42 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
             el: $('#g-dialog-container'),
             group: this.model,
             user: user
-        }).on('g:accepted', function () {
-            // what to do once we are done?
+        }).on('g:sendInvite', function (params) {
+            this.trigger('g:sendInvite', params);
         }, this).render();
     }
 });
 
 girder.views.InviteUserDialog = Backbone.View.extend({
+    events: {
+        'click .g-invite-as-member': function () {
+            this.$el.modal('hide');
+            this.trigger('g:sendInvite', {
+                user: this.user,
+                group: this.group,
+                level: girder.AccessType.READ
+            });
+        },
+
+        'click .g-invite-as-moderator': function () {
+            this.$el.modal('hide');
+            this.trigger('g:sendInvite', {
+                user: this.user,
+                group: this.group,
+                level: girder.AccessType.WRITE
+            });
+        },
+
+        'click .g-invite-as-admin': function () {
+            this.$el.modal('hide');
+            this.trigger('g:sendInvite', {
+                user: this.user,
+                group: this.group,
+                level: girder.AccessType.ADMIN
+            });
+        }
+    },
+
     initialize: function (settings) {
         this.group = settings.group;
         this.user = settings.user;

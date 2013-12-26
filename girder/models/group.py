@@ -350,7 +350,7 @@ class Group(AccessControlledModel):
             elif doc['_id'] in [i['groupId'] for i in
                                 user.get('groupInvites', [])]:
                 return AccessType.READ
-
+            print access
             for userAccess in access.get('users', []):
                 if userAccess['id'] == user['_id']:
                     level = max(level, userAccess['level'])
