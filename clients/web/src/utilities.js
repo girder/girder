@@ -24,7 +24,7 @@ girder.formatDate = function (datestr, resolution) {
     output += ' ' + date.getFullYear();
 
     if (resolution >= girder.DATE_MINUTE) {
-        output += ' ' + date.getHours() + ':' +
+        output += ' at ' + date.getHours() + ':' +
             ('0' + date.getMinutes()).slice(-2);
     }
     if (resolution >= girder.DATE_SECOND) {
