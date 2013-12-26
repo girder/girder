@@ -69,3 +69,21 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
         }, this).render();
     }
 });
+
+girder.views.InviteUserDialog = Backbone.View.extend({
+    initialize: function (settings) {
+        this.group = settings.group;
+        this.user = settings.user;
+    },
+
+    render: function () {
+        this.$el.html(jade.templates.groupInviteDialog({
+            group: this.group,
+            user: this.user,
+            level: this.group.get('_accessLevel'),
+            accessType: girder.AccessType
+        })).girderModal(this);
+
+        return this;
+    }
+});
