@@ -1,0 +1,27 @@
+.modal-dialog
+  .modal-content
+    form#g-item-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          if (item)
+            | Edit Item
+          else
+            | Create Item
+      .modal-body
+        .form-group
+          label.control-label(for="g-name") Name
+          input.input-sm#g-name.form-control(type="text", placeholder="Enter item name")
+        .form-group
+          label.control-label(for="g-description") Description (optional)
+          textarea.input-sm.form-control(placeholder="Enter item description")
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-item.btn.btn-small.btn-primary(type="submit")
+          if (item)
+            i.icon-edit
+            | Save
+          else
+            i.icon-plus-squared
+            | Create
