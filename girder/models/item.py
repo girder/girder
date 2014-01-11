@@ -69,7 +69,6 @@ class Item(Model):
 
         return doc
 
-
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None):
         """
@@ -89,7 +88,7 @@ class Item(Model):
 
         if not force and doc is not None:
             self.model('folder').load(doc['folderId'], level, user, objectId,
-                force, fields)
+                                      force, fields)
 
         return doc
 
@@ -181,7 +180,6 @@ class Item(Model):
             'updated': now,
             'size': 0
             })
-
 
     def updateItem(self, item):
         """

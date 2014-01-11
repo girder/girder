@@ -124,4 +124,33 @@ apis.append({
         }]
     })
 
+apis.append({
+    'path': '/item/{itemId}/files',
+    'resource': 'item',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getFileByItemId',
+        'responseClass': 'File',
+        'summary': 'Get the files associated with an item by its ID.',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path'),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            Describe.param(
+                'sort', "Field to sort the result list by (default=name)",
+                required=False)
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the item.', 403)
+            ]
+        }]
+    })
+
 Describe.declareApi('item', apis=apis)

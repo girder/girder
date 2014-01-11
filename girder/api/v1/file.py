@@ -117,9 +117,8 @@ class File(Resource):
         offset = int(params.get('offset', 0))
 
         file = self.getObjectById(self.model('file'), id=fileId)
-        item = self.getObjectById(self.model('item'), id=file['itemId'])
-        self.getObjectById(self.model('folder'), id=item['folderId'],
-                           checkAccess=True, user=user)
+        self.getObjectById(self.model('item'), id=file['itemId'],
+                           checkAccess=True, user=user)  # Access Check
         return self.model('file').download(file, offset)
 
     @Resource.endpoint
@@ -163,9 +162,7 @@ class File(Resource):
             raise RestException('Invalid path format for DELETE request')
 
         file = self.getObjectById(self.model('file'), id=path[0])
-        item = self.getObjectById(self.model('item'), id=file['itemId'])
-        self.getObjectById(
-            self.model('folder'), id=item['folderId'], user=user,
-            checkAccess=True, level=AccessType.ADMIN)
+        self.getObjectById(self.model('item'), id=file['itemId'], user=user,
+                           checkAccess=True, level=AccessType.ADMIN)  # access
 
         self.model('file').remove(file)

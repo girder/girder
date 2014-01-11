@@ -94,7 +94,6 @@ class Item(Resource):
 
         return self._filter(item)
 
-
     def updateItem(self, id, user, params):
         item = self.getObjectById(
             self.model('item'), id=id, user=user, checkAccess=True,
@@ -107,7 +106,6 @@ class Item(Resource):
         item = self.model('item').updateItem(item)
         return self._filter(item)
 
-
     @Resource.endpoint
     def DELETE(self, path, params):
         """
@@ -119,7 +117,8 @@ class Item(Resource):
 
         user = self.getCurrentUser()
         item = self.getObjectById(self.model('item'), user=user,
-            id=path[0], checkAccess=True, level=AccessType.WRITE)
+                                  id=path[0], checkAccess=True,
+                                  level=AccessType.WRITE)
 
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
@@ -129,11 +128,20 @@ class Item(Resource):
         user = self.getCurrentUser()
         if not path:
             return self.find(user, params)
-        else:  # assume it's an item id
+        elif len(path) == 1:  # assume it's an item id
             item = self.getObjectById(self.model('item'), user=user,
-                id=path[0], checkAccess=True, level=AccessType.READ)
-
+                                      id=path[0], checkAccess=True,
+                                      level=AccessType.READ)
             return self._filter(item)
+        elif len(path) == 2 and path[1] == 'files':
+            limit, offset, sort = self.getPagingParameters(params, 'name')
+            item = self.getObjectById(self.model('item'), user=user,
+                                      id=path[0], checkAccess=True,
+                                      level=AccessType.READ)
+            return [file for file in self.model('item').childFiles(
+                item=item, limit=limit, offset=offset, sort=sort)]
+        else:
+            raise RestException('Unrecognized item GET endpoint.')
 
     @Resource.endpoint
     def POST(self, path, params):
