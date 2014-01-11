@@ -3,7 +3,7 @@
  */
 girder.views.ItemView = Backbone.View.extend({
     events: {
-        'click .g-edit-item': 'editItem',
+        'click .g-edit-item': 'editItem'
     },
 
     initialize: function (settings) {
@@ -27,7 +27,7 @@ girder.views.ItemView = Backbone.View.extend({
         if (!this.editItemWidget) {
             this.editItemWidget = new girder.views.EditItemWidget({
                 el: container,
-                model: this.model
+                item: this.model
             }).off('g:saved').on('g:saved', function (item) {
                 this.render();
             }, this);
@@ -36,13 +36,28 @@ girder.views.ItemView = Backbone.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.itemPage({
-            item: this.model,
-            girder: girder
-        }));
 
+        // Fetch the access level asynchronously and render once we have
+        // it. TODO: load the page and adjust only the action menu once
+        // the access level is fetched.
+        this.model.getAccessLevel(_.bind(function (accessLevel) {
 
-        girder.router.navigate('item/' + this.model.get('_id'));
+            this.$el.html(jade.templates.itemPage({
+                item: this.model,
+                accessLevel: accessLevel,
+                girder: girder
+            }));
+
+            this.$('.g-item-actions-button').tooltip({
+                container: 'body',
+                placement: 'left',
+                animation: false,
+                delay: {show: 100}
+            });
+
+            girder.router.navigate('item/' + this.model.get('_id'));
+
+        }, this));
 
         return this;
     },
@@ -59,7 +74,7 @@ girder.views.ItemView = Backbone.View.extend({
             girder.events.trigger('g:navigateTo',
                 girder.views.CollectionsView);
         }, this).fetch();
-    },
+    }
 
 });
 

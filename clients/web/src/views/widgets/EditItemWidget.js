@@ -30,11 +30,14 @@ girder.views.EditItemWidget = Backbone.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editItemWidget())
+        this.$el.html(jade.templates.editItemWidget({item: this.item}))
             .girderModal(this).on('shown.bs.modal', function () {
+                if (view.item) {
+                    view.$('#g-name').val(view.item.get('name'));
+                    view.$('#g-description').val(view.item.get('description'));
+                }
                 view.$('#g-name').focus();
             });
-        this.$('#g-name').focus();
 
         return this;
     },

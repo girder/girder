@@ -11,10 +11,10 @@
       .modal-body
         .form-group
           label.control-label(for="g-name") Name
-          input.input-sm#g-name.form-control(type="text", placeholder="Enter item name")
+          input.input-sm#g-name.form-control(type="text", placeholder="Enter item name") item.get('name')
         .form-group
           label.control-label(for="g-description") Description (optional)
-          textarea.input-sm.form-control(placeholder="Enter item description")
+          textarea.input-sm#g-description.form-control(placeholder="Enter item description") item.get('description')
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Cancel

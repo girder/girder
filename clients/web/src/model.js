@@ -91,7 +91,15 @@ girder.Model = Backbone.Model.extend({
         }, this));
 
         return this;
+    },
+
+    /**
+     * Return the access level with respect to the current user
+     */
+    getAccessLevel: function () {
+        return this.get('_accessLevel');
     }
+
 });
 
 /**
