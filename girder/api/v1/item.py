@@ -94,6 +94,20 @@ class Item(Resource):
 
         return self._filter(item)
 
+
+    def updateItem(self, id, user, params):
+        item = self.getObjectById(
+            self.model('item'), id=id, user=user, checkAccess=True,
+            level=AccessType.WRITE)
+
+        item['name'] = params.get('name', item['name']).strip()
+        item['description'] = params.get(
+            'description', item['description']).strip()
+
+        item = self.model('item').updateItem(item)
+        return self._filter(item)
+
+
     @Resource.endpoint
     def DELETE(self, path, params):
         """
@@ -104,11 +118,8 @@ class Item(Resource):
                 'Path parameter should be the item ID to delete.')
 
         user = self.getCurrentUser()
-        item = self.getObjectById(self.model('item'), id=path[0])
-
-        # Ensure write access on the parent folder.
-        self.getObjectById(self.model('folder'), user=user, id=item['folderId'],
-                           checkAccess=True, level=AccessType.WRITE)
+        item = self.getObjectById(self.model('item'), user=user,
+            id=path[0], checkAccess=True, level=AccessType.WRITE)
 
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
@@ -119,17 +130,27 @@ class Item(Resource):
         if not path:
             return self.find(user, params)
         else:  # assume it's an item id
-            item = self.getObjectById(self.model('item'), id=path[0])
-
-            # Ensure read access on the parent folder.
-            self.getObjectById(self.model('folder'), user=user,
-                               id=item['folderId'], checkAccess=True)
+            item = self.getObjectById(self.model('item'), user=user,
+                id=path[0], checkAccess=True, level=AccessType.READ)
 
             return self._filter(item)
 
     @Resource.endpoint
     def POST(self, path, params):
         """
-        Use this endpoint to create a new folder.
+        Use this endpoint to create an item.
         """
         return self.createItem(self.getCurrentUser(), params)
+
+    @Resource.endpoint
+    def PUT(self, path, params):
+        """
+        Use this endpoint to edit an item.
+        """
+        user = self.getCurrentUser()
+        print(params)
+        if not path:
+            raise RestException(
+                'Path parameter should be the item ID to edit.')
+        elif len(path) == 1:
+            return self.updateItem(path[0], user, params)

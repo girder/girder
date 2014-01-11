@@ -91,6 +91,24 @@ apis.append({
                 'Read access was denied for the item.', 403)
             ]
         }, {
+        'httpMethod': 'PUT',
+        'nickname': 'editItemById',
+        'responseClass': 'Item',
+        'summary': 'Edit an item by ID.',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path'),
+            Describe.param('name', "Name for the item.",
+                           required=False),
+            Describe.param('description', "Item description.",
+                           required=False),
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Write access was denied for the item.', 403)
+            ]
+        }, {
         'httpMethod': 'DELETE',
         'nickname': 'deleteItemById',
         'summary': 'Delete an item by ID.',
