@@ -55,6 +55,11 @@ girder.views.ItemView = Backbone.View.extend({
                 delay: {show: 100}
             });
 
+            this.fileListWidget = new girder.views.FileListWidget({
+                el: this.$('.g-item-files-container'),
+                itemId: this.model.get('_id')
+            });
+
             girder.router.navigate('item/' + this.model.get('_id'));
 
         }, this));

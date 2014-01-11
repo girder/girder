@@ -1,0 +1,11 @@
+ul.g-file-list
+  each file in files
+    li.g-file-list-entry
+      a.g-file-list-link(href="#{girder.apiRoot + '/file/' + file.get('_id') + '/download/' + file.get('name')}")
+        i.icon-doc-inv
+        | #{file.get('name')}
+  if (hasMore)
+    li.g-show-more
+      a.g-show-more-files
+        i.icon-level-down
+        | Show more files...
