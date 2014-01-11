@@ -8,7 +8,7 @@
         i.icon-down-dir
     ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
       li(role="presentation")
-        a.g-download-item(role="menuitem")
+        a.g-download-item(role="menuitem", href="#{girder.apiRoot + '/item/' + item.get('_id') + '/download'}")
           i.icon-download
           | Download item
       if (accessLevel >= girder.AccessType.WRITE)

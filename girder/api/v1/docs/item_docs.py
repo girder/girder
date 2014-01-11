@@ -153,4 +153,24 @@ apis.append({
         }]
     })
 
+apis.append({
+    'path': '/item/{itemId}/download',
+    'resource': 'item',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getItemDownoad',
+        'responseClass': 'File',
+        'summary': 'Download an item',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the item.', 403)
+            ]
+        }]
+    })
+
 Describe.declareApi('item', apis=apis)

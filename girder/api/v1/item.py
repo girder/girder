@@ -19,10 +19,12 @@
 
 import cherrypy
 import pymongo
+import os
 
 from .docs import item_docs
 from ..rest import Resource, RestException
 from ...models.model_base import ValidationException
+from ...utility import ziputil
 from ...constants import AccessType
 
 
@@ -106,6 +108,37 @@ class Item(Resource):
         item = self.model('item').updateItem(item)
         return self._filter(item)
 
+    def _downloadMultifileItem(self, item, user):
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="{}{}"'.format(item['name'], '.zip')
+
+        def stream():
+            zip = ziputil.ZipGenerator(item['name'])
+            for file in self.model('item').childFiles(item=item, limit=0):
+                for data in zip.addFile(self.model('file')
+                                            .download(file, headers=False),
+                                        file['name']):
+                    yield data
+            yield zip.footer()
+        return stream
+
+    def download(self, user, params, itemId):
+        """
+        Defers to the underlying assetstore adapter to stream the file or
+        file out.
+        """
+        offset = int(params.get('offset', 0))
+
+        item = self.getObjectById(self.model('item'), id=itemId,
+                                  checkAccess=True, user=user)  # Access Check
+        files = [file for file in self.model('item').childFiles(item=item)]
+
+        if len(files) == 1:
+            return self.model('file').download(files[0], offset)
+        else:
+            return self._downloadMultifileItem(self, item, user)
+
     @Resource.endpoint
     def DELETE(self, path, params):
         """
@@ -140,6 +173,8 @@ class Item(Resource):
                                       level=AccessType.READ)
             return [file for file in self.model('item').childFiles(
                 item=item, limit=limit, offset=offset, sort=sort)]
+        elif len(path) >= 2 and path[1] == 'download':
+            self.download(user, params, path[0])
         else:
             raise RestException('Unrecognized item GET endpoint.')
 
