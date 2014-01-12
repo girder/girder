@@ -1,0 +1,15 @@
+language: cpp
+
+services: mongodb
+
+compiler:
+  - clang
+
+before_script:
+  - mkdir _build
+  - cd _build
+
+script:
+  - cmake ..
+  - make
+  - ctest -V
