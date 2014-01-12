@@ -16,10 +16,12 @@ install:
   - "npm install"
 
 before_script:
-  - mkdir _build
-  - cd _build
+  - "grunt init"
+  - "grunt install"
 
 script:
+  - mkdir _build
+  - cd _build
   - cmake ..
   - make
   - ctest -V
