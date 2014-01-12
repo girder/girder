@@ -5,6 +5,9 @@ services: mongodb
 compiler:
   - clang
 
+before_install:
+  - "sudo apt-get install npm"
+
 install:
   - "sudo pip install -r requirements.txt"
   - "sudo python setup.py install"
