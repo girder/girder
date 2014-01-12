@@ -14,8 +14,6 @@ install:
   - "sudo python setup.py install"
   - "npm install -g grunt grunt-cli"
   - "npm install"
-  - "grunt init"
-  - "grunt"
 
 before_script:
   - mkdir _build
