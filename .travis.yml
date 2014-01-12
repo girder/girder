@@ -6,9 +6,9 @@ compiler:
   - clang
 
 install:
-  - "pip install -r requirements.txt"
-  - "python setup.py install"
-  - "npm install -g grunt grunt-cli"
+  - "sudo pip install -r requirements.txt"
+  - "sudo python setup.py install"
+  - "sudo npm install -g grunt grunt-cli"
   - "npm install"
   - "grunt init"
   - "grunt"
