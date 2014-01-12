@@ -21,7 +21,7 @@ import os
 import cherrypy
 
 from girder.constants import ROOT_DIR
-
+print ROOT_DIR
 
 class Webroot(object):
     """
