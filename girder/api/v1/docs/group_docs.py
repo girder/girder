@@ -129,6 +129,32 @@ apis.append({
     'path': '/group/{groupId}/invitation',
     'resource': 'group',
     'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'showInvitations',
+        'responseClass': 'Group',
+        'summary': 'Show outstanding invitations for a group.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            Describe.param(
+                'sort', "Field to sort the invitee list by (default=lastName)",
+                required=False),
+            Describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='int')
+            ],
+        'errorResponses': [
+            Describe.errorResponse(),
+            Describe.errorResponse(
+                'Write access was denied for the group.', 403)
+            ]
+        }, {
         'httpMethod': 'POST',
         'nickname': 'inviteToGroup',
         'responseClass': 'Group',

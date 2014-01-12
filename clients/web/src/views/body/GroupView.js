@@ -7,7 +7,9 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-invite': 'invitationDialog',
         'click .g-group-join': 'joinGroup',
         'click .g-group-leave': 'leaveGroup',
-        'click .g-group-delete': 'deleteGroup'
+        'click .g-group-delete': 'deleteGroup',
+        'click .g-promote-moderator': 'promoteToModerator',
+        'click .g-promote-admin': 'promoteToAdmin'
     },
 
     initialize: function (settings) {
@@ -26,6 +28,14 @@ girder.views.GroupView = Backbone.View.extend({
         }
         // This page should be re-rendered if the user logs in or out
         girder.events.on('g:login', this.userChanged, this);
+    },
+
+    promoteToModerator: function (e) {
+        // TODO
+    },
+
+    promoteToAdmin: function (e) {
+        // TODO
     },
 
     editGroup: function () {

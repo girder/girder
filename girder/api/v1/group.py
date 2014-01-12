@@ -210,6 +210,11 @@ class Group(Resource):
                 self.model('group'), id=path[0], checkAccess=True, user=user,
                 level=AccessType.READ)
             return group['access']
+        elif path[1] == 'invitation':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], checkAccess=True, user=user,
+                level=AccessType.WRITE)
+            return self.listMembers(group, params)
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,
