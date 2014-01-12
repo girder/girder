@@ -23,7 +23,7 @@ before_script:
 script:
   - mkdir _build
   - cd _build
-  - cmake ..
+  - cmake -D PYTHON_COVERAGE:BOOL=ON ..
   - ctest -V -S ../cmake/travis_build.cmake
 
 after_script:
