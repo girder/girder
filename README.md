@@ -1,7 +1,7 @@
 Girder
 ======
 
-Data Management Toolkit
+Data Management Toolkit  [![Build Status](https://travis-ci.org/girder/girder.png?branch=travis)](https://travis-ci.org/girder/girder)
 
 ## Install
 
