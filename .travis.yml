@@ -24,5 +24,7 @@ script:
   - mkdir _build
   - cd _build
   - cmake ..
-  - make
-  - ctest -V
+  - ctest -V -S ../cmake/travis_build.cmake
+
+after_script:
+  - ctest -V -S ../cmake/travis_submit.cmake
