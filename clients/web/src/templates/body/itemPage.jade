@@ -46,9 +46,16 @@
     i.icon-tags
     |  Metadata
   .g-item-metadata-container
-    .g-info-message-container
-      i.icon-info-circled
-      |  This item has no metadata.
+
+    if item.get('meta')
+      each value, key in item.get('meta')
+        .g-item-metadata-row
+          span.g-item-metadata-key #{key}:
+          span.g-item-metadata-value #{value}
+    else
+      .g-info-message-container
+        i.icon-info-circled
+        |  This item has no metadata.
 
 .g-item-files
   .g-item-files-header
