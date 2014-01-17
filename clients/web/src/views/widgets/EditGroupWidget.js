@@ -32,9 +32,10 @@ girder.views.EditGroupWidget = Backbone.View.extend({
 
     render: function () {
         var view = this;
+        var public = this.model ? this.model.get('public') : false;
         this.$el.html(jade.templates.editGroupWidget({
             group: this.model,
-            public: this.model.get('public')
+            public: public
         })).girderModal(this).on('shown.bs.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));

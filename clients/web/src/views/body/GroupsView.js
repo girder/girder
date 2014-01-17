@@ -51,10 +51,8 @@ girder.views.GroupsView = Backbone.View.extend({
      * Prompt the user to create a new group
      */
     createGroupDialog: function () {
-        var container = $('#g-dialog-container');
-
         new girder.views.EditGroupWidget({
-            el: container
+            el: $('#g-dialog-container')
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list
