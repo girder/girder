@@ -37,16 +37,17 @@
 .g-group-members-container
   margin-top 15px
 
-.g-group-members
+.g-group-members,.g-group-mods,.g-group-admins
   list-style-type none
   padding 0
+  margin-bottom 20px
 
   >li
     border-bottom 1px solid #f0f0f0
     background-color #fbfbfb
     padding 5px
 
-.g-group-members-header
+.g-group-members-header,.g-group-mods-header,.g-group-admins-header
   background-color #f0f0f0
   padding 4px 5px
   color #555
@@ -89,3 +90,12 @@
     line-height 1.5
     float none
     padding 7px 12px
+
+.g-member-list-empty
+  margin-top 5px
+  background-color #fffee1
+  color #777
+  padding 6px 8px
+  border-radius 3px
+  border 1px solid #e5e2c8
+  box-shadow 1px 1px 3px 2px #f5f5f5

@@ -362,9 +362,6 @@ class Group(AccessControlledModel):
     def setAccessList(self, doc, access, save=False):
         raise Exception('Not implemented.')  # pragma: no cover
 
-    def getFullAccessList(self, doc):
-        raise Exception('Not implemented.')  # pragma: no cover
-
     def setGroupAccess(self, doc, group, level, save=False):
         raise Exception('Not implemented.')  # pragma: no cover
 

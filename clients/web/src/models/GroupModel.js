@@ -32,9 +32,11 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
-        }).done(_.bind(function () {
+        }).done(_.bind(function (resp) {
             girder.currentUser.addToGroup(this.get('_id'));
             girder.currentUser.removeInvitation(this.get('_id'));
+
+            this.set(resp);
 
             this.trigger('g:joined');
         }, this)).error(_.bind(function (err) {
@@ -51,10 +53,12 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
             path: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'
-        }).done(_.bind(function () {
+        }).done(_.bind(function (resp) {
             if (userId === girder.currentUser.get('_id')) {
                 girder.currentUser.removeFromGroup(this.get('_id'));
             }
+
+            this.set(resp);
 
             this.trigger('g:removed');
         }, this)).error(_.bind(function (err) {

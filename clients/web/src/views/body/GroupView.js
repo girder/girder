@@ -16,14 +16,18 @@ girder.views.GroupView = Backbone.View.extend({
         // If group model is already passed, there is no need to fetch.
         if (settings.group) {
             this.model = settings.group;
-            this.render();
+            this.model.on('g:accessFetched', function () {
+                this.render();
+            }, this).fetchAccess();
         }
         else if (settings.id) {
             this.model = new girder.models.GroupModel();
             this.model.set('_id', settings.id);
 
             this.model.on('g:fetched', function () {
-                this.render();
+                this.model.on('g:accessFetched', function () {
+                    this.render();
+                }, this).fetchAccess();
             }, this).fetch();
         }
         // This page should be re-rendered if the user logs in or out
@@ -105,6 +109,30 @@ girder.views.GroupView = Backbone.View.extend({
                 alert(err.responseJSON.message);
             }, this).sendInvitation(params.user.id, params.level);
         }, this).on('g:removeMember', this.removeMember, this);
+
+        var mods = [],
+            admins = [];
+
+        _.each(this.model.get('access').users, function (userAccess) {
+            if (userAccess.level === girder.AccessType.WRITE) {
+                mods.push(userAccess);
+            }
+            else if (userAccess.level === girder.AccessType.ADMIN) {
+                admins.push(userAccess);
+            }
+        }, this);
+
+        this.modsWidget = new girder.views.GroupModsWidget({
+            el: this.$('.g-group-mods-container'),
+            group: this.model,
+            moderators: mods
+        }).render();
+
+        this.adminsWidget = new girder.views.GroupAdminsWidget({
+            el: this.$('.g-group-admins-container'),
+            group: this.model,
+            admins: admins
+        }).render();
 
         this.$('.g-group-actions-button').tooltip({
             container: 'body',

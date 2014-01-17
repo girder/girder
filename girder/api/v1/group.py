@@ -29,15 +29,22 @@ from ...constants import AccessType
 class Group(Resource):
     """API Endpoint for groups."""
 
-    def _filter(self, group, user):
+    def _filter(self, group, user, accessList=False):
         """
         Filter a group document for display to the user.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
         accessLevel = self.model('group').getAccessLevel(group, user)
 
+        if accessList:
+            keys.append('access')
+
         group = self.filterDocument(group, allow=keys)
         group['_accessLevel'] = accessLevel
+
+        if accessList:
+            group['access'] = self.model('group').getFullAccessList(group)
+
         return group
 
     def find(self, params):
@@ -95,6 +102,9 @@ class Group(Resource):
             self.model('group'), id=id, user=user, checkAccess=True,
             level=AccessType.WRITE)
 
+        public = params.get('public', 'false').lower() == 'true'
+        self.model('group').setPublic(group, public)
+
         group['name'] = params.get('name', group['name']).strip()
         group['description'] = params.get(
             'description', group['description']).strip()
@@ -106,7 +116,8 @@ class Group(Resource):
         """
         Accept a group invitation.
         """
-        return self.model('group').joinGroup(group, user)
+        return self._filter(
+            self.model('group').joinGroup(group, user), user, accessList=True)
 
     def listMembers(self, group, params):
         """
@@ -158,8 +169,6 @@ class Group(Resource):
             # Assume user is removing himself from the group
             userToRemove = user
 
-        #print userToRemove
-
         # If removing someone else, you must have at least as high an
         # access level as they do, and you must have at least write access
         # to remove any user other than yourself.
@@ -170,7 +179,9 @@ class Group(Resource):
             else:
                 self.model('group').requireAccess(group, user, AccessType.WRITE)
 
-        return self.model('group').removeUser(group, userToRemove)
+        return self._filter(
+            self.model('group').removeUser(group, userToRemove), user,
+                                           accessList=True)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -209,7 +220,7 @@ class Group(Resource):
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,
                 level=AccessType.READ)
-            return group['access']
+            return self.model('group').getFullAccessList(group)
         elif path[1] == 'invitation':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,

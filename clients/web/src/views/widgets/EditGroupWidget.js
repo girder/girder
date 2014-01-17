@@ -8,7 +8,8 @@ girder.views.EditGroupWidget = Backbone.View.extend({
 
             var fields = {
                 name: this.$('#g-name').val(),
-                description: this.$('#g-description').val()
+                description: this.$('#g-description').val(),
+                public: this.$('#g-access-public').is(':checked')
             };
 
             if (this.model) {
@@ -20,7 +21,9 @@ girder.views.EditGroupWidget = Backbone.View.extend({
 
             this.$('button.g-save-group').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-        }
+        },
+
+        'change .g-public-container .radio input': 'privacyChanged'
     },
 
     initialize: function (settings) {
@@ -30,7 +33,8 @@ girder.views.EditGroupWidget = Backbone.View.extend({
     render: function () {
         var view = this;
         this.$el.html(jade.templates.editGroupWidget({
-            group: this.model
+            group: this.model,
+            public: this.model.get('public')
         })).girderModal(this).on('shown.bs.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));
@@ -40,6 +44,8 @@ girder.views.EditGroupWidget = Backbone.View.extend({
             view.$('#g-name').focus();
         });
         this.$('#g-name').focus();
+
+        this.privacyChanged();
 
         return this;
     },
@@ -67,5 +73,11 @@ girder.views.EditGroupWidget = Backbone.View.extend({
             this.$('button.g-save-group').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
+    },
+
+    privacyChanged: function () {
+        this.$('.g-public-container .radio').removeClass('g-selected');
+        var selected = this.$('.g-public-container .radio input:checked');
+        selected.parents('.radio').addClass('g-selected');
     }
 });
