@@ -24,20 +24,34 @@
             i.icon-trash
             | Delete item
 
-  .g-item-name #{item.get('name')}
-  .g-item-description #{item.get('description')}
-  .g-item-size Size: #{girder.formatSize(item.get('size'))}
-  .g-item-created
+  .g-item-name.g-body-title #{item.get('name')}
+  .g-item-description.g-body-subtitle #{item.get('description')}
+
+.g-item-info
+  .g-item-info-header
+    i.icon-info
+    | Info
+  .g-item-size.g-info-list-entry
+    i.icon-hdd
+    | #{girder.formatSize(item.get('size'))}
+  .g-item-created.g-info-list-entry
     i.icon-clock
     | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
-  .g-item-updated
+  .g-item-updated.g-info-list-entry
     i.icon-clock
     | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
 
 .g-item-metadata
-  .g-item-metadata-header Metadata
+  .g-item-metadata-header
+    i.icon-tags
+    |  Metadata
   .g-item-metadata-container
+    .g-info-message-container
+      i.icon-info-circled
+      |  This item has no metadata.
 
 .g-item-files
-  .g-item-files-header Files
+  .g-item-files-header
+    i.icon-docs
+    |  Files
   .g-item-files-container
