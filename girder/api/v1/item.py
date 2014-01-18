@@ -191,7 +191,7 @@ class Item(Resource):
         Use this endpoint to edit an item.
         """
         user = self.getCurrentUser()
-        print(params)
+
         if not path:
             raise RestException(
                 'Path parameter should be the item ID to edit.')
