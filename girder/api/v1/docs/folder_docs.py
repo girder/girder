@@ -172,4 +172,24 @@ apis.append({
         }]
     })
 
+apis.append({
+    'path': '/folder/{folderId}/download',
+    'resource': 'folder',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'downloadFolder',
+        'responseClass': 'Folder',
+        'summary': 'Download an entire folder as a zip archive.',
+        'parameters': [
+            Describe.param(
+                'folderId', 'The ID of the folder.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the folder.', 403)
+            ]
+        }]
+    })
+
 Describe.declareApi('folder', apis=apis)
