@@ -142,7 +142,6 @@ class Group(Resource):
         :type params: dict
         """
         self.requireParams(['userId'], params)
-        self.model('group').requireAccess(group, user, AccessType.WRITE)
 
         level = int(params.get('level', AccessType.READ))
 
@@ -155,6 +154,28 @@ class Group(Resource):
         self.model('group').inviteUser(group, userToInvite, level)
 
         return {'message': 'Invitation sent.'}
+
+    def promote(self, group, user, params, level):
+        """
+        Promote a user to moderator or administrator.
+        :param group: The group to promote within.
+        :param user: The current user.
+        :param params: Request parameters.
+        :param level: Either WRITE or ADMIN, for moderator or administrator.
+        :type level: AccessType
+        """
+        self.requireParams(['userId'], params)
+
+        userToPromote = self.getObjectById(
+                self.model('user'), user=user, id=params['userId'],
+                checkAccess=True)
+
+        if not group['_id'] in userToPromote['groups']:
+            raise AccessException('That user is not a group member.')
+
+        group = self.model('group').setUserAccess(
+            group, userToPromote, level=level, save=True)
+        return self._filter(group, user, accessList=True)
 
     def removeFromGroup(self, group, user, params):
         """
@@ -240,13 +261,27 @@ class Group(Resource):
             return self.createGroup(params)
 
         user = self.getCurrentUser()
-        group = self.getObjectById(self.model('group'), id=path[0], user=user,
-                                   checkAccess=True)
 
         if len(path) == 2 and path[1] == 'invitation':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user,
+                checkAccess=True, level=AccessType.WRITE)
             return self.inviteToGroup(group, user, params)
         elif len(path) == 2 and path[1] == 'member':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user,
+                checkAccess=True, level=AccessType.READ)
             return self.joinGroup(group, user)
+        elif len(path) == 2 and path[1] == 'moderator':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user,
+                checkAccess=True, level=AccessType.ADMIN)
+            return self.promote(group, user, params, AccessType.WRITE)
+        elif len(path) == 2 and path[1] == 'admin':
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user,
+                checkAccess=True, level=AccessType.ADMIN)
+            return self.promote(group, user, params, AccessType.ADMIN)
         else:
             raise RestException('Invalid path for group POST.')
 

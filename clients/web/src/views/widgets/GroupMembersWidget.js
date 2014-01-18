@@ -23,6 +23,24 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
                     view.trigger('g:removeMember', user);
                 }
             });
+        },
+
+        'click .g-promote-moderator': function (e) {
+            var cid = $(e.currentTarget).parents('.g-group-members>li')
+                                        .attr('cid');
+            var user = this.membersColl.get(cid);
+            this.model.off('g:promoted').on('g:promoted', function () {
+                this.trigger('g:moderatorAdded');
+            }, this).promoteUser(user, girder.AccessType.WRITE);
+        },
+
+        'click .g-promote-admin': function (e) {
+            var cid = $(e.currentTarget).parents('.g-group-members>li')
+                                        .attr('cid');
+            var user = this.membersColl.get(cid);
+            this.model.off('g:promoted').on('g:promoted', function () {
+                this.trigger('g:adminAdded');
+            }, this).promoteUser(user, girder.AccessType.ADMIN);
         }
     },
 

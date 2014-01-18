@@ -1,5 +1,4 @@
 .g-group-header
-
   .btn-group.pull-right
     button.g-group-actions-button.btn.btn-default.dropdown-toggle(
         data-toggle="dropdown", title="Group actions")
@@ -35,8 +34,8 @@
             i.icon-trash
             | Delete group
 
-  .g-group-name #{group.get('name')}
-  .g-group-description #{group.get('description')}
+  .g-group-name.g-body-title #{group.get('name')}
+  .g-group-description.g-body-title #{group.get('description')}
   .g-clear-right
 
 if (girder.currentUser)
@@ -60,6 +59,15 @@ if (girder.currentUser)
         |  You are not a member of this group.
         a.g-group-request-invite  Request membership
 
-.g-group-members-container
-.g-group-mods-container
-.g-group-admins-container
+ul.g-group-tabs.nav.nav-tabs
+  li.active
+    a(href="#g-group-tab-roles", data-toggle="tab") Roles
+  li
+    a(href="#g-group-tab-pending", data-toggle="tab") Pending
+
+.tab-content
+  #g-group-tab-roles.tab-pane.active
+    .g-group-members-container
+    .g-group-mods-container
+    .g-group-admins-container
+  #g-group-tab-pending.tab-pane

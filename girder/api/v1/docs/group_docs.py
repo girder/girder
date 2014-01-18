@@ -228,12 +228,88 @@ apis.append({
                 'groupId', 'The ID of the group.', paramType='path'),
             Describe.param(
                 'userId', 'The ID of the user to remove. If not passed, will '
-                'remove yourself from the group.', required=False),
+                'remove yourself from the group.', required=False)
             ],
         'errorResponses': [
             Describe.errorResponse(),
             Describe.errorResponse(
                 "You don't have permission to remove that user.", 403)
+            ]
+        }]
+    })
+
+apis.append({
+    'path': '/group/{groupId}/moderator',
+    'resource': 'group',
+    'operations': [{
+        'httpMethod': 'POST',
+        'nickname': 'promoteToModerator',
+        'responseClass': 'Group',
+        'summary': 'Promote a user to a moderator.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'userId', 'The ID of the user to promote.')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                "You don't have permission to promote users.", 403)
+            ]
+        }, {
+        'httpMethod': 'DELETE',
+        'nickname': 'demoteModerator',
+        'responseClass': 'Group',
+        'summary': 'Demote a group moderator to a normal member.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'userId', 'The ID of the user to demote.')
+            ],
+        'errorResponses': [
+            Describe.errorResponse(),
+            Describe.errorResponse(
+                "You don't have permission to demote users.", 403)
+            ]
+        }]
+    })
+
+apis.append({
+    'path': '/group/{groupId}/admin',
+    'resource': 'group',
+    'operations': [{
+        'httpMethod': 'POST',
+        'nickname': 'promoteToAdmin',
+        'responseClass': 'Group',
+        'summary': 'Promote a user to an administrator.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'userId', 'The ID of the user to promote.')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                "You don't have permission to promote users.", 403)
+            ]
+        }, {
+        'httpMethod': 'DELETE',
+        'nickname': 'demoteAdmin',
+        'responseClass': 'Group',
+        'summary': 'Demote a group admin to a normal member.',
+        'parameters': [
+            Describe.param(
+                'groupId', 'The ID of the group.', paramType='path'),
+            Describe.param(
+                'userId', 'The ID of the user to demote.')
+            ],
+        'errorResponses': [
+            Describe.errorResponse(),
+            Describe.errorResponse(
+                "You don't have permission to demote users.", 403)
             ]
         }]
     })

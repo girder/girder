@@ -45,6 +45,34 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
+     * Promote a user to moderator or administrator
+     * @param user The user model of the user being promoted
+     * @param level The AccessLevel (WRITE or ADMIN) to promote to
+     */
+    promoteUser: function (user, level) {
+        var role;
+        if (level === girder.AccessType.WRITE) {
+            role = 'moderator';
+        }
+        else if (level === girder.AccessType.ADMIN) {
+            role = 'admin';
+        }
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/' + role,
+            data: {
+                userId: user.get('_id')
+            },
+            type: 'POST'
+        }).done(_.bind(function (resp) {
+            this.set(resp);
+
+            this.trigger('g:promoted');
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
+    },
+
+    /**
      * Accept an invitation to join a group.
      * @param userId The ID of the user to remove.
      */

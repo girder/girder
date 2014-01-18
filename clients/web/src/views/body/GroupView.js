@@ -7,9 +7,7 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-invite': 'invitationDialog',
         'click .g-group-join': 'joinGroup',
         'click .g-group-leave': 'leaveGroup',
-        'click .g-group-delete': 'deleteGroup',
-        'click .g-promote-moderator': 'promoteToModerator',
-        'click .g-promote-admin': 'promoteToAdmin'
+        'click .g-group-delete': 'deleteGroup'
     },
 
     initialize: function (settings) {
@@ -32,14 +30,6 @@ girder.views.GroupView = Backbone.View.extend({
         }
         // This page should be re-rendered if the user logs in or out
         girder.events.on('g:login', this.userChanged, this);
-    },
-
-    promoteToModerator: function (e) {
-        // TODO
-    },
-
-    promoteToAdmin: function (e) {
-        // TODO
     },
 
     editGroup: function () {
@@ -108,31 +98,15 @@ girder.views.GroupView = Backbone.View.extend({
                 // TODO don't alert, show something useful
                 alert(err.responseJSON.message);
             }, this).sendInvitation(params.user.id, params.level);
-        }, this).on('g:removeMember', this.removeMember, this);
+        }, this).on('g:removeMember', this.removeMember, this)
+                .on('g:moderatorAdded', function () {
+                    this._updateRolesLists();
+                }, this)
+                .on('g:adminAdded', function () {
+                    this._updateRolesLists();
+                }, this);
 
-        var mods = [],
-            admins = [];
-
-        _.each(this.model.get('access').users, function (userAccess) {
-            if (userAccess.level === girder.AccessType.WRITE) {
-                mods.push(userAccess);
-            }
-            else if (userAccess.level === girder.AccessType.ADMIN) {
-                admins.push(userAccess);
-            }
-        }, this);
-
-        this.modsWidget = new girder.views.GroupModsWidget({
-            el: this.$('.g-group-mods-container'),
-            group: this.model,
-            moderators: mods
-        }).render();
-
-        this.adminsWidget = new girder.views.GroupAdminsWidget({
-            el: this.$('.g-group-admins-container'),
-            group: this.model,
-            admins: admins
-        }).render();
+        this._updateRolesLists();
 
         this.$('.g-group-actions-button').tooltip({
             container: 'body',
@@ -180,6 +154,32 @@ girder.views.GroupView = Backbone.View.extend({
         this.model.off('g:removed').on('g:removed', function () {
             this.render();
         }, this).removeMember(user.get('_id'));
+    },
+
+    _updateRolesLists: function () {
+        var mods = [],
+            admins = [];
+
+        _.each(this.model.get('access').users, function (userAccess) {
+            if (userAccess.level === girder.AccessType.WRITE) {
+                mods.push(userAccess);
+            }
+            else if (userAccess.level === girder.AccessType.ADMIN) {
+                admins.push(userAccess);
+            }
+        }, this);
+
+        this.modsWidget = new girder.views.GroupModsWidget({
+            el: this.$('.g-group-mods-container'),
+            group: this.model,
+            moderators: mods
+        }).render();
+
+        this.adminsWidget = new girder.views.GroupAdminsWidget({
+            el: this.$('.g-group-admins-container'),
+            group: this.model,
+            admins: admins
+        }).render();
     }
 });
 
