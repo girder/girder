@@ -33,7 +33,8 @@ class Group(Resource):
         """
         Filter a group document for display to the user.
         """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
+                'requests']
         accessLevel = self.model('group').getAccessLevel(group, user)
 
         if accessList:
@@ -114,7 +115,8 @@ class Group(Resource):
 
     def joinGroup(self, group, user):
         """
-        Accept a group invitation.
+        Accept a group invitation. If you have not been invited, this will
+        instead request an invitation.
         """
         return self._filter(
             self.model('group').joinGroup(group, user), user, accessList=True)

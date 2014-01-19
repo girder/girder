@@ -53,6 +53,10 @@ if (girder.currentUser)
         i.icon-mail-alt
         |  You have been invited to this group.
         a.g-group-join  Join group
+    else if (isRequested)
+      .g-group-status-container.g-requested-invite
+        i.icon-ok
+        |  You have requested to join this group.
     else
       .g-group-status-container.g-nonmember
         i.icon-minus-circled

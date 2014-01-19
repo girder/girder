@@ -208,7 +208,7 @@ apis.append({
         'httpMethod': 'POST',
         'nickname': 'joinGroup',
         'responseClass': 'Group',
-        'summary': 'Accept an invitation to join a group.',
+        'summary': 'Request to join a group, or accept an invitation to join.',
         'parameters': [
             Describe.param(
                 'groupId', 'The ID of the group.', paramType='path')
@@ -216,7 +216,8 @@ apis.append({
         'errorResponses': [
             Describe.errorResponse('ID was invalid.'),
             Describe.errorResponse(
-                'You were not invited to this group.', 403)
+                'You were not invited to this group, or do not have '
+                'read access to it.', 403)
             ]
         }, {
         'httpMethod': 'DELETE',

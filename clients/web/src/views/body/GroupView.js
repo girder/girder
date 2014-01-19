@@ -7,7 +7,8 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-invite': 'invitationDialog',
         'click .g-group-join': 'joinGroup',
         'click .g-group-leave': 'leaveGroup',
-        'click .g-group-delete': 'deleteGroup'
+        'click .g-group-delete': 'deleteGroup',
+        'click .g-group-request-invite': 'requestInvitation'
     },
 
     initialize: function (settings) {
@@ -63,6 +64,7 @@ girder.views.GroupView = Backbone.View.extend({
     render: function () {
         this.isMember = false;
         this.isInvited = false;
+        this.isRequested = false;
 
         if (girder.currentUser) {
             _.every(girder.currentUser.get('groups'), function (groupId) {
@@ -80,11 +82,21 @@ girder.views.GroupView = Backbone.View.extend({
                 }
                 return true;
             }, this);
+
+            _.every(this.model.get('requests') || [], function (userId) {
+                if (userId === girder.currentUser.get('_id')) {
+                    this.isRequested = true;
+                    return false; // 'break;'
+                }
+                return true;
+            }, this);
         }
+
         this.$el.html(jade.templates.groupPage({
             group: this.model,
             girder: girder,
             isInvited: this.isInvited,
+            isRequested: this.isRequested,
             isMember: this.isMember
         }));
 
@@ -154,6 +166,12 @@ girder.views.GroupView = Backbone.View.extend({
         this.model.off('g:removed').on('g:removed', function () {
             this.render();
         }, this).removeMember(user.get('_id'));
+    },
+
+    requestInvitation: function () {
+        this.model.off('g:inviteRequested').on('g:inviteRequested', function() {
+            this.render();
+        }, this).requestInvitation();
     },
 
     _updateRolesLists: function () {

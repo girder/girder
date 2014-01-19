@@ -186,7 +186,9 @@ class Group(AccessControlledModel):
 
     def joinGroup(self, group, user):
         """
-        Call this when the user accepts an invitation.
+        This method either accepts an invitation to join a group, or if the
+        given user has not been invited to the group, this will create an
+        invitation request that moderators and admins may grant or deny later.
         """
         if not 'groupInvites' in user:
             user['groupInvites'] = []
@@ -198,7 +200,12 @@ class Group(AccessControlledModel):
                 self.model('user').save(user, validate=False)
                 break
         else:
-            raise AccessException('User was not invited to this group.')
+            if not 'requests' in group:
+                group['requests'] = []
+
+            if not user['_id'] in group['requests']:
+                group['requests'].append(user['_id'])
+                self.save(group, validate=False)
 
         return group
 
@@ -269,7 +276,8 @@ class Group(AccessControlledModel):
             'name': name,
             'description': description,
             'created': now,
-            'updated': now
+            'updated': now,
+            'requests': []
             }
 
         self.setPublic(group, public=public)

@@ -44,6 +44,19 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         }, this));
     },
 
+    requestInvitation: function () {
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/member',
+            type: 'POST'
+        }).done(_.bind(function (resp) {
+            this.set(resp);
+
+            this.trigger('g:inviteRequested');
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
+    },
+
     /**
      * Promote a user to moderator or administrator
      * @param user The user model of the user being promoted
