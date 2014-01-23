@@ -5,8 +5,9 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * Send an invitation to this group to the user identified by userId.
      * @param userId The ID of the user to invite.
      * @param accessType The access level to invite them as.
+     * @param request Set to true if this is accepting a user's request to join.
      */
-    sendInvitation: function (userId, accessType) {
+    sendInvitation: function (userId, accessType, request) {
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: {
@@ -15,8 +16,10 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
             },
             type: 'POST',
             error: null
-        }).done(_.bind(function () {
-            if (userId === girder.currentUser.get('_id')) {
+        }).done(_.bind(function (resp) {
+            this.set(resp);
+
+            if (!request && userId === girder.currentUser.get('_id')) {
                 girder.currentUser.addInvitation(this.get('_id'), accessType);
             }
             this.trigger('g:invited');

@@ -180,6 +180,11 @@ class Group(AccessControlledModel):
             user['groups'].append(group['_id'])
             self.model('user').save(user, validate=False)
 
+        # Delete outstanding request if one exists
+        if user['_id'] in group.get('requests', []):
+            group['requests'].remove(user['_id'])
+            self.save(group, validate=False)
+
         self.setUserAccess(group, user, level, save=True)
 
         return group
@@ -215,9 +220,18 @@ class Group(AccessControlledModel):
         grants the user read access to the group so that they can see it.
         Once they accept the invitation, they will be given the specified level
         of access.
+
+        If the user has requested an invitation to this group, calling this
+        will accept their request and add them to the group at the access
+        level specified.
         """
         if group['_id'] in user.get('groups', []):
             raise ValidationException('User is already in this group.')
+
+        # If there is an outstanding request to join from this user, we
+        # just add them to the group instead of invite them.
+        if user['_id'] in group.get('requests', []):
+            return self.addUser(group, user, level)
 
         if not 'groupInvites' in user:
             user['groupInvites'] = []
@@ -303,6 +317,29 @@ class Group(AccessControlledModel):
 
         # Validate and save the group
         return self.save(group)
+
+    def getFullRequestList(self, group):
+        """
+        Return the set of all outstanding requests, filled in with the login
+        and full names of the corresponding users.
+
+        :param group: The group to get requests for.
+        :type group: dict
+        """
+        reqList = []
+
+        print group
+        for userId in group.get('requests', []):
+            print userId
+            user = self.model('user').load(
+                userId, force=True, fields=['firstName', 'lastName', 'login'])
+            reqList.append({
+                'id': userId,
+                'login': user['login'],
+                'name': '{} {}'.format(user['firstName'], user['lastName'])
+            })
+
+        return reqList
 
     def hasAccess(self, doc, user=None, level=AccessType.READ):
         """

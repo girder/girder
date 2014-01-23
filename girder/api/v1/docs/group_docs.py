@@ -158,11 +158,12 @@ apis.append({
         'httpMethod': 'POST',
         'nickname': 'inviteToGroup',
         'responseClass': 'Group',
-        'summary': 'Invite a user to join a group.',
+        'summary': "Invite a user to join a group, or accept a user's request "
+                   " to join.",
         'parameters': [
             Describe.param(
                 'groupId', 'The ID of the group.', paramType='path'),
-            Describe.param('userId', 'The ID of the user to invite.'),
+            Describe.param('userId', 'The ID of the user to invite or accept.'),
             Describe.param('level', 'The access level the user will be given '
                            'when they accept the invitation. Defaults to read '
                            'access (0).', required=False, dataType='int')

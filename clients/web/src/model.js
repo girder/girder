@@ -157,7 +157,12 @@ girder.AccessControlledModel = girder.Model.extend({
                 path: this.resourceName + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
-                this.set('access', resp);
+                if (resp.access) {
+                    this.set(resp);
+                }
+                else {
+                    this.set('access', resp);
+                }
                 this.trigger('g:accessFetched');
             }, this)).error(_.bind(function (err) {
                 this.trigger('g:error', err);

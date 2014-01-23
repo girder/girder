@@ -29,12 +29,15 @@ from ...constants import AccessType
 class Group(Resource):
     """API Endpoint for groups."""
 
-    def _filter(self, group, user, accessList=False):
+    def _filter(self, group, user, accessList=False, requests=False):
         """
         Filter a group document for display to the user.
         """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
-                'requests']
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+
+        if requests:
+            keys.append('requests')
+
         accessLevel = self.model('group').getAccessLevel(group, user)
 
         if accessList:
@@ -45,6 +48,9 @@ class Group(Resource):
 
         if accessList:
             group['access'] = self.model('group').getFullAccessList(group)
+
+        if requests:
+            group['requests'] = self.model('group').getFullRequestList(group)
 
         return group
 
@@ -119,7 +125,8 @@ class Group(Resource):
         instead request an invitation.
         """
         return self._filter(
-            self.model('group').joinGroup(group, user), user, accessList=True)
+            self.model('group').joinGroup(group, user), user,
+            accessList=True, requests=True)
 
     def listMembers(self, group, params):
         """
@@ -155,7 +162,7 @@ class Group(Resource):
         self.model('group').requireAccess(group, user, level)
         self.model('group').inviteUser(group, userToInvite, level)
 
-        return {'message': 'Invitation sent.'}
+        return self._filter(group, user, accessList=True, requests=True)
 
     def promote(self, group, user, params, level):
         """
@@ -243,7 +250,7 @@ class Group(Resource):
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,
                 level=AccessType.READ)
-            return self.model('group').getFullAccessList(group)
+            return self._filter(group, user, accessList=True, requests=True)
         elif path[1] == 'invitation':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,

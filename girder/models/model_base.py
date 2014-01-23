@@ -418,7 +418,8 @@ class AccessControlledModel(Model):
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
             user['login'] = userDoc['login']
-            user['name'] = '%s %s' % (userDoc['firstName'], userDoc['lastName'])
+            user['name'] = '{} {}'.format(
+                userDoc['firstName'], userDoc['lastName'])
 
         for grp in acList['groups']:
             grpDoc = self.model('group').load(

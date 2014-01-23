@@ -8,10 +8,13 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-join': 'joinGroup',
         'click .g-group-leave': 'leaveGroup',
         'click .g-group-delete': 'deleteGroup',
-        'click .g-group-request-invite': 'requestInvitation'
+        'click .g-group-request-invite': 'requestInvitation',
+        'click .g-group-request-accept': 'acceptMembershipRequest'
     },
 
     initialize: function (settings) {
+        this.tab = settings.tab || 'roles';
+
         // If group model is already passed, there is no need to fetch.
         if (settings.group) {
             this.model = settings.group;
@@ -83,8 +86,8 @@ girder.views.GroupView = Backbone.View.extend({
                 return true;
             }, this);
 
-            _.every(this.model.get('requests') || [], function (userId) {
-                if (userId === girder.currentUser.get('_id')) {
+            _.every(this.model.get('requests') || [], function (user) {
+                if (user.id === girder.currentUser.get('_id')) {
                     this.isRequested = true;
                     return false; // 'break;'
                 }
@@ -120,14 +123,27 @@ girder.views.GroupView = Backbone.View.extend({
 
         this._updateRolesLists();
 
-        this.$('.g-group-actions-button').tooltip({
-            container: 'body',
+        this.$('.g-group-actions-button,a[title]').tooltip({
+            container: this.$el,
             placement: 'left',
             animation: false,
             delay: {show: 100}
         });
 
-        girder.router.navigate('group/' + this.model.get('_id'));
+        girder.router.navigate('group/' + this.model.get('_id') + '/' + this.tab);
+
+        _.each($('.g-group-tabs>li>a'), function (el) {
+            var tabLink = $(el);
+            var view = this;
+            tabLink.tab().on('shown.bs.tab', function (e) {
+                view.tab = $(e.currentTarget).attr('name');
+                girder.router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
+            });
+
+            if (tabLink.attr('name') === this.tab) {
+                tabLink.tab('show');
+            }
+        }, this);
 
         return this;
     },
@@ -174,6 +190,12 @@ girder.views.GroupView = Backbone.View.extend({
         }, this).requestInvitation();
     },
 
+    acceptMembershipRequest: function (e) {
+        var userId = $(e.currentTarget).parents('li').attr('userid');
+        this.model.off('g:invited').on('g:invited', this.render, this)
+                  .sendInvitation(userId, girder.AccessType.READ, true);
+    },
+
     _updateRolesLists: function () {
         var mods = [],
             admins = [];
@@ -209,6 +231,22 @@ girder.router.route('group/:id', 'group', function (id) {
     }).on('g:fetched', function () {
         girder.events.trigger('g:navigateTo', girder.views.GroupView, {
             group: group
+        }, group);
+    }, this).on('g:error', function () {
+        girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+    }, this).fetch();
+});
+
+// Add routes for the tabs
+girder.router.route('group/:id/:tab', 'groupTab', function (id, tab) {
+    // Fetch the group by id, then render the view, and switch to the tab.
+    var group = new girder.models.GroupModel();
+    group.set({
+        _id: id
+    }).on('g:fetched', function () {
+        girder.events.trigger('g:navigateTo', girder.views.GroupView, {
+            group: group,
+            tab: tab
         }, group);
     }, this).on('g:error', function () {
         girder.events.trigger('g:navigateTo', girder.views.GroupsView);
