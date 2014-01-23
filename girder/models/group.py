@@ -328,9 +328,7 @@ class Group(AccessControlledModel):
         """
         reqList = []
 
-        print group
         for userId in group.get('requests', []):
-            print userId
             user = self.model('user').load(
                 userId, force=True, fields=['firstName', 'lastName', 'login'])
             reqList.append({

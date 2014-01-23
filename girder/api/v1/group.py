@@ -186,6 +186,19 @@ class Group(Resource):
             group, userToPromote, level=level, save=True)
         return self._filter(group, user, accessList=True)
 
+    def demote(self, group, user, params):
+        """
+        Demote a user down to a normal member.
+        """
+        self.requireParams(['userId'], params)
+
+        userToDemote = self.getObjectById(
+                self.model('user'), user=user, id=params['userId'],
+                checkAccess=True)
+        group = self.model('group').setUserAccess(
+            group, userToDemote, level=AccessType.READ, save=True)
+        return self._filter(group, user, accessList=True, requests=True)
+
     def removeFromGroup(self, group, user, params):
         """
         Remove a user from a group. Pass a 'userId' key in params to
@@ -232,6 +245,11 @@ class Group(Resource):
                 self.model('group'), id=path[0], user=user, checkAccess=True,
                 level=AccessType.WRITE)
             return self.removeFromGroup(group, user, params)
+        elif path[1] in ('admin', 'moderator'):
+            group = self.getObjectById(
+                self.model('group'), id=path[0], user=user, checkAccess=True,
+                level=AccessType.ADMIN)
+            return self.demote(group, user, params)
         else:
             raise RestException('Invalid group DELETE action.')
 

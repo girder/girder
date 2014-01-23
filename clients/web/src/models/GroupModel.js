@@ -89,6 +89,32 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
+     * Demote a user to ordinary member status. Requires admin privileges
+     * @param userId The id of the user to demote.
+     * @param level The current access level of the user.
+     */
+    demoteUser: function (userId, level) {
+        var role;
+        if (level === girder.AccessType.WRITE) {
+            role = 'moderator';
+        }
+        else if (level === girder.AccessType.ADMIN) {
+            role = 'admin';
+        }
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/' + role +
+                '?userId=' + userId,
+            type: 'DELETE'
+        }).done(_.bind(function (resp) {
+            this.set(resp);
+
+            this.trigger('g:demoted');
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
+    },
+
+    /**
      * Accept an invitation to join a group.
      * @param userId The ID of the user to remove.
      */

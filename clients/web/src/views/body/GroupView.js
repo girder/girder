@@ -213,13 +213,19 @@ girder.views.GroupView = Backbone.View.extend({
             el: this.$('.g-group-mods-container'),
             group: this.model,
             moderators: mods
-        }).render();
+        }).off().on('g:demoteUser', function (userId) {
+            this.model.off('g:demoted').on('g:demoted', this.render, this)
+                      .demoteUser(userId, girder.AccessType.WRITE);
+        }, this).render();
 
         this.adminsWidget = new girder.views.GroupAdminsWidget({
             el: this.$('.g-group-admins-container'),
             group: this.model,
             admins: admins
-        }).render();
+        }).off().on('g:demoteUser', function (userId) {
+            this.model.off('g:demoted').on('g:demoted', this.render, this)
+                      .demoteUser(userId, girder.AccessType.ADMIN);
+        }, this).render();
     }
 });
 
