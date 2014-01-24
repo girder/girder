@@ -37,7 +37,7 @@ girder.views.UserView = Backbone.View.extend({
 
     userChanged: function () {
         // When the user changes, we should refresh the model to update the
-        // _accessLevel attribute on the viewed user, then re-render the page.
+        // accessLevel attribute on the viewed user, then re-render the page.
         this.model.off('g:fetched').on('g:fetched', function () {
             this.render();
         }, this).on('g:error', function () {

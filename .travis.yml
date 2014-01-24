@@ -1,0 +1,30 @@
+language: cpp
+
+services: mongodb
+
+compiler:
+  - clang
+
+before_install:
+  - "sudo apt-get install npm"
+  - "mongo --eval 'db.runCommand({setParameter: 1, textSearchEnabled: true})' admin"
+
+install:
+  - "sudo pip install -r requirements.txt"
+  - "sudo pip install pep8 coverage"
+  - "sudo python setup.py install"
+  - "npm install -g grunt grunt-cli"
+  - "npm install"
+
+before_script:
+  - "grunt init --force"
+  - "grunt install --force"
+
+script:
+  - mkdir _build
+  - cd _build
+  - cmake -D PYTHON_COVERAGE:BOOL=ON ..
+  - ctest -V -S ../cmake/travis_build.cmake
+
+after_script:
+  - ctest -V -S ../cmake/travis_submit.cmake

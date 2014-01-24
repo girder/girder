@@ -91,6 +91,24 @@ apis.append({
                 'Read access was denied for the item.', 403)
             ]
         }, {
+        'httpMethod': 'PUT',
+        'nickname': 'editItemById',
+        'responseClass': 'Item',
+        'summary': 'Edit an item by ID.',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path'),
+            Describe.param('name', "Name for the item.",
+                           required=False),
+            Describe.param('description', "Item description.",
+                           required=False),
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Write access was denied for the item.', 403)
+            ]
+        }, {
         'httpMethod': 'DELETE',
         'nickname': 'deleteItemById',
         'summary': 'Delete an item by ID.',
@@ -102,6 +120,55 @@ apis.append({
             Describe.errorResponse('ID was invalid.'),
             Describe.errorResponse(
                 'Admin access was denied for the item.', 403)
+            ]
+        }]
+    })
+
+apis.append({
+    'path': '/item/{itemId}/files',
+    'resource': 'item',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getFileByItemId',
+        'responseClass': 'File',
+        'summary': 'Get the files associated with an item by its ID.',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path'),
+            Describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            Describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            Describe.param(
+                'sort', "Field to sort the result list by (default=name)",
+                required=False)
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the item.', 403)
+            ]
+        }]
+    })
+
+apis.append({
+    'path': '/item/{itemId}/download',
+    'resource': 'item',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getItemDownoad',
+        'responseClass': 'File',
+        'summary': 'Download an item',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Read access was denied for the item.', 403)
             ]
         }]
     })

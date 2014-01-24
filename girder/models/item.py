@@ -19,7 +19,7 @@
 
 import datetime
 
-from .model_base import Model, ValidationException
+from .model_base import Model, ValidationException, AccessException
 from girder.constants import AccessType
 
 
@@ -66,6 +66,29 @@ class Item(Model):
             else:
                 n += 1
                 name = '%s (%d)' % (doc['name'], n)
+
+        return doc
+
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False, fields=None):
+        """
+        We override Model.load to also do permission checking.
+
+        :param id: The id of the resource.
+        :type id: string or ObjectId
+        :param user: The user to check access against.
+        :type user: dict or None
+        :param level: The required access type for the object.
+        :type level: AccessType
+        :param force: If you explicity want to circumvent access
+                      checking on this resource, set this to True.
+        :type force: bool
+        """
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields)
+
+        if not force and doc is not None:
+            self.model('folder').load(doc['folderId'], level, user, objectId,
+                                      force, fields)
 
         return doc
 
@@ -157,3 +180,16 @@ class Item(Model):
             'updated': now,
             'size': 0
             })
+
+    def updateItem(self, item):
+        """
+        Updates an item.
+
+        :param item: The item document to update
+        :type item: dict
+        :returns: The item document that was edited.
+        """
+        item['updated'] = datetime.datetime.now()
+
+        # Validate and save the collection
+        return self.save(item)

@@ -41,7 +41,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         this.$el.html(jade.templates.hierarchyWidget({
             type: this.parentType,
             model: this.parentModel,
-            level: this.parentModel.get('_accessLevel'),
+            level: this.parentModel.getAccessLevel(),
             AccessType: girder.AccessType
         }));
 
@@ -208,14 +208,14 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         var minLevel = girder.AccessType.ADMIN;
         _.every(folders, function (cid) {
             var folder = this.folderListView.collection.get(cid);
-            minLevel = Math.min(minLevel, folder.get('_accessLevel'));
+            minLevel = Math.min(minLevel, folder.getAccessLevel());
             return minLevel > girder.AccessType.READ; // acts as 'break'
         }, this);
 
         if (this.itemListView) {
             items = this.itemListView.checked;
             if (items.length) {
-                minLevel = Math.min(minLevel, this.parentModel.get('_accessLevel'));
+                minLevel = Math.min(minLevel, this.parentModel.getAccessLevel());
             }
         }
 

@@ -19,10 +19,12 @@
 
 import cherrypy
 import pymongo
+import os
 
 from .docs import item_docs
 from ..rest import Resource, RestException
 from ...models.model_base import ValidationException
+from ...utility import ziputil
 from ...constants import AccessType
 
 
@@ -94,6 +96,49 @@ class Item(Resource):
 
         return self._filter(item)
 
+    def updateItem(self, id, user, params):
+        item = self.getObjectById(
+            self.model('item'), id=id, user=user, checkAccess=True,
+            level=AccessType.WRITE)
+
+        item['name'] = params.get('name', item['name']).strip()
+        item['description'] = params.get(
+            'description', item['description']).strip()
+
+        item = self.model('item').updateItem(item)
+        return self._filter(item)
+
+    def _downloadMultifileItem(self, item, user):
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="{}{}"'.format(item['name'], '.zip')
+
+        def stream():
+            zip = ziputil.ZipGenerator(item['name'])
+            for file in self.model('item').childFiles(item=item, limit=0):
+                for data in zip.addFile(self.model('file')
+                                            .download(file, headers=False),
+                                        file['name']):
+                    yield data
+            yield zip.footer()
+        return stream
+
+    def download(self, user, params, itemId):
+        """
+        Defers to the underlying assetstore adapter to stream the file or
+        file out.
+        """
+        offset = int(params.get('offset', 0))
+
+        item = self.getObjectById(self.model('item'), id=itemId,
+                                  checkAccess=True, user=user)  # Access Check
+        files = [file for file in self.model('item').childFiles(item=item)]
+
+        if len(files) == 1:
+            return self.model('file').download(files[0], offset)
+        else:
+            return self._downloadMultifileItem(self, item, user)
+
     @Resource.endpoint
     def DELETE(self, path, params):
         """
@@ -104,11 +149,9 @@ class Item(Resource):
                 'Path parameter should be the item ID to delete.')
 
         user = self.getCurrentUser()
-        item = self.getObjectById(self.model('item'), id=path[0])
-
-        # Ensure write access on the parent folder.
-        self.getObjectById(self.model('folder'), user=user, id=item['folderId'],
-                           checkAccess=True, level=AccessType.WRITE)
+        item = self.getObjectById(self.model('item'), user=user,
+                                  id=path[0], checkAccess=True,
+                                  level=AccessType.WRITE)
 
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
@@ -118,18 +161,39 @@ class Item(Resource):
         user = self.getCurrentUser()
         if not path:
             return self.find(user, params)
-        else:  # assume it's an item id
-            item = self.getObjectById(self.model('item'), id=path[0])
-
-            # Ensure read access on the parent folder.
-            self.getObjectById(self.model('folder'), user=user,
-                               id=item['folderId'], checkAccess=True)
-
+        elif len(path) == 1:  # assume it's an item id
+            item = self.getObjectById(self.model('item'), user=user,
+                                      id=path[0], checkAccess=True,
+                                      level=AccessType.READ)
             return self._filter(item)
+        elif len(path) == 2 and path[1] == 'files':
+            limit, offset, sort = self.getPagingParameters(params, 'name')
+            item = self.getObjectById(self.model('item'), user=user,
+                                      id=path[0], checkAccess=True,
+                                      level=AccessType.READ)
+            return [file for file in self.model('item').childFiles(
+                item=item, limit=limit, offset=offset, sort=sort)]
+        elif len(path) >= 2 and path[1] == 'download':
+            self.download(user, params, path[0])
+        else:
+            raise RestException('Unrecognized item GET endpoint.')
 
     @Resource.endpoint
     def POST(self, path, params):
         """
-        Use this endpoint to create a new folder.
+        Use this endpoint to create an item.
         """
         return self.createItem(self.getCurrentUser(), params)
+
+    @Resource.endpoint
+    def PUT(self, path, params):
+        """
+        Use this endpoint to edit an item.
+        """
+        user = self.getCurrentUser()
+        print(params)
+        if not path:
+            raise RestException(
+                'Path parameter should be the item ID to edit.')
+        elif len(path) == 1:
+            return self.updateItem(path[0], user, params)
