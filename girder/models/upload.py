@@ -22,6 +22,7 @@ import datetime
 
 from .model_base import Model, ValidationException
 from girder.utility import assetstore_utilities
+from ..constants import AccessType
 
 
 class Upload(Model):
@@ -85,8 +86,10 @@ class Upload(Model):
                 name=upload['name'], creator={'_id': upload['userId']},
                 folder={'_id': upload['parentId']})
         else:
-            # Uploading into an existing item
-            item = {'_id': upload['parentId']}
+            item = self.model('item').load(id=upload['parentId'],
+                                           objectId=True,
+                                           user={'_id': upload['userId']},
+                                           level=AccessType.WRITE)
 
         file = self.model('file').createFile(
             item=item, name=upload['name'], size=upload['size'],

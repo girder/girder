@@ -49,10 +49,7 @@ class File(Resource):
                 checkAccess=True, user=user, level=AccessType.WRITE)
         elif parentType == 'item':
             parent = self.getObjectById(
-                self.model('item'), id=params['parentId'])
-            # Ensure write access into parent folder
-            self.getObjectById(
-                self.model('folder'), user=user, id=parent['folderId'],
+                self.model('item'), user=user, id=params['parentId'],
                 checkAccess=True, level=AccessType.WRITE)
         else:
             raise RestException('Set parentType to item or folder.')

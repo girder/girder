@@ -19,10 +19,14 @@
 
 import cherrypy
 import json
+import os
+import io
+import shutil
+import zipfile
 
 from .. import base
 
-from girder.constants import AccessType
+from girder.constants import AccessType, ROOT_DIR
 
 
 def setUpModule():
@@ -46,6 +50,107 @@ class ItemTestCase(base.TestCase):
         folders = self.model('folder').childFolders(
             self.users[0], 'user', user=self.users[0])
         (self.publicFolder, self.privateFolder) = folders
+
+        root = os.path.join(ROOT_DIR, 'tests', 'assetstore')
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        assetstore = self.model('assetstore').createFilesystemAssetstore(
+            name='Test', root=root)
+        self.assetstore = assetstore
+
+        # Clean out the test assetstore on disk
+        shutil.rmtree(assetstore['root'])
+
+        # First clean out the temp directory
+        tmpdir = os.path.join(root, 'temp')
+        if os.path.isdir(tmpdir):
+            for tempname in os.listdir(tmpdir):
+                os.remove(os.path.join(tmpdir, tempname))
+
+    def _createItem(self, parentId, name, description, user):
+        params = {
+            'name': name,
+            'description': description,
+            'folderId': parentId
+        }
+        resp = self.request(path='/item', method='POST', params=params,
+                            user=user)
+        self.assertStatusOk(resp)
+        return resp.json
+
+    def _testUploadFileToItem(self, item, name, user, contents):
+        """
+        Uploads a non-empty file to the server.
+        """
+        # Initialize the upload
+        resp = self.request(
+            path='/file', method='POST', user=user, params={
+                'parentType': 'item',
+                'parentId': item['_id'],
+                'name': name,
+                'size': len(contents)
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the first chunk
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', name, contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+    def _testDownloadSingleFileItem(self, item, user, contents):
+        """
+        Downloads a single-file item from the server
+        :param item: The item to download.
+        :type item: dict
+        :param contents: The expected contents.
+        :type contents: str
+        """
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            method='GET', user=user, isJson=False)
+        self.assertStatusOk(resp)
+
+        self.assertEqual(contents, resp.collapse_body())
+
+        # Test downloading with an offset
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            method='GET', user=user, isJson=False,
+                            params={'offset': 1})
+        self.assertStatusOk(resp)
+
+        self.assertEqual(contents[1:], resp.collapse_body())
+
+    def _testDownloadMultiFileItem(self, item, user, contents):
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            method='GET', user=user, isJson=False)
+        self.assertStatusOk(resp)
+        zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        filesInItem = zipFile.namelist()
+        self.assertEqual(zipFile.read(filesInItem[0]), contents[0])
+        self.assertEqual(zipFile.read(filesInItem[1]), contents[1])
+
+    def testItemDownloadAndChildren(self):
+        curItem = self._createItem(self.publicFolder['_id'],
+                                   'test_for_download', 'fake description',
+                                   self.users[0])
+        self._testUploadFileToItem(curItem, 'file_1', self.users[0], 'foobar')
+
+        self._testDownloadSingleFileItem(curItem, self.users[0], 'foobar')
+
+        self._testUploadFileToItem(curItem, 'file_2', self.users[0], 'foobz')
+
+        resp = self.request(path='/item/{}/files'.format(curItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['name'], 'file_1')
+        self.assertEqual(resp.json[1]['name'], 'file_2')
+        self.assertEqual(resp.json[0]['size'], 6)
+        self.assertEqual(resp.json[1]['size'], 5)
+
+        self._testDownloadMultiFileItem(curItem, self.users[0],
+                                        ('foobar', 'foobz'))
 
     def testItemCrud(self):
         """
@@ -105,6 +210,32 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], item['_id'])
 
+        # Test update of the item
+        params = {
+            'name': 'changed name',
+            'description': 'new description'
+        }
+        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+                            params=params, user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], params['name'])
+        self.assertEqual(resp.json['description'], params['description'])
+
+        # Try to update/PUT without an id
+        resp = self.request(path='/item/', method='PUT',
+                            params=params, user=self.users[0])
+        self.assertStatus(resp, 400)
+
+        # Try a bad endpoint (should 400)
+        resp = self.request(path='/item/{}/blurgh'.format(item['_id']),
+                            method='GET',
+                            user=self.users[1])
+        self.assertStatus(resp, 400)
+
+        # Try delete with no ID (should 400)
+        resp = self.request(path='/item/', method='DELETE', user=self.users[1])
+        self.assertStatus(resp, 400)
+
         # User 1 should not be able to delete the item
         resp = self.request(path='/item/%s' % str(item['_id']), method='DELETE',
                             user=self.users[1])
@@ -115,5 +246,6 @@ class ItemTestCase(base.TestCase):
                             user=self.users[0])
         self.assertStatusOk(resp)
 
+        # Verify that the item is deleted
         item = self.model('item').load(item['_id'])
         self.assertEqual(item, None)
