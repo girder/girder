@@ -131,13 +131,14 @@ class Item(Resource):
         offset = int(params.get('offset', 0))
 
         item = self.getObjectById(self.model('item'), id=itemId,
-                                  checkAccess=True, user=user)  # Access Check
+                                  checkAccess=True, user=user,
+                                  level=AccessType.READ)  # Access Check
         files = [file for file in self.model('item').childFiles(item=item)]
 
         if len(files) == 1:
             return self.model('file').download(files[0], offset)
         else:
-            return self._downloadMultifileItem(self, item, user)
+            return self._downloadMultifileItem(item, user)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -174,7 +175,7 @@ class Item(Resource):
             return [file for file in self.model('item').childFiles(
                 item=item, limit=limit, offset=offset, sort=sort)]
         elif len(path) >= 2 and path[1] == 'download':
-            self.download(user, params, path[0])
+            return self.download(user, params, path[0])
         else:
             raise RestException('Unrecognized item GET endpoint.')
 
