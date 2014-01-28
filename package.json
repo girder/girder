@@ -15,7 +15,7 @@
     "grunt-contrib-uglify": "~0.2.2",
     "grunt-contrib-watch": "~0.3.1",
     "grunt-shell": ">=0.2.1",
-    "jade": ">=0.34",
+    "jade": "0.34.1",
     "jquery-browser": "~1.10",
     "jshint": "1.0.0",
     "swagger-ui": "2.0.2",
