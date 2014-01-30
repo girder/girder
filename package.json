@@ -17,6 +17,7 @@
     "jade": "0.34.1",
     "jquery-browser": "~1.10",
     "jshint": "1.0.0",
+    "requirejs": "2.1.10",
     "swagger-ui": "2.0.2",
     "underscore": "~1.5"
   },

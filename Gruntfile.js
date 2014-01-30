@@ -37,7 +37,13 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: 'node_modules/swagger-ui/dist',
                     src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
-                    dest: 'clients/web/static/built/swagger'}]
+                    dest: 'clients/web/static/built/swagger'
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/requirejs',
+                    src: ['require.js'],
+                    dest: 'clients/web/static/built/swagger/lib'
+                }]
             }
         },
 
