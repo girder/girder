@@ -42,20 +42,15 @@
     | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
 
 .g-item-metadata
-  .g-item-metadata-header
-    i.icon-tags
-    |  Metadata
-  .g-item-metadata-container
-
-    if item.get('meta')
+  if item.get('meta')
+    .g-item-metadata-header
+      i.icon-tags
+      |  Metadata
+    .g-item-metadata-container
       each value, key in item.get('meta')
         .g-item-metadata-row
           span.g-item-metadata-key #{key}:
           span.g-item-metadata-value #{value}
-    else
-      .g-info-message-container
-        i.icon-info-circled
-        |  This item has no metadata.
 
 .g-item-files
   .g-item-files-header
