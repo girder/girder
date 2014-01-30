@@ -18,7 +18,7 @@ install:
 
 before_script:
   - "grunt init"
-  - "grunt install"
+  - "grunt"
 
 script:
   - mkdir _build
