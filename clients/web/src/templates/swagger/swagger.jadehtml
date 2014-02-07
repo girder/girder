@@ -4,16 +4,18 @@ html(lang="en")
     title Girder - REST API Documentation
     link(href='//fonts.googleapis.com/css?family=Droid+Sans:400,700', rel='stylesheet', type='text/css')
     link(href='../../static/lib/fontello/css/fontello.css', rel='stylesheet')
-    link(href='../../static/built/swagger/css/hightlight.default.css', rel='stylesheet')
+    link(href='../../static/built/swagger/css/highlight.default.css', rel='stylesheet')
     link(href='../../static/built/swagger/css/screen.css', rel='stylesheet')
     link(href='../../static/built/swagger/docs.css', rel='stylesheet')
     script(src='../../static/built/swagger/lib/jquery-1.8.0.min.js')
     script(src='../../static/built/swagger/lib/jquery.slideto.min.js')
     script(src='../../static/built/swagger/lib/jquery.wiggle.min.js')
     script(src='../../static/built/swagger/lib/jquery.ba-bbq.min.js')
-    script(src='../../static/built/swagger/lib/handlebars-1.0.rc.1.js')
+    script(src='../../static/built/swagger/lib/handlebars-1.0.0.js')
     script(src='../../static/built/swagger/lib/underscore-min.js')
     script(src='../../static/built/swagger/lib/backbone-min.js')
+    script(src='../../static/built/swagger/lib/shred.bundle.js')
+    script(src='../../static/built/swagger/lib/require.js')
     script(src='../../static/built/swagger/lib/swagger.js')
     script(src='../../static/built/swagger/swagger-ui.min.js')
     script(src='../../static/built/swagger/lib/highlight.7.3.pack.js')
@@ -21,13 +23,13 @@ html(lang="en")
     script(type="text/javascript").
       $(function () {
         var swaggerUi = new SwaggerUi({
-          discoveryUrl: window.location.origin + window.location.pathname + '/describe',
+          url: window.location.origin + window.location.pathname + '/describe',
           dom_id: 'swagger-ui-container',
           supportHeaderParams: false,
           supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
           onComplete: function (swaggerApi, swaggerUi) {
             $('pre code').each(function (i, e) {
-              hljs.highlightBlock(e)
+              hljs.highlightBlock(e);
             });
           },
           onFailure: function (data) {

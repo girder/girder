@@ -31,6 +31,22 @@ module.exports = function (grunt) {
             outputFile: 'clients/web/static/built/templates.js'
         },
 
+        copy: {
+            swagger: {
+                files: [{
+                    expand: true,
+                    cwd: 'node_modules/swagger-ui/dist',
+                    src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
+                    dest: 'clients/web/static/built/swagger'
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/requirejs',
+                    src: ['require.js'],
+                    dest: 'clients/web/static/built/swagger/lib'
+                }]
+            }
+        },
+
         stylus: {
             compile: {
                 files: {
@@ -125,36 +141,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var outdir = 'clients/web/static/built/swagger';
-        if (!fs.existsSync(outdir)) {
-            fs.mkdirSync(outdir);
-        }
-        var copy = function (src) {
-            var input = 'node_modules/swagger-ui/dist/' + src;
-            var dst = outdir + '/' + src;
-
-            if (fs.lstatSync(input).isDirectory()) {
-                if (!fs.existsSync(dst)) {
-                    fs.mkdirSync(dst);
-                }
-                var srcs = grunt.file.expand(input + '/*');
-                srcs.forEach(function (file) {
-                    fs.writeFileSync(dst + '/' + path.basename(file), fs.readFileSync(file));
-                });
-            }
-            else {
-                fs.writeFileSync(dst, fs.readFileSync(input));
-            }
-
-        };
-
-        copy('lib');
-        copy('css');
-        copy('images');
-        copy('swagger-ui.min.js');
-
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
@@ -231,7 +220,8 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
-    grunt.registerTask('init', ['setup', 'uglify:libs', 'swagger-ui']);
+    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger',
+        'swagger-ui']);
     grunt.registerTask('docs', ['shell']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };

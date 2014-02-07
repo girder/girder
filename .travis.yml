@@ -17,8 +17,8 @@ install:
   - "npm install"
 
 before_script:
-  - "grunt init --force"
-  - "grunt install --force"
+  - "grunt init"
+  - "grunt"
 
 script:
   - mkdir _build

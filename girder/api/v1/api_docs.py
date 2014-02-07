@@ -117,6 +117,6 @@ class Describe(Resource):
             retVal['apis'] = self.__class__.discovery['apis']
 
         retVal['apiVersion'] = API_VERSION
-        retVal['swaggerVersion'] = '1.1'
+        retVal['swaggerVersion'] = '1.2'
 
         return retVal
