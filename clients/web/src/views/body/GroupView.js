@@ -9,7 +9,8 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-leave': 'leaveGroup',
         'click .g-group-delete': 'deleteGroup',
         'click .g-group-request-invite': 'requestInvitation',
-        'click .g-group-request-accept': 'acceptMembershipRequest'
+        'click .g-group-request-accept': 'acceptMembershipRequest',
+        'click .g-group-request-deny': 'denyMembershipRequest'
     },
 
     initialize: function (settings) {
@@ -100,7 +101,8 @@ girder.views.GroupView = Backbone.View.extend({
             girder: girder,
             isInvited: this.isInvited,
             isRequested: this.isRequested,
-            isMember: this.isMember
+            isMember: this.isMember,
+            invitees: []
         }));
 
         this.membersWidget = new girder.views.GroupMembersWidget({
@@ -194,6 +196,12 @@ girder.views.GroupView = Backbone.View.extend({
         var userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:invited').on('g:invited', this.render, this)
                   .sendInvitation(userId, girder.AccessType.READ, true);
+    },
+
+    denyMembershipRequest: function (e) {
+        var userId = $(e.currentTarget).parents('li').attr('userid');
+        this.model.off('g:removed').on('g:removed', this.render, this)
+                  .removeMember(userId);
     },
 
     _updateRolesLists: function () {

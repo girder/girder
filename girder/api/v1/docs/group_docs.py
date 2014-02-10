@@ -224,7 +224,11 @@ apis.append({
         'httpMethod': 'DELETE',
         'nickname': 'removeFromGroup',
         'responseClass': 'Group',
-        'summary': 'Remove yourself or another user from a group.',
+        'summary': 'Remove a user from a group, or uninvite them.',
+        'notes': 'If the specified user is not yet a member of the group, this'
+                 ' will delete any oustanding invitation or membership request'
+                 ' for the user. Passing no userId parameter will assume that'
+                 ' the current user is removing himself.',
         'parameters': [
             Describe.param(
                 'groupId', 'The ID of the group.', paramType='path'),

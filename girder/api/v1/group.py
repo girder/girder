@@ -224,7 +224,7 @@ class Group(Resource):
 
         return self._filter(
             self.model('group').removeUser(group, userToRemove), user,
-            accessList=True)
+            accessList=True, requests=True)
 
     @Resource.endpoint
     def DELETE(self, path, params):
@@ -273,7 +273,7 @@ class Group(Resource):
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,
                 level=AccessType.WRITE)
-            return self.listMembers(group, params)
+            return self.getInvitees(group, params)
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], checkAccess=True, user=user,

@@ -115,7 +115,9 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
-     * Accept an invitation to join a group.
+     * Remove a member of a group, or if the user is not already a member,
+     * this will simply delete any outstanding membership request or
+     * invitation for this user.
      * @param userId The ID of the user to remove.
      */
     removeMember: function (userId) {

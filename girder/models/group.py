@@ -181,13 +181,19 @@ class Group(AccessControlledModel):
             self.model('user').save(user, validate=False)
 
         # Delete outstanding request if one exists
-        if user['_id'] in group.get('requests', []):
-            group['requests'].remove(user['_id'])
-            self.save(group, validate=False)
+        self._deleteRequest(group, user)
 
         self.setUserAccess(group, user, level, save=True)
 
         return group
+
+    def _deleteRequest(self, group, user):
+        """
+        Helper method to delete a request for the given user.
+        """
+        if user['_id'] in group.get('requests', []):
+            group['requests'].remove(user['_id'])
+            self.save(group, validate=False)
 
     def joinGroup(self, group, user):
         """
@@ -252,11 +258,15 @@ class Group(AccessControlledModel):
         """
         Remove the user from the group. If the user is not in the group but
         has an outstanding invitation to the group, the invitation will be
-        revoked.
+        revoked. If the user has requested an invitation, calling this will
+        deny that request, thereby deleting it.
         """
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])
+
+        # Remove outstanding requests from this user
+        self._deleteRequest(group, user)
 
         # Remove any outstanding invitations for this group
         l = lambda inv: not inv['groupId'] == group['_id']
