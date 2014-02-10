@@ -176,8 +176,8 @@ class Group(Resource):
         self.requireParams(['userId'], params)
 
         userToPromote = self.getObjectById(
-                self.model('user'), user=user, id=params['userId'],
-                checkAccess=True)
+            self.model('user'), user=user, id=params['userId'],
+            checkAccess=True)
 
         if not group['_id'] in userToPromote['groups']:
             raise AccessException('That user is not a group member.')
@@ -193,8 +193,8 @@ class Group(Resource):
         self.requireParams(['userId'], params)
 
         userToDemote = self.getObjectById(
-                self.model('user'), user=user, id=params['userId'],
-                checkAccess=True)
+            self.model('user'), user=user, id=params['userId'],
+            checkAccess=True)
         group = self.model('group').setUserAccess(
             group, userToDemote, level=AccessType.READ, save=True)
         return self._filter(group, user, accessList=True, requests=True)
@@ -224,7 +224,7 @@ class Group(Resource):
 
         return self._filter(
             self.model('group').removeUser(group, userToRemove), user,
-                                           accessList=True)
+            accessList=True)
 
     @Resource.endpoint
     def DELETE(self, path, params):

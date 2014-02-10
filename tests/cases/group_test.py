@@ -132,14 +132,6 @@ class GroupTestCase(base.TestCase):
         self.assertTrue(self.model('group').hasAccess(
             publicGroup, self.users[1], AccessType.READ))
 
-        # User 1 should not be able to join the public group without invite.
-        resp = self.request(
-            path='/group/%s/member' % publicGroup['_id'], method='POST',
-            user=self.users[1])
-        self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'],
-                         'User was not invited to this group.')
-
         # Try to make group with same name; should fail
         resp = self.request(path='/group', method='POST', params=params,
                             user=self.users[0])

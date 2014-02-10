@@ -185,7 +185,7 @@ girder.views.GroupView = Backbone.View.extend({
     },
 
     requestInvitation: function () {
-        this.model.off('g:inviteRequested').on('g:inviteRequested', function() {
+        this.model.off('g:inviteRequested').on('g:inviteRequested', function () {
             this.render();
         }, this).requestInvitation();
     },

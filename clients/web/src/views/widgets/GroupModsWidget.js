@@ -20,7 +20,7 @@ girder.views.GroupModsWidget = Backbone.View.extend({
             girder.events.trigger('g:navigateTo', girder.views.UserView, {
                 id: $(e.currentTarget).parents('li').attr('userid')
             });
-        },
+        }
     },
 
     initialize: function (settings) {
@@ -44,5 +44,5 @@ girder.views.GroupModsWidget = Backbone.View.extend({
         });
 
         return this;
-    },
+    }
 });

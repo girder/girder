@@ -296,9 +296,6 @@ girder.views.HierarchyBreadcrumbView = Backbone.View.extend({
         'click a.g-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
             this.trigger('g:breadcrumbClicked', parseInt(link.attr('g-index'), 10));
-        },
-        'click .g-hierarchy-level-up': function () {
-
         }
     },
 
