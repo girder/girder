@@ -108,17 +108,3 @@ ul.g-group-tabs.nav.nav-tabs
         |  Sent Invitations
 
       .g-group-invites-body
-        ul.g-group-invites
-          each user in invitees
-            li(userid="#{user.id}")
-              a.g-member-name
-                i.icon-user
-                |  #{user.name} (#{user.login})
-              .g-group-member-controls.pull-right
-                if group.get('_accessLevel') >= girder.AccessType.WRITE
-                  a.g-group-request-accept(title="Uninvite user")
-                    i.icon-block
-          if (!invitees.length)
-            .g-member-list-empty
-              i.icon-info-circled
-              |  There are no outstanding invitations for this group.

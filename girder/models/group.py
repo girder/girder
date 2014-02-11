@@ -254,6 +254,23 @@ class Group(AccessControlledModel):
 
         return self.model('user').save(user, validate=False)
 
+    def getInvites(self, group, limit=50, offset=0, sort=None):
+        """
+        Return a page of outstanding invitations to a group. This is simply
+        a list of users invited to the group currently.
+
+        :param group: The group to find invitations for.
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort field.
+        """
+        cursor = self.model('user').find({'groupInvites.groupId': group['_id']},
+            limit=limit, offset=offset, sort=sort, fields=[
+                '_id', 'firstName', 'lastName', 'login'
+            ])
+
+        return [result for result in cursor]
+
     def removeUser(self, group, user):
         """
         Remove the user from the group. If the user is not in the group but

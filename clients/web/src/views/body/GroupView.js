@@ -10,7 +10,13 @@ girder.views.GroupView = Backbone.View.extend({
         'click .g-group-delete': 'deleteGroup',
         'click .g-group-request-invite': 'requestInvitation',
         'click .g-group-request-accept': 'acceptMembershipRequest',
-        'click .g-group-request-deny': 'denyMembershipRequest'
+        'click .g-group-request-deny': 'denyMembershipRequest',
+
+        'click #g-group-tab-pending a.g-member-name': function (e) {
+            girder.events.trigger('g:navigateTo', girder.views.UserView, {
+                id: $(e.currentTarget).parents('li').attr('userid')
+            });
+        }
     },
 
     initialize: function (settings) {
@@ -101,13 +107,38 @@ girder.views.GroupView = Backbone.View.extend({
             girder: girder,
             isInvited: this.isInvited,
             isRequested: this.isRequested,
-            isMember: this.isMember,
-            invitees: []
+            isMember: this.isMember
         }));
+
+        if (this.invitees) {
+            new girder.views.GroupInvitesWidget({
+                el: this.$('.g-group-invites-body'),
+                invitees: this.invitees,
+                group: this.model
+            }).render();
+        }
+        else {
+            var container = this.$('.g-group-invites-body');
+            new girder.views.LoadingAnimation({
+                el: container
+            }).render();
+
+            this.invitees = new girder.collections.UserCollection();
+            this.invitees.altUrl =
+                'group/' + this.model.get('_id') + '/invitation';
+            this.invitees.on('g:changed', function () {
+                new girder.views.GroupInvitesWidget({
+                    el: container,
+                    invitees: this.invitees,
+                    group: this.model
+                }).render();
+            }, this).fetch();
+        }
 
         this.membersWidget = new girder.views.GroupMembersWidget({
             el: this.$('.g-group-members-container'),
-            group: this.model
+            group: this.model,
+            parent: this
         }).off().on('g:sendInvite', function (params) {
             this.model.off('g:invited').on('g:invited', function () {
                 this.render();
@@ -220,7 +251,8 @@ girder.views.GroupView = Backbone.View.extend({
         this.modsWidget = new girder.views.GroupModsWidget({
             el: this.$('.g-group-mods-container'),
             group: this.model,
-            moderators: mods
+            moderators: mods,
+            parent: this
         }).off().on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
                       .demoteUser(userId, girder.AccessType.WRITE);
@@ -229,7 +261,8 @@ girder.views.GroupView = Backbone.View.extend({
         this.adminsWidget = new girder.views.GroupAdminsWidget({
             el: this.$('.g-group-admins-container'),
             group: this.model,
-            admins: admins
+            admins: admins,
+            parent: this
         }).off().on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
                       .demoteUser(userId, girder.AccessType.ADMIN);

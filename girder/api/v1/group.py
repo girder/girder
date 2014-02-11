@@ -259,25 +259,17 @@ class Group(Resource):
             return self.find(params)
 
         user = self.getCurrentUser()
+        group = self.getObjectById(
+            self.model('group'), id=path[0], checkAccess=True, user=user)
 
         if len(path) == 1:
-            group = self.getObjectById(self.model('group'), id=path[0],
-                                       checkAccess=True, user=user)
             return self._filter(group, user)
         elif path[1] == 'access':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.READ)
             return self._filter(group, user, accessList=True, requests=True)
         elif path[1] == 'invitation':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.WRITE)
-            return self.getInvitees(group, params)
+            limit, offset, sort = self.getPagingParameters(params, 'lastName')
+            return self.model('group').getInvites(group, limit, offset, sort)
         elif path[1] == 'member':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.READ)
             return self.listMembers(group, params)
         else:
             raise RestException('Invalid group GET action.')
