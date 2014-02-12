@@ -17,7 +17,6 @@
 module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
-    var DEBUG = false;
 
     // Project configuration.
     grunt.initConfig({
@@ -75,7 +74,8 @@ module.exports = function (grunt) {
 
         uglify: {
             options: {
-                beautify: DEBUG
+                sourceMap: true,
+                sourceMapIncludeSources: true
             },
             app: {
                 files: {
