@@ -46,4 +46,11 @@ Then, just run:
 
 Then open http://localhost:8080/ in your web browser, and you should see the application.
 
+## Deploy
 
+To deploy girder in production, run grunt with the production environment flag:
+
+    grunt init --env=prod && grunt --env=prod
+
+And in your ````girder/conf/local.server.cfg```` file, change the value of the **server.mode**
+parameter to **"production"** and then restart the server.
