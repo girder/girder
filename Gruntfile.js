@@ -18,12 +18,16 @@ module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
 
+    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
+    var environment = grunt.option('env') || 'dev';
+
+    if (['dev', 'prod'].indexOf(environment) === -1) {
+        grunt.fatal('The "env" argument must be either "dev" or "prod".');
+    }
+
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-
-        config: {
-        },
 
         jade: {
             inputDir: 'clients/web/src/templates',
@@ -74,8 +78,9 @@ module.exports = function (grunt) {
 
         uglify: {
             options: {
-                sourceMap: true,
-                sourceMapIncludeSources: true
+                sourceMap: environment === 'dev',
+                sourceMapIncludeSources: true,
+                report: 'min'
             },
             app: {
                 files: {
@@ -136,6 +141,7 @@ module.exports = function (grunt) {
             }
         }
     });
+
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-qunit');
@@ -220,8 +226,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
-    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger',
-        'swagger-ui']);
+    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'swagger-ui']);
     grunt.registerTask('docs', ['shell']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };
