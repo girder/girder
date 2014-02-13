@@ -27,11 +27,38 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         this.parentModel = settings.parentModel;
 
         this.breadcrumbs = [{
-            'type': this.parentType,
-            'model': this.parentModel
+            type: this.parentType,
+            model: this.parentModel
         }];
 
-        this.render();
+        if (this.parentType === 'folder') {
+            this._fetchToRoot(this.parentModel);
+        }
+        else {
+            this.render();
+        }
+    },
+
+    _fetchToRoot: function (folder) {
+        var parentId = folder.get('parentId');
+        var parentType = folder.get('parentCollection');
+        var parent = new girder.models[girder.getModelClassByName(parentType)]();
+        parent.set({
+            _id: parentId
+        }).on('g:fetched', function () {
+            this.breadcrumbs.push({
+                type: parentType,
+                model: parent
+            });
+
+            if (parentType === 'folder') {
+                this._fetchToRoot(parent);
+            }
+            else {
+                this.breadcrumbs.reverse();
+                this.render();
+            }
+        }, this).fetch();
     },
 
     render: function () {
