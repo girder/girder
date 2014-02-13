@@ -264,7 +264,8 @@ class Group(AccessControlledModel):
         :param offset: Offset into the results.
         :param sort: The sort field.
         """
-        cursor = self.model('user').find({'groupInvites.groupId': group['_id']},
+        cursor = self.model('user').find(
+            {'groupInvites.groupId': group['_id']},
             limit=limit, offset=offset, sort=sort, fields=[
                 '_id', 'firstName', 'lastName', 'login'
             ])

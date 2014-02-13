@@ -1,6 +1,6 @@
 ul.g-group-invites
   each user in invitees
-    li(userid="#{user.get('_id')}", username="#{user.name()}")
+    li(cid="#{user.cid}", username="#{user.name()}")
       a.g-member-name
         i.icon-user
         |  #{user.name()} (#{user.get('login')})

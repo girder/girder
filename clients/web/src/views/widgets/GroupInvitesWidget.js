@@ -3,15 +3,19 @@
  */
 girder.views.GroupInvitesWidget = Backbone.View.extend({
     events: {
-        'click .g-group-admin-demote': function (e) {
+        'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
             girder.confirm({
-                text: 'Are you sure you want to remove admin privileges ' +
-                    'from <b>' + li.attr('username') + '</b>?',
+                text: 'Are you sure you want to remove the invitation ' +
+                    'for <b>' + li.attr('username') + '</b>?',
                 confirmCallback: function () {
-                    view.trigger('g:demoteUser', li.attr('userid'));
+                    var user = view.collection.get(li.attr('cid'));
+                    view.group.off('g:removed').on('g:removed', function () {
+                        view.collection.remove(user);
+                        view.render();
+                    }).removeMember(user.get('_id'));
                 }
             });
         },
