@@ -70,8 +70,8 @@
             });
 
             if (this.folder) {
-                girder.router.navigate('collection/' + this.model.get('_id') + '/folder/'
-                    + this.folder.get('_id'));
+                girder.router.navigate('collection/' + this.model.get('_id') +
+                    '/folder/' + this.folder.get('_id'));
             }
             else {
                 girder.router.navigate('collection/' + this.model.get('_id'));

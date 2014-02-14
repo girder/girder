@@ -44,8 +44,8 @@
             });
 
             if (this.folder) {
-                girder.router.navigate('user/' + this.model.get('_id') + '/folder/'
-                    + this.folder.get('_id'));
+                girder.router.navigate('user/' + this.model.get('_id') +
+                    '/folder/' + this.folder.get('_id'));
             }
             else {
                 girder.router.navigate('user/' + this.model.get('_id'));
