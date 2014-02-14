@@ -2,21 +2,21 @@
 each obj in links
   li
     a.g-breadcrumb-link(g-index="#{idx}")
-      if (obj.type == 'user')
+      if (obj.resourceName == 'user')
         i.icon-user
         | &nbsp;
-      else if(obj.type == 'collection')
+      else if(obj.resourceName == 'collection')
         i.icon-sitemap
         | &nbsp;
-      | #{obj.model.get('name') || obj.model.name()}
+      | #{obj.get('name') || obj.name()}
   - idx += 1
 
 if current
   li.active
-    if (current.type == 'user')
+    if (current.resourceName == 'user')
       i.icon-user
       | &nbsp;
-    else if(current.type == 'collection')
+    else if(current.resourceName == 'collection')
       i.icon-sitemap
       | &nbsp;
-    | #{current.model.get('name') || current.model.name()}
+    | #{current.get('name') || current.name()}

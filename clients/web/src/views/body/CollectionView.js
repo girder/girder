@@ -58,7 +58,6 @@
             }));
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
-                parentType: this.folder ? 'folder' : 'collection',
                 parentModel: this.folder || this.model,
                 el: this.$('.g-collection-hierarchy-container')
             });

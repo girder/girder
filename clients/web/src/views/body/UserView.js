@@ -39,7 +39,6 @@
             }));
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
-                parentType: this.folder ? 'folder' : 'user',
                 parentModel: this.folder || this.model,
                 el: this.$('.g-user-hierarchy-container')
             });
