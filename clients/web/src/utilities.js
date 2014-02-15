@@ -103,6 +103,15 @@ girder.caseInsensitiveComparator = function (model1, model2) {
 };
 
 /**
+ * Return the model class name given its collection name.
+ * @param name Collection name, e.g. 'user'
+ */
+girder.getModelClassByName = function (name) {
+    var className = name.charAt(0).toUpperCase();
+    return className + name.substr(1) + 'Model';
+};
+
+/**
  * Define jQuery plugins within this scope.
  */
 (function ($) {

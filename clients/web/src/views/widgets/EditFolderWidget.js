@@ -25,7 +25,6 @@ girder.views.EditFolderWidget = Backbone.View.extend({
 
     initialize: function (settings) {
         this.folder = settings.folder || null;
-        this.parentType = settings.parentType;
         this.parentModel = settings.parentModel;
     },
 
@@ -43,7 +42,7 @@ girder.views.EditFolderWidget = Backbone.View.extend({
     createFolder: function (fields) {
         var folder = new girder.models.FolderModel();
         folder.set(_.extend(fields, {
-            parentType: this.parentType,
+            parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id')
         }));
         folder.on('g:saved', function () {

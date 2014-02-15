@@ -22,16 +22,44 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         }
     },
 
+    /**
+     * This should be instantiated with the following properties:
+     * -parentModel: The model representing the root node. Must be a User,
+                     Collection, or Folder model.
+     * -[doRouteNavigation]: Whether navigating through the hierarchy should
+     *                       update the route in the URL. Default is true.
+     */
     initialize: function (settings) {
-        this.parentType = settings.parentType || 'folder';
         this.parentModel = settings.parentModel;
+        this.doRouteNavigation = settings.doRouteNavigation !== false;
 
-        this.breadcrumbs = [{
-            'type': this.parentType,
-            'model': this.parentModel
-        }];
+        this.breadcrumbs = [this.parentModel];
 
-        this.render();
+        if (this.parentModel.resourceName === 'folder') {
+            this._fetchToRoot(this.parentModel);
+        }
+        else {
+            this.render();
+        }
+    },
+
+    _fetchToRoot: function (folder) {
+        var parentId = folder.get('parentId');
+        var parentType = folder.get('parentCollection');
+        var parent = new girder.models[girder.getModelClassByName(parentType)]();
+        parent.set({
+            _id: parentId
+        }).on('g:fetched', function () {
+            this.breadcrumbs.push(parent);
+
+            if (parentType === 'folder') {
+                this._fetchToRoot(parent);
+            }
+            else {
+                this.breadcrumbs.reverse();
+                this.render();
+            }
+        }, this).fetch();
     },
 
     render: function () {
@@ -39,7 +67,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         this.itemCount = null;
 
         this.$el.html(jade.templates.hierarchyWidget({
-            type: this.parentType,
+            type: this.parentModel.resourceName,
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
             AccessType: girder.AccessType
@@ -77,8 +105,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             objects: this.breadcrumbs
         });
         this.breadcrumbView.on('g:breadcrumbClicked', function (idx) {
-            this.parentType = this.breadcrumbs[idx].type;
-            this.parentModel = this.breadcrumbs[idx].model;
+            this.parentModel = this.breadcrumbs[idx];
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
 
             this.render();
@@ -91,7 +118,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
 
         // Setup the child folder list view
         this.folderListView = new girder.views.FolderListWidget({
-            parentType: this.parentType,
+            parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
             el: this.$('.g-folder-list-container')
         });
@@ -108,7 +135,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             this._childCountCheck();
         }, this);
 
-        if (this.parentType === 'folder') {
+        if (this.parentModel.resourceName === 'folder') {
             // Setup the child item list view
             this.itemListView = new girder.views.ItemListWidget({
                 folderId: this.parentModel.get('_id'),
@@ -128,6 +155,16 @@ girder.views.HierarchyWidget = Backbone.View.extend({
         else {
             this.itemCount = 0;
         }
+
+        if (this.doRouteNavigation) {
+            var route = this.breadcrumbs[0].resourceName + '/' +
+                this.breadcrumbs[0].get('_id');
+            if (this.parentModel.resourceName === 'folder') {
+                route += '/folder/' + this.parentModel.get('_id');
+            }
+            girder.router.navigate(route);
+        }
+
         return this;
     },
 
@@ -135,12 +172,8 @@ girder.views.HierarchyWidget = Backbone.View.extend({
      * Descend into the given folder.
      */
     descend: function (folder) {
-        this.breadcrumbs.push({
-            type: 'folder',
-            model: folder
-        });
+        this.breadcrumbs.push(folder);
         this.parentModel = folder;
-        this.parentType = 'folder';
         this.render();
     },
 
@@ -150,7 +183,6 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     createFolderDialog: function () {
         new girder.views.EditFolderWidget({
             el: $('#g-dialog-container'),
-            parentType: this.parentType,
             parentModel: this.parentModel
         }).on('g:saved', function (folder) {
             this.folderListView.insertFolder(folder);
@@ -170,9 +202,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
             confirmCallback: function () {
                 view.parentModel.destroy().on('g:deleted', function () {
                     this.breadcrumbs.pop();
-                    var parent = this.breadcrumbs.slice(-1)[0];
-                    this.parentType = parent.type;
-                    this.parentModel = parent.model;
+                    this.parentModel = this.breadcrumbs.slice(-1)[0];
                     this.render();
                 }, view);
             }
@@ -234,7 +264,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     editFolderAccess: function () {
         new girder.views.AccessWidget({
             el: $('#g-dialog-container'),
-            modelType: this.parentType,
+            modelType: this.parentModel.resourceName,
             model: this.parentModel
         }).on('g:saved', function (folder) {
             // need to do anything?
