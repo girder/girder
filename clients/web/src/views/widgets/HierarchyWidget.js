@@ -184,12 +184,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
      */
     upOneLevel: function () {
         this.breadcrumbs.pop();
-
-        var parent = this.breadcrumbs[this.breadcrumbs.length - 1];
-
-        this.parentType = parent.type;
-        this.parentModel = parent.model;
-
+        this.parentModel = this.breadcrumbs[this.breadcrumbs.length - 1];
         this.render();
     },
 

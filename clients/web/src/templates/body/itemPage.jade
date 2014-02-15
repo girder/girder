@@ -33,7 +33,7 @@
     | Info
   .g-item-size.g-info-list-entry
     i.icon-hdd
-    | #{girder.formatSize(item.get('size'))}
+    | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
   .g-item-created.g-info-list-entry
     i.icon-clock
     | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
