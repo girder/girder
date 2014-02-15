@@ -4,7 +4,6 @@
 girder.views.GroupView = Backbone.View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
-        'click .g-group-invite': 'invitationDialog',
         'click .g-group-join': 'joinGroup',
         'click .g-group-leave': 'leaveGroup',
         'click .g-group-delete': 'deleteGroup',
@@ -141,7 +140,7 @@ girder.views.GroupView = Backbone.View.extend({
             parent: this
         }).off().on('g:sendInvite', function (params) {
             this.model.off('g:invited').on('g:invited', function () {
-                this.render();
+                this.invitees.fetch(null, true);
             }, this).off('g:error').on('g:error', function (err) {
                 // TODO don't alert, show something useful
                 alert(err.responseJSON.message);

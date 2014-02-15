@@ -22,7 +22,7 @@ girder.views.GroupInvitesWidget = Backbone.View.extend({
 
         'click a.g-member-name': function (e) {
             girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: $(e.currentTarget).parents('li').attr('userid')
+                user: this.collection.get($(e.currentTarget).parents('li').attr('cid'))
             });
         }
     },
