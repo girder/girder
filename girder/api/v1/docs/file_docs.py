@@ -36,7 +36,9 @@ apis.append({
             Describe.param('parentId', "The ID of the parent."),
             Describe.param('name', "Name of the file being uploaded."),
             Describe.param('size', "Size in bytes of the file.",
-                           dataType='integer')
+                           dataType='integer'),
+            Describe.param('mimeType', "The MIME type of the file.",
+                           required=False)
             ],
         'errorResponses': [
             Describe.errorResponse(),

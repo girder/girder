@@ -41,6 +41,7 @@ class File(Resource):
         """
         self.requireParams(['name', 'parentId', 'parentType', 'size'], params)
 
+        mimeType = params.get('mimeType', None)
         parentType = params['parentType'].lower()
 
         if parentType == 'folder':
@@ -56,7 +57,7 @@ class File(Resource):
 
         upload = self.model('upload').createUpload(
             user=user, name=params['name'], parentType=parentType,
-            parent=parent, size=int(params['size']))
+            parent=parent, size=int(params['size']), mimeType=mimeType)
         if upload['size'] > 0:
             return upload
         else:

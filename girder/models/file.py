@@ -59,7 +59,7 @@ class File(Model):
 
         return doc
 
-    def createFile(self, creator, item, name, size, assetstore):
+    def createFile(self, creator, item, name, size, assetstore, mimeType):
         """
         Create a new file record in the database.
         :param item: The parent item.
@@ -69,6 +69,8 @@ class File(Model):
         :type name: str
         :param size: The size of the file in bytes.
         :type size: int
+        :param mimeType: The mimeType of the file.
+        :type mimeType: str
         """
         file = {
             'created': datetime.datetime.now(),
@@ -76,6 +78,7 @@ class File(Model):
             'creatorId': creator['_id'],
             'assetstoreId': assetstore['_id'],
             'name': name,
+            'mimeType': mimeType,
             'size': size
         }
 
