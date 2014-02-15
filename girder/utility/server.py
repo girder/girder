@@ -20,7 +20,8 @@
 import os
 import cherrypy
 
-import girder.constants as constants
+from girder import constants
+from . import dev_endpoints
 
 
 class Webroot(object):
@@ -56,7 +57,7 @@ def setup(test=False):
             },
         '/static': {
             'tools.staticdir.on': 'True',
-            'tools.staticdir.dir': 'clients/web/static',
+            'tools.staticdir.dir': 'clients/web/static'
             }
         }
 
@@ -71,7 +72,10 @@ def setup(test=False):
     from girder.api import api_main
 
     root = Webroot()
-    root = api_main.addApiToNode(root)
+    api_main.addApiToNode(root)
+
+    if cherrypy.config['server']['mode'] is 'development':
+        dev_endpoints.addDevEndpoints(root, appconf)
 
     application = cherrypy.tree.mount(root, '/', appconf)
     [application.merge(cfg) for cfg in cfgs]

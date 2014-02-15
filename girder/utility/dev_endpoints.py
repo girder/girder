@@ -17,36 +17,30 @@
 #  limitations under the License.
 ###############################################################################
 
-from v1 import api_docs, assetstore, file, collection, folder, group, item,\
-    resource, user
+import cherrypy
 
 
-class ApiDocs():
+class PyCoverage(object):
+    """
+    This endpoint serves the coverage.py HTML result report for tests run
+    against this instance.
+    """
     exposed = True
 
     def GET(self):
-        # TODO
-        return "should display links to available api versions"
+        raise cherrypy.HTTPRedirect('/py_coverage/index.html')
 
 
-def addApiToNode(node):
-    node.api = ApiDocs()
-    _addV1ToNode(node.api)
+def addDevEndpoints(node, conf):
+    """
+    This function should add any endpoints which should only be served in a
+    development environment.
+    """
+    node.py_coverage = PyCoverage()
 
-    return node
+    conf['/py_coverage'] = {
+        'tools.staticdir.on': 'True',
+        'tools.staticdir.dir': 'clients/web/dev/built/py_coverage'
+    }
 
-
-def _addV1ToNode(node):
-    node.v1 = api_docs.ApiDocs()
-    node.v1.describe = api_docs.Describe()
-
-    node.v1.assetstore = assetstore.Assetstore()
-    node.v1.file = file.File()
-    node.v1.collection = collection.Collection()
-    node.v1.folder = folder.Folder()
-    node.v1.group = group.Group()
-    node.v1.item = item.Item()
-    node.v1.resource = resource.Resource()
-    node.v1.user = user.User()
-
-    return node
+    return node, conf

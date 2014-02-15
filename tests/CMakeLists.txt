@@ -15,7 +15,7 @@ if(PYTHON_COVERAGE)
   add_test(
     NAME py_coverage_html
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${PROJECT_BINARY_DIR}/python_coverage"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
   )
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
 endif()
