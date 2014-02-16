@@ -17,15 +17,15 @@ Girder is a Data Management Toolkit.  It is a complete back-end (server side) te
 
 Our aims for Girder is for it to be robust, performant, extensible, and grokable. 
 
-Girder is built in Python.  For installation and deployment, see the README.md (TODO link).
+Girder is built in Python.  For installation and deployment, see the [README](../README.md).
 
-Girder is open source, distributed with the Apache 2.0 license--TODO see LICENSE.md (TODO link).
+Girder is open source, distributed with the [Apache 2.0 license](../LICENSE).
 
 ## Document Conventions
 
 This document is written for end-users of Girder, rather than developers.  Since it was written by developers, sometimes we fail at making this distinction, please remind (and forgive) us.
 
-Entities in Girder will be TODO describe better in this font, e.g. `Users`.
+Girder specific entities will be `formatted like this`.
 
 ## Concepts
 
