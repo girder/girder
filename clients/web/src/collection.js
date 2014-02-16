@@ -103,7 +103,7 @@ girder.Collection = Backbone.Collection.extend({
 
             this.offset += list.length;
 
-            if (list.length > 0) {
+            if (list.length > 0 || reset) {
                 if (this.append) {
                     this.add(list);
                 }

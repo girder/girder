@@ -126,11 +126,7 @@ girder.views.GroupView = Backbone.View.extend({
             this.invitees.altUrl =
                 'group/' + this.model.get('_id') + '/invitation';
             this.invitees.on('g:changed', function () {
-                new girder.views.GroupInvitesWidget({
-                    el: container,
-                    invitees: this.invitees,
-                    group: this.model
-                }).render();
+                this.render();
             }, this).fetch();
         }
 
@@ -194,7 +190,7 @@ girder.views.GroupView = Backbone.View.extend({
 
     joinGroup: function () {
         this.model.off('g:joined').on('g:joined', function () {
-            this.render();
+            this.invitees.fetch(null, true);
         }, this).joinGroup();
     },
 
