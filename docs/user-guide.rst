@@ -83,10 +83,9 @@ OPEN QUESTION: permission names
 Permission Model
 ^^^^^^^^^^^^^^^^^
 
+Permissions are resolved at the level of a ``User``, i.e., for any ``User``, an attempt to take a certain action will be allowed or disallowed based on the permissions for that ``User``, as a function of the resource, the operation, the permissions set on that resource for that ``User``, and the permissions set on that resource by any ``Groups`` the ``User`` is a member of.
 
 Permissions are always additive.  That is, given a ``User`` with a certain permission on a resource, that permission can not be taken away from the ``User`` by addition of other permissions to the system, but only through removing existing permissions to that ``User`` or removing that ``User`` from a ``Group``.
-
-Permissions are resolved at the level of a ``User``, i.e., for any ``User``, an attempt to take a certain action will be allowed or disallowed based on the permissions for that ``User``, as a function of the resource, the operation, the permissions set on that resource for that ``User``, and the permissions set on that resource by any ``Groups`` the ``User`` is a member of.
 
 Collections
 ^^^^^^^^^^^^^^^^^
@@ -109,7 +108,7 @@ Items
 
 TODO OPEN QUESTION: Correct?
 
-``Items`` always inherit their permissions from their parent folder. Each access-controlled resource (e.g. ``Folder``, ``Collection``) has a list of permissions granted on it, and each item in that list is a mapping of either ``Users`` to permission level or ``Groups`` to permission level.  This is best visualized by opening the "Access control" dialog on a ``Folder`` in the hierarchy. The actual permission level that a ``User`` has on that resource is defined as: the maximum permission level available based on the permissions granted to any ``Groups`` that the ``User`` is member of, or permissions granted to that ``User`` specifically.
+``Items`` always inherit their permissions from their parent ``Folder``. Each access-controlled resource (e.g. ``Folder``, ``Collection``) has a list of permissions granted on it, and each item in that list is a mapping of either ``Users`` to permission level or ``Groups`` to permission level.  This is best visualized by opening the "Access control" dialog on a ``Folder`` in the hierarchy. The actual permission level that a ``User`` has on that resource is defined as: the maximum permission level available based on the permissions granted to any ``Groups`` that the ``User`` is member of, or permissions granted to that ``User`` specifically.
 
 
 Groups
