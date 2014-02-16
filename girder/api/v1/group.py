@@ -32,6 +32,16 @@ class Group(Resource):
     def _filter(self, group, user, accessList=False, requests=False):
         """
         Filter a group document for display to the user.
+
+        :param group: The document to filter.
+        :type group: dict
+        :param user: The current user.
+        :type user: dict
+        :param accessList: Whether to include the access control list field.
+        :type accessList: bool
+        :param requests: Whether to include the requests list field.
+        :type requests: bool
+        :returns: The filtered group document.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
 
@@ -58,11 +68,9 @@ class Group(Resource):
         """
         List or search for groups.
 
-        :param text: Pass this parameter to do a full text search.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=name.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: A page of matching Group documents.
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
@@ -73,12 +81,11 @@ class Group(Resource):
 
     def createGroup(self, params):
         """
-        Create a new folder.
+        Create a new group.
 
-        :param name: The name of the group to create. Must be unique.
-        :param description: Group description.
-        :param public: Public read access flag.
-        :type public: bool
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The created group document.
         """
         self.requireParams(['name'], params)
 
@@ -98,12 +105,15 @@ class Group(Resource):
 
     def updateGroup(self, id, user, params):
         """
-        Update the group.
+        Update a group.
 
-        :param name: Name for the group. Must be unique.
-        :param description: Description for the group.
-        :param public: Public read access flag.
-        :type public: bool
+        :param id: The id of the group to update.
+        :type id: str
+        :param user: The current user.
+        :type user: dict
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The updated group document.
         """
         group = self.getObjectById(
             self.model('group'), id=id, user=user, checkAccess=True,
@@ -123,6 +133,12 @@ class Group(Resource):
         """
         Accept a group invitation. If you have not been invited, this will
         instead request an invitation.
+
+        :param group: The group to join.
+        :type group: dict
+        :param user: The current user.
+        :type user: dict
+        :returns: The updated group document.
         """
         return self._filter(
             self.model('group').joinGroup(group, user), user,
@@ -131,6 +147,12 @@ class Group(Resource):
     def listMembers(self, group, params):
         """
         Paginated member list of group members.
+
+        :param group: The group whose members to list.
+        :type group: dict
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: A page of User documents representing members of the group.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
 
@@ -142,13 +164,16 @@ class Group(Resource):
         Invite the user to join the group.
 
         :param group: The group to invite the user to.
+        :type group: dict
         :param user: The user doing the invitation.
+        :type user: dict
         :param params: Optionally Pass a 'level' param with an
                        AccessType value (0-2) to grant the user that
                        access level when they join. Also must pass a
                        'userId' param, which is the ID of the user to
                        invite.
         :type params: dict
+        :returns: The updated group document.
         """
         self.requireParams(['userId'], params)
 
@@ -172,6 +197,7 @@ class Group(Resource):
         :param params: Request parameters.
         :param level: Either WRITE or ADMIN, for moderator or administrator.
         :type level: AccessType
+        :returns: The updated group document.
         """
         self.requireParams(['userId'], params)
 
@@ -189,6 +215,14 @@ class Group(Resource):
     def demote(self, group, user, params):
         """
         Demote a user down to a normal member.
+
+        :param group: The group in which to demote this user.
+        :type group: dict
+        :param user: The current user (not the user being demoted).
+        :type user: dict
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The updated group document.
         """
         self.requireParams(['userId'], params)
 
@@ -203,6 +237,14 @@ class Group(Resource):
         """
         Remove a user from a group. Pass a 'userId' key in params to
         remove a specific user; otherwise will remove this user.
+
+        :param group: The group to remove the user from.
+        :type group: dict
+        :param user: The current user (not the user being removed).
+        :type user: dict
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The updated group document.
         """
         if 'userId' in params:
             userToRemove = self.getObjectById(
