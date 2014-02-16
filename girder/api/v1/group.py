@@ -179,7 +179,7 @@ class Group(Resource):
             self.model('user'), user=user, id=params['userId'],
             checkAccess=True)
 
-        if not group['_id'] in userToPromote['groups']:
+        if not group['_id'] in userToPromote.get('groups', []):
             raise AccessException('That user is not a group member.')
 
         group = self.model('group').setUserAccess(
