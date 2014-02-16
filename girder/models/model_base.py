@@ -578,6 +578,7 @@ class AccessControlledModel(Model):
             obj = result['obj']
             if self.hasAccess(result['obj'], user=user, level=level):
                 obj.pop('access', None)
+                obj.pop('public', None)
                 yield obj
                 count += 1
 
