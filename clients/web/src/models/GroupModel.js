@@ -3,6 +3,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
 
     /**
      * Send an invitation to this group to the user identified by userId.
+     * Requires moderator (write) access on the group.
      * @param userId The ID of the user to invite.
      * @param accessType The access level to invite them as.
      * @param request Set to true if this is accepting a user's request to join.
@@ -29,7 +30,8 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
-     * Accept an invitation to join a group.
+     * Accept an invitation to join a group. Only call this if the user has
+     * already been invited to the group.
      */
     joinGroup: function () {
         girder.restRequest({
@@ -47,6 +49,11 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         }, this));
     },
 
+    /**
+     * This will create an invitation request on this group for the current
+     * user. Requires read access on the group. If the user already has an
+     * outstanding invitation to this group, call joinGroup instead.
+     */
     requestInvitation: function () {
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
@@ -61,7 +68,8 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
-     * Promote a user to moderator or administrator
+     * Promote a user to moderator or administrator. Requires admin access
+     * on the group.
      * @param user The user model of the user being promoted
      * @param level The AccessLevel (WRITE or ADMIN) to promote to
      */
@@ -89,7 +97,8 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
     },
 
     /**
-     * Demote a user to ordinary member status. Requires admin privileges
+     * Demote a user to ordinary member status. Requires admin access on the
+     * group.
      * @param userId The id of the user to demote.
      * @param level The current access level of the user.
      */
