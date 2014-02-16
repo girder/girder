@@ -34,7 +34,7 @@ Document Conventions
 
 This document is written for end-users of Girder, rather than developers.  Since it was written by developers, sometimes we fail at making this distinction, please remind (and forgive) us.
 
-Girder specific entities will be `formatted like this`.
+Girder specific entities will be ``formatted like this``.
 
 Concepts
 ========
@@ -42,28 +42,28 @@ Concepts
 Users
 -----
 
-This is a common software concept, isn't it nice that we didn't change its established meaning!  Each user of Girder should have a `User` created within Girder.  Their Girder `User` will determine their permissions and can store and share their data.
+This is a common software concept, isn't it nice that we didn't change its established meaning!  Each user of Girder should have a ``User`` created within Girder.  Their Girder ``User`` will determine their permissions and can store and share their data.
 
 Groups
 -----
 
-A Girder `Group` is a collection of Girder `Users`, with a common set of permissions and access to data.
+A Girder ``Group`` is a collection of Girder ``Users``, with a common set of permissions and access to data.
 
 
 Items
 -----
 
-A Girder `Item` is an atomic file (cannot be separated into smaller parts within Girder).  This could be a collection of files (or tar, zip, etc), but from Girder's persective it is considered an atomic file.  `Items` in Girder live in exactly one `Folder`.  `Items` in Girder do not have permissions set on them, they inherit permissions by virtue of living in a `Folder` (which has permissions set on it) and by being included under the set of resources related to a `Group`.
+A Girder ``Item`` is an atomic file (cannot be separated into smaller parts within Girder).  This could be a collection of files (or tar, zip, etc), but from Girder's persective it is considered an atomic file.  ``Items`` in Girder live in exactly one ``Folder``.  ``Items`` in Girder do not have permissions set on them, they inherit permissions by virtue of living in a ``Folder`` (which has permissions set on it) and by being included under the set of resources related to a ``Group``.
 
 Folders
 -------
 
-A Girder `Folder` is the common software concept of a folder, namely a hierarchically nested organizational structure.  Girder `Folders` can contain nothing (although this may not be particularly useful), other `Folders`, `Items`, or a combination of `Folders` and `Items`. `Folders` in Girder have permissions set on them, and the `Items` within them inherit permissions from their containing `Folders`.
+A Girder ``Folder`` is the common software concept of a folder, namely a hierarchically nested organizational structure.  Girder ``Folders`` can contain nothing (although this may not be particularly useful), other ``Folders``, ``Items``, or a combination of ``Folders`` and ``Items``. ``Folders`` in Girder have permissions set on them, and the ``Items`` within them inherit permissions from their containing ``Folders``.
 
 Collections
 -----------
 
-A Girder `Collection` is functional top level grouping of `Folders`.  A `Collection` collects resources (`Folders`, `Items`, and `Users`) that should have some common usage, e.g. for a particular project.
+A Girder ``Collection`` is functional top level grouping of ``Folders``.  A ``Collection`` collects resources (``Folders``, ``Items``, and ``Users``) that should have some common usage, e.g. for a particular project.
 
 Permissions
 -----------
@@ -71,7 +71,7 @@ Permissions
 Permission Levels
 ^^^^^^^^^^^^^^^^^
 
-There are four levels of permission a `User` can have on a resource, these levels are in a strict hierarchy with a higher permission level including all of the permissions below it.
+There are four levels of permission a ``User`` can have on a resource, these levels are in a strict hierarchy with a higher permission level including all of the permissions below it.
 
 OPEN QUESTION: permission names
 
@@ -84,9 +84,9 @@ Permission Model
 ^^^^^^^^^^^^^^^^^
 
 
-Permissions are always additive.  That is, given a `User` with a certain permission on a resource, that permission can not be taken away from the `User` by addition of other permissions to the system, but only through removing existing permissions to that `User` or removing that `User` from a `Group`.
+Permissions are always additive.  That is, given a ``User`` with a certain permission on a resource, that permission can not be taken away from the ``User`` by addition of other permissions to the system, but only through removing existing permissions to that ``User`` or removing that ``User`` from a ``Group``.
 
-Permissions are resolved at the level of a `User`, i.e., for any `User`, an attempt to take a certain action will be allowed or disallowed based on the permissions for that `User`, as a function of the resource, the operation, the permissions set on that resource for that `User`, and the permissions set on that resource by any `Groups` the `User` is a member of.
+Permissions are resolved at the level of a ``User``, i.e., for any ``User``, an attempt to take a certain action will be allowed or disallowed based on the permissions for that ``User``, as a function of the resource, the operation, the permissions set on that resource for that ``User``, and the permissions set on that resource by any ``Groups`` the ``User`` is a member of.
 
 Collections
 ^^^^^^^^^^^^^^^^^
@@ -100,8 +100,8 @@ Folders
 
 TODO OPEN QUESTION: Correct?
 
-`Folders` have permissions set on them at the individual `User` level.  `Folders` inherit permissions from their parent `Folder` and ultimately from a `Collection`.
-`Folders` can also have permissions added to them by virtue of being included in a `Group`.
+``Folders`` have permissions set on them at the individual ``User`` level.  ``Folders`` inherit permissions from their parent ``Folder`` and ultimately from a ``Collection``.
+``Folders`` can also have permissions added to them by virtue of being included in a ``Group``.
 
 Items
 ^^^^^^^^^^^^^^^^^
@@ -109,7 +109,7 @@ Items
 
 TODO OPEN QUESTION: Correct?
 
-`Items` always inherit their permissions from their parent folder. Each access-controlled resource (e.g. `Folder`, `Collection`) has a list of permissions granted on it, and each item in that list is a mapping of either `Users` to permission level or `Groups` to permission level.  This is best visualized by opening the "Access control" dialog on a `Folder` in the hierarchy. The actual permission level that a `User` has on that resource is defined as: the maximum permission level available based on the permissions granted to any `Groups` that the `User` is member of, or permissions granted to that `User` specifically.
+``Items`` always inherit their permissions from their parent folder. Each access-controlled resource (e.g. ``Folder``, ``Collection``) has a list of permissions granted on it, and each item in that list is a mapping of either ``Users`` to permission level or ``Groups`` to permission level.  This is best visualized by opening the "Access control" dialog on a ``Folder`` in the hierarchy. The actual permission level that a ``User`` has on that resource is defined as: the maximum permission level available based on the permissions granted to any ``Groups`` that the ``User`` is member of, or permissions granted to that ``User`` specifically.
 
 
 Groups
