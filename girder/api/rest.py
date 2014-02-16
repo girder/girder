@@ -229,8 +229,12 @@ class Resource(ModelImporter):
                 if e.extra is not None:
                     val['extra'] = e.extra
             except AccessException as e:
-                # Handle any permission exceptions
-                cherrypy.response.status = 403
+                # Permission exceptions should throw a 401 or 403, depending
+                # on whether the user is logged in or not
+                if self.getCurrentUser() is None:
+                    cherrypy.response.status = 401
+                else:
+                    cherrypy.response.status = 403
                 val = {'message': e.message,
                        'type': 'access'}
             except ValidationException as e:
