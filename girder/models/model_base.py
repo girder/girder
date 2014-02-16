@@ -587,6 +587,7 @@ class AccessControlledModel(Model):
         filtering.
         """
         project['access'] = 1
+        project['public'] = 1
         results = Model.textSearch(self, query=query, project=project)
         return [r for r in self.filterSearchResults(
             results, user=user, limit=limit)]
