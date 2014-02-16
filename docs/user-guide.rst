@@ -123,3 +123,35 @@ User
 TODO OPEN QUESTION: are there some permissions on Users?  Can a user own or control another user with some permission?
 
 
+
+
+Usage
+========
+
+Groups
+------
+
+TODO some stuff here, including invitations
+
+
+which are the admin/moderator/member functions?
+
+can invite user as member/moderator/admin
+request invitation
+invite
+remove the invitation
+accept invitation
+accept invitation request
+deny invitation request
+leave group
+join group
+delete group
+create a new group ? perm needed
+
+
+add to group
+remove from group
+
+group member, moderator, admin, what can these do?
+
+
