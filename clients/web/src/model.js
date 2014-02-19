@@ -70,7 +70,7 @@ girder.Model = Backbone.Model.extend({
     },
 
     /**
-     * Delete the folder on the server.
+     * Delete the model on the server.
      */
     destroy: function () {
         if (this.resourceName === null) {
@@ -141,23 +141,36 @@ girder.AccessControlledModel = girder.Model.extend({
 
     /**
      * Fetches the access control list from the server, and sets it as the
-     * access property
+     * access property.
+     * @param force By default, this only fetches access if it hasn't already
+     *              been set on the model. If you want to force a refresh
+     *              anyway, set this param to true.
      */
-    fetchAccess: function () {
+    fetchAccess: function (force) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
         }
 
-        girder.restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/access',
-            type: 'GET'
-        }).done(_.bind(function (resp) {
-            this.set('access', resp);
+        if (!this.get('access') || force) {
+            girder.restRequest({
+                path: this.resourceName + '/' + this.get('_id') + '/access',
+                type: 'GET'
+            }).done(_.bind(function (resp) {
+                if (resp.access) {
+                    this.set(resp);
+                }
+                else {
+                    this.set('access', resp);
+                }
+                this.trigger('g:accessFetched');
+            }, this)).error(_.bind(function (err) {
+                this.trigger('g:error', err);
+            }, this));
+        }
+        else {
             this.trigger('g:accessFetched');
-        }, this)).error(_.bind(function (err) {
-            this.trigger('g:error', err);
-        }, this));
+        }
 
         return this;
     }

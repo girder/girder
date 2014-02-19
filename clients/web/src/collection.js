@@ -12,6 +12,9 @@ girder.Collection = Backbone.Collection.extend({
     pageLimit: 25,
     offset: 0,
 
+    // Alternative fetch URL
+    altUrl: null,
+
     /**
      * Append mode can be used to append pages to the collection rather than
      * simply replacing its contents when a new page is fetched. For the sake
@@ -65,16 +68,22 @@ girder.Collection = Backbone.Collection.extend({
      * of this collection with the requested page. If the next page contains
      * any records (i.e. it was not already on the last page), this will
      * trigger g:changed.
+     * @param params Any additional parameters to be passed with the request.
+     * @param reset Set this to true to re-fetch the current page.
      */
-    fetch: function (params) {
+    fetch: function (params, reset) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your collection.');
             return;
         }
 
+        if (reset) {
+            this.offset -= this.length;
+        }
+
         this.params = params || {};
         girder.restRequest({
-            path: this.resourceName,
+            path: this.altUrl || this.resourceName,
             data: _.extend({
                 'limit': this.pageLimit + 1,
                 'offset': this.offset,
@@ -94,7 +103,7 @@ girder.Collection = Backbone.Collection.extend({
 
             this.offset += list.length;
 
-            if (list.length > 0) {
+            if (list.length > 0 || reset) {
                 if (this.append) {
                     this.add(list);
                 }

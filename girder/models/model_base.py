@@ -418,7 +418,8 @@ class AccessControlledModel(Model):
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
             user['login'] = userDoc['login']
-            user['name'] = '%s %s' % (userDoc['firstName'], userDoc['lastName'])
+            user['name'] = '{} {}'.format(
+                userDoc['firstName'], userDoc['lastName'])
 
         for grp in acList['groups']:
             grpDoc = self.model('group').load(
@@ -457,7 +458,7 @@ class AccessControlledModel(Model):
         :type user: dict
         :param level: The access level.
         :type level: AccessType
-        :returns: The updated resource document.
+        :returns: Whether the access is granted.
         """
         if user is None:
             # Short-circuit the case of anonymous users
@@ -577,6 +578,7 @@ class AccessControlledModel(Model):
             obj = result['obj']
             if self.hasAccess(result['obj'], user=user, level=level):
                 obj.pop('access', None)
+                obj.pop('public', None)
                 yield obj
                 count += 1
 
@@ -586,6 +588,7 @@ class AccessControlledModel(Model):
         filtering.
         """
         project['access'] = 1
+        project['public'] = 1
         results = Model.textSearch(self, query=query, project=project)
         return [r for r in self.filterSearchResults(
             results, user=user, limit=limit)]

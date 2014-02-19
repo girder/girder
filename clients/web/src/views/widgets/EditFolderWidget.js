@@ -3,7 +3,8 @@
  */
 girder.views.EditFolderWidget = Backbone.View.extend({
     events: {
-        'submit #g-folder-edit-form': function () {
+        'submit #g-folder-edit-form': function (e) {
+            e.preventDefault();
             var fields = {
                 name: this.$('#g-name').val(),
                 description: this.$('#g-description').val()
@@ -18,8 +19,6 @@ girder.views.EditFolderWidget = Backbone.View.extend({
 
             this.$('button.g-save-folder').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-
-            return false;
         }
     },
 

@@ -72,7 +72,7 @@ girder.confirm = function (params) {
     }, params);
     $('#g-dialog-container').html(jade.templates.confirmDialog({
         params: params
-    })).modal();
+    })).girderModal(false);
 
     $('#g-dialog-container').find('.modal-body>p').html(params.text);
 
@@ -120,7 +120,8 @@ girder.getModelClassByName = function (name) {
      * This should be used instead of calling bootstrap's modal() jQuery
      * method directly. This unbinds all previous events from the dialog,
      * then calls modal on it and binds the bootstrap close events.
-     * @param view The view object.
+     * @param view The view object. Pass "false" for special cases where the
+     *             dialog does not correspond to a View object.
      */
     $.fn.girderModal = function (view) {
         var that = this;
@@ -128,7 +129,9 @@ girder.getModelClassByName = function (name) {
             .unbind('click').click(function () {
                 that.modal('hide');
             });
-        view.delegateEvents();
+        if (view !== false) {
+            view.delegateEvents();
+        }
         return this;
     };
 }(jQuery));

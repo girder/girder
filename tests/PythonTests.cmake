@@ -1,5 +1,18 @@
-set(py_coverage_rc "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc")
+set(py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
 set(pep8_config "${PROJECT_SOURCE_DIR}/tests/pep8.cfg")
+set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
+
+if(PYTHON_BRANCH_COVERAGE)
+  set(_py_branch_cov True)
+else()
+  set(_py_branch_cov False)
+endif()
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc.in"
+  "${py_coverage_rc}"
+  @ONLY
+)
 
 function(add_python_style_test name input)
   add_test(

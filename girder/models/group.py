@@ -36,13 +36,23 @@ class Group(AccessControlledModel):
     common use case for querying membership, which involves checking access
     control policies, which is always done relative to a specific user. The
     task of querying all members within a group is much less common and
-    typically only performed ona single group at a time, so doing a find on the
+    typically only performed on a single group at a time, so doing a find on the
     indexed group list in the user collection is sufficiently fast.
 
     Users with READ access on the group can see the group and its members.
     Users with WRITE access on the group can add and remove members and
     change the name or description.
-    Users with ADMIN access can delete the entire group.
+    Users with ADMIN access can promote group members to grant them WRITE or
+    ADMIN access, and can also delete the entire group.
+
+    This model uses a custom implementation of the access control methods,
+    because it uses only a subset of its capabilities and provides a more
+    optimized implementation for that subset. Specifically: read access is
+    implied by membership in the group or having an invitation to join the
+    group, so we don't store read access in the access document as normal.
+    Another constraint is that write and admin access on the group can only be
+    granted to members of the group. Also, group permissions are not allowed
+    on groups for the sake of simplicity.
     """
 
     def initialize(self):
@@ -91,6 +101,15 @@ class Group(AccessControlledModel):
                                                 level=AccessType.READ,
                                                 limit=limit, offset=offset):
             yield r
+
+    def listMembers(self, group, offset=0, limit=50, sort=None):
+        """
+        List members of the group, with names, ids, and logins.
+        """
+        fields = ['_id', 'firstName', 'lastName', 'login']
+        return self.model('user').find({
+            'groups': group['_id']
+        }, fields=fields, limit=limit, offset=offset, sort=sort)
 
     def remove(self, group):
         """
@@ -151,7 +170,8 @@ class Group(AccessControlledModel):
         Add the user to the group. Records membership in the group in the
         user document, and also grants the specified access level on the
         group itself to the user. Any group member has at least read access on
-        the group.
+        the group. If the user already belongs to the group, this method can
+        be used to change their access level within it.
         """
         if not 'groups' in user:
             user['groups'] = []
@@ -160,13 +180,26 @@ class Group(AccessControlledModel):
             user['groups'].append(group['_id'])
             self.model('user').save(user, validate=False)
 
+        # Delete outstanding request if one exists
+        self._deleteRequest(group, user)
+
         self.setUserAccess(group, user, level, save=True)
 
         return group
 
+    def _deleteRequest(self, group, user):
+        """
+        Helper method to delete a request for the given user.
+        """
+        if user['_id'] in group.get('requests', []):
+            group['requests'].remove(user['_id'])
+            self.save(group, validate=False)
+
     def joinGroup(self, group, user):
         """
-        Call this when the user accepts an invitation.
+        This method either accepts an invitation to join a group, or if the
+        given user has not been invited to the group, this will create an
+        invitation request that moderators and admins may grant or deny later.
         """
         if not 'groupInvites' in user:
             user['groupInvites'] = []
@@ -178,7 +211,12 @@ class Group(AccessControlledModel):
                 self.model('user').save(user, validate=False)
                 break
         else:
-            raise AccessException('User was not invited to this group.')
+            if not 'requests' in group:
+                group['requests'] = []
+
+            if not user['_id'] in group['requests']:
+                group['requests'].append(user['_id'])
+                self.save(group, validate=False)
 
         return group
 
@@ -188,12 +226,18 @@ class Group(AccessControlledModel):
         grants the user read access to the group so that they can see it.
         Once they accept the invitation, they will be given the specified level
         of access.
-        """
-        # User has to be able to see the group to join it
-        self.setUserAccess(group, user, AccessType.READ, save=True)
 
+        If the user has requested an invitation to this group, calling this
+        will accept their request and add them to the group at the access
+        level specified.
+        """
         if group['_id'] in user.get('groups', []):
             raise ValidationException('User is already in this group.')
+
+        # If there is an outstanding request to join from this user, we
+        # just add them to the group instead of invite them.
+        if user['_id'] in group.get('requests', []):
+            return self.addUser(group, user, level)
 
         if not 'groupInvites' in user:
             user['groupInvites'] = []
@@ -210,14 +254,42 @@ class Group(AccessControlledModel):
 
         return self.model('user').save(user, validate=False)
 
+    def getInvites(self, group, limit=50, offset=0, sort=None):
+        """
+        Return a page of outstanding invitations to a group. This is simply
+        a list of users invited to the group currently.
+
+        :param group: The group to find invitations for.
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort field.
+        """
+        cursor = self.model('user').find(
+            {'groupInvites.groupId': group['_id']},
+            limit=limit, offset=offset, sort=sort, fields=[
+                '_id', 'firstName', 'lastName', 'login'
+            ])
+
+        return [result for result in cursor]
+
     def removeUser(self, group, user):
         """
-        Remove the user from the group.
+        Remove the user from the group. If the user is not in the group but
+        has an outstanding invitation to the group, the invitation will be
+        revoked. If the user has requested an invitation, calling this will
+        deny that request, thereby deleting it.
         """
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])
-            self.model('user').save(user, validate=False)
+
+        # Remove outstanding requests from this user
+        self._deleteRequest(group, user)
+
+        # Remove any outstanding invitations for this group
+        l = lambda inv: not inv['groupId'] == group['_id']
+        user['groupInvites'] = filter(l, user.get('groupInvites', []))
+        self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
         self.setUserAccess(group, user, level=None, save=True)
@@ -246,7 +318,8 @@ class Group(AccessControlledModel):
             'name': name,
             'description': description,
             'created': now,
-            'updated': now
+            'updated': now,
+            'requests': []
             }
 
         self.setPublic(group, public=public)
@@ -259,3 +332,124 @@ class Group(AccessControlledModel):
         self.addUser(group, creator, level=AccessType.ADMIN)
 
         return group
+
+    def updateGroup(self, group):
+        """
+        Updates a group.
+
+        :param group: The group document to update
+        :type group: dict
+        :returns: The group document that was edited.
+        """
+        group['updated'] = datetime.datetime.now()
+
+        # Validate and save the group
+        return self.save(group)
+
+    def getFullRequestList(self, group):
+        """
+        Return the set of all outstanding requests, filled in with the login
+        and full names of the corresponding users.
+
+        :param group: The group to get requests for.
+        :type group: dict
+        """
+        reqList = []
+
+        for userId in group.get('requests', []):
+            user = self.model('user').load(
+                userId, force=True, fields=['firstName', 'lastName', 'login'])
+            reqList.append({
+                'id': userId,
+                'login': user['login'],
+                'name': '{} {}'.format(user['firstName'], user['lastName'])
+            })
+
+        return reqList
+
+    def hasAccess(self, doc, user=None, level=AccessType.READ):
+        """
+        This overrides the default AccessControlledModel behavior for checking
+        access to perform an optimized subset of the access control behavior.
+
+        :param doc: The group to check permission on.
+        :type doc: dict
+        :param user: The user to check against.
+        :type user: dict
+        :param level: The access level.
+        :type level: AccessType
+        :returns: Whether the access is granted.
+        """
+        if user is None:
+            # Short-circuit the case of anonymous users
+            return level == AccessType.READ and doc.get('public', False) is True
+        elif user.get('admin', False) is True:
+            # Short-circuit the case of admins
+            return True
+        elif level == AccessType.READ:
+            # For read access, just check user document for membership or public
+            return doc.get('public', False) is True or\
+                doc['_id'] in user.get('groups', []) or\
+                doc['_id'] in [i['groupId'] for i in
+                               user.get('groupInvites', [])]
+        else:
+            # Check the actual permissions document for >=WRITE access
+            return self._hasUserAccess(doc.get('access', {}).get('users', []),
+                                       user['_id'], level)
+
+    def getAccessLevel(self, doc, user):
+        """
+        Return the maximum access level for a given user on the group.
+
+        :param doc: The group to check access on.
+        :param user: The user to get the access level for.
+        :returns: The max AccessType available for the user on the object.
+        """
+        if user is None:
+            if doc.get('public', False):
+                return AccessType.READ
+            else:
+                return AccessType.NONE
+        elif user.get('admin', False):
+            return AccessType.ADMIN
+        else:
+            access = doc.get('access', {})
+            level = AccessType.NONE
+
+            if doc['_id'] in user.get('groups', []):
+                level = AccessType.READ
+            elif doc['_id'] in [i['groupId'] for i in
+                                user.get('groupInvites', [])]:
+                return AccessType.READ
+
+            for userAccess in access.get('users', []):
+                if userAccess['id'] == user['_id']:
+                    level = max(level, userAccess['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            return level
+
+    def setAccessList(self, doc, access, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def setGroupAccess(self, doc, group, level, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def copyAccessPolicies(self, src, dest, save=False):
+        raise Exception('Not implemented.')  # pragma: no cover
+
+    def setUserAccess(self, doc, user, level, save=False):
+        """
+        This override is used because we only need to augment the access
+        field in the case of WRITE access and above since READ access is
+        implied by membership or invitation.
+        """
+        if level > AccessType.READ:
+            doc = AccessControlledModel.setUserAccess(
+                self, doc, user, level, save=True)
+        else:
+            doc = AccessControlledModel.setUserAccess(
+                self, doc, user, level=None, save=True)
+
+        return doc

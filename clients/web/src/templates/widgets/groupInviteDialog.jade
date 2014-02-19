@@ -1,0 +1,59 @@
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+      h4.modal-title Invite User to Group
+      .g-dialog-subtitle
+        i.icon-user
+        | #{user.text}
+    .modal-body
+      label.control-label(for="g-role") Select a role for this user
+      .panel-group#g-invite-role-container
+        .panel.panel-default
+          .panel-heading: .panel-title
+            a(data-toggle="collapse", data-parent="#g-invite-role-container",
+              href="#g-invite-role-member") Invite as member
+          #g-invite-role-member.panel-collapse.collapse.in
+            .panel-body
+              p.
+                Group members are able to gain all privileges granted to
+                the group itself on other resources. They are able to view the
+                group, but may not change properties of the group.
+              .g-invite-as-member.btn.btn-primary
+                i.icon-mail
+                |  Invite as Member
+
+        .panel.panel-default
+          .panel-heading: .panel-title
+            a(data-toggle="collapse", data-parent="#g-invite-role-container",
+              href="#g-invite-role-moderator") Invite as moderator
+          #g-invite-role-moderator.panel-collapse.collapse
+            .panel-body
+              p.
+                Group moderators are members of the group who are also granted
+                the power to add and remove users from the group, and edit
+                group properties.
+              .g-invite-as-moderator.btn.btn-primary
+                i.icon-mail
+                |  Invite as Moderator
+
+        if (level > accessType.WRITE)
+          .panel.panel-default
+            .panel-heading: .panel-title
+              a(data-toggle="collapse", data-parent="#g-invite-role-container",
+                href="#g-invite-role-admin") Invite as administrator
+            #g-invite-role-admin.panel-collapse.collapse
+              .panel-body
+                p.
+                  Group administrators have all the power of group moderators,
+                  and additionally can also promote group members to moderators
+                  or administrators, and also have the power to delete the
+                  group itself.
+                .g-invite-as-admin.btn.btn-primary
+                  i.icon-mail
+                  |  Invite as Administrator
+
+      .g-validation-failed-message
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+

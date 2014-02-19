@@ -32,7 +32,7 @@ class User(AccessControlledModel):
 
     def initialize(self):
         self.name = 'user'
-        self.ensureIndices(['login', 'email'])
+        self.ensureIndices(['login', 'email', 'groupInvites.groupId'])
         self.ensureTextIndex({
             'login': 1,
             'firstName': 1,
@@ -191,7 +191,8 @@ class User(AccessControlledModel):
             'hashAlg': hashAlg,
             'emailVerified': False,
             'admin': admin,
-            'size': 0
+            'size': 0,
+            'groupInvites': []
             })
 
         self.setPublic(user, public=public)

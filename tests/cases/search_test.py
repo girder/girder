@@ -71,7 +71,7 @@ class SearchTestCase(base.TestCase):
         coll2 = {
             'name': 'Magic collection',
             'description': 'private',
-            'public': True,
+            'public': False,
             'creator': admin
             }
         coll2 = self.model('collection').createCollection(**coll2)

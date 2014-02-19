@@ -31,7 +31,7 @@ class ApiDocs():
 
 def addApiToNode(node):
     node.api = ApiDocs()
-    node.api = _addV1ToNode(node.api)
+    _addV1ToNode(node.api)
 
     return node
 

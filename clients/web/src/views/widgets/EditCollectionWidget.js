@@ -3,7 +3,9 @@
  */
 girder.views.EditCollectionWidget = Backbone.View.extend({
     events: {
-        'submit #g-collection-edit-form': function () {
+        'submit #g-collection-edit-form': function (e) {
+            e.preventDefault();
+
             var fields = {
                 name: this.$('#g-name').val(),
                 description: this.$('#g-description').val()
@@ -20,8 +22,6 @@ girder.views.EditCollectionWidget = Backbone.View.extend({
 
             this.$('button.g-save-collection').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-
-            return false;
         }
     },
 

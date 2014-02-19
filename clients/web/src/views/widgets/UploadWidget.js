@@ -9,9 +9,13 @@ girder.views.UploadWidget = Backbone.View.extend({
     events: {
         'submit #g-upload-form': 'startUpload',
         'click .g-resume-upload': 'resumeUpload',
-        'change #g-files': function () {
-            this.files = this.$('#g-files')[0].files;
-            this.filesChanged();
+        'change #g-files': function (e) {
+            var files = this.$('#g-files')[0].files;
+
+            if (files.length) {
+                this.files = files;
+                this.filesChanged();
+            }
         },
         'click .g-drop-zone': function (e) {
             this.$('#g-files').click();
@@ -63,7 +67,7 @@ girder.views.UploadWidget = Backbone.View.extend({
 
     filesChanged: function () {
         if (this.files.length === 0) {
-            this.$('.g-upload-progress-message').text('No files selected');
+            this.$('.g-overall-progress-message').text('No files selected');
             this.$('.g-start-upload').addClass('disabled');
         }
         else {
@@ -85,6 +89,7 @@ girder.views.UploadWidget = Backbone.View.extend({
     startUpload: function (e) {
         e.preventDefault();
 
+        this.$('.g-drop-zone').addClass('hide');
         this.$('.g-start-upload').addClass('disabled');
         this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
         this.$('.g-upload-error-message').html('');

@@ -28,7 +28,8 @@ girder.views.ItemListWidget = Backbone.View.extend({
         this.checked = [];
         this.$el.html(jade.templates.itemList({
             items: this.collection.models,
-            hasMore: this.collection.hasNextPage()
+            hasMore: this.collection.hasNextPage(),
+            girder: girder
         }));
 
         var view = this;

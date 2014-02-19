@@ -1,0 +1,19 @@
+.g-group-admins-header.g-group-list-header
+  i.icon-star
+  |  Administrators
+
+.g-group-admins-body
+  ul.g-group-admins
+    each userAccess in admins
+      li(userid="#{userAccess.id}", username="#{userAccess.name}")
+        a.g-member-name
+          i.icon-user
+          |  #{userAccess.name} (#{userAccess.login})
+        .g-group-member-controls.pull-right
+          if level >= accessType.ADMIN
+            a.g-group-admin-demote(title="Demote to member")
+              i.icon-down-big
+    if (!admins.length)
+      .g-member-list-empty
+        i.icon-info-circled
+        |  There are no administrators in this group.
