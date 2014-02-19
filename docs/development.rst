@@ -46,7 +46,7 @@ If you want to run coverage, make sure you have installed
 And in your CMake configuration, set **PYTHON_COVERAGE** to **ON**. Then,
 configure with cmake and run **ctest**, and the coverage will be created. After
 the tests are run, you can find the HTML output from the coverage tool in the
-build directory under **python_coverage**.
+source directory under **/clients/web/dev/built/py_coverage**.
 
 Creating tests
 ^^^^^^^^^^^^^^
