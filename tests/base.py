@@ -140,14 +140,19 @@ class TestCase(unittest.TestCase, ModelImporter):
         self.assertEqual(response.json['type'], 'validation')
         self.assertEqual(response.json.get('field', None), field)
 
-    def assertAccessDenied(self, response, level, modelName):
+    def assertAccessDenied(self, response, level, modelName, user=None):
         if level == AccessType.READ:
             ls = 'Read'
         elif level == AccessType.WRITE:
             ls = 'Write'
         else:
             ls = 'Admin'
-        self.assertStatus(response, 403)
+
+        if user is None:
+            self.assertStatus(response, 401)
+        else:
+            self.assertStatus(response, 403)
+
         self.assertEqual('%s access denied for %s.' % (ls, modelName),
                          response.json['message'])
 

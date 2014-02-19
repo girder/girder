@@ -92,7 +92,7 @@ class GroupTestCase(base.TestCase):
         # Anonymous user should not be able to see the private group
         resp = self.request(
             path='/group/%s' % privateGroup['_id'], method='GET')
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
 
         # User 0 should be able to see the private group
         resp = self.request(
@@ -160,7 +160,7 @@ class GroupTestCase(base.TestCase):
 
         # Anonymous users can't make groups
         resp = self.request(path='/group', method='POST', params=params)
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
         self.assertEqual('Must be logged in to create a group.',
                          resp.json['message'])
 

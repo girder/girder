@@ -74,7 +74,7 @@ class CollectionTestCase(base.TestCase):
         resp = self.request(path='/collection', method='POST', params={
             'name': 'new collection'
             })
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
 
         # Try to create a collection as non-admin user; should fail
         resp = self.request(path='/collection', method='POST', params={
