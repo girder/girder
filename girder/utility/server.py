@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import os
 import cherrypy
 
 from girder import constants
+from girder.utility import plugin_utilities, model_importer
 from . import dev_endpoints
 
 
@@ -76,6 +77,10 @@ def setup(test=False):
 
     if cherrypy.config['server']['mode'] is 'development':
         dev_endpoints.addDevEndpoints(root, appconf)
+
+    plugins = model_importer.ModelImporter().model('setting').get(
+        '_plugins.enabled', default=[])
+    plugin_utilities.loadPlugins(plugins, root, cfg)
 
     application = cherrypy.tree.mount(root, '/', appconf)
     [application.merge(cfg) for cfg in cfgs]

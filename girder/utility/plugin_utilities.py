@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+"""
+The purpose of this module is to provide utility functions related to loading
+and registering plugins into the system. The "loadPlugins" and "loadPlugin"
+functions are used by the core system to actually load the plugins and create
+the pseudo-packages required for easily referencing them. The other functions
+in this class are general utility functions designed to be used within the
+plugins themselves to help them register with the application.
+"""
+
+import imp
+import os
+import sys
+import traceback
+
+from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
+
+
+def loadPlugins(plugins, root, config):
+    """
+    Loads a set of plugins into the application.
+
+    :param plugins: The set of plugins to load, by directory name.
+    :type plugins: list
+    :param root: The root node of the server tree.
+    :param config: The server's config object.
+    """
+
+    # Register a pseudo-package for the root of all plugins. This must be
+    # present in the system module list in order to avoid import warnings.
+    if not ROOT_PLUGINS_PACKAGE in sys.modules:
+        sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
+            '__path__': os.path.join(ROOT_DIR, 'plugins'),
+            '__package__': ROOT_PLUGINS_PACKAGE,
+            '__name__': ROOT_PLUGINS_PACKAGE
+        })()
+
+    for plugin in plugins:
+        try:
+            loadPlugin(plugin, root, config)
+            print TerminalColor.success('Loaded plugin "{}."'.format(plugin))
+        except:
+            print TerminalColor.error(
+                'ERROR: Failed to load plugin "{}":'.format(plugin))
+            traceback.print_exc()
+
+
+def loadPlugin(name, root, config):
+    """
+    Loads a plugin into the application. This means allowing it to create
+    endpoints within its own web API namespace, and to register its event
+    listeners, and do anything else it might want to do.
+
+    :param name: The name of the plugin (i.e. its directory name)
+    :type name: str
+    :param root: The root node of the web API.
+    :param config: The config object of the cherrypy application.
+    """
+    pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
+    if not os.path.exists(pluginDir):
+        raise Exception('Plugin directory does not exist: {}'.format(pluginDir))
+    if not os.path.isdir(os.path.join(pluginDir, 'server')):
+        # This plugin does not have any server-side python code.
+        return
+
+    moduleName = '.'.join([ROOT_PLUGINS_PACKAGE, name])
+
+    if not moduleName in sys.modules:
+        fp = None
+        try:
+            fp, pathname, description = imp.find_module('server', [pluginDir])
+            module = imp.load_module(moduleName, fp, pathname, description)
+            if hasattr(module, 'load'):
+                module.load({
+                    'name': name,
+                    'serverRoot': root,
+                    'apiRoot': root.api,
+                    'config': config
+                })
+        finally:
+            if fp:
+                fp.close()
+
+
+def addChildNode(node, name, obj=None):
+    """
+    Use this to build paths to your plugin's endpoints.
+
+    :param node: The parent node to add the child node to.
+    :param name: The name of the child node in the URL path.
+    :type name: str
+    :param obj: The object to place at this new node, or None if this child
+                should not be exposed as an endpoint, instead just used as
+                an intermediary hidden node.
+    :type obj: object or None
+    :returns: The node that was created.
+    """
+    if obj:
+        setattr(node, name, obj)
+        return obj
+    else:
+        hiddenNode = type('', (), dict(exposed=False))()
+        setattr(node, name, hiddenNode)
+        return hiddenNode
