@@ -16,6 +16,7 @@ if(PYTHON_COVERAGE)
     NAME py_coverage_html
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
+            "--title=Girder Coverage Report"
   )
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
 endif()
