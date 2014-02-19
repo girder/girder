@@ -285,7 +285,7 @@ class Group(Resource):
         elif path[1] == 'member':
             group = self.getObjectById(
                 self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.WRITE)
+                level=AccessType.READ)
             return self.removeFromGroup(group, user, params)
         elif path[1] in ('admin', 'moderator'):
             group = self.getObjectById(

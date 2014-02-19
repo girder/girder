@@ -371,14 +371,26 @@ class GroupTestCase(base.TestCase):
                                                        self.users[2],
                                                        AccessType.ADMIN))
 
+        # User 2 should be able to leave the group
+        self.users[2] = self.model('user').load(
+            self.users[2]['_id'], force=True)
+        self.assertTrue(privateGroup['_id'] in self.users[2]['groups'])
+        resp = self.request(
+            path='/group/{}/member'.format(privateGroup['_id']),
+            user=self.users[2], method='DELETE')
+        self.assertStatusOk(resp)
+        self.users[2] = self.model('user').load(
+            self.users[2]['_id'], force=True)
+        self.assertFalse(privateGroup['_id'] in self.users[2]['groups'])
+
         # User 0 should be able to remove user 1
         params['userId'] = self.users[1]['_id']
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 3)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
         resp = self.request(
             path='/group/%s/member' % privateGroup['_id'], user=self.users[0],
             method='DELETE', params=params)
         self.assertStatusOk(resp)
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
         # User 0 should be able to delete the group
         self.users[0] = self.model('user').load(
