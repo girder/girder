@@ -17,10 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import os
-import pymongo
-
 from .docs import file_docs
 from ..rest import Resource, RestException
 from ...constants import AccessType

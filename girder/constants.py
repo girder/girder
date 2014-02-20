@@ -52,7 +52,6 @@ class TerminalColor(object):
         return TerminalColor._color(TerminalColor.WARNING, text)
 
 
-
 class AssetstoreType:
     """
     All possible assetstore implementation types.
@@ -80,3 +79,12 @@ class AccessType:
     READ = 0
     WRITE = 1
     ADMIN = 2
+
+
+class SettingKey:
+    """
+    Core settings should be enumerated here by a set of constants corresponding
+    to sensible strings.
+    """
+    PLUGINS_ENABLED = '_plugins.enabled'
+    COOKIE_LIFETIME = 'core.cookie_lifetime'

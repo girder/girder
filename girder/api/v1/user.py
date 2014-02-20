@@ -21,7 +21,7 @@ import base64
 import cherrypy
 import json
 
-from ...constants import AccessType
+from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException
 from .docs import user_docs
 
@@ -30,8 +30,8 @@ class User(Resource):
     """API Endpoint for users in the system."""
 
     def initialize(self):
-        """Initialize the cookie lifetime."""
-        self.COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
+        self.COOKIE_LIFETIME = int(self.model('setting').get(
+            SettingKey.COOKIE_LIFETIME, default=180))
 
     def _filter(self, user, currentUser):
         """

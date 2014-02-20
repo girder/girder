@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
 
 from ...constants import AccessType

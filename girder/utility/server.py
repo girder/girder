@@ -79,7 +79,7 @@ def setup(test=False):
         dev_endpoints.addDevEndpoints(root, appconf)
 
     plugins = model_importer.ModelImporter().model('setting').get(
-        '_plugins.enabled', default=[])
+        constants.SettingKey.PLUGINS_ENABLED, default=[])
     plugin_utilities.loadPlugins(plugins, root, cfg)
 
     application = cherrypy.tree.mount(root, '/', appconf)

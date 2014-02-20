@@ -18,8 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import pymongo
-import os
 import json
 
 from .docs import item_docs

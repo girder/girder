@@ -17,11 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import datetime
-
-from .model_base import Model
-from girder.utility import assetstore_utilities
+from girder.constants import SettingKey
+from .model_base import Model, ValidationException
 
 
 class Setting(Model):
@@ -31,6 +28,30 @@ class Setting(Model):
     def initialize(self):
         self.name = 'setting'
         self.ensureIndices(['key'])
+
+    def validate(self, doc):
+        """
+        This method is in charge of validating that the setting key is a valid
+        key, and that for that key, the provided value is valid. It first
+        allows plugins to validate the setting, but if none of them can, it
+        assumes it is a core setting and does the validation here.
+        """
+        key = doc['key']
+        # TODO allow plugins to intercept the set setting event
+
+        if key == SettingKey.PLUGINS_ENABLED:
+            if not type(doc['value']) is list:
+                raise ValidationException(
+                    'Plugins enabled setting must be a list.', 'value')
+        elif key == SettingKey.COOKIE_LIFETIME:
+            doc['value'] = int(doc['value'])
+            if doc['value'] <= 0:
+                raise ValidationException(
+                    'Cookie lifetime must be an integer > 0.', 'value')
+        else:
+            raise ValidationException('Invalid setting key.', 'key')
+
+        return doc
 
     def get(self, key, default=None):
         """

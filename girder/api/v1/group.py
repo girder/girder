@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import pymongo
-
 from .docs import group_docs
 from ..rest import Resource, RestException
 from ...models.model_base import ValidationException, AccessException

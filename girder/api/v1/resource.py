@@ -17,10 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
-import os
-import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource as BaseResource, RestException
