@@ -23,6 +23,7 @@ of events to listeners, and contains utilities for callers to handle or trigger
 events identified by a name.
 """
 
+import copy
 import Queue
 import threading
 
@@ -43,16 +44,18 @@ class Event(object):
         'info',
         'name',
         'propagate',
-        'preventDefault',
-        'responses'
+        'defaultPrevented',
+        'responses',
+        'currentHandlerName'
     )
 
     def __init__(self, name, info):
         self.name = name
         self.info = info
         self.propagate = True
-        self.preventDefault = False
-        self.responses = []
+        self.defaultPrevented = False
+        self.responses = {}
+        self.currentHandlerName = None
 
     def preventDefault(self):
         """
@@ -63,7 +66,7 @@ class Event(object):
         provide an alternate behavior that will replace the normal way the
         event is handled by the core system.
         """
-        self.preventDefault = True
+        self.defaultPrevented = True
 
     def stopPropagation(self):
         """
@@ -79,7 +82,7 @@ class Event(object):
 
         :param response: The response value, which can be any type.
         """
-        self.responses.append(response)
+        self.responses[copy.copy(currentHandlerName)] = response
 
 
 class EventThread(threading.Thread):
@@ -157,12 +160,9 @@ def bind(eventName, handlerName, handler):
     """
     global _mapping
     if not eventName in _mapping:
-        _mapping[eventName] = []
+        _mapping[eventName] = {}
 
-    _mapping[eventName].append({
-        'handlerName': handlerName,
-        'handler': handler
-    })
+    _mapping[eventName][handlerName] = handler
 
 
 def unbind(eventName, handlerName):
@@ -175,9 +175,8 @@ def unbind(eventName, handlerName):
     :type handlerName: str
     """
     global _mapping
-    for listener in _mapping.get(eventName, []):
-        if listener['handlerName'] == handlerName:
-            _mapping[eventName].remove(listener)
+    if eventName in _mapping and handlerName in _mapping[eventName]:
+        del _mapping[eventName][handlerName]
 
 
 def trigger(eventName, info=None):
@@ -194,8 +193,9 @@ def trigger(eventName, info=None):
     """
     global _mapping
     e = Event(eventName, info)
-    for listener in _mapping.get(eventName, []):
-        listener['handler'](e)
+    for handlerName, handler in _mapping.get(eventName, {}).iteritems():
+        e.currentHandlerName = handlerName
+        handler(e)
         if e.propagate is False:
             break
 
