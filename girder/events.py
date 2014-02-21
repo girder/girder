@@ -23,7 +23,11 @@ of events to listeners, and contains utilities for callers to handle or trigger
 events identified by a name.
 """
 
-_mapping = {}
+import Queue
+import threading
+
+from .constants import TerminalColor
+
 
 class Event(object):
     """
@@ -77,6 +81,62 @@ class Event(object):
         """
         self.responses.append(response)
 
+
+class EventThread(threading.Thread):
+    """
+    This class is used to execute the pipeline for events asynchronously.
+    This should not be invoked directly by callers; instead, they should use
+    girder.events.triggerAsync().
+    """
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.terminate = False
+        self.eventQueue = Queue.Queue()
+        self.queueNotEmpty = threading.Condition()
+
+    def run(self):
+        """
+        Loops over all queued events. If the queue is empty, this thread gets
+        put to sleep until someone calls trigger() on it with a new event to
+        dispatch.
+        """
+        print TerminalColor.info('Started asynchronous event manager thread.')
+
+        while(not self.terminate):
+            try:
+                eventName, info = self.eventQueue.get(block=False)
+                trigger(eventName, info)
+            except Queue.Empty:
+                self.queueNotEmpty.acquire()
+                self.queueNotEmpty.wait()
+                self.queueNotEmpty.release()
+
+        print TerminalColor.info('Stopped asynchronous event manager thread.')
+
+    def trigger(self, eventName, info=None):
+        """
+        Adds a new event on the queue to trigger asynchronously.
+
+        :param eventName: The event name to pass to the girder.events.trigger
+        :param info: The info object to pass to girder.events.trigger
+        """
+        self.queueNotEmpty.acquire()
+        self.eventQueue.put((eventName, info))
+        self.queueNotEmpty.notify()
+        self.queueNotEmpty.release()
+
+    def stop(self):
+        """
+        Gracefully stops this thread. Will finish the currently processing
+        event before stopping.
+        """
+        self.queueNotEmpty.acquire()
+        self.terminate = True
+        self.queueNotEmpty.notify()
+        self.queueNotEmpty.release()
+
+
 def bind(eventName, handlerName, handler):
     """
     Bind a listener (handler) to the event identified by eventName. It is
@@ -104,6 +164,7 @@ def bind(eventName, handlerName, handler):
         'handler': handler
     })
 
+
 def unbind(eventName, handlerName):
     """
     Removes the binding between the event and the given listener.
@@ -117,6 +178,7 @@ def unbind(eventName, handlerName):
     for listener in _mapping.get(eventName, []):
         if listener['handlerName'] == handlerName:
             _mapping[eventName].remove(listener)
+
 
 def trigger(eventName, info=None):
     """
@@ -139,3 +201,6 @@ def trigger(eventName, info=None):
 
     return e
 
+
+_mapping = {}
+daemon = EventThread()

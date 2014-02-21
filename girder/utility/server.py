@@ -17,8 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import cherrypy
+import girder.events
+import os
 
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
@@ -77,6 +78,9 @@ def setup(test=False):
 
     if cherrypy.config['server']['mode'] is 'development':
         dev_endpoints.addDevEndpoints(root, appconf)
+
+    cherrypy.engine.subscribe('start', girder.events.daemon.start)
+    cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     plugins = model_importer.ModelImporter().model('setting').get(
         constants.SettingKey.PLUGINS_ENABLED, default=[])

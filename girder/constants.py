@@ -33,6 +33,7 @@ class TerminalColor(object):
     ERROR = '\033[1;91m'
     SUCCESS = '\033[32m'
     WARNING = '\033[1;33m'
+    INFO = '\033[35m'
     ENDC = '\033[0m'
 
     @staticmethod
@@ -50,6 +51,10 @@ class TerminalColor(object):
     @staticmethod
     def warning(text):
         return TerminalColor._color(TerminalColor.WARNING, text)
+
+    @staticmethod
+    def info(text):
+        return TerminalColor._color(TerminalColor.INFO, text)
 
 
 class AssetstoreType:
