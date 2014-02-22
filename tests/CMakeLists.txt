@@ -39,6 +39,7 @@ add_python_test(folder)
 add_python_test(group)
 add_python_test(item)
 add_python_test(search)
+add_python_test(system)
 add_python_test(user)
 
 add_subdirectory(clients)

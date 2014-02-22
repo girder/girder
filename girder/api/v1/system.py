@@ -36,7 +36,7 @@ class System(Resource):
         passed to the model as the corresponding dict, otherwise it is simply
         passed as a raw string.
         """
-        self.requireParams(['key', 'value'], params)
+        self.requireParams(('key', 'value'), params)
         self.requireAdmin(self.getCurrentUser())
 
         try:
@@ -51,7 +51,7 @@ class System(Resource):
         if not path:
             raise RestException('Unsupported operation.')
         elif path[0] == 'setting':
-            self.requireParams(['key'], params)
+            self.requireParams(('key',), params)
             self.requireAdmin(self.getCurrentUser())
             return self.model('setting').unset(params['key'])
         else:
@@ -64,7 +64,7 @@ class System(Resource):
         elif path[0] == 'version':
             return {'apiVersion': API_VERSION}
         elif path[0] == 'setting':
-            self.requireParams(['key'], params)
+            self.requireParams(('key',), params)
             self.requireAdmin(self.getCurrentUser())
             return self.model('setting').get(params['key'])
         else:
