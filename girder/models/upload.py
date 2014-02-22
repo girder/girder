@@ -93,7 +93,8 @@ class Upload(Model):
 
         file = self.model('file').createFile(
             item=item, name=upload['name'], size=upload['size'],
-            creator={'_id': upload['userId']}, assetstore=assetstore)
+            creator={'_id': upload['userId']}, assetstore=assetstore,
+            mimeType=upload['mimeType'])
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         file = adapter.finalizeUpload(upload, file)
@@ -102,7 +103,7 @@ class Upload(Model):
 
         return file
 
-    def createUpload(self, user, name, parentType, parent, size):
+    def createUpload(self, user, name, parentType, parent, size, mimeType):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -118,6 +119,8 @@ class Upload(Model):
         :type parentId: dict
         :param size: Total size in bytes of the whole file.
         :type size: int
+        :param mimeType: The mimeType of the file.
+        :type mimeType: str
         :returns: The upload document that was created.
         """
         assetstore = self.model('assetstore').getCurrent()
@@ -133,6 +136,7 @@ class Upload(Model):
             'assetstoreId': assetstore['_id'],
             'size': size,
             'name': name,
+            'mimeType': mimeType,
             'received': 0
             }
         upload = adapter.initUpload(upload)

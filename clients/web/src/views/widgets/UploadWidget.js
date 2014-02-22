@@ -131,6 +131,7 @@ girder.views.UploadWidget = Backbone.View.extend({
         }
 
         var file = this.files[this.currentIndex];
+
         // Authenticate and generate the upload token for this file
         girder.restRequest({
             path: 'file',
@@ -139,7 +140,8 @@ girder.views.UploadWidget = Backbone.View.extend({
                 'parentType': 'folder',
                 'parentId': this.folder.get('_id'),
                 'name': file.name,
-                'size': file.size
+                'size': file.size,
+                'mimeType': file.type
             }
         }).done(_.bind(function (upload) {
             if (file.size > 0) {
