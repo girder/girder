@@ -17,9 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import io
-import json
 import os
 import shutil
 import zipfile
@@ -55,7 +53,7 @@ class FileTestCase(base.TestCase):
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'goodpassword'
-            }
+        }
         self.user = self.model('user').createUser(**user)
         folders = self.model('folder').childFolders(
             parent=self.user, parentType='user', user=self.user)

@@ -40,7 +40,7 @@ import time
 
 try:
     import zlib
-except ImportError:
+except ImportError:  # pragma: no cover
     zlib = None
 
 __all__ = ['STORE', 'DEFLATE', 'ZipGenerator']
@@ -65,7 +65,7 @@ class ZipInfo(object):
         'crc',
         'compressSize',
         'fileSize'
-        )
+    )
 
     def __init__(self, filename, timestamp):
         # Terminate the file name at the first null byte.  Null bytes in file
@@ -80,7 +80,7 @@ class ZipInfo(object):
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
-            self.createSystem = 0
+            self.createSystem = 0  # pragma: no cover
         else:
             self.createSystem = 3
         self.createVersion = 20
@@ -123,7 +123,7 @@ class ZipGenerator(object):
         :type
         """
         if compression == DEFLATE and not zlib:
-            raise RuntimeError('Missing zlib module')
+            raise RuntimeError('Missing zlib module')  # pragma: no cover
 
         self.files = []
         self.compression = compression

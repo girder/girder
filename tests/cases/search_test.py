@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
-
 from .. import base
 
 from girder.constants import AccessType
@@ -47,7 +44,7 @@ class SearchTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'adminpassword',
             'admin': True
-            }
+        }
         admin = self.model('user').createUser(**admin)
 
         user = {
@@ -57,7 +54,7 @@ class SearchTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword',
             'admin': False
-            }
+        }
         user = self.model('user').createUser(**user)
 
         coll1 = {
@@ -65,7 +62,7 @@ class SearchTestCase(base.TestCase):
             'description': 'magic words. And more magic.',
             'public': True,
             'creator': admin
-            }
+        }
         coll1 = self.model('collection').createCollection(**coll1)
 
         coll2 = {
@@ -73,7 +70,7 @@ class SearchTestCase(base.TestCase):
             'description': 'private',
             'public': False,
             'creator': admin
-            }
+        }
         coll2 = self.model('collection').createCollection(**coll2)
         self.model('collection').setUserAccess(
             coll2, user, level=AccessType.READ, save=True)

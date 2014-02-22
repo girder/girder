@@ -56,12 +56,12 @@ def setup(test=False):
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'tools.staticdir.root': constants.ROOT_DIR,
             'request.show_tracebacks': test
-            },
+        },
         '/static': {
             'tools.staticdir.on': 'True',
             'tools.staticdir.dir': 'clients/web/static'
-            }
         }
+    }
 
     cherrypy.config.update(appconf)
 
@@ -77,7 +77,7 @@ def setup(test=False):
     api_main.addApiToNode(root)
 
     if cherrypy.config['server']['mode'] is 'development':
-        dev_endpoints.addDevEndpoints(root, appconf)
+        dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
 
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)

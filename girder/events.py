@@ -21,11 +21,30 @@
 This module contains the Girder events framework. It maintains a global mapping
 of events to listeners, and contains utilities for callers to handle or trigger
 events identified by a name.
+
+Listeners should bind to events by calling:
+
+    girder.events.bind('event.name', 'my.handler', handlerFunction)
+
+And events should be fired in one of two ways; if the event should be handled
+synchronouly, fire it with:
+
+    girder.events.trigger('event.name', info)
+
+And if the event should be handled asynchronously, use:
+
+    girder.events.daemon.trigger('event.name', info, callback)
+
+For obvious reasons, the asynchronous method does not return a value to the
+caller. Instead, the caller may optionally pass the callback argument as a
+function to be called when the task is finished. That callback function will
+receive the Event object as its only argument.
 """
 
 import copy
 import Queue
 import threading
+import types
 
 from .constants import TerminalColor
 
@@ -82,14 +101,14 @@ class Event(object):
 
         :param response: The response value, which can be any type.
         """
-        self.responses[copy.copy(currentHandlerName)] = response
+        self.responses[copy.copy(self.currentHandlerName)] = response
 
 
-class EventThread(threading.Thread):
+class AsyncEventsThread(threading.Thread):
     """
     This class is used to execute the pipeline for events asynchronously.
     This should not be invoked directly by callers; instead, they should use
-    girder.events.triggerAsync().
+    girder.events.daemon.trigger().
     """
     def __init__(self):
         threading.Thread.__init__(self)
@@ -108,8 +127,11 @@ class EventThread(threading.Thread):
 
         while(not self.terminate):
             try:
-                eventName, info = self.eventQueue.get(block=False)
-                trigger(eventName, info)
+                eventName, info, callback = self.eventQueue.get(block=False)
+                event = trigger(eventName, info)
+
+                if isinstance(callback, types.FunctionType):
+                    callback(event)
             except Queue.Empty:
                 self.queueNotEmpty.acquire()
                 self.queueNotEmpty.wait()
@@ -117,7 +139,7 @@ class EventThread(threading.Thread):
 
         print TerminalColor.info('Stopped asynchronous event manager thread.')
 
-    def trigger(self, eventName, info=None):
+    def trigger(self, eventName, info=None, callback=None):
         """
         Adds a new event on the queue to trigger asynchronously.
 
@@ -125,7 +147,7 @@ class EventThread(threading.Thread):
         :param info: The info object to pass to girder.events.trigger
         """
         self.queueNotEmpty.acquire()
-        self.eventQueue.put((eventName, info))
+        self.eventQueue.put((eventName, info, callback))
         self.queueNotEmpty.notify()
         self.queueNotEmpty.release()
 
@@ -179,6 +201,14 @@ def unbind(eventName, handlerName):
         del _mapping[eventName][handlerName]
 
 
+def unbindAll():
+    """
+    Clears the entire event map. Any bound listeners will be unbound.
+    """
+    global _mapping
+    _mapping = {}
+
+
 def trigger(eventName, info=None):
     """
     Fire an event with the given name. All listeners bound on that name will be
@@ -203,4 +233,4 @@ def trigger(eventName, info=None):
 
 
 _mapping = {}
-daemon = EventThread()
+daemon = AsyncEventsThread()

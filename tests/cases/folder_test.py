@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
-
 from .. import base
 
 from girder.constants import AccessType
@@ -43,7 +40,7 @@ class FolderTestCase(base.TestCase):
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'goodpassword'
-            }
+        }
         self.user = self.model('user').createUser(**user)
 
     def testChildFolders(self):
@@ -55,7 +52,7 @@ class FolderTestCase(base.TestCase):
         resp = self.request(path='/folder', method='GET', params={
             'parentType': 'invalid',
             'parentId': self.user['_id']
-            })
+        })
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
                          'The parentType must be user, collection, or folder.')
@@ -64,7 +61,7 @@ class FolderTestCase(base.TestCase):
         resp = self.request(path='/folder', method='GET', params={
             'parentType': 'user',
             'parentId': self.user['_id']
-            })
+        })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
 
@@ -111,7 +108,7 @@ class FolderTestCase(base.TestCase):
         resp = self.request(path='/folder', method='POST', params={
             'name': 'a folder',
             'parentId': publicFolder['_id']
-            })
+        })
         self.assertAccessDenied(resp, AccessType.WRITE, 'folder')
 
         # Actually create subfolder under Public

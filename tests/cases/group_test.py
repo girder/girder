@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
-
 from .. import base
 from girder.constants import AccessType
 

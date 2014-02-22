@@ -8,6 +8,11 @@ if(PYTHON_COVERAGE)
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${py_coverage_rc}"
   )
   add_test(
+    NAME py_coverage_combine
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
+  )
+  add_test(
     NAME py_coverage
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report --fail-under=${COVERAGE_MINIMUM_PASS}
@@ -18,6 +23,7 @@ if(PYTHON_COVERAGE)
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
             "--title=Girder Coverage Report"
   )
+  set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
 endif()
 
@@ -27,6 +33,7 @@ if(PYTHON_STYLE_TESTS)
 endif()
 
 add_python_test(collection)
+add_python_test(events NO_LOCK)
 add_python_test(file)
 add_python_test(folder)
 add_python_test(group)
