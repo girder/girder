@@ -92,7 +92,7 @@ def loadPlugin(name, root, config):
                 module.load({
                     'name': name,
                     'serverRoot': root,
-                    'apiRoot': root.api,
+                    'apiRoot': root.api.v1,
                     'config': config
                 })
         finally:

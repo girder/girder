@@ -21,6 +21,7 @@ import cherrypy
 import pymongo
 
 from bson.objectid import ObjectId
+from girder import events
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
@@ -147,7 +148,9 @@ class Model(ModelImporter):
 
     def save(self, document, validate=True):
         """
-        Create or update a document in the collection.
+        Create or update a document in the collection. This triggers two
+        events; one prior to validation, and one prior to saving. Either of
+        these events may have their default action prevented.
 
         :param document: The document to save.
         :type document: dict
@@ -155,11 +158,15 @@ class Model(ModelImporter):
         :type validate: bool
         """
         if validate:
-            document = self.validate(document)
+            event = events.trigger('.'.join(('model', self.name, 'validate')),
+                                   document)
+            if not event.defaultPrevented:
+                document = self.validate(document)
 
-        # This assertion will fail if validate() fails to return the document
-        assert type(document) is dict
-        document['_id'] = self.collection.save(document)
+        event = events.trigger('.'.join(('model', self.name, 'save')), document)
+        if not event.defaultPrevented:
+            document['_id'] = self.collection.save(document)
+
         return document
 
     def update(self, query, update):
@@ -187,7 +194,10 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']})
+        event = events.trigger('.'.join(('model', self.name, 'remove')),
+                               document)
+        if not event.defaultPrevented:
+            return self.collection.remove({'_id': document['_id']})
 
     def removeWithQuery(self, query):
         """
@@ -263,7 +273,7 @@ class AccessControlledModel(Model):
             doc['access'][entity].append({
                 'id': id,
                 'level': level
-                })
+            })
 
         if save:
             doc = self.save(doc, validate=False)

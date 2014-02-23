@@ -25,6 +25,7 @@ import sys
 import traceback
 import types
 
+from girder import events
 from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -138,6 +139,10 @@ class Resource(ModelImporter):
                   is not logged in or the cookie token is invalid or expired.
                   If returnToken=True, returns a tuple of (user, token).
         """
+        event = events.trigger('auth.user.get')
+        if event.defaultPrevented and len(event.responses) > 0:
+            return event.responses.itervalues()[-1]
+
         cookie = cherrypy.request.cookie
         if 'authToken' in cookie:
             info = json.loads(cookie['authToken'].value)
@@ -210,6 +215,22 @@ class Resource(ModelImporter):
 
         If you want a streamed response, simply return a generator function
         from the inner method.
+
+        This method fires two events for each REST request. The event names of
+        these events are derived from the module name of the resource bound to
+        handle them by default, and the HTTP method being used. As an example,
+        if the user calls GET /api/v1/system/version?foo=bar, the following two
+        events would be fired:
+
+            rest.system.get.before
+
+        would be fired prior to calling the default API function, and
+
+            rest.system.get.after
+
+        would be fired after the default API function returns. The path params
+        and query params are passed in the info of the before and after events,
+        and the after event also contains the return value in the info.
         """
         def wrapper(self, *args, **kwargs):
             try:
@@ -223,7 +244,29 @@ class Resource(ModelImporter):
                     else:
                         params[k] = v  # pragma: no cover
 
-                val = fun(self, args, params)
+                # Add before call for the API method. Listeners can return
+                # their own responses by calling preventDefault() and
+                # adding a response on the event.
+                eventPrefix = '.'.join((
+                    'rest', fun.__module__.rsplit('.', 1)[-1],
+                    fun.__name__.lower()))
+                event = events.trigger('.'.join((eventPrefix, 'before')), {
+                    'pathParams': args,
+                    'queryParams': params
+                })
+                if event.defaultPrevented and len(event.responses) > 0:
+                    val = event.responses.itervalues()[-1]
+                else:
+                    val = fun(self, args, params)
+
+                # Fire the after-call event that has a chance to augment the
+                # return value of the API method that was called. Using
+                # preventDefault on this event is a no-op.
+                events.trigger('.'.join((eventPrefix, 'after')), {
+                    'pathParams': args,
+                    'queryParams': params,
+                    'returnVal': val
+                })
 
                 if isinstance(val, types.FunctionType):
                     # If the endpoint returned a function, we assume it's a

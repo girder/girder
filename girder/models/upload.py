@@ -20,8 +20,9 @@
 import cherrypy
 import datetime
 
-from .model_base import Model, ValidationException
+from girder import events
 from girder.utility import assetstore_utilities
+from .model_base import Model, ValidationException
 from ..constants import AccessType
 
 
@@ -101,6 +102,12 @@ class Upload(Model):
         self.model('file').save(file)
         self.remove(upload)
 
+        # Add an async event for handlers that wish to process this file.
+        events.daemon.trigger('data.process', {
+            'file': file,
+            'assetstore': assetstore
+        })
+
         return file
 
     def createUpload(self, user, name, parentType, parent, size, mimeType):
@@ -138,6 +145,6 @@ class Upload(Model):
             'name': name,
             'mimeType': mimeType,
             'received': 0
-            }
+        }
         upload = adapter.initUpload(upload)
         return self.save(upload)
