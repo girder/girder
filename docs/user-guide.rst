@@ -47,7 +47,7 @@ This is a common software concept, isn't it nice that we didn't change its estab
 Groups
 -----
 
-``Groups`` group together ``Users``; the most common usage example would be to give access to specific resources to any any member of a ``Group``.
+``Groups`` group together ``Users``; the most common usage example would be to give access to specific resources to any member of a ``Group``.
 
 
 
@@ -121,7 +121,7 @@ Groups
 
 For access control, ``Groups`` can be given any level of access to a resource that an individual ``User`` can, and this is managed at the level of the resource in question.  
 
-For permissions on ``Groups`` themselves, ``Public`` Groups are viewable (``READ`` permission) to anyone, even anonymous users.  Logged in users that are not members of a ``Group`` can request access to the group.  ``Private`` ``Groups`` are not viewable or even listable to any ``Users`` except those that are members of the ``Group``, or those that have been invited to the ``Group``.  
+For permissions on ``Groups`` themselves, ``Public`` Groups are viewable (``READ`` permission) to anyone, even anonymous users.  ``Private`` ``Groups`` are not viewable or even listable to any ``Users`` except those that are members of the ``Group``, or those that have been invited to the ``Group``.  
 
 ``Groups`` have three levels of roles that ``Users`` can have within the ``Group``.  They can be ``Members``, ``Moderators`` (also indicates that they are ``Members``), and ``Administrators`` (also indicates that they are ``Members``).
 
