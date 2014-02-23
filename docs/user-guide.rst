@@ -47,7 +47,8 @@ This is a common software concept, isn't it nice that we didn't change its estab
 Groups
 -----
 
-A Girder ``Group`` is a collection of Girder ``Users``, with a common set of permissions and access to data.
+``Groups`` group together ``Users``; the most common usage example would be to give access to specific resources to any any member of a ``Group``.
+
 
 
 Items
@@ -76,16 +77,20 @@ There are four levels of permission a ``User`` can have on a resource, these lev
 OPEN QUESTION: permission names
 
 1) No permission (cannot view, edit, or delete a resource)
-2) Read-only permission (can view and download resources)
-3) Edit permission (includes Read-only permission, can edit metadata about the resource) OPEN QUESTION: upload new versions
-4) Admin permission (includes Read-only and Edit permission, can delete the resource)
+2) ``READ`` permission (can view and download resources)
+3) ``WRITE`` permission (includes ``READ`` permission, can edit metadata about the resource) OPEN QUESTION: upload new versions
+4) ``ADMIN`` permission (includes ``READ`` and ``WRITE`` permission, can delete the resource)
+
+A site admin always has permission to take any action.
+
 
 Permission Model
 ^^^^^^^^^^^^^^^^^
 
 Permissions are resolved at the level of a ``User``, i.e., for any ``User``, an attempt to take a certain action will be allowed or disallowed based on the permissions for that ``User``, as a function of the resource, the operation, the permissions set on that resource for that ``User``, and the permissions set on that resource by any ``Groups`` the ``User`` is a member of.
 
-Permissions are always additive.  That is, given a ``User`` with a certain permission on a resource, that permission can not be taken away from the ``User`` by addition of other permissions to the system, but only through removing existing permissions to that ``User`` or removing that ``User`` from a ``Group``.
+Permissions are always additive.  That is, given a ``User`` with a certain permission on a resource, that permission can not be taken away from the ``User`` by addition of other permissions to the system, but only through removing existing permissions to that ``User`` or removing that ``User`` from a ``Group``.  Once again, a site admin always has permission to take any action.
+
 
 Collections
 ^^^^^^^^^^^^^^^^^
@@ -114,8 +119,22 @@ TODO OPEN QUESTION: Correct?
 Groups
 ^^^^^^^^^^^^^^^^^
 
+For access control, ``Groups`` can be given any level of access to a resource that an individual ``User`` can, and this is managed at the level of the resource in question.  
 
-TODO OPEN QUESTION: What are the permission levels on Groups? 
+For permissions on ``Groups`` themselves, ``Public`` Groups are viewable (``READ`` permission) to anyone, even anonymous users.  Logged in users that are not members of a ``Group`` can request access to the group.  ``Private`` ``Groups`` are not viewable or even listable to any ``Users`` except those that are members of the ``Group``, or those that have been invited to the ``Group``.  
+
+``Groups`` have three levels of roles that ``Users`` can have within the ``Group``.  They can be ``Members``, ``Moderators`` (also indicates that they are ``Members``), and ``Administrators`` (also indicates that they are ``Members``).
+
+``Users`` that are not ``Members`` of a group can request to become ``Members`` of a ``Group`` if that ``Group`` is ``Public``.
+
+``Members`` of a ``Group`` can see the membership list of the ``Group``, including roles, and can see pending requests and invitations for the group.  If a ``User`` has been invited to a ``Group``, they have ``Member`` access to the ``Group`` even before they have accepted the invitation.  A ``Member`` of a ``Group`` can leave the group, at which point they are no longer ``Members`` of the ``Group``.
+
+``Moderators`` of a ``Group`` have all of the abilities of ``Group`` ``Members``.  ``Moderators`` can also invite ``Users`` to become ``Members``, can accept or reject a request by a ``User`` to become a ``Member``, can remove ``Members`` or ``Moderators`` from the ``Group``, and can edit the ``Group`` which includes changing the name and description and changing the ``Public``/``Private`` status of the ``Group``. 
+
+``Administrators`` of a ``Group`` have all of the abilities of ``Group`` ``Moderators``.  ``Administrators`` can also delete the ``Group``, promote a ``Member`` to ``Moderator`` or ``Administrator``, demote an ``Administrator`` or ``Moderator`` to ``Member``, and remove any ``Member``, ``Moderator``, or ``Administrator`` from the ``Group``.
+
+The creator of a ``Group`` is an ``Administrator`` of a group.  Any logged in ``User`` can create a ``Group``.  
+
 
 User
 ^^^^^^^^^^^^^^^^^
@@ -128,10 +147,8 @@ TODO OPEN QUESTION: are there some permissions on Users?  Can a user own or cont
 Usage
 ========
 
-Groups
-------
-
-TODO some stuff here, including invitations
+Group Management
+----------------
 
 
 which are the admin/moderator/member functions?
@@ -146,12 +163,20 @@ deny invitation request
 leave group
 join group
 delete group
-create a new group ? perm needed
+create a new group ? perm needed, no perm needed
+private/public
 
 
 add to group
 remove from group
 
 group member, moderator, admin, what can these do?
+
+
+
+Using Groups for Access Control
+-------------------------------
+
+walk through an example
 
 
