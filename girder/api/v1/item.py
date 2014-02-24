@@ -205,9 +205,8 @@ class Item(Resource):
         elif len(path) == 1:
             return self.updateItem(path[0], user, params)
         elif len(path) == 2 and path[1] == 'metadata':
-            body = cherrypy.request.body.read()
             try:
-                metadataObject = json.loads(body)
+                metadataObject = json.load(cherrypy.request.body)
             except ValueError:
                 raise RestException('Invalid JSON passed in request body.')
             return self.addMetadata(path[0], user, metadataObject)
