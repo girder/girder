@@ -121,7 +121,6 @@ class Collection(Resource):
         administrative access.
         """
         user = self.getCurrentUser()
-        print(user)
         self.requireAdmin(user)
         return self.createCollection(user, params)
 
