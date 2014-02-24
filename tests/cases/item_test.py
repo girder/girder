@@ -249,3 +249,43 @@ class ItemTestCase(base.TestCase):
         # Verify that the item is deleted
         item = self.model('item').load(item['_id'])
         self.assertEqual(item, None)
+
+    def testItemMetadataCrud(self):
+        """
+        Test CRUD of metadata.
+        """
+
+        # Create an item
+        params = {
+            'name': 'item with metadata',
+            'description': ' a description ',
+            'folderId': self.privateFolder['_id']
+        }
+        resp = self.request(path='/item', method='POST', params=params,
+                            user=self.users[0])
+        self.assertStatusOk(resp)
+        item = resp.json
+
+        # Add some metadata
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['foo'], metadata['foo'])
+        self.assertEqual(item['meta']['test'], metadata['test'])
+
+        # Edit and remove metadata
+        metadata['test'] = None
+        metadata['foo'] = 'baz'
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['foo'], metadata['foo'])
+        self.assertNotHasKeys(item['meta'], ['test'])
