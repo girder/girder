@@ -74,7 +74,7 @@ class Describe(Resource):
         their responses.
         """
         return {
-            'reason': reason,
+            'message': reason,
             'code': code
             }
 
