@@ -219,7 +219,7 @@ class Item(Model):
             item['meta'] = dict()
 
         # Add new metadata to existing metadata
-        item['meta'] = dict(item['meta'].items() + meta.items())  # TODO valid?
+        item['meta'] = dict(item['meta'].items() + meta.items())
 
         # Remove metadata fields that were set to null
         toDelete = list()
