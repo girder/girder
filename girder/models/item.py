@@ -221,11 +221,8 @@ class Item(Model):
         # Add new metadata to existing metadata
         item['meta'].update(meta.items())
 
-        # Remove metadata fields that were set to null
-        toDelete = list()
-        for key in item['meta']:
-            if item['meta'][key] is None:
-                toDelete.append(key)
+        # Remove metadata fields that were set to null (use items in py3)
+        toDelete = [k for k, v in item['meta'].iteritems() if v is None]
         for key in toDelete:
             del item['meta'][key]
 
