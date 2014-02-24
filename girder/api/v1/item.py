@@ -20,6 +20,7 @@
 import cherrypy
 import pymongo
 import os
+import json
 
 from .docs import item_docs
 from ..rest import Resource, RestException
@@ -59,7 +60,7 @@ class Item(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
-            return self.model('item').textSearch(params['text'],{'name':1})
+            return self.model('item').textSearch(params['text'], {'name': 1})
             """return self.model('item').search(
                 params['text'], user=user, offset=offset, limit=limit,
                 sort=sort)"""
@@ -109,10 +110,8 @@ class Item(Resource):
         item = self.model('item').updateItem(item)
         return self._filter(item)
 
-    def addMetadata(self, id, user, params):
-        if 'token' in params:
-            del params['token']
-        item = self.model('item').setMetadata(id, user, params)
+    def addMetadata(self, id, user, metadata):
+        item = self.model('item').setMetadata(id, user, metadata)
         return item
 
     def _downloadMultifileItem(self, item, user):
@@ -206,4 +205,9 @@ class Item(Resource):
         elif len(path) == 1:
             return self.updateItem(path[0], user, params)
         elif len(path) == 2 and path[1] == 'metadata':
-            return self.addMetadata(path[0], user, params)
+            body = cherrypy.request.body.read()
+            try:
+                metadataObject = json.loads(body)
+            except ValueError:
+                raise RestException('Invalid JSON passed in request body.')
+            return self.addMetadata(path[0], user, metadataObject)

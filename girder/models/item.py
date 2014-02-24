@@ -217,7 +217,18 @@ class Item(Model):
         item = self.load(id, level=AccessType.WRITE, user=user)
         if 'meta' not in item:
             item['meta'] = dict()
+
+        # Add new metadata to existing metadata
         item['meta'] = dict(item['meta'].items() + meta.items())  # TODO valid?
+
+        # Remove metadata fields that were set to null
+        toDelete = list()
+        for key in item['meta']:
+            if item['meta'][key] is None:
+                toDelete.append(key)
+        for key in toDelete:
+            del item['meta'][key]
+
         item['updated'] = datetime.datetime.now()
 
         # Validate and save the item
