@@ -196,7 +196,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         return 'authToken="%s"' % cookie
 
     def request(self, path='/', method='GET', params={}, user=None,
-                prefix='/api/v1', isJson=True, basicAuth=None):
+                prefix='/api/v1', isJson=True, basicAuth=None, body=None,
+                type=None):
         """
         Make an HTTP request.
 
@@ -217,8 +218,12 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         if method in ['POST', 'PUT']:
             qs = urllib.urlencode(params)
-            headers.append(('Content-Type',
-                            'application/x-www-form-urlencoded'))
+            if type is None:
+                headers.append(('Content-Type',
+                                'application/x-www-form-urlencoded'))
+            else:
+                headers.append(('Content-Type', type))
+                qs = body
             headers.append(('Content-Length', '%d' % len(qs)))
             fd = StringIO(qs)
             qs = None

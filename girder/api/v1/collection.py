@@ -122,7 +122,6 @@ class Collection(Resource):
         """
         user = self.getCurrentUser()
         self.requireAdmin(user)
-
         return self.createCollection(user, params)
 
     @Resource.endpoint

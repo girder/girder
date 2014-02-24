@@ -138,7 +138,6 @@ class Resource(ModelImporter):
                   is not logged in or the cookie token is invalid or expired.
                   If returnToken=True, returns a tuple of (user, token).
         """
-        # TODO we should also allow them to pass the token in the params
         cookie = cherrypy.request.cookie
         if 'authToken' in cookie:
             info = json.loads(cookie['authToken'].value)
@@ -155,6 +154,17 @@ class Resource(ModelImporter):
                 return (None, token) if returnToken else None
             else:
                 return (user, token) if returnToken else user
+        elif 'token' in cherrypy.request.params:  # Token as a parameter
+            token = self.model('token').load(
+                cherrypy.request.params.get('token'), objectId=False,
+                force=True)
+            user = self.model('user').load(token['userId'], force=True)
+
+            if token is None or token['expires'] < datetime.datetime.now():
+                return (None, token) if returnToken else None
+            else:
+                return (user, token) if returnToken else user
+
         else:  # user is not logged in
             return (None, None) if returnToken else None
 

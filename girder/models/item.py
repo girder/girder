@@ -32,6 +32,10 @@ class Item(Model):
     def initialize(self):
         self.name = 'item'
         self.ensureIndices(['folderId', 'lowerName'])
+        self.ensureTextIndex({
+            'name': 10,
+            'description': 1
+        })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -149,7 +153,10 @@ class Item(Model):
         the database to check every time. There should be a high cache hit rate
         since items with similar text have a good chance of residing in the
         same folder, or a small set of folders.
+
+        The current implementation is a stopgap
         """
+
         pass
 
     def createItem(self, name, creator, folder, description=''):
@@ -192,4 +199,34 @@ class Item(Model):
         item['updated'] = datetime.datetime.now()
 
         # Validate and save the collection
+        return self.save(item)
+
+    def setMetadata(self, id, user, meta):
+        """
+        Set metadata on an item.
+
+        :param id: The id of the item.
+        :type id: string or ObjectId
+        :param user: The user requesting metadata
+        :type user: dict or None
+        :param meta: A dictionary containing key-value pairs to add to
+                     the items meta field
+        :type meta: dict
+        :returns: the item document
+        """
+        item = self.load(id, level=AccessType.WRITE, user=user)
+        if 'meta' not in item:
+            item['meta'] = dict()
+
+        # Add new metadata to existing metadata
+        item['meta'].update(meta.items())
+
+        # Remove metadata fields that were set to null (use items in py3)
+        toDelete = [k for k, v in item['meta'].iteritems() if v is None]
+        for key in toDelete:
+            del item['meta'][key]
+
+        item['updated'] = datetime.datetime.now()
+
+        # Validate and save the item
         return self.save(item)

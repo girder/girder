@@ -173,4 +173,28 @@ apis.append({
         }]
     })
 
+apis.append({
+    'path': '/item/{itemId}/metadata',
+    'resource': 'item',
+    'operations': [{
+        'httpMethod': 'PUT',
+        'nickname': 'putItemMetadata',
+        'responseClass': 'Item',
+        'summary': 'Set metadata on an item',
+        'notes': 'Set metadata fields to null in order to delete them.',
+        'parameters': [
+            Describe.param(
+                'itemId', 'The ID of the item.', paramType='path'),
+            Describe.param(
+                'body', 'A JSON object containing the metadata keys to add',
+                required=True, paramType='body')
+            ],
+        'errorResponses': [
+            Describe.errorResponse('ID was invalid.'),
+            Describe.errorResponse(
+                'Write access was denied for the item.', 403)
+            ]
+        }]
+    })
+
 Describe.declareApi('item', apis=apis)
