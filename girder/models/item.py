@@ -233,19 +233,3 @@ class Item(Model):
 
         # Validate and save the item
         return self.save(item)
-
-    def getMetadata(self, id, user, key=None):
-        """
-        Get the metadata on an item.
-
-        :param id: The id of the item.
-        :type id: string or ObjectId
-        :param user: The user requesting metadata
-        :type user: dict or None
-        :param key: The specific metadata to get. If not specified, return
-                    all of them
-        :type key: string or tuple
-        :returns: the metadata for the document
-        """
-        item = self.load(id, level=AccessType.READ, user=user)
-        return item['meta']
