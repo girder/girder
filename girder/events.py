@@ -47,6 +47,7 @@ import threading
 import types
 
 from .constants import TerminalColor
+from girder import logger
 
 
 class Event(object):
@@ -225,7 +226,12 @@ def trigger(eventName, info=None):
     e = Event(eventName, info)
     for handlerName, handler in _mapping.get(eventName, {}).iteritems():
         e.currentHandlerName = handlerName
-        handler(e)
+        try:
+            handler(e)
+        except:
+            logger.exception('In handler "{}" for event "{}":'
+                             .format(handlerName, eventName))
+
         if e.propagate is False:
             break
 

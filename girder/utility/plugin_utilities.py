@@ -26,7 +26,9 @@ in this class are general utility functions designed to be used within the
 plugins themselves to help them register with the application.
 """
 
+import functools
 import imp
+import json
 import os
 import sys
 import traceback
@@ -36,14 +38,17 @@ from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
 
 def loadPlugins(plugins, root, config):
     """
-    Loads a set of plugins into the application.
+    Loads a set of plugins into the application. The list passed in should not
+    already contain dependency information; dependent plugins will be loaded
+    automatically.
 
     :param plugins: The set of plugins to load, by directory name.
     :type plugins: list
     :param root: The root node of the server tree.
     :param config: The server's config object.
+    :returns: A list of plugins that were actually loaded, once dependencies
+              were resolved and topological sort was performed.
     """
-
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
     if not ROOT_PLUGINS_PACKAGE in sys.modules:
@@ -53,14 +58,21 @@ def loadPlugins(plugins, root, config):
             '__name__': ROOT_PLUGINS_PACKAGE
         })()
 
-    for plugin in plugins:
-        try:
-            loadPlugin(plugin, root, config)
-            print TerminalColor.success('Loaded plugin "{}."'.format(plugin))
-        except:
-            print TerminalColor.error(
-                'ERROR: Failed to load plugin "{}":'.format(plugin))
-            traceback.print_exc()
+    print TerminalColor.info('Resolving plugin dependencies...')
+
+    filteredDepGraph = {pluginName: info['dependencies']
+                        for pluginName, info in findAllPlugins().iteritems()
+                        if pluginName in plugins}
+
+    for pset in toposort(filteredDepGraph):
+        for plugin in pset:
+            try:
+                loadPlugin(plugin, root, config)
+                print TerminalColor.success('Loaded plugin "{}"'.format(plugin))
+            except:
+                print TerminalColor.error(
+                    'ERROR: Failed to load plugin "{}":'.format(plugin))
+                traceback.print_exc()
 
 
 def loadPlugin(name, root, config):
@@ -81,7 +93,7 @@ def loadPlugin(name, root, config):
         # This plugin does not have any server-side python code.
         return
 
-    moduleName = '.'.join([ROOT_PLUGINS_PACKAGE, name])
+    moduleName = '.'.join((ROOT_PLUGINS_PACKAGE, name))
 
     if not moduleName in sys.modules:
         fp = None
@@ -98,6 +110,68 @@ def loadPlugin(name, root, config):
         finally:
             if fp:
                 fp.close()
+
+
+def findAllPlugins():
+    """
+    Walks the plugins directory to find all of the plugins. If the plugin has
+    a plugin.json file, this reads that file to determine dependencies.
+    """
+    allPlugins = {}
+    pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    dirs = [dir for dir in os.listdir(pluginsDir) if os.path.isdir(
+            os.path.join(pluginsDir, dir))]
+
+    for plugin in dirs:
+        data = {}
+        configFile = os.path.join(pluginsDir, dir, 'plugin.json')
+        if os.path.isfile(configFile):
+            with open(configFile) as conf:
+                data = json.load(conf)
+
+        allPlugins[plugin] = {
+            'name': data.get('name', plugin),
+            'description': data.get('description', ''),
+            'dependencies': set(data.get('dependencies', []))
+        }
+
+    return allPlugins
+
+
+def toposort(data):
+    """
+    General-purpose topoligical sort function. Dependencies are expressed as a
+    dictionary whose keys are items and whose values are a set of dependent
+    items. Output is a list of sets in topological order. This is a generator
+    function that returns a sequence of sets in topological order.
+
+    :param data: The dependency information.
+    :type data: dict
+    :returns: Yields a list of sorted sets representing the sorted order.
+    """
+
+    # Ignore self dependencies.
+    for k, v in data.items():
+        v.discard(k)
+
+    # Find all items that don't depend on anything.
+    extra = functools.reduce(
+        set.union, data.itervalues()) - set(data.iterkeys())
+    # Add empty dependences where needed
+    data.update({item: set() for item in extra})
+
+    # Perform the toposort.
+    while True:
+        ordered = set(item for item, dep in data.iteritems() if not dep)
+        if not ordered:
+            break
+        yield ordered
+        data = {item: (dep - ordered)
+                for item, dep in data.iteritems() if item not in ordered}
+    # Detect any cycles in the dependency graph.
+    if data:
+        raise Exception('Cyclic dependencies detected:\n%s' % '\n'.join(
+                        repr(x) for x in data.iteritems()))
 
 
 def addChildNode(node, name, obj=None):

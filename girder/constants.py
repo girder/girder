@@ -24,6 +24,8 @@ import os
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT_PLUGINS_PACKAGE = 'girder.plugins'
+MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
+LOG_BACKUP_COUNT = 5
 
 
 class TerminalColor(object):
