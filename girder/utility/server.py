@@ -83,7 +83,7 @@ def setup(test=False):
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     plugins = model_importer.ModelImporter().model('setting').get(
-        constants.SettingKey.PLUGINS_ENABLED, default=[])
+        constants.SettingKey.PLUGINS_ENABLED, default=())
     plugin_utilities.loadPlugins(plugins, root, cfg)
 
     application = cherrypy.tree.mount(root, '/', appconf)

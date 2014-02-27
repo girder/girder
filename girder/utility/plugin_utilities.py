@@ -149,6 +149,8 @@ def toposort(data):
     :type data: dict
     :returns: Yields a list of sorted sets representing the sorted order.
     """
+    if not data:
+        return
 
     # Ignore self dependencies.
     for k, v in data.items():

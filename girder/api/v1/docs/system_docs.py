@@ -40,12 +40,12 @@ apis.append({
         'notes': 'Must be a system administrator to call this.',
         'parameters': [
             Describe.param('key', 'The key identifying this setting.')
-            ],
+        ],
         'errorResponses': [
             Describe.errorResponse(
                 'You are not a system administrator.', 403)
-            ]
-        }, {
+        ]
+    }, {
         'httpMethod': 'PUT',
         'nickname': 'setSetting',
         'responseClass': 'Setting',
@@ -56,12 +56,12 @@ apis.append({
         'parameters': [
             Describe.param('key', 'The key identifying this setting.'),
             Describe.param('value', 'The value for this setting.')
-            ],
+        ],
         'errorResponses': [
             Describe.errorResponse(
                 'You are not a system administrator.', 403)
-            ]
-        }, {
+        ]
+    }, {
         'httpMethod': 'DELETE',
         'nickname': 'unsetSetting',
         'summary': 'Unset the value for a system setting.',
@@ -69,13 +69,40 @@ apis.append({
                  ' explicitly restore a setting to its default value.',
         'parameters': [
             Describe.param('key', 'The key identifying the setting to unset.')
-            ],
+        ],
         'errorResponses': [
             Describe.errorResponse(
                 'You are not a system administrator.', 403)
-            ]
-        }]
-    })
+        ]
+    }]
+})
+
+apis.append({
+    'path': '/system/plugins',
+    'operations': [{
+        'httpMethod': 'GET',
+        'nickname': 'getPlugins',
+        'summary': 'Get the lists of all available and all enabled plugins.',
+        'notes': 'Must be a system administrator to call this.',
+        'errorResponses': [
+            Describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }, {
+        'httpMethod': 'PUT',
+        'nickname': 'enablePlugins',
+        'responseClass': 'Setting',
+        'summary': 'Set the list of enabled plugins for the system.',
+        'notes': 'Must be a system administrator to call this.',
+        'parameters': [
+            Describe.param('plugins', 'JSON array of plugins to enable.')
+        ],
+        'errorResponses': [
+            Describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }]
+})
 
 
 Describe.declareApi('system', apis=apis)

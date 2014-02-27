@@ -19,6 +19,8 @@
 
 import json
 
+from girder.utility import plugin_utilities
+from girder.constants import SettingKey
 from .api_docs import API_VERSION
 from .docs import system_docs
 from ..rest import Resource, RestException
@@ -46,6 +48,28 @@ class System(Resource):
 
         return self.model('setting').set(key=params['key'], value=value)
 
+    def getPlugins(self):
+        """
+        Return the plugin information for the system. This includes a list of
+        all of the currently enabled plugins, as well as
+        """
+        self.requireAdmin(self.getCurrentUser())
+
+        return {
+            'all': plugin_utilities.findAllPlugins(),
+            'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED, ())
+        }
+
+    def enablePlugins(self, params):
+        self.requireParams(('plugins',), params)
+        self.requireAdmin(self.getCurrentUser())
+        try:
+            plugins = json.loads(params['value'])
+        except ValueError:
+            raise RestException('Plugins parameter should be a JSON list.')
+
+        return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
+
     @Resource.endpoint
     def DELETE(self, path, params):
         if not path:
@@ -67,6 +91,8 @@ class System(Resource):
             self.requireParams(('key',), params)
             self.requireAdmin(self.getCurrentUser())
             return self.model('setting').get(params['key'])
+        elif path[0] == 'plugins':
+            return self.getPlugins()
         else:
             raise RestException('Unsupported operation.')
 
@@ -76,5 +102,7 @@ class System(Resource):
             raise RestException('Unsupported operation.')
         elif path[0] == 'setting':
             return self.setSetting(params)
+        elif path[0] == 'plugins':
+            return self.enablePlugins(params)
         else:
             raise RestException('Unsupported operation.')

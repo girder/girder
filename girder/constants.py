@@ -93,5 +93,5 @@ class SettingKey:
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
     """
-    PLUGINS_ENABLED = '_plugins.enabled'
+    PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
