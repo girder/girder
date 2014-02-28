@@ -124,7 +124,7 @@ def findAllPlugins():
 
     for plugin in dirs:
         data = {}
-        configFile = os.path.join(pluginsDir, dir, 'plugin.json')
+        configFile = os.path.join(pluginsDir, plugin, 'plugin.json')
         if os.path.isfile(configFile):
             with open(configFile) as conf:
                 data = json.load(conf)

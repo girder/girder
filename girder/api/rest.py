@@ -25,7 +25,7 @@ import sys
 import traceback
 import types
 
-from girder import events
+from girder import events, logger
 from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -298,6 +298,7 @@ class Resource(ModelImporter):
                     val['field'] = e.field
             except:  # pragma: no cover
                 # These are unexpected failures; send a 500 status
+                logger.exception('500 Error')
                 cherrypy.response.status = 500
                 t, value, tb = sys.exc_info()
                 val = {'message': '%s: %s' % (t.__name__, str(value)),
