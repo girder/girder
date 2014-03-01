@@ -232,7 +232,7 @@ class Resource(ModelImporter):
         and query params are passed in the info of the before and after events,
         and the after event also contains the return value in the info.
         """
-        def wrapper(self, *args, **kwargs):
+        def endpointDecorator(self, *args, **kwargs):
             try:
                 # First, we should encode any unicode form data down into
                 # UTF-8 so the actual REST classes are always dealing with
@@ -305,7 +305,7 @@ class Resource(ModelImporter):
                        'type': 'internal'}
                 if cherrypy.config['server']['mode'] != 'production':
                     # Unless we are in production mode, send a traceback too
-                    val['trace'] = traceback.extract_tb(tb)[1:]
+                    val['trace'] = traceback.extract_tb(tb)
 
             accepts = cherrypy.request.headers.elements('Accept')
             for accept in accepts:
@@ -324,4 +324,4 @@ class Resource(ModelImporter):
             # outside of the loop body in case no Accept header is passed.
             cherrypy.response.headers['Content-Type'] = 'application/json'
             return json.dumps(val, default=str)
-        return wrapper
+        return endpointDecorator
