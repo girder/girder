@@ -35,11 +35,39 @@ girder.views.PluginsView = Backbone.View.extend({
             allPlugins: this.allPlugins
         }));
 
-        this.$('.g-plugin-switch').bootstrapSwitch();
+        var view = this;
+        this.$('.g-plugin-switch').bootstrapSwitch().off('switchChange')
+            .on('switchChange', function (e, data) {
+                var plugin = data.el.attr('key');
+                if (data.value) {
+                    view.enabled.push(plugin);
+                }
+                else {
+                    var idx;
+                    while (~(idx = view.enabled.indexOf(plugin))) {
+                        view.enabled.splice(idx, 1)
+                    }
+                }
+                view._updatePlugins();
+            });
 
         girder.router.navigate('plugins');
 
         return this;
+    },
+
+    _updatePlugins: function () {
+        girder.restRequest({
+            path: 'system/plugins',
+            type: 'PUT',
+            data: {
+                plugins: JSON.stringify(this.enabled)
+            }
+        }).done(_.bind(function (resp) {
+            // TODO acknowledge?
+        }, this)).error(_.bind(function () {
+            // TODO acknowledge?
+        }, this));
     }
 });
 

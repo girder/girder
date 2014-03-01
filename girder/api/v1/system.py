@@ -64,7 +64,7 @@ class System(Resource):
         self.requireParams(('plugins',), params)
         self.requireAdmin(self.getCurrentUser())
         try:
-            plugins = json.loads(params['value'])
+            plugins = json.loads(params['plugins'])
         except ValueError:
             raise RestException('Plugins parameter should be a JSON list.')
 
