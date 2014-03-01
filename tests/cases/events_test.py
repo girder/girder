@@ -59,7 +59,7 @@ class EventsTestCase(unittest.TestCase):
         self.assertEqual(self.ctr, 2)
         self.assertTrue(event.propagate)
         self.assertFalse(event.defaultPrevented)
-        self.assertEqual(event.responses, {})
+        self.assertEqual(event.responses, [])
 
         # The event should still be bound here if a different handler unbinds
         events.unbind(name, 'not the handler name')
@@ -77,9 +77,7 @@ class EventsTestCase(unittest.TestCase):
         event = events.trigger(name)
         self.assertTrue(event.defaultPrevented)
         self.assertFalse(event.propagate)
-        self.assertEqual(event.responses, {
-            handlerName: {'foo': 'bar'}
-        })
+        self.assertEqual(event.responses, [{'foo': 'bar'}])
 
     def testAsyncEvents(self):
         name = '_test.event'

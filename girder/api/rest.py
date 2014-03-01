@@ -141,7 +141,7 @@ class Resource(ModelImporter):
         """
         event = events.trigger('auth.user.get')
         if event.defaultPrevented and len(event.responses) > 0:
-            return event.responses.itervalues()[-1]
+            return event.responses[0]
 
         cookie = cherrypy.request.cookie
         if 'authToken' in cookie:
@@ -255,7 +255,7 @@ class Resource(ModelImporter):
                     'queryParams': params
                 })
                 if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses.itervalues()[-1]
+                    val = event.responses[0]
                 else:
                     val = fun(self, args, params)
 

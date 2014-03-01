@@ -74,7 +74,7 @@ class Event(object):
         self.info = info
         self.propagate = True
         self.defaultPrevented = False
-        self.responses = {}
+        self.responses = []
         self.currentHandlerName = None
 
     def preventDefault(self):
@@ -102,7 +102,7 @@ class Event(object):
 
         :param response: The response value, which can be any type.
         """
-        self.responses[copy.copy(self.currentHandlerName)] = response
+        self.responses.append(response)
 
 
 class AsyncEventsThread(threading.Thread):

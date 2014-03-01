@@ -44,8 +44,8 @@ girder.views.PluginsView = Backbone.View.extend({
                 }
                 else {
                     var idx;
-                    while (~(idx = view.enabled.indexOf(plugin))) {
-                        view.enabled.splice(idx, 1)
+                    while ((idx = view.enabled.indexOf(plugin)) >= 0) {
+                        view.enabled.splice(idx, 1);
                     }
                 }
                 view._updatePlugins();
