@@ -22,7 +22,7 @@ import json
 import os
 
 from .docs import folder_docs
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from ...utility import ziputil
 
@@ -97,17 +97,17 @@ class Folder(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    def downloadFolder(self, id, params):
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    def downloadFolder(self, folder, params):
         """
         Returns a generator function that will be used to stream out a zip
         file containing this folder's contents, filtered by permissions.
         """
-        user = self.getCurrentUser()
-        folder = self.getObjectById(
-            self.model('folder'), id=id, checkAccess=True, user=user)
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
             'attachment; filename="{}{}"'.format(folder['name'], '.zip')
+
+        user = self.getCurrentUser()
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
@@ -134,7 +134,8 @@ class Folder(Resource):
                                    path, file['name'])):
                     yield data
 
-    def updateFolder(self, id, params):
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
+    def updateFolder(self, folder, params):
         """
         Update the folder.
 
@@ -143,19 +144,12 @@ class Folder(Resource):
         :param public: Public read access flag.
         :type public: bool
         """
-        user = self.getCurrentUser()
-        folder = self.getObjectById(self.model('folder'), id=id, user=user,
-                                    checkAccess=True)
-        self.model('folder').requireAccess(folder, user, AccessType.WRITE)
+        pass
         # TODO implement updating of a folder
 
-    def updateFolderAccess(self, id, params):
-        user = self.getCurrentUser()
-        folder = self.getObjectById(
-            self.model('folder'), id=id, user=user, checkAccess=True)
-
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    def updateFolderAccess(self, folder, params):
         self.requireParams(['access'], params)
-        self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
 
         public = params.get('public', 'false').lower() == 'true'
         self.model('folder').setPublic(folder, public)
@@ -212,33 +206,24 @@ class Folder(Resource):
             pass
         return self._filter(folder, user)
 
-    def getFolder(self, id, params):
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    def getFolder(self, folder, params):
         """
         Get a folder by ID.
         """
-        user = self.getCurrentUser()
-        folder = self.getObjectById(self.model('folder'), id=id,
-                                    checkAccess=True, user=user)
-        return self._filter(folder, user)
+        return self._filter(folder, self.getCurrentUser())
 
-    def getFolderAccess(self, id, params):
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    def getFolderAccess(self, folder, params):
         """
         Get an access list for a folder.
         """
-        user = self.getCurrentUser()
-        folder = self.getObjectById(
-            self.model('folder'), id=id, checkAccess=True, user=user,
-            level=AccessType.ADMIN)
         return self.model('folder').getFullAccessList(folder)
 
-    def deleteFolder(self, id, params):
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    def deleteFolder(self, folder, params):
         """
         Delete a folder recursively.
         """
-        user = self.getCurrentUser()
-        folder = self.getObjectById(
-            self.model('folder'), id=id, user=user, checkAccess=True,
-            level=AccessType.ADMIN)
-
         self.model('folder').remove(folder)
         return {'message': 'Deleted folder %s.' % folder['name']}

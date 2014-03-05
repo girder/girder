@@ -21,7 +21,7 @@ import cherrypy
 import json
 
 from .docs import item_docs
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException
 from ...utility import ziputil
 from ...constants import AccessType
@@ -29,6 +29,15 @@ from ...constants import AccessType
 
 class Item(Resource):
     """API endpoint for items"""
+    def __init__(self):
+        self.route('DELETE', (':id',), self.deleteItem)
+        self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getItem)
+        self.route('GET', (':id', 'files'), self.getFiles)
+        self.route('GET', (':id', 'download'), self.download)
+        self.route('POST', (), self.createItem)
+        self.route('PUT', (':id',), self.updateItem)
+        self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     def _filter(self, item):
         """
@@ -36,7 +45,7 @@ class Item(Resource):
         """
         return item
 
-    def find(self, user, params):
+    def find(self, params):
         """
         Get a list of items with given search parameters. Currently accepted
         search modes are:
@@ -56,6 +65,7 @@ class Item(Resource):
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
+        user = self.getCurrentUser()
 
         if 'text' in params:
             return self.model('item').textSearch(params['text'], {'name': 1})
@@ -73,7 +83,11 @@ class Item(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    def createItem(self, user, params):
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def getItem(self, item, params):
+        return self._filter(item)
+
+    def createItem(self, params):
         """
         Create a new item.
 
@@ -82,8 +96,9 @@ class Item(Resource):
         :param name: The name of the item to create.
         :param description: Item description.
         """
-        self.requireParams(['name', 'folderId'], params)
+        self.requireParams(('name', 'folderId'), params)
 
+        user = self.getCurrentUser()
         name = params['name'].strip()
         description = params.get('description', '').strip()
 
@@ -96,11 +111,9 @@ class Item(Resource):
 
         return self._filter(item)
 
-    def updateItem(self, id, user, params):
-        item = self.getObjectById(
-            self.model('item'), id=id, user=user, checkAccess=True,
-            level=AccessType.WRITE)
-
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    def updateItem(self, item, params):
+        user = self.getCurrentUser()
         item['name'] = params.get('name', item['name']).strip()
         item['description'] = params.get(
             'description', item['description']).strip()
@@ -108,9 +121,14 @@ class Item(Resource):
         item = self.model('item').updateItem(item)
         return self._filter(item)
 
-    def addMetadata(self, id, user, metadata):
-        item = self.model('item').setMetadata(id, user, metadata)
-        return item
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    def setMetadata(self, item, params):
+        try:
+            metadata = json.load(cherrypy.request.body)
+        except ValueError:
+            raise RestException('Invalid JSON passed in request body.')
+
+        return self._filter(self.model('item').setMetadata(id, user, metadata))
 
     def _downloadMultifileItem(self, item, user):
         cherrypy.response.headers['Content-Type'] = 'application/zip'
@@ -127,84 +145,33 @@ class Item(Resource):
             yield zip.footer()
         return stream
 
-    def download(self, user, params, itemId):
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def getFiles(self, item, params):
+        """Get a page of files in an item."""
+        limit, offset, sort = self.getPagingParameters(params, 'name')
+        return [file for file in self.model('item').childFiles(
+                item=item, limit=limit, offset=offset, sort=sort)]
+
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def download(self, item, params):
         """
         Defers to the underlying assetstore adapter to stream the file or
         file out.
         """
         offset = int(params.get('offset', 0))
-
-        item = self.getObjectById(self.model('item'), id=itemId,
-                                  checkAccess=True, user=user,
-                                  level=AccessType.READ)  # Access Check
-        files = [file for file in self.model('item').childFiles(item=item)]
+        user = self.getCurrentUser()
+        files = [file for file in self.model('item').childFiles(
+                 item=item, limit=2)]
 
         if len(files) == 1:
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.ADMIN)
+    def deleteItem(self, item, params):
         """
-        Delete an item.
+        Delete an item and its contents.
         """
-        if not path:
-            raise RestException(
-                'Path parameter should be the item ID to delete.')
-
-        user = self.getCurrentUser()
-        item = self.getObjectById(self.model('item'), user=user,
-                                  id=path[0], checkAccess=True,
-                                  level=AccessType.WRITE)
-
         self.model('item').remove(item)
-        return {'message': 'Deleted item %s.' % item['name']}
-
-    @Resource.endpoint
-    def GET(self, path, params):
-        user = self.getCurrentUser()
-        if not path:
-            return self.find(user, params)
-        elif len(path) == 1:  # assume it's an item id
-            item = self.getObjectById(self.model('item'), user=user,
-                                      id=path[0], checkAccess=True,
-                                      level=AccessType.READ)
-            return self._filter(item)
-        elif len(path) == 2 and path[1] == 'files':
-            limit, offset, sort = self.getPagingParameters(params, 'name')
-            item = self.getObjectById(self.model('item'), user=user,
-                                      id=path[0], checkAccess=True,
-                                      level=AccessType.READ)
-            return [file for file in self.model('item').childFiles(
-                item=item, limit=limit, offset=offset, sort=sort)]
-        elif len(path) >= 2 and path[1] == 'download':
-            return self.download(user, params, path[0])
-        else:
-            raise RestException('Unrecognized item GET endpoint.')
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to create an item.
-        """
-        return self.createItem(self.getCurrentUser(), params)
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        """
-        Use this endpoint to edit an item.
-        """
-        user = self.getCurrentUser()
-
-        if not path:
-            raise RestException(
-                'Path parameter should be the item ID to edit.')
-        elif len(path) == 1:
-            return self.updateItem(path[0], user, params)
-        elif len(path) == 2 and path[1] == 'metadata':
-            try:
-                metadataObject = json.load(cherrypy.request.body)
-            except ValueError:
-                raise RestException('Invalid JSON passed in request body.')
-            return self.addMetadata(path[0], user, metadataObject)
+        return {'message': 'Deleted item {}.' % item['name']}

@@ -27,9 +27,12 @@ import types
 
 from girder import events, logger
 from girder.constants import AccessType
-from girder.models.model_base import AccessException, ValidationException
+from girder.models.model_base import AccessException, ValidationException,\
+    AccessControlledModel
 from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
+
+_importer = ModelImporter()
 
 
 def _cacheAuthUser(fun):
@@ -43,9 +46,39 @@ def _cacheAuthUser(fun):
             return cherrypy.request.girderUser
 
         user = fun(self, *args, **kwargs)
-        setattr(cherrypy.request, 'girderUser', user)
+        if type(user) is tuple:
+            setattr(cherrypy.request, 'girderUser', user[0])
+        else:
+            setattr(cherrypy.request, 'girderUser', user)
+
         return user
     return inner
+
+
+def loadmodel(map, model, level=None):
+    """
+    This is a meta-decorator that can be used to convert parameters that are
+    ObjectID's into the actual documents.
+    """
+    _model = _importer.model(model)
+
+    def meta(fun):
+        def wrapper(self, *args, **kwargs):
+            for raw, converted in map.iteritems():
+                if level is not None:
+                    user = self.getCurrentUser()
+                    kwargs[converted] = _model.load(
+                        id=kwargs[raw], level=level, user=user)
+                else:
+                    kwargs[converted] = _model.load(kwargs[raw])
+
+                if kwargs[converted] is None:
+                    raise RestException('Invalid {} id ({}).'
+                                        .format(model, kwargs[raw]))
+                del kwargs[raw]
+            return fun(self, *args, **kwargs)
+        return wrapper
+    return meta
 
 
 def endpoint(fun):

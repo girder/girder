@@ -107,7 +107,7 @@ class Item(Model):
         """
         q = {
             'itemId': item['_id']
-            }
+        }
 
         cursor = self.model('file').find(
             q, limit=limit, offset=offset, sort=sort)
@@ -186,7 +186,7 @@ class Item(Model):
             'created': now,
             'updated': now,
             'size': 0
-            })
+        })
 
     def updateItem(self, item):
         """
@@ -201,25 +201,22 @@ class Item(Model):
         # Validate and save the collection
         return self.save(item)
 
-    def setMetadata(self, id, user, meta):
+    def setMetadata(self, item, metadata):
         """
         Set metadata on an item.
 
-        :param id: The id of the item.
-        :type id: string or ObjectId
-        :param user: The user requesting metadata
-        :type user: dict or None
-        :param meta: A dictionary containing key-value pairs to add to
+        :param item: The item to set the metadata on.
+        :type item: dict
+        :param metadata: A dictionary containing key-value pairs to add to
                      the items meta field
-        :type meta: dict
+        :type metadata: dict
         :returns: the item document
         """
-        item = self.load(id, level=AccessType.WRITE, user=user)
         if 'meta' not in item:
             item['meta'] = dict()
 
         # Add new metadata to existing metadata
-        item['meta'].update(meta.items())
+        item['meta'].update(metadata.items())
 
         # Remove metadata fields that were set to null (use items in py3)
         toDelete = [k for k, v in item['meta'].iteritems() if v is None]
