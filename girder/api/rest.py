@@ -32,6 +32,22 @@ from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 
+def _cacheAuthUser(fun):
+    """
+    This decorator for getCurrentUser ensures that the authentication procedure
+    is only performed once per request, and is cached on the request for
+    subsequent calls to getCurrentUser().
+    """
+    def inner(self, *args, **kwargs):
+        if hasattr(cherrypy.request, 'girderUser'):
+            return cherrypy.request.girderUser
+
+        user = fun(self, *args, **kwargs)
+        setattr(cherrypy.request, 'girderUser', user)
+        return user
+    return inner
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -298,6 +314,7 @@ class Resource(ModelImporter):
 
         return (limit, offset, sort)
 
+    @_cacheAuthUser
     def getCurrentUser(self, returnToken=False):
         """
         Returns the current user from the long-term cookie token.
