@@ -22,7 +22,7 @@ import os
 
 from girder.constants import ROOT_DIR
 
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, endpoint
 
 """
 Whenever we add new return values or new options we should increment the
@@ -98,7 +98,7 @@ class Describe(Resource):
         else:
             cls.resources[resource] = [apis]
 
-    @Resource.endpoint
+    @endpoint
     def GET(self, path, params):
         """
         Outputs the API description as a swagger-compliant JSON document.

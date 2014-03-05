@@ -100,6 +100,8 @@ def loadPlugin(name, root, config):
         try:
             fp, pathname, description = imp.find_module('server', [pluginDir])
             module = imp.load_module(moduleName, fp, pathname, description)
+            setattr(module, 'PLUGIN_ROOT_DIR', pluginDir)
+
             if hasattr(module, 'load'):
                 module.load({
                     'name': name,

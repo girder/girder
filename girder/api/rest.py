@@ -32,6 +32,125 @@ from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
 
 
+def endpoint(fun):
+    """
+    REST HTTP method endpoints should use this decorator. It converts the return
+    value of the underlying method to the appropriate output format and
+    sets the relevant response headers. It also handles RestExceptions,
+    which are 400-level exceptions in the REST endpoints, AccessExceptions
+    resulting from access denial, and also handles any unexpected errors
+    using 500 status and including a useful traceback in those cases.
+
+    If you want a streamed response, simply return a generator function
+    from the inner method.
+
+    This method fires two events for each REST request. The event names of
+    these events are derived from the module name of the resource bound to
+    handle them by default, and the HTTP method being used. As an example,
+    if the user calls GET /api/v1/system/version?foo=bar, the following two
+    events would be fired:
+
+        rest.system.get.before
+
+    would be fired prior to calling the default API function, and
+
+        rest.system.get.after
+
+    would be fired after the default API function returns. The path params
+    and query params are passed in the info of the before and after events,
+    and the after event also contains the return value in the info.
+    """
+    def endpointDecorator(self, *args, **kwargs):
+        try:
+            # First, we should encode any unicode form data down into
+            # UTF-8 so the actual REST classes are always dealing with
+            # str types.
+            params = {}
+            for k, v in kwargs.iteritems():
+                if type(v) in (str, unicode):
+                    params[k] = v.encode('utf-8')
+                else:
+                    params[k] = v  # pragma: no cover
+
+            # Add before call for the API method. Listeners can return
+            # their own responses by calling preventDefault() and
+            # adding a response on the event.
+            eventPrefix = '.'.join(('rest', fun.__module__.rsplit('.', 1)[-1],
+                                    fun.__name__.lower()))
+            event = events.trigger('.'.join((eventPrefix, 'before')), {
+                'pathParams': args,
+                'queryParams': params
+            })
+            if event.defaultPrevented and len(event.responses) > 0:
+                val = event.responses[0]
+            else:
+                val = fun(self, args, params)
+
+            # Fire the after-call event that has a chance to augment the
+            # return value of the API method that was called. Using
+            # preventDefault on this event is a no-op.
+            events.trigger('.'.join((eventPrefix, 'after')), {
+                'pathParams': args,
+                'queryParams': params,
+                'returnVal': val
+            })
+
+            if isinstance(val, types.FunctionType):
+                # If the endpoint returned a function, we assume it's a
+                # generator function for a streaming response.
+                cherrypy.response.stream = True
+                return val()
+
+        except RestException as e:
+            # Handle all user-error exceptions from the rest layer
+            cherrypy.response.status = e.code
+            val = {'message': e.message, 'type': 'rest'}
+            if e.extra is not None:
+                val['extra'] = e.extra
+        except AccessException as e:
+            # Permission exceptions should throw a 401 or 403, depending
+            # on whether the user is logged in or not
+            if self.getCurrentUser() is None:
+                cherrypy.response.status = 401
+            else:
+                cherrypy.response.status = 403
+            val = {'message': e.message, 'type': 'access'}
+        except ValidationException as e:
+            cherrypy.response.status = 400
+            val = {'message': e.message, 'type': 'validation'}
+            if e.field is not None:
+                val['field'] = e.field
+        except:  # pragma: no cover
+            # These are unexpected failures; send a 500 status
+            logger.exception('500 Error')
+            cherrypy.response.status = 500
+            t, value, tb = sys.exc_info()
+            val = {'message': '%s: %s' % (t.__name__, str(value)),
+                   'type': 'internal'}
+            if cherrypy.config['server']['mode'] != 'production':
+                # Unless we are in production mode, send a traceback too
+                val['trace'] = traceback.extract_tb(tb)
+
+        accepts = cherrypy.request.headers.elements('Accept')
+        for accept in accepts:
+            if accept.value == 'application/json':
+                break
+            elif accept.value == 'text/html':  # pragma: no cover
+                # Pretty-print and HTMLify the response for the browser
+                cherrypy.response.headers['Content-Type'] = 'text/html'
+                resp = json.dumps(val, indent=4, sort_keys=True,
+                                  separators=(',', ': '), default=str)
+                resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
+                resp = '<div style="font-family:monospace;">%s</div>' % resp
+                return resp
+
+        # Default behavior will just be normal JSON output. Keep this
+        # outside of the loop body in case no Accept header is passed.
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        return json.dumps(val, default=str)
+    return endpointDecorator
+
+
 class RestException(Exception):
     """
     Throw a RestException in the case of any sort of incorrect
@@ -49,14 +168,65 @@ class RestException(Exception):
 class Resource(ModelImporter):
     exposed = True
 
-    def __init__(self):
-        self.initialize()
+    def route(self, method, route, handler):
+        """
+        Define a route for your REST resource.
 
-    def initialize(self):
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :type method: str
+        :param route: The route, as a list of path params relative to the
+        resource root. Elements of this list starting with ':' are assumed to
+        be wildcards.
+        :type route: list
+        :param handler: The method to be called if the route and method are
+        matched by a request. Wildcards in the route will be expanded and
+        passed as kwargs with the same name as the wildcard identifier.
+        :type handler: function
         """
-        Subclasses should implement this method.
+        if not hasattr(self, '_routes'):
+            self._routes = {
+                'get': [],
+                'post': [],
+                'put': [],
+                'delete': []
+            }
+        self._routes[method.lower()].append((route, handler))
+
+    def handleRoute(self, method, path, params):
         """
-        pass  # pragma: no cover
+        Match the requested path to its corresponding route, and calls the
+        handler for that route with the appropriate kwargs. If no route
+        matches the path requested, throws a RestException.
+
+        :param method: The HTTP method of the current request.
+        :type method: str
+        :param path: The path params of the request.
+        :type path: list
+        """
+        if not self._routes:
+            raise Exception('No routes defined for resource')
+
+        for route, handler in self._routes[method.lower()]:
+            kwargs = self._matchRoute(path, route)
+            if type(kwargs) is dict:
+                kwargs['params'] = params
+                return handler(**kwargs)
+
+        raise RestException('No matching route for "{} {}"'.format(
+            method, '/'.join(path)
+        ))
+
+    def _matchRoute(self, path, route):
+        if len(path) != len(route):
+            return False
+
+        kwargs = {}
+        for i in xrange(0, len(route)):
+            if route[i][0] == ':':  # Wildcard token
+                kwargs[route[i][1:]] = path[i]
+            elif route[i] != path[i]:  # Exact match token
+                return False
+        return kwargs
 
     def filterDocument(self, doc, allow=[]):
         """
@@ -203,125 +373,18 @@ class Resource(ModelImporter):
             raise RestException('Resource not found.')
         return obj
 
-    @classmethod
-    def endpoint(cls, fun):
-        """
-        All REST endpoints should use this decorator. It converts the return
-        value of the underlying method to the appropriate output format and
-        sets the relevant response headers. It also handles RestExceptions,
-        which are 400-level exceptions in the REST endpoints, AccessExceptions
-        resulting from access denial, and also handles any unexpected errors
-        using 500 status and including a useful traceback in those cases.
+    @endpoint
+    def DELETE(self, path, params):
+        return self.handleRoute('DELETE', path, params)
 
-        If you want a streamed response, simply return a generator function
-        from the inner method.
+    @endpoint
+    def GET(self, path, params):
+        return self.handleRoute('GET', path, params)
 
-        This method fires two events for each REST request. The event names of
-        these events are derived from the module name of the resource bound to
-        handle them by default, and the HTTP method being used. As an example,
-        if the user calls GET /api/v1/system/version?foo=bar, the following two
-        events would be fired:
+    @endpoint
+    def POST(self, path, params):
+        return self.handleRoute('POST', path, params)
 
-            rest.system.get.before
-
-        would be fired prior to calling the default API function, and
-
-            rest.system.get.after
-
-        would be fired after the default API function returns. The path params
-        and query params are passed in the info of the before and after events,
-        and the after event also contains the return value in the info.
-        """
-        def endpointDecorator(self, *args, **kwargs):
-            try:
-                # First, we should encode any unicode form data down into
-                # UTF-8 so the actual REST classes are always dealing with
-                # str types.
-                params = {}
-                for k, v in kwargs.iteritems():
-                    if type(v) in (str, unicode):
-                        params[k] = v.encode('utf-8')
-                    else:
-                        params[k] = v  # pragma: no cover
-
-                # Add before call for the API method. Listeners can return
-                # their own responses by calling preventDefault() and
-                # adding a response on the event.
-                eventPrefix = '.'.join((
-                    'rest', fun.__module__.rsplit('.', 1)[-1],
-                    fun.__name__.lower()))
-                event = events.trigger('.'.join((eventPrefix, 'before')), {
-                    'pathParams': args,
-                    'queryParams': params
-                })
-                if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses[0]
-                else:
-                    val = fun(self, args, params)
-
-                # Fire the after-call event that has a chance to augment the
-                # return value of the API method that was called. Using
-                # preventDefault on this event is a no-op.
-                events.trigger('.'.join((eventPrefix, 'after')), {
-                    'pathParams': args,
-                    'queryParams': params,
-                    'returnVal': val
-                })
-
-                if isinstance(val, types.FunctionType):
-                    # If the endpoint returned a function, we assume it's a
-                    # generator function for a streaming response.
-                    cherrypy.response.stream = True
-                    return val()
-
-            except RestException as e:
-                # Handle all user-error exceptions from the rest layer
-                cherrypy.response.status = e.code
-                val = {'message': e.message,
-                       'type': 'rest'}
-                if e.extra is not None:
-                    val['extra'] = e.extra
-            except AccessException as e:
-                # Permission exceptions should throw a 401 or 403, depending
-                # on whether the user is logged in or not
-                if self.getCurrentUser() is None:
-                    cherrypy.response.status = 401
-                else:
-                    cherrypy.response.status = 403
-                val = {'message': e.message,
-                       'type': 'access'}
-            except ValidationException as e:
-                cherrypy.response.status = 400
-                val = {'message': e.message,
-                       'type': 'validation'}
-                if e.field is not None:
-                    val['field'] = e.field
-            except:  # pragma: no cover
-                # These are unexpected failures; send a 500 status
-                logger.exception('500 Error')
-                cherrypy.response.status = 500
-                t, value, tb = sys.exc_info()
-                val = {'message': '%s: %s' % (t.__name__, str(value)),
-                       'type': 'internal'}
-                if cherrypy.config['server']['mode'] != 'production':
-                    # Unless we are in production mode, send a traceback too
-                    val['trace'] = traceback.extract_tb(tb)
-
-            accepts = cherrypy.request.headers.elements('Accept')
-            for accept in accepts:
-                if accept.value == 'application/json':
-                    break
-                elif accept.value == 'text/html':  # pragma: no cover
-                    # Pretty-print and HTMLify the response for the browser
-                    cherrypy.response.headers['Content-Type'] = 'text/html'
-                    resp = json.dumps(val, indent=4, sort_keys=True,
-                                      separators=(',', ': '), default=str)
-                    resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
-                    resp = '<div style="font-family:monospace;">%s</div>' % resp
-                    return resp
-
-            # Default behavior will just be normal JSON output. Keep this
-            # outside of the loop body in case no Accept header is passed.
-            cherrypy.response.headers['Content-Type'] = 'application/json'
-            return json.dumps(val, default=str)
-        return endpointDecorator
+    @endpoint
+    def PUT(self, path, params):
+        return self.handleRoute('PUT', path, params)

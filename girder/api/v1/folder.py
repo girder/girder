@@ -30,6 +30,16 @@ from ...utility import ziputil
 class Folder(Resource):
     """API Endpoint for folders."""
 
+    def __init__(self):
+        self.route('DELETE', (':id',), self.deleteFolder)
+        self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getFolder)
+        self.route('GET', (':id', 'access'), self.getFolderAccess)
+        self.route('GET', (':id', 'download'), self.downloadFolder)
+        self.route('POST', (), self.createFolder)
+        self.route('PUT', (':id',), self.updateFolder)
+        self.route('PUT', (':id', 'access'), self.updateFolderAccess)
+
     def _filter(self, folder, user):
         """
         Filter a folder document for display to the user.
@@ -44,7 +54,7 @@ class Folder(Resource):
 
         return filtered
 
-    def find(self, user, params):
+    def find(self, params):
         """
         Get a list of folders with given search parameters. Currently accepted
         search modes are:
@@ -63,6 +73,7 @@ class Folder(Resource):
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
+        user = self.getCurrentUser()
 
         if 'text' in params:
             return self.model('folder').textSearch(
@@ -86,11 +97,14 @@ class Folder(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    def download(self, folder, user):
+    def downloadFolder(self, id, params):
         """
         Returns a generator function that will be used to stream out a zip
         file containing this folder's contents, filtered by permissions.
         """
+        user = self.getCurrentUser()
+        folder = self.getObjectById(
+            self.model('folder'), id=id, checkAccess=True, user=user)
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
             'attachment; filename="{}{}"'.format(folder['name'], '.zip')
@@ -120,7 +134,7 @@ class Folder(Resource):
                                    path, file['name'])):
                     yield data
 
-    def updateFolder(self, folder, user, params):
+    def updateFolder(self, id, params):
         """
         Update the folder.
 
@@ -129,10 +143,31 @@ class Folder(Resource):
         :param public: Public read access flag.
         :type public: bool
         """
+        user = self.getCurrentUser()
+        folder = self.getObjectById(self.model('folder'), id=id, user=user,
+                                    checkAccess=True)
         self.model('folder').requireAccess(folder, user, AccessType.WRITE)
         # TODO implement updating of a folder
 
-    def createFolder(self, user, params):
+    def updateFolderAccess(self, id, params):
+        user = self.getCurrentUser()
+        folder = self.getObjectById(
+            self.model('folder'), id=id, user=user, checkAccess=True)
+
+        self.requireParams(['access'], params)
+        self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
+
+        public = params.get('public', 'false').lower() == 'true'
+        self.model('folder').setPublic(folder, public)
+
+        try:
+            access = json.loads(params['access'])
+            return self.model('folder').setAccessList(
+                folder, access, save=True)
+        except ValueError:
+            raise RestException('The access parameter must be JSON.')
+
+    def createFolder(self, params):
         """
         Create a new folder.
 
@@ -147,6 +182,7 @@ class Folder(Resource):
         """
         self.requireParams(['name', 'parentId'], params)
 
+        user = self.getCurrentUser()
         parentType = params.get('parentType', 'folder').lower()
         name = params['name'].strip()
         description = params.get('description', '').strip()
@@ -176,76 +212,33 @@ class Folder(Resource):
             pass
         return self._filter(folder, user)
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
+    def getFolder(self, id, params):
+        """
+        Get a folder by ID.
+        """
+        user = self.getCurrentUser()
+        folder = self.getObjectById(self.model('folder'), id=id,
+                                    checkAccess=True, user=user)
+        return self._filter(folder, user)
+
+    def getFolderAccess(self, id, params):
+        """
+        Get an access list for a folder.
+        """
+        user = self.getCurrentUser()
+        folder = self.getObjectById(
+            self.model('folder'), id=id, checkAccess=True, user=user,
+            level=AccessType.ADMIN)
+        return self.model('folder').getFullAccessList(folder)
+
+    def deleteFolder(self, id, params):
         """
         Delete a folder recursively.
         """
-        if not path:
-            raise RestException(
-                'Path parameter should be the folder ID to delete.')
-
         user = self.getCurrentUser()
         folder = self.getObjectById(
-            self.model('folder'), id=path[0], user=user, checkAccess=True,
+            self.model('folder'), id=id, user=user, checkAccess=True,
             level=AccessType.ADMIN)
 
         self.model('folder').remove(folder)
         return {'message': 'Deleted folder %s.' % folder['name']}
-
-    @Resource.endpoint
-    def GET(self, path, params):
-        user = self.getCurrentUser()
-        if not path:
-            return self.find(user, params)
-        elif len(path) == 1:  # Just get a folder by ID
-            folder = self.getObjectById(self.model('folder'), id=path[0],
-                                        checkAccess=True, user=user)
-            return self._filter(folder, user)
-        elif path[1] == 'access':
-            folder = self.getObjectById(
-                self.model('folder'), id=path[0], checkAccess=True, user=user,
-                level=AccessType.ADMIN)
-            return self.model('folder').getFullAccessList(folder)
-        elif path[1] == 'download':
-            folder = self.getObjectById(
-                self.model('folder'), id=path[0], checkAccess=True, user=user)
-            return self.download(folder, user)
-        else:
-            raise RestException('Unsupported operation.')
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to create a new folder.
-        """
-        user = self.getCurrentUser()
-        return self.createFolder(user, params)
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        """
-        Use this endpoint to update an existing folder.
-        """
-        if not path:
-            raise RestException('Must have a path parameter.')
-
-        user = self.getCurrentUser()
-        folder = self.getObjectById(self.model('folder'), id=path[0], user=user,
-                                    checkAccess=True)
-
-        if len(path) == 1:
-            return self.updateFolder(folder, user, params)
-        elif path[1] == 'access':
-            self.requireParams(['access'], params)
-            self.model('folder').requireAccess(folder, user, AccessType.ADMIN)
-
-            public = params.get('public', 'false').lower() == 'true'
-            self.model('folder').setPublic(folder, public)
-
-            try:
-                access = json.loads(params['access'])
-                return self.model('folder').setAccessList(
-                    folder, access, save=True)
-            except ValueError:
-                raise RestException('The access parameter must be JSON.')
