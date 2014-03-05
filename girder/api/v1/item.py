@@ -73,10 +73,8 @@ class Item(Resource):
                 params['text'], user=user, offset=offset, limit=limit,
                 sort=sort)"""
         elif 'folderId' in params:
-            # Make sure user has read access on the folder
-            folder = self.getObjectById(
-                self.model('folder'), id=params['folderId'], user=user,
-                checkAccess=True, level=AccessType.READ)
+            folder = self.model('folder').load(id=params['folderId'], user=user,
+                                               level=AccessType.READ)
 
             return [item for item in self.model('folder').childItems(
                 folder=folder, limit=limit, offset=offset, sort=sort)]
@@ -102,9 +100,8 @@ class Item(Resource):
         name = params['name'].strip()
         description = params.get('description', '').strip()
 
-        folder = self.getObjectById(
-            self.model('folder'), id=params['folderId'], user=user,
-            checkAccess=True, level=AccessType.WRITE)
+        folder = self.model('folder').load(id=params['folderId'], user=user,
+                                           level=AccessType.WRITE)
 
         item = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
@@ -128,7 +125,7 @@ class Item(Resource):
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
-        return self._filter(self.model('item').setMetadata(id, user, metadata))
+        return self.model('item').setMetadata(item, metadata)
 
     def _downloadMultifileItem(self, item, user):
         cherrypy.response.headers['Content-Type'] = 'application/zip'
@@ -174,4 +171,4 @@ class Item(Resource):
         Delete an item and its contents.
         """
         self.model('item').remove(item)
-        return {'message': 'Deleted item {}.' % item['name']}
+        return {'message': 'Deleted item {}.'.format(item['name'])}

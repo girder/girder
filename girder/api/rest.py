@@ -393,36 +393,6 @@ class Resource(ModelImporter):
         else:  # user is not logged in
             return (None, None) if returnToken else None
 
-    def getObjectById(self, model, id, checkAccess=False, user=None,
-                      level=AccessType.READ, objectId=True):
-        """
-        This convenience method should be used to load a single
-        instance of a model that is indexed by the default ObjectId type.
-
-        :param model: The model to load from.
-        :type model: Model
-        :param id: The id of the object.
-        :type id: string or ObjectId
-        :param checkAccess: Whether the object being request is an
-                            AccessControlledObject.
-        :type checkAccess: bool
-        :param user: If checkAccess=True, set this to the current user.
-        :type user: dict or None
-        :param level: If the model is an AccessControlledModel, you must
-                     pass the user requesting access
-        """
-        try:
-            if checkAccess is True:
-                obj = model.load(id=id, objectId=objectId, user=user,
-                                 level=level)
-            else:
-                obj = model.load(id=id, objectId=objectId)
-        except InvalidId:
-            raise RestException('Invalid object ID format.')
-        if obj is None:
-            raise RestException('Resource not found.')
-        return obj
-
     @endpoint
     def DELETE(self, path, params):
         return self.handleRoute('DELETE', path, params)

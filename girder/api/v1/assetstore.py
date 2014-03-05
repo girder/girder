@@ -26,6 +26,9 @@ class Assetstore(Resource):
     """
     API Endpoint for managing assetstores. Requires admin privileges.
     """
+    def __init__(self):
+        self.route('GET', (), self.find)
+        self.route('POST', (), self.createAssetstore)
 
     def find(self, params):
         """
@@ -36,36 +39,25 @@ class Assetstore(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
+        self.requireAdmin(self.getCurrentUser())
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         return self.model('assetstore').list(
             offset=offset, limit=limit, sort=sort)
 
-    @Resource.endpoint
-    def GET(self, path, params):
+    def createAssetstore(self, params):
+        """Create a new assetstore."""
         self.requireAdmin(self.getCurrentUser())
-
-        if not path:
-            return self.find(params)
-        else:
-            raise Exception('Endpoint not implemented.')
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Create a new assetstore
-        """
-        self.requireAdmin(self.getCurrentUser())
-        self.requireParams(['type', 'name'], params)
+        self.requireParams(('type', 'name'), params)
 
         assetstoreType = int(params['type'])
 
         if assetstoreType == AssetstoreType.FILESYSTEM:
-            self.requireParams(['root'], params)
+            self.requireParams(('root',), params)
             return self.model('assetstore').createFilesystemAssetstore(
                 name=params['name'], root=params['root'])
         elif assetstoreType == AssetstoreType.GRIDFS:
-            self.requireParams(['db'], params)
+            self.requireParams(('db',), params)
             return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:

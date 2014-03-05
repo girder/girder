@@ -86,9 +86,8 @@ class Folder(Resource):
                 raise RestException('The parentType must be user, collection,'
                                     ' or folder.')
 
-            parent = self.getObjectById(
-                self.model(parentType), id=params['parentId'], user=user,
-                checkAccess=True, level=AccessType.READ)
+            parent = self.model(parentType).load(
+                id=params['parentId'], user=user, level=AccessType.READ)
 
             return [self._filter(folder, user) for folder in
                     self.model('folder').childFolders(
@@ -191,8 +190,8 @@ class Folder(Resource):
 
         model = self.model(parentType)
 
-        parent = self.getObjectById(model, id=params['parentId'], user=user,
-                                    checkAccess=True, level=AccessType.WRITE)
+        parent = model.load(id=params['parentId'], user=user,
+                            level=AccessType.WRITE)
 
         folder = self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
