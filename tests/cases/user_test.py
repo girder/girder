@@ -189,7 +189,7 @@ class UserTestCase(base.TestCase):
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'goodpassword'
-            }
+        }
         user = self.model('user').createUser(**params)
         resp = self.request(path='/user/%s' % user['_id'])
         self._verifyUserDocument(resp.json, admin=False)
@@ -259,7 +259,7 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1
-            })
+        })
         self.assertStatusOk(resp)
 
         # Make sure the limit, order, and offset are respected, and that our

@@ -18,15 +18,31 @@
 ###############################################################################
 
 from .docs import group_docs
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
 from ...constants import AccessType
 
 
 class Group(Resource):
     """API Endpoint for groups."""
+    def __init__(self):
+        self.route('DELETE', (':id',), self.deleteGroup)
+        self.route('DELETE', (':id', 'member'), self.removeFromGroup)
+        self.route('DELETE', (':id', 'moderator'), self.demote)
+        self.route('DELETE', (':id', 'admin'), self.demote)
+        self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getGroup)
+        self.route('GET', (':id', 'access'), self.getGroupAccess)
+        self.route('GET', (':id', 'invitation'), self.getGroupInvitations)
+        self.route('GET', (':id', 'member'), self.listMembers)
+        self.route('POST', (), self.createGroup)
+        self.route('POST', (':id', 'invitation'), self.inviteToGroup)
+        self.route('POST', (':id', 'member'), self.joinGroup)
+        self.route('POST', (':id', 'moderator'), self.promoteToModerator)
+        self.route('POST', (':id', 'admin'), self.promoteToAdmin)
+        self.route('PUT', (':id',), self.updateGroup)
 
-    def _filter(self, group, user, accessList=False, requests=False):
+    def _filter(self, group, accessList=False, requests=False):
         """
         Filter a group document for display to the user.
 
@@ -41,6 +57,7 @@ class Group(Resource):
         :returns: The filtered group document.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+        user = self.getCurrentUser()
 
         if requests:
             keys.append('requests')
@@ -73,7 +90,7 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        return [self._filter(group, user) for group in self.model('group').list(
+        return [self._filter(group) for group in self.model('group').list(
             user=user, offset=offset, limit=limit, sort=sort)]
 
     def createGroup(self, params):
@@ -84,7 +101,7 @@ class Group(Resource):
         :type params: dict
         :returns: The created group document.
         """
-        self.requireParams(['name'], params)
+        self.requireParams(('name',), params)
 
         name = params['name'].strip()
         description = params.get('description', '').strip()
@@ -98,23 +115,29 @@ class Group(Resource):
         group = self.model('group').createGroup(
             name=name, creator=user, description=description, public=public)
 
-        return self._filter(group, user)
+        return self._filter(group)
 
-    def updateGroup(self, id, user, params):
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroup(self, group, params):
+        return self._filter(group)
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroupAccess(self, group, params):
+        return self._filter(group, accessList=True, requests=True)
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroupInvitations(self, group, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
+        return self.model('group').getInvites(group, limit, offset, sort)
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    def updateGroup(self, group, params):
         """
         Update a group.
 
-        :param id: The id of the group to update.
-        :type id: str
-        :param user: The current user.
-        :type user: dict
-        :param params: Request query parameters.
-        :type params: dict
         :returns: The updated group document.
         """
-        group = self.getObjectById(
-            self.model('group'), id=id, user=user, checkAccess=True,
-            level=AccessType.WRITE)
+        user = self.getCurrentUser()
 
         public = params.get('public', 'false').lower() == 'true'
         self.model('group').setPublic(group, public)
@@ -124,9 +147,10 @@ class Group(Resource):
             'description', group['description']).strip()
 
         group = self.model('group').updateGroup(group)
-        return self._filter(group, user)
+        return self._filter(group)
 
-    def joinGroup(self, group, user):
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def joinGroup(self, group, params):
         """
         Accept a group invitation. If you have not been invited, this will
         instead request an invitation.
@@ -138,17 +162,14 @@ class Group(Resource):
         :returns: The updated group document.
         """
         return self._filter(
-            self.model('group').joinGroup(group, user), user,
+            self.model('group').joinGroup(group, self.getCurrentUser()),
             accessList=True, requests=True)
 
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def listMembers(self, group, params):
         """
         Paginated member list of group members.
 
-        :param group: The group whose members to list.
-        :type group: dict
-        :param params: Request query parameters.
-        :type params: dict
         :returns: A page of User documents representing members of the group.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
@@ -156,81 +177,71 @@ class Group(Resource):
         return [g for g in self.model('group').listMembers(
             group, offset=offset, limit=limit, sort=sort)]
 
-    def inviteToGroup(self, group, user, params):
-        """
-        Invite the user to join the group.
-
-        :param group: The group to invite the user to.
-        :type group: dict
-        :param user: The user doing the invitation.
-        :type user: dict
-        :param params: Optionally Pass a 'level' param with an
-                       AccessType value (0-2) to grant the user that
-                       access level when they join. Also must pass a
-                       'userId' param, which is the ID of the user to
-                       invite.
-        :type params: dict
-        :returns: The updated group document.
-        """
-        self.requireParams(['userId'], params)
-
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    def inviteToGroup(self, group, params):
+        """Invite the user to join the group."""
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
         level = int(params.get('level', AccessType.READ))
 
-        userToInvite = self.getObjectById(
-            self.model('user'), user=user, id=params['userId'],
-            checkAccess=True)
+        userToInvite = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
         # Can only invite into access levels that you yourself have
         self.model('group').requireAccess(group, user, level)
         self.model('group').inviteUser(group, userToInvite, level)
 
-        return self._filter(group, user, accessList=True, requests=True)
+        return self._filter(group, accessList=True, requests=True)
 
-    def promote(self, group, user, params, level):
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def promoteToModerator(self, group, params):
+        return self._promote(group, params, AccessType.WRITE)
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def promoteToAdmin(self, group, params):
+        return self._promote(group, params, AccessType.ADMIN)
+
+    def _promote(self, group, params, level):
         """
         Promote a user to moderator or administrator.
         :param group: The group to promote within.
-        :param user: The current user.
         :param params: Request parameters.
         :param level: Either WRITE or ADMIN, for moderator or administrator.
         :type level: AccessType
         :returns: The updated group document.
         """
-        self.requireParams(['userId'], params)
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
 
-        userToPromote = self.getObjectById(
-            self.model('user'), user=user, id=params['userId'],
-            checkAccess=True)
+        userToPromote = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
         if not group['_id'] in userToPromote.get('groups', []):
             raise AccessException('That user is not a group member.')
 
         group = self.model('group').setUserAccess(
             group, userToPromote, level=level, save=True)
-        return self._filter(group, user, accessList=True)
+        return self._filter(group, accessList=True)
 
-    def demote(self, group, user, params):
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def demote(self, group, params):
         """
         Demote a user down to a normal member.
 
-        :param group: The group in which to demote this user.
-        :type group: dict
-        :param user: The current user (not the user being demoted).
-        :type user: dict
-        :param params: Request query parameters.
-        :type params: dict
         :returns: The updated group document.
         """
-        self.requireParams(['userId'], params)
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
 
-        userToDemote = self.getObjectById(
-            self.model('user'), user=user, id=params['userId'],
-            checkAccess=True)
+        userToDemote = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
+
         group = self.model('group').setUserAccess(
             group, userToDemote, level=AccessType.READ, save=True)
-        return self._filter(group, user, accessList=True, requests=True)
+        return self._filter(group, accessList=True, requests=True)
 
-    def removeFromGroup(self, group, user, params):
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def removeFromGroup(self, group, params):
         """
         Remove a user from a group. Pass a 'userId' key in params to
         remove a specific user; otherwise will remove this user.
@@ -243,10 +254,11 @@ class Group(Resource):
         :type params: dict
         :returns: The updated group document.
         """
+        user = self.getCurrentUser()
+
         if 'userId' in params:
-            userToRemove = self.getObjectById(
-                self.model('user'), user=user, id=params['userId'],
-                checkAccess=True)
+            userToRemove = self.model('user').load(
+                id=params['userId'], user=user, level=AccessType.READ, exc=True)
         else:
             # Assume user is removing himself from the group
             userToRemove = user
@@ -262,58 +274,15 @@ class Group(Resource):
                 self.model('group').requireAccess(group, user, AccessType.WRITE)
 
         return self._filter(
-            self.model('group').removeUser(group, userToRemove), user,
-            accessList=True, requests=True)
+            self.model('group').removeUser(group, userToRemove), requests=True,
+            accessList=True)
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        if not path:
-            raise RestException(
-                'Path parameter should be the group ID to delete.')
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def deleteGroup(self, group, params):
+        self.model('group').remove(group)
+        return {'message': 'Deleted the group {}.'.format(group['name'])}
 
-        user = self.getCurrentUser()
-
-        if len(path) == 1:
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.ADMIN)
-            self.model('group').remove(group)
-            return {'message': 'Deleted the %s group.' % group['name']}
-        elif path[1] == 'member':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.READ)
-            return self.removeFromGroup(group, user, params)
-        elif path[1] in ('admin', 'moderator'):
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user, checkAccess=True,
-                level=AccessType.ADMIN)
-            return self.demote(group, user, params)
-        else:
-            raise RestException('Invalid group DELETE action.')
-
-    @Resource.endpoint
-    def GET(self, path, params):
-        if not path:
-            return self.find(params)
-
-        user = self.getCurrentUser()
-        group = self.getObjectById(
-            self.model('group'), id=path[0], checkAccess=True, user=user)
-
-        if len(path) == 1:
-            return self._filter(group, user)
-        elif path[1] == 'access':
-            return self._filter(group, user, accessList=True, requests=True)
-        elif path[1] == 'invitation':
-            limit, offset, sort = self.getPagingParameters(params, 'lastName')
-            return self.model('group').getInvites(group, limit, offset, sort)
-        elif path[1] == 'member':
-            return self.listMembers(group, params)
-        else:
-            raise RestException('Invalid group GET action.')
-
-    @Resource.endpoint
+    """
     def POST(self, path, params):
         if not path:
             return self.createGroup(params)
@@ -341,16 +310,4 @@ class Group(Resource):
                 checkAccess=True, level=AccessType.ADMIN)
             return self.promote(group, user, params, AccessType.ADMIN)
         else:
-            raise RestException('Invalid path for group POST.')
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        if not path:
-            raise RestException('Must have a path parameter.')
-
-        user = self.getCurrentUser()
-
-        if len(path) == 1:
-            return self.updateGroup(path[0], user, params)
-        else:
-            raise RestException('Invalid group update action.')
+            raise RestException('Invalid path for group POST.')"""

@@ -84,7 +84,7 @@ def setup(test=False):
 
     plugins = model_importer.ModelImporter().model('setting').get(
         constants.SettingKey.PLUGINS_ENABLED, default=())
-    plugin_utilities.loadPlugins(plugins, root, cfg)
+    plugin_utilities.loadPlugins(plugins, root)
 
     application = cherrypy.tree.mount(root, '/', appconf)
     [application.merge(cfg) for cfg in cfgs]

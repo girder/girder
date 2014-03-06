@@ -74,7 +74,7 @@ class Item(Resource):
                 sort=sort)"""
         elif 'folderId' in params:
             folder = self.model('folder').load(id=params['folderId'], user=user,
-                                               level=AccessType.READ)
+                                               level=AccessType.READ, exc=True)
 
             return [item for item in self.model('folder').childItems(
                 folder=folder, limit=limit, offset=offset, sort=sort)]
@@ -101,7 +101,7 @@ class Item(Resource):
         description = params.get('description', '').strip()
 
         folder = self.model('folder').load(id=params['folderId'], user=user,
-                                           level=AccessType.WRITE)
+                                           level=AccessType.WRITE, exc=True)
 
         item = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)

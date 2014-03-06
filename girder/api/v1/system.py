@@ -30,6 +30,13 @@ class System(Resource):
     """
     The system endpoints are for querying and managing system-wide properties.
     """
+    def __init__(self):
+        self.route('DELETE', ('setting',), self.unsetSetting)
+        self.route('GET', ('version',), self.getVersion)
+        self.route('GET', ('setting',), self.getSetting)
+        self.route('GET', ('plugins',), self.getPlugins)
+        self.route('PUT', ('setting',), self.setSetting)
+        self.route('PUT', ('plugins',), self.enablePlugins)
 
     def setSetting(self, params):
         """
@@ -48,7 +55,12 @@ class System(Resource):
 
         return self.model('setting').set(key=params['key'], value=value)
 
-    def getPlugins(self):
+    def getSetting(self, params):
+        self.requireParams(('key',), params)
+        self.requireAdmin(self.getCurrentUser())
+        return self.model('setting').get(params['key'])
+
+    def getPlugins(self, params):
         """
         Return the plugin information for the system. This includes a list of
         all of the currently enabled plugins, as well as
@@ -60,6 +72,9 @@ class System(Resource):
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED, ())
         }
 
+    def getVersion(self, params):
+        return {'apiVersion': API_VERSION}
+
     def enablePlugins(self, params):
         self.requireParams(('plugins',), params)
         self.requireAdmin(self.getCurrentUser())
@@ -70,39 +85,7 @@ class System(Resource):
 
         return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        if not path:
-            raise RestException('Unsupported operation.')
-        elif path[0] == 'setting':
-            self.requireParams(('key',), params)
-            self.requireAdmin(self.getCurrentUser())
-            return self.model('setting').unset(params['key'])
-        else:
-            raise RestException('Unsupported operation.')
-
-    @Resource.endpoint
-    def GET(self, path, params):
-        if not path:
-            raise RestException('Unsupported operation.')
-        elif path[0] == 'version':
-            return {'apiVersion': API_VERSION}
-        elif path[0] == 'setting':
-            self.requireParams(('key',), params)
-            self.requireAdmin(self.getCurrentUser())
-            return self.model('setting').get(params['key'])
-        elif path[0] == 'plugins':
-            return self.getPlugins()
-        else:
-            raise RestException('Unsupported operation.')
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        if not path:
-            raise RestException('Unsupported operation.')
-        elif path[0] == 'setting':
-            return self.setSetting(params)
-        elif path[0] == 'plugins':
-            return self.enablePlugins(params)
-        else:
-            raise RestException('Unsupported operation.')
+    def unsetSetting(self, params):
+        self.requireParams(('key',), params)
+        self.requireAdmin(self.getCurrentUser())
+        return self.model('setting').unset(params['key'])

@@ -36,7 +36,7 @@ import traceback
 from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
 
 
-def loadPlugins(plugins, root, config):
+def loadPlugins(plugins, root):
     """
     Loads a set of plugins into the application. The list passed in should not
     already contain dependency information; dependent plugins will be loaded
@@ -45,7 +45,6 @@ def loadPlugins(plugins, root, config):
     :param plugins: The set of plugins to load, by directory name.
     :type plugins: list
     :param root: The root node of the server tree.
-    :param config: The server's config object.
     :returns: A list of plugins that were actually loaded, once dependencies
               were resolved and topological sort was performed.
     """
@@ -67,7 +66,7 @@ def loadPlugins(plugins, root, config):
     for pset in toposort(filteredDepGraph):
         for plugin in pset:
             try:
-                loadPlugin(plugin, root, config)
+                loadPlugin(plugin, root)
                 print TerminalColor.success('Loaded plugin "{}"'.format(plugin))
             except:
                 print TerminalColor.error(
@@ -75,7 +74,7 @@ def loadPlugins(plugins, root, config):
                 traceback.print_exc()
 
 
-def loadPlugin(name, root, config):
+def loadPlugin(name, root):
     """
     Loads a plugin into the application. This means allowing it to create
     endpoints within its own web API namespace, and to register its event
@@ -84,7 +83,6 @@ def loadPlugin(name, root, config):
     :param name: The name of the plugin (i.e. its directory name)
     :type name: str
     :param root: The root node of the web API.
-    :param config: The config object of the cherrypy application.
     """
     pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
     if not os.path.exists(pluginDir):
@@ -106,8 +104,7 @@ def loadPlugin(name, root, config):
                 module.load({
                     'name': name,
                     'serverRoot': root,
-                    'apiRoot': root.api.v1,
-                    'config': config
+                    'apiRoot': root.api.v1
                 })
         finally:
             if fp:

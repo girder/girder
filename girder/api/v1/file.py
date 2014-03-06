@@ -53,7 +53,7 @@ class File(Resource):
             raise RestException('The parentType must be "folder" or "item".')
 
         parent = self.model(parentType).load(id=params['parentId'], user=user,
-                                             level=AccessType.WRITE)
+                                             level=AccessType.WRITE, exc=True)
 
         upload = self.model('upload').createUpload(
             user=user, name=params['name'], parentType=parentType,
@@ -71,7 +71,7 @@ class File(Resource):
         :returns: The offset in bytes that the client should use.
         """
         self.requireParams(('uploadId',), params)
-        upload = self.model('upload').load(params['uploadId'])
+        upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
         upload['received'] = offset
         self.model('upload').save(upload)
@@ -95,7 +95,7 @@ class File(Resource):
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
         user = self.getCurrentUser()
 
-        upload = self.model('upload').load(params['uploadId'])
+        upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = int(params['offset'])
 
         if upload['userId'] != user['_id']:
@@ -118,12 +118,12 @@ class File(Resource):
         user = self.getCurrentUser()
 
         self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.READ)  # Access Check
+                                level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
 
     @loadmodel(map={'id': 'file'}, model='file')
     def deleteFile(self, file, params):
         user = self.getCurrentUser()
         self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.ADMIN)  # Access Check
+                                level=AccessType.ADMIN, exc=True)
         self.model('file').remove(file)

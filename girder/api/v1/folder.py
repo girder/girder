@@ -87,7 +87,8 @@ class Folder(Resource):
                                     ' or folder.')
 
             parent = self.model(parentType).load(
-                id=params['parentId'], user=user, level=AccessType.READ)
+                id=params['parentId'], user=user, level=AccessType.READ,
+                exc=True)
 
             return [self._filter(folder, user) for folder in
                     self.model('folder').childFolders(
@@ -191,7 +192,7 @@ class Folder(Resource):
         model = self.model(parentType)
 
         parent = model.load(id=params['parentId'], user=user,
-                            level=AccessType.WRITE)
+                            level=AccessType.WRITE, exc=True)
 
         folder = self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,

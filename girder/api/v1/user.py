@@ -144,6 +144,7 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            setattr(cherrypy.request, 'girderUser', user)
             token = self._sendAuthTokenCookie(user)
 
         return {
@@ -168,6 +169,7 @@ class User(Resource):
             login=params['login'], password=params['password'],
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'])
+        setattr(cherrypy.request, 'girderUser', user)
 
         self._sendAuthTokenCookie(user)
 

@@ -74,7 +74,7 @@ class Item(Model):
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None):
+             force=False, fields=None, exc=False):
         """
         We override Model.load to also do permission checking.
 
@@ -88,7 +88,7 @@ class Item(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
         if not force and doc is not None:
             self.model('folder').load(doc['folderId'], level, user, objectId,
