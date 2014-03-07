@@ -281,33 +281,3 @@ class Group(Resource):
     def deleteGroup(self, group, params):
         self.model('group').remove(group)
         return {'message': 'Deleted the group {}.'.format(group['name'])}
-
-    """
-    def POST(self, path, params):
-        if not path:
-            return self.createGroup(params)
-
-        user = self.getCurrentUser()
-
-        if len(path) == 2 and path[1] == 'invitation':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user,
-                checkAccess=True, level=AccessType.WRITE)
-            return self.inviteToGroup(group, user, params)
-        elif len(path) == 2 and path[1] == 'member':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user,
-                checkAccess=True, level=AccessType.READ)
-            return self.joinGroup(group, user)
-        elif len(path) == 2 and path[1] == 'moderator':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user,
-                checkAccess=True, level=AccessType.ADMIN)
-            return self.promote(group, user, params, AccessType.WRITE)
-        elif len(path) == 2 and path[1] == 'admin':
-            group = self.getObjectById(
-                self.model('group'), id=path[0], user=user,
-                checkAccess=True, level=AccessType.ADMIN)
-            return self.promote(group, user, params, AccessType.ADMIN)
-        else:
-            raise RestException('Invalid path for group POST.')"""

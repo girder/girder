@@ -92,22 +92,6 @@ def endpoint(fun):
 
     If you want a streamed response, simply return a generator function
     from the inner method.
-
-    This method fires two events for each REST request. The event names of
-    these events are derived from the module name of the resource bound to
-    handle them by default, and the HTTP method being used. As an example,
-    if the user calls GET /api/v1/system/version?foo=bar, the following two
-    events would be fired:
-
-        rest.system.get.before
-
-    would be fired prior to calling the default API function, and
-
-        rest.system.get.after
-
-    would be fired after the default API function returns. The path params
-    and query params are passed in the info of the before and after events,
-    and the after event also contains the return value in the info.
     """
     def endpointDecorator(self, *args, **kwargs):
         try:
@@ -121,28 +105,7 @@ def endpoint(fun):
                 else:
                     params[k] = v  # pragma: no cover
 
-            # Add before call for the API method. Listeners can return
-            # their own responses by calling preventDefault() and
-            # adding a response on the event.
-            eventPrefix = '.'.join(('rest', fun.__module__.rsplit('.', 1)[-1],
-                                    fun.__name__.lower()))
-            event = events.trigger('.'.join((eventPrefix, 'before')), {
-                'pathParams': args,
-                'queryParams': params
-            })
-            if event.defaultPrevented and len(event.responses) > 0:
-                val = event.responses[0]
-            else:
-                val = fun(self, args, params)
-
-            # Fire the after-call event that has a chance to augment the
-            # return value of the API method that was called. Using
-            # preventDefault on this event is a no-op.
-            events.trigger('.'.join((eventPrefix, 'after')), {
-                'pathParams': args,
-                'queryParams': params,
-                'returnVal': val
-            })
+            val = fun(self, args, params)
 
             if isinstance(val, types.FunctionType):
                 # If the endpoint returned a function, we assume it's a
@@ -247,6 +210,26 @@ class Resource(ModelImporter):
         handler for that route with the appropriate kwargs. If no route
         matches the path requested, throws a RestException.
 
+        This method fires two events for each request if a matching route is
+        found. The names of these events are derived from the route matched by
+        the request. As an example, if the user calls GET /api/v1/item/123,
+        the following two events would be fired:
+
+            rest.get.item/:id.before
+
+        would be fired prior to calling the default API function, and
+
+            rest.get.item/:id.after
+
+        would be fired after the route handler returns. The query params are
+        passed in the info of the before and after event handlers as
+        event.info['params'], and the matched route tokens are passed in
+        as dict items of event.info, so in the previous example event.info would
+        also contain an 'id' key with the value of 123. For endpoints with empty
+        sub-routes, the trailing slash is omitted from the event name, e.g.:
+
+            rest.post.group.before
+
         :param method: The HTTP method of the current request.
         :type method: str
         :param path: The path params of the request.
@@ -255,27 +238,64 @@ class Resource(ModelImporter):
         if not self._routes:
             raise Exception('No routes defined for resource')
 
-        for route, handler in self._routes[method.lower()]:
+        method = method.lower()
+        for route, handler in self._routes[method]:
             kwargs = self._matchRoute(path, route)
-            if type(kwargs) is dict:
+            if kwargs is not False:
                 kwargs['params'] = params
-                return handler(**kwargs)
+                # Add before call for the API method. Listeners can return
+                # their own responses by calling preventDefault() and
+                # adding a response on the event.
+                routestr = '/'.join((
+                    handler.im_class.__module__.rsplit('.', 1)[-1],
+                    '/'.join(route))).rstrip('/')
+                eventPrefix = '.'.join(('rest', method, routestr))
+
+                event = events.trigger('.'.join((eventPrefix, 'before')),
+                                       kwargs)
+                if event.defaultPrevented and len(event.responses) > 0:
+                    val = event.responses[0]
+                else:
+                    val = handler(**kwargs)
+
+                # Fire the after-call event that has a chance to augment the
+                # return value of the API method that was called. You can
+                # reassign the return value completely by adding a response to
+                # the event and calling preventDefault() on it.
+                kwargs['returnVal'] = val
+                event = events.trigger('.'.join((eventPrefix, 'after')), kwargs)
+                if event.defaultPrevented and len(event.responses) > 0:
+                    val = event.responses[0]
+
+                return val
 
         raise RestException('No matching route for "{} {}"'.format(
             method, '/'.join(path)
         ))
 
     def _matchRoute(self, path, route):
+        """
+        Helper function that attempts to match the requested path with a
+        given route specification. Returns False if the requested path does
+        not match the route. If it does match, this will return the dict of
+        kwargs that should be passed to the underlying handler, based on the
+        wildcard tokens of the route.
+
+        :param path: The requested path.
+        :type path: str
+        :param route: The route specification to match against.
+        :type route: list
+        """
         if len(path) != len(route):
             return False
 
-        kwargs = {}
-        for i in xrange(0, len(route)):
+        wildcards = {}
+        for i in range(0, len(route)):
             if route[i][0] == ':':  # Wildcard token
-                kwargs[route[i][1:]] = path[i]
+                wildcards[route[i][1:]] = path[i]
             elif route[i] != path[i]:  # Exact match token
                 return False
-        return kwargs
+        return wildcards
 
     def filterDocument(self, doc, allow=[]):
         """
