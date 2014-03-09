@@ -23,7 +23,6 @@ import json
 
 from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException, loadmodel
-from .. import describe
 from ..describe import Description
 
 

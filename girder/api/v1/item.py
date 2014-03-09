@@ -20,7 +20,6 @@
 import cherrypy
 import json
 
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException

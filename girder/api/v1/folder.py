@@ -21,7 +21,6 @@ import cherrypy
 import json
 import os
 
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType

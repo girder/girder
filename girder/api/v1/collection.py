@@ -20,7 +20,6 @@
 import json
 
 from ...constants import AccessType
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 
