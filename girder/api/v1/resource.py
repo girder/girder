@@ -19,7 +19,7 @@
 
 import json
 
-from ..docs import Describe
+from .. import describe
 from ..rest import Resource as BaseResource, RestException
 from ...constants import AccessType
 from ...utility import ziputil
@@ -80,3 +80,15 @@ class Resource(BaseResource):
                     'login': 1
                 })
         return results
+    search.description = {
+        'summary': 'Text search for resources in the system.',
+        'parameters': [
+            describe.param('q', 'The search query.'),
+            describe.param(
+                'types', """A JSON list of resource types to search for, e.g.
+                'user', 'folder', 'item'.""")
+        ],
+        'errorResponses': [
+            describe.errorResponse('Invalid type list format.')
+        ]
+    }

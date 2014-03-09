@@ -22,7 +22,7 @@ import json
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
 from .. import describe
-from ..docs import API_VERSION
+from ..describe import API_VERSION
 from ..rest import Resource, RestException
 
 

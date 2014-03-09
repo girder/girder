@@ -25,7 +25,7 @@ import sys
 import traceback
 import types
 
-from . import describe
+from . import docs
 from girder import events, logger
 from girder.constants import AccessType, TerminalColor
 from girder.models.model_base import AccessException, ValidationException,\
@@ -182,7 +182,7 @@ class RestException(Exception):
 class Resource(ModelImporter):
     exposed = True
 
-    def route(self, method, route, handler):
+    def route(self, method, route, handler, nodoc=False):
         """
         Define a route for your REST resource.
 
@@ -196,6 +196,9 @@ class Resource(ModelImporter):
         matched by a request. Wildcards in the route will be expanded and
         passed as kwargs with the same name as the wildcard identifier.
         :type handler: function
+        :param nodoc: If your route intentionally provides no documentation,
+                      set this to True to disable the warning on startup.
+        :type nodoc: bool
         """
         if not hasattr(self, '_routes'):
             self._routes = {
@@ -209,10 +212,10 @@ class Resource(ModelImporter):
         # Now handle the api doc if the handler has any attached
         resourceName = handler.im_class.__module__.rsplit('.', 1)[-1]
         if hasattr(handler, 'description'):
-            describe.addRoute(
+            docs.addRouteDocs(
                 resource=resourceName, route=route, method=method,
                 info=handler.description, handler=handler)
-        else:
+        elif not nodoc:
             routePath = '/'.join([resourceName] + list(route))
             print TerminalColor.warning(
                 'WARNING: No description docs present for route {} {}'

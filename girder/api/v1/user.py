@@ -23,7 +23,7 @@ import json
 
 from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException, loadmodel
-from ..docs import Describe
+from .. import describe
 
 
 class User(Resource):
@@ -101,13 +101,50 @@ class User(Resource):
                 for user in self.model('user').search(
                     text=params.get('text'), user=self.getCurrentUser(),
                     offset=offset, limit=limit, sort=sort)]
+    find.description = {
+        'responseClass': 'User',
+        'summary': 'List or search for users.',
+        'parameters': [
+            describe.param(
+                'text', "Pass this to perform a full text search for items.",
+                required=False),
+            describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            describe.param(
+                'sort', "Field to sort the user list by (default=lastName)",
+                required=False),
+            describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='int')
+        ]
+    }
 
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     def getUser(self, userToGet, params):
         return self._filter(userToGet)
+    getUser.description = {
+        'responseClass': 'User',
+        'summary': 'Get a user by ID.',
+        'parameters': [
+            describe.param('id', 'The ID of the user.', paramType='path')
+        ],
+        'errorResponses': [
+            describe.errorResponse('ID was invalid.'),
+            describe.errorResponse('You do not have permission to see this '
+                                   'user.', 403)
+        ]
+    }
 
     def getMe(self, params):
         return self._filter(self.getCurrentUser())
+    getMe.description = {
+        'responseClass': 'User',
+        'summary': 'Retrieve the currently logged-in user information.'
+    }
 
     def login(self, params):
         """
@@ -156,10 +193,25 @@ class User(Resource):
             },
             'message': 'Login succeeded.'
         }
+    login.description = {
+        'summary': 'Log in to the system.',
+        'notes': 'Pass your username and password using HTTP Basic Auth. '
+                 'Sends a cookie that should be passed back in future '
+                 'requests.',
+        'errorResponses': [
+            describe.errorResponse('Missing Authorization header.', 401),
+            describe.errorResponse('Invalid login or password.', 403)
+        ]
+    }
 
     def logout(self, params):
         self._deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
+    logout.description = {
+        'responseClass': 'Token',
+        'summary': 'Log out of the system.',
+        'notes': 'Attempts to delete your authentication cookie.'
+    }
 
     def createUser(self, params):
         self.requireParams(['firstName', 'lastName', 'login', 'password',
@@ -174,8 +226,35 @@ class User(Resource):
         self._sendAuthTokenCookie(user)
 
         return self._filter(user)
+    createUser.description = {
+        'responseClass': 'User',
+        'summary': 'Create a new user.',
+        'parameters': [
+            describe.param('login', "The user's requested login."),
+            describe.param('email', "The user's email address."),
+            describe.param('firstName', "The user's first name."),
+            describe.param('lastName', "The user's last name."),
+            describe.param('password', "The user's requested password")
+        ],
+        'errorResponses': [
+            describe.errorResponse(
+                'A parameter was invalid, or the specified login or email '
+                'already exists in the system.')
+        ]
+    }
 
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
     def deleteUser(self, userToDelete, params):
         self.model('user').remove(userToDelete)
         return {'message': 'Deleted user %s.' % userToDelete['login']}
+    deleteUser.description = {
+        'summary': 'Delete a user by ID.',
+        'parameters': [
+            describe.param('id', 'The ID of the user.', paramType='path')
+        ],
+        'errorResponses': [
+            describe.errorResponse('ID was invalid.'),
+            describe.errorResponse('You do not have permission to delete this '
+                                   'user.', 403)
+        ]
+    }

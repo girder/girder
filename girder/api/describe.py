@@ -17,12 +17,20 @@
 #  limitations under the License.
 ###############################################################################
 
-import collections
+import cherrypy
+import os
 
+from girder.constants import ROOT_DIR
+from . import docs
+from .rest import Resource, RestException
 
-discovery = set()
-routes = collections.defaultdict(dict)
-models = {}
+"""
+Whenever we add new return values or new options we should increment the
+maintenance value. Whenever we add new endpoints, we should increment the minor
+version. If we break backward compatibility in any way, we should increment the
+major version.
+"""
+API_VERSION = "1.0.0"
 
 
 def param(name, description, paramType='query', dataType='string',
@@ -54,40 +62,37 @@ def errorResponse(reason='A parameter was invalid.', code=400):
     }
 
 
-def addRoute(resource, route, method, info, handler):
-    """
-    This is called for route handlers that have a description attr on them. It
-    gathers the necessary information to build the swagger documentation, which
-    is consumed by the docs.Describe endpoint.
+class ApiDocs(object):
+    exposed = True
 
-    :param resource: The name of the resource, e.g. "item"
-    :type resource: str
-    :param route: The route to describe.
-    :type route: list
-    :param method: The HTTP method for this route, e.g. "POST"
-    :type method: str
-    :param info: The information representing the API documentation.
-    :type info: dict
-    """
-    # Convert wildcard tokens from :foo form to {foo} form.
-    convRoute = []
-    for token in route:
-        if token[0] == ':':
-            convRoute.append('{{{}}}'.format(token[1:]))
-        else:
-            convRoute.append(token)
+    def GET(self, **params):
+        return cherrypy.lib.static.serve_file(os.path.join(
+            ROOT_DIR, 'clients', 'web', 'static', 'built', 'swagger',
+            'swagger.html'), content_type='text/html')
 
-    path = '/'.join(['', resource] + convRoute)
 
-    info = info.copy()
-    info['httpMethod'] = method.upper()
+class Describe(Resource):
+    def __init__(self):
+        self.route('GET', (), self.listResources, nodoc=True)
+        self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
-    if not 'nickname' in info:
-        info['nickname'] = handler.__name__
+    def listResources(self, params):
+        return {
+            'apiVersion': API_VERSION,
+            'swaggerVersion': '1.2',
+            'basePath': cherrypy.url(),
+            'apis': [{'path': '/{}'.format(resource)}
+                     for resource in sorted(docs.discovery)]
+        }
 
-    # Add the operation to the given route
-    if not path in routes[resource]:
-        routes[resource][path] = []
+    def describeResource(self, resource, params):
+        if not resource in docs.routes:
+            raise RestException('Invalid resource: {}'.format(resource))
 
-    routes[resource][path].append(info)
-    discovery.add(resource)
+        return {
+            'apiVersion': API_VERSION,
+            'swaggerVersion': '1.2',
+            'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
+            'apis': [{'path': route, 'operations': ops}
+                     for route, ops in docs.routes[resource].iteritems()]
+        }

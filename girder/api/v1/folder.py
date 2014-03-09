@@ -151,7 +151,7 @@ class Folder(Resource):
         'summary': 'Download an entire folder as a zip archive.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'id', 'The ID of the folder.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),
@@ -193,7 +193,7 @@ class Folder(Resource):
         'summary': 'Update a folder by ID.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path'),
+                'id', 'The ID of the folder.', paramType='path'),
             describe.param('name', "Name of the folder."),
             describe.param('description', "Description of the folder.",
                            required=False),
@@ -225,7 +225,7 @@ class Folder(Resource):
         'summary': 'Update the access control list for a folder.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path'),
+                'id', 'The ID of the folder.', paramType='path'),
             describe.param(
                 'access', 'The JSON-encoded access control list.'),
             describe.param(
@@ -317,7 +317,7 @@ class Folder(Resource):
         'summary': 'Get a folder by ID.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'id', 'The ID of the folder.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),
@@ -337,7 +337,7 @@ class Folder(Resource):
         'summary': 'Get the access control list for a folder.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'id', 'The ID of the folder.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),
@@ -357,7 +357,7 @@ class Folder(Resource):
         'summary': 'Delete a folder by ID.',
         'parameters': [
             describe.param(
-                'folderId', 'The ID of the folder.', paramType='path')
+                'id', 'The ID of the folder.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),

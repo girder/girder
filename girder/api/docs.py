@@ -17,74 +17,48 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import os
-
-from girder.constants import ROOT_DIR
-from . import describe
-from .rest import Resource, RestException, endpoint
-
-"""
-Whenever we add new return values or new options we should increment the
-maintenance value. Whenever we add new endpoints, we should increment the minor
-version. If we break backward compatibility in any way, we should increment the
-major version.
-"""
-API_VERSION = "1.0.0"
+import collections
 
 
-class ApiDocs(object):
-    exposed = True
-
-    def GET(self, **params):
-        return cherrypy.lib.static.serve_file(os.path.join(
-            ROOT_DIR, 'clients', 'web', 'static', 'built', 'swagger',
-            'swagger.html'), content_type='text/html')
+discovery = set()
+routes = collections.defaultdict(dict)
+models = {}
 
 
-class Describe(Resource):
+def addRouteDocs(resource, route, method, info, handler):
+    """
+    This is called for route handlers that have a description attr on them. It
+    gathers the necessary information to build the swagger documentation, which
+    is consumed by the docs.Describe endpoint.
 
-    @classmethod
-    def addRouteDocs(cls, resource, apis):
-        """
-        Rest modules should call this to document themselves. The specification
-        can be found at:
-        https://github.com/wordnik/swagger-core/wiki/API-Declaration.
-        :param resource: The name of the resource, e.g. 'user'
-        :type resource: str
-        :param apis: The object(s) to add to the list for this resource.
-        :type apis: list or dict
-        """
-        cls.discovery['apis'].append({
-            'path': '/{}'.format(resource)
-        })
-
-        if type(apis) is list:
-            cls.resources[resource] = apis
+    :param resource: The name of the resource, e.g. "item"
+    :type resource: str
+    :param route: The route to describe.
+    :type route: list
+    :param method: The HTTP method for this route, e.g. "POST"
+    :type method: str
+    :param info: The information representing the API documentation.
+    :type info: dict
+    """
+    # Convert wildcard tokens from :foo form to {foo} form.
+    convRoute = []
+    for token in route:
+        if token[0] == ':':
+            convRoute.append('{{{}}}'.format(token[1:]))
         else:
-            cls.resources[resource] = [apis]
+            convRoute.append(token)
 
-    @endpoint
-    def GET(self, path, params):
-        """
-        Outputs the API description as a swagger-compliant JSON document.
-        """
-        retVal = {}
-        if path:
-            if path[0] in describe.routes:
-                retVal['apis'] = [{'path': route, 'operations': methods}
-                                  for route, methods
-                                  in describe.routes[path[0]].iteritems()]
-            else:
-                raise RestException('Invalid resource: {}'.format(path[0]))
-            retVal['basePath'] = os.path.dirname(
-                os.path.dirname(cherrypy.url()))
-        else:
-            retVal['basePath'] = cherrypy.url()
-            retVal['apis'] = [{'path': '/{}'.format(resource)}
-                              for resource in describe.discovery]
+    path = '/'.join(['', resource] + convRoute)
 
-        retVal['apiVersion'] = API_VERSION
-        retVal['swaggerVersion'] = '1.2'
+    info = info.copy()
+    info['httpMethod'] = method.upper()
 
-        return retVal
+    if not 'nickname' in info:
+        info['nickname'] = handler.__name__
+
+    # Add the operation to the given route
+    if not path in routes[resource]:
+        routes[resource][path] = []
+
+    routes[resource][path].append(info)
+    discovery.add(resource)

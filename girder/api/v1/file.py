@@ -168,7 +168,7 @@ class File(Resource):
         'summary': 'Download a file.',
         'parameters': [
             describe.param(
-                'fileId', 'The ID of the file.', paramType='path')
+                'id', 'The ID of the file.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),
@@ -187,7 +187,7 @@ class File(Resource):
         'summary': 'Delete a file by ID.',
         'parameters': [
             describe.param(
-                'fileId', 'The ID of the file.', paramType='path')
+                'id', 'The ID of the file.', paramType='path')
         ],
         'errorResponses': [
             describe.errorResponse('ID was invalid.'),
