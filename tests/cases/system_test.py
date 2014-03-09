@@ -21,7 +21,7 @@ import json
 
 from .. import base
 
-from girder.api.v1.api_docs import API_VERSION
+from girder.api.describe import API_VERSION
 from girder.constants import AccessType, SettingKey
 
 
