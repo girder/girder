@@ -18,6 +18,7 @@
 ###############################################################################
 
 from .. import describe
+from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
@@ -62,25 +63,16 @@ class File(Resource):
             return upload
         else:
             return self.model('upload').finalizeUpload(upload)
-    initUpload.description = {
-        'responseClass': 'Upload',
-        'summary': 'Start a new upload.',
-        'parameters': [
-            describe.param(
-                'parentType', "Type being uploaded into, either 'folder' or "
-                "'item'."),
-            describe.param('parentId', "The ID of the parent."),
-            describe.param('name', "Name of the file being uploaded."),
-            describe.param('size', "Size in bytes of the file.",
-                           dataType='integer'),
-            describe.param('mimeType', "The MIME type of the file.",
-                           required=False)
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse('Write access was denied on the parent', 403)
-        ]
-    }
+    initUpload.description = (
+        Description('Start a new upload.')
+        .responseClass('Upload')
+        .param('parentType', 'Type being uploaded into (folder or item).')
+        .param('parentId', 'The ID of the parent.')
+        .param('name', 'Name of the file being uploaded.')
+        .param('size', 'Size in bytes of the file.', dataType='integer')
+        .param('mimeType', 'The MIME type of the file.', required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent folder.', 403))
 
     def requestOffset(self, params):
         """
@@ -96,16 +88,11 @@ class File(Resource):
         self.model('upload').save(upload)
 
         return {'offset': offset}
-    requestOffset.description = {
-        'summary': 'Request required offset before resuming an upload.',
-        'parameters': [
-            describe.param('uploadId', 'The ID of the upload record.')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid, or the offset did not match'
-                                   ' the server record.')
-        ]
-    }
+    requestOffset.description = (
+        Description('Request required offset before resuming an upload.')
+        .param('uploadId', 'The ID of the upload record.')
+        .errorResponse("""The ID was invalid, or the offset did not match the
+                       server's record."""))
 
     def readChunk(self, params):
         """
@@ -136,21 +123,13 @@ class File(Resource):
                 % (upload['received'], offset))
 
         return self.model('upload').handleChunk(upload, params['chunk'].file)
-    readChunk.description = {
-        'summary': 'Upload a chunk of a file with multipart/form-data.',
-        'parameters': [
-            describe.param('uploadId', 'The ID of the upload record.'),
-            describe.param('offset', 'Offset of the chunk in the file.',
-                           dataType='integer'),
-            describe.param('chunk', 'The actual bytes of the chunk.',
-                           dataType='byte')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'You are not the same user who initiated the upload.', 403)
-        ]
-    }
+    readChunk.description = (
+        Description('Upload a chunk of a file with multipart/form-data.')
+        .param('uploadId', 'The ID of the upload record.')
+        .param('offset', 'Offset of the chunk in the file.', dataType='integer')
+        .param('chunk', 'The actual bytes of the chunk.', dataType='byte')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You are not the user who initiated the upload.', 403))
 
     @loadmodel(map={'id': 'file'}, model='file')
     def download(self, file, params, name=None):
@@ -164,18 +143,11 @@ class File(Resource):
         self.model('item').load(id=file['itemId'], user=user,
                                 level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
-    download.description = {
-        'summary': 'Download a file.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the file.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the containing folder.', 403)
-        ]
-    }
+    download.description = (
+        Description('Download a file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the parent folder.', 403))
 
     @loadmodel(map={'id': 'file'}, model='file')
     def deleteFile(self, file, params):
@@ -183,15 +155,8 @@ class File(Resource):
         self.model('item').load(id=file['itemId'], user=user,
                                 level=AccessType.ADMIN, exc=True)
         self.model('file').remove(file)
-    deleteFile.description = {
-        'summary': 'Delete a file by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the file.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the containing folder.', 403)
-        ]
-    }
+    deleteFile.description = (
+        Description('Delete a file by ID.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied on the parent folder.', 403))

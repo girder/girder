@@ -22,6 +22,7 @@ import json
 import os
 
 from .. import describe
+from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from ...utility import ziputil
@@ -96,37 +97,23 @@ class Folder(Resource):
                         offset=offset, limit=limit, sort=sort)]
         else:
             raise RestException('Invalid search mode.')
-    find.description = {
-        'responseClass': 'Folder',
-        'summary': 'Search for folders by certain properties.',
-        'parameters': [
-            describe.param(
-                'parentType', "Type of the folder's parent: either 'user', "
-                              "'folder', or 'collection' (default='folder').",
-                              required=False),
-            describe.param(
-                'parentId', "The ID of the folder's parent.", required=False),
-            describe.param(
-                'text', "Pass a full text search query.", required=False),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the folder list by (default=name)",
-                required=False),
-            describe.param(
-                'sortdir', "1 for ascending, -1 for descending (default=1)",
-                required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                'Read access was denied on the parent resource.', 403)
-        ]
-    }
+    find.description = (
+        Description('Search for folders by certain properties.')
+        .responseClass('Folder')
+        .param('parentType', """Type of the folder's parent: either user,
+               folder, or collection (default='folder').""", required=False)
+        .param('parentId', "The ID of the folder's parent.", required=False)
+        .param('text', 'Pass to perform a text search.', required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the folder list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent resource.', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):
@@ -147,18 +134,11 @@ class Folder(Resource):
 
             yield zip.footer()
         return stream
-    downloadFolder.description = {
-        'summary': 'Download an entire folder as a zip archive.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the folder.', 403)
-        ]
-    }
+    downloadFolder.description = (
+        Description('Download an entire folder as a zip archive.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the folder.', 403))
 
     def _downloadFolder(self, folder, zip, user, path=''):
         """
@@ -189,24 +169,16 @@ class Folder(Resource):
         """
         pass
         # TODO implement updating of a folder
-    updateFolder.description = {
-        'summary': 'Update a folder by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path'),
-            describe.param('name', "Name of the folder."),
-            describe.param('description', "Description of the folder.",
-                           required=False),
-            describe.param(
-                'public', "If the folder should be public or private.",
-                required=False, dataType='boolean')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Write access was denied for the folder.', 403)
-        ]
-    }
+    updateFolder.description = (
+        Description('Update a folder by ID.')
+        .responseClass('Folder')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .param('name', 'Name of the folder.')
+        .param('description', 'Description for the folder.', required=False)
+        .param('public', "Whether the folder should be public or private.",
+               required=False, dataType='boolean')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the folder.', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
@@ -221,22 +193,13 @@ class Folder(Resource):
                 folder, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
-    updateFolderAccess.description = {
-        'summary': 'Update the access control list for a folder.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path'),
-            describe.param(
-                'access', 'The JSON-encoded access control list.'),
-            describe.param(
-                'public', 'Public access flag.', dataType='bool')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the folder.', 403)
-        ]
-    }
+    updateFolderAccess.description = (
+        Description('Update the access control list for a folder.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .param('access', 'The JSON-encoded access control list.')
+        .param('public', 'Public read access flag.', dataType='bool')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the folder.', 403))
 
     def createFolder(self, params):
         """
@@ -282,49 +245,31 @@ class Folder(Resource):
             # TODO set appropriate top-level community folder permissions
             pass
         return self._filter(folder, user)
-    createFolder.description = {
-        'responseClass': 'Folder',
-        'summary': 'Create a new folder.',
-        'parameters': [
-            describe.param(
-                'parentType', "Type of the folder's parent: either 'user', "
-                "'folder', or 'collection' (default='folder').",
-                required=False),
-            describe.param('parentId', "The ID of the folder's parent."),
-            describe.param('name', "Name of the folder."),
-            describe.param('description', "Description of the folder.",
-                           required=False),
-            describe.param(
-                'public', "If the folder should be public or private. By "
-                "default, inherits the value from parent folder, or in the "
-                " case of user or collection parentType, defaults to False.",
-                required=False, dataType='boolean')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse('Write access was denied on the parent', 403)
-        ]
-    }
+    createFolder.description = (
+        Description('Create a new folder.')
+        .responseClass('Folder')
+        .param('parentType', """Type of the folder's parent: either user,
+               folder', or collection (default='folder').""", required=False)
+        .param('parentId', "The ID of the folder's parent.")
+        .param('name', "Name of the folder.")
+        .param('description', "Description for the folder.", required=False)
+        .param('public', """Wheter the folder should be public or private. By
+               default, inherits the value from parent folder, or in the
+               case of user or collection parentType, defaults to False.""",
+               required=False, dataType='boolean')
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def getFolder(self, folder, params):
-        """
-        Get a folder by ID.
-        """
+        """Get a folder by ID."""
         return self._filter(folder, self.getCurrentUser())
-    getFolder.description = {
-        'responseClass': 'Folder',
-        'summary': 'Get a folder by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the folder.', 403)
-        ]
-    }
+    getFolder.description = (
+        Description('Get a folder by ID.')
+        .responseClass('Folder')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the folder.', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def getFolderAccess(self, folder, params):
@@ -332,19 +277,12 @@ class Folder(Resource):
         Get an access list for a folder.
         """
         return self.model('folder').getFullAccessList(folder)
-    getFolderAccess.description = {
-        'responseClass': 'Folder',
-        'summary': 'Get the access control list for a folder.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the folder.', 403)
-        ]
-    }
+    getFolderAccess.description = (
+        Description('Get the access control list for a folder.')
+        .responseClass('Folder')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the folder.', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def deleteFolder(self, folder, params):
@@ -353,15 +291,8 @@ class Folder(Resource):
         """
         self.model('folder').remove(folder)
         return {'message': 'Deleted folder %s.' % folder['name']}
-    deleteFolder.description = {
-        'summary': 'Delete a folder by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the folder.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the folder.', 403)
-        ]
-    }
+    deleteFolder.description = (
+        Description('Delete a folder by ID.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the folder.', 403))
