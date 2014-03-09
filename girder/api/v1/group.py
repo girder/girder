@@ -18,6 +18,7 @@
 ###############################################################################
 
 from .. import describe
+from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
 from ...constants import AccessType
@@ -92,29 +93,19 @@ class Group(Resource):
 
         return [self._filter(group) for group in self.model('group').list(
             user=user, offset=offset, limit=limit, sort=sort)]
-    find.description = {
-        'summary': 'Search for groups or list all groups.',
-        'parameters': [
-            describe.param(
-                'text', "Pass this to perform a full-text search for groups.",
-                required=False),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the group list by (default=name)",
-                required=False),
-            describe.param(
-                'sortdir', "1 for ascending, -1 for descending (default=1)",
-                required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse()
-        ]
-    }
+    find.description = (
+        Description('Search for groups or list all groups.')
+        .param('text', "Pass this to perform a full-text search for groups.",
+               required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the group list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse())
 
     def createGroup(self, params):
         """
@@ -139,94 +130,58 @@ class Group(Resource):
             name=name, creator=user, description=description, public=public)
 
         return self._filter(group)
-    createGroup.description = {
-        'responseClass': 'Group',
-        'summary': 'Create a new group.',
-        'notes': 'Must be logged in.',
-        'parameters': [
-            describe.param('name', "Name of the group, must be unique."),
-            describe.param('description', "Description of the group.",
-                           required=False),
-            describe.param(
-                'public', "If the group should be public or private. By "
-                "default, it will be private.",
-                required=False, dataType='boolean')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse('Write access was denied on the parent', 403)
-        ]
-    }
+    createGroup.description = (
+        Description('Create a new group.')
+        .responseClass('Group')
+        .notes('Must be logged in.')
+        .param('name', 'Unique name for the group.')
+        .param('description', 'Description of the group.', required=False)
+        .param('public', """Whether the group should be public or private. The
+               default is private.""", required=False, dataType='boolean')
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroup(self, group, params):
         return self._filter(group)
-    getGroup.description = {
-        'responseClass': 'Group',
-        'summary': 'Get a group by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the group.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the group.', 403)
-        ]
-    }
+    getGroup.description = (
+        Description('Get a group by ID.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroupAccess(self, group, params):
         return self._filter(group, accessList=True, requests=True)
-    getGroupAccess.description = {
-        'responseClass': 'Group',
-        'summary': 'Get the access control list for a group.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse('Read access was denied for the group.', 403)
-        ]
-    }
+    getGroupAccess.description = (
+        Description('Get the access control list for a group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroupInvitations(self, group, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
         return self.model('group').getInvites(group, limit, offset, sort)
-    getGroupInvitations.description = {
-        'responseClass': 'Group',
-        'summary': 'Show outstanding invitations for a group.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the group.', paramType='path'),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the invitee list by (default=lastName)",
-                required=False),
-            describe.param(
-                'sortdir', "1 for ascending, -1 for descending (default=1)",
-                required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                'Read access was denied for the group.', 403)
-        ]
-    }
+    getGroupInvitations.description = (
+        Description('Show outstanding invitations for a group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the invitee list by (default=lastName)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse()
+        .errorResponse('Read access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
     def updateGroup(self, group, params):
-        """
-        Update a group.
-
-        :returns: The updated group document.
-        """
         user = self.getCurrentUser()
 
         public = params.get('public', 'false').lower() == 'true'
@@ -238,26 +193,15 @@ class Group(Resource):
 
         group = self.model('group').updateGroup(group)
         return self._filter(group)
-    updateGroup.description = {
-        'summary': 'Update a group by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the group.', paramType='path'),
-            describe.param(
-                'name', 'The name to set on the group.', required=False),
-            describe.param(
-                'description', 'The description to set on the group.',
-                required=False),
-            describe.param(
-                'public', 'Whether group should be publicly visible',
-                dataType='boolean', required=False)
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                'Write access was denied for the group.', 403)
-        ]
-    }
+    updateGroup.description = (
+        Description('Update a group by ID.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('name', 'The name to set on the group.', required=False)
+        .param('description', 'Description for the group.', required=False)
+        .param('public', 'Whether the group should be publicly visible',
+               dataType='boolean', required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def joinGroup(self, group, params):
@@ -274,19 +218,13 @@ class Group(Resource):
         return self._filter(
             self.model('group').joinGroup(group, self.getCurrentUser()),
             accessList=True, requests=True)
-    joinGroup.description = {
-        'responseClass': 'Group',
-        'summary': 'Request to join a group, or accept an invitation to join.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'You were not invited to this group, or do not have '
-                'read access to it.', 403)
-        ]
-    }
+    joinGroup.description = (
+        Description('Request to join a group, or accept an invitation to join.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You were not invited to this group, or do not have '
+                       'read access to it.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def listMembers(self, group, params):
@@ -299,29 +237,19 @@ class Group(Resource):
 
         return [g for g in self.model('group').listMembers(
             group, offset=offset, limit=limit, sort=sort)]
-    listMembers.description = {
-        'summary': 'List members of a group.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the group.', paramType='path'),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the member list by (default=lastName)",
-                required=False),
-            describe.param(
-                'sortdir', "1 for ascending, -1 for descending (default=1)",
-                required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse('Read access was denied for the group.', 403)
-        ]
-    }
+    listMembers.description = (
+        Description('List members of a group.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the member list by (default=lastName)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
     def inviteToGroup(self, group, params):
@@ -338,57 +266,39 @@ class Group(Resource):
         self.model('group').inviteUser(group, userToInvite, level)
 
         return self._filter(group, accessList=True, requests=True)
-    inviteToGroup.description = {
-        'responseClass': 'Group',
-        'summary': "Invite a user to join a group, or accept a user's request "
-                   " to join.",
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path'),
-            describe.param('userId', 'The ID of the user to invite or accept.'),
-            describe.param('level', 'The access level the user will be given '
-                           'when they accept the invitation. Defaults to read '
-                           'access (0).', required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                'Write access was denied for the group.', 403)
-        ]
-    }
+    inviteToGroup.description = (
+        Description("Invite a user to join a group, or accept a user's request "
+                    " to join.")
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to invite or accept.')
+        .param('level', """The access level the user will be given when they
+               accept the invitation. Defaults to read access (0).""",
+               required=False, dataType='int')
+        .errorResponse()
+        .errorResponse('Write access was denied for the group.', 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def promoteToModerator(self, group, params):
         return self._promote(group, params, AccessType.WRITE)
-    promoteToModerator.description = {
-        'responseClass': 'Group',
-        'summary': 'Promote a member to be a moderator of the group.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path'),
-            describe.param('userId', 'The ID of the user to promote.')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                "You don't have permission to promote users.", 403)
-        ]
-    }
+    promoteToModerator.description = (
+        Description('Promote a member to be a moderator of the group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to promote.')
+        .errorResponse('ID was invalid.')
+        .errorResponse("You don't have permission to promote users.", 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def promoteToAdmin(self, group, params):
         return self._promote(group, params, AccessType.ADMIN)
-    promoteToAdmin.description = {
-        'responseClass': 'Group',
-        'summary': 'Promote a member to be an administrator of the group.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path'),
-            describe.param('userId', 'The ID of the user to promote.')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                "You don't have permission to promote users.", 403)
-        ]
-    }
+    promoteToAdmin.description = (
+        Description('Promote a member to be an administrator of the group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to promote.')
+        .errorResponse('ID was invalid.')
+        .errorResponse("You don't have permission to promote users.", 403))
 
     def _promote(self, group, params, level):
         """
@@ -428,19 +338,13 @@ class Group(Resource):
         group = self.model('group').setUserAccess(
             group, userToDemote, level=AccessType.READ, save=True)
         return self._filter(group, accessList=True, requests=True)
-    demote.description = {
-        'responseClass': 'Group',
-        'summary': 'Demote a user to a normal group member.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path'),
-            describe.param('userId', 'The ID of the user to demote.')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                "You don't have permission to demote users.", 403)
-        ]
-    }
+    demote.description = (
+        Description('Demote a user to a normal group member.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to demote.')
+        .errorResponse()
+        .errorResponse("You don't have permission to demote users.", 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def removeFromGroup(self, group, params):
@@ -478,39 +382,25 @@ class Group(Resource):
         return self._filter(
             self.model('group').removeUser(group, userToRemove), requests=True,
             accessList=True)
-    removeFromGroup.description = {
-        'responseClass': 'Group',
-        'summary': 'Remove a user from a group, or uninvite them.',
-        'notes': 'If the specified user is not yet a member of the group, this'
-                 ' will delete any oustanding invitation or membership request'
-                 ' for the user. Passing no userId parameter will assume that'
-                 ' the current user is removing himself.',
-        'parameters': [
-            describe.param('id', 'The ID of the group.', paramType='path'),
-            describe.param(
-                'userId', 'The ID of the user to remove. If not passed, will '
-                'remove yourself from the group.', required=False)
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                "You don't have permission to remove that user.", 403)
-        ]
-    }
+    removeFromGroup.description = (
+        Description('Remove a user from a group, or uninvite them.')
+        .responseClass('Group')
+        .notes("""If the specified user is not yet a member of the group, this
+               will delete any oustanding invitation or membership request for
+               the user. Passing no userId parameter will assume that the
+               current user is removing himself.""")
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to remove. If not passed, will '
+               'remove yourself from the group.', required=False)
+        .errorResponse()
+        .errorResponse("You don't have permission to remove that user.", 403))
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def deleteGroup(self, group, params):
         self.model('group').remove(group)
         return {'message': 'Deleted the group {}.'.format(group['name'])}
-    deleteGroup.description = {
-        'summary': 'Delete a group by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the group.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the group.', 403)
-        ]
-    }
+    deleteGroup.description = (
+        Description('Delete a group by ID.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the group.', 403))
