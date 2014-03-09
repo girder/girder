@@ -21,7 +21,7 @@ import cherrypy
 import json
 import os
 
-from .docs import folder_docs
+from ..docs import Describe
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from ...utility import ziputil

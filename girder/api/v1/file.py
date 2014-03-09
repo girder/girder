@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from .docs import file_docs
+from ..docs import Describe
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException

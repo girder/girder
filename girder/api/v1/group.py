@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from .docs import group_docs
+from ..docs import Describe
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
 from ...constants import AccessType

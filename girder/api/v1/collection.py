@@ -20,8 +20,9 @@
 import json
 
 from ...constants import AccessType
+from .. import describe
 from ..rest import Resource, RestException, loadmodel
-from .docs import collection_docs
+from ..docs import Describe
 
 
 class Collection(Resource):
@@ -62,6 +63,28 @@ class Collection(Resource):
 
         return [self._filter(c) for c in self.model('collection').list(
                 user=user, offset=offset, limit=limit, sort=sort)]
+    find.description = {
+        'responseClass': 'Collection',
+        'summary': 'List or search for collections.',
+        'parameters': [
+            describe.param(
+                'text',
+                "Pass this to perform a full text search for collections.",
+                required=False),
+            describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='int'),
+            describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='int'),
+            describe.param(
+                'sort', "Field to sort the result list by (default=name)",
+                required=False),
+            describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='int')
+        ]
+    }
 
     def createCollection(self, params):
         """Create a new collection. Requires global admin."""
@@ -77,10 +100,38 @@ class Collection(Resource):
             public=public, creator=user)
 
         return self._filter(collection)
+    createCollection.description = {
+        'responseClass': 'Collection',
+        'summary': 'Create a new collection.',
+        'parameters': [
+            describe.param('name', "Name for the collection. Must be unique."),
+            describe.param('description', "Collection description.",
+                           required=False),
+            describe.param('public', "Public read access flag.",
+                           dataType='boolean')
+        ],
+        'errorResponses': [
+            describe.errorResponse(),
+            describe.errorResponse('You are not an administrator', 403)
+        ]
+    }
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
     def getCollection(self, coll, params):
         return self._filter(coll)
+    getCollection.description = {
+        'responseClass': 'Collection',
+        'summary': 'Get a collection by ID.',
+        'parameters': [
+            describe.param(
+                'id', 'The ID of the collection.', paramType='path')
+        ],
+        'errorResponses': [
+            describe.errorResponse('ID was invalid.'),
+            describe.errorResponse('You do not have permission to see this '
+                                   'collection.', 403)
+        ]
+    }
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def getCollectionAccess(self, coll, params):
@@ -108,8 +159,40 @@ class Collection(Resource):
 
         coll = self.model('collection').updateCollection(coll)
         return self._filter(coll)
+    updateCollection.description = {
+        'responseClass': 'Collection',
+        'summary': 'Edit a collection by ID.',
+        'parameters': [
+            describe.param(
+                'id', 'The ID of the collection.', paramType='path'),
+            describe.param('name', "Name for the collection. Must be unique.",
+                           required=False),
+            describe.param('description', "Collection description.",
+                           required=False),
+            describe.param('public', "Public read access flag.",
+                           dataType='boolean')
+        ],
+        'errorResponses': [
+            describe.errorResponse('ID was invalid.'),
+            describe.errorResponse('You do not have permission to edit this '
+                                   'collection.', 403)
+        ]
+    }
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def deleteCollection(self, coll, params):
         self.model('collection').remove(coll)
         return {'message': 'Deleted collection %s.' % coll['name']}
+    deleteCollection.description = {
+        'responseClass': 'Collection',
+        'summary': 'Delete a collection by ID.',
+        'parameters': [
+            describe.param(
+                'id', 'The ID of the collection.', paramType='path')
+        ],
+        'errorResponses': [
+            describe.errorResponse('ID was invalid.'),
+            describe.errorResponse('You do not have permission to delete this '
+                                   'collection.', 403)
+        ]
+    }

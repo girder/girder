@@ -21,8 +21,7 @@ import json
 
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
-from .api_docs import API_VERSION
-from .docs import system_docs
+from ..docs import Describe, API_VERSION
 from ..rest import Resource, RestException
 
 

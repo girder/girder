@@ -19,7 +19,7 @@
 
 import json
 
-from .docs import folder_docs
+from ..docs import Describe
 from ..rest import Resource as BaseResource, RestException
 from ...constants import AccessType
 from ...utility import ziputil

@@ -23,7 +23,7 @@ import json
 
 from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException, loadmodel
-from .docs import user_docs
+from ..docs import Describe
 
 
 class User(Resource):
