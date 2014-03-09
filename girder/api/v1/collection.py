@@ -22,7 +22,6 @@ import json
 from ...constants import AccessType
 from .. import describe
 from ..rest import Resource, RestException, loadmodel
-from ..docs import Describe
 
 
 class Collection(Resource):

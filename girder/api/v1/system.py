@@ -21,7 +21,8 @@ import json
 
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
-from ..docs import Describe, API_VERSION
+from .. import describe
+from ..docs import API_VERSION
 from ..rest import Resource, RestException
 
 
@@ -53,11 +54,36 @@ class System(Resource):
             value = params['value']
 
         return self.model('setting').set(key=params['key'], value=value)
+    setSetting.description = {
+        'summary': 'Set the value for a system setting.',
+        'notes': 'Must be a system administrator to call this. If the string '
+                 'passed is a valid JSON object, it will be parsed and stored '
+                 'as an object.',
+        'parameters': [
+            describe.param('key', 'The key identifying this setting.'),
+            describe.param('value', 'The value for this setting.')
+        ],
+        'errorResponses': [
+            describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }
 
     def getSetting(self, params):
         self.requireParams(('key',), params)
         self.requireAdmin(self.getCurrentUser())
         return self.model('setting').get(params['key'])
+    getSetting.description = {
+        'summary': 'Get the value of a system setting.',
+        'notes': 'Must be a system administrator to call this.',
+        'parameters': [
+            describe.param('key', 'The key identifying this setting.')
+        ],
+        'errorResponses': [
+            describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }
 
     def getPlugins(self, params):
         """
@@ -70,9 +96,20 @@ class System(Resource):
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED, ())
         }
+    getPlugins.description = {
+        'summary': 'Get the lists of all available and all enabled plugins.',
+        'notes': 'Must be a system administrator to call this.',
+        'errorResponses': [
+            describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }
 
     def getVersion(self, params):
         return {'apiVersion': API_VERSION}
+    getVersion.description = {
+        'summary': 'Get the version information for this server.'
+    }
 
     def enablePlugins(self, params):
         self.requireParams(('plugins',), params)
@@ -83,8 +120,32 @@ class System(Resource):
             raise RestException('Plugins parameter should be a JSON list.')
 
         return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
+    enablePlugins.description = {
+        'responseClass': 'Setting',
+        'summary': 'Set the list of enabled plugins for the system.',
+        'notes': 'Must be a system administrator to call this.',
+        'parameters': [
+            describe.param('plugins', 'JSON array of plugins to enable.')
+        ],
+        'errorResponses': [
+            describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }
 
     def unsetSetting(self, params):
         self.requireParams(('key',), params)
         self.requireAdmin(self.getCurrentUser())
         return self.model('setting').unset(params['key'])
+    unsetSetting.description = {
+        'summary': 'Unset the value for a system setting.',
+        'notes': 'Must be a system administrator to call this. This is used to'
+                 ' explicitly restore a setting to its default value.',
+        'parameters': [
+            describe.param('key', 'The key identifying the setting to unset.')
+        ],
+        'errorResponses': [
+            describe.errorResponse(
+                'You are not a system administrator.', 403)
+        ]
+    }
