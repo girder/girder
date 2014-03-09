@@ -21,6 +21,7 @@ import cherrypy
 import json
 
 from .. import describe
+from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException
 from ...utility import ziputil
@@ -80,52 +81,33 @@ class Item(Resource):
                 folder=folder, limit=limit, offset=offset, sort=sort)]
         else:
             raise RestException('Invalid search mode.')
-    find.description = {
-        'responseClass': 'Item',
-        'summary': 'Search for items by certain properties.',
-        'parameters': [
-            describe.param(
-                'folderId', "Pass this to get the list of all items in a "
-                "single folder.", required=False),
-            describe.param(
-                'text', "Pass this to perform a full text search for items.",
-                required=False),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the item list by (default=name)",
-                required=False),
-            describe.param(
-                'sortdir', "1 for ascending, -1 for descending (default=1)",
-                required=False, dataType='int')
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse(
-                'Read access was denied on the parent folder.', 403)
-        ]
-    }
+    find.description = (
+        Description('Search for an item by certain properties.')
+        .responseClass('Item')
+        .param('folderId', "Pass this to list all items in a folder.",
+               required=False)
+        .param('text', "Pass this to perform a full text search for items.",
+               required=False)
+        .param('limit', "Result set size limit (default=50).",
+               required=False, dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the item list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent folder.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def getItem(self, item, params):
         return self._filter(item)
-    getItem.description = {
-        'responseClass': 'Item',
-        'summary': 'Get an item by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the item.', 403)
-        ]
-    }
+    getItem.description = (
+        Description('Get an item by ID.')
+        .responseClass('Item')
+        .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the item.', 403))
 
     def createItem(self, params):
         """
@@ -149,21 +131,14 @@ class Item(Resource):
             folder=folder, name=name, creator=user, description=description)
 
         return self._filter(item)
-    createItem.description = {
-        'responseClass': 'Item',
-        'summary': 'Create a new item.',
-        'parameters': [
-            describe.param('folderId', "The ID of the parent folder."),
-            describe.param('name', "Name for the item."),
-            describe.param('description', "Description for the item.",
-                           required=False)
-        ],
-        'errorResponses': [
-            describe.errorResponse(),
-            describe.errorResponse('Write access was denied on the parent '
-                                   'folder.', 403)
-        ]
-    }
+    createItem.description = (
+        Description('Create a new item.')
+        .responseClass('Item')
+        .param('folderId', 'The ID of the parent folder.')
+        .param('name', 'Name for the item.')
+        .param('description', "Description for the item.", required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent folder.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def updateItem(self, item, params):
@@ -174,23 +149,14 @@ class Item(Resource):
 
         item = self.model('item').updateItem(item)
         return self._filter(item)
-    updateItem.description = {
-        'responseClass': 'Item',
-        'summary': 'Edit an item by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path'),
-            describe.param('name', "Name for the item.",
-                           required=False),
-            describe.param('description', "Item description.",
-                           required=False),
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Write access was denied for the item.', 403)
-        ]
-    }
+    updateItem.description = (
+        Description('Edit an item by ID.')
+        .responseClass('Item')
+        .param('id', 'The ID of the item.', paramType='path')
+        .param('name', 'Name for the item.', required=False)
+        .param('description', 'Description for the item', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the item.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def setMetadata(self, item, params):
@@ -200,27 +166,19 @@ class Item(Resource):
             raise RestException('Invalid JSON passed in request body.')
 
         return self.model('item').setMetadata(item, metadata)
-    setMetadata.description = {
-        'responseClass': 'Item',
-        'summary': 'Set metadata on an item',
-        'notes': 'Set metadata fields to null in order to delete them.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path'),
-            describe.param(
-                'body', 'A JSON object containing the metadata keys to add',
-                paramType='body')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Write access was denied for the item.', 403)
-        ]
-    }
+    setMetadata.description = (
+        Description('Set metadata fields on an item.')
+        .responseClass('Item')
+        .notes('Set metadata fields to null in order to delete them.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .param('body', 'A JSON object containing the metadata keys to add',
+               paramType='body')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the item.', 403))
 
     def _downloadMultifileItem(self, item, user):
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = \
+        cherrypy.response.headers['Content-Disposition'] =\
             'attachment; filename="{}{}"'.format(item['name'], '.zip')
 
         def stream():
@@ -239,28 +197,18 @@ class Item(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
         return [file for file in self.model('item').childFiles(
                 item=item, limit=limit, offset=offset, sort=sort)]
-    getFiles.description = {
-        'responseClass': 'File',
-        'summary': 'Get the files associated with an item by its ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path'),
-            describe.param(
-                'limit', "Result set size limit (default=50).", required=False,
-                dataType='int'),
-            describe.param(
-                'offset', "Offset into result set (default=0).", required=False,
-                dataType='int'),
-            describe.param(
-                'sort', "Field to sort the result list by (default=name)",
-                required=False)
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the item.', 403)
-        ]
-    }
+    getFiles.description = (
+        Description('Get the files within an item.')
+        .responseClass('File')
+        .param('id', 'The ID of the item.', paramType='path')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the result list by (default=name)",
+               required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the item.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def download(self, item, params):
@@ -277,18 +225,11 @@ class Item(Resource):
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
-    download.description = {
-        'summary': 'Download an item',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Read access was denied for the item.', 403)
-        ]
-    }
+    download.description = (
+        Description('Download the contents of an item.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the item.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.ADMIN)
     def deleteItem(self, item, params):
@@ -297,15 +238,8 @@ class Item(Resource):
         """
         self.model('item').remove(item)
         return {'message': 'Deleted item {}.'.format(item['name'])}
-    deleteItem.description = {
-        'summary': 'Delete an item by ID.',
-        'parameters': [
-            describe.param(
-                'id', 'The ID of the item.', paramType='path')
-        ],
-        'errorResponses': [
-            describe.errorResponse('ID was invalid.'),
-            describe.errorResponse(
-                'Admin access was denied for the item.', 403)
-        ]
-    }
+    deleteItem.description = (
+        Description('Delete an item by ID.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the item.', 403))

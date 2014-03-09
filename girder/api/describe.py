@@ -33,33 +33,68 @@ major version.
 API_VERSION = "1.0.0"
 
 
-def param(name, description, paramType='query', dataType='string',
-          required=True):
+class Description(object):
     """
-    This helper will build a parameter declaration for you. It has the most
-    common options as defaults, so you won't have to repeat yourself as much
-    when declaring the APIs.
+    This class provides convenient chainable semantics to allow api route
+    handlers to describe themselves to the documentation. A route handler
+    function can set a description property on itself to an instance of this
+    class in order to describe itself.
     """
-    return {
-        'name': name,
-        'description': description,
-        'paramType': paramType,
-        'dataType': dataType,
-        'allowMultiple': False,
-        'required': required
-    }
+    def __init__(self, summary):
+        self._summary = summary
+        self._params = []
+        self._errorResponses = []
+        self._responseClass = None
+        self._notes = None
 
+    def asDict(self):
+        """
+        Returns this description object as an appropriately formatted dict
+        """
+        return {
+            'summary': self._summary,
+            'notes': self._notes,
+            'parameters': self._params,
+            'errorResponses': self._errorResponses,
+            'responseClass': self._responseClass
+        }
 
-def errorResponse(reason='A parameter was invalid.', code=400):
-    """
-    This helper will build an errorResponse declaration for you. Most
-    endpoints will be able to use the default parameter values for one of
-    their responses.
-    """
-    return {
-        'message': reason,
-        'code': code
-    }
+    def responseClass(self, obj):
+        self._responseClass = obj
+        return self
+
+    def param(self, name, description, paramType='query', dataType='string',
+              required=True):
+        """
+        This helper will build a parameter declaration for you. It has the most
+        common options as defaults, so you won't have to repeat yourself as much
+        when declaring the APIs.
+        """
+        self._params.append({
+            'name': name,
+            'description': description,
+            'paramType': paramType,
+            'dataType': dataType,
+            'allowMultiple': False,
+            'required': required
+        })
+        return self
+
+    def notes(self, notes):
+        self._notes = notes
+        return self
+
+    def errorResponse(self, reason='A parameter was invalid.', code=400):
+        """
+        This helper will build an errorResponse declaration for you. Many
+        endpoints will be able to use the default parameter values for one of
+        their responses.
+        """
+        self._errorResponses.append({
+            'message': reason,
+            'code': code
+        })
+        return self
 
 
 class ApiDocs(object):

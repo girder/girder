@@ -18,9 +18,9 @@
 ###############################################################################
 
 from . import describe
-from v1 import assetstore, file, collection, folder, group, item, resource,\
-    system, user
-
+#from v1 import assetstore, file, collection, folder, group, item, resource,\
+#    system, user
+from v1 import item
 
 class ApiDocs():
     exposed = True
@@ -41,7 +41,7 @@ def _addV1ToNode(node):
     node.v1 = describe.ApiDocs()
     node.v1.describe = describe.Describe()
 
-    node.v1.assetstore = assetstore.Assetstore()
+    """node.v1.assetstore = assetstore.Assetstore()
     node.v1.collection = collection.Collection()
     node.v1.file = file.File()
     node.v1.folder = folder.Folder()
@@ -50,5 +50,6 @@ def _addV1ToNode(node):
     node.v1.resource = resource.Resource()
     node.v1.system = system.System()
     node.v1.user = user.User()
-
+    """
+    node.v1.item = item.Item()
     return node

@@ -214,7 +214,7 @@ class Resource(ModelImporter):
         if hasattr(handler, 'description'):
             docs.addRouteDocs(
                 resource=resourceName, route=route, method=method,
-                info=handler.description, handler=handler)
+                info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resourceName] + list(route))
             print TerminalColor.warning(
