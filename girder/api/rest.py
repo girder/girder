@@ -25,12 +25,14 @@ import sys
 import traceback
 import types
 
+from . import describe
 from girder import events, logger
 from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException,\
     AccessControlledModel
 from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId, InvalidId
+
 
 _importer = ModelImporter()
 
@@ -203,6 +205,13 @@ class Resource(ModelImporter):
                 'delete': []
             }
         self._routes[method.lower()].append((route, handler))
+
+        # Now handle the api doc if the handler has any attached
+        if hasattr(handler, 'description'):
+            describe.addRoute(
+                resource=handler.im_class.__module__.rsplit('.', 1)[-1],
+                route=route, method=method, info=handler.description,
+                handler=handler)
 
     def handleRoute(self, method, path, params):
         """

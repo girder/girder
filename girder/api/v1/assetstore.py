@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from .docs import assetstore_docs
+from .. import describe
 from ..rest import Resource, RestException
 from girder.constants import AssetstoreType
 
@@ -44,6 +44,27 @@ class Assetstore(Resource):
 
         return self.model('assetstore').list(
             offset=offset, limit=limit, sort=sort)
+    find.description = {
+        'summary': 'List assetstores.',
+        'parameters': [
+            describe.param(
+                'limit', "Result set size limit (default=50).", required=False,
+                dataType='integer'),
+            describe.param(
+                'offset', "Offset into result set (default=0).", required=False,
+                dataType='integer'),
+            describe.param(
+                'sort', "Field to sort the assetstore list by (default=name)",
+                required=False),
+            describe.param(
+                'sortdir', "1 for ascending, -1 for descending (default=1)",
+                required=False, dataType='integer')
+        ],
+        'errorResponses': [
+            describe.errorResponse(),
+            describe.errorResponse('You are not an administrator.', 403)
+        ]
+    }
 
     def createAssetstore(self, params):
         """Create a new assetstore."""
@@ -65,3 +86,17 @@ class Assetstore(Resource):
                 name=params['name'])
         else:
             raise RestException('Invalid type parameter')
+    createAssetstore.description = {
+        'responseClass': 'Assetstore',
+        'summary': 'Create a new assetstore.',
+        'notes': 'You must be an administrator to call this.',
+        'parameters': [
+            describe.param('name', "Unique name for the assetstore."),
+            describe.param('type', "Type of the assetstore.",
+                           dataType='integer')
+        ],
+        'errorResponses': [
+            describe.errorResponse(),
+            describe.errorResponse('You are not an administrator.', 403)
+        ]
+    }

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import cherrypy
 import os
 
 from girder.constants import ROOT_DIR
-
-from ..rest import Resource, RestException, endpoint
+from . import describe
+from .rest import Resource, RestException, endpoint
 
 """
 Whenever we add new return values or new options we should increment the
@@ -43,43 +43,9 @@ class ApiDocs(object):
 
 
 class Describe(Resource):
-    discovery = {
-        'apis': []
-        }
-    resources = {}
-    models = {}
 
     @classmethod
-    def param(cls, name, description, paramType='query', dataType='string',
-              required=True):
-        """
-        This helper will build a parameter declaration for you. It has the most
-        common options as defaults, so you won't have to repeat yourself as much
-        when declaring the APIs.
-        """
-        return {
-            'name': name,
-            'description': description,
-            'paramType': paramType,
-            'dataType': dataType,
-            'allowMultiple': False,
-            'required': required
-            }
-
-    @classmethod
-    def errorResponse(cls, reason='A parameter was invalid.', code=400):
-        """
-        This helper will build an errorResponse declaration for you. Most
-        endpoints will be able to use the default parameter values for one of
-        their responses.
-        """
-        return {
-            'message': reason,
-            'code': code
-            }
-
-    @classmethod
-    def declareApi(cls, resource, apis):
+    def addRouteDocs(cls, resource, apis):
         """
         Rest modules should call this to document themselves. The specification
         can be found at:
@@ -90,8 +56,8 @@ class Describe(Resource):
         :type apis: list or dict
         """
         cls.discovery['apis'].append({
-            'path': '/%s' % resource
-            })
+            'path': '/{}'.format(resource)
+        })
 
         if type(apis) is list:
             cls.resources[resource] = apis
@@ -105,16 +71,18 @@ class Describe(Resource):
         """
         retVal = {}
         if path:
-            resources = self.__class__.resources
-            if path[0] in resources:
-                retVal['apis'] = resources[path[0]]
+            if path[0] in describe.routes:
+                retVal['apis'] = [{'path': route, 'operations': methods}
+                                  for route, methods
+                                  in describe.routes[path[0]].iteritems()]
             else:
-                raise RestException('Invalid resource name "%s"' % path[0])
+                raise RestException('Invalid resource: {}'.format(path[0]))
             retVal['basePath'] = os.path.dirname(
                 os.path.dirname(cherrypy.url()))
         else:
             retVal['basePath'] = cherrypy.url()
-            retVal['apis'] = self.__class__.discovery['apis']
+            retVal['apis'] = [{'path': '/{}'.format(resource)}
+                              for resource in describe.discovery]
 
         retVal['apiVersion'] = API_VERSION
         retVal['swaggerVersion'] = '1.2'
