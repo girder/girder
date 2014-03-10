@@ -182,7 +182,7 @@ class RestException(Exception):
 class Resource(ModelImporter):
     exposed = True
 
-    def route(self, method, route, handler, nodoc=False):
+    def route(self, method, route, handler, nodoc=False, resource=None):
         """
         Define a route for your REST resource.
 
@@ -210,13 +210,14 @@ class Resource(ModelImporter):
         self._routes[method.lower()].append((route, handler))
 
         # Now handle the api doc if the handler has any attached
-        resourceName = handler.im_class.__module__.rsplit('.', 1)[-1]
+        if resource is None:
+            resource = handler.__module__.rsplit('.', 1)[-1]
         if hasattr(handler, 'description'):
             docs.addRouteDocs(
-                resource=resourceName, route=route, method=method,
+                resource=resource, route=route, method=method,
                 info=handler.description.asDict(), handler=handler)
         elif not nodoc:
-            routePath = '/'.join([resourceName] + list(route))
+            routePath = '/'.join([resource] + list(route))
             print TerminalColor.warning(
                 'WARNING: No description docs present for route {} {}'
                 .format(method, routePath))
@@ -264,7 +265,7 @@ class Resource(ModelImporter):
                 # their own responses by calling preventDefault() and
                 # adding a response on the event.
                 routestr = '/'.join((
-                    handler.im_class.__module__.rsplit('.', 1)[-1],
+                    handler.__module__.rsplit('.', 1)[-1],
                     '/'.join(route))).rstrip('/')
                 eventPrefix = '.'.join(('rest', method, routestr))
 
