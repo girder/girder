@@ -30,6 +30,7 @@ class System(Resource):
     The system endpoints are for querying and managing system-wide properties.
     """
     def __init__(self):
+        self.resourceName = 'system'
         self.route('DELETE', ('setting',), self.unsetSetting)
         self.route('GET', ('version',), self.getVersion)
         self.route('GET', ('setting',), self.getSetting)

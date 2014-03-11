@@ -27,6 +27,7 @@ from ..rest import Resource, RestException, loadmodel
 class Collection(Resource):
     """API Endpoint for collections."""
     def __init__(self):
+        self.resourceName = 'collection'
         self.route('DELETE', (':id',), self.deleteCollection)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getCollection)

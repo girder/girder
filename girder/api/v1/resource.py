@@ -30,6 +30,7 @@ class Resource(BaseResource):
     API Endpoints that deal with operations across multiple resource types.
     """
     def __init__(self):
+        self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
 
     def search(self, params):

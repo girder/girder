@@ -29,6 +29,7 @@ class File(Resource):
     them.
     """
     def __init__(self):
+        self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('GET', ('offset',), self.requestOffset)
         self.route('GET', (':id', 'download'), self.download)

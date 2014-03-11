@@ -30,6 +30,7 @@ from ...constants import AccessType
 class Item(Resource):
     """API endpoint for items"""
     def __init__(self):
+        self.resourceName = 'item'
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getItem)

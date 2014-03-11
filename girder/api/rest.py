@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import collections
 import datetime
 import json
 import pymongo
@@ -201,17 +202,16 @@ class Resource(ModelImporter):
         :type nodoc: bool
         """
         if not hasattr(self, '_routes'):
-            self._routes = {
-                'get': [],
-                'post': [],
-                'put': [],
-                'delete': []
-            }
-        self._routes[method.lower()].append((route, handler))
+            self._routes = collections.defaultdict(
+                lambda: collections.defaultdict(list))
+        self._routes[method.lower()][len(route)].append((route, handler))
 
         # Now handle the api doc if the handler has any attached
-        if resource is None:
+        if resource is None and hasattr(self, 'resourceName'):
+            resource = self.resourceName
+        elif resource is None:
             resource = handler.__module__.rsplit('.', 1)[-1]
+
         if hasattr(handler, 'description'):
             docs.addRouteDocs(
                 resource=resource, route=route, method=method,
@@ -257,17 +257,22 @@ class Resource(ModelImporter):
             raise Exception('No routes defined for resource')
 
         method = method.lower()
-        for route, handler in self._routes[method]:
+
+        for route, handler in self._routes[method][len(path)]:
             kwargs = self._matchRoute(path, route)
             if kwargs is not False:
                 kwargs['params'] = params
                 # Add before call for the API method. Listeners can return
                 # their own responses by calling preventDefault() and
                 # adding a response on the event.
-                routestr = '/'.join((
-                    handler.__module__.rsplit('.', 1)[-1],
-                    '/'.join(route))).rstrip('/')
-                eventPrefix = '.'.join(('rest', method, routestr))
+
+                if hasattr(self, 'resourceName'):
+                    resource = self.resourceName
+                else:
+                    resource = handler.__module__.rsplit('.', 1)[-1]
+
+                routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
+                eventPrefix = '.'.join(('rest', method, routeStr))
 
                 event = events.trigger('.'.join((eventPrefix, 'before')),
                                        kwargs)
@@ -288,8 +293,7 @@ class Resource(ModelImporter):
                 return val
 
         raise RestException('No matching route for "{} {}"'.format(
-            method, '/'.join(path)
-        ))
+            method.upper(), '/'.join(path)))
 
     def _matchRoute(self, path, route):
         """
@@ -300,13 +304,10 @@ class Resource(ModelImporter):
         wildcard tokens of the route.
 
         :param path: The requested path.
-        :type path: str
+        :type path: list
         :param route: The route specification to match against.
         :type route: list
         """
-        if len(path) != len(route):
-            return False
-
         wildcards = {}
         for i in range(0, len(route)):
             if route[i][0] == ':':  # Wildcard token

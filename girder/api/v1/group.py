@@ -26,6 +26,7 @@ from ...constants import AccessType
 class Group(Resource):
     """API Endpoint for groups."""
     def __init__(self):
+        self.resourceName = 'group'
         self.route('DELETE', (':id',), self.deleteGroup)
         self.route('DELETE', (':id', 'member'), self.removeFromGroup)
         self.route('DELETE', (':id', 'moderator'), self.demote)
