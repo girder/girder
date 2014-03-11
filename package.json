@@ -18,7 +18,7 @@
     "jquery-browser": "~1.10",
     "jshint": "1.0.0",
     "requirejs": "2.1.10",
-    "swagger-ui": "2.0.2",
+    "swagger-ui": "2.0.13",
     "underscore": "~1.5"
   },
   "devDependencies": {
