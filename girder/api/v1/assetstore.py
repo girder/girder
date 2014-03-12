@@ -17,11 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import os
-import pymongo
-
-from .docs import assetstore_docs
+from .. import describe
+from ..describe import Description
 from ..rest import Resource, RestException
 from girder.constants import AssetstoreType
 
@@ -30,6 +27,9 @@ class Assetstore(Resource):
     """
     API Endpoint for managing assetstores. Requires admin privileges.
     """
+    def __init__(self):
+        self.route('GET', (), self.find)
+        self.route('POST', (), self.createAssetstore)
 
     def find(self, params):
         """
@@ -40,36 +40,37 @@ class Assetstore(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
+        self.requireAdmin(self.getCurrentUser())
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         return self.model('assetstore').list(
             offset=offset, limit=limit, sort=sort)
+    find.description = (
+        Description('List assetstores.')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='integer')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='integer')
+        .param('sort', "Field to sort the assetstore list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='integer')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403))
 
-    @Resource.endpoint
-    def GET(self, path, params):
+    def createAssetstore(self, params):
+        """Create a new assetstore."""
         self.requireAdmin(self.getCurrentUser())
-
-        if not path:
-            return self.find(params)
-        else:
-            raise Exception('Endpoint not implemented.')
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Create a new assetstore
-        """
-        self.requireAdmin(self.getCurrentUser())
-        self.requireParams(['type', 'name'], params)
+        self.requireParams(('type', 'name'), params)
 
         assetstoreType = int(params['type'])
 
         if assetstoreType == AssetstoreType.FILESYSTEM:
-            self.requireParams(['root'], params)
+            self.requireParams(('root',), params)
             return self.model('assetstore').createFilesystemAssetstore(
                 name=params['name'], root=params['root'])
         elif assetstoreType == AssetstoreType.GRIDFS:
-            self.requireParams(['db'], params)
+            self.requireParams(('db',), params)
             return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:
@@ -77,3 +78,11 @@ class Assetstore(Resource):
                 name=params['name'])
         else:
             raise RestException('Invalid type parameter')
+    createAssetstore.description = (
+        Description('Create a new assetstore.')
+        .responseClass('Assetstore')
+        .notes('You must be an administrator to call this.')
+        .param('name', 'Unique name for the assetstore.')
+        .param('type', 'Type of the assetstore.', dataType='integer')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403))

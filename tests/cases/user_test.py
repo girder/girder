@@ -22,7 +22,7 @@ import json
 
 from .. import base
 
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 
 
 def setUpModule():
@@ -39,9 +39,11 @@ class UserTestCase(base.TestCase):
         self.assertTrue('authToken' in resp.cookie)
         cookieVal = json.loads(resp.cookie['authToken'].value)
         self.assertHasKeys(cookieVal, ['token', 'userId'])
+        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME,
+                                                 default=180))
         self.assertEqual(
             resp.cookie['authToken']['expires'],
-            cherrypy.config['sessions']['cookie_lifetime'] * 3600 * 24)
+            lifetime * 3600 * 24)
 
     def _verifyUserDocument(self, doc, admin=True):
         self.assertHasKeys(
@@ -187,7 +189,7 @@ class UserTestCase(base.TestCase):
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'goodpassword'
-            }
+        }
         user = self.model('user').createUser(**params)
         resp = self.request(path='/user/%s' % user['_id'])
         self._verifyUserDocument(resp.json, admin=False)
@@ -257,7 +259,7 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1
-            })
+        })
         self.assertStatusOk(resp)
 
         # Make sure the limit, order, and offset are respected, and that our

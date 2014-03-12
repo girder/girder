@@ -17,31 +17,37 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
 
 from ...constants import AccessType
-from ..rest import Resource, RestException
-from .docs import collection_docs
+from .. import describe
+from ..describe import Description
+from ..rest import Resource, RestException, loadmodel
 
 
 class Collection(Resource):
     """API Endpoint for collections."""
+    def __init__(self):
+        self.route('DELETE', (':id',), self.deleteCollection)
+        self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getCollection)
+        self.route('GET', (':id', 'access'), self.getCollectionAccess)
+        self.route('POST', (), self.createCollection)
+        self.route('PUT', (':id',), self.updateCollection)
+        self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
 
-    def _filter(self, collection, currentUser):
-        """
-        Helper to filter the collection model.
-        """
+    def _filter(self, collection):
+        """Helper to filter the collection model."""
         filtered = self.filterDocument(
-            collection, allow=['_id', 'name', 'description', 'public',
-                               'created', 'updated', 'size'])
+            collection, allow=('_id', 'name', 'description', 'public',
+                               'created', 'updated', 'size'))
 
         filtered['_accessLevel'] = self.model('collection').getAccessLevel(
-            collection, currentUser)
+            collection, self.getCurrentUser())
 
         return filtered
 
-    def find(self, user, params):
+    def find(self, params):
         """
         Get a list of collections. You can pass a "text" parameter to filter the
         collections by a full text search string.
@@ -52,13 +58,31 @@ class Collection(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
+        user = self.getCurrentUser()
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
-        return [self._filter(c, user) for c in self.model('collection').list(
+        return [self._filter(c) for c in self.model('collection').list(
                 user=user, offset=offset, limit=limit, sort=sort)]
+    find.description = (
+        Description('List or search for collections.')
+        .responseClass('Collection')
+        .param('text', "Pass this to perform a text search for collections.",
+               required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the result list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int'))
 
-    def createCollection(self, user, params):
+    def createCollection(self, params):
+        """Create a new collection. Requires global admin."""
         self.requireParams(['name'], params)
+
+        user = self.getCurrentUser()
+        self.requireAdmin(user)
 
         public = params.get('public', 'false').lower() == 'true'
 
@@ -66,93 +90,68 @@ class Collection(Resource):
             name=params['name'], description=params.get('description'),
             public=public, creator=user)
 
-        return self._filter(collection, user)
+        return self._filter(collection)
+    createCollection.description = (
+        Description('Create a new collection.')
+        .responseClass('Collection')
+        .param('name', 'Name for the collection. Must be unique.')
+        .param('description', 'Collection description.', required=False)
+        .param('public', 'Public read access flag.', dataType='boolean')
+        .errorResponse()
+        .errorResponse('You are not an administrator', 403))
 
-    def updateCollection(self, id, user, params):
-        collection = self.getObjectById(
-            self.model('collection'), id=id, user=user, checkAccess=True,
-            level=AccessType.WRITE)
+    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
+    def getCollection(self, coll, params):
+        return self._filter(coll)
+    getCollection.description = (
+        Description('Get a collection by ID')
+        .responseClass('Collection')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read permission denied on the collection.', 403))
 
-        collection['name'] = params.get('name', collection['name']).strip()
-        collection['description'] = params.get(
-            'description', collection['description']).strip()
+    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
+    def getCollectionAccess(self, coll, params):
+        return self.model('collection').getFullAccessList(coll)
 
-        collection = self.model('collection').updateCollection(collection)
-        return self._filter(collection, user)
+    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
+    def updateCollectionAccess(self, coll, params):
+        self.requireParams(('access',), params)
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        """
-        Delete a collection.
-        """
-        if not path:
-            raise RestException(
-                'Path parameter should be the collection ID to delete.')
+        public = params.get('public', '').lower() == 'true'
+        self.model('collection').setPublic(coll, public)
 
-        user = self.getCurrentUser()
-        collection = self.getObjectById(
-            self.model('collection'), id=path[0], user=user, checkAccess=True,
-            level=AccessType.ADMIN)
+        try:
+            access = json.loads(params['access'])
+            return self.model('collection').setAccessList(
+                coll, access, save=True)
+        except ValueError:
+            raise RestException('The access parameter must be JSON.')
 
-        self.model('collection').remove(collection)
-        return {'message': 'Deleted collection %s.' % collection['name']}
+    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.WRITE)
+    def updateCollection(self, coll, params):
+        coll['name'] = params.get('name', coll['name']).strip()
+        coll['description'] = params.get(
+            'description', coll['description']).strip()
 
-    @Resource.endpoint
-    def GET(self, path, params):
-        user = self.getCurrentUser()
-        if not path:
-            return self.find(user, params)
-        elif len(path) == 1:  # assume it's a collection id
-            return self._filter(self.getObjectById(
-                self.model('collection'), id=path[0], user=user,
-                checkAccess=True), user)
-        elif path[1] == 'access':
-            collection = self.getObjectById(
-                self.model('collection'), id=path[0], checkAccess=True,
-                user=user, level=AccessType.ADMIN)
-            return self.model('collection').getFullAccessList(collection)
-        else:
-            raise RestException('Invalid path for collection GET.')
+        coll = self.model('collection').updateCollection(coll)
+        return self._filter(coll)
+    updateCollection.description = (
+        Description('Edit a collection by ID.')
+        .responseClass('Collection')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .param('name', 'Unique name for the collection.', required=False)
+        .param('description', 'Collection description.', required=False)
+        .param('public', 'Public read access flag.', dataType='boolean')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write permission denied on the collection.', 403))
 
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to create a new collection. Requires global
-        administrative access.
-        """
-        user = self.getCurrentUser()
-        self.requireAdmin(user)
-        return self.createCollection(user, params)
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        """
-        Use this endpoint to edit a collection. Requires admin access
-        to that collection.
-        """
-        user = self.getCurrentUser()
-
-        if not path:
-            raise RestException(
-                'Path parameter should be the collection ID to edit.')
-        elif len(path) == 1:
-            return self.updateCollection(path[0], user, params)
-        elif path[1] == 'access':
-            collection = self.getObjectById(
-                self.model('collection'), id=path[0], user=user,
-                checkAccess=True)
-            self.requireParams(['access'], params)
-            self.model('collection').requireAccess(
-                collection, user, AccessType.ADMIN)
-
-            public = params.get('public', 'false').lower() == 'true'
-            self.model('collection').setPublic(collection, public)
-
-            try:
-                access = json.loads(params['access'])
-                return self.model('collection').setAccessList(
-                    collection, access, save=True)
-            except ValueError:
-                raise RestException('The access parameter must be JSON.')
-        else:
-            raise RestException('Invalid path for collection PUT.')
+    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
+    def deleteCollection(self, coll, params):
+        self.model('collection').remove(coll)
+        return {'message': 'Deleted collection %s.' % coll['name']}
+    deleteCollection.description = (
+        Description('Delete a collection by ID.')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin permission denied on the collection.', 403))

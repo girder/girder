@@ -30,7 +30,7 @@ import urllib
 import uuid
 
 from StringIO import StringIO
-from girder.utility.model_importer import ModelImporter
+from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR
 
@@ -62,15 +62,17 @@ def stopServer():
 
 def dropTestDatabase():
     """
-    Call this to clear all contents from the test database.
+    Call this to clear all contents from the test database. Also forces models
+    to reload.
     """
     from girder.models import getDbConnection
     db_connection = getDbConnection()
+    model_importer._modelInstances = {'core': {}}
     db_connection.drop_database('%s_test' %
                                 cherrypy.config['database']['database'])
 
 
-class TestCase(unittest.TestCase, ModelImporter):
+class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
@@ -192,7 +194,7 @@ class TestCase(unittest.TestCase, ModelImporter):
         cookie = json.dumps({
             'userId': str(user['_id']),
             'token': str(token['_id'])
-            }).replace('"', "\\\"")
+        }).replace('"', "\\\"")
         return 'authToken="%s"' % cookie
 
     def request(self, path='/', method='GET', params={}, user=None,

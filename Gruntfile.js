@@ -106,6 +106,7 @@ module.exports = function (grunt) {
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
                         'clients/web/lib/js/bootstrap.min.js',
+                        'clients/web/lib/js/bootstrap-switch.min.js',
                         'clients/web/lib/js/jquery.jqplot.min.js',
                         'clients/web/lib/js/jqplot.pieRenderer.min.js'
                     ]
@@ -197,6 +198,7 @@ module.exports = function (grunt) {
         });
         var html = fn({
             stylesheets: ['lib/bootstrap/css/bootstrap.min.css',
+                          'lib/bootstrap/css/bootstrap-switch.min.css',
                           'lib/fontello/css/fontello.css',
                           'lib/fontello/css/animation.css',
                           'lib/jqplot/css/jquery.jqplot.min.css',

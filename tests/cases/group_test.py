@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
-
 from .. import base
 from girder.constants import AccessType
 
@@ -311,7 +308,7 @@ class GroupTestCase(base.TestCase):
         # User 1 should be able to invite someone with write access
         params['level'] = AccessType.WRITE
         resp = self.request(
-            path='/group/%s/invitation' % privateGroup['_id'],
+            path='/group/{}/invitation'.format(privateGroup['_id']),
             user=self.users[1], method='POST', params=params)
         self.assertStatusOk(resp)
 
@@ -400,8 +397,8 @@ class GroupTestCase(base.TestCase):
             path='/group/%s' % privateGroup['_id'], user=self.users[0],
             method='DELETE')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], 'Deleted the %s group.'
-                         % privateGroup['name'])
+        self.assertEqual(resp.json['message'], 'Deleted the group {}.'.format(
+            privateGroup['name']))
         privateGroup = self.model('group').load(privateGroup['_id'], force=True)
         self.assertTrue(privateGroup is None)
 

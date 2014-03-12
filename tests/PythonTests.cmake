@@ -24,12 +24,19 @@ endfunction()
 
 function(add_python_test case)
   set(name "server_${case}")
+  set(resource_lock ON)
+
+  foreach(extra_arg ${ARGN})
+    if(extra_arg STREQUAL "NO_LOCK")
+      set(resource_lock OFF)
+    endif()
+  endforeach()
 
   if(PYTHON_COVERAGE)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --append "--rcfile=${py_coverage_rc}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run -p --append "--rcfile=${py_coverage_rc}"
               --source=girder -m unittest -v tests.cases.${case}_test
     )
   else()
@@ -39,10 +46,13 @@ function(add_python_test case)
       COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.cases.${case}_test
     )
   endif()
-  set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
+
+  if(resource_lock)
+    set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
+  endif()
 
   if(PYTHON_COVERAGE)
     set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
-    set_property(TEST py_coverage APPEND PROPERTY DEPENDS ${name})
+    set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
   endif()
 endfunction()
