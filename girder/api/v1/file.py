@@ -17,12 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import os
-import pymongo
-
 from .docs import file_docs
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
 
@@ -32,28 +28,32 @@ class File(Resource):
     API Endpoint for files. Includes utilities for uploading and downloading
     them.
     """
-    def initUpload(self, user, params):
+    def __init__(self):
+        self.route('DELETE', (':id',), self.deleteFile)
+        self.route('GET', ('offset',), self.requestOffset)
+        self.route('GET', (':id', 'download'), self.download)
+        self.route('GET', (':id', 'download', ':name'), self.download)
+        self.route('POST', (), self.initUpload)
+        self.route('POST', ('chunk',), self.readChunk)
+
+    def initUpload(self, params):
         """
         Before any bytes of the actual file are sent, a request should be made
         to initialize the upload. This creates the temporary record of the
         forthcoming upload that will be passed in chunks to the readChunk
         method.
         """
-        self.requireParams(['name', 'parentId', 'parentType', 'size'], params)
+        self.requireParams(('name', 'parentId', 'parentType', 'size'), params)
+        user = self.getCurrentUser()
 
         mimeType = params.get('mimeType', None)
         parentType = params['parentType'].lower()
 
-        if parentType == 'folder':
-            parent = self.getObjectById(
-                self.model('folder'), id=params['parentId'],
-                checkAccess=True, user=user, level=AccessType.WRITE)
-        elif parentType == 'item':
-            parent = self.getObjectById(
-                self.model('item'), user=user, id=params['parentId'],
-                checkAccess=True, level=AccessType.WRITE)
-        else:
-            raise RestException('Set parentType to item or folder.')
+        if not parentType in ('folder', 'item'):
+            raise RestException('The parentType must be "folder" or "item".')
+
+        parent = self.model(parentType).load(id=params['parentId'], user=user,
+                                             level=AccessType.WRITE, exc=True)
 
         upload = self.model('upload').createUpload(
             user=user, name=params['name'], parentType=parentType,
@@ -63,22 +63,22 @@ class File(Resource):
         else:
             return self.model('upload').finalizeUpload(upload)
 
-    def requestOffset(self, user, params):
+    def requestOffset(self, params):
         """
         This should be called when resuming an interrupted upload. It will
         report the offset into the upload that should be used to resume.
         :param uploadId: The _id of the temp upload record being resumed.
         :returns: The offset in bytes that the client should use.
         """
-        self.requireParams(['uploadId'], params)
-        upload = self.getObjectById(self.model('upload'), id=params['uploadId'])
+        self.requireParams(('uploadId',), params)
+        upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
         upload['received'] = offset
         self.model('upload').save(upload)
 
         return {'offset': offset}
 
-    def readChunk(self, user, params):
+    def readChunk(self, params):
         """
         After the temporary upload record has been created (see initUpload),
         the bytes themselves should be passed up in ordered chunks. The user
@@ -92,9 +92,10 @@ class File(Resource):
         :param uploadId: The _id of the temp upload record.
         :param chunk: The blob of data itself.
         """
-        self.requireParams(['offset', 'uploadId', 'chunk'], params)
+        self.requireParams(('offset', 'uploadId', 'chunk'), params)
+        user = self.getCurrentUser()
 
-        upload = self.getObjectById(self.model('upload'), id=params['uploadId'])
+        upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = int(params['offset'])
 
         if upload['userId'] != user['_id']:
@@ -107,60 +108,22 @@ class File(Resource):
 
         return self.model('upload').handleChunk(upload, params['chunk'].file)
 
-    def download(self, user, params, fileId):
+    @loadmodel(map={'id': 'file'}, model='file')
+    def download(self, file, params, name=None):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
         offset = int(params.get('offset', 0))
+        user = self.getCurrentUser()
 
-        file = self.getObjectById(self.model('file'), id=fileId)
-        self.getObjectById(self.model('item'), id=file['itemId'],
-                           checkAccess=True, user=user)  # Access Check
+        self.model('item').load(id=file['itemId'], user=user,
+                                level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
 
-    @Resource.endpoint
-    def GET(self, path, params):
+    @loadmodel(map={'id': 'file'}, model='file')
+    def deleteFile(self, file, params):
         user = self.getCurrentUser()
-
-        if not path:
-            raise RestException('Invalid path format for GET request')
-        elif path[0] == 'offset':
-            return self.requestOffset(user, params)
-        elif len(path) == 1:  # Assume it's an id
-            pass  # TODO get by id
-        elif path[1] == 'download':
-            return self.download(user, params=params, fileId=path[0])
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to upload a new file.
-        """
-        user = self.getCurrentUser()
-
-        if not user:
-            raise AccessException('Must be logged in to upload.')
-
-        if not path:  # POST /file/ means init new upload
-            return self.initUpload(user, params)
-        elif path[0] == 'chunk':  # POST /file/chunk means uploading a chunk
-            return self.readChunk(user, params)
-        else:
-            raise RestException('Invalid path format for POST request')
-
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        """
-        Use this endpoint to delete files.
-        """
-        user = self.getCurrentUser()
-
-        if not path:
-            raise RestException('Invalid path format for DELETE request')
-
-        file = self.getObjectById(self.model('file'), id=path[0])
-        self.getObjectById(self.model('item'), id=file['itemId'], user=user,
-                           checkAccess=True, level=AccessType.ADMIN)  # access
-
+        self.model('item').load(id=file['itemId'], user=user,
+                                level=AccessType.ADMIN, exc=True)
         self.model('file').remove(file)

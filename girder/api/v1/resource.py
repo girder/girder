@@ -17,10 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
-import os
-import pymongo
 
 from .docs import folder_docs
 from ..rest import Resource as BaseResource, RestException
@@ -29,9 +26,13 @@ from ...utility import ziputil
 
 
 class Resource(BaseResource):
-    """API Endpoint for folders."""
+    """
+    API Endpoints that deal with operations across multiple resource types.
+    """
+    def __init__(self):
+        self.route('GET', ('search',), self.search)
 
-    def search(self, user, params):
+    def search(self, params):
         """
         This endpoint can be used to text search against multiple different
         model types at once.
@@ -40,7 +41,8 @@ class Resource(BaseResource):
         :type types: str
         :param limit: The result limit per type. Defaults to 10.
         """
-        self.requireParams(['q', 'types'], params)
+        self.requireParams(('q', 'types'), params)
+        user = self.getCurrentUser()
 
         limit = int(params.get('limit', 10))
 
@@ -78,13 +80,3 @@ class Resource(BaseResource):
                     'login': 1
                 })
         return results
-
-    @BaseResource.endpoint
-    def GET(self, path, params):
-        user = self.getCurrentUser()
-        if not path:
-            raise RestException('Unsupported operation.')
-        elif path[0] == 'search':
-            return self.search(user, params)
-        else:
-            raise RestException('Unsupported operation.')

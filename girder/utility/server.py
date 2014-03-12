@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import cherrypy
+import girder.events
+import os
 
 from girder import constants
+from girder.utility import plugin_utilities, model_importer
 from . import dev_endpoints
 
 
@@ -54,12 +56,12 @@ def setup(test=False):
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'tools.staticdir.root': constants.ROOT_DIR,
             'request.show_tracebacks': test
-            },
+        },
         '/static': {
             'tools.staticdir.on': 'True',
             'tools.staticdir.dir': 'clients/web/static'
-            }
         }
+    }
 
     cherrypy.config.update(appconf)
 
@@ -75,7 +77,14 @@ def setup(test=False):
     api_main.addApiToNode(root)
 
     if cherrypy.config['server']['mode'] is 'development':
-        dev_endpoints.addDevEndpoints(root, appconf)
+        dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
+
+    cherrypy.engine.subscribe('start', girder.events.daemon.start)
+    cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
+
+    plugins = model_importer.ModelImporter().model('setting').get(
+        constants.SettingKey.PLUGINS_ENABLED, default=())
+    plugin_utilities.loadPlugins(plugins, root)
 
     application = cherrypy.tree.mount(root, '/', appconf)
     [application.merge(cfg) for cfg in cfgs]

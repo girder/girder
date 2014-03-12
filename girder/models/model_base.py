@@ -21,6 +21,7 @@ import cherrypy
 import pymongo
 
 from bson.objectid import ObjectId
+from girder import events
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
@@ -147,7 +148,9 @@ class Model(ModelImporter):
 
     def save(self, document, validate=True):
         """
-        Create or update a document in the collection.
+        Create or update a document in the collection. This triggers two
+        events; one prior to validation, and one prior to saving. Either of
+        these events may have their default action prevented.
 
         :param document: The document to save.
         :type document: dict
@@ -155,11 +158,15 @@ class Model(ModelImporter):
         :type validate: bool
         """
         if validate:
-            document = self.validate(document)
+            event = events.trigger('.'.join(('model', self.name, 'validate')),
+                                   document)
+            if not event.defaultPrevented:
+                document = self.validate(document)
 
-        # This assertion will fail if validate() fails to return the document
-        assert type(document) is dict
-        document['_id'] = self.collection.save(document)
+        event = events.trigger('.'.join(('model', self.name, 'save')), document)
+        if not event.defaultPrevented:
+            document['_id'] = self.collection.save(document)
+
         return document
 
     def update(self, query, update):
@@ -187,7 +194,10 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']})
+        event = events.trigger('.'.join(('model', self.name, 'remove')),
+                               document)
+        if not event.defaultPrevented:
+            return self.collection.remove({'_id': document['_id']})
 
     def removeWithQuery(self, query):
         """
@@ -198,9 +208,10 @@ class Model(ModelImporter):
 
         return self.collection.remove(query)
 
-    def load(self, id, objectId=True, fields=None):
+    def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field.
+        Fetch a single object from the databse using its _id field. If the
+        id is not valid, throws an exception.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
@@ -208,11 +219,20 @@ class Model(ModelImporter):
         :type objectId: bool
         :param fields: Fields list to include. Also can be a dict for
                        exclusion. See pymongo docs for how to use this arg.
+        :param exc: Whether to raise a ValidationException if there is no
+                    document with the given id.
+        :type exc: bool
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
             id = ObjectId(id)
-        return self.collection.find_one({'_id': id}, fields=fields)
+        doc = self.collection.find_one({'_id': id}, fields=fields)
+
+        if doc is None and exc is True:
+            raise ValidationException('Invalid {} ID: {}'.format(
+                                      self.name, id), field='_id')
+
+        return doc
 
 
 class AccessControlledModel(Model):
@@ -263,7 +283,7 @@ class AccessControlledModel(Model):
             doc['access'][entity].append({
                 'id': id,
                 'level': level
-                })
+            })
 
         if save:
             doc = self.save(doc, validate=False)
@@ -499,7 +519,7 @@ class AccessControlledModel(Model):
                                   (perm, self.name))
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None):
+             force=False, fields=None, exc=False):
         """
         We override Model.load to also do permission checking.
 
@@ -513,7 +533,7 @@ class AccessControlledModel(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)

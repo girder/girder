@@ -17,10 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
 import os
 import io
+import json
 import shutil
 import zipfile
 

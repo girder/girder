@@ -31,7 +31,8 @@ class File(Model):
     def initialize(self):
         self.name = 'file'
         self.ensureIndices(
-            ['itemId', 'assetstoreId'] + assetstore_utilities.fileIndexFields())
+            ['itemId', 'assetstoreId', 'exts'] +
+            assetstore_utilities.fileIndexFields())
 
     def remove(self, file):
         """
@@ -56,6 +57,8 @@ class File(Model):
     def validate(self, doc):
         if not 'name' in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
+
+        doc['exts'] = doc['name'].split('.')[1:]
 
         return doc
 

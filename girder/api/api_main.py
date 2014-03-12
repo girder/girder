@@ -18,7 +18,7 @@
 ###############################################################################
 
 from v1 import api_docs, assetstore, file, collection, folder, group, item,\
-    resource, user
+    resource, system, user
 
 
 class ApiDocs():
@@ -38,15 +38,16 @@ def addApiToNode(node):
 
 def _addV1ToNode(node):
     node.v1 = api_docs.ApiDocs()
-    node.v1.describe = api_docs.Describe()
+    #node.v1.describe = api_docs.Describe()
 
     node.v1.assetstore = assetstore.Assetstore()
-    node.v1.file = file.File()
     node.v1.collection = collection.Collection()
+    node.v1.file = file.File()
     node.v1.folder = folder.Folder()
     node.v1.group = group.Group()
     node.v1.item = item.Item()
     node.v1.resource = resource.Resource()
+    node.v1.system = system.System()
     node.v1.user = user.User()
 
     return node
