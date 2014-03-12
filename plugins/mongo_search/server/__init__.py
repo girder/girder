@@ -65,5 +65,4 @@ class ResourceExt(Resource):
 
 def load(info):
     ext = ResourceExt()
-    info['apiRoot'].resource.route('GET', ('mongo_search',), ext.mongoSearch,
-                                   resource='resource')
+    info['apiRoot'].resource.route('GET', ('mongo_search',), ext.mongoSearch)
