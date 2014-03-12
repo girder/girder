@@ -34,6 +34,7 @@ endif()
 
 add_python_test(collection)
 add_python_test(events NO_LOCK)
+add_python_test(routes NO_LOCK)
 add_python_test(file)
 add_python_test(folder)
 add_python_test(group)

@@ -204,7 +204,27 @@ class Resource(ModelImporter):
         if not hasattr(self, '_routes'):
             self._routes = collections.defaultdict(
                 lambda: collections.defaultdict(list))
-        self._routes[method.lower()][len(route)].append((route, handler))
+
+        # Insertion sort to maintain routes in required order.
+        def shouldInsert(a, b):
+            """
+            Return bool representing whether route a should go before b. Checks
+            by comparing each token in order and making sure routes with
+            literals in forward positions come before routes with wildcards
+            in those positions.
+            """
+            for i in xrange(0, len(a)):
+                if a[i][0] != ':' and b[i][0] == ':':
+                    return True
+            return False
+
+        nLengthRoutes = self._routes[method.lower()][len(route)]
+        for i in xrange(0, len(nLengthRoutes)):
+            if shouldInsert(route, nLengthRoutes[i][0]):
+                nLengthRoutes.insert(i, (route, handler))
+                break
+        else:
+            nLengthRoutes.append((route, handler))
 
         # Now handle the api doc if the handler has any attached
         if resource is None and hasattr(self, 'resourceName'):
