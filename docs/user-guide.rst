@@ -1,23 +1,3 @@
-Open Questions for this document
-================================
-
-* Can Items take permissions from Groups and Folders, some combination?
-* permission names, are these correct? No permission, Read-only, Edit, Admin
-* does Edit permission allow a user to upload a new version of a resource?
-* How do permissions work on Collections?
-* Is the description of permissions on Folders correct?
-* Is the description of permissions on Items correct?
-* Is the description of permissions on Groups correct?
-* Are there permissions on Users?
-
-
-Areas to address in this document
-=================================
-
-* Group admin/management
-
-
-
 Girder User's Guide
 ===================
 
@@ -74,7 +54,6 @@ Permission Levels
 
 There are four levels of permission a ``User`` can have on a resource, these levels are in a strict hierarchy with a higher permission level including all of the permissions below it.
 
-OPEN QUESTION: permission names
 
 1) No permission (cannot view, edit, or delete a resource)
 2) ``READ`` permission (can view and download resources)
@@ -96,22 +75,15 @@ Collections
 ^^^^^^^^^^^^^^^^^
 
 
-TODO OPEN QUESTION: Perms on Collections
 
 Folders
 ^^^^^^^^^^^^^^^^^
-
-
-TODO OPEN QUESTION: Correct?
 
 ``Folders`` have permissions set on them at the individual ``User`` level.  ``Folders`` inherit permissions from their parent ``Folder`` and ultimately from a ``Collection``.
 ``Folders`` can also have permissions added to them by virtue of being included in a ``Group``.
 
 Items
 ^^^^^^^^^^^^^^^^^
-
-
-TODO OPEN QUESTION: Correct?
 
 ``Items`` always inherit their permissions from their parent ``Folder``. Each access-controlled resource (e.g. ``Folder``, ``Collection``) has a list of permissions granted on it, and each item in that list is a mapping of either ``Users`` to permission level or ``Groups`` to permission level.  This is best visualized by opening the "Access control" dialog on a ``Folder`` in the hierarchy. The actual permission level that a ``User`` has on that resource is defined as: the maximum permission level available based on the permissions granted to any ``Groups`` that the ``User`` is member of, or permissions granted to that ``User`` specifically.
 
@@ -139,44 +111,7 @@ The creator of a ``Group`` is an ``Administrator`` of a group.  Any logged in ``
 User
 ^^^^^^^^^^^^^^^^^
 
-TODO OPEN QUESTION: are there some permissions on Users?  Can a user own or control another user with some permission?
-
-
-
 
 Usage
 ========
-
-Group Management
-----------------
-
-
-which are the admin/moderator/member functions?
-
-can invite user as member/moderator/admin
-request invitation
-invite
-remove the invitation
-accept invitation
-accept invitation request
-deny invitation request
-leave group
-join group
-delete group
-create a new group ? perm needed, no perm needed
-private/public
-
-
-add to group
-remove from group
-
-group member, moderator, admin, what can these do?
-
-
-
-Using Groups for Access Control
--------------------------------
-
-walk through an example
-
 
