@@ -34,7 +34,7 @@ Groups
 Items
 -----
 
-A Girder ``Item`` is an atomic file (cannot be separated into smaller parts within Girder).  This could be a collection of files (or tar, zip, etc), but from Girder's persective it is considered an atomic file.  ``Items`` in Girder live in exactly one ``Folder``.  ``Items`` in Girder do not have permissions set on them, they inherit permissions by virtue of living in a ``Folder`` (which has permissions set on it) and by being included under the set of resources related to a ``Group``.
+A Girder ``Item`` is an atomic file (cannot be separated into smaller parts within Girder).  This could be a collection of files (or tar, zip, etc), but from Girder's persective it is considered an atomic file.  ``Items`` in Girder live in exactly one ``Folder``.  ``Items`` in Girder do not have permissions set on them, they inherit permissions by virtue of living in a ``Folder`` (which has permissions set on it).
 
 Folders
 -------
@@ -57,7 +57,7 @@ There are four levels of permission a ``User`` can have on a resource, these lev
 
 1) No permission (cannot view, edit, or delete a resource)
 2) ``READ`` permission (can view and download resources)
-3) ``WRITE`` permission (includes ``READ`` permission, can edit metadata about the resource) OPEN QUESTION: upload new versions
+3) ``WRITE`` permission (includes ``READ`` permission, can edit metadata about the resource)
 4) ``ADMIN`` permission (includes ``READ`` and ``WRITE`` permission, can delete the resource)
 
 A site admin always has permission to take any action.
@@ -74,13 +74,13 @@ Permissions are always additive.  That is, given a ``User`` with a certain permi
 Collections
 ^^^^^^^^^^^^^^^^^
 
+``Collections`` can be ``Public`` (meaning viewable even by anonymous users) or ``Private`` (meaning viewable only by those with ``READ`` access).  ``Collections`` can have permissions set on them at the individual ``User`` level and ``Group`` level, meaning that a given ``User`` or ``Group`` can have ``READ``, ``WRITE``, or ``ADMIN`` permissions set on the ``Collection``.
 
 
 Folders
 ^^^^^^^^^^^^^^^^^
 
-``Folders`` have permissions set on them at the individual ``User`` level.  ``Folders`` inherit permissions from their parent ``Folder`` and ultimately from a ``Collection``.
-``Folders`` can also have permissions added to them by virtue of being included in a ``Group``.
+``Folders`` can be ``Public`` (meaning viewable even by anonymous users) or ``Private`` (meaning viewable only by those with ``READ`` access).  ``Folders`` can have permissions set on them at the individual ``User`` level and ``Group`` level, meaning that a given ``User`` or ``Group`` can have ``READ``, ``WRITE``, or ``ADMIN`` permissions set on the ``Folder``.  ``Folders`` inherit permissions from their parent ``Folder``.
 
 Items
 ^^^^^^^^^^^^^^^^^
@@ -111,6 +111,7 @@ The creator of a ``Group`` is an ``Administrator`` of a group.  Any logged in ``
 User
 ^^^^^^^^^^^^^^^^^
 
+`Users` have ``ADMIN`` access on themselves, and have ``READ`` access on other `Users`.
 
 Usage
 ========
