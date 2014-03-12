@@ -85,9 +85,11 @@ def loadPlugin(name, root):
     :param root: The root node of the web API.
     """
     pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
+    isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
+    isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
         raise Exception('Plugin directory does not exist: {}'.format(pluginDir))
-    if not os.path.isdir(os.path.join(pluginDir, 'server')):
+    if not isPluginDir and not isPluginFile:
         # This plugin does not have any server-side python code.
         return
 
