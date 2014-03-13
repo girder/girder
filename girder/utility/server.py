@@ -32,10 +32,20 @@ class Webroot(object):
     """
     exposed = True
 
-    def GET(self):
-        return cherrypy.lib.static.serve_file(
-            os.path.join(constants.ROOT_DIR, 'clients', 'web', 'static',
-                         'built', 'index.html'), content_type='text/html')
+    def GET(self, *pargs):
+        if len(pargs) == 0:
+            return cherrypy.lib.static.serve_file(
+                os.path.join(constants.ROOT_DIR, 'clients', 'web', 'static',
+                             'built', 'index.html'), content_type='text/html')
+        else:
+            client = pargs[0]
+            path = pargs[1:]
+
+            if client != "web":
+                path_components = [constants.ROOT_DIR, 'clients'] + list(path)
+                return cherrypy.lib.static.serve_file(os.path.join(*path_components))
+            else:
+                raise cherrypy.HTTPError(404)
 
 
 def setup(test=False):
