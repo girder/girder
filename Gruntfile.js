@@ -17,6 +17,25 @@
 module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
+    var apiRoot;
+    var staticRoot;
+
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            var cfg = JSON.parse(stdout);
+            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
+            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            console.log('Static root: ' + staticRoot);
+            console.log('API root: ' + apiRoot);
+        }
+        catch (e) {
+            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
+        }
+        callback();
+    };
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';
@@ -72,6 +91,12 @@ module.exports = function (grunt) {
                 ].join('&&'),
                 options: {
                     stdout: true
+                }
+            },
+            readServerConfig: {
+                command: 'python config_parse.py girder/conf/local.server.cfg',
+                options: {
+                    callback: setServerConfig
                 }
             }
         },
@@ -204,7 +229,9 @@ module.exports = function (grunt) {
                           'lib/jqplot/css/jquery.jqplot.min.css',
                           'built/app.min.css'],
             scripts: ['built/libs.min.js',
-                      'built/app.min.js']
+                      'built/app.min.js'],
+            staticRoot: staticRoot,
+            apiRoot: apiRoot
         });
         fs.writeFileSync('clients/web/static/built/index.html', html);
         console.log('Built index.html.');
@@ -230,6 +257,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
     grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'swagger-ui']);
-    grunt.registerTask('docs', ['shell']);
-    grunt.registerTask('default', ['stylus', 'build-js']);
+    grunt.registerTask('docs', ['shell:sphinx']);
+    grunt.registerTask('default', ['shell:readServerConfig', 'stylus', 'build-js']);
 };

@@ -18,7 +18,8 @@ var girder = {
     models: {},
     collections: {},
     views: {},
-    apiRoot: '/api/v1',
+    apiRoot: $('#g-global-info-apiroot').text(),
+    staticRoot: $('#g-global-info-staticroot').text(),
     currentUser: null,
     events: _.clone(Backbone.Events),
 
