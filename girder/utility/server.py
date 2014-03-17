@@ -32,6 +32,10 @@ class Webroot(object):
     """
     exposed = True
 
+    client_base = os.path.abspath(
+        os.path.join(
+            constants.ROOT_DIR, 'clients')).split(os.path.sep)
+
     def GET(self, *pargs):
         if len(pargs) == 0:
             return cherrypy.lib.static.serve_file(
@@ -41,9 +45,19 @@ class Webroot(object):
             client = pargs[0]
             path = pargs[1:]
 
-            if client != "web":
-                path_components = [constants.ROOT_DIR, 'clients'] + list(path)
-                return cherrypy.lib.static.serve_file(os.path.join(*path_components))
+            if client in ["jquery"]:
+                url_path_components = (Webroot.client_base +
+                                       [client] +
+                                       list(path))
+                path_components = os.path.abspath(
+                    os.path.sep.join(url_path_components)).split("/")
+
+                prefix_len = len(Webroot.client_base)
+                if path_components[:prefix_len] != Webroot.client_base:
+                    raise cherrypy.HTTPError(404)
+
+                return cherrypy.lib.static.serve_file(
+                    os.path.sep.join(path_components))
             else:
                 raise cherrypy.HTTPError(404)
 
