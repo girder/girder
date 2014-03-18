@@ -36,7 +36,7 @@ import traceback
 from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
 
 
-def loadPlugins(plugins, root):
+def loadPlugins(plugins, root, appconf):
     """
     Loads a set of plugins into the application. The list passed in should not
     already contain dependency information; dependent plugins will be loaded
@@ -45,6 +45,8 @@ def loadPlugins(plugins, root):
     :param plugins: The set of plugins to load, by directory name.
     :type plugins: list
     :param root: The root node of the server tree.
+    :param appconf: The server's cherrypy configuration object.
+    :type appconf: dict
     :returns: A list of plugins that were actually loaded, once dependencies
               were resolved and topological sort was performed.
     """
@@ -66,7 +68,7 @@ def loadPlugins(plugins, root):
     for pset in toposort(filteredDepGraph):
         for plugin in pset:
             try:
-                loadPlugin(plugin, root)
+                loadPlugin(plugin, root, appconf)
                 print TerminalColor.success('Loaded plugin "{}"'.format(plugin))
             except:
                 print TerminalColor.error(
@@ -74,7 +76,7 @@ def loadPlugins(plugins, root):
                 traceback.print_exc()
 
 
-def loadPlugin(name, root):
+def loadPlugin(name, root, appconf):
     """
     Loads a plugin into the application. This means allowing it to create
     endpoints within its own web API namespace, and to register its event
@@ -83,6 +85,8 @@ def loadPlugin(name, root):
     :param name: The name of the plugin (i.e. its directory name)
     :type name: str
     :param root: The root node of the web API.
+    :param appconf: The cherrypy configuration for the server.
+    :type appconf: dict
     """
     pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
@@ -105,6 +109,7 @@ def loadPlugin(name, root):
             if hasattr(module, 'load'):
                 module.load({
                     'name': name,
+                    'config': appconf,
                     'serverRoot': root,
                     'apiRoot': root.api.v1
                 })

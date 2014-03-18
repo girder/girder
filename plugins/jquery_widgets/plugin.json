@@ -1,0 +1,5 @@
+{
+    "name": "Serve JQuery Widgets",
+    "description":
+        "Enable this plugin to serve the Girder JQuery Widget library statically."
+}
