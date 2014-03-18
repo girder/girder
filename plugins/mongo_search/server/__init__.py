@@ -30,7 +30,12 @@ from girder.api.rest import Resource, RestException
 class ResourceExt(Resource):
     def mongoSearch(self, params):
         self.requireParams(('type', 'q'), params)
-        allowed = set(['collection', 'folder', 'item', 'user'])
+        allowed = {
+            'collection': ['_id', 'name', 'description']
+            'folder': ['_id', 'name', 'description'],
+            'item': ['_id', 'name', 'description'],
+            'user': ['_id', 'firstName', 'lastName', 'login']
+        }
         limit, offset, sort = self.getPagingParameters(params, 'name')
         coll = params['type']
 
@@ -47,10 +52,15 @@ class ResourceExt(Resource):
         model = ModelImporter().model(coll)
         if hasattr(model, 'filterSearchResults'):
             cursor = model.find(
-                query, fields=('_id',), offset=offset, limit=0)
+                query, fields=allowed[coll], limit=0)
             return [r for r in model.filterResultsByPermission(
                 cursor, user=self.getCurrentUser(), level=AccessType.READ,
-                limit=0, offset=offset)]
+                limit=limit, offset=offset)]
+        else:
+            # TODO - add filterSearchResults to item model
+            return [r for r in model.find(query, fields=allowed[coll],
+                                          limit=limit, offset=offset)]
+
     mongoSearch.description = (
         Description('Run any search against a set of mongo collections.')
         .notes('Results will be filtered by permissions.')
