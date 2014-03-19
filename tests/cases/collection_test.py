@@ -44,7 +44,7 @@ class CollectionTestCase(base.TestCase):
             'lastName': 'Admin',
             'password': 'adminpassword',
             'admin': True
-            }
+        }
         self.admin = self.model('user').createUser(**admin)
 
         user = {
@@ -54,7 +54,7 @@ class CollectionTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword',
             'admin': False
-            }
+        }
         self.user = self.model('user').createUser(**user)
 
         coll = {
@@ -62,7 +62,7 @@ class CollectionTestCase(base.TestCase):
             'description': 'The description',
             'public': True,
             'creator': self.admin
-            }
+        }
         self.collection = self.model('collection').createCollection(**coll)
 
     def testCreateAndListCollections(self):
@@ -73,13 +73,13 @@ class CollectionTestCase(base.TestCase):
         # Try to create a collection anonymously; should fail
         resp = self.request(path='/collection', method='POST', params={
             'name': 'new collection'
-            })
+        })
         self.assertStatus(resp, 401)
 
         # Try to create a collection as non-admin user; should fail
         resp = self.request(path='/collection', method='POST', params={
             'name': 'new collection'
-            }, user=self.user)
+        }, user=self.user)
         self.assertStatus(resp, 403)
 
         # Create the collection as the admin user, make it private
@@ -87,8 +87,9 @@ class CollectionTestCase(base.TestCase):
             'name': '  New collection  ',
             'description': '  my description ',
             'public': 'false'
-            }, user=self.admin)
+        }, user=self.admin)
         self.assertStatusOk(resp)
+        newCollId = resp.json['_id']
 
         # Now attempt to list the collections as anonymous user
         resp = self.request(path='/collection')
@@ -103,6 +104,15 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['name'], 'New collection')
         self.assertEqual(resp.json[0]['description'], 'my description')
         self.assertEqual(resp.json[1]['name'], self.collection['name'])
+
+        # Test text search
+        resp = self.request(path='/collection', user=self.admin, params={
+            'text': 'new'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], newCollId)
+        self.assertEqual(resp.json[0]['name'], 'New collection')
 
     def testDeleteCollection(self):
         # Requesting with no path should fail

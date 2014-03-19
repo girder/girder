@@ -48,18 +48,14 @@ class Collection(Resource):
         return filtered
 
     def find(self, params):
-        """
-        Get a list of collections. You can pass a "text" parameter to filter the
-        collections by a full text search string.
-
-        :param [text]: Full text search.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=name.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
-        """
         user = self.getCurrentUser()
         limit, offset, sort = self.getPagingParameters(params, 'name')
+
+        if 'text' in params:
+            return self.model('collection').textSearch(
+                params['text'], user=user, limit=limit, project={
+                    'name': 1
+                })
 
         return [self._filter(c) for c in self.model('collection').list(
                 user=user, offset=offset, limit=limit, sort=sort)]
