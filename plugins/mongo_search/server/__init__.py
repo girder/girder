@@ -18,7 +18,7 @@
 ###############################################################################
 
 import cherrypy
-import json
+import bson.json_util
 
 from girder import events
 from girder.constants import AccessType
@@ -31,7 +31,7 @@ class ResourceExt(Resource):
     def mongoSearch(self, params):
         self.requireParams(('type', 'q'), params)
         allowed = {
-            'collection': ['_id', 'name', 'description']
+            'collection': ['_id', 'name', 'description'],
             'folder': ['_id', 'name', 'description'],
             'item': ['_id', 'name', 'description'],
             'user': ['_id', 'firstName', 'lastName', 'login']
@@ -45,7 +45,7 @@ class ResourceExt(Resource):
             raise RestException('Invalid resource type: {}'.format(coll))
 
         try:
-            query = json.loads(params['q'])
+            query = bson.json_util.loads(params['q'])
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
