@@ -4,8 +4,10 @@ html(lang="en")
     title= "Girder"
     link(rel="stylesheet", href="//fonts.googleapis.com/css?family=Droid+Sans:400,700")
     each css in stylesheets
-      link(rel="stylesheet", href="static/#{css}")
+      link(rel="stylesheet", href="#{staticRoot}/#{css}")
   body
+    #g-global-info-apiroot.hide #{apiRoot}
+    #g-global-info-staticroot.hide #{staticRoot}
     each js in scripts
-      script(src="static/#{js}")
+      script(src="#{staticRoot}/#{js}")
 
