@@ -183,7 +183,7 @@ module.exports = function (grunt) {
         var fn = jade.compile(buffer, {
             client: false
         });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({}));
+        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({staticRoot: staticRoot}));
     });
 
     // Compile the jade templates into a single js file
@@ -256,7 +256,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
-    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'swagger-ui']);
+    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'shell:readServerConfig', 'swagger-ui']);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', ['shell:readServerConfig', 'stylus', 'build-js']);
 };
