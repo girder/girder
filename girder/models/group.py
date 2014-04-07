@@ -173,7 +173,7 @@ class Group(AccessControlledModel):
         the group. If the user already belongs to the group, this method can
         be used to change their access level within it.
         """
-        if not 'groups' in user:
+        if 'groups' not in user:
             user['groups'] = []
 
         if not group['_id'] in user['groups']:
@@ -201,7 +201,7 @@ class Group(AccessControlledModel):
         given user has not been invited to the group, this will create an
         invitation request that moderators and admins may grant or deny later.
         """
-        if not 'groupInvites' in user:
+        if 'groupInvites' not in user:
             user['groupInvites'] = []
 
         for invite in user['groupInvites']:
@@ -211,7 +211,7 @@ class Group(AccessControlledModel):
                 self.model('user').save(user, validate=False)
                 break
         else:
-            if not 'requests' in group:
+            if 'requests' not in group:
                 group['requests'] = []
 
             if not user['_id'] in group['requests']:
@@ -239,7 +239,7 @@ class Group(AccessControlledModel):
         if user['_id'] in group.get('requests', []):
             return self.addUser(group, user, level)
 
-        if not 'groupInvites' in user:
+        if 'groupInvites' not in user:
             user['groupInvites'] = []
 
         for invite in user['groupInvites']:

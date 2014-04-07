@@ -339,7 +339,7 @@ class Resource(ModelImporter):
         Pass a list of required parameters.
         """
         for param in required:
-            if not param in provided:
+            if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)
 
     def requireAdmin(self, user):

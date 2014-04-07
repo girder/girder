@@ -174,7 +174,7 @@ class Item(Model):
         """
         now = datetime.datetime.now()
 
-        if not type(creator) is dict or not '_id' in creator:
+        if not type(creator) is dict or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
             raise Exception('Creator must be a user.')
 
