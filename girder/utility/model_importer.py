@@ -87,7 +87,7 @@ class ModelImporter(object):
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
-        if not model in _modelInstances['core']:
+        if model not in _modelInstances['core']:
             _instantiateCoreModel(model)
 
         return _modelInstances['core'][model]
@@ -106,10 +106,10 @@ class ModelImporter(object):
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
-        if not plugin in _modelInstances:
+        if plugin not in _modelInstances:
             _modelInstances[plugin] = {}
 
-        if not model in _modelInstances[plugin]:
+        if model not in _modelInstances[plugin]:
             _instantiatePluginModel(model, plugin)
 
         return _modelInstances[plugin][model]

@@ -55,7 +55,7 @@ class File(Model):
         return adapter.downloadFile(file, offset=offset, headers=headers)
 
     def validate(self, doc):
-        if not 'name' in doc or not doc['name']:
+        if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 
         doc['exts'] = doc['name'].split('.')[1:]

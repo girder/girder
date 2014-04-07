@@ -52,7 +52,7 @@ def loadPlugins(plugins, root, appconf):
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
-    if not ROOT_PLUGINS_PACKAGE in sys.modules:
+    if ROOT_PLUGINS_PACKAGE not in sys.modules:
         sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
             '__path__': os.path.join(ROOT_DIR, 'plugins'),
             '__package__': ROOT_PLUGINS_PACKAGE,
@@ -99,7 +99,7 @@ def loadPlugin(name, root, appconf):
 
     moduleName = '.'.join((ROOT_PLUGINS_PACKAGE, name))
 
-    if not moduleName in sys.modules:
+    if moduleName not in sys.modules:
         fp = None
         try:
             fp, pathname, description = imp.find_module('server', [pluginDir])

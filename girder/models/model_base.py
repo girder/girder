@@ -269,9 +269,9 @@ class AccessControlledModel(Model):
         if type(id) is not ObjectId:
             id = ObjectId(id)
 
-        if not 'access' in doc:
+        if 'access' not in doc:
             doc['access'] = {'groups': [], 'users': []}
-        if not entity in doc['access']:
+        if entity not in doc['access']:
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.

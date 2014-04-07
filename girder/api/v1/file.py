@@ -50,7 +50,7 @@ class File(Resource):
         mimeType = params.get('mimeType', None)
         parentType = params['parentType'].lower()
 
-        if not parentType in ('folder', 'item'):
+        if parentType not in ('folder', 'item'):
             raise RestException('The parentType must be "folder" or "item".')
 
         parent = self.model(parentType).load(id=params['parentId'], user=user,
