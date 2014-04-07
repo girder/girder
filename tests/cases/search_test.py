@@ -75,6 +75,38 @@ class SearchTestCase(base.TestCase):
         self.model('collection').setUserAccess(
             coll2, user, level=AccessType.READ, save=True)
 
+        folder1 = {
+            'parent': coll1,
+            'parentType': 'collection',
+            'name': 'Public test folder'
+        }
+        folder1 = self.model('folder').createFolder(**folder1)
+        self.model('folder').setUserAccess(
+            folder1, user, level=AccessType.READ, save=True)
+
+        folder2 = {
+            'parent': coll2,
+            'parentType': 'collection',
+            'name': 'Private test folder'
+        }
+        folder2 = self.model('folder').createFolder(**folder2)
+        self.model('folder').setUserAccess(
+            folder2, user, level=AccessType.NONE, save=True)
+
+        item1 = {
+            'name': 'Public object',
+            'creator': admin,
+            'folder': folder1
+        }
+        item1 = self.model('item').createItem(**item1)
+
+        item2 = {
+            'name': 'Secret object',
+            'creator': admin,
+            'folder': folder2
+        }
+        item2 = self.model('item').createItem(**item2)
+
         # Grab the default user folders
         resp = self.request(
             path='/folder', method='GET', user=user, params={
@@ -165,5 +197,17 @@ class SearchTestCase(base.TestCase):
                 'firstName': user['firstName'],
                 'lastName': user['lastName'],
                 'login': user['login']
+            }]
+        })
+
+        # check item search with proper permissions
+        resp = self.request(path='/resource/search', params={
+            'q': 'object',
+            'types': '["item"]'
+        }, user=user)
+        self.assertEqual(resp.json, {
+            'item': [{
+                '_id': str(item1['_id']),
+                'name': item1['name']
             }]
         })
