@@ -69,7 +69,8 @@ class Item(Resource):
         user = self.getCurrentUser()
 
         if 'text' in params:
-            return self.model('item').textSearch(params['text'], {'name': 1})
+            return self.model('item').textSearch(
+                params['text'], {'name': 1}, user=user, limit=limit)
             """return self.model('item').search(
                 params['text'], user=user, offset=offset, limit=limit,
                 sort=sort)"""

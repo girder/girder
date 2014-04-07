@@ -54,9 +54,10 @@ class Resource(BaseResource):
             raise RestException('The types parameter must be JSON.')
 
         if 'item' in types:
-            tempResults = self.model('item').textSearch(params['q'],
-                                                        {'name': 1})
-            results['item'] = [it['obj'] for it in tempResults]
+            results['item'] = self.model('item').textSearch(
+                params['q'], user=user, limit=limit, project={
+                    'name': 1
+                })
 
         if 'collection' in types:
             results['collection'] = self.model('collection').textSearch(
