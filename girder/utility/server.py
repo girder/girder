@@ -46,10 +46,11 @@ def setup(test=False):
     :param test: Set to True when running in the tests.
     :type test: bool
     """
-    cfgs = ['auth', 'db', 'server']
+    cfgs = ('auth', 'db', 'server')
     cfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
                          'local.%s.cfg' % c) for c in cfgs]
-    [cherrypy.config.update(cfg) for cfg in cfgs]
+    for cfg in cfgs:
+        cherrypy.config.update(cfg)
 
     appconf = {
         '/': {
@@ -82,12 +83,15 @@ def setup(test=False):
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
-    plugins = model_importer.ModelImporter().model('setting').get(
-        constants.SettingKey.PLUGINS_ENABLED, default=())
-    plugin_utilities.loadPlugins(plugins, root)
+    settings = model_importer.ModelImporter().model('setting')
+    plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+    plugin_utilities.loadPlugins(plugins, root, appconf)
 
     application = cherrypy.tree.mount(root, '/', appconf)
-    [application.merge(cfg) for cfg in cfgs]
+    for cfg in cfgs:
+        application.merge(cfg)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})
+
+    return application

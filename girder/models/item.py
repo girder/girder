@@ -140,6 +140,55 @@ class Item(Model):
         # Delete the item itself
         Model.remove(self, item)
 
+    def textSearch(self, query, project, user=None, limit=20):
+        """
+        Custom override of Model.textSearch to filter items by permissions
+        of the parent folder.
+        """
+
+        # get the non-filtered search result from Model.textSearch
+        project['folderId'] = 1
+        results = Model.textSearch(self, query=query, project=project)
+
+        # list where we will store the filtered results
+        filtered = []
+
+        # cache dictionary mapping folderId's to read permission
+        accessAllowed = {}
+
+        # loop through all results in the non-filtered list
+        for result in results:
+
+            # check if the folderId is cached
+            folderId = result['obj'].pop('folderId')
+            access = accessAllowed.get(folderId)
+
+            # if the folderId is not cached check for read permission
+            # and set the cache
+            if access is None:
+                try:
+                    self.model('folder').load(folderId,
+                                              level=AccessType.READ,
+                                              user=user)
+                    access = True
+                except AccessException:
+                    access = False
+                accessAllowed[folderId] = access
+
+            # if access is allowed, normalize the result and
+            # add it to the output list
+            if access:
+                filtered.append({
+                    'name': result['obj']['name'],
+                    '_id': result['obj']['_id']
+                })
+
+            # once we have hit the requested limit, return
+            if len(filtered) >= limit:
+                break
+
+        return filtered
+
     def search(self, query, user=None, limit=50, offset=0, sort=None):
         """
         Search for items with full text search.
@@ -174,7 +223,7 @@ class Item(Model):
         """
         now = datetime.datetime.now()
 
-        if not type(creator) is dict or not '_id' in creator:
+        if not type(creator) is dict or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
             raise Exception('Creator must be a user.')
 

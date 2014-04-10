@@ -170,7 +170,7 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     global _mapping
-    if not eventName in _mapping:
+    if eventName not in _mapping:
         _mapping[eventName] = {}
 
     _mapping[eventName][handlerName] = handler

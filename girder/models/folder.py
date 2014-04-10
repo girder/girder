@@ -145,7 +145,7 @@ class Folder(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         """
         parentType = parentType.lower()
-        if not parentType in ('folder', 'user', 'collection'):
+        if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
 
@@ -188,7 +188,7 @@ class Folder(AccessControlledModel):
         assert public is None or type(public) is bool
 
         parentType = parentType.lower()
-        if not parentType in ('folder', 'user', 'collection'):
+        if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
 

@@ -53,11 +53,11 @@ def addRouteDocs(resource, route, method, info, handler):
     info = info.copy()
     info['httpMethod'] = method.upper()
 
-    if not 'nickname' in info:
+    if 'nickname' not in info:
         info['nickname'] = handler.__name__
 
     # Add the operation to the given route
-    if not path in routes[resource]:
+    if path not in routes[resource]:
         routes[resource][path] = []
 
     routes[resource][path].append(info)

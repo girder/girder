@@ -83,7 +83,7 @@ class Folder(Resource):
                 })
         elif 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
-            if not parentType in ('collection', 'folder', 'user'):
+            if parentType not in ('collection', 'folder', 'user'):
                 raise RestException('The parentType must be user, collection,'
                                     ' or folder.')
 
@@ -152,9 +152,10 @@ class Folder(Resource):
                 yield data
         for item in self.model('folder').childItems(folder=folder, limit=0):
             for file in self.model('item').childFiles(item=item, limit=0):
-                for data in zip.addFile(self.model('file')
-                               .download(file, headers=False), os.path.join(
-                                   path, file['name'])):
+                for data in zip.addFile(
+                    self.model('file')
+                        .download(file, headers=False), os.path.join(
+                            path, file['name'])):
                     yield data
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)

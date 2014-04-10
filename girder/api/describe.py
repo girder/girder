@@ -121,7 +121,7 @@ class Describe(Resource):
         }
 
     def describeResource(self, resource, params):
-        if not resource in docs.routes:
+        if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))
 
         return {

@@ -5,3 +5,5 @@ docs/_output
 .coverage
 girder.egg-info
 .DS_Store
+.*.swp
+.*.swo
