@@ -33,7 +33,7 @@ class ResourceExt(Resource):
         allowed = {
             'collection': ['_id', 'name', 'description'],
             'folder': ['_id', 'name', 'description'],
-            'item': ['_id', 'name', 'description'],
+            'item': ['_id', 'name', 'description', 'folderId'],
             'user': ['_id', 'firstName', 'lastName', 'login']
         }
         limit, offset, sort = self.getPagingParameters(params, 'name')
@@ -50,14 +50,13 @@ class ResourceExt(Resource):
             raise RestException('Invalid JSON passed in request body.')
 
         model = ModelImporter().model(coll)
-        if hasattr(model, 'filterSearchResults'):
+        if hasattr(model, 'filterResultsByPermission'):
             cursor = model.find(
                 query, fields=allowed[coll], limit=0)
             return [r for r in model.filterResultsByPermission(
                 cursor, user=self.getCurrentUser(), level=AccessType.READ,
                 limit=limit, offset=offset)]
         else:
-            # TODO - add filterSearchResults to item model
             return [r for r in model.find(query, fields=allowed[coll],
                                           limit=limit, offset=offset)]
 

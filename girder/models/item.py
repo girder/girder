@@ -154,30 +154,21 @@ class Item(Model):
         filtered = []
 
         # cache dictionary mapping folderId's to read permission
-        accessAllowed = {}
+        folderCache = {}
 
         # loop through all results in the non-filtered list
         for result in results:
-
             # check if the folderId is cached
             folderId = result['obj'].pop('folderId')
-            access = accessAllowed.get(folderId)
 
-            # if the folderId is not cached check for read permission
-            # and set the cache
-            if access is None:
-                try:
-                    self.model('folder').load(folderId,
-                                              level=AccessType.READ,
-                                              user=user)
-                    access = True
-                except AccessException:
-                    access = False
-                accessAllowed[folderId] = access
+            if folderId not in folderCache:
+                # if the folderId is not cached check for read permission
+                # and set the cache
+                folder = self.model('folder').load(folderId, force=True)
+                folderCache[folderId] = self.model('folder').hasAccess(
+                    folder, user=user, level=AccessType.READ)
 
-            # if access is allowed, normalize the result and
-            # add it to the output list
-            if access:
+            if folderCache[folderId] is True:
                 filtered.append({
                     'name': result['obj']['name'],
                     '_id': result['obj']['_id']
@@ -189,24 +180,31 @@ class Item(Model):
 
         return filtered
 
-    def search(self, query, user=None, limit=50, offset=0, sort=None):
+    def filterResultsByPermission(self, cursor, user, level, limit, offset):
         """
-        Search for items with full text search.
-
-        TODO
-        1. Find all items that match the text search.
-        2. Filter them by ensuring read access on their parent folder. As we
-        fetch parent folders, keep a cache dict mapping folder ID to either
-        (True | False), representing whether the user has read access to that
-        folder, so we can lookup in the cache quickly without having to run to
-        the database to check every time. There should be a high cache hit rate
-        since items with similar text have a good chance of residing in the
-        same folder, or a small set of folders.
-
-        The current implementation is a stopgap
+        This method is provided as a convenience for filtering a result cursor
+        of items by permissions, based on the parent folder. The results in
+        the cursor must contain the folderId field.
         """
+        # Cache mapping folderIds -> access granted (bool)
+        folderCache = {}
+        count = skipped = 0
+        for result in cursor:
+            folderId = result['folderId']
 
-        pass
+            if folderId not in folderCache:
+                folder = self.model('folder').load(folderId, force=True)
+                folderCache[folderId] = self.model('folder').hasAccess(
+                    folder, user=user, level=level)
+
+            if folderCache[folderId] is True:
+                if skipped < offset:
+                    skipped += 1
+                else:
+                    yield result
+                    count += 1
+            if count == limit:
+                    break
 
     def createItem(self, name, creator, folder, description=''):
         """
