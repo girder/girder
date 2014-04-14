@@ -238,7 +238,7 @@ module.exports = function (grunt) {
                           'built/app.min.css'],
             scripts: ['built/libs.min.js',
                       'built/app.min.js',
-                      'build/main.min.js'],
+                      'built/main.min.js'],
             staticRoot: staticRoot,
             apiRoot: apiRoot
         });
