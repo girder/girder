@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
@@ -27,6 +26,7 @@ from ...constants import AccessType
 class Group(Resource):
     """API Endpoint for groups."""
     def __init__(self):
+        self.resourceName = 'group'
         self.route('DELETE', (':id',), self.deleteGroup)
         self.route('DELETE', (':id', 'member'), self.removeFromGroup)
         self.route('DELETE', (':id', 'moderator'), self.demote)

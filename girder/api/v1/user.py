@@ -23,7 +23,6 @@ import json
 
 from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException, loadmodel
-from .. import describe
 from ..describe import Description
 
 
@@ -31,6 +30,7 @@ class User(Resource):
     """API Endpoint for users in the system."""
 
     def __init__(self):
+        self.resourceName = 'user'
         self.COOKIE_LIFETIME = int(self.model('setting').get(
             SettingKey.COOKIE_LIFETIME, default=180))
 

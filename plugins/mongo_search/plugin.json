@@ -1,0 +1,4 @@
+{
+    "name": "MongoDB Custom Search",
+    "description": "Allow clients to run custom mongo searches against the database."
+}

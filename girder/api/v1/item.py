@@ -20,7 +20,6 @@
 import cherrypy
 import json
 
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException
@@ -31,6 +30,7 @@ from ...constants import AccessType
 class Item(Resource):
     """API endpoint for items"""
     def __init__(self):
+        self.resourceName = 'item'
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getItem)

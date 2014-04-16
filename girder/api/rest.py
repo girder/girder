@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import collections
 import datetime
 import json
 import pymongo
@@ -182,7 +183,7 @@ class RestException(Exception):
 class Resource(ModelImporter):
     exposed = True
 
-    def route(self, method, route, handler, nodoc=False):
+    def route(self, method, route, handler, nodoc=False, resource=None):
         """
         Define a route for your REST resource.
 
@@ -201,22 +202,42 @@ class Resource(ModelImporter):
         :type nodoc: bool
         """
         if not hasattr(self, '_routes'):
-            self._routes = {
-                'get': [],
-                'post': [],
-                'put': [],
-                'delete': []
-            }
-        self._routes[method.lower()].append((route, handler))
+            self._routes = collections.defaultdict(
+                lambda: collections.defaultdict(list))
+
+        # Insertion sort to maintain routes in required order.
+        def shouldInsert(a, b):
+            """
+            Return bool representing whether route a should go before b. Checks
+            by comparing each token in order and making sure routes with
+            literals in forward positions come before routes with wildcards
+            in those positions.
+            """
+            for i in xrange(0, len(a)):
+                if a[i][0] != ':' and b[i][0] == ':':
+                    return True
+            return False
+
+        nLengthRoutes = self._routes[method.lower()][len(route)]
+        for i in xrange(0, len(nLengthRoutes)):
+            if shouldInsert(route, nLengthRoutes[i][0]):
+                nLengthRoutes.insert(i, (route, handler))
+                break
+        else:
+            nLengthRoutes.append((route, handler))
 
         # Now handle the api doc if the handler has any attached
-        resourceName = handler.im_class.__module__.rsplit('.', 1)[-1]
+        if resource is None and hasattr(self, 'resourceName'):
+            resource = self.resourceName
+        elif resource is None:
+            resource = handler.__module__.rsplit('.', 1)[-1]
+
         if hasattr(handler, 'description'):
             docs.addRouteDocs(
-                resource=resourceName, route=route, method=method,
+                resource=resource, route=route, method=method,
                 info=handler.description.asDict(), handler=handler)
         elif not nodoc:
-            routePath = '/'.join([resourceName] + list(route))
+            routePath = '/'.join([resource] + list(route))
             print TerminalColor.warning(
                 'WARNING: No description docs present for route {} {}'
                 .format(method, routePath))
@@ -256,17 +277,22 @@ class Resource(ModelImporter):
             raise Exception('No routes defined for resource')
 
         method = method.lower()
-        for route, handler in self._routes[method]:
+
+        for route, handler in self._routes[method][len(path)]:
             kwargs = self._matchRoute(path, route)
             if kwargs is not False:
                 kwargs['params'] = params
                 # Add before call for the API method. Listeners can return
                 # their own responses by calling preventDefault() and
                 # adding a response on the event.
-                routestr = '/'.join((
-                    handler.im_class.__module__.rsplit('.', 1)[-1],
-                    '/'.join(route))).rstrip('/')
-                eventPrefix = '.'.join(('rest', method, routestr))
+
+                if hasattr(self, 'resourceName'):
+                    resource = self.resourceName
+                else:
+                    resource = handler.__module__.rsplit('.', 1)[-1]
+
+                routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
+                eventPrefix = '.'.join(('rest', method, routeStr))
 
                 event = events.trigger('.'.join((eventPrefix, 'before')),
                                        kwargs)
@@ -287,8 +313,7 @@ class Resource(ModelImporter):
                 return val
 
         raise RestException('No matching route for "{} {}"'.format(
-            method, '/'.join(path)
-        ))
+            method.upper(), '/'.join(path)))
 
     def _matchRoute(self, path, route):
         """
@@ -299,13 +324,10 @@ class Resource(ModelImporter):
         wildcard tokens of the route.
 
         :param path: The requested path.
-        :type path: str
+        :type path: list
         :param route: The route specification to match against.
         :type route: list
         """
-        if len(path) != len(route):
-            return False
-
         wildcards = {}
         for i in range(0, len(route)):
             if route[i][0] == ':':  # Wildcard token

@@ -34,6 +34,7 @@ endif()
 
 add_python_test(collection)
 add_python_test(events NO_LOCK)
+add_python_test(routes NO_LOCK)
 add_python_test(file)
 add_python_test(folder)
 add_python_test(group)
@@ -43,3 +44,13 @@ add_python_test(system)
 add_python_test(user)
 
 add_subdirectory(clients)
+
+# Look for CMakeLists.txt in plugin dirs, include if they exist
+file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
+foreach(pluginDir ${pluginDirs})
+  if(EXISTS "${pluginDir}/plugin.cmake")
+    get_filename_component(pluginName "${pluginDir}" NAME)
+    message(STATUS "Including plugin.cmake from \"${pluginName}\"")
+    include("${pluginDir}/plugin.cmake")
+  endif()
+endforeach()

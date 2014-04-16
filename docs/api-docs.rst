@@ -14,6 +14,14 @@ Model Base
 .. automodule:: girder.models.model_base
    :members:
 
+.. _events:
+
+Events
+^^^^^^
+
+.. automodule:: girder.events
+    :members:
+
 Users
 ^^^^^
 .. automodule:: girder.models.user

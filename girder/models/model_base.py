@@ -43,8 +43,6 @@ class Model(ModelImporter):
 
         self.initialize()
 
-        assert type(self.name) == str
-
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
         if cherrypy.config['server']['mode'] == 'testing':
@@ -53,9 +51,6 @@ class Model(ModelImporter):
             dbName = db_cfg['database']  # pragma: no cover
         self.database = db_connection[dbName]
         self.collection = self.database[self.name]
-
-        assert isinstance(self.collection, pymongo.collection.Collection)
-        assert type(self._indices) == list
 
         for index in self._indices:
             self.collection.ensure_index(index)
@@ -275,8 +270,8 @@ class AccessControlledModel(Model):
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.
-        doc['access'][entity][:] = [perm for perm in doc['access'][entity]
-                                    if perm['id'] != id]
+        doc['access'][entity] = [perm for perm in doc['access'][entity]
+                                 if perm['id'] != id]
 
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
@@ -560,7 +555,8 @@ class AccessControlledModel(Model):
             dest = self.save(dest, validate=False)
         return dest
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset):
+    def filterResultsByPermission(self, cursor, user, level, limit, offset,
+                                  removeKeys=()):
         """
         Given a database result cursor, this generator will yield only the
         results that the user has the given level of access on, respecting the
@@ -572,8 +568,9 @@ class AccessControlledModel(Model):
         :type level: AccessType
         :param limit: The max size of the result set.
         :param offset: The offset into the result set.
-        :param key: If you pass in a list instead of a cursor object, set this
-                    to the value in each list item to filter by
+        :param removeKeys: List of keys that should be removed from each
+                           matching document.
+        :type removeKeys: list
         """
         count = skipped = 0
         for result in cursor:
@@ -581,6 +578,8 @@ class AccessControlledModel(Model):
                 if skipped < offset:
                     skipped += 1
                 else:
+                    for key in removeKeys:
+                        del result[key]
                     yield result
                     count += 1
             if count == limit:
