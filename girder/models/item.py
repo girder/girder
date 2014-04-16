@@ -180,7 +180,8 @@ class Item(Model):
 
         return filtered
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset):
+    def filterResultsByPermission(self, cursor, user, level, limit, offset,
+                                  removeKeys=()):
         """
         This method is provided as a convenience for filtering a result cursor
         of items by permissions, based on the parent folder. The results in

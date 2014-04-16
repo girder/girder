@@ -47,15 +47,15 @@ class ResourceExt(Resource):
         try:
             query = bson.json_util.loads(params['q'])
         except ValueError:
-            raise RestException('Invalid JSON passed in request body.')
+            raise RestException('The query parameter must be a JSON object.')
 
         model = ModelImporter().model(coll)
         if hasattr(model, 'filterResultsByPermission'):
             cursor = model.find(
-                query, fields=allowed[coll], limit=0)
+                query, fields=allowed[coll] + ['public', 'access'], limit=0)
             return [r for r in model.filterResultsByPermission(
                 cursor, user=self.getCurrentUser(), level=AccessType.READ,
-                limit=limit, offset=offset)]
+                limit=limit, offset=offset, removeKeys=('public', 'access'))]
         else:
             return [r for r in model.find(query, fields=allowed[coll],
                                           limit=limit, offset=offset)]

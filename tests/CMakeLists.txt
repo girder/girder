@@ -44,3 +44,13 @@ add_python_test(system)
 add_python_test(user)
 
 add_subdirectory(clients)
+
+# Look for CMakeLists.txt in plugin dirs, include if they exist
+file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
+foreach(pluginDir ${pluginDirs})
+  if(EXISTS "${pluginDir}/plugin.cmake")
+    get_filename_component(pluginName "${pluginDir}" NAME)
+    message(STATUS "Including plugin.cmake from \"${pluginName}\"")
+    include("${pluginDir}/plugin.cmake")
+  endif()
+endforeach()

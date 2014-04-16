@@ -36,6 +36,7 @@ from girder.constants import AccessType, ROOT_DIR
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+enabledPlugins = []
 
 
 def startServer():
@@ -43,7 +44,7 @@ def startServer():
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
     """
-    setupServer(test=True)
+    setupServer(test=True, plugins=enabledPlugins)
 
     # Make server quiet (won't announce start/stop or requests)
     cherrypy.config.update({'environment': 'embedded'})

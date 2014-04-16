@@ -38,13 +38,16 @@ class Webroot(object):
                          'built', 'index.html'), content_type='text/html')
 
 
-def setup(test=False):
+def setup(test=False, plugins=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
 
     :param test: Set to True when running in the tests.
     :type test: bool
+    :param plugins: If you wish to start the server with a custom set of
+                    plugins, pass this as a list of plugins to load. Otherwise,
+                    will use the PLUGINS_ENABLED setting value from the db.
     """
     cfgs = ('auth', 'db', 'server')
     cfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
@@ -83,8 +86,10 @@ def setup(test=False):
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
-    settings = model_importer.ModelImporter().model('setting')
-    plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+    if plugins is None:
+        settings = model_importer.ModelImporter().model('setting')
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+
     plugin_utilities.loadPlugins(plugins, root, appconf)
 
     application = cherrypy.tree.mount(root, '/', appconf)

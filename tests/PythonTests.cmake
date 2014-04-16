@@ -1,3 +1,5 @@
+include(CMakeParseArguments)
+
 set(py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
 set(pep8_config "${PROJECT_SOURCE_DIR}/tests/pep8.cfg")
 set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
@@ -24,30 +26,42 @@ endfunction()
 
 function(add_python_test case)
   set(name "server_${case}")
-  set(resource_lock ON)
 
-  foreach(extra_arg ${ARGN})
-    if(extra_arg STREQUAL "NO_LOCK")
-      set(resource_lock OFF)
-    endif()
-  endforeach()
+  set(_options NO_LOCK)
+  set(_args PLUGIN)
+  set(_multival_args "")
+  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  if(fn_PLUGIN)
+    set(name "server_${fn_PLUGIN}.${case}")
+    set(cwd "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
+    set(module plugin_tests.${case}_test)
+    set(pythonpath "${PROJECT_SOURCE_DIR}")
+  else()
+    set(cwd "${PROJECT_SOURCE_DIR}")
+    set(module tests.cases.${case}_test)
+    set(pythonpath "")
+  endif()
+
 
   if(PYTHON_COVERAGE)
     add_test(
       NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      WORKING_DIRECTORY ${cwd}
       COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run -p --append "--rcfile=${py_coverage_rc}"
-              --source=girder -m unittest -v tests.cases.${case}_test
+              --source=girder -m unittest -v ${module}
     )
   else()
     add_test(
       NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.cases.${case}_test
+      WORKING_DIRECTORY ${cwd}
+      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v ${module}
     )
   endif()
 
-  if(resource_lock)
+  set_property(TEST ${name} PROPERTY ENVIRONMENT "PYTHONPATH=${pythonpath}")
+
+  if(NOT fn_NO_LOCK)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
   endif()
 
