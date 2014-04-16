@@ -239,7 +239,6 @@ classes, and we can add it to the API in the ``load()`` method. ::
     def load(info):
         info['apiRoot'].cat = Cat()
 
-
 The events system
 ^^^^^^^^^^^^^^^^^
 
@@ -247,7 +246,79 @@ In addition to being able to augment the core API as described above, the core
 system fires a known set of events that plugins can bind to and handle as
 they wish. ::
 
-TODO
+In the most general sense, the events framework is simply a way of binding
+arbitrary events with handlers. The events are identified by a unique string
+that can be used to bind handlers to them. For example, if the following logic
+is executed by your plugin at startup time, ::
+
+    from girder import events
+
+    def handler(event):
+        print event.info
+
+    events.bind('some_event', 'my_handler', handler)
+
+And then during runtime the following code executes:
+
+    events.trigger('some_event', info='hello')
+
+Then ``hello`` would be printed to the console at that time. More information
+can be found in the API documentation for :ref:`events`.
+
+There are a specific set of known events that are fired from the core system.
+Plugins should bind to these events at ``load`` time. The semantics of these
+events are enumerated below.
+
+*  **Before REST call**
+Whenever a REST API route is called, just before executing its default handler,
+plugins will have an opportunity to execute code or conditionally override the
+default behavior using ``preventDefault`` and ``addResponse``. The identifiers
+for these events are of the form, e.g. ``rest.get.item/:id.before``. They
+receive the same kwargs as the default route handler in the event's info.
+
+*  **After REST call**
+Just like the before REST call event, but this is fired after the default
+handler has already executed and returned its value. That return value is
+also passed in the event.info for possible alteration by the receiving handler.
+The identifier for this event is, e.g. ``rest.get.item/:id.after``. You may
+alter the existing return value or override it completely using
+``preventDefault`` and ``addResponse`` on the event.
+
+*  **Before model save**
+You can receive an event each time a document of a specific resource type is
+saved. For example, you can bind to ``model.folder.save`` if you wish to
+perform logic each time a folder is saved to the database. You can use
+``preventDefault`` on the passed event if you wish for the normal saving logic
+not to be performed.
+
+* **Before model deletion**
+Triggered each time a model is about to be deleted. You can bind to this via
+e.g. ``model.folder.remove`` and optionally ``preventDefault`` on the event.
+
+*  **Override model validation**
+You can also override or augment the default ``validate`` methods for a core
+model type. Like the normal validation, you should raise a
+``ValidationException`` for failure cases, and you can also ``preventDefault``
+if you wish for the normal validation procedure not to be executed. The
+identifier for these events is, e.g. ``model.user.validate``.
+
+*  **Override user authentication**
+If you want to override or augment the normal user authentication process in
+your plugin, bind to the ``auth.user.get`` event. If your plugin can
+successfully authenticate the user, it should perform the logic it needs and
+then ``preventDefault`` on the event and ``addResponse`` containing the
+authenticated user document.
+
+*  **On file upload**
+This event is always triggered asynchronously and is fired after a file has
+been uploaded. The file document that was created is passed in the event info.
+You can bind to this event using the identifier ``data.process``.
+
+.. note:: If you anticipate your plugin being used as a dependency by other
+   plugins, and want to potentially alert them of your own events, it can
+   be worthwhile to trigger your own events from within the plugin. If you do
+   that, the identifiers for those events should begin with the name of your
+   plugin, e.g. ``events.trigger('cats.something_happened', info='foo')``
 
 Automated testing for plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
