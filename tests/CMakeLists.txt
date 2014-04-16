@@ -23,8 +23,14 @@ if(PYTHON_COVERAGE)
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
             "--title=Girder Coverage Report"
   )
+  add_test(
+    NAME py_coverage_xml
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml -o "${PROJECT_BINARY_DIR}/coverage.xml"
+  )
   set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
+  set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
 endif()
 
 if(PYTHON_STYLE_TESTS)
