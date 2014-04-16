@@ -34,27 +34,27 @@ function(add_python_test case)
 
   if(fn_PLUGIN)
     set(name "server_${fn_PLUGIN}.${case}")
-    set(cwd "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
     set(module plugin_tests.${case}_test)
-    set(pythonpath "${PROJECT_SOURCE_DIR}")
+    set(pythonpath "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
+    set(other_covg ",${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/server")
   else()
-    set(cwd "${PROJECT_SOURCE_DIR}")
     set(module tests.cases.${case}_test)
     set(pythonpath "")
+    set(other_covg "")
   endif()
 
 
   if(PYTHON_COVERAGE)
     add_test(
       NAME ${name}
-      WORKING_DIRECTORY ${cwd}
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run -p --append "--rcfile=${py_coverage_rc}"
-              --source=girder -m unittest -v ${module}
+              "--source=girder${other_covg}" -m unittest -v ${module}
     )
   else()
     add_test(
       NAME ${name}
-      WORKING_DIRECTORY ${cwd}
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v ${module}
     )
   endif()
