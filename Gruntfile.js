@@ -164,6 +164,11 @@ module.exports = function (grunt) {
                 files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
                 tasks: ['swagger-ui'],
                 options: {failOnError: false}
+            },
+            sphinx: {
+                files: ['docs/*.rst'],
+                tasks: ['docs'],
+                options: {failOnError: false}
             }
         }
     });
