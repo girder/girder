@@ -258,7 +258,7 @@ is executed by your plugin at startup time, ::
 
     events.bind('some_event', 'my_handler', handler)
 
-And then during runtime the following code executes:
+And then during runtime the following code executes: ::
 
     events.trigger('some_event', info='hello')
 
@@ -323,4 +323,45 @@ You can bind to this event using the identifier ``data.process``.
 Automated testing for plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO
+Girder makes it easy to add automated testing to your plugin that integrates
+with the main girder testing framework. In general, any CMake code that you
+want to be executed for your plugin can be performed by adding a
+**plugin.cmake** file in your plugin. ::
+
+    cd plugins/cats ; touch plugin.cmake
+
+That file will be automatically included when girder is configured by CMake.
+To add tests for your plugin, you can make use of some handy CMake functions
+provided by the core system. For example: ::
+
+    add_python_test(cat PLUGIN cats)
+    if(PYTHON_STYLE_TESTS)
+      add_python_style_test(pep8_style_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
+    endif()
+
+Then you should create a ``plugin_tests`` package in your plugin: ::
+
+    mkdir plugin_tests ; cd plugin-tests ; touch __init__.py cat_test.py
+
+The **cat_test.py** file should look like: ::
+
+    from tests import base
+
+
+    def setUpModule():
+        base.enabledPlugins.append('cats')
+        base.startServer()
+
+
+    def tearDownModule():
+        base.stopServer()
+
+
+    class CatsCatTestCase(base.TestCase):
+
+        def testCatsWork(self):
+            ...
+
+You can use all of the testing utilities provided by the ``base.TestCase`` class
+from core. You will also get coverage results for your plugin aggregated with
+the main girder coverage results if coverage is enabled.

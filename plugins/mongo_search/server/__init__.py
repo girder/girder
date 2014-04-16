@@ -41,7 +41,7 @@ class ResourceExt(Resource):
 
         events.trigger('mongo_search.allowed_collections', info=allowed)
 
-        if not coll in allowed:
+        if coll not in allowed:
             raise RestException('Invalid resource type: {}'.format(coll))
 
         try:
