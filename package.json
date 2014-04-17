@@ -9,10 +9,12 @@
   "dependencies": {
     "backbone": "~1.0",
     "grunt": "~0.4",
+    "grunt-cli": "~0.1",
     "grunt-contrib-qunit": "~0.2.0",
     "grunt-contrib-stylus": "~0.5.0",
     "grunt-contrib-uglify": "~0.3.2",
     "grunt-contrib-watch": "~0.3.1",
+    "grunt-contrib-copy": "~0.5.0",
     "grunt-shell": ">=0.2.1",
     "jade": "0.34.1",
     "jquery-browser": "~1.10",
@@ -21,10 +23,7 @@
     "swagger-ui": "2.0.13",
     "underscore": "~1.5"
   },
-  "devDependencies": {
-    "grunt-contrib-copy": "~0.5.0"
-  },
   "scripts": {
-    "postinstall": "./node_modules/grunt/bin/grunt init && ./node_modules/grunt/bin/grunt"
+    "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"
   }
 }
