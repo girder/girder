@@ -205,7 +205,7 @@ example: ::
         }
     myHandler.description = (
         Description('Retrieve the cat for a given item.')
-        .param('id', 'The item ID', type='path')
+        .param('id', 'The item ID', paramType='path')
         .param('cat', 'The cat value.', required=False)
         .errorResponse())
 

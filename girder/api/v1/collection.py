@@ -100,7 +100,7 @@ class Collection(Resource):
     def getCollection(self, coll, params):
         return self._filter(coll)
     getCollection.description = (
-        Description('Get a collection by ID')
+        Description('Get a collection by ID.')
         .responseClass('Collection')
         .param('id', 'The ID of the collection.', paramType='path')
         .errorResponse('ID was invalid.')
@@ -109,6 +109,11 @@ class Collection(Resource):
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def getCollectionAccess(self, coll, params):
         return self.model('collection').getFullAccessList(coll)
+    getCollectionAccess.description = (
+        Description('Get the access control list for a collection.')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin permission denied on the collection.', 403))
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def updateCollectionAccess(self, coll, params):
@@ -123,6 +128,12 @@ class Collection(Resource):
                 coll, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
+    updateCollectionAccess.description = (
+        Description('Set the access control list for a collection.')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .param('access', 'The access control list as JSON.')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin permission denied on the collection.', 403))
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.WRITE)
     def updateCollection(self, coll, params):
