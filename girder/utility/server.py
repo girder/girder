@@ -49,7 +49,7 @@ def setup(test=False, plugins=None):
                     plugins, pass this as a list of plugins to load. Otherwise,
                     will use the PLUGINS_ENABLED setting value from the db.
     """
-    cfgs = ('auth', 'db', 'server')
+    cfgs = ('auth', 'db', 'server', 'global')
 
     baseCfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
                              '{}.cfg'.format(c)) for c in cfgs]

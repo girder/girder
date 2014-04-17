@@ -45,7 +45,6 @@ class Model(ModelImporter):
 
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        print cherrypy.config
         if cherrypy.config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
