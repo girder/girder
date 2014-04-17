@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "grunt-contrib-copy": "~0.5.0"
+  },
+  "scripts": {
+    "postinstall": "grunt init && grunt"
   }
 }
