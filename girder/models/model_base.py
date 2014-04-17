@@ -22,7 +22,7 @@ import pymongo
 
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, TerminalColor
 from girder.utility.model_importer import ModelImporter
 
 from girder.models import getDbConfig, getDbConnection
@@ -57,9 +57,13 @@ class Model(ModelImporter):
 
         if type(self._textIndex) is dict:
             textIdx = [(k, 'text') for k in self._textIndex.keys()]
-            self.collection.ensure_index(
-                textIdx, weights=self._textIndex,
-                default_language=self._textLanguage)
+            try:
+                self.collection.ensure_index(
+                    textIdx, weights=self._textIndex,
+                    default_language=self._textLanguage)
+            except pymongo.errors.OperationFailure:
+                print(
+                    TerminalColor.warning('WARNING: Text search not enabled.'))
 
     def ensureTextIndex(self, index, language='english'):
         """
