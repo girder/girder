@@ -35,7 +35,7 @@ def getDbConfig():
         res = {'user': matcher.group(1),
                'password': matcher.group(2),
                'host': matcher.group(3),
-               'port': matcher.group(4),
+               'port': int(matcher.group(4)),
                'database': matcher.group(5)}
         return res
     return cherrypy.config['database']
