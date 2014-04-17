@@ -50,6 +50,12 @@ def setup(test=False, plugins=None):
                     will use the PLUGINS_ENABLED setting value from the db.
     """
     cfgs = ('auth', 'db', 'server')
+
+    baseCfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
+                             '{}.cfg'.format(c)) for c in cfgs]
+    for cfg in baseCfgs:
+        cherrypy.config.update(cfg)
+
     cfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
                          'local.%s.cfg' % c) for c in cfgs]
     for cfg in cfgs:
