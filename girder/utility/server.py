@@ -55,6 +55,10 @@ def setup(test=False, plugins=None):
     for cfg in cfgs:
         cherrypy.config.update(cfg)
 
+    # The PORT environment variable will override the config port
+    cherrypy.config.update(
+        {'server.socket_port': int(os.environ.get('PORT', '8080')),})
+
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
