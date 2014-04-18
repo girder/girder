@@ -22,6 +22,8 @@ from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
 
+from collections import namedtuple
+from StringIO import StringIO
 
 class File(Resource):
     """
@@ -60,7 +62,24 @@ class File(Resource):
             user=user, name=params['name'], parentType=parentType,
             parent=parent, size=int(params['size']), mimeType=mimeType)
         if upload['size'] > 0:
-            return upload
+            contents = params.get('contents', None)
+            if contents is not None:
+                if len(contents) != upload['size']:
+                    raise RestException('The length of the supplied contents'
+                        ' does not match the provided size.')
+                elif len(contents) > 64 * 1024 * 1024:
+                    raise RestException('The contents is larger than 64MB.')
+
+                # Construct a fake multipart entity object to pass to
+                # readChunk(), containing the provided data.
+                entity = namedtuple("Part", "file")
+                entity.file = StringIO(contents)
+
+                return self.readChunk({'offset': '0',
+                                       'uploadId': upload['_id'],
+                                       'chunk': entity})
+            else:
+                return upload
         else:
             return self.model('upload').finalizeUpload(upload)
     initUpload.description = (
@@ -71,6 +90,8 @@ class File(Resource):
         .param('name', 'Name of the file being uploaded.')
         .param('size', 'Size in bytes of the file.', dataType='integer')
         .param('mimeType', 'The MIME type of the file.', required=False)
+        .param('contents', 'The file data.  If not specified, follow '
+            'this up with calls to /file/chunk', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
 
