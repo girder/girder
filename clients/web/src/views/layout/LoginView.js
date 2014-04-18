@@ -18,6 +18,9 @@ girder.views.LoginView = Backbone.View.extend({
             }).done(_.bind(function (resp) {
                 this.$el.modal('hide');
 
+                // Save the token for later
+                resp.user.token = resp.authToken.token;
+
                 girder.currentUser = new girder.models.UserModel(resp.user);
                 girder.events.trigger('g:login');
             }, this)).error(_.bind(function (err) {
