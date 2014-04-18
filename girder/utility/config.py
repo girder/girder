@@ -36,7 +36,9 @@ def loadConfig():
 
     # The PORT environment variable will override the config port
     cherrypy.config.update(
-        {'server.socket_port': int(os.environ.get('PORT', '8080'))})
+        {'server.socket_port':
+         int(os.environ.get('PORT',
+                            cherrypy.config['server.socket_port']))})
 
     # The MONGOLAB_URI should override the database config
     if os.getenv('MONGOLAB_URI'):  # for Heroku
