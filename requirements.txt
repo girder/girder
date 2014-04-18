@@ -1,3 +1,4 @@
+cffi
 CherryPy
 Sphinx
 pymongo

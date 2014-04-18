@@ -83,12 +83,17 @@ Folder
 .. automodule:: girder.api.v1.folder
    :members:
 
+.. _api-docs-utility:
+
 Utility
 -------
 .. automodule:: girder.utility.model_importer
    :members:
 
 .. automodule:: girder.utility.server
+   :members:
+
+.. automodule:: girder.utility.config
    :members:
 
 Constants

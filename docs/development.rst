@@ -7,6 +7,26 @@ loosely coupled. As such, development of girder can be divided into the server
 client. This section is intended to get prospective contributors to understand
 the tools used to develop Girder.
 
+Utilities
+---------
+
+Girder has a set of utility modules and classes that provide handy extractions
+for certain functionality. Detailed API documentation can be found :ref:`here <api-docs-utility>`.
+
+Configuration Loading
+^^^^^^^^^^^^^^^^^^^^^
+
+The girder configuration loader allows for lazy-loading of configuration values
+in a cherrypy-agnostic manner. The recommended idiom for getting the config
+object is: ::
+
+    from girder.utility import config
+    cur_config = config.getConfig()
+
+If the configuration files from **girder/conf** have not yet been loaded, they
+will be pulled in automatically. The loading order is: \*.cfg, \*.local.cfg,
+certain environment variables.
+
 Server Side Testing
 -------------------
 
@@ -110,12 +130,12 @@ Plugin Development
 
 The capabilities of girder can be extended via plugins. The plugin framework is
 designed to allow girder to be as flexible as possible, on both the client
-and server sides. ::
+and server sides.
 
 A plugin is self-contained in a single directory. To create your plugin, simply
 create a directory within the **plugins** directory. In fact, that directory
 is the only thing that is truly required to make a plugin in girder. All of the
-other components discussed henceforth are optional. ::
+other components discussed henceforth are optional.
 
 Example plugin
 ^^^^^^^^^^^^^^
@@ -147,7 +167,7 @@ example will be: ::
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart will be required in order for the
-change to take effect. ::
+change to take effect.
 
 Extending the server-side capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -244,7 +264,7 @@ The events system
 
 In addition to being able to augment the core API as described above, the core
 system fires a known set of events that plugins can bind to and handle as
-they wish. ::
+they wish.
 
 In the most general sense, the events framework is simply a way of binding
 arbitrary events with handlers. The events are identified by a unique string
@@ -270,6 +290,7 @@ Plugins should bind to these events at ``load`` time. The semantics of these
 events are enumerated below.
 
 *  **Before REST call**
+
 Whenever a REST API route is called, just before executing its default handler,
 plugins will have an opportunity to execute code or conditionally override the
 default behavior using ``preventDefault`` and ``addResponse``. The identifiers
@@ -277,6 +298,7 @@ for these events are of the form, e.g. ``rest.get.item/:id.before``. They
 receive the same kwargs as the default route handler in the event's info.
 
 *  **After REST call**
+
 Just like the before REST call event, but this is fired after the default
 handler has already executed and returned its value. That return value is
 also passed in the event.info for possible alteration by the receiving handler.
@@ -285,6 +307,7 @@ alter the existing return value or override it completely using
 ``preventDefault`` and ``addResponse`` on the event.
 
 *  **Before model save**
+
 You can receive an event each time a document of a specific resource type is
 saved. For example, you can bind to ``model.folder.save`` if you wish to
 perform logic each time a folder is saved to the database. You can use
@@ -292,10 +315,12 @@ perform logic each time a folder is saved to the database. You can use
 not to be performed.
 
 * **Before model deletion**
+
 Triggered each time a model is about to be deleted. You can bind to this via
 e.g. ``model.folder.remove`` and optionally ``preventDefault`` on the event.
 
 *  **Override model validation**
+
 You can also override or augment the default ``validate`` methods for a core
 model type. Like the normal validation, you should raise a
 ``ValidationException`` for failure cases, and you can also ``preventDefault``
@@ -303,6 +328,7 @@ if you wish for the normal validation procedure not to be executed. The
 identifier for these events is, e.g. ``model.user.validate``.
 
 *  **Override user authentication**
+
 If you want to override or augment the normal user authentication process in
 your plugin, bind to the ``auth.user.get`` event. If your plugin can
 successfully authenticate the user, it should perform the logic it needs and
@@ -310,6 +336,7 @@ then ``preventDefault`` on the event and ``addResponse`` containing the
 authenticated user document.
 
 *  **On file upload**
+
 This event is always triggered asynchronously and is fired after a file has
 been uploaded. The file document that was created is passed in the event info.
 You can bind to this event using the identifier ``data.process``.
