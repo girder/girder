@@ -18,9 +18,8 @@
 ###############################################################################
 
 import pymongo
-import cherrypy
-import os
-import re
+
+from girder.utility import config
 
 _db_connection = None
 
@@ -28,17 +27,8 @@ _db_connection = None
 def getDbConfig():
     """Get the database configuration object from the cherrypy config.
     """
-
-    if os.getenv('MONGOLAB_URI'):  # for Heroku
-        matcher = re.match(r"mongodb://(.+):(.+)@(.+):(.+)/(.+)",
-                         os.getenv('MONGOLAB_URI'))
-        res = {'user': matcher.group(1),
-               'password': matcher.group(2),
-               'host': matcher.group(3),
-               'port': int(matcher.group(4)),
-               'database': matcher.group(5)}
-        return res
-    return cherrypy.config['database']
+    cfg = config.getConfig()
+    return cfg['database']
 
 
 def getDbConnection():
@@ -56,10 +46,10 @@ def getDbConnection():
         _db_uri_redacted = _db_uri
     else:
         _db_uri = 'mongodb://%s:%s@%s:%d/%s' % (db_cfg['user'],
-                                             db_cfg['password'],
-                                             db_cfg['host'],
-                                             db_cfg['port'],
-                                             db_cfg['database'])
+                                                db_cfg['password'],
+                                                db_cfg['host'],
+                                                db_cfg['port'],
+                                                db_cfg['database'])
         _db_uri_redacted = 'mongodb://%s@%s:%d' % (db_cfg['user'],
                                                    db_cfg['host'],
                                                    db_cfg['port'])

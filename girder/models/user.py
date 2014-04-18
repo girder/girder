@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import datetime
 import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
+from girder.utility import config
 
 
 class User(AccessControlledModel):
@@ -48,6 +48,8 @@ class User(AccessControlledModel):
         doc['fname'] = doc.get('firstName', '').strip()
         doc['lname'] = doc.get('lastName', '').strip()
 
+        cur_config = config.getConfig()
+
         if not doc.get('salt', ''):  # pragma: no cover
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
@@ -65,11 +67,11 @@ class User(AccessControlledModel):
             # an email address from a login
             raise ValidationException('Login may not contain "@".', 'login')
 
-        if not re.match(cherrypy.config['users']['login_regex'], doc['login']):
+        if not re.match(cur_config['users']['login_regex'], doc['login']):
             raise ValidationException(
-                cherrypy.config['users']['login_description'], 'login')
+                cur_config['users']['login_description'], 'login')
 
-        if not re.match(cherrypy.config['users']['email_regex'], doc['email']):
+        if not re.match(cur_config['users']['email_regex'], doc['email']):
             raise ValidationException('Invalid email address.', 'email')
 
         # Ensure unique logins

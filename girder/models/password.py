@@ -19,10 +19,9 @@
 
 import cherrypy
 import hashlib
-import random
 import re
-import string
 
+from girder.utility import config
 from .model_base import Model, ValidationException
 from .token import genToken
 
@@ -48,6 +47,7 @@ class Password(Model):
         :type salt: None or str
         :returns: The hashed value as a string.
         """
+        cur_config = config.getConfig()
         if alg == 'sha512':
             return hashlib.sha512(password + salt).hexdigest()
         elif alg == 'bcrypt':
@@ -58,7 +58,7 @@ class Password(Model):
                                 'See local.auth.cfg.')
 
             if salt is None:
-                rounds = cherrypy.config['auth']['bcrypt_rounds']
+                rounds = cur_config['auth']['bcrypt_rounds']
                 assert type(rounds) is int
                 return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
@@ -109,10 +109,12 @@ class Password(Model):
                   storage. Both should be stored in the corresponding
                   user document as 'salt' and 'hashAlg' respectively.
         """
+        cur_config = config.getConfig()
+
         # Normally this would go in validate() but password is a special case.
-        if not re.match(cherrypy.config['users']['password_regex'], password):
+        if not re.match(cur_config['users']['password_regex'], password):
             raise ValidationException(
-                cherrypy.config['users']['password_description'], 'password')
+                cur_config['users']['password_description'], 'password')
 
         alg = cherrypy.config['auth']['hash_alg']
         if alg == 'bcrypt':

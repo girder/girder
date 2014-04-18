@@ -24,7 +24,7 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.constants import AccessType, TerminalColor
 from girder.utility.model_importer import ModelImporter
-
+from girder.utility import config
 from girder.models import getDbConfig, getDbConnection
 
 
@@ -45,7 +45,8 @@ class Model(ModelImporter):
 
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        if cherrypy.config['server']['mode'] == 'testing':
+        cur_config = config.getConfig()
+        if cur_config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
             dbName = db_cfg['database']  # pragma: no cover
@@ -67,13 +68,13 @@ class Model(ModelImporter):
 
     def ensureTextIndex(self, index, language='english'):
         """
-        Call this during initialize() of the subclass if you want your model to
-        have a full-text searchable index. Each collection may have zero or
-        one full-text index.
-        :param language: The default_language value for the text index, which
-                         is used for stemming and stop words. If the text index
-                         should not use stemming and stop words, set this param
-                         to 'none'.
+        Call this during initialize() of the subclass if you want your
+        model to have a full-text searchable index. Each collection may
+        have zero or one full-text index.
+        :param language: The default_language value for the text index,
+        which is used for stemming and stop words. If the text index
+        should not use stemming and stop words, set this param to
+        'none'.
         :type language: str
         """
         self._textIndex = index
