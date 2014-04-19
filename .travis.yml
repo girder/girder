@@ -11,16 +11,13 @@ install:
     - sudo python setup.py install
     - npm install -g grunt grunt-cli
     - npm install
-before_script:
-    - grunt init
-    - grunt
 script:
     - mkdir _build
     - cd _build
     - cmake -D PYTHON_COVERAGE:BOOL=ON ..
     - ctest -V -S ../cmake/travis_build.cmake
-after_script:
-  - ctest -V -S ../cmake/travis_submit.cmake
+    - ctest -V -S ../cmake/travis_submit.cmake
+    - cd ..
 deploy:
     provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
