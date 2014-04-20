@@ -120,6 +120,9 @@ module.exports = function (grunt) {
                         'clients/web/src/models/**/*.js',
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'
+                    ],
+                    'clients/web/static/built/main.min.js': [
+                        'clients/web/src/main.js'
                     ]
                 }
             },
@@ -234,7 +237,8 @@ module.exports = function (grunt) {
                           'lib/jqplot/css/jquery.jqplot.min.css',
                           'built/app.min.css'],
             scripts: ['built/libs.min.js',
-                      'built/app.min.js'],
+                      'built/app.min.js',
+                      'built/main.min.js'],
             staticRoot: staticRoot,
             apiRoot: apiRoot
         });

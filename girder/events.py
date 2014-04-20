@@ -206,9 +206,8 @@ def trigger(eventName, info=None):
 
     :param eventName: The name that identifies the event.
     :type eventName: str
-    :param info: The info argument to pass to the handler function. The type of
-                 this argument is opaque, and can be anything.
-    :return
+    :param info: The info argument to pass to the handler function. The
+                 type of this argument is opaque, and can be anything.
     """
     global _mapping
     e = Event(eventName, info)

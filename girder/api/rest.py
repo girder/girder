@@ -32,6 +32,7 @@ from girder.constants import AccessType, TerminalColor
 from girder.models.model_base import AccessException, ValidationException,\
     AccessControlledModel
 from girder.utility.model_importer import ModelImporter
+from girder.utility import config
 from bson.objectid import ObjectId, InvalidId
 
 
@@ -142,7 +143,8 @@ def endpoint(fun):
             t, value, tb = sys.exc_info()
             val = {'message': '%s: %s' % (t.__name__, str(value)),
                    'type': 'internal'}
-            if cherrypy.config['server']['mode'] != 'production':
+            curConfig = config.getConfig()
+            if curConfig['server']['mode'] != 'production':
                 # Unless we are in production mode, send a traceback too
                 val['trace'] = traceback.extract_tb(tb)
 

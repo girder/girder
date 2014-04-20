@@ -23,6 +23,7 @@ import os
 
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
+from girder.utility import config
 from . import dev_endpoints
 
 
@@ -49,11 +50,7 @@ def setup(test=False, plugins=None):
                     plugins, pass this as a list of plugins to load. Otherwise,
                     will use the PLUGINS_ENABLED setting value from the db.
     """
-    cfgs = ('auth', 'db', 'server')
-    cfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
-                         'local.%s.cfg' % c) for c in cfgs]
-    for cfg in cfgs:
-        cherrypy.config.update(cfg)
+    cur_config = config.getConfig()
 
     appconf = {
         '/': {
@@ -67,11 +64,11 @@ def setup(test=False, plugins=None):
         }
     }
 
-    cherrypy.config.update(appconf)
+    cur_config.update(appconf)
 
     if test:
         # Force the mode to be 'testing'
-        cherrypy.config.update({'server': {'mode': 'testing'}})
+        cur_config.update({'server': {'mode': 'testing'}})
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
@@ -80,7 +77,7 @@ def setup(test=False, plugins=None):
     root = Webroot()
     api_main.addApiToNode(root)
 
-    if cherrypy.config['server']['mode'] is 'development':
+    if cur_config['server']['mode'] is 'development':
         dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
 
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
@@ -93,8 +90,6 @@ def setup(test=False, plugins=None):
     plugin_utilities.loadPlugins(plugins, root, appconf)
 
     application = cherrypy.tree.mount(root, '/', appconf)
-    for cfg in cfgs:
-        application.merge(cfg)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})

@@ -1,30 +1,30 @@
 language: cpp
-
 services: mongodb
-
 compiler:
-  - clang
-
+    - clang
 before_install:
-  - "sudo apt-get install npm"
-  - "mongo --eval 'db.runCommand({setParameter: 1, textSearchEnabled: true})' admin"
-
+    - sudo apt-get install npm
+    - "mongo --eval 'db.runCommand({setParameter: 1, textSearchEnabled: true})' admin"
 install:
-  - "sudo pip install -r requirements.txt"
-  - "sudo pip install pep8 coverage"
-  - "sudo python setup.py install"
-  - "npm install -g grunt grunt-cli"
-  - "npm install"
-
-before_script:
-  - "grunt init"
-  - "grunt"
-
+    - sudo pip install -r requirements.txt
+    - sudo pip install pep8 coverage
+    - sudo python setup.py install
+    - npm install -g grunt grunt-cli
+    - npm install
 script:
-  - mkdir _build
-  - cd _build
-  - cmake -D PYTHON_COVERAGE:BOOL=ON ..
-  - ctest -V -S ../cmake/travis_build.cmake
-
-after_script:
-  - ctest -V -S ../cmake/travis_submit.cmake
+    - mkdir _build
+    - cd _build
+    - cmake -D PYTHON_COVERAGE:BOOL=ON ..
+    - ctest -V -S ../cmake/travis_build.cmake
+    - ctest -V -S ../cmake/travis_submit.cmake
+    - cd ..
+deploy:
+    provider: heroku
+    buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
+    strategy: git
+    api_key:
+        secure: RflKHQjdjo4dpebNUGHJrAi4cOchQPtKiA5q9W0iXJ09T2Ad/gZhJqwPN/MKzPb2JTRZzxrVBergjAeTjxcaVbNh97JnC+NBa77A5VFhCDELB2sN/zwjmxpiTtTgDtD8N2MOQcLoc7T8x0TRhk2pANQB3ztrvy+oDX+mq5SbuuU=
+    app: girder-test
+    on:
+        repo: girder/girder
+        branch: master

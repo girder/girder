@@ -77,8 +77,3 @@ var girder = {
         return Backbone.ajax(_.extend(defaults, opts));
     }
 };
-
-// When all scripts are loaded, we invoke the application
-$(function () {
-    var app = new girder.App({});
-});
