@@ -181,7 +181,7 @@ class User(AccessControlledModel):
         user['hashAlg'] = alg
 
         if save:
-            self.save(user, validate=False)
+            self.save(user)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
