@@ -138,7 +138,7 @@ class User(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': user['_id'],
             'parentCollection': 'user'
-            }, limit=0)
+        }, limit=0)
         for folder in folders:
             self.model('folder').remove(folder)
 
@@ -169,6 +169,20 @@ class User(AccessControlledModel):
                                                 limit=limit, offset=offset):
             yield r
 
+    def setPassword(self, user, password, save=True):
+        """
+        Change a user's password.
+
+        :param user: The user whose password to change.
+        :param password: The new password.
+        """
+        salt, alg = self.model('password').encryptAndStore(password)
+        user['salt'] = salt
+        user['hashAlg'] = alg
+
+        if save:
+            self.save(user, validate=False)
+
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
         """
@@ -181,21 +195,19 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
-        (salt, hashAlg) = self.model('password').encryptAndStore(password)
-
-        user = self.save({
+        user = {
             'login': login,
             'email': email,
             'firstName': firstName,
             'lastName': lastName,
-            'salt': salt,
             'created': datetime.datetime.now(),
-            'hashAlg': hashAlg,
             'emailVerified': False,
             'admin': admin,
             'size': 0,
             'groupInvites': []
-            })
+        }
+
+        self.setPassword(user, password)
 
         self.setPublic(user, public=public)
         # Must have already saved the user prior to calling this since we are

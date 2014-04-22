@@ -17,16 +17,39 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+import os
 import smtplib
 
 from email.mime.text import MIMEText
-from .. import events
-from ..constants import SettingKey
+from mako.template import Template
+from mako.lookup import TemplateLookup
+from girder import events
+from girder.constants import SettingKey, ROOT_DIR
 from . import config
 from .model_importer import ModelImporter
 
 
-def sendEmail(to, subject, text):
+def renderTemplate(name, params={}):
+    """
+    Renders one of the HTML mail templates located in girder/mail_templates.
+
+    :param name: The name of the file inside girder/mail_templates to render.
+    :param params: The parameters to pass when rendering the template.
+    :type params: dict
+    :returns: The rendered template as a string of HTML.
+    """
+    host = '://'.join((cherrypy.request.scheme, cherrypy.request.local.name))
+
+    if cherrypy.request.local.port != 80:
+        host += ':{}'.format(cherrypy.request.local.port)
+
+    params['host'] = host
+    template = _templateLookup.get_template(name)
+    return template.render(**params)
+
+
+def sendEmail(to, subject, text, force=False):
     """
     Send an email. This builds the appropriate email object and then triggers
     an asynchronous event to send the email (handled in _sendmail).
@@ -37,9 +60,11 @@ def sendEmail(to, subject, text):
     :type subject: str
     :param text: The body of the email.
     :type text: str
+    :param force: Force sending of the email, regardless of server mode.
+    :type force: bool
     """
-    if config.getConfig()['server']['mode'] == 'production':
-        msg = MIMEText(text)
+    if force or config.getConfig()['server']['mode'] == 'production':
+        msg = MIMEText(text, 'html')
         msg['Subject'] = subject
         msg['To'] = to
         msg['From'] = _settings.get(
@@ -55,5 +80,8 @@ def _sendmail(event):
     s.quit()
 
 
+_templateDir = os.path.join(ROOT_DIR, 'girder', 'mail_templates')
+_templateLookup = TemplateLookup(directories=(_templateDir,),
+                                 collection_size=50)
 _settings = ModelImporter().model('setting')
 events.bind('_sendmail', 'core.email', _sendmail)
