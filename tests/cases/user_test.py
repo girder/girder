@@ -19,6 +19,8 @@
 
 import cherrypy
 import json
+import re
+import time
 
 from .. import base
 
@@ -267,3 +269,45 @@ class UserTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['lastName'], 'b_usr')
         self.assertEqual(resp.json[1]['lastName'], 'c_usr')
+
+    def testPasswordChangeAndReset(self):
+        user = self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
+                                             'user@user.com')
+        # Reset password should require email param
+        resp = self.request(path='/user/password', method='DELETE', params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "Parameter 'email' is required.")
+
+        # Reset email with an incorrect email
+        resp = self.request(path='/user/password', method='DELETE', params={
+            'email': 'bad_email@user.com'
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "That email is not registered.")
+
+        # Actually reset password
+        resp = self.request(path='/user/password', method='DELETE', params={
+            'email': 'user@user.com'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent password reset email.")
+
+        # Old password should no longer work
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='user@user.com:passwd')
+        self.assertStatus(resp, 403)
+
+        msg = base.mockSmtpServer.mailQueue.get(block=False)
+
+        # Pull out the auto-generated password from the email
+        search = re.search('Your new password is: <b>(.*)</b>', msg)
+        newPass = search.group(1)
+
+        # Login with the new password
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='user@user.com:' + newPass)
+        self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ['authToken'])
+        self.assertHasKeys(
+            resp.json['authToken'], ['token', 'expires', 'userId'])
+        self._verifyAuthCookie(resp)

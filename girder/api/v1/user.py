@@ -258,7 +258,7 @@ class User(Resource):
 
         cursor = self.model('user').find({'email': email}, limit=1)
         if cursor.count() == 0:
-            raise RestException('That email is not registered.', code=403)
+            raise RestException('That email is not registered.')
 
         user = cursor.next()
         randomPass = genToken(length=12)
