@@ -308,7 +308,47 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='user@user.com:' + newPass)
         self.assertStatusOk(resp)
-        self.assertHasKeys(resp.json, ['authToken'])
+        self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
-            resp.json['authToken'], ['token', 'expires', 'userId'])
+            resp.json['authToken'], ('token', 'expires', 'userId'))
+        self._verifyAuthCookie(resp)
+
+        # Now test changing passwords the normal way
+
+        # Must be logged in
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': newPass,
+            'new': 'something_else'
+        })
+        self.assertStatus(resp, 401)
+
+        # Old password must be correct
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': 'passwd',
+            'new': 'something_else'
+        }, user=user)
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Old password is incorrect.')
+
+        # New password must meet requirements
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': newPass,
+            'new': 'x'
+        }, user=user)
+        self.assertStatus(resp, 400)
+
+        # Change password successfully
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': newPass,
+            'new': 'something_else'
+        }, user=user)
+        self.assertStatusOk(resp)
+
+        # Make sure we can login with new password
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='user@user.com:something_else')
+        self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ('authToken',))
+        self.assertHasKeys(
+            resp.json['authToken'], ('token', 'expires', 'userId'))
         self._verifyAuthCookie(resp)

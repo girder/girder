@@ -237,7 +237,7 @@ class User(Resource):
         user = self.getCurrentUser()
 
         if user is None:
-            raise AccessException('You are not logged in.')
+            raise RestException('You are not logged in.', code=401)
 
         if not self.model('password').authenticate(user, params['old']):
             raise RestException('Old password is incorrect.', code=403)
