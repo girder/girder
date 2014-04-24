@@ -49,7 +49,7 @@ def renderTemplate(name, params={}):
     return template.render(**params)
 
 
-def sendEmail(to, subject, text, force=False):
+def sendEmail(to, subject, text):
     """
     Send an email. This builds the appropriate email object and then triggers
     an asynchronous event to send the email (handled in _sendmail).
@@ -60,28 +60,35 @@ def sendEmail(to, subject, text, force=False):
     :type subject: str
     :param text: The body of the email.
     :type text: str
-    :param force: Force sending of the email, regardless of server mode.
-    :type force: bool
     """
-    if force or config.getConfig()['server']['mode'] == 'production':
-        msg = MIMEText(text, 'html')
-        msg['Subject'] = subject
-        msg['To'] = to
-        msg['From'] = _settings.get(
-            SettingKey.EMAIL_FROM_ADDRESS, 'no-reply@girder')
+    msg = MIMEText(text, 'html')
+    msg['Subject'] = subject
+    msg['To'] = to
+    msg['From'] = ModelImporter().model('setting').get(
+        SettingKey.EMAIL_FROM_ADDRESS, 'no-reply@girder')
 
-        events.daemon.trigger('_sendmail', info=msg)
+    events.daemon.trigger('_sendmail', info=msg)
+
+
+def addTemplateDirectory(dir):
+    """
+    Adds a directory to the search path for mail templates. This is useful
+    for plugins that have their own set of mail templates.
+
+    :param dir: The directory to add to the template lookup path.
+    :type dir: str
+    """
+    _templateLookup.directories.append(dir)
 
 
 def _sendmail(event):
     msg = event.info
-    s = smtplib.SMTP(_settings.get(SettingKey.SMTP_HOST, 'localhost'))
+    s = smtplib.SMTP(
+        ModelImporter().model('setting').get(SettingKey.SMTP_HOST, 'localhost'))
     s.sendmail(msg['From'], (msg['To'],), msg.as_string())
     s.quit()
 
 
 _templateDir = os.path.join(ROOT_DIR, 'girder', 'mail_templates')
-_templateLookup = TemplateLookup(directories=(_templateDir,),
-                                 collection_size=50)
-_settings = ModelImporter().model('setting')
+_templateLookup = TemplateLookup(directories=[_templateDir], collection_size=50)
 events.bind('_sendmail', 'core.email', _sendmail)

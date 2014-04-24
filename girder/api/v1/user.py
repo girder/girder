@@ -267,7 +267,7 @@ class User(Resource):
             'password': randomPass
         })
         mail_utils.sendEmail(to=email, subject='Girder: Password reset',
-                             text=html, force=True)
+                             text=html)
         self.model('user').setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
     resetPassword.description = (
