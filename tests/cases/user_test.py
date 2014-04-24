@@ -297,7 +297,8 @@ class UserTestCase(base.TestCase):
                             basicAuth='user@user.com:passwd')
         self.assertStatus(resp, 403)
 
-        msg = base.mockSmtpServer.mailQueue.get(block=False)
+        self.assertFalse(base.mockSmtp.isMailQueueEmpty())
+        msg = base.mockSmtp.getMail()
 
         # Pull out the auto-generated password from the email
         search = re.search('Your new password is: <b>(.*)</b>', msg)

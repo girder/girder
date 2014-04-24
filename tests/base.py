@@ -37,7 +37,7 @@ from . import mock_smtp
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
-mockSmtpServer = mock_smtp.MockSmtpServer(('localhost', 50002), None)
+mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
 enabledPlugins = []
 
 
@@ -54,7 +54,7 @@ def startServer():
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
 
-    mock_smtp.listen()
+    mockSmtp.start()
 
 
 def stopServer():
@@ -63,7 +63,7 @@ def stopServer():
     function in their tearDownModule() function.
     """
     cherrypy.engine.exit()
-    mockSmtpServer.close()
+    mockSmtp.stop()
 
 
 def dropTestDatabase():

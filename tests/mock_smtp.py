@@ -19,23 +19,40 @@
 
 import asyncore
 import Queue
+import smtpd
 import threading
 
-from smtpd import SMTPServer
 
-thread = None
-
-
-class MockSmtpServer(SMTPServer):
-    def __init__(self, localaddr, remoteaddr):
-        SMTPServer.__init__(self, localaddr, remoteaddr)
-        self.mailQueue = Queue.Queue()
+class MockSmtpServer(smtpd.SMTPServer):
+    mailQueue = Queue.Queue()
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         self.mailQueue.put(data)
 
 
-def listen():
-    global thread
-    thread = threading.Thread(target=asyncore.loop, kwargs={'timeout': 180})
-    thread.start()
+class MockSmtpReceiver(object):
+    def __init__(self, address):
+        self.address = address
+
+    def start(self):
+        """Start the mock SMTP server"""
+        self.smtp = MockSmtpServer(self.address, None)
+        self.thread = threading.Thread(target=asyncore.loop,
+                                       kwargs={'timeout': 0})
+        self.thread.start()
+
+    def stop(self):
+        """Stop the mock STMP server"""
+        self.smtp.close()
+        self.thread.join()
+
+    def getMail(self):
+        """
+        Return the message at the front of the queue.
+        Raises Queue.Empty exception if there are no messages.
+        """
+        return self.smtp.mailQueue.get(block=False)
+
+    def isMailQueueEmpty(self):
+        """Return whether or not the mail queue is empty"""
+        return self.smtp.mailQueue.empty()
