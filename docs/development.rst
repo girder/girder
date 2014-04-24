@@ -27,6 +27,37 @@ If the configuration files from **girder/conf** have not yet been loaded, they
 will be pulled in automatically. The loading order is: \*.cfg, \*.local.cfg,
 certain environment variables.
 
+Sending Emails
+^^^^^^^^^^^^^^
+
+Girder has utilities that make it easy to send emails. For the sake of
+maintainability and reusability of the email content itself, emails are stored
+as `Mako templates <http://www.makotemplates.org/>`_ in the
+**girder/mail_templates** directory. By convention, email templates should
+include ``_header.mako`` above and ``_footer.mako`` below the content. If you wish
+to send an email from some point within the application, you can use the
+utility functions within ``girder.utility.mail_utils``, as in the example below: ::
+
+    from girder.utility import mail_utils
+
+    ...
+
+    def my_email_sending_code():
+        html = mail_utils.renderTemplate('myContentTemplate.mako', {
+            'param1': 'foo',
+            'param2': 'bar'
+        })
+        mail_utils.sendEmail(to=email, subject='My mail from girder', text=html)
+
+If you wish to send email from within a plugin, simply create a
+**server/mail_templates** directory within your plugin, and it will be
+automatically added to the mail template search path when your plugin is loaded.
+To avoid name collisions, convention dictates that mail templates within your
+plugin should be prefixed by your plugin name, e.g. "my_plugin.my_template.mako".
+
+.. note:: All emails are sent as rich text (``text/html`` MIME type).
+
+
 Server Side Testing
 -------------------
 
