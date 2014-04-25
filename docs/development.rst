@@ -195,6 +195,14 @@ a ``config`` value, which is the server's configuration dictionary, and a
 ``serverRoot`` object, which can be used to attach endpoints that do not belong
 to the web API.
 
+Within your plugin, you may import packages using relative imports or via
+the ``girder.plugins`` package. This will work for your own plugin, but you can
+also import modules from any active plugin. You can also import core girder
+modules using the ``girder`` package as usual. Example: ::
+
+    from girder.plugins.my_plugin import some_module
+    from girder import events
+
 Adding a new route to the web API
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

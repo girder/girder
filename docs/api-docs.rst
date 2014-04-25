@@ -22,7 +22,7 @@ Events
 .. automodule:: girder.events
     :members:
 
-Users
+User
 ^^^^^
 .. automodule:: girder.models.user
    :members:
@@ -42,6 +42,12 @@ Group
 .. automodule:: girder.models.group
    :members:
 
+Collection
+^^^^^^^^^^
+
+.. automodule:: girder.models.collection
+   :members:
+
 Folder
 ^^^^^^
 .. automodule:: girder.models.folder
@@ -50,6 +56,12 @@ Folder
 Item
 ^^^^
 .. automodule:: girder.models.item
+   :members:
+
+Setting
+^^^^^^^
+
+.. automodule:: girder.models.setting
    :members:
 
 Web API Endpoints
