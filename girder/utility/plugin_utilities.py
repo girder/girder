@@ -34,6 +34,7 @@ import sys
 import traceback
 
 from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
+from girder.utility import mail_utils
 
 
 def loadPlugins(plugins, root, appconf):
@@ -96,6 +97,11 @@ def loadPlugin(name, root, appconf):
     if not isPluginDir and not isPluginFile:
         # This plugin does not have any server-side python code.
         return
+
+    mailTemplatesDir = os.path.join(pluginDir, 'server', 'mail_templates')
+    if os.path.isdir(mailTemplatesDir):
+        # If the plugin has mail templates, add them to the lookup path
+        mail_utils.addTemplateDirectory(mailTemplatesDir)
 
     moduleName = '.'.join((ROOT_PLUGINS_PACKAGE, name))
 

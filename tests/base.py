@@ -32,10 +32,12 @@ import uuid
 from StringIO import StringIO
 from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
-from girder.constants import AccessType, ROOT_DIR
+from girder.constants import AccessType, ROOT_DIR, SettingKey
+from . import mock_smtp
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
 enabledPlugins = []
 
 
@@ -52,6 +54,8 @@ def startServer():
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
 
+    mockSmtp.start()
+
 
 def stopServer():
     """
@@ -59,6 +63,7 @@ def stopServer():
     function in their tearDownModule() function.
     """
     cherrypy.engine.exit()
+    mockSmtp.stop()
 
 
 def dropTestDatabase():
@@ -87,6 +92,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         dropTestDatabase()
         self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=os.path.join(ROOT_DIR, 'tests', 'assetstore'))
+        self.model('setting').set(SettingKey.SMTP_HOST, 'localhost:50002')
 
     def assertStatusOk(self, response):
         """

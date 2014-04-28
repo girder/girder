@@ -48,6 +48,14 @@ class Setting(Model):
             if doc['value'] <= 0:
                 raise ValidationException(
                     'Cookie lifetime must be an integer > 0.', 'value')
+        elif key == SettingKey.EMAIL_FROM_ADDRESS:
+            if not doc['value']:
+                raise ValidationException(
+                    'Email from address must not be blank.', 'value')
+        elif key == SettingKey.SMTP_HOST:
+            if not doc['value']:
+                raise ValidationException(
+                    'SMTP host must not be blank.', 'value')
         else:
             raise ValidationException('Invalid setting key.', 'key')
 

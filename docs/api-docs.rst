@@ -108,6 +108,9 @@ Utility
 .. automodule:: girder.utility.config
    :members:
 
+.. automodule:: girder.utility.mail_utils
+   :members:
+
 Constants
 ---------
 .. automodule:: girder.constants

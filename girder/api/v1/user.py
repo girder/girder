@@ -21,9 +21,11 @@ import base64
 import cherrypy
 import json
 
-from ...constants import AccessType, SettingKey
 from ..rest import Resource, RestException, loadmodel
 from ..describe import Description
+from girder.constants import AccessType, SettingKey
+from girder.models.token import genToken
+from girder.utility import mail_utils
 
 
 class User(Resource):
@@ -41,6 +43,8 @@ class User(Resource):
         self.route('GET', ('authentication',), self.login)
         self.route('GET', (':id',), self.getUser)
         self.route('POST', (), self.createUser)
+        self.route('PUT', ('password',), self.changePassword)
+        self.route('DELETE', ('password',), self.resetPassword)
 
     def _filter(self, user):
         """
@@ -181,8 +185,8 @@ class User(Resource):
         }
     login.description = (
         Description('Log in to the system.')
-        .notes("""Pass your username and password using HTTP Basic Auth. Sends
-               a cookie that should be passed back in future requests.""")
+        .notes('Pass your username and password using HTTP Basic Auth. Sends'
+               ' a cookie that should be passed back in future requests.')
         .errorResponse('Missing Authorization header.', 401)
         .errorResponse('Invalid login or password.', 403))
 
@@ -195,8 +199,8 @@ class User(Resource):
         .notes('Attempts to delete your authentication cookie.'))
 
     def createUser(self, params):
-        self.requireParams(['firstName', 'lastName', 'login', 'password',
-                            'email'], params)
+        self.requireParams(
+            ('firstName', 'lastName', 'login', 'password', 'email'), params)
 
         user = self.model('user').createUser(
             login=params['login'], password=params['password'],
@@ -215,8 +219,8 @@ class User(Resource):
         .param('firstName', "The user's first name.")
         .param('lastName', "The user's last name.")
         .param('password', "The user's requested password")
-        .errorResponse("""A parameter was invalid, or the specified login or
-                          email already exists in the system."""))
+        .errorResponse('A parameter was invalid, or the specified login or'
+                       ' email already exists in the system.'))
 
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
     def deleteUser(self, userToDelete, params):
@@ -227,3 +231,46 @@ class User(Resource):
         .param('id', 'The ID of the user.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403))
+
+    def changePassword(self, params):
+        self.requireParams(('old', 'new'), params)
+        user = self.getCurrentUser()
+
+        if user is None:
+            raise RestException('You are not logged in.', code=401)
+
+        if not self.model('password').authenticate(user, params['old']):
+            raise RestException('Old password is incorrect.', code=403)
+
+        self.model('user').setPassword(user, params['new'])
+        return {'message': 'Password changed.'}
+    changePassword.description = (
+        Description('Change your password.')
+        .param('old', 'Your current password.')
+        .param('new', 'Your new password.')
+        .errorResponse('You are not logged in.', 401)
+        .errorResponse('Your old password is incorrect.', 403)
+        .errorResponse('Your new password is invalid.'))
+
+    def resetPassword(self, params):
+        self.requireParams(('email',), params)
+        email = params['email'].lower().strip()
+
+        cursor = self.model('user').find({'email': email}, limit=1)
+        if cursor.count() == 0:
+            raise RestException('That email is not registered.')
+
+        user = cursor.next()
+        randomPass = genToken(length=12)
+
+        html = mail_utils.renderTemplate('resetPassword.mako', {
+            'password': randomPass
+        })
+        mail_utils.sendEmail(to=email, subject='Girder: Password reset',
+                             text=html)
+        self.model('user').setPassword(user, randomPass)
+        return {'message': 'Sent password reset email.'}
+    resetPassword.description = (
+        Description('Reset a forgotten password via email.')
+        .param('email', 'Your email address.')
+        .errorResponse('That email does not exist in the system.'))

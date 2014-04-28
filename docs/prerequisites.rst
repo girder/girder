@@ -8,6 +8,11 @@ The following software packages are required to be installed on your system:
 * `MongoDB <http://www.mongodb.org/>`_
 * `node.js <http://nodejs.org/>`_
 
+Additionally, in order to send out emails to users, girder will need to be able
+to communicate with an SMTP server. Proper installation and configuration of
+an SMTP server on your system is beyond the scope of these docs, but we
+recommend setting up `Postfix <http://www.postfix.org/documentation.html>`_.
+
 See the specific instructions for your platform below.
 
 * :ref:`ubuntu`
