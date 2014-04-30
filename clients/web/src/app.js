@@ -19,6 +19,8 @@ girder.App = Backbone.View.extend({
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
         girder.events.on('g:registerUi', this.registerDialog, this);
+        girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
+        girder.events.on('g:alert', this.alert, this);
     },
 
     render: function () {
@@ -94,5 +96,45 @@ girder.App = Backbone.View.extend({
             });
         }
         this.registerView.render();
+    },
+
+    resetPasswordDialog: function () {
+        if (!this.resetPasswordView) {
+            this.resetPasswordView = new girder.views.ResetPasswordView({
+                el: this.$('#g-dialog-container')
+            });
+        }
+        this.resetPasswordView.render();
+    },
+
+    /**
+     * Display a brief alert on the screen with the following options:
+     *   - text: The text to be displayed
+     *   - [type]: The alert class ('info', 'warning', 'success', 'danger').
+     *             Default is 'info'.
+     *   - [icon]: An optional icon to display in the alert.
+     *   - [timeout]: How long before the alert should automatically disappear.
+     *                Default is 6000ms. Set to <= 0 to have no timeout.
+     */
+    alert: function (options) {
+        var el = $(jade.templates.alert({
+            text: options.text,
+            type: options.type || 'info',
+            icon: options.icon
+        }));
+        $('#g-alerts-container').append(el);
+        el.fadeIn();
+
+        if (options.timeout === undefined) {
+            options.timeout = 6000;
+        }
+        if (options.timeout > 0) {
+            window.setTimeout(function () {
+                el.fadeOut(750, function () {
+                    $(this).remove();
+                });
+            }, options.timeout);
+        }
+
     }
 });

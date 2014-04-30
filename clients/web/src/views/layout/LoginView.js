@@ -34,6 +34,10 @@ girder.views.LoginView = Backbone.View.extend({
 
         'click a.g-register-link': function () {
             girder.events.trigger('g:registerUi');
+        },
+
+        'click a.g-forgot-password': function () {
+            girder.events.trigger('g:resetPasswordUi');
         }
     },
 
