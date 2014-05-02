@@ -1,7 +1,7 @@
 /**
  * This view shows the footer in the layout.
  */
-girder.views.LayoutFooterView = Backbone.View.extend({
+girder.views.LayoutFooterView = girder.View.extend({
     events: {
     },
 

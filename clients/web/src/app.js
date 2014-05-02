@@ -65,10 +65,7 @@ girder.App = Backbone.View.extend({
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container')
             });
-            /* We let the view be created in this way even though it is
-             * normally against convention.
-             */
-            /*jshint -W055 */
+
             this.bodyView = new view(settings);
         }
         else {

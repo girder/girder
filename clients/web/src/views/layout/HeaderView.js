@@ -1,7 +1,7 @@
 /**
  * This view shows the header in the layout.
  */
-girder.views.LayoutHeaderView = Backbone.View.extend({
+girder.views.LayoutHeaderView = girder.View.extend({
     events: {
         'submit .g-item-search-form': function (event) {
             event.preventDefault();

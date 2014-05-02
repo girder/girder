@@ -3,7 +3,7 @@
     /**
      * This view shows a single user's page.
      */
-    girder.views.UserView = Backbone.View.extend({
+    girder.views.UserView = girder.View.extend({
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
 

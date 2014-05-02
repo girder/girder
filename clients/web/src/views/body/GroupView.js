@@ -1,7 +1,7 @@
 /**
  * This view shows a single group's page.
  */
-girder.views.GroupView = Backbone.View.extend({
+girder.views.GroupView = girder.View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
         'click .g-group-join': 'joinGroup',

@@ -1,7 +1,7 @@
 /**
  * This widget is used to create a new collection or edit an existing one.
  */
-girder.views.EditCollectionWidget = Backbone.View.extend({
+girder.views.EditCollectionWidget = girder.View.extend({
     events: {
         'submit #g-collection-edit-form': function (e) {
             e.preventDefault();

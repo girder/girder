@@ -2,7 +2,7 @@
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
  */
-girder.views.LayoutHeaderUserView = Backbone.View.extend({
+girder.views.LayoutHeaderUserView = girder.View.extend({
     events: {
         'click a.g-login': function () {
             girder.events.trigger('g:loginUi');

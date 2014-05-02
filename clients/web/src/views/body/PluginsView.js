@@ -1,7 +1,7 @@
 /**
  * This is the plugin management page for administrators.
  */
-girder.views.PluginsView = Backbone.View.extend({
+girder.views.PluginsView = girder.View.extend({
     events: {
     },
 

@@ -1,7 +1,7 @@
 /**
  * This widget is used to navigate the data hierarchy of folders and items.
  */
-girder.views.HierarchyWidget = Backbone.View.extend({
+girder.views.HierarchyWidget = girder.View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-download-folder': 'downloadFolder',
@@ -286,7 +286,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
 /**
  * Renders the breadcrumb list in the hierarchy widget.
  */
-girder.views.HierarchyBreadcrumbView = Backbone.View.extend({
+girder.views.HierarchyBreadcrumbView = girder.View.extend({
     events: {
         'click a.g-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);

@@ -3,7 +3,7 @@
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-girder.views.FolderListWidget = Backbone.View.extend({
+girder.views.FolderListWidget = girder.View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');

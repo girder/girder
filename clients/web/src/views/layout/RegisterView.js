@@ -1,7 +1,7 @@
 /**
  * This view shows a register modal dialog.
  */
-girder.views.RegisterView = Backbone.View.extend({
+girder.views.RegisterView = girder.View.extend({
     events: {
         'submit #g-register-form': function (e) {
             e.preventDefault();

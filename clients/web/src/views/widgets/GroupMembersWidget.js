@@ -1,7 +1,7 @@
 /**
  * This view shows a list of members of a group.
  */
-girder.views.GroupMembersWidget = Backbone.View.extend({
+girder.views.GroupMembersWidget = girder.View.extend({
     events: {
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
@@ -100,7 +100,7 @@ girder.views.GroupMembersWidget = Backbone.View.extend({
     }
 });
 
-girder.views.InviteUserDialog = Backbone.View.extend({
+girder.views.InviteUserDialog = girder.View.extend({
     events: {
         'click .g-invite-as-member': function () {
             this.$el.modal('hide');

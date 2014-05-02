@@ -2,7 +2,7 @@
     /**
      * This view shows a single collection's page.
      */
-    girder.views.CollectionView = Backbone.View.extend({
+    girder.views.CollectionView = girder.View.extend({
         events: {
             'click .g-edit-collection': 'editCollection',
             'click .g-collection-access-control': 'editAccess'

@@ -1,7 +1,7 @@
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-girder.views.EditFolderWidget = Backbone.View.extend({
+girder.views.EditFolderWidget = girder.View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();

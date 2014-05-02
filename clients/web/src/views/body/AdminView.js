@@ -1,7 +1,7 @@
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-girder.views.AdminView = Backbone.View.extend({
+girder.views.AdminView = girder.View.extend({
     events: {
         'click .g-server-config': function () {
             girder.events.trigger('g:navigateTo', girder.views.AdminConfig);

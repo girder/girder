@@ -1,7 +1,7 @@
 /**
  * This view allows users to see and control access on a resource.
  */
-girder.views.AccessWidget = Backbone.View.extend({
+girder.views.AccessWidget = girder.View.extend({
     events: {
         'click button.g-save-access-list': 'saveAccessList',
         'click a.g-action-remove-access': 'removeAccessEntry',

@@ -1,7 +1,7 @@
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-girder.views.AssetstoresView = Backbone.View.extend({
+girder.views.AssetstoresView = girder.View.extend({
     events: {
 
     },

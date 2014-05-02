@@ -1,7 +1,7 @@
 /**
  * This widget shows a list of files in a given item.
  */
-girder.views.FileListWidget = Backbone.View.extend({
+girder.views.FileListWidget = girder.View.extend({
     events: {
         'click a.g-show-more-files': function () {
             this.collection.fetchNextPage();

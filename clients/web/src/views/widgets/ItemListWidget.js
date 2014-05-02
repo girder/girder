@@ -1,7 +1,7 @@
 /**
  * This widget shows a list of items under a given folder.
  */
-girder.views.ItemListWidget = Backbone.View.extend({
+girder.views.ItemListWidget = girder.View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');

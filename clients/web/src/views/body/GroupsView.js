@@ -1,7 +1,7 @@
 /**
  * This view lists groups.
  */
-girder.views.GroupsView = Backbone.View.extend({
+girder.views.GroupsView = girder.View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
