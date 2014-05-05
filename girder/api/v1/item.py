@@ -44,7 +44,12 @@ class Item(Resource):
         """
         Filter an item document for display to the user.
         """
-        return item
+        keys = ['_id', 'size', 'updated', 'description', 'created',
+                'meta', 'creatorId', 'folderId', 'name']
+
+        filtered = self.filterDocument(item, allow=keys)
+
+        return filtered
 
     def find(self, params):
         """

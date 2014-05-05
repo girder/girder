@@ -288,3 +288,33 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
+
+    def testItemFiltering(self):
+        """
+        Test filtering private metadata from items.
+        """
+
+        # Create an item
+        params = {
+            'name': 'item with metadata',
+            'description': ' a description ',
+            'folderId': self.privateFolder['_id']
+        }
+        resp = self.request(path='/item', method='POST', params=params,
+                            user=self.users[0])
+        self.assertStatusOk(resp)
+
+        # get the item object from the database
+        item = self.model('item').load(resp.json['_id'], force=True)
+
+        # set a private property
+        item['private'] = 'very secret metadata'
+        self.model('item').save(item)
+
+        # get the item from the rest api
+        resp = self.request(path='/item/%s' % str(item['_id']), method='GET',
+                            user=self.users[0])
+        self.assertStatusOk(resp)
+
+        # assert that the private data is not included
+        self.assertNotHasKeys(resp.json, ['private'])
