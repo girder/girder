@@ -12,6 +12,7 @@ girder.DATE_SECOND = 3;
  * @param resolution The resolution, defaults to 'day'. Minimum is month.
  */
 girder.formatDate = function (datestr, resolution) {
+    datestr = datestr.replace(' ', 'T'); // Cross-browser accepted date format
     var date = new Date(datestr);
     var output = girder.MONTHS[date.getMonth()];
 
