@@ -43,7 +43,7 @@ class Description(object):
     def __init__(self, summary):
         self._summary = summary
         self._params = []
-        self._errorResponses = []
+        self._responses = []
         self._responseClass = None
         self._notes = None
 
@@ -55,7 +55,7 @@ class Description(object):
             'summary': self._summary,
             'notes': self._notes,
             'parameters': self._params,
-            'errorResponses': self._errorResponses,
+            'responseMessages': self._responses,
             'responseClass': self._responseClass
         }
 
@@ -90,7 +90,7 @@ class Description(object):
         endpoints will be able to use the default parameter values for one of
         their responses.
         """
-        self._errorResponses.append({
+        self._responses.append({
             'message': reason,
             'code': code
         })
