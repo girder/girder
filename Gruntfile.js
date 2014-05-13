@@ -264,8 +264,8 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
+    grunt.registerTask('build-js', ['shell:readServerConfig', 'jade', 'jade-index', 'uglify:app']);
     grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'shell:readServerConfig', 'swagger-ui']);
     grunt.registerTask('docs', ['shell:sphinx']);
-    grunt.registerTask('default', ['shell:readServerConfig', 'stylus', 'build-js']);
+    grunt.registerTask('default', ['stylus', 'build-js']);
 };
