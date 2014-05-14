@@ -50,8 +50,17 @@ girder.views.UploadWidget = girder.View.extend({
     render: function () {
         this.$el.html(jade.templates.uploadWidget({
             folder: this.folder
-        })).girderModal(this);
+        })).girderModal(this).on('hidden.bs.modal', function () {
+            var curRoute = Backbone.history.fragment;
+            if(curRoute.slice(-6) === 'upload') {
+              girder.router.navigate(curRoute.slice(0, -7));
+            }
+        });
 
+        var curRoute = Backbone.history.fragment;
+        if(curRoute.slice(-6) !== 'upload') {
+            girder.router.navigate(curRoute + '?upload');
+        }
         return this;
     },
 

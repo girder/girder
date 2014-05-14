@@ -33,6 +33,7 @@ girder.views.HierarchyWidget = girder.View.extend({
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
+        this.upload = settings.upload;
         this.doRouteNavigation = settings.doRouteNavigation !== false;
 
         this.breadcrumbs = [this.parentModel];
@@ -168,6 +169,10 @@ girder.views.HierarchyWidget = girder.View.extend({
             delay: {show: 100}
         });
 
+        if(this.upload === true) {
+          this.uploadDialog();
+        }
+
         return this;
     },
 
@@ -252,6 +257,11 @@ girder.views.HierarchyWidget = girder.View.extend({
             folder: this.parentModel
         }).on('g:uploadFinished', function () {
             // When upload is finished, refresh the folder view
+            var curRoute = Backbone.history.fragment;
+            if(curRoute.slice(-6) === 'upload') {
+              girder.router.navigate(curRoute.slice(0, -7));
+              this.upload = false;
+            }
             this.render();
         }, this).render();
     },

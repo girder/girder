@@ -51,12 +51,31 @@ girder.views.RegisterView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.registerDialog())
-            .girderModal(this).on('shown.bs.modal', function () {
+        this.$el.html(jade.templates.registerDialog()).girderModal(this)
+            .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
+            }).on('hidden.bs.modal', function () {
+                var curRoute = Backbone.history.fragment;
+                if(curRoute.slice(-8) === 'register') {
+                  girder.router.navigate(curRoute.slice(0, -9));
+                }
             });
         this.$('#g-login').focus();
 
+        var curRoute = Backbone.history.fragment;
+        if(curRoute.slice(-8) !== 'register') {
+            girder.router.navigate(curRoute + '?register');
+        }
+
         return this;
     }
+
+});
+
+girder.router.route('register', 'register', function () {
+    girder.events.trigger('g:registerUi');
+});
+
+girder.router.route(/^(.*?)\?register$/, 'register', function () {
+    girder.events.trigger('g:registerUi');
 });

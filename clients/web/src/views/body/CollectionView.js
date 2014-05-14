@@ -9,6 +9,9 @@
         },
 
         initialize: function (settings) {
+
+            this.upload = settings.upload || false;
+
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
                 this.model = settings.collection;
@@ -64,6 +67,7 @@
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
+                upload: this.upload,
                 el: this.$('.g-collection-hierarchy-container')
             });
 
@@ -136,6 +140,14 @@
         function (collectionId, folderId) {
             _fetchAndInit(collectionId, {
                 folderId: folderId
+            });
+        });
+
+    girder.router.route('collection/:id/folder/:id?upload', 'collectionFolderUpload',
+        function (collectionId, folderId) {
+            _fetchAndInit(collectionId, {
+                folderId: folderId,
+                upload: true
             });
         });
 

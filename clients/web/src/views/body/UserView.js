@@ -6,6 +6,7 @@
     girder.views.UserView = girder.View.extend({
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
+            this.upload = settings.upload || false;
 
             if (settings.user) {
                 this.model = settings.user;
@@ -45,7 +46,8 @@
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
-                el: this.$('.g-user-hierarchy-container')
+                el: this.$('.g-user-hierarchy-container'),
+                upload: this.upload
             });
 
             if (this.folder) {
@@ -96,6 +98,13 @@
     girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId) {
         _fetchAndInit(userId, {
             folderId: folderId
+        });
+    });
+
+    girder.router.route('user/:id/folder/:id?upload', 'userFolderUpload', function (userId, folderId) {
+        _fetchAndInit(userId, {
+            folderId: folderId,
+            upload: true
         });
     });
 
