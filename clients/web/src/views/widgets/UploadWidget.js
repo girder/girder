@@ -52,13 +52,13 @@ girder.views.UploadWidget = girder.View.extend({
             folder: this.folder
         })).girderModal(this).on('hidden.bs.modal', function () {
             var curRoute = Backbone.history.fragment;
-            if(curRoute.slice(-6) === 'upload') {
-              girder.router.navigate(curRoute.slice(0, -7));
+            if (curRoute.slice(-6) === 'upload') {
+                girder.router.navigate(curRoute.slice(0, -7));
             }
         });
 
         var curRoute = Backbone.history.fragment;
-        if(curRoute.slice(-6) !== 'upload') {
+        if (curRoute.slice(-6) !== 'upload') {
             girder.router.navigate(curRoute + '?upload');
         }
         return this;

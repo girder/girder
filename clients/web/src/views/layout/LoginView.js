@@ -48,15 +48,15 @@ girder.views.LoginView = girder.View.extend({
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
                 var curRoute = Backbone.history.fragment;
-                if(curRoute.slice(-5) === 'login') {
-                  girder.router.navigate(curRoute.slice(0, -6));
+                if (curRoute.slice(-5) === 'login') {
+                    girder.router.navigate(curRoute.slice(0, -6));
                 }
             });
         this.$('#g-login').focus();
 
         var curRoute = Backbone.history.fragment;
-        if(curRoute.slice(-5) !== 'login') {
-          girder.router.navigate(curRoute + '?login');
+        if (curRoute.slice(-5) !== 'login') {
+            girder.router.navigate(curRoute + '?login');
         }
         return this;
     }

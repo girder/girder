@@ -56,14 +56,14 @@ girder.views.RegisterView = girder.View.extend({
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
                 var curRoute = Backbone.history.fragment;
-                if(curRoute.slice(-8) === 'register') {
-                  girder.router.navigate(curRoute.slice(0, -9));
+                if (curRoute.slice(-8) === 'register') {
+                    girder.router.navigate(curRoute.slice(0, -9));
                 }
             });
         this.$('#g-login').focus();
 
         var curRoute = Backbone.history.fragment;
-        if(curRoute.slice(-8) !== 'register') {
+        if (curRoute.slice(-8) !== 'register') {
             girder.router.navigate(curRoute + '?register');
         }
 
