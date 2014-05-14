@@ -115,6 +115,7 @@ module.exports = function (grunt) {
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
                         'clients/web/src/utilities.js',
+                        'clients/web/src/plugin_utils.js',
                         'clients/web/src/collection.js',
                         'clients/web/src/model.js',
                         'clients/web/src/view.js',
@@ -157,11 +158,6 @@ module.exports = function (grunt) {
             jade: {
                 files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js'],
-                options: {failOnError: false}
-            },
-            jadeindex: {
-                files: ['clients/web/src/templates/index.jadehtml'],
-                tasks: ['jade-index'],
                 options: {failOnError: false}
             },
             swagger: {
@@ -222,31 +218,6 @@ module.exports = function (grunt) {
         console.log('Wrote ' + inputFiles.length + ' templates into ' + outputFile);
     });
 
-    grunt.registerTask('jade-index', 'Build index.html using jade', function () {
-        var jade = require('jade');
-        var buffer = fs.readFileSync('clients/web/src/templates/index.jadehtml');
-
-        var fn = jade.compile(buffer, {
-            client: false,
-            pretty: true
-        });
-        var html = fn({
-            stylesheets: ['lib/bootstrap/css/bootstrap.min.css',
-                          'lib/bootstrap/css/bootstrap-switch.min.css',
-                          'lib/fontello/css/fontello.css',
-                          'lib/fontello/css/animation.css',
-                          'lib/jqplot/css/jquery.jqplot.min.css',
-                          'built/app.min.css'],
-            scripts: ['built/libs.min.js',
-                      'built/app.min.js',
-                      'built/main.min.js'],
-            staticRoot: staticRoot,
-            apiRoot: apiRoot
-        });
-        fs.writeFileSync('clients/web/static/built/index.html', html);
-        console.log('Built index.html.');
-    });
-
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         // Copy all configuration files that don't already exist
@@ -265,7 +236,7 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask('build-js', ['shell:readServerConfig', 'jade', 'jade-index', 'uglify:app']);
+    grunt.registerTask('build-js', ['shell:readServerConfig', 'jade', 'uglify:app']);
     grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'shell:readServerConfig', 'swagger-ui']);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', ['stylus', 'build-js']);

@@ -29,7 +29,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-my-settings': function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserSettingsView, {
+            girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
                 user: girder.currentUser
             });
         },
