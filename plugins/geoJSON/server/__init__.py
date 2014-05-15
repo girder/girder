@@ -19,7 +19,7 @@
 
 import bson.json_util
 
-import features
+from . import features
 
 from girder import events
 from girder.constants import AccessType
