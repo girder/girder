@@ -29,10 +29,15 @@ girder.views.EditFolderWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editFolderWidget())
-            .girderModal(this).on('shown.bs.modal', function () {
-                view.$('#g-name').focus();
-            });
+        this.$el.html(jade.templates.editFolderWidget({
+            folder: this.folder
+        })).girderModal(this).on('shown.bs.modal', function () {
+            view.$('#g-name').focus();
+            if (view.folder) {
+                view.$('#g-name').val(view.folder.get('name'));
+                view.$('#g-description').val(view.folder.get('description'));
+            }
+        });
         this.$('#g-name').focus();
 
         return this;

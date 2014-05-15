@@ -12,8 +12,6 @@ girder.views.EditCollectionWidget = girder.View.extend({
             };
 
             if (this.model) {
-                this.model.set('name', fields.name);
-                this.model.set('description', fields.description);
                 this.updateCollection(fields);
             }
             else {
