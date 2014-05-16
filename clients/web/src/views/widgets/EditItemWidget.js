@@ -1,7 +1,7 @@
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-girder.views.EditItemWidget = Backbone.View.extend({
+girder.views.EditItemWidget = girder.View.extend({
     events: {
         'submit #g-item-edit-form': function () {
             var fields = {

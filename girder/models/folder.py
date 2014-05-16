@@ -57,7 +57,7 @@ class Folder(AccessControlledModel):
             'parentId': doc['parentId'],
             'name': doc['name'],
             'parentCollection': doc['parentCollection']
-            }
+        }
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
         duplicates = self.find(q, limit=1, fields=['_id'])
@@ -69,7 +69,7 @@ class Folder(AccessControlledModel):
         q = {
             'folderId': doc['parentId'],
             'name': doc['name']
-            }
+        }
         duplicates = self.model('item').find(q, limit=1, fields=['_id'])
         if duplicates.count() != 0:
             raise ValidationException('An item with that name already '
@@ -121,7 +121,7 @@ class Folder(AccessControlledModel):
         """
         q = {
             'folderId': folder['_id']
-            }
+        }
 
         cursor = self.model('item').find(
             q, limit=limit, offset=offset, sort=sort)
@@ -152,7 +152,7 @@ class Folder(AccessControlledModel):
         q = {
             'parentId': parent['_id'],
             'parentCollection': parentType
-            }
+        }
 
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
@@ -208,7 +208,7 @@ class Folder(AccessControlledModel):
             'created': now,
             'updated': now,
             'size': 0
-            }
+        }
 
         # If this is a subfolder, default permissions are inherited from the
         # parent folder. Otherwise, the creator is granted admin access.
@@ -222,4 +222,17 @@ class Folder(AccessControlledModel):
             self.setPublic(folder, public=public)
 
         # Now validate and save the folder.
+        return self.save(folder)
+
+    def updateFolder(self, folder):
+        """
+        Updates a folder.
+
+        :param folder: The folder document to update
+        :type folder: dict
+        :returns: The folder document that was edited.
+        """
+        folder['updated'] = datetime.datetime.now()
+
+        # Validate and save the folder
         return self.save(folder)

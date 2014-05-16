@@ -1,7 +1,7 @@
 /**
  * This view lists users.
  */
-girder.views.UsersView = Backbone.View.extend({
+girder.views.UsersView = girder.View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');

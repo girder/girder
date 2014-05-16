@@ -1,7 +1,7 @@
 /**
  * This view shows a list of pending invitations to the group.
  */
-girder.views.GroupInvitesWidget = Backbone.View.extend({
+girder.views.GroupInvitesWidget = girder.View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');

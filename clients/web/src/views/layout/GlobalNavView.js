@@ -2,7 +2,7 @@
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-girder.views.LayoutGlobalNavView = Backbone.View.extend({
+girder.views.LayoutGlobalNavView = girder.View.extend({
     events: {
         'click .g-nav-link': function (event) {
             var link = $(event.currentTarget);

@@ -1,7 +1,7 @@
 /**
  * This view shows a list of moderators of a group.
  */
-girder.views.GroupModsWidget = Backbone.View.extend({
+girder.views.GroupModsWidget = girder.View.extend({
     events: {
         'click .g-group-mod-demote': function (e) {
             var li = $(e.currentTarget).parents('li');

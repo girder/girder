@@ -2,7 +2,7 @@
  * This widget presents a list of available batch actions
  * on a set of selected resources.
  */
-girder.views.CheckedMenuWidget = Backbone.View.extend({
+girder.views.CheckedMenuWidget = girder.View.extend({
 
     initialize: function (params) {
         this.folderCount = params.folderCount || 0;

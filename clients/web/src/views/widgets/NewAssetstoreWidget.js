@@ -2,7 +2,7 @@
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
  */
-girder.views.NewAssetstoreWidget = Backbone.View.extend({
+girder.views.NewAssetstoreWidget = girder.View.extend({
     events: {
         'submit #g-new-fs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-fs-error'), {

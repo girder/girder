@@ -2,7 +2,7 @@
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a girder.Collection.
  */
-girder.views.PaginateWidget = Backbone.View.extend({
+girder.views.PaginateWidget = girder.View.extend({
     events: {
         'click .g-page-next': function (e) {
             if (!$(e.currentTarget).hasClass('disabled')) {

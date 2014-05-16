@@ -1,7 +1,7 @@
 /**
  * This view shows a login modal dialog.
  */
-girder.views.LoginView = Backbone.View.extend({
+girder.views.LoginView = girder.View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();

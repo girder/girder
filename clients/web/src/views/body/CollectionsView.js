@@ -1,7 +1,7 @@
 /**
  * This view lists the collections.
  */
-girder.views.CollectionsView = Backbone.View.extend({
+girder.views.CollectionsView = girder.View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');

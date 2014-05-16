@@ -168,8 +168,12 @@ class Folder(Resource):
         :param public: Public read access flag.
         :type public: bool
         """
-        pass
-        # TODO implement updating of a folder
+        folder['name'] = params.get('name', folder['name']).strip()
+        folder['description'] = params.get(
+            'description', folder['description']).strip()
+
+        folder = self.model('folder').updateFolder(folder)
+        return self._filter(folder, self.getCurrentUser())
     updateFolder.description = (
         Description('Update a folder by ID.')
         .responseClass('Folder')

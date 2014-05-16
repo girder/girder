@@ -1,9 +1,10 @@
 /**
  * This widget is used to navigate the data hierarchy of folders and items.
  */
-girder.views.HierarchyWidget = Backbone.View.extend({
+girder.views.HierarchyWidget = girder.View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
+        'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
         'click .g-upload-here-button': 'uploadDialog',
@@ -202,6 +203,25 @@ girder.views.HierarchyWidget = Backbone.View.extend({
     },
 
     /**
+     * Prompt user to edit the current folder
+     */
+    editFolderDialog: function () {
+        new girder.views.EditFolderWidget({
+            el: $('#g-dialog-container'),
+            parentModel: this.parentModel,
+            folder: this.parentModel
+        }).on('g:saved', function (folder) {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Folder info updated.',
+                type: 'success',
+                timeout: 4000
+            });
+            this.breadcrumbView.render();
+        }, this).render();
+    },
+
+    /**
      * Prompt the user to delete the currently viewed folder.
      */
     deleteFolderDialog: function () {
@@ -286,7 +306,7 @@ girder.views.HierarchyWidget = Backbone.View.extend({
 /**
  * Renders the breadcrumb list in the hierarchy widget.
  */
-girder.views.HierarchyBreadcrumbView = Backbone.View.extend({
+girder.views.HierarchyBreadcrumbView = girder.View.extend({
     events: {
         'click a.g-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);

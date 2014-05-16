@@ -30,7 +30,7 @@ maintenance value. Whenever we add new endpoints, we should increment the minor
 version. If we break backward compatibility in any way, we should increment the
 major version.
 """
-API_VERSION = "1.0.0"
+API_VERSION = "0.1.0"
 
 
 class Description(object):

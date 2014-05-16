@@ -6,6 +6,13 @@ ul.g-folder-list
         i.icon-folder
         | #{folder.get('name')}
         i.icon-right-dir
+      .g-folder-privacy
+        if folder.get('public')
+          i.icon-globe
+          | Public
+        else
+          i.icon-lock
+          | Private
   if (hasMore)
     li.g-show-more
       a.g-show-more-folders

@@ -1,7 +1,7 @@
 /**
  * This view shows a single item's page.
  */
-girder.views.ItemView = Backbone.View.extend({
+girder.views.ItemView = girder.View.extend({
     events: {
         'click .g-edit-item': 'editItem'
     },

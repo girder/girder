@@ -60,9 +60,7 @@ ul.dropdown-menu
   background-color #fffee1
   color #777
   padding 6px 8px
-  border-radius 3px
   border 1px solid #e5e2c8
-  box-shadow 1px 1px 3px 2px #f5f5f5
 
 /* Augment the bootstrap tabs styling a bit */
 .nav-tabs>li:not(.active)>a
@@ -73,3 +71,7 @@ ul.dropdown-menu
     border 1px solid #cdcdcd
     background-color #f0f0f0
     background-image linear-gradient(to bottom, #f0f0f0 0%, #f7f7f7 100%)
+
+/* Bugfix for tabs in bootstrap 3 */
+.nav-tabs
+  overflow hidden

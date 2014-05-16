@@ -1,7 +1,7 @@
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-girder.views.EditGroupWidget = Backbone.View.extend({
+girder.views.EditGroupWidget = girder.View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();

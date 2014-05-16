@@ -5,7 +5,7 @@
  *   itemComplete: Triggered each time an individual item is finished uploading.
  *   finished: Triggered when the entire set of items is uploaded.
  */
-girder.views.UploadWidget = Backbone.View.extend({
+girder.views.UploadWidget = girder.View.extend({
     events: {
         'submit #g-upload-form': 'startUpload',
         'click .g-resume-upload': 'resumeUpload',

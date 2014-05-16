@@ -39,6 +39,15 @@
               a.g-create-subfolder(role="menuitem")
                 i.icon-folder
                 | Create folder here
+            if (type == 'folder')
+              li(role="presentation")
+                a.g-create-item(role="menuitem")
+                  i.icon-doc
+                  | Create item here
+              li(role="presentation")
+                a.g-edit-folder(role="menuitem")
+                  i.icon-edit
+                  | Edit folder
           if (type =='folder' && level >= AccessType.ADMIN)
             li.divider(role="presentation")
             li(role="presentation")

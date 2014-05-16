@@ -200,8 +200,8 @@ administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart will be required in order for the
 change to take effect.
 
-Extending the server-side capabilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Extending the server-side application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Girder plugins can augment and alter the core functionality of the system in
 almost any way imaginable. These changes can be achieved via several mechanisms
@@ -235,7 +235,7 @@ modules using the ``girder`` package as usual. Example: ::
     from girder import events
 
 Adding a new route to the web API
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*********************************
 
 If you want to add a new route to an existing core resource type, just call the
 ``route()`` function on the existing resource type. For example, to add a
@@ -272,7 +272,7 @@ That will make your route automatically appear in the swagger documentation
 and will allow users to interact with it via that UI.
 
 Adding a new resource type to the web API
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*****************************************
 
 Perhaps for our use case we determine that ``cat`` should be its own resource
 type rather than being referenced via the ``item`` resource. If we wish to add
@@ -299,7 +299,7 @@ classes, and we can add it to the API in the ``load()`` method. ::
         info['apiRoot'].cat = Cat()
 
 The events system
-^^^^^^^^^^^^^^^^^
+*****************
 
 In addition to being able to augment the core API as described above, the core
 system fires a known set of events that plugins can bind to and handle as
@@ -387,7 +387,7 @@ You can bind to this event using the identifier ``data.process``.
    plugin, e.g. ``events.trigger('cats.something_happened', info='foo')``
 
 Automated testing for plugins
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*****************************
 
 Girder makes it easy to add automated testing to your plugin that integrates
 with the main girder testing framework. In general, any CMake code that you
@@ -431,3 +431,86 @@ The **cat_test.py** file should look like: ::
 You can use all of the testing utilities provided by the ``base.TestCase`` class
 from core. You will also get coverage results for your plugin aggregated with
 the main girder coverage results if coverage is enabled.
+
+Extending the client-side application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The web client may be extended independently of the server side. Plugins may
+import jade templates, stylus files, and javascript files into the application.
+The plugin loading system ensures that only content from enabled plugins gets
+loaded into the application at runtime.
+
+All of your plugin's extensions to the web client must live in a directory in
+the top level of your plugin called **web_client**. ::
+
+    cd plugins/cats ; mkdir web_client
+
+Under the **web_client** directory, there are three optional subdirectories
+that can be used to import content:
+
+- ``stylesheets``: Any files ending with **.styl** in this directory or any
+  of its subdirectories will be automatically built into CSS and loaded if your
+  plugin is enabled. These files must obey
+  `Stylus syntax <http://learnboost.github.io/stylus/docs/css-style.html>`_.
+  Because these CSS scripts are imported *after* all of the core CSS, any rules
+  you write will override any existing core style rules.
+
+- ``templates``: Any files ending with **.jade** in this directory or any of its
+  subdirectories will be automatically built as templates available in the
+  application. Just like in core, these templates are uniquely identified by
+  the name of their file; e.g. ``myTemplate.jade`` could be rendered at runtime
+  by calling ``jade.templates.myTemplate()``. So, if you want to override an
+  existing core template, simply create one in this directory with the same
+  name. If you want to create a template that is not an override of a core
+  template, but simply belongs to your plugin, convention dictates that it should
+  begin with your plugin name followed by an underscore to avoid collisions, e.g.
+  ``cats_catPage.jade``. Documentation for the Jade language can be found
+  `here <http://jade-lang.com/reference/>`_.
+
+- ``js``: Any files ending with **.js** in this directory or any of its
+  subdirectories will be compiled using uglify and imported into the front-end
+  application. The compiled javascript file will be loaded after all of the core
+  javascript files are loaded, so it can access all of the objects declared by
+  core. The source map for these files will be automatically built and served
+  as well.
+
+Javascript extension capabilities
+*********************************
+
+Plugins may bind to any of the normal events triggered by core via the
+``girder.events`` object. This will accommodate certain events, such as before
+and after the application is initially loaded, and when a user logs in or out,
+but most of the time plugins will augment the core system using the power of
+JavaScript rather than the explicit events framework. One of the most common
+use cases for plugins is to execute some code either before or after one of the
+core model or view functions is executed. In an object-oriented language, this
+would be a simple matter of extending the core class and making a call to the
+parent method. The prototypal nature of JavaScript makes that pattern impossible;
+instead, we'll use a slightly less straightforward but equally powerful
+mechanism. This is best demonstrated by example. Let's say we want to execute
+some code any time the core ``HierarchyWidget`` is rendered, for instance to
+inject some additional elements into the view. We use the ``girder.wrap``
+function to `wrap` the method of the core prototype with our own function. ::
+
+    girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
+        // Call the underlying render function that we are wrapping
+        render.call(this);
+
+        // Add a link just below the widget
+        this.$('.g-hierarchy-widget').after('<a class="cat-link">Meow</a>');
+    });
+
+Notice that instead of simply calling ``render()``, we call ``render.call(this)``.
+That is important, as otherwise the value of ``this`` will not be set properly
+in the wrapped function.
+
+Now that we've added the link to the core view, we can bind an event handler to
+it to make it functional: ::
+
+    girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
+        alert('meow!');
+    };
+
+This demonstrates one simple use case for client plugins, but using these same
+techniques, you should be able to do almost anything to change the core
+application as you need.

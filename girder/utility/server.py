@@ -19,24 +19,11 @@
 
 import cherrypy
 import girder.events
-import os
 
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
-from . import dev_endpoints
-
-
-class Webroot(object):
-    """
-    The webroot endpoint simply serves the main index.html file.
-    """
-    exposed = True
-
-    def GET(self):
-        return cherrypy.lib.static.serve_file(
-            os.path.join(constants.ROOT_DIR, 'clients', 'web', 'static',
-                         'built', 'index.html'), content_type='text/html')
+from . import dev_endpoints, webroot
 
 
 def setup(test=False, plugins=None):
@@ -67,14 +54,18 @@ def setup(test=False, plugins=None):
     cur_config.update(appconf)
 
     if test:
-        # Force the mode to be 'testing'
-        cur_config.update({'server': {'mode': 'testing'}})
+        # Force some config params in testing mode
+        cur_config.update({'server': {
+            'mode': 'testing',
+            'api_root': '/api/v1',
+            'static_root': '/static'
+        }})
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
     from girder.api import api_main
 
-    root = Webroot()
+    root = webroot.Webroot()
     api_main.addApiToNode(root)
 
     if cur_config['server']['mode'] is 'development':
@@ -86,6 +77,12 @@ def setup(test=False, plugins=None):
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+
+    root.updateHtmlVars({
+        'apiRoot': cur_config['server']['api_root'],
+        'staticRoot': cur_config['server']['static_root'],
+        'plugins': plugins
+    })
 
     plugin_utilities.loadPlugins(plugins, root, appconf)
 

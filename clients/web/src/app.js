@@ -65,6 +65,7 @@ girder.App = Backbone.View.extend({
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container')
             });
+
             /* We let the view be created in this way even though it is
              * normally against convention.
              */
@@ -123,7 +124,7 @@ girder.App = Backbone.View.extend({
             icon: options.icon
         }));
         $('#g-alerts-container').append(el);
-        el.fadeIn();
+        el.fadeIn(500);
 
         if (options.timeout === undefined) {
             options.timeout = 6000;

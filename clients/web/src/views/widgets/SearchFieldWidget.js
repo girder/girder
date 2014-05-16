@@ -3,7 +3,7 @@
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-girder.views.SearchFieldWidget = Backbone.View.extend({
+girder.views.SearchFieldWidget = girder.View.extend({
     events: {
         'input .g-search-field': function () {
             var q = this.$('.g-search-field').val();

@@ -1,7 +1,7 @@
 /**
  * This view shows a list of administrators of a group.
  */
-girder.views.GroupAdminsWidget = Backbone.View.extend({
+girder.views.GroupAdminsWidget = girder.View.extend({
     events: {
         'click .g-group-admin-demote': function (e) {
             var li = $(e.currentTarget).parents('li');

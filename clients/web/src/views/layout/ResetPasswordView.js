@@ -1,7 +1,7 @@
 /**
  * This view shows a modal dialog for resetting a forgotten password.
  */
-girder.views.ResetPasswordView = Backbone.View.extend({
+girder.views.ResetPasswordView = girder.View.extend({
     events: {
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
