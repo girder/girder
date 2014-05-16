@@ -68,7 +68,10 @@ module.exports = function (grunt) {
         var jsDir = pluginDir + '/web_client/js';
         if (fs.existsSync(jsDir)) {
             var files = {};
-            files[staticDir + '/plugin.min.js'] = jsDir + '/**/*.js';
+            files[staticDir + '/plugin.min.js'] = [
+                staticDir + '/templates.js',
+                jsDir + '/**/*.js'
+            ];
             grunt.config.set('uglify.plugin_' + pluginName, {
                 files: files
             });

@@ -71,8 +71,8 @@ class Webroot(object):
         <script src="${staticRoot}/built/main.min.js"></script>
 
         % for plugin in pluginJs:
-            <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js">
-            </script>
+          <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js">
+          </script>
         % endfor
       </body>
     </html>
