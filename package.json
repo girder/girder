@@ -21,7 +21,8 @@
     "jshint": "1.0.0",
     "requirejs": "2.1.10",
     "swagger-ui": "2.0.13",
-    "underscore": "~1.5"
+    "underscore": "~1.5",
+    "colors": "0.6.2"
   },
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"

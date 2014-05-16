@@ -60,7 +60,7 @@ class Webroot(object):
 
         % for plugin in pluginCss:
             <link rel="stylesheet"
-                  href="${staticRoot}/built/plugins/${plugin}.min.css">
+                  href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
         % endfor
       </head>
       <body>
@@ -71,7 +71,8 @@ class Webroot(object):
         <script src="${staticRoot}/built/main.min.js"></script>
 
         % for plugin in pluginJs:
-            <script src="${staticRoot}/built/plugins/${plugin}.min.js"></script>
+            <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js">
+            </script>
         % endfor
       </body>
     </html>
@@ -84,9 +85,11 @@ class Webroot(object):
             builtDir = os.path.join(constants.ROOT_DIR, 'clients', 'web',
                                     'static', 'built', 'plugins')
             for plugin in self.vars['plugins']:
-                if os.path.exists(os.path.join(builtDir, plugin + '.min.css')):
+                if os.path.exists(os.path.join(builtDir, plugin,
+                                               'plugin.min.css')):
                     self.vars['pluginCss'].append(plugin)
-                if os.path.exists(os.path.join(builtDir, plugin + '.min.js')):
+                if os.path.exists(os.path.join(builtDir, plugin,
+                                               'plugin.min.js')):
                     self.vars['pluginJs'].append(plugin)
 
             self.indexHtml = mako.template.Template(self.template).render(
