@@ -49,10 +49,14 @@ module.exports = function (grunt) {
             fs.mkdirSync(staticDir);
         }
 
-        if (fs.existsSync(pluginDir + '/web_client/templates')) {
-            var templates = grunt.file.expand(
-                pluginDir + '/web_client/templates/**/*.jade');
-            compileJade(templates, staticDir + '/templates.js');
+        var jadeDir = pluginDir + '/web_client/templates';
+        if (fs.existsSync(jadeDir)) {
+            var files = {};
+            files[staticDir + '/templates.js'] = [jadeDir + '/**/*.jade'];
+            grunt.config.set('jade.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.task.run('jade:plugin_' + pluginName);
         }
 
         var cssDir = pluginDir + '/web_client/stylesheets';
@@ -91,8 +95,21 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         jade: {
-            inputDir: 'clients/web/src/templates',
-            outputFile: 'clients/web/static/built/templates.js'
+            options: {
+                client: true,
+                compileDebug: false,
+                namespace: 'jade.templates',
+                processName: function (filename) {
+                    return path.basename(filename, '.jade');
+                }
+            },
+            core: {
+                files: {
+                    'clients/web/static/built/templates.js': [
+                        'clients/web/src/templates/**/*.jade'
+                    ]
+                }
+            }
         },
 
         copy: {
@@ -218,51 +235,21 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-qunit');
+    grunt.loadNpmTasks('grunt-contrib-jade');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
         var fn = jade.compile(buffer, {
             client: false
         });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({staticRoot: staticRoot}));
-    });
-
-
-    // Compile a set of jade templates into a single js file
-    var compileJade = function (inputFiles, outputFile) {
-        var jade = require('jade');
-
-        fs.writeFileSync(outputFile, '\nvar jade=jade||{};jade.templates=jade.templates||{};\n');
-
-        inputFiles.forEach(function (filename, i) {
-            var buffer = fs.readFileSync(filename);
-            var basename = path.basename(filename, '.jade');
-            console.log('Compiling template: ' + basename.magenta);
-
-            var fn = jade.compile(buffer, {
-                client: true,
-                compileDebug: false
-            });
-
-            var jt = "\njade.templates['" + basename + "']=" + fn.toString() + ';';
-            fs.appendFileSync(outputFile, jt);
-        });
-        console.log('Wrote ' + inputFiles.length + ' templates into ' + outputFile);
-    };
-
-    // Build the core jade templates into javascript
-    grunt.registerTask('jade', 'Build the templates', function () {
-        var config = grunt.config.get('jade');
-        var inputFiles = grunt.file.expand(config.inputDir + '/**/*.jade');
-        var outputFile = config.outputFile;
-
-        compileJade(inputFiles, outputFile);
+        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({
+            staticRoot: staticRoot
+        }));
     });
 
     // This task should be run once manually at install time.
