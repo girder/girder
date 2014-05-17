@@ -58,5 +58,24 @@ girder.models.UserModel = girder.Model.extend({
         }, this);
 
         this.set('groupInvites', filtered);
+    },
+
+    /**
+     * Change the password for this user.
+     */
+    changePassword: function (oldPassword, newPassword) {
+        girder.restRequest({
+            path: this.resourceName + '/password',
+            data: {
+                'old': oldPassword,
+                'new': newPassword
+            },
+            type: 'PUT',
+            error: null
+        }).done(_.bind(function (resp) {
+            this.trigger('g:passwordChanged');
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
     }
 });
