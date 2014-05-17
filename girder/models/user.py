@@ -45,8 +45,8 @@ class User(AccessControlledModel):
         """
         doc['login'] = doc.get('login', '').lower().strip()
         doc['email'] = doc.get('email', '').lower().strip()
-        doc['fname'] = doc.get('firstName', '').strip()
-        doc['lname'] = doc.get('lastName', '').strip()
+        doc['firstName'] = doc.get('firstName', '').strip()
+        doc['lastName'] = doc.get('lastName', '').strip()
 
         cur_config = config.getConfig()
 
@@ -54,11 +54,11 @@ class User(AccessControlledModel):
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
 
-        if not doc['fname']:
+        if not doc['firstName']:
             raise ValidationException('First name must not be empty.',
                                       'firstName')
 
-        if not doc['lname']:
+        if not doc['lastName']:
             raise ValidationException('Last name must not be empty.',
                                       'lastName')
 
