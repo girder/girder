@@ -15,7 +15,10 @@ girder.views.UsersView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+
+        this.doRouteNavigation = settings.doRouteNavigation !== false;
+
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -39,7 +42,9 @@ girder.views.UsersView = girder.View.extend({
             types: ['user']
         }).off().on('g:resultClicked', this._gotoUser, this).render();
 
-        girder.router.navigate('users');
+        if (this.doRouteNavigation) {
+            girder.router.navigate('users');
+        }
 
         return this;
     },

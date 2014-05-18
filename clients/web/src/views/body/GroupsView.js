@@ -18,7 +18,10 @@ girder.views.GroupsView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+
+        this.doRouteNavigation = settings.doRouteNavigation !== false;
+
         this.collection = new girder.collections.GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -42,7 +45,9 @@ girder.views.GroupsView = girder.View.extend({
             types: ['group']
         }).off().on('g:resultClicked', this._gotoGroup, this).render();
 
-        girder.router.navigate('groups');
+        if (this.doRouteNavigation) {
+            girder.router.navigate('groups');
+        }
 
         return this;
     },

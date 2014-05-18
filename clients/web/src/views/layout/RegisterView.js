@@ -55,17 +55,11 @@ girder.views.RegisterView = girder.View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                var curRoute = Backbone.history.fragment;
-                if (curRoute.slice(-8) === 'register') {
-                    girder.router.navigate(curRoute.slice(0, -9));
-                }
+                girder.dialogs.handleClose('register');
             });
         this.$('#g-login').focus();
 
-        var curRoute = Backbone.history.fragment;
-        if (curRoute.slice(-8) !== 'register') {
-            girder.router.navigate(curRoute + '?register');
-        }
+        girder.dialogs.handleOpen('register');
 
         return this;
     }

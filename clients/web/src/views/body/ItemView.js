@@ -7,6 +7,9 @@ girder.views.ItemView = girder.View.extend({
     },
 
     initialize: function (settings) {
+
+        this.doRouteNavigation = settings.doRouteNavigation !== false;
+
         // If collection model is already passed, there is no need to fetch.
         if (settings.item) {
             this.model = settings.item;
@@ -60,7 +63,9 @@ girder.views.ItemView = girder.View.extend({
                 itemId: this.model.get('_id')
             });
 
-            girder.router.navigate('item/' + this.model.get('_id'));
+            if (this.doRouteNavigation) {
+                girder.router.navigate('item/' + this.model.get('_id'));
+            }
 
         }, this));
 

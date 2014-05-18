@@ -19,11 +19,13 @@ girder.views.CollectionsView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         this.collection = new girder.collections.CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.doRouteNavigation = settings.doRouteNavigation !== false;
 
         // This page should be re-rendered if the user logs in or out
         girder.events.on('g:login', this.userChanged, this);
@@ -61,7 +63,9 @@ girder.views.CollectionsView = girder.View.extend({
             types: ['collection']
         }).off().on('g:resultClicked', this._gotoCollection, this).render();
 
-        girder.router.navigate('collections');
+        if (this.doRouteNavigation) {
+            girder.router.navigate('collections');
+        }
 
         return this;
     },

@@ -8,6 +8,8 @@
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
 
+            this.doRouteNavigation = settings.doRouteNavigation !== false;
+
             if (settings.user) {
                 this.model = settings.user;
 
@@ -39,6 +41,21 @@
             girder.events.on('g:login', this.userChanged, this);
         },
 
+        _setRoute: function () {
+
+            if (this.doRouteNavigation) {
+                return;
+            }
+
+            if (this.folder) {
+                girder.router.navigate('user/' + this.model.get('_id') +
+                    '/folder/' + this.folder.get('_id'));
+            }
+            else {
+                girder.router.navigate('user/' + this.model.get('_id'));
+            }
+        },
+
         render: function () {
             this.$el.html(jade.templates.userPage({
                 user: this.model
@@ -50,13 +67,7 @@
                 upload: this.upload
             });
 
-            if (this.folder) {
-                girder.router.navigate('user/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('user/' + this.model.get('_id'));
-            }
+            this._setRoute();
 
             return this;
         },
@@ -104,7 +115,8 @@
     girder.router.route('user/:id/folder/:id?upload', 'userFolderUpload', function (userId, folderId) {
         _fetchAndInit(userId, {
             folderId: folderId,
-            upload: true
+            upload: true,
+            doRouteNavigation: false
         });
     });
 

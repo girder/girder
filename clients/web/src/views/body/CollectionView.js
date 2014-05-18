@@ -12,6 +12,8 @@
 
             this.upload = settings.upload || false;
 
+            this.doRouteNavigation = settings.doRouteNavigation !== false;
+
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
                 this.model = settings.collection;
@@ -59,6 +61,20 @@
             this.editCollectionWidget.render();
         },
 
+        _setRoute: function () {
+            if (this.doRouteNavigation === false) {
+                return;
+            }
+
+            if (this.folder) {
+                girder.router.navigate('collection/' + this.model.get('_id') +
+                    '/folder/' + this.folder.get('_id'));
+            }
+            else {
+                girder.router.navigate('collection/' + this.model.get('_id'));
+            }
+        },
+
         render: function () {
             this.$el.html(jade.templates.collectionPage({
                 collection: this.model,
@@ -68,6 +84,7 @@
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
                 upload: this.upload,
+                doRouteNavigation: this.doRouteNavigation,
                 el: this.$('.g-collection-hierarchy-container')
             });
 
@@ -78,13 +95,7 @@
                 delay: {show: 100}
             });
 
-            if (this.folder) {
-                girder.router.navigate('collection/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('collection/' + this.model.get('_id'));
-            }
+            this._setRoute();
 
             return this;
         },
@@ -147,7 +158,8 @@
         function (collectionId, folderId) {
             _fetchAndInit(collectionId, {
                 folderId: folderId,
-                upload: true
+                upload: true,
+                doRouteNavigation: false
             });
         });
 
