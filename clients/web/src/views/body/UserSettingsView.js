@@ -3,13 +3,37 @@
  */
 girder.views.UserAccountView = girder.View.extend({
     events: {
+        'submit #g-user-info-form': function (event) {
+            event.preventDefault();
+            this.$('#g-user-info-error-msg').empty();
+
+            this.user.set({
+                email: this.$('#g-email').val(),
+                firstName: this.$('#g-firstName').val(),
+                lastName: this.$('#g-lastName').val()
+            });
+
+            this.user.off('g:error').on('g:error', function (err) {
+                var msg = err.responseJSON.message;
+                this.$('#g-' + err.responseJSON.field).focus();
+                this.$('#g-user-info-error-msg').text(msg);
+            }, this).off('g:saved')
+                    .on('g:saved', function () {
+                girder.events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Info saved.',
+                    type: 'success',
+                    timeout: 4000
+                });
+            }, this).save();
+        },
         'submit #g-password-change-form': function (event) {
             event.preventDefault();
-            this.$('.g-validation-failed-message').empty();
+            this.$('#g-password-change-error-msg').empty();
 
             if (this.$('#g-password-new').val() !==
                 this.$('#g-password-retype').val()) {
-                this.$('.g-validation-failed-message').text(
+                this.$('#g-password-change-error-msg').text(
                     'Passwords do not match, try again.');
                 this.$('#g-password-retype,#g-password-new').val('');
                 this.$('#g-password-new').focus();
@@ -18,7 +42,7 @@ girder.views.UserAccountView = girder.View.extend({
 
             this.user.off('g:error').on('g:error', function (err) {
                 var msg = err.responseJSON.message;
-                this.$('.g-validation-failed-message').text(msg);
+                this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
                 girder.events.trigger('g:alert', {
