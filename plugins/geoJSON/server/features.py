@@ -345,7 +345,8 @@ class Feature(Base):
             keys = d.keys()
         meta = self.filter(d, keys)
 
-        [self.flat(meta, key) for key in self.flatten]
+        for key in self.flatten:
+            self.flat(meta, key)
 
         return {
             'type': self.typeName,
