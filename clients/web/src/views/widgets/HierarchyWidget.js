@@ -34,6 +34,7 @@ girder.views.HierarchyWidget = girder.View.extend({
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
         this.upload = settings.upload;
+        this.access = settings.access;
         this.doRouteNavigation = settings.doRouteNavigation !== false;
 
         this.breadcrumbs = [this.parentModel];
@@ -169,8 +170,10 @@ girder.views.HierarchyWidget = girder.View.extend({
             delay: {show: 100}
         });
 
-        if (this.upload === true) {
+        if (this.upload) {
             this.uploadDialog();
+        } else if (this.access) {
+            this.editFolderAccess();
         }
 
         return this;
