@@ -8,8 +8,6 @@ girder.views.ItemView = girder.View.extend({
 
     initialize: function (settings) {
 
-        this.doRouteNavigation = settings.doRouteNavigation !== false;
-
         // If collection model is already passed, there is no need to fetch.
         if (settings.item) {
             this.model = settings.item;
@@ -63,10 +61,6 @@ girder.views.ItemView = girder.View.extend({
                 itemId: this.model.get('_id')
             });
 
-            if (this.doRouteNavigation) {
-                girder.router.navigate('item/' + this.model.get('_id'));
-            }
-
         }, this));
 
         return this;
@@ -81,8 +75,7 @@ girder.views.ItemView = girder.View.extend({
         }, this).on('g:error', function () {
             // Current user no longer has read access to this user, so we
             // send them back to the user list page.
-            girder.events.trigger('g:navigateTo',
-                girder.views.CollectionsView);
+            girder.router.navigate('collections', {trigger: true});
         }, this).fetch();
     }
 
@@ -98,6 +91,6 @@ girder.router.route('item/:id', 'item', function (id) {
             item: item
         }, item);
     }, this).on('g:error', function () {
-        girder.events.trigger('g:navigateTo', girder.views.CollectionsView);
+        girder.router.navigate('collections', {trigger: true});
     }, this).fetch();
 });

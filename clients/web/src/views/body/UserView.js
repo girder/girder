@@ -7,6 +7,9 @@
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
+            this.folderAccess = settings.folderAccess || false;
+            this.folderEdit = settings.folderEdit || false;
+
 
             this.doRouteNavigation = settings.doRouteNavigation !== false;
 
@@ -41,21 +44,6 @@
             girder.events.on('g:login', this.userChanged, this);
         },
 
-        _setRoute: function () {
-
-            if (this.doRouteNavigation) {
-                return;
-            }
-
-            if (this.folder) {
-                girder.router.navigate('user/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('user/' + this.model.get('_id'));
-            }
-        },
-
         render: function () {
             this.$el.html(jade.templates.userPage({
                 user: this.model
@@ -64,10 +52,10 @@
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
                 el: this.$('.g-user-hierarchy-container'),
-                upload: this.upload
+                upload: this.upload,
+                edit: this.folderEdit,
+                access: this.folderAccess
             });
-
-            this._setRoute();
 
             return this;
         },
@@ -80,7 +68,7 @@
             }, this).on('g:error', function () {
                 // Current user no longer has read access to this user, so we
                 // send them back to the user list page.
-                girder.events.trigger('g:navigateTo', girder.views.UsersView);
+                girder.router.navigate('users', {trigger: true});
             }, this).fetch();
         }
     });
@@ -106,17 +94,12 @@
         _fetchAndInit(userId);
     });
 
-    girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId) {
-        _fetchAndInit(userId, {
-            folderId: folderId
-        });
-    });
-
-    girder.router.route('user/:id/folder/:id?upload', 'userFolderUpload', function (userId, folderId) {
+    girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
         _fetchAndInit(userId, {
             folderId: folderId,
-            upload: true,
-            doRouteNavigation: false
+            upload: params.dialog === 'upload',
+            folderAccess: params.dialog === 'folderaccess',
+            folderEdit: params.dialog === 'folderedit'
         });
     });
 

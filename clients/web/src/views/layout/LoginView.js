@@ -49,9 +49,9 @@ girder.views.LoginView = girder.View.extend({
             }).on('hidden.bs.modal', function () {
                 girder.dialogs.handleClose('login');
             });
-        this.$('#g-login').focus();
 
         girder.dialogs.handleOpen('login');
+        this.$('#g-login').focus();
 
         return this;
     }
@@ -59,9 +59,5 @@ girder.views.LoginView = girder.View.extend({
 });
 
 girder.router.route('login', 'login', function () {
-    girder.events.trigger('g:loginUi');
-});
-
-girder.router.route(/^(.*?)\?login$/, 'login', function () {
     girder.events.trigger('g:loginUi');
 });

@@ -5,11 +5,7 @@ girder.views.CollectionsView = girder.View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            var params = {
-                collection: this.collection.get(cid)
-            };
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView,
-                params);
+            girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-collection-create-button': function (event) {
             this.createCollectionDialog();
@@ -63,10 +59,6 @@ girder.views.CollectionsView = girder.View.extend({
             types: ['collection']
         }).off().on('g:resultClicked', this._gotoCollection, this).render();
 
-        if (this.doRouteNavigation) {
-            girder.router.navigate('collections');
-        }
-
         return this;
     },
 
@@ -77,10 +69,10 @@ girder.views.CollectionsView = girder.View.extend({
     _gotoCollection: function (result) {
         var collection = new girder.models.CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, {
-                collection: collection
-            });
+            console.log(result);
+            girder.router.navigate('/collection/' + this.id, {trigger: true});
         }, this).fetch();
+
     },
 
     userChanged: function () {

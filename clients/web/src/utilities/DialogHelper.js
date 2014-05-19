@@ -24,27 +24,29 @@ girder.dialogs = {
 
     handleClose: function (name) {
         var curRoute = Backbone.history.fragment,
-            routeParts = this.splitRoute(curRoute);
-
-        if (routeParts.name === name) {
-            girder.router.navigate(routeParts.base);
+            routeParts = this.splitRoute(curRoute),
+            queryString = girder.parseQueryString(routeParts.name),
+            dialogName = queryString.dialog;
+        delete queryString.dialog;
+        var unparsedQueryString = $.param(queryString);
+        if (unparsedQueryString.length > 0) {
+            unparsedQueryString = '?' + unparsedQueryString;
+        }
+        if (dialogName === name) {
+            girder.router.navigate(routeParts.base + unparsedQueryString);
         }
     },
 
     handleOpen: function (name) {
         var curRoute = Backbone.history.fragment,
-            routeParts = this.splitRoute(curRoute);
-        var viewName = routeParts.base[0].toUpperCase() + routeParts.base.slice(1) + 'View';
-
-        if (viewName in girder.views) {
-            girder.events.trigger('g:navigateTo', girder.views[viewName],
-                {'doRouteNavigation': false});
-        }
+            routeParts = this.splitRoute(curRoute),
+            queryString = girder.parseQueryString(routeParts.name),
+            dialogName = queryString.dialog;
 
         if (routeParts.base === "") {
-            girder.router.navigate(curRoute + '?' + name);
-        } else if (routeParts.name !== name) {
-            girder.router.navigate(routeParts.base + '?' + name);
+            girder.router.navigate(curRoute + '?dialog=' + name);
+        } else if (routeParts.name !== dialogName) {
+            girder.router.navigate(routeParts.base + '?dialog=' + name);
         }
     }
 

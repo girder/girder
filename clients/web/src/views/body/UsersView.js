@@ -8,7 +8,7 @@ girder.views.UsersView = girder.View.extend({
             var params = {
                 user: this.collection.get(cid)
             };
-            girder.events.trigger('g:navigateTo', girder.views.UserView, params);
+            girder.router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-user-search-form': function (event) {
             event.preventDefault();
@@ -41,10 +41,6 @@ girder.views.UsersView = girder.View.extend({
             placeholder: 'Search users...',
             types: ['user']
         }).off().on('g:resultClicked', this._gotoUser, this).render();
-
-        if (this.doRouteNavigation) {
-            girder.router.navigate('users');
-        }
 
         return this;
     },

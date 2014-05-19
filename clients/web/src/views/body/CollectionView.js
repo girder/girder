@@ -13,6 +13,7 @@
             this.upload = settings.upload || false;
             this.access = settings.access || false;
             this.folderAccess = settings.folderAccess || false;
+            this.folderEdit = settings.folderEdit || false;
             this.edit = settings.edit || false;
 
             this.doRouteNavigation = settings.doRouteNavigation !== false;
@@ -64,20 +65,6 @@
             this.editCollectionWidget.render();
         },
 
-        _setRoute: function () {
-            if (this.doRouteNavigation === false) {
-                return;
-            }
-
-            if (this.folder) {
-                girder.router.navigate('collection/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('collection/' + this.model.get('_id'));
-            }
-        },
-
         render: function () {
             this.$el.html(jade.templates.collectionPage({
                 collection: this.model,
@@ -88,6 +75,7 @@
                 parentModel: this.folder || this.model,
                 upload: this.upload,
                 access: this.folderAccess,
+                edit: this.folderEdit,
                 doRouteNavigation: this.doRouteNavigation,
                 el: this.$('.g-collection-hierarchy-container')
             });
@@ -98,8 +86,6 @@
                 animation: false,
                 delay: {show: 100}
             });
-
-            this._setRoute();
 
             if (this.edit) {
                 this.editCollection();
@@ -149,70 +135,27 @@
                 collection: collection
             }, params || {}));
         }, this).on('g:error', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionsView);
+            girder.router.navigate('/collections', {trigger: true});
         }, this).fetch();
     };
 
-    girder.router.route('collection/:id', 'collection', function (collectionId) {
-        _fetchAndInit(collectionId);
+    girder.router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
+        _fetchAndInit(collectionId, {
+            access: params.dialog === 'access',
+            edit: params.dialog === 'edit'
+        });
     });
 
     girder.router.route('collection/:id/folder/:id', 'collectionFolder',
-        function (collectionId, folderId) {
-            _fetchAndInit(collectionId, {
-                folderId: folderId
-            });
-        });
-
-    girder.router.route('collection/:id/folder/:id?upload', 'collectionFolderUpload',
-        function (collectionId, folderId) {
+        function (collectionId, folderId, params) {
             _fetchAndInit(collectionId, {
                 folderId: folderId,
-                upload: true,
-                doRouteNavigation: false
+                upload: params.dialog === 'upload',
+                access: params.dialog === 'access',
+                folderAccess: params.dialog === 'folderaccess',
+                edit: params.dialog === 'edit',
+                folderEdit: params.dialog === 'folderedit'
             });
         });
-
-    girder.router.route('collection/:id/folder/:id?folderaccess', 'collectionFolderAccess',
-        function (collectionId, folderId) {
-            _fetchAndInit(collectionId, {
-                folderId: folderId,
-                folderAccess: true,
-                doRouteNavigation: false
-            });
-        });
-
-    girder.router.route('collection/:id?access', 'collectionAccess', function (collectionId) {
-        _fetchAndInit(collectionId, {
-            doRouteNavigation: false,
-            access: true
-        });
-    });
-
-    girder.router.route('collection/:id/folder/:id?access', 'collectionAccessOnFolder',
-        function (collectionId, folderId) {
-            _fetchAndInit(collectionId, {
-                folderId: folderId,
-                doRouteNavigation: false,
-                access: true
-            });
-        });
-
-    girder.router.route('collection/:id?edit', 'editCollection', function (collectionId) {
-        _fetchAndInit(collectionId, {
-            doRouteNavigation: false,
-            edit: true
-        });
-    });
-
-    girder.router.route('collection/:id/folder/:id?edit', 'editCollectionOnFolder',
-        function (collectionId, folderId) {
-            _fetchAndInit(collectionId, {
-                folderId: folderId,
-                doRouteNavigation: false,
-                edit: true
-            });
-        });
-
 
 }) ();

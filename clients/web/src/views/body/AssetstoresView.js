@@ -40,8 +40,6 @@ girder.views.AssetstoresView = girder.View.extend({
         _.each(this.$('.g-assetstore-capacity-chart'),
             this.capacityChart, this);
 
-        girder.router.navigate('assetstores');
-
         return this;
     },
 

@@ -51,8 +51,6 @@ girder.views.PluginsView = girder.View.extend({
                 view._updatePlugins();
             });
 
-        girder.router.navigate('plugins');
-
         return this;
     },
 
