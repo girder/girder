@@ -21,74 +21,7 @@ module.exports = function (grunt) {
     var path = require('path');
     require('colors');
 
-    var setServerConfig = function (err, stdout, stderr, callback) {
-        if (err) {
-            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
-        }
-        try {
-            var cfg = JSON.parse(stdout);
-            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
-            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
-            console.log('Static root: ' + staticRoot.bold);
-            console.log('API root: ' + apiRoot.bold);
-        }
-        catch (e) {
-            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
-        }
-        callback();
-    };
-
-    // Builds all the static components for a given plugin
-    var buildPlugin = function (pluginDir) {
-        var pluginName = path.basename(pluginDir);
-        var staticDir = 'clients/web/static/built/plugins/' + pluginName;
-
-        console.log(('BUILDING PLUGIN: ' + pluginName).bold.underline);
-
-        if (!fs.existsSync(staticDir)) {
-            fs.mkdirSync(staticDir);
-        }
-
-        var jadeDir = pluginDir + '/web_client/templates';
-        if (fs.existsSync(jadeDir)) {
-            var files = {};
-            files[staticDir + '/templates.js'] = [jadeDir + '/**/*.jade'];
-            grunt.config.set('jade.plugin_' + pluginName, {
-                files: files
-            });
-            grunt.task.run('jade:plugin_' + pluginName);
-        }
-
-        var cssDir = pluginDir + '/web_client/stylesheets';
-        if (fs.existsSync(cssDir)) {
-            var files = {};
-            files[staticDir + '/plugin.min.css'] = [cssDir + '/**/*.styl'];
-            grunt.config.set('stylus.plugin_' + pluginName, {
-                files: files
-            });
-            grunt.task.run('stylus:plugin_' + pluginName);
-        }
-
-        var jsDir = pluginDir + '/web_client/js';
-        if (fs.existsSync(jsDir)) {
-            var files = {};
-            files[staticDir + '/plugin.min.js'] = [
-                staticDir + '/templates.js',
-                jsDir + '/**/*.js'
-            ];
-            grunt.config.set('uglify.plugin_' + pluginName, {
-                files: files
-            });
-            grunt.task.run('uglify:plugin_' + pluginName);
-        }
-    };
-
-    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
-    var environment = grunt.option('env') || 'dev';
-
-    if (['dev', 'prod'].indexOf(environment) === -1) {
-        grunt.fatal('The "env" argument must be either "dev" or "prod".');
-    }
+    var defaultTasks = ['stylus', 'build-js'];
 
     // Project configuration.
     grunt.config.init({
@@ -204,17 +137,17 @@ module.exports = function (grunt) {
         },
 
         watch: {
-            css: {
+            stylus_core: {
                 files: ['clients/web/src/stylesheets/**/*.styl'],
-                tasks: ['stylus'],
+                tasks: ['stylus:core'],
                 options: {failOnError: false}
             },
-            js: {
+            js_core: {
                 files: ['clients/web/src/**/*.js'],
                 tasks: ['uglify:app'],
                 options: {failOnError: false}
             },
-            jade: {
+            jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js'],
                 options: {failOnError: false}
@@ -229,6 +162,101 @@ module.exports = function (grunt) {
                 tasks: ['docs'],
                 options: {failOnError: false}
             }
+        }
+    });
+
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            var cfg = JSON.parse(stdout);
+            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
+            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            console.log('Static root: ' + staticRoot.bold);
+            console.log('API root: ' + apiRoot.bold);
+        }
+        catch (e) {
+            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
+        }
+        callback();
+    };
+
+    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
+    var environment = grunt.option('env') || 'dev';
+
+    if (['dev', 'prod'].indexOf(environment) === -1) {
+        grunt.fatal('The "env" argument must be either "dev" or "prod".');
+    }
+
+    // Configure a given plugin for building
+    var configurePlugin = function (pluginDir) {
+        var pluginName = path.basename(pluginDir);
+        var staticDir = 'clients/web/static/built/plugins/' + pluginName;
+
+        console.log(('Found plugin: ' + pluginName).bold.underline);
+
+        if (!fs.existsSync(staticDir)) {
+            fs.mkdirSync(staticDir);
+        }
+
+        var jadeDir = pluginDir + '/web_client/templates';
+        if (fs.existsSync(jadeDir)) {
+            var files = {};
+            files[staticDir + '/templates.js'] = [jadeDir + '/**/*.jade'];
+            grunt.config.set('jade.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.config.set('watch.jade_' + pluginName, {
+                files: [jadeDir + '/**/*.jade'],
+                tasks: ['jade:plugin_' + pluginName, 'uglify:plugin_' + pluginName],
+                options: {failOnError: false}
+            });
+        }
+
+        var cssDir = pluginDir + '/web_client/stylesheets';
+        if (fs.existsSync(cssDir)) {
+            var files = {};
+            files[staticDir + '/plugin.min.css'] = [cssDir + '/**/*.styl'];
+            grunt.config.set('stylus.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.config.set('watch.stylus_' + pluginName, {
+                files: [cssDir + '/**/*.styl'],
+                tasks: ['stylus:plugin_' + pluginName],
+                options: {failOnError: false}
+            });
+        }
+
+        var jsDir = pluginDir + '/web_client/js';
+        if (fs.existsSync(jsDir)) {
+            var files = {};
+            files[staticDir + '/plugin.min.js'] = [
+                staticDir + '/templates.js',
+                jsDir + '/**/*.js'
+            ];
+            grunt.config.set('uglify.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.config.set('watch.js_' + pluginName, {
+                files: [jsDir + '/**/*.js'],
+                tasks: ['uglify:plugin_' + pluginName],
+                options: {failOnError: false}
+            });
+            defaultTasks.push('uglify:plugin_' + pluginName);
+        }
+    };
+
+    // Glob for front-end plugins and configure each one to build
+    var pluginDirs = grunt.file.expand('plugins/*');
+
+    if (!fs.existsSync('clients/web/static/built/plugins')) {
+        fs.mkdirSync('clients/web/static/built/plugins');
+    }
+
+    pluginDirs.forEach(function (pluginDir) {
+        if (fs.existsSync(pluginDir + '/web_client')) {
+            configurePlugin(pluginDir);
         }
     });
 
@@ -270,22 +298,18 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask('plugins', 'Build static content for plugins', function () {
-        var pluginDirs = grunt.file.expand('plugins/*');
-
-        if (!fs.existsSync('clients/web/static/built/plugins')) {
-            fs.mkdirSync('clients/web/static/built/plugins');
-        }
-
-        pluginDirs.forEach(function (pluginDir) {
-            if (fs.existsSync(pluginDir + '/web_client')) {
-                buildPlugin(pluginDir);
-            }
-        });
-    });
-
-    grunt.registerTask('build-js', ['shell:readServerConfig', 'jade', 'uglify:app', 'plugins']);
-    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'shell:readServerConfig', 'swagger-ui']);
+    grunt.registerTask('build-js', [
+        'shell:readServerConfig',
+        'jade',
+        'uglify:app'
+    ]);
+    grunt.registerTask('init', [
+        'setup',
+        'uglify:libs',
+        'copy:swagger',
+        'shell:readServerConfig',
+        'swagger-ui'
+    ]);
     grunt.registerTask('docs', ['shell:sphinx']);
-    grunt.registerTask('default', ['stylus', 'build-js']);
+    grunt.registerTask('default', defaultTasks);
 };
