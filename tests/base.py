@@ -73,7 +73,7 @@ def dropTestDatabase():
     """
     from girder.models import getDbConnection
     db_connection = getDbConnection()
-    model_importer._modelInstances = {'core': {}}
+    model_importer.clearModels()  # Must clear the models so indices are rebuilt
     db_connection.drop_database('%s_test' %
                                 cherrypy.config['database']['database'])
 
