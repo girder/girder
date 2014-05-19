@@ -131,9 +131,9 @@ class Base(object):
         raise AbstractMethodException
 
     @classmethod
-    def map(cls, foo, data):
+    def map(cls, func, data):
         """
-        Call the method `foo` on every element of the iterable
+        Call the method `func` on every element of the iterable
         `data`.  Returns a list of the returned results.
         """
         try:
@@ -142,7 +142,7 @@ class Base(object):
             raise IteratorException(
                 "Expected an iterable but got a '%s'" % type(data)
             )
-        return [foo(d, i, data) for i, d in enumerate(data)]
+        return [func(d, i, data) for i, d in enumerate(data)]
 
     @classmethod
     def get(cls, acc, data):
