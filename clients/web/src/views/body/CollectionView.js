@@ -180,7 +180,7 @@
                 folderAccess: true,
                 doRouteNavigation: false
             });
-    });
+        });
 
     girder.router.route('collection/:id?access', 'collectionAccess', function (collectionId) {
         _fetchAndInit(collectionId, {

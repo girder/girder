@@ -39,7 +39,7 @@ girder.views.AccessWidget = girder.View.extend({
             model: this.model,
             modelType: this.modelType,
             public: this.model.get('public')
-        })).girderModal(this).on('hidden.bs.modal', closeFunction );
+        })).girderModal(this).on('hidden.bs.modal', closeFunction);
 
         _.each(this.model.get('access').groups, function (groupAccess) {
             this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
