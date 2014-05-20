@@ -171,6 +171,11 @@ class Item(Resource):
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
+        # Make sure we let user know if we can't accept one of their metadata keys
+        for k in metadata:
+            if '.' in k:
+                raise RestException('The key name ' + k + ' must not contain a period')
+
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
         Description('Set metadata fields on an item.')
@@ -180,6 +185,8 @@ class Item(Resource):
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
         .errorResponse('ID was invalid.')
+        .errorResponse('Invalid JSON passed in request body.')
+        .errorResponse('Metadata key name contained a period.')
         .errorResponse('Write access was denied for the item.', 403))
 
     def _downloadMultifileItem(self, item, user):

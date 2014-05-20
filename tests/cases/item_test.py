@@ -289,6 +289,15 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
+        # Make sure metadata cannot be added if there is a period in the key name
+        metadata = {
+            'foo.bar': 'notallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertEqual(resp.status, '400 Bad Request')
+
     def testItemFiltering(self):
         """
         Test filtering private metadata from items.
