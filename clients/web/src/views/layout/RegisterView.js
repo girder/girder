@@ -51,12 +51,25 @@ girder.views.RegisterView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.registerDialog())
-            .girderModal(this).on('shown.bs.modal', function () {
+        this.$el.html(jade.templates.registerDialog()).girderModal(this)
+            .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
+            }).on('hidden.bs.modal', function () {
+                girder.dialogs.handleClose('register');
             });
         this.$('#g-login').focus();
 
+        girder.dialogs.handleOpen('register');
+
         return this;
     }
+
+});
+
+girder.router.route('register', 'register', function () {
+    girder.events.trigger('g:registerUi');
+});
+
+girder.router.route(/^(.*?)\?register$/, 'register', function () {
+    girder.events.trigger('g:registerUi');
 });

@@ -1,0 +1,4 @@
+{
+    "name": "geoJSON",
+    "description": "Provides functions for converting database queries into geoJSON objects"
+}

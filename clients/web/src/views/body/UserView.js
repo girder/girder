@@ -6,6 +6,9 @@
     girder.views.UserView = girder.View.extend({
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
+            this.upload = settings.upload || false;
+            this.folderAccess = settings.folderAccess || false;
+            this.folderEdit = settings.folderEdit || false;
 
             if (settings.user) {
                 this.model = settings.user;
@@ -45,16 +48,11 @@
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
-                el: this.$('.g-user-hierarchy-container')
+                el: this.$('.g-user-hierarchy-container'),
+                upload: this.upload,
+                edit: this.folderEdit,
+                access: this.folderAccess
             });
-
-            if (this.folder) {
-                girder.router.navigate('user/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('user/' + this.model.get('_id'));
-            }
 
             return this;
         },
@@ -67,7 +65,7 @@
             }, this).on('g:error', function () {
                 // Current user no longer has read access to this user, so we
                 // send them back to the user list page.
-                girder.events.trigger('g:navigateTo', girder.views.UsersView);
+                girder.router.navigate('users', {trigger: true});
             }, this).fetch();
         }
     });
@@ -93,9 +91,12 @@
         _fetchAndInit(userId);
     });
 
-    girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId) {
+    girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
         _fetchAndInit(userId, {
-            folderId: folderId
+            folderId: folderId,
+            upload: params.dialog === 'upload',
+            folderAccess: params.dialog === 'folderaccess',
+            folderEdit: params.dialog === 'folderedit'
         });
     });
 

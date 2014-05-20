@@ -23,19 +23,16 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-my-folders': function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                user: girder.currentUser
-            });
+            girder.router.navigate('user/' + girder.currentUser.get('_id'), {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
-                user: girder.currentUser
-            });
+            girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
+                                   '/info', {trigger: true});
         },
 
         'click a.g-admin': function () {
-            girder.events.trigger('g:navigateTo', girder.views.AdminView);
+            girder.router.navigate('admin');
         }
     },
 

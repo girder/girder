@@ -28,12 +28,12 @@ girder.views.HierarchyWidget = girder.View.extend({
      * This should be instantiated with the following properties:
      * -parentModel: The model representing the root node. Must be a User,
                      Collection, or Folder model.
-     * -[doRouteNavigation]: Whether navigating through the hierarchy should
-     *                       update the route in the URL. Default is true.
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
-        this.doRouteNavigation = settings.doRouteNavigation !== false;
+        this.upload = settings.upload;
+        this.access = settings.access;
+        this.edit = settings.edit;
 
         this.breadcrumbs = [this.parentModel];
 
@@ -43,6 +43,15 @@ girder.views.HierarchyWidget = girder.View.extend({
         else {
             this.render();
         }
+    },
+
+    _setRoute: function () {
+        var route = this.breadcrumbs[0].resourceName + '/' +
+            this.breadcrumbs[0].get('_id');
+        if (this.parentModel.resourceName === 'folder') {
+            route += '/folder/' + this.parentModel.get('_id');
+        }
+        girder.router.navigate(route);
     },
 
     _fetchToRoot: function (folder) {
@@ -97,8 +106,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.breadcrumbView.on('g:breadcrumbClicked', function (idx) {
             this.parentModel = this.breadcrumbs[idx];
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
-
             this.render();
+            this._setRoute();
         }, this);
 
         this.checkedMenuWidget = new girder.views.CheckedMenuWidget({
@@ -132,9 +141,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 el: this.$('.g-item-list-container')
             });
             this.itemListView.on('g:itemClicked', function (item) {
-                girder.events.trigger('g:navigateTo', girder.views.ItemView, {
-                    item: item
-                });
+                girder.router.navigate('item/' + item.get('_id'), {trigger: true});
             }, this).off('g:checkboxesChanged')
                     .on('g:checkboxesChanged', this.updateChecked, this)
                     .off('g:changed').on('g:changed', function () {
@@ -144,15 +151,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         }
         else {
             this.itemCount = 0;
-        }
-
-        if (this.doRouteNavigation) {
-            var route = this.breadcrumbs[0].resourceName + '/' +
-                this.breadcrumbs[0].get('_id');
-            if (this.parentModel.resourceName === 'folder') {
-                route += '/folder/' + this.parentModel.get('_id');
-            }
-            girder.router.navigate(route);
         }
 
         this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
@@ -168,6 +166,14 @@ girder.views.HierarchyWidget = girder.View.extend({
             delay: {show: 100}
         });
 
+        if (this.upload) {
+            this.uploadDialog();
+        } else if (this.access) {
+            this.editFolderAccess();
+        } else if (this.edit) {
+            this.editFolderDialog();
+        }
+
         return this;
     },
 
@@ -178,6 +184,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.breadcrumbs.push(folder);
         this.parentModel = folder;
         this.render();
+        this._setRoute();
     },
 
     /**
@@ -187,6 +194,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.breadcrumbs.pop();
         this.parentModel = this.breadcrumbs[this.breadcrumbs.length - 1];
         this.render();
+        this._setRoute();
     },
 
     /**
@@ -251,7 +259,8 @@ girder.views.HierarchyWidget = girder.View.extend({
             el: container,
             folder: this.parentModel
         }).on('g:uploadFinished', function () {
-            // When upload is finished, refresh the folder view
+            girder.dialogs.handleClose('upload');
+            this.upload = false;
             this.render();
         }, this).render();
     },

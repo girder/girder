@@ -9,6 +9,13 @@
         },
 
         initialize: function (settings) {
+
+            this.upload = settings.upload || false;
+            this.access = settings.access || false;
+            this.folderAccess = settings.folderAccess || false;
+            this.folderEdit = settings.folderEdit || false;
+            this.edit = settings.edit || false;
+
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
                 this.model = settings.collection;
@@ -64,6 +71,9 @@
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
+                upload: this.upload,
+                access: this.folderAccess,
+                edit: this.folderEdit,
                 el: this.$('.g-collection-hierarchy-container')
             });
 
@@ -74,12 +84,10 @@
                 delay: {show: 100}
             });
 
-            if (this.folder) {
-                girder.router.navigate('collection/' + this.model.get('_id') +
-                    '/folder/' + this.folder.get('_id'));
-            }
-            else {
-                girder.router.navigate('collection/' + this.model.get('_id'));
+            if (this.edit) {
+                this.editCollection();
+            } else if (this.access) {
+                this.editAccess();
             }
 
             return this;
@@ -94,8 +102,7 @@
             }, this).on('g:error', function () {
                 // Current user no longer has read access to this user, so we
                 // send them back to the user list page.
-                girder.events.trigger('g:navigateTo',
-                    girder.views.CollectionsView);
+                girder.router.navigate('collections', {trigger: true});
             }, this).fetch();
         },
 
@@ -124,18 +131,26 @@
                 collection: collection
             }, params || {}));
         }, this).on('g:error', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionsView);
+            girder.router.navigate('/collections', {trigger: true});
         }, this).fetch();
     };
 
-    girder.router.route('collection/:id', 'collection', function (collectionId) {
-        _fetchAndInit(collectionId);
+    girder.router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
+        _fetchAndInit(collectionId, {
+            access: params.dialog === 'access',
+            edit: params.dialog === 'edit'
+        });
     });
 
     girder.router.route('collection/:id/folder/:id', 'collectionFolder',
-        function (collectionId, folderId) {
+        function (collectionId, folderId, params) {
             _fetchAndInit(collectionId, {
-                folderId: folderId
+                folderId: folderId,
+                upload: params.dialog === 'upload',
+                access: params.dialog === 'access',
+                folderAccess: params.dialog === 'folderaccess',
+                edit: params.dialog === 'edit',
+                folderEdit: params.dialog === 'folderedit'
             });
         });
 

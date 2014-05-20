@@ -5,10 +5,7 @@ girder.views.GroupsView = girder.View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
-            var params = {
-                group: this.collection.get(cid)
-            };
-            girder.events.trigger('g:navigateTo', girder.views.GroupView, params);
+            girder.router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-group-search-form': function (event) {
             event.preventDefault();
@@ -18,7 +15,8 @@ girder.views.GroupsView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+
         this.collection = new girder.collections.GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -42,8 +40,6 @@ girder.views.GroupsView = girder.View.extend({
             types: ['group']
         }).off().on('g:resultClicked', this._gotoGroup, this).render();
 
-        girder.router.navigate('groups');
-
         return this;
     },
 
@@ -60,9 +56,8 @@ girder.views.GroupsView = girder.View.extend({
             userGroups.push(group.get('_id'));
             girder.currentUser.set('groups', userGroups);
 
-            girder.events.trigger('g:navigateTo', girder.views.GroupView, {
-                group: group
-            });
+            girder.router.navigate('group/' + group.get('_id'), {trigger: true});
+
         }, this).render();
     },
 
@@ -73,9 +68,7 @@ girder.views.GroupsView = girder.View.extend({
     _gotoGroup: function (result) {
         var group = new girder.models.GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.GroupView, {
-                group: group
-            });
+            girder.router.navigate('group/' + group._id, {trigger: true});
         }, this).fetch();
     }
 });
