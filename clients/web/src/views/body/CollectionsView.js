@@ -21,8 +21,6 @@ girder.views.CollectionsView = girder.View.extend({
             this.render();
         }, this).fetch();
 
-        this.doRouteNavigation = settings.doRouteNavigation !== false;
-
         // This page should be re-rendered if the user logs in or out
         girder.events.on('g:login', this.userChanged, this);
     },

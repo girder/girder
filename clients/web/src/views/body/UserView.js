@@ -10,9 +10,6 @@
             this.folderAccess = settings.folderAccess || false;
             this.folderEdit = settings.folderEdit || false;
 
-
-            this.doRouteNavigation = settings.doRouteNavigation !== false;
-
             if (settings.user) {
                 this.model = settings.user;
 

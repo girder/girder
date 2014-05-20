@@ -16,9 +16,6 @@ girder.views.UsersView = girder.View.extend({
     },
 
     initialize: function (settings) {
-
-        this.doRouteNavigation = settings.doRouteNavigation !== false;
-
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();

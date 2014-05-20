@@ -28,15 +28,12 @@ girder.views.HierarchyWidget = girder.View.extend({
      * This should be instantiated with the following properties:
      * -parentModel: The model representing the root node. Must be a User,
                      Collection, or Folder model.
-     * -[doRouteNavigation]: Whether navigating through the hierarchy should
-     *                       update the route in the URL. Default is true.
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
         this.upload = settings.upload;
         this.access = settings.access;
         this.edit = settings.edit;
-        this.doRouteNavigation = settings.doRouteNavigation !== false;
 
         this.breadcrumbs = [this.parentModel];
 
