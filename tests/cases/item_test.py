@@ -297,7 +297,23 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/metadata'.format(item['_id']),
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
-        self.assertEqual(resp.status, '400 Bad Request')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name foo.bar must not contain a period' +
+                         ' or begin with a question mark.')
+
+        # Make sure metadata cannot be added if the key begins with a
+        # question mark
+        metadata = {
+            '$foobar': 'alsonotallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name $foobar must not contain a period' +
+                         ' or begin with a question mark.')
 
     def testItemFiltering(self):
         """
