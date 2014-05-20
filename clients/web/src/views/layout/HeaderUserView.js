@@ -27,10 +27,8 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-my-settings': function () {
-            // View does not yet exist
-            girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
-                user: girder.currentUser
-            });
+            girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
+                                   '/info', {trigger: true});
         },
 
         'click a.g-admin': function () {

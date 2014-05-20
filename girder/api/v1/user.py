@@ -43,6 +43,7 @@ class User(Resource):
         self.route('GET', ('authentication',), self.login)
         self.route('GET', (':id',), self.getUser)
         self.route('POST', (), self.createUser)
+        self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
         self.route('DELETE', ('password',), self.resetPassword)
 
@@ -231,6 +232,23 @@ class User(Resource):
         .param('id', 'The ID of the user.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403))
+
+    @loadmodel(map={'id': 'user'}, model='user', level=AccessType.WRITE)
+    def updateUser(self, user, params):
+        self.requireParams(('firstName', 'lastName', 'email'), params)
+
+        user['firstName'] = params['firstName']
+        user['lastName'] = params['lastName']
+        user['email'] = params['email']
+        return self._filter(self.model('user').save(user))
+    updateUser.description = (
+        Description("Update a user's information.")
+        .param('id', 'The ID of the user.', paramType='path')
+        .param('firstName', 'First name of the user.')
+        .param('lastName', 'Last name of the user.')
+        .param('email', 'The email of the user.')
+        .errorResponse()
+        .errorResponse('You do not have write access for this user.', 403))
 
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)

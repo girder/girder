@@ -47,6 +47,11 @@ class UserTestCase(base.TestCase):
             resp.cookie['authToken']['expires'],
             lifetime * 3600 * 24)
 
+    def _verifyDeletedCookie(self, resp):
+        self.assertTrue('authToken' in resp.cookie)
+        self.assertEqual(resp.cookie['authToken'].value, '')
+        self.assertEqual(resp.cookie['authToken']['expires'], 0)
+
     def _verifyUserDocument(self, doc, admin=True):
         self.assertHasKeys(
             doc, ['_id', 'firstName', 'lastName', 'public', 'login', 'admin'])
@@ -145,6 +150,11 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
+        # Test user/me
+        resp = self.request(path='/user/me', method='GET', user=user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['login'], user['login'])
+
     def testRegisterAndLoginSha512(self):
         cherrypy.config['auth']['hash_alg'] = 'sha512'
 
@@ -181,9 +191,14 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
-    def testGetUser(self):
+        # Hit the logout endpoint
+        resp = self.request(path='/user/authentication', method='DELETE',
+                            user=user)
+        self._verifyDeletedCookie(resp)
+
+    def testGetAndUpdateUser(self):
         """
-        Tests for the GET user endpoint.
+        Tests for the GET and PUT user endpoints.
         """
         params = {
             'email': 'good@email.com',
@@ -193,8 +208,27 @@ class UserTestCase(base.TestCase):
             'password': 'goodpassword'
         }
         user = self.model('user').createUser(**params)
-        resp = self.request(path='/user/%s' % user['_id'])
+        resp = self.request(path='/user/{}'.format(user['_id']))
         self._verifyUserDocument(resp.json, admin=False)
+
+        params = {
+            'email': 'bad',
+            'firstName': 'NewFirst ',
+            'lastName': ' New Last ',
+        }
+        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+                            user=user, params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid email address.')
+
+        params['email'] = 'valid@email.com '
+        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+                            user=user, params=params)
+        self.assertStatusOk(resp)
+        self._verifyUserDocument(resp.json)
+        self.assertEqual(resp.json['email'], 'valid@email.com')
+        self.assertEqual(resp.json['firstName'], 'NewFirst')
+        self.assertEqual(resp.json['lastName'], 'New Last')
 
     def testDeleteUser(self):
         """
@@ -297,6 +331,7 @@ class UserTestCase(base.TestCase):
                             basicAuth='user@user.com:passwd')
         self.assertStatus(resp, 403)
 
+        time.sleep(0.5)  # Wait for background thread to run async task
         self.assertFalse(base.mockSmtp.isMailQueueEmpty())
         msg = base.mockSmtp.getMail()
 
