@@ -231,7 +231,7 @@ the ``girder.plugins`` package. This will work for your own plugin, but you can
 also import modules from any active plugin. You can also import core girder
 modules using the ``girder`` package as usual. Example: ::
 
-    from girder.plugins.my_plugin import some_module
+    from girder.plugins.cats import some_module
     from girder import events
 
 Adding a new route to the web API
@@ -297,6 +297,20 @@ classes, and we can add it to the API in the ``load()`` method. ::
 
     def load(info):
         info['apiRoot'].cat = Cat()
+
+Adding a new model type in your plugin
+**************************************
+
+Most of the time, if you add a new resource type in your plugin, you'll have a
+``Model`` class backing it. These model classes work just like the core model
+classes as described in the :ref:`models` section. They must live under the
+``server/models`` directory of your plugin, so that they can use the
+``ModelImporter`` behavior. If you make a ``Cat`` model in your plugin, you
+could access it using ::
+
+    self.model('cat', 'cats')
+
+Where the second argument to ``model`` is the name of your plugin.
 
 The events system
 *****************
