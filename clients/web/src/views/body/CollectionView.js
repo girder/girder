@@ -16,8 +16,6 @@
             this.folderEdit = settings.folderEdit || false;
             this.edit = settings.edit || false;
 
-            this.doRouteNavigation = settings.doRouteNavigation !== false;
-
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
                 this.model = settings.collection;
@@ -76,7 +74,6 @@
                 upload: this.upload,
                 access: this.folderAccess,
                 edit: this.folderEdit,
-                doRouteNavigation: this.doRouteNavigation,
                 el: this.$('.g-collection-hierarchy-container')
             });
 
