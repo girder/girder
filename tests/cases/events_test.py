@@ -32,6 +32,7 @@ class EventsTestCase(unittest.TestCase):
     def setUp(self):
         events.unbindAll()
         self.ctr = 0
+        self.responses = None
 
     def _increment(self, event):
         self.ctr += event.info['amount']
@@ -86,7 +87,7 @@ class EventsTestCase(unittest.TestCase):
 
         def callback(event):
             self.ctr += 1
-            self.assertEqual(event.responses, {handlerName: 'foo'})
+            self.responses = event.responses
 
         # Triggering the event before the daemon starts should do nothing
         self.assertEqual(events.daemon.eventQueue.qsize(), 0)
@@ -100,3 +101,4 @@ class EventsTestCase(unittest.TestCase):
         time.sleep(0.1)
         self.assertEqual(events.daemon.eventQueue.qsize(), 0)
         self.assertEqual(self.ctr, 3)
+        self.assertEqual(self.responses, ['foo'])

@@ -21,6 +21,7 @@ from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
 from ...constants import AccessType
+from girder.utility import mail_utils
 
 
 class Group(Resource):
@@ -265,6 +266,16 @@ class Group(Resource):
         self.model('group').requireAccess(group, user, level)
         self.model('group').inviteUser(group, userToInvite, level)
 
+        if params.get('quiet', '').lower() != 'true':
+            html = mail_utils.renderTemplate('groupInvite.mako', {
+                'userToInvite': userToInvite,
+                'user': user,
+                'group': group
+            })
+            mail_utils.sendEmail(
+                to=userToInvite['email'], text=html,
+                subject="Girder: You've been invited to a group")
+
         return self._filter(group, accessList=True, requests=True)
     inviteToGroup.description = (
         Description("Invite a user to join a group, or accept a user's request "
@@ -272,9 +283,11 @@ class Group(Resource):
         .responseClass('Group')
         .param('id', 'The ID of the group.', paramType='path')
         .param('userId', 'The ID of the user to invite or accept.')
-        .param('level', """The access level the user will be given when they
-               accept the invitation. Defaults to read access (0).""",
+        .param('level', 'The access level the user will be given when they '
+               'accept the invitation. Defaults to read access (0).',
                required=False, dataType='int')
+        .param('quiet', 'If you do not wish this action to send an email, '
+               'set this parameter to "true".', required=False)
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 
