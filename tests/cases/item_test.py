@@ -289,7 +289,8 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
-        # Make sure metadata cannot be added if there is a period in the key name
+        # Make sure metadata cannot be added if there is a period in the key
+        # name
         metadata = {
             'foo.bar': 'notallowed'
         }

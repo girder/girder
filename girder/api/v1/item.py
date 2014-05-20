@@ -171,10 +171,12 @@ class Item(Resource):
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
-        # Make sure we let user know if we can't accept one of their metadata keys
+        # Make sure we let user know if we can't accept one of their metadata
+        # keys
         for k in metadata:
             if '.' in k:
-                raise RestException('The key name ' + k + ' must not contain a period')
+                raise RestException('The key name ' + k +
+                                    ' must not contain a period')
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
