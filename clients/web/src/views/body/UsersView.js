@@ -8,14 +8,14 @@ girder.views.UsersView = girder.View.extend({
             var params = {
                 user: this.collection.get(cid)
             };
-            girder.events.trigger('g:navigateTo', girder.views.UserView, params);
+            girder.router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-user-search-form': function (event) {
             event.preventDefault();
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -39,8 +39,6 @@ girder.views.UsersView = girder.View.extend({
             types: ['user']
         }).off().on('g:resultClicked', this._gotoUser, this).render();
 
-        girder.router.navigate('users');
-
         return this;
     },
 
@@ -51,9 +49,7 @@ girder.views.UsersView = girder.View.extend({
     _gotoUser: function (result) {
         var user = new girder.models.UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                user: user
-            });
+            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });

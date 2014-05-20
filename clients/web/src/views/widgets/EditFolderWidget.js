@@ -37,6 +37,9 @@ girder.views.EditFolderWidget = girder.View.extend({
                 view.$('#g-name').val(view.folder.get('name'));
                 view.$('#g-description').val(view.folder.get('description'));
             }
+            girder.dialogs.handleOpen('folderedit');
+        }).on('hidden.bs.modal', function () {
+            girder.dialogs.handleClose('folderedit');
         });
         this.$('#g-name').focus();
 

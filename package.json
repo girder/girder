@@ -7,7 +7,7 @@
     "url": "git://github.com/girder/girder.git"
   },
   "dependencies": {
-    "backbone": "~1.0",
+    "backbone": "~1.1.2",
     "grunt": "~0.4",
     "grunt-cli": "~0.1",
     "grunt-contrib-qunit": "~0.2.0",

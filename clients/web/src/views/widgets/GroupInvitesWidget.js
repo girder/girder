@@ -21,9 +21,8 @@ girder.views.GroupInvitesWidget = girder.View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                user: this.collection.get($(e.currentTarget).parents('li').attr('cid'))
-            });
+            var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
+            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
         }
     },
 

@@ -37,8 +37,12 @@ girder.views.EditCollectionWidget = girder.View.extend({
                 view.$('#g-description').val(view.model.get('description'));
             }
             view.$('#g-name').focus();
+        }).on('hidden.bs.modal', function () {
+            girder.dialogs.handleClose('edit');
         });
         this.$('#g-name').focus();
+
+        girder.dialogs.handleOpen('edit');
 
         return this;
     },

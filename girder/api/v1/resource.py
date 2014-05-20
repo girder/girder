@@ -58,7 +58,6 @@ class Resource(BaseResource):
                 params['q'], user=user, limit=limit, project={
                     'name': 1
                 })
-
         if 'collection' in types:
             results['collection'] = self.model('collection').textSearch(
                 params['q'], user=user, limit=limit, project={

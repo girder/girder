@@ -23,11 +23,23 @@ girder.views.AccessWidget = girder.View.extend({
     },
 
     render: function () {
+        var closeFunction;
+        if (this.modelType === 'folder') {
+            girder.dialogs.handleOpen('folderaccess');
+            closeFunction = function () {
+                girder.dialogs.handleClose('folderaccess');
+            };
+        } else {
+            girder.dialogs.handleOpen('access');
+            closeFunction = function () {
+                girder.dialogs.handleClose('access');
+            };
+        }
         this.$el.html(jade.templates.accessEditor({
             model: this.model,
             modelType: this.modelType,
             public: this.model.get('public')
-        })).girderModal(this);
+        })).girderModal(this).on('hidden.bs.modal', closeFunction);
 
         _.each(this.model.get('access').groups, function (groupAccess) {
             this.$('#g-ac-list-groups').append(jade.templates.accessEntry({

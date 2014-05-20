@@ -7,8 +7,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         'click .g-nav-link': function (event) {
             var link = $(event.currentTarget);
 
-            girder.events.trigger('g:navigateTo',
-                                  girder.views[link.attr('g-target')]);
+            girder.router.navigate(link.attr('g-target'), {trigger: true});
 
             // Must call this after calling navigateTo, since that
             // deactivates all global nav links.
@@ -24,15 +23,15 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         var navItems = [{
             'name': 'Collections',
             'icon': 'icon-sitemap',
-            'target': 'CollectionsView'
+            'target': 'collections'
         }, {
             'name': 'Users',
             'icon': 'icon-user',
-            'target': 'UsersView'
+            'target': 'users'
         }, {
             'name': 'Groups',
             'icon': 'icon-users',
-            'target': 'GroupsView'
+            'target': 'groups'
         }];
         this.$el.html(jade.templates.layoutGlobalNav({
             navItems: navItems
@@ -47,7 +46,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
      */
     selectForView: function (viewName) {
         this.deactivateAll();
-        this.$('[g-target="' + viewName + '"]').parent().addClass('g-active');
+        this.$('[g-name="' + viewName.slice(0, -4) + '"]').parent().addClass('g-active');
     },
 
     deactivateAll: function () {

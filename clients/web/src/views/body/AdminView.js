@@ -7,10 +7,10 @@ girder.views.AdminView = girder.View.extend({
             girder.events.trigger('g:navigateTo', girder.views.AdminConfig);
         },
         'click .g-assetstore-config': function () {
-            girder.events.trigger('g:navigateTo', girder.views.AssetstoresView);
+            girder.router.navigate('assetstores', {trigger: true});
         },
         'click .g-plugins-config': function () {
-            girder.events.trigger('g:navigateTo', girder.views.PluginsView);
+            girder.router.navigate('plugins', {trigger: true});
         }
     },
 
@@ -26,8 +26,6 @@ girder.views.AdminView = girder.View.extend({
             return;
         }
         this.$el.html(jade.templates.adminConsole());
-
-        girder.router.navigate('admin');
 
         return this;
     }

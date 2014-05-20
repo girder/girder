@@ -43,12 +43,21 @@ girder.views.LoginView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.loginDialog())
-            .girderModal(this).on('shown.bs.modal', function () {
+        this.$el.html(jade.templates.loginDialog()).girderModal(this)
+            .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
+            }).on('hidden.bs.modal', function () {
+                girder.dialogs.handleClose('login');
             });
+
+        girder.dialogs.handleOpen('login');
         this.$('#g-login').focus();
 
         return this;
     }
+
+});
+
+girder.router.route('login', 'login', function () {
+    girder.events.trigger('g:loginUi');
 });

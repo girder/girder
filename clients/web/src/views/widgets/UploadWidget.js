@@ -50,8 +50,11 @@ girder.views.UploadWidget = girder.View.extend({
     render: function () {
         this.$el.html(jade.templates.uploadWidget({
             folder: this.folder
-        })).girderModal(this);
+        })).girderModal(this).on('hidden.bs.modal', function () {
+            girder.dialogs.handleClose('upload');
+        });
 
+        girder.dialogs.handleOpen('upload');
         return this;
     },
 

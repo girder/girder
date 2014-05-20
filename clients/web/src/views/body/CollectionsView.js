@@ -5,11 +5,7 @@ girder.views.CollectionsView = girder.View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            var params = {
-                collection: this.collection.get(cid)
-            };
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView,
-                params);
+            girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-collection-create-button': function (event) {
             this.createCollectionDialog();
@@ -19,7 +15,7 @@ girder.views.CollectionsView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         this.collection = new girder.collections.CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -38,9 +34,8 @@ girder.views.CollectionsView = girder.View.extend({
         new girder.views.EditCollectionWidget({
             el: container
         }).off('g:saved').on('g:saved', function (collection) {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, {
-                collection: collection
-            });
+            girder.router.navigate('collection/' + collection.get('_id'),
+                                   {trigger: true});
         }, this).render();
     },
 
@@ -61,8 +56,6 @@ girder.views.CollectionsView = girder.View.extend({
             types: ['collection']
         }).off().on('g:resultClicked', this._gotoCollection, this).render();
 
-        girder.router.navigate('collections');
-
         return this;
     },
 
@@ -73,10 +66,9 @@ girder.views.CollectionsView = girder.View.extend({
     _gotoCollection: function (result) {
         var collection = new girder.models.CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, {
-                collection: collection
-            });
+            girder.router.navigate('/collection/' + this.id, {trigger: true});
         }, this).fetch();
+
     },
 
     userChanged: function () {

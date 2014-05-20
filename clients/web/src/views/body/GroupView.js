@@ -12,9 +12,8 @@ girder.views.GroupView = girder.View.extend({
         'click .g-group-request-deny': 'denyMembershipRequest',
 
         'click #g-group-tab-pending a.g-member-name': function (e) {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: $(e.currentTarget).parents('li').attr('userid')
-            });
+            var userId = $(e.currentTarget).parents('li').attr('userid');
+            girder.router.navigate('user/' + userId, {trigger: true});
         }
     },
 
@@ -63,8 +62,7 @@ girder.views.GroupView = girder.View.extend({
             view.model.get('name') + '</b>?',
             confirmCallback: function () {
                 view.model.on('g:deleted', function () {
-                    girder.events.trigger('g:navigateTo',
-                        girder.views.GroupsView);
+                    girder.router.navigate('groups', {trigger: true});
                 }).destroy();
             }
         });
@@ -184,7 +182,7 @@ girder.views.GroupView = girder.View.extend({
         }, this).on('g:error', function () {
             // Current user no longer has read access to this group, so we
             // send them back to the group list page.
-            girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+            girder.router.navigate('groups', {trigger: true});
         }, this).fetch();
     },
 
@@ -275,7 +273,7 @@ girder.router.route('group/:id', 'group', function (id) {
             group: group
         }, group);
     }, this).on('g:error', function () {
-        girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+        girder.router.navigate('groups', {trigger: true});
     }, this).fetch();
 });
 
@@ -291,6 +289,6 @@ girder.router.route('group/:id/:tab', 'groupTab', function (id, tab) {
             tab: tab
         }, group);
     }, this).on('g:error', function () {
-        girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+        girder.router.navigate('groups', {trigger: true});
     }, this).fetch();
 });
