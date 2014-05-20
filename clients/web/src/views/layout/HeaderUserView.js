@@ -27,6 +27,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-my-settings': function () {
+            // View does not yet exist
             girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
                 user: girder.currentUser
             });

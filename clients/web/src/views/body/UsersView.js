@@ -52,9 +52,7 @@ girder.views.UsersView = girder.View.extend({
     _gotoUser: function (result) {
         var user = new girder.models.UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                user: user
-            });
+            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });

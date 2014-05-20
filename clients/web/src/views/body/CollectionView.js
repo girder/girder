@@ -105,8 +105,7 @@
             }, this).on('g:error', function () {
                 // Current user no longer has read access to this user, so we
                 // send them back to the user list page.
-                girder.events.trigger('g:navigateTo',
-                    girder.views.CollectionsView);
+                girder.router.navigate('collections', {trigger: true});
             }, this).fetch();
         },
 

@@ -32,10 +32,8 @@ girder.views.LayoutHeaderView = girder.View.extend({
     _gotoItem: function (result) {
         var item = new girder.models.ItemModel();
         item.set('_id', result.id).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.ItemView, {
-                item: item
-            });
             this.searchWidget.resetState();
+            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
         }, this).fetch();
 
         return this;

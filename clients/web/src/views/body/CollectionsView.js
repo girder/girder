@@ -36,9 +36,8 @@ girder.views.CollectionsView = girder.View.extend({
         new girder.views.EditCollectionWidget({
             el: container
         }).off('g:saved').on('g:saved', function (collection) {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, {
-                collection: collection
-            });
+            girder.router.navigate('collection/' + collection.get('_id'),
+                                   {trigger: true});
         }, this).render();
     },
 
