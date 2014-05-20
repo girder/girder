@@ -245,6 +245,22 @@ module.exports = function (grunt) {
             });
             defaultTasks.push('uglify:plugin_' + pluginName);
         }
+
+        var extraDir = pluginDir + '/web_client/extra';
+        if (fs.existsSync(extraDir)) {
+            grunt.config.set('copy.plugin_' + pluginName, {
+                expand: true,
+                cwd: pluginDir + '/web_client',
+                src: ['extra/**'],
+                dest: staticDir
+            });
+            grunt.config.set('watch.copy_' + pluginName, {
+                files: [extraDir + '/**/*'],
+                tasks: ['copy:plugin_' + pluginName],
+                options: {failOnError: false}
+            });
+            defaultTasks.push('copy:plugin_' + pluginName);
+        }
     };
 
     // Glob for front-end plugins and configure each one to build
