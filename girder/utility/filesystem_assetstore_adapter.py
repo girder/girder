@@ -154,11 +154,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise Exception('File %s does not exist.' % path)
 
         if headers:
-            cherrypy.response.headers['Content-Type'] = \
-                'application/octet-stream'
+            mimeType = file.get('mimeType', 'application/octet-stream')
+            if not mimeType:
+                mimeType = 'application/octet-stream'
+            cherrypy.response.headers['Content-Type'] = mimeType
+            cherrypy.response.headers['Content-Length'] = file['size'] - offset
             cherrypy.response.headers['Content-Disposition'] = \
                 'attachment; filename="%s"' % file['name']
-            cherrypy.response.headers['Content-Length'] = file['size'] - offset
 
         def stream():
             with open(path, 'rb') as f:

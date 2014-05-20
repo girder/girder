@@ -95,7 +95,8 @@ class FileTestCase(base.TestCase):
                 'parentType': 'folder',
                 'parentId': self.privateFolder['_id'],
                 'name': name,
-                'size': len(chunk1) + len(chunk2)
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
             })
         self.assertStatusOk(resp)
 
@@ -146,6 +147,9 @@ class FileTestCase(base.TestCase):
         resp = self.request(path='/file/%s/download' % str(file['_id']),
                             method='GET', user=self.user, isJson=False)
         self.assertStatusOk(resp)
+        if contents:
+            self.assertEqual(resp.headers['Content-Type'],
+                             'text/plain;charset=utf-8')
 
         self.assertEqual(contents, resp.collapse_body())
 
@@ -193,6 +197,7 @@ class FileTestCase(base.TestCase):
         resp = self.request(
             path='/folder/%s/download' % str(self.privateFolder['_id']),
             method='GET', user=self.user, isJson=False)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
         zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
         self.assertTrue(zip.testzip() is None)
 
