@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import time
-
 from .. import base
 from girder.constants import AccessType
 
@@ -223,8 +221,7 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], str(self.users[1]['_id']))
 
         # An email should have been sent
-        time.sleep(0.5)  # Wait for background thread to run async task
-        self.assertFalse(base.mockSmtp.isMailQueueEmpty())
+        self.assertTrue(base.mockSmtp.waitForMail())
 
         # Reload user and group since they've changed in the database
         self.users[1] = self.model('user').load(

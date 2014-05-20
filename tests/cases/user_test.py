@@ -20,7 +20,6 @@
 import cherrypy
 import json
 import re
-import time
 
 from .. import base
 
@@ -320,6 +319,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['message'], "That email is not registered.")
 
         # Actually reset password
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(path='/user/password', method='DELETE', params={
             'email': 'user@user.com'
         })
@@ -331,8 +331,7 @@ class UserTestCase(base.TestCase):
                             basicAuth='user@user.com:passwd')
         self.assertStatus(resp, 403)
 
-        time.sleep(0.5)  # Wait for background thread to run async task
-        self.assertFalse(base.mockSmtp.isMailQueueEmpty())
+        self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail()
 
         # Pull out the auto-generated password from the email

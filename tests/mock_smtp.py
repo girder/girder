@@ -21,6 +21,7 @@ import asyncore
 import Queue
 import smtpd
 import threading
+import time
 
 
 class MockSmtpServer(smtpd.SMTPServer):
@@ -56,3 +57,20 @@ class MockSmtpReceiver(object):
     def isMailQueueEmpty(self):
         """Return whether or not the mail queue is empty"""
         return self.smtp.mailQueue.empty()
+
+    def waitForMail(self, timeout=2):
+        """
+        Waits for mail to appear on the queue. Returns "True" as soon as the
+        queue is not empty, or "False" if the timeout was reached before any
+        mail appears.
+
+        :param timeout: Timeout in seconds.
+        :type timeout: float
+        """
+        startTime = time.time()
+        while True:
+            if not self.isMailQueueEmpty():
+                return True
+            if time.time() > startTime + timeout:
+                return False
+            time.sleep(0.1)
