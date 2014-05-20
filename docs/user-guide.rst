@@ -36,6 +36,8 @@ Items
 
 A Girder ``Item`` is an atomic file (cannot be separated into smaller parts within Girder).  This could be a collection of files (or tar, zip, etc), but from Girder's persective it is considered an atomic file.  ``Items`` in Girder live in exactly one ``Folder``.  ``Items`` in Girder do not have permissions set on them, they inherit permissions by virtue of living in a ``Folder`` (which has permissions set on it).
 
+A Girder ``Item`` can contain any number of arbitrary key/value pairs, termed metadata.  Metadata keys must be strings and must never contain a period ('.') or begin with a dollar sign ('$').  Metadata values can be anything, including strings, numeric values, and even arbitrary JSON objects.
+
 Folders
 -------
 

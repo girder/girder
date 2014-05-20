@@ -289,6 +289,32 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
+        # Make sure metadata cannot be added if there is a period in the key
+        # name
+        metadata = {
+            'foo.bar': 'notallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name foo.bar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
+        # Make sure metadata cannot be added if the key begins with a
+        # dollar sign
+        metadata = {
+            '$foobar': 'alsonotallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name $foobar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
     def testItemFiltering(self):
         """
         Test filtering private metadata from items.
