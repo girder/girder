@@ -300,10 +300,10 @@ class ItemTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
                          'The key name foo.bar must not contain a period' +
-                         ' or begin with a question mark.')
+                         ' or begin with a dollar sign.')
 
         # Make sure metadata cannot be added if the key begins with a
-        # question mark
+        # dollar sign
         metadata = {
             '$foobar': 'alsonotallowed'
         }
@@ -313,7 +313,7 @@ class ItemTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
                          'The key name $foobar must not contain a period' +
-                         ' or begin with a question mark.')
+                         ' or begin with a dollar sign.')
 
     def testItemFiltering(self):
         """

@@ -177,7 +177,7 @@ class Item(Resource):
             if '.' in k or k[0] == '$':
                 raise RestException('The key name ' + k + ' must not ' +
                                     'contain a period or begin with a ' +
-                                    'question mark.')
+                                    'dollar sign.')
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
