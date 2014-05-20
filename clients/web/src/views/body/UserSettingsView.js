@@ -66,7 +66,7 @@ girder.views.UserAccountView = girder.View.extend({
 
         if (!this.user) {
             console.error('Not logged in.');
-            girder.events.trigger('g:navigateTo', girder.views.UsersView);
+            girder.router.navigate('users', {trigger: true});
         }
         this.render();
     },
@@ -76,9 +76,6 @@ girder.views.UserAccountView = girder.View.extend({
             user: this.user,
             girder: girder
         }));
-
-        girder.router.navigate('useraccount/' + this.user.get('_id') +
-                               '/' + this.tab);
 
         _.each($('.g-account-tabs>li>a'), function (el) {
             var tabLink = $(el);
@@ -108,6 +105,6 @@ girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
             tab: tab
         });
     }, this).on('g:error', function () {
-        girder.events.trigger('g:navigateTo', girder.views.UsersView);
+        girder.router.navigate('users', {trigger: true});
     }, this).fetch();
 });
