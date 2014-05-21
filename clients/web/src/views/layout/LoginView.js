@@ -57,7 +57,3 @@ girder.views.LoginView = girder.View.extend({
     }
 
 });
-
-girder.router.route('login', 'login', function () {
-    girder.events.trigger('g:loginUi');
-});
