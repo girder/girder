@@ -9,22 +9,24 @@ PhantomJasmineRunner = (function() {
   }
 
   PhantomJasmineRunner.prototype.get_status = function() {
-    return this.page.evaluate(function(threshold) {
+    return this.page.evaluate(function (threshold) {
       if (window.jasmine_phantom_reporter.status === "success"){
-          window.travisCov.check(window._$blanket);
+          return window.travisCov.check(window._$blanket);
       }
-    },threshold);
+      else {
+          return false;
+      }
+    }, threshold);
   };
 
   PhantomJasmineRunner.prototype.terminate = function() {
-   switch (this.get_status()) {
-      case "success":   
-        return this.exit_func(0);
-      case "fail":
-        return this.exit_func(1);
-      default:
-        return this.exit_func(2);
-    }
+      var status = this.get_status();
+      if (status) {
+          return this.exit_func(0);
+      }
+      else {
+          return this.exit_func(1);
+      }
   };
 
   return PhantomJasmineRunner;
@@ -52,7 +54,7 @@ var output=true;
 
 address = phantom.args[0];
 
-threshold = phantom.args[1];
+threshold = phantom.args[1] || 0;
 
 page.onInitialized = function(){
   page.injectJs('travisCov.js');
@@ -65,7 +67,7 @@ page.open(address, function(status) {
     console.log("can't load the address!");
     phantom.exit(1);
   }
-  
-  
+
+
 });
 
