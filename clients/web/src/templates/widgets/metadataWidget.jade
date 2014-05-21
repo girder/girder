@@ -1,0 +1,9 @@
+if item.get('meta')
+  .g-item-metadata-header
+    i.icon-tags
+    |  Metadata
+  .g-item-metadata-container
+    each value, key in item.get('meta')
+      .g-item-metadata-row
+        span.g-item-metadata-key #{key}:
+        span.g-item-metadata-value #{value}
