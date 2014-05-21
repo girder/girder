@@ -17,18 +17,17 @@
 #  limitations under the License.
 ###############################################################################
 
+import sys  # pragma: no cover
 import cherrypy  # pragma: no cover
 
 from girder.utility import server  # pragma: no cover
 
 if __name__ == '__main__':  # pragma: no cover
-    import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'test':
         test = True
     else:
         test = False
     server.setup(test)
-
 
     cherrypy.engine.start()
     cherrypy.engine.block()
