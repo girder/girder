@@ -97,7 +97,10 @@ module.exports = function (grunt) {
             options: {
                 sourceMap: environment === 'dev',
                 sourceMapIncludeSources: true,
-                report: 'min'
+                report: 'min',
+                beautify: {
+                    ascii_only: true
+                }
             },
             app: {
                 files: {
@@ -131,6 +134,12 @@ module.exports = function (grunt) {
                         'clients/web/lib/js/bootstrap-switch.min.js',
                         'clients/web/lib/js/jquery.jqplot.min.js',
                         'clients/web/lib/js/jqplot.pieRenderer.min.js'
+                    ],
+                    'clients/web/static/built/testing.min.js': [
+                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
+                        'clients/web/test/lib/jasmine-1.3.1/jasmine-html.js',
+                        'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
+                        'clients/web/test/lib/jasmine-1.3.1/console_runner.js'
                     ]
                 }
             }
