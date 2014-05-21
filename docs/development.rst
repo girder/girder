@@ -488,6 +488,12 @@ that can be used to import content:
   core. The source map for these files will be automatically built and served
   as well.
 
+- ``extra``: Any files in this directory or any of its subdirectories will be
+  copied into the **extra** directory under your plugin's built static
+  directory. Any additional public static content that is required by your
+  plugin that doesn't fall into one of the above categories can be placed here,
+  such as static images, fonts, or third-party static libraries.
+
 Javascript extension capabilities
 *********************************
 
