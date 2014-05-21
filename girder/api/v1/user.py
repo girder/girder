@@ -17,38 +17,71 @@
 #  limitations under the License.
 ###############################################################################
 
+import base64
 import cherrypy
 import json
 
-from ...constants import AccessType
-from ..rest import Resource, RestException
-from .docs import user_docs
+from ..rest import Resource, RestException, loadmodel
+from ..describe import Description
+from girder.constants import AccessType, SettingKey
+from girder.models.token import genToken
+from girder.utility import mail_utils
 
 
 class User(Resource):
     """API Endpoint for users in the system."""
 
-    def initialize(self):
-        """Initialize the cookie lifetime."""
-        self.COOKIE_LIFETIME = cherrypy.config['sessions']['cookie_lifetime']
+    def __init__(self):
+        self.resourceName = 'user'
+        self.COOKIE_LIFETIME = int(self.model('setting').get(
+            SettingKey.COOKIE_LIFETIME, default=180))
+
+        self.route('DELETE', ('authentication',), self.logout)
+        self.route('DELETE', (':id',), self.deleteUser)
+        self.route('GET', (), self.find)
+        self.route('GET', ('me',), self.getMe)
+        self.route('GET', ('authentication',), self.login)
+        self.route('GET', (':id',), self.getUser)
+        self.route('POST', (), self.createUser)
+        self.route('PUT', (':id',), self.updateUser)
+        self.route('PUT', ('password',), self.changePassword)
+        self.route('DELETE', ('password',), self.resetPassword)
 
     def _filter(self, user):
         """
         Helper to filter the user model.
         """
-        return self.filterDocument(
-            user, allow=['_id', 'access', 'login', 'email', 'public', 'size',
-                         'firstName', 'lastName', 'admin', 'created', 'groups'])
+        if user is None:
+            return None
 
-    def _sendAuthTokenCookie(self, user, token):
+        currentUser = self.getCurrentUser()
+
+        keys = ['_id', 'login', 'public', 'firstName', 'lastName', 'admin',
+                'created']
+
+        if self.model('user').hasAccess(user, currentUser, AccessType.ADMIN):
+            keys.extend(['size', 'email', 'groups', 'groupInvites'])
+
+        filtered = self.filterDocument(user, allow=keys)
+
+        filtered['_accessLevel'] = self.model('user').getAccessLevel(
+            user, currentUser)
+
+        return filtered
+
+    def _sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
+        token = self.model('token').createToken(user, days=self.COOKIE_LIFETIME)
+
         cookie = cherrypy.response.cookie
         cookie['authToken'] = json.dumps({
             'userId': str(user['_id']),
             'token': str(token['_id'])
-            })
+        })
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = self.COOKIE_LIFETIME * 3600 * 24
+
+        return token
 
     def _deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
@@ -57,7 +90,7 @@ class User(Resource):
         cookie['authToken']['path'] = '/'
         cookie['authToken']['expires'] = 0
 
-    def find(self, user, params):
+    def find(self, params):
         """
         Get a list of users. You can pass a "text" parameter to filter the
         users by a full text search string.
@@ -68,27 +101,66 @@ class User(Resource):
         :param sort: The field to sort by, default=name.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'lastName')
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
 
-        return [self._filter(user) for user in self.model('user').search(
-                text=params.get('text'), user=user,
-                offset=offset, limit=limit, sort=sort)]
+        return [self._filter(user)
+                for user in self.model('user').search(
+                    text=params.get('text'), user=self.getCurrentUser(),
+                    offset=offset, limit=limit, sort=sort)]
+    find.description = (
+        Description('List or search for users.')
+        .responseClass('User')
+        .param('text', "Pass this to perform a full text search for items.",
+               required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the user list by (default=lastName)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int'))
+
+    @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
+    def getUser(self, userToGet, params):
+        return self._filter(userToGet)
+    getUser.description = (
+        Description('Get a user by ID.')
+        .responseClass('User')
+        .param('id', 'The ID of the user.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You do not have permission to see this user.', 403))
+
+    def getMe(self, params):
+        return self._filter(self.getCurrentUser())
+    getMe.description = (
+        Description('Retrieve the currently logged-in user information.')
+        .responseClass('User'))
 
     def login(self, params):
         """
-        Login endpoint. Sends a session cookie in the response on success.
-
-        :param login: The login name.
-        :param password: The user's password.
+        Login endpoint. Sends an auth cookie in the response on success.
+        The caller is expected to use HTTP Basic Authentication when calling
+        this endpoint.
         """
-        (user, token) = self.getCurrentUser(returnToken=True)
+        user, token = self.getCurrentUser(returnToken=True)
 
         # Only create and send new cookie if user isn't already sending
         # a valid one.
         if not user:
-            self.requireParams(['login', 'password'], params)
+            authHeader = cherrypy.request.headers.get('Authorization')
 
-            login = params['login'].lower().strip()
+            if not authHeader or not authHeader[0:6] == 'Basic ':
+                raise RestException('Use HTTP Basic Authentication', 401)
+
+            try:
+                credentials = base64.b64decode(authHeader[6:])
+            except:
+                raise RestException('Invalid HTTP Authorization header')
+
+            login, password = credentials.split(':', 1)
+
+            login = login.lower().strip()
             loginField = 'email' if '@' in login else 'login'
 
             cursor = self.model('user').find({loginField: login}, limit=1)
@@ -97,80 +169,126 @@ class User(Resource):
 
             user = cursor.next()
 
-            token = self.model('token').createToken(user,
-                                                    days=self.COOKIE_LIFETIME)
-            self._sendAuthTokenCookie(user, token)
-
-            if not self.model('password').authenticate(user,
-                                                       params['password']):
+            if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
-        return {'user': self._filter(user),
-                'authToken': {
-                    'token': token['_id'],
-                    'expires': token['expires'],
-                    'userId': user['_id']
-                    },
-                'message': 'Login succeeded.'
-                }
+            setattr(cherrypy.request, 'girderUser', user)
+            token = self._sendAuthTokenCookie(user)
 
-    def logout(self):
+        return {
+            'user': self._filter(user),
+            'authToken': {
+                'token': token['_id'],
+                'expires': token['expires'],
+                'userId': user['_id']
+            },
+            'message': 'Login succeeded.'
+        }
+    login.description = (
+        Description('Log in to the system.')
+        .notes('Pass your username and password using HTTP Basic Auth. Sends'
+               ' a cookie that should be passed back in future requests.')
+        .errorResponse('Missing Authorization header.', 401)
+        .errorResponse('Invalid login or password.', 403))
+
+    def logout(self, params):
         self._deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
+    logout.description = (
+        Description('Log out of the system.')
+        .responseClass('Token')
+        .notes('Attempts to delete your authentication cookie.'))
 
     def createUser(self, params):
-        self.requireParams(['firstName', 'lastName', 'login', 'password',
-                            'email'], params)
+        self.requireParams(
+            ('firstName', 'lastName', 'login', 'password', 'email'), params)
 
         user = self.model('user').createUser(
             login=params['login'], password=params['password'],
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'])
+        setattr(cherrypy.request, 'girderUser', user)
 
-        token = self.model('token').createToken(user,
-                                                days=self.COOKIE_LIFETIME)
-        self._sendAuthTokenCookie(user, token)
+        self._sendAuthTokenCookie(user)
 
         return self._filter(user)
+    createUser.description = (
+        Description('Create a new user.')
+        .responseClass('User')
+        .param('login', "The user's requested login.")
+        .param('email', "The user's email address.")
+        .param('firstName', "The user's first name.")
+        .param('lastName', "The user's last name.")
+        .param('password', "The user's requested password")
+        .errorResponse('A parameter was invalid, or the specified login or'
+                       ' email already exists in the system.'))
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        """
-        Delete a user account.
-        """
-        if not path:
-            raise RestException(
-                'Path parameter should be the user ID to delete.')
-
-        user = self.getCurrentUser()
-        userToDelete = self.getObjectById(
-            self.model('user'), id=path[0], user=user, checkAccess=True,
-            level=AccessType.ADMIN)
-
+    @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
+    def deleteUser(self, userToDelete, params):
         self.model('user').remove(userToDelete)
         return {'message': 'Deleted user %s.' % userToDelete['login']}
+    deleteUser.description = (
+        Description('Delete a user by ID.')
+        .param('id', 'The ID of the user.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You do not have permission to delete this user.', 403))
 
-    @Resource.endpoint
-    def GET(self, path, params):
+    @loadmodel(map={'id': 'user'}, model='user', level=AccessType.WRITE)
+    def updateUser(self, user, params):
+        self.requireParams(('firstName', 'lastName', 'email'), params)
+
+        user['firstName'] = params['firstName']
+        user['lastName'] = params['lastName']
+        user['email'] = params['email']
+        return self._filter(self.model('user').save(user))
+    updateUser.description = (
+        Description("Update a user's information.")
+        .param('id', 'The ID of the user.', paramType='path')
+        .param('firstName', 'First name of the user.')
+        .param('lastName', 'Last name of the user.')
+        .param('email', 'The email of the user.')
+        .errorResponse()
+        .errorResponse('You do not have write access for this user.', 403))
+
+    def changePassword(self, params):
+        self.requireParams(('old', 'new'), params)
         user = self.getCurrentUser()
-        if not path:
-            return self.find(user, params)
-        elif path[0] == 'me':  # return the current user
-            return self._filter(user)
-        else:  # assume it's a user id
-            return self._filter(self.getObjectById(
-                self.model('user'), id=path[0], user=user, checkAccess=True))
 
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to register a new user, to login, or to logout.
-        """
-        if not path:
-            return self.createUser(params)
-        elif path[0] == 'login':
-            return self.login(params)
-        elif path[0] == 'logout':
-            return self.logout()
-        else:
-            raise RestException('Unsupported operation.')
+        if user is None:
+            raise RestException('You are not logged in.', code=401)
+
+        if not self.model('password').authenticate(user, params['old']):
+            raise RestException('Old password is incorrect.', code=403)
+
+        self.model('user').setPassword(user, params['new'])
+        return {'message': 'Password changed.'}
+    changePassword.description = (
+        Description('Change your password.')
+        .param('old', 'Your current password.')
+        .param('new', 'Your new password.')
+        .errorResponse('You are not logged in.', 401)
+        .errorResponse('Your old password is incorrect.', 403)
+        .errorResponse('Your new password is invalid.'))
+
+    def resetPassword(self, params):
+        self.requireParams(('email',), params)
+        email = params['email'].lower().strip()
+
+        cursor = self.model('user').find({'email': email}, limit=1)
+        if cursor.count() == 0:
+            raise RestException('That email is not registered.')
+
+        user = cursor.next()
+        randomPass = genToken(length=12)
+
+        html = mail_utils.renderTemplate('resetPassword.mako', {
+            'password': randomPass
+        })
+        mail_utils.sendEmail(to=email, subject='Girder: Password reset',
+                             text=html)
+        self.model('user').setPassword(user, randomPass)
+        return {'message': 'Sent password reset email.'}
+    resetPassword.description = (
+        Description('Reset a forgotten password via email.')
+        .param('email', 'Your email address.')
+        .errorResponse('That email does not exist in the system.'))

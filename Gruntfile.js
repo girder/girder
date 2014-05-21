@@ -15,24 +15,121 @@
  */
 
 module.exports = function (grunt) {
+    var apiRoot;
+    var staticRoot;
     var fs = require('fs');
     var path = require('path');
-    var DEBUG = false;
+    require('colors');
+
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            var cfg = JSON.parse(stdout);
+            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
+            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            console.log('Static root: ' + staticRoot.bold);
+            console.log('API root: ' + apiRoot.bold);
+        }
+        catch (e) {
+            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
+        }
+        callback();
+    };
+
+    // Builds all the static components for a given plugin
+    var buildPlugin = function (pluginDir) {
+        var pluginName = path.basename(pluginDir);
+        var staticDir = 'clients/web/static/built/plugins/' + pluginName;
+
+        console.log(('BUILDING PLUGIN: ' + pluginName).bold.underline);
+
+        if (!fs.existsSync(staticDir)) {
+            fs.mkdirSync(staticDir);
+        }
+
+        var jadeDir = pluginDir + '/web_client/templates';
+        if (fs.existsSync(jadeDir)) {
+            var files = {};
+            files[staticDir + '/templates.js'] = [jadeDir + '/**/*.jade'];
+            grunt.config.set('jade.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.task.run('jade:plugin_' + pluginName);
+        }
+
+        var cssDir = pluginDir + '/web_client/stylesheets';
+        if (fs.existsSync(cssDir)) {
+            var files = {};
+            files[staticDir + '/plugin.min.css'] = [cssDir + '/**/*.styl'];
+            grunt.config.set('stylus.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.task.run('stylus:plugin_' + pluginName);
+        }
+
+        var jsDir = pluginDir + '/web_client/js';
+        if (fs.existsSync(jsDir)) {
+            var files = {};
+            files[staticDir + '/plugin.min.js'] = [
+                staticDir + '/templates.js',
+                jsDir + '/**/*.js'
+            ];
+            grunt.config.set('uglify.plugin_' + pluginName, {
+                files: files
+            });
+            grunt.task.run('uglify:plugin_' + pluginName);
+        }
+    };
+
+    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
+    var environment = grunt.option('env') || 'dev';
+
+    if (['dev', 'prod'].indexOf(environment) === -1) {
+        grunt.fatal('The "env" argument must be either "dev" or "prod".');
+    }
 
     // Project configuration.
-    grunt.initConfig({
+    grunt.config.init({
         pkg: grunt.file.readJSON('package.json'),
 
-        config: {
+        jade: {
+            options: {
+                client: true,
+                compileDebug: false,
+                namespace: 'jade.templates',
+                processName: function (filename) {
+                    return path.basename(filename, '.jade');
+                }
+            },
+            core: {
+                files: {
+                    'clients/web/static/built/templates.js': [
+                        'clients/web/src/templates/**/*.jade'
+                    ]
+                }
+            }
         },
 
-        jade: {
-            inputDir: 'clients/web/src/templates',
-            outputFile: 'clients/web/static/built/templates.js'
+        copy: {
+            swagger: {
+                files: [{
+                    expand: true,
+                    cwd: 'node_modules/swagger-ui/dist',
+                    src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
+                    dest: 'clients/web/static/built/swagger'
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/requirejs',
+                    src: ['require.js'],
+                    dest: 'clients/web/static/built/swagger/lib'
+                }]
+            }
         },
 
         stylus: {
-            compile: {
+            core: {
                 files: {
                     'clients/web/static/built/app.min.css': [
                         'clients/web/src/stylesheets/**/*.styl',
@@ -54,12 +151,20 @@ module.exports = function (grunt) {
                 options: {
                     stdout: true
                 }
+            },
+            readServerConfig: {
+                command: 'python config_parse.py girder/conf/local.server.cfg',
+                options: {
+                    callback: setServerConfig
+                }
             }
         },
 
         uglify: {
             options: {
-                beautify: DEBUG
+                sourceMap: environment === 'dev',
+                sourceMapIncludeSources: true,
+                report: 'min'
             },
             app: {
                 files: {
@@ -68,10 +173,17 @@ module.exports = function (grunt) {
                         'clients/web/src/init.js',
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
-                        'clients/web/src/utilities.js',
+                        'clients/web/src/utilities/**/*.js',
+                        'clients/web/src/plugin_utils.js',
+                        'clients/web/src/collection.js',
+                        'clients/web/src/model.js',
+                        'clients/web/src/view.js',
                         'clients/web/src/models/**/*.js',
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'
+                    ],
+                    'clients/web/static/built/main.min.js': [
+                        'clients/web/src/main.js'
                     ]
                 }
             },
@@ -82,7 +194,10 @@ module.exports = function (grunt) {
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
-                        'clients/web/lib/js/bootstrap.min.js'
+                        'clients/web/lib/js/bootstrap.min.js',
+                        'clients/web/lib/js/bootstrap-switch.min.js',
+                        'clients/web/lib/js/jquery.jqplot.min.js',
+                        'clients/web/lib/js/jqplot.pieRenderer.min.js'
                     ]
                 }
             }
@@ -104,107 +219,37 @@ module.exports = function (grunt) {
                 tasks: ['build-js'],
                 options: {failOnError: false}
             },
-            jadeindex: {
-                files: ['clients/web/src/templates/index.jadehtml'],
-                tasks: ['jade-index'],
-                options: {failOnError: false}
-            },
             swagger: {
                 files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
                 tasks: ['swagger-ui'],
                 options: {failOnError: false}
+            },
+            sphinx: {
+                files: ['docs/*.rst'],
+                tasks: ['docs'],
+                options: {failOnError: false}
             }
         }
     });
+
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-qunit');
+    grunt.loadNpmTasks('grunt-contrib-jade');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var outdir = 'clients/web/static/built/swagger';
-        if (!fs.existsSync(outdir)) {
-            fs.mkdirSync(outdir);
-        }
-        var copy = function (src) {
-            var input = 'node_modules/swagger-ui/dist/' + src;
-            var dst = outdir + '/' + src;
-
-            if (fs.lstatSync(input).isDirectory()) {
-                if (!fs.existsSync(dst)) {
-                    fs.mkdirSync(dst);
-                }
-                var srcs = grunt.file.expand(input + '/*');
-                srcs.forEach(function (file) {
-                    fs.writeFileSync(dst + '/' + path.basename(file), fs.readFileSync(file));
-                });
-            }
-            else {
-                fs.writeFileSync(dst, fs.readFileSync(input));
-            }
-
-        };
-
-        copy('lib');
-        copy('css');
-        copy('images');
-        copy('swagger-ui.min.js');
-
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
         var fn = jade.compile(buffer, {
             client: false
         });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({}));
-    });
-
-    // Compile the jade templates into a single js file
-    grunt.registerTask('jade', 'Build the templates', function () {
-        var config = grunt.config.get('jade');
-        var outputFile = config.outputFile;
-        var jade = require('jade');
-
-        var task = this;
-        var inputFiles = grunt.file.expand(config.inputDir+"/**/*.jade");
-
-        fs.writeFileSync(outputFile, '\nvar jade=jade||{};jade.templates=jade.templates||{};\n');
-
-        inputFiles.forEach(function (filename, i) {
-            var buffer = fs.readFileSync(filename);
-            var basename = path.basename(filename, '.jade');
-            console.log('Compiling template: ' + basename);
-
-            var fn = jade.compile(buffer, {
-                client: true,
-                compileDebug: false
-            });
-
-            var jt = "\njade.templates['" + basename + "']=" + fn.toString() + ';';
-            fs.appendFileSync(outputFile, jt);
-        });
-        console.log('Wrote ' + inputFiles.length + ' templates into ' + outputFile);
-    });
-
-    grunt.registerTask('jade-index', 'Build index.html using jade', function () {
-        var jade = require('jade');
-        var buffer = fs.readFileSync('clients/web/src/templates/index.jadehtml');
-
-        var fn = jade.compile(buffer, {
-            client: false,
-            pretty: true
-        });
-        var html = fn({
-            stylesheets: ['lib/bootstrap/css/bootstrap.min.css',
-                          'lib/fontello/css/fontello.css',
-                          'lib/fontello/css/animation.css',
-                          'built/app.min.css'],
-            scripts: ['built/libs.min.js',
-                      'built/app.min.js']
-        });
-        fs.writeFileSync('clients/web/static/built/index.html', html);
-        console.log('Built index.html.');
+        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({
+            staticRoot: staticRoot
+        }));
     });
 
     // This task should be run once manually at install time.
@@ -220,13 +265,27 @@ module.exports = function (grunt) {
             var local = cfgDir + '/local.' + name;
             if (!fs.existsSync(local)) {
                 fs.writeFileSync(local, fs.readFileSync(config));
-                console.log('Created config ' + local + '.');
+                console.log('Created config ' + local.magenta + '.');
             }
         });
     });
 
-    grunt.registerTask('build-js', ['jade', 'jade-index', 'uglify:app']);
-    grunt.registerTask('init', ['setup', 'uglify:libs', 'swagger-ui']);
-    grunt.registerTask('docs', ['shell']);
+    grunt.registerTask('plugins', 'Build static content for plugins', function () {
+        var pluginDirs = grunt.file.expand('plugins/*');
+
+        if (!fs.existsSync('clients/web/static/built/plugins')) {
+            fs.mkdirSync('clients/web/static/built/plugins');
+        }
+
+        pluginDirs.forEach(function (pluginDir) {
+            if (fs.existsSync(pluginDir + '/web_client')) {
+                buildPlugin(pluginDir);
+            }
+        });
+    });
+
+    grunt.registerTask('build-js', ['shell:readServerConfig', 'jade', 'uglify:app', 'plugins']);
+    grunt.registerTask('init', ['setup', 'uglify:libs', 'copy:swagger', 'shell:readServerConfig', 'swagger-ui']);
+    grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', ['stylus', 'build-js']);
 };

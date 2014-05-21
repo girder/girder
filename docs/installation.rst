@@ -1,12 +1,13 @@
 Installation
 ============
 
-Before you install, see the `Installing system prerequisites </docs/prerequisites.rst>`_
-guide to make sure you have all required system packages installed.
+Before you install, see the :doc:`prerequisites` guide to make sure you
+have all required system packages installed.
 
-To run the server, you must install the following python packages: ::
+To run the server, you must install some external python package
+dependencies: ::
 
-    pip install pymongo cherrypy bcrypt
+    pip install -r requirements.txt
 
 Before you can build the client-side code project, you must install the
 `Grunt <http://gruntjs.com>`_ command line utilities: ::
@@ -37,8 +38,10 @@ Run
 
 To run the server, first make sure the mongo daemon is running. To manually start it, run: ::
 
-    mongod &
+    mongod --setParameter textSearchEnabled=true &
 
 Then, just run: ::
 
     python -m girder
+
+Then open http://localhost:8080/ in your web browser, and you should see the application. ::

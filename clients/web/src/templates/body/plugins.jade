@@ -1,0 +1,10 @@
+.g-plugin-list-header
+  i.icon-puzzle
+  | Plugins
+.g-plugin-list-container
+  each plugin, key in allPlugins
+    .g-plugin-list-item
+      input.g-plugin-switch(type="checkbox", key="#{key}",
+                            checked=(plugin.enabled ? "checked" : undefined))
+      .g-plugin-name #{plugin.name}
+      .g-plugin-description #{plugin.description}

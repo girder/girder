@@ -1,0 +1,59 @@
+.g-item-header
+
+  .btn-group.pull-right
+    button.g-item-actions-button.btn.btn-default.dropdown-toggle(
+        data-toggle="dropdown", title="Item actions")
+        i.icon-sitemap
+        |  Actions
+        i.icon-down-dir
+    ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
+      li(role="presentation")
+        a.g-download-item(role="menuitem", href="#{girder.apiRoot + '/item/' + item.get('_id') + '/download'}")
+          i.icon-download
+          | Download item
+      if (accessLevel >= girder.AccessType.WRITE)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-edit-item(role="menuitem")
+            i.icon-edit
+            | Edit item
+      if (accessLevel >= girder.AccessType.ADMIN)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-delete-item(role="menuitem")
+            i.icon-trash
+            | Delete item
+
+  .g-item-name.g-body-title #{item.get('name')}
+  .g-item-description.g-body-subtitle #{item.get('description')}
+
+.g-item-info
+  .g-item-info-header
+    i.icon-info
+    | Info
+  .g-item-size.g-info-list-entry
+    i.icon-hdd
+    | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
+  .g-item-created.g-info-list-entry
+    i.icon-clock
+    | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
+  .g-item-updated.g-info-list-entry
+    i.icon-clock
+    | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
+
+.g-item-metadata
+  if item.get('meta')
+    .g-item-metadata-header
+      i.icon-tags
+      |  Metadata
+    .g-item-metadata-container
+      each value, key in item.get('meta')
+        .g-item-metadata-row
+          span.g-item-metadata-key #{key}:
+          span.g-item-metadata-value #{value}
+
+.g-item-files
+  .g-item-files-header
+    i.icon-docs
+    |  Files
+  .g-item-files-container

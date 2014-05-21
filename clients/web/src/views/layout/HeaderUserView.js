@@ -2,7 +2,7 @@
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
  */
-girder.views.LayoutHeaderUserView = Backbone.View.extend({
+girder.views.LayoutHeaderUserView = girder.View.extend({
     events: {
         'click a.g-login': function () {
             girder.events.trigger('g:loginUi');
@@ -14,25 +14,25 @@ girder.views.LayoutHeaderUserView = Backbone.View.extend({
 
         'click a.g-logout': function () {
             girder.restRequest({
-                path: 'user/logout',
-                type: 'POST'
+                path: 'user/authentication',
+                type: 'DELETE'
             }).done(_.bind(function () {
                 girder.currentUser = null;
-                girder.events.trigger('g:logout');
-                this.render();
+                girder.events.trigger('g:login');
             }, this));
         },
 
         'click a.g-my-folders': function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                user: girder.currentUser
-            });
+            girder.router.navigate('user/' + girder.currentUser.get('_id'), {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserSettingsView, {
-                user: girder.currentUser
-            });
+            girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
+                                   '/info', {trigger: true});
+        },
+
+        'click a.g-admin': function () {
+            girder.router.navigate('admin');
         }
     },
 

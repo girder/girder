@@ -17,9 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import json
-
 from .. import base
 from girder.constants import AccessType
 
@@ -78,6 +75,11 @@ class GroupTestCase(base.TestCase):
         publicGroup = self.model('group').createGroup(
             'public ', self.users[0], public=True)
 
+        # Error: Invalid GET URL
+        resp = self.request(path='/group/{}/foo'.format(publicGroup['_id']),
+                            method='GET')
+        self.assertStatus(resp, 400)
+
         # Anonymous user should be able to see the public group
         resp = self.request(
             path='/group/%s' % publicGroup['_id'], method='GET')
@@ -87,7 +89,7 @@ class GroupTestCase(base.TestCase):
         # Anonymous user should not be able to see the private group
         resp = self.request(
             path='/group/%s' % privateGroup['_id'], method='GET')
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
 
         # User 0 should be able to see the private group
         resp = self.request(
@@ -95,6 +97,49 @@ class GroupTestCase(base.TestCase):
             user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], 'private')
+
+        # Test listing all groups
+        resp = self.request(path='/group/', method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(type(resp.json), list)
+        self.assertEqual(len(resp.json), 2)
+
+        resp = self.request(path='/group/', method='GET', user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(type(resp.json), list)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(publicGroup['_id']))
+
+    def testUpdateGroup(self):
+        """
+        Test editing the properties of a group.
+        """
+        group = self.model('group').createGroup(
+            'public ', self.users[0], public=True)
+
+        # Error: no ID parameter
+        resp = self.request(path='/group/', method='PUT', user=self.users[0])
+        self.assertStatus(resp, 400)
+
+        # Error: too many parameters
+        resp = self.request(path='/group/foo/bar', method='PUT',
+                            user=self.users[0])
+        self.assertStatus(resp, 400)
+
+        params = {
+            'public': 'false',
+            'name': 'new name ',
+            'description': ' a description. '
+        }
+
+        resp = self.request(path='/group/{}'.format(group['_id']),
+                            method='PUT', user=self.users[0], params=params)
+        self.assertStatusOk(resp)
+
+        group = self.model('group').load(group['_id'], force=True)
+        self.assertEqual(group['public'], False)
+        self.assertEqual(group['name'], params['name'].strip())
+        self.assertEqual(group['description'], params['description'].strip())
 
     def testGroupAccess(self):
         """
@@ -112,7 +157,7 @@ class GroupTestCase(base.TestCase):
 
         # Anonymous users can't make groups
         resp = self.request(path='/group', method='POST', params=params)
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
         self.assertEqual('Must be logged in to create a group.',
                          resp.json['message'])
 
@@ -131,14 +176,6 @@ class GroupTestCase(base.TestCase):
             publicGroup, self.users[0], AccessType.ADMIN))
         self.assertTrue(self.model('group').hasAccess(
             publicGroup, self.users[1], AccessType.READ))
-
-        # User 1 should not be able to join the public group without invite.
-        resp = self.request(
-            path='/group/%s/join' % publicGroup['_id'], method='PUT',
-            user=self.users[1])
-        self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'],
-                         'User was not invited to this group.')
 
         # Try to make group with same name; should fail
         resp = self.request(path='/group', method='POST', params=params,
@@ -165,14 +202,26 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
         # Invite user 1 to join the private group as member
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         params = {
             'userId': self.users[1]['_id'],
             'level': AccessType.READ
         }
         resp = self.request(
-            path='/group/%s/invite' % privateGroup['_id'], user=self.users[0],
-            method='PUT', params=params)
+            path='/group/%s/invitation' % privateGroup['_id'],
+            user=self.users[0], method='POST', params=params)
         self.assertStatusOk(resp)
+
+        # We should see the invitation in the list
+        resp = self.request(
+            path='/group/{}/invitation'.format(privateGroup['_id']),
+            user=self.users[0], method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(self.users[1]['_id']))
+
+        # An email should have been sent
+        self.assertTrue(base.mockSmtp.waitForMail())
 
         # Reload user and group since they've changed in the database
         self.users[1] = self.model('user').load(
@@ -188,11 +237,43 @@ class GroupTestCase(base.TestCase):
             privateGroup, self.users[1], AccessType.READ))
         self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
+        # Removing user 1 from the group before they join it should remove the
+        # invitation.
+        resp = self.request(
+            path='/group/%s/member' % privateGroup['_id'], user=self.users[0],
+            method='DELETE', params={'userId': self.users[1]['_id']})
+        self.assertStatusOk(resp)
+        self.users[1] = self.model('user').load(
+            self.users[1]['_id'], force=True)
+        self.assertEqual(0, len(self.users[1]['groupInvites']))
+
+        # Now re-invite user 1
+        resp = self.request(
+            path='/group/%s/invitation' % privateGroup['_id'],
+            user=self.users[0], method='POST', params=params)
+        self.assertStatusOk(resp)
+
+        # User 1 should not yet be in the member list
+        resp = self.request(
+            path='/group/{}/member'.format(privateGroup['_id']),
+            user=self.users[0], method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(self.users[0]['_id']))
+
         # Have user 1 join the group
         resp = self.request(
-            path='/group/%s/join' % privateGroup['_id'], method='PUT',
+            path='/group/%s/member' % privateGroup['_id'], method='POST',
             user=self.users[1])
         self.assertStatusOk(resp)
+
+        # User 1 should now be in the member list
+        resp = self.request(
+            path='/group/{}/member'.format(privateGroup['_id']),
+            user=self.users[0], method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[1]['_id'], str(self.users[1]['_id']))
 
         # Reload user and group since they've changed in the database
         self.users[1] = self.model('user').load(
@@ -203,42 +284,49 @@ class GroupTestCase(base.TestCase):
         self.assertFalse(privateGroup['_id'] in [
             invite['groupId'] for invite in self.users[1]['groupInvites']])
 
-        # User 1 should be a member of the group
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
-
         # User 1 should not be able to invite other members
         params = {
             'userId': self.users[2]['_id'],
             'level': AccessType.READ
         }
         resp = self.request(
-            path='/group/%s/invite' % privateGroup['_id'], user=self.users[1],
-            method='PUT', params=params)
+            path='/group/%s/invitation' % privateGroup['_id'],
+            user=self.users[1], method='POST', params=params)
         self.assertStatus(resp, 403)
 
-        # We give user 1 write access
-        self.model('group').setUserAccess(privateGroup, self.users[1],
-                                          AccessType.WRITE, save=True)
+        # We promote user 1 to moderator
+        resp = self.request(
+            path='/group/{}/moderator'.format(privateGroup['_id']),
+            user=self.users[0], method='POST', params={
+                'userId': self.users[1]['_id']
+            })
+        self.assertStatusOk(resp)
 
         # User 1 should not be able to invite anyone as admin
         params['level'] = AccessType.ADMIN
         resp = self.request(
-            path='/group/%s/invite' % privateGroup['_id'], user=self.users[1],
-            method='PUT', params=params)
+            path='/group/%s/invitation' % privateGroup['_id'],
+            user=self.users[1], method='POST', params=params)
         self.assertStatus(resp, 403)
 
         # User 1 should be able to invite someone with write access
         params['level'] = AccessType.WRITE
         resp = self.request(
-            path='/group/%s/invite' % privateGroup['_id'], user=self.users[1],
-            method='PUT', params=params)
+            path='/group/{}/invitation'.format(privateGroup['_id']),
+            user=self.users[1], method='POST', params=params)
+        self.assertStatusOk(resp)
+
+        # Have user 2 join the group
+        resp = self.request(
+            path='/group/{}/member'.format(privateGroup['_id']), method='POST',
+            user=self.users[2])
         self.assertStatusOk(resp)
 
         # User 1 should not be able to remove a group admin
         params['userId'] = self.users[0]['_id']
         resp = self.request(
-            path='/group/%s/remove' % privateGroup['_id'], user=self.users[1],
-            method='PUT', params=params)
+            path='/group/%s/member' % privateGroup['_id'], user=self.users[1],
+            method='DELETE', params=params)
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Admin access denied for group.')
 
@@ -249,11 +337,59 @@ class GroupTestCase(base.TestCase):
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Admin access denied for group.')
 
+        # We promote user 1 to admin
+        resp = self.request(
+            path='/group/{}/admin'.format(privateGroup['_id']),
+            user=self.users[0], method='POST', params={
+                'userId': self.users[1]['_id']
+            })
+        self.assertStatusOk(resp)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
+        self.assertTrue(self.model('group').hasAccess(privateGroup,
+                                                      self.users[1],
+                                                      AccessType.ADMIN))
+
+        # User 1 should now be able to promote and demote members
+        resp = self.request(
+            path='/group/{}/admin'.format(privateGroup['_id']),
+            user=self.users[1], method='POST', params={
+                'userId': self.users[2]['_id']
+            })
+        self.assertStatusOk(resp)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
+        self.assertTrue(self.model('group').hasAccess(privateGroup,
+                                                      self.users[2],
+                                                      AccessType.ADMIN))
+
+        resp = self.request(
+            path='/group/{}/admin'.format(privateGroup['_id']),
+            user=self.users[1], method='DELETE', params={
+                'userId': self.users[2]['_id']
+            })
+        self.assertStatusOk(resp)
+        privateGroup = self.model('group').load(privateGroup['_id'], force=True)
+        self.assertFalse(self.model('group').hasAccess(privateGroup,
+                                                       self.users[2],
+                                                       AccessType.ADMIN))
+
+        # User 2 should be able to leave the group
+        self.users[2] = self.model('user').load(
+            self.users[2]['_id'], force=True)
+        self.assertTrue(privateGroup['_id'] in self.users[2]['groups'])
+        resp = self.request(
+            path='/group/{}/member'.format(privateGroup['_id']),
+            user=self.users[2], method='DELETE')
+        self.assertStatusOk(resp)
+        self.users[2] = self.model('user').load(
+            self.users[2]['_id'], force=True)
+        self.assertFalse(privateGroup['_id'] in self.users[2]['groups'])
+
         # User 0 should be able to remove user 1
         params['userId'] = self.users[1]['_id']
+        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
         resp = self.request(
-            path='/group/%s/remove' % privateGroup['_id'], user=self.users[0],
-            method='PUT', params=params)
+            path='/group/%s/member' % privateGroup['_id'], user=self.users[0],
+            method='DELETE', params=params)
         self.assertStatusOk(resp)
         self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
 
@@ -265,8 +401,8 @@ class GroupTestCase(base.TestCase):
             path='/group/%s' % privateGroup['_id'], user=self.users[0],
             method='DELETE')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], 'Deleted the %s group.'
-                         % privateGroup['name'])
+        self.assertEqual(resp.json['message'], 'Deleted the group {}.'.format(
+            privateGroup['name']))
         privateGroup = self.model('group').load(privateGroup['_id'], force=True)
         self.assertTrue(privateGroup is None)
 

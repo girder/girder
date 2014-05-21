@@ -1,16 +1,18 @@
 /**
  * This view shows a register modal dialog.
  */
-girder.views.RegisterView = Backbone.View.extend({
+girder.views.RegisterView = girder.View.extend({
     events: {
-        'submit #g-register-form': function () {
+        'submit #g-register-form': function (e) {
+            e.preventDefault();
+
             this.$('.form-group').removeClass('has-error');
 
             if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
                 this.$('#g-group-password,#g-group-password2').addClass('has-error');
                 this.$('#g-password').focus();
                 this.$('.g-validation-failed-message').text('Passwords must match.');
-                return false;
+                return;
             }
             girder.restRequest({
                 path: 'user',
@@ -40,7 +42,6 @@ girder.views.RegisterView = Backbone.View.extend({
 
             this.$('#g-register-button').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-            return false;
         },
 
         'click a.g-login-link': function () {
@@ -50,12 +51,17 @@ girder.views.RegisterView = Backbone.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.registerDialog())
-            .off('shown.bs.modal').on('shown.bs.modal', function () {
+        this.$el.html(jade.templates.registerDialog()).girderModal(this)
+            .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
-            }).modal();
+            }).on('hidden.bs.modal', function () {
+                girder.dialogs.handleClose('register');
+            });
         this.$('#g-login').focus();
+
+        girder.dialogs.handleOpen('register');
 
         return this;
     }
+
 });

@@ -5,6 +5,9 @@
 *:not(i)
   font-family 'Droid Sans',sans-serif !important
 
+i
+  -webkit-font-smoothing antialiased
+
 body
   padding 0
 
@@ -17,3 +20,58 @@ a
 
 .g-clear-right
   clear right
+
+ul.dropdown-menu
+  >li.dropdown-header
+    padding 3px 20px 3px 8px
+    margin-bottom 3px
+    background-color #555
+    font-weight bold
+    color white
+  >li>a
+    padding 3px 20px 3px 8px
+    &:hover
+      background-color #eee
+    >i
+      margin-right 3px
+
+.panel-heading
+  padding 10px 10px
+
+.panel-title
+  font-size 15px
+
+.g-body-title
+  font-size 20px
+  font-weight bold
+  color #555
+
+.g-body-subtitle
+  font-size 15px
+  color #888
+  margin-bottom 5px
+
+.g-dialog-subtitle
+  margin-top 5px
+  width 100%
+
+.g-info-message-container
+  margin-top 5px
+  background-color #fffee1
+  color #777
+  padding 6px 8px
+  border 1px solid #e5e2c8
+
+/* Augment the bootstrap tabs styling a bit */
+.nav-tabs>li:not(.active)>a
+  background-color #f7f7f7
+  border 1px solid #d8d8d8
+
+  &:hover
+    border 1px solid #cdcdcd
+    background-color #f0f0f0
+    background-image linear-gradient(to bottom, #f0f0f0 0%, #f7f7f7 100%)
+
+/* Bugfix for tabs in bootstrap 3 */
+.nav-tabs
+  overflow hidden

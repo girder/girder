@@ -9,22 +9,24 @@ girder.App = Backbone.View.extend({
                 girder.currentUser = new girder.models.UserModel(user);
             }
             this.render();
-        }, this));
 
-        Backbone.history.start({
-            pushState: false,
-            root: settings.root
-        });
+            // Once we've rendered the layout, we can start up the routing.
+            Backbone.history.start({
+                pushState: false
+            });
+        }, this));
 
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
         girder.events.on('g:registerUi', this.registerDialog, this);
+        girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
+        girder.events.on('g:alert', this.alert, this);
     },
 
     render: function () {
         this.$el.html(jade.templates.layout());
 
-        new girder.views.LayoutGlobalNavView({
+        this.globalNavView = new girder.views.LayoutGlobalNavView({
             el: this.$('#g-global-nav-container')
         }).render();
 
@@ -47,22 +49,28 @@ girder.App = Backbone.View.extend({
     navigateTo: function (view, settings) {
         var container = this.$('#g-app-body-container');
 
+        this.globalNavView.deactivateAll();
+
         settings = settings || {};
 
         if (view) {
-            // Unbind all events added by the previous occupant of this container.
+            // Unbind all local events added by the previous body view.
             container.off();
+
+            // Unbind all globally registered events from the previous view.
+            if (this.bodyView) {
+                girder.events.off(null, null, this.bodyView);
+            }
 
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container')
             });
+
             /* We let the view be created in this way even though it is
              * normally against convention.
              */
             /*jshint -W055 */
             this.bodyView = new view(settings);
-
-            // TODO trigger router.navigate()
         }
         else {
             console.error('Undefined page.');
@@ -89,5 +97,45 @@ girder.App = Backbone.View.extend({
             });
         }
         this.registerView.render();
+    },
+
+    resetPasswordDialog: function () {
+        if (!this.resetPasswordView) {
+            this.resetPasswordView = new girder.views.ResetPasswordView({
+                el: this.$('#g-dialog-container')
+            });
+        }
+        this.resetPasswordView.render();
+    },
+
+    /**
+     * Display a brief alert on the screen with the following options:
+     *   - text: The text to be displayed
+     *   - [type]: The alert class ('info', 'warning', 'success', 'danger').
+     *             Default is 'info'.
+     *   - [icon]: An optional icon to display in the alert.
+     *   - [timeout]: How long before the alert should automatically disappear.
+     *                Default is 6000ms. Set to <= 0 to have no timeout.
+     */
+    alert: function (options) {
+        var el = $(jade.templates.alert({
+            text: options.text,
+            type: options.type || 'info',
+            icon: options.icon
+        }));
+        $('#g-alerts-container').append(el);
+        el.fadeIn(500);
+
+        if (options.timeout === undefined) {
+            options.timeout = 6000;
+        }
+        if (options.timeout > 0) {
+            window.setTimeout(function () {
+                el.fadeOut(750, function () {
+                    $(this).remove();
+                });
+            }, options.timeout);
+        }
+
     }
 });

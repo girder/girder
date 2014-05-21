@@ -23,6 +23,50 @@ Constants should be defined here.
 import os
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_PLUGINS_PACKAGE = 'girder.plugins'
+MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
+LOG_BACKUP_COUNT = 5
+CONFIGS = ('auth', 'db', 'server', 'global')
+
+
+class TerminalColor(object):
+    """
+    Provides a set of values that can be used to color text in the terminal.
+    """
+    ERROR = '\033[1;91m'
+    SUCCESS = '\033[32m'
+    WARNING = '\033[1;33m'
+    INFO = '\033[35m'
+    ENDC = '\033[0m'
+
+    @staticmethod
+    def _color(tag, text):
+        return ''.join([tag, text, TerminalColor.ENDC])
+
+    @staticmethod
+    def error(text):
+        return TerminalColor._color(TerminalColor.ERROR, text)
+
+    @staticmethod
+    def success(text):
+        return TerminalColor._color(TerminalColor.SUCCESS, text)
+
+    @staticmethod
+    def warning(text):
+        return TerminalColor._color(TerminalColor.WARNING, text)
+
+    @staticmethod
+    def info(text):
+        return TerminalColor._color(TerminalColor.INFO, text)
+
+
+class AssetstoreType:
+    """
+    All possible assetstore implementation types.
+    """
+    FILESYSTEM = 0
+    GRIDFS = 1
+    S3 = 2
 
 
 class AccessType:
@@ -39,6 +83,18 @@ class AccessType:
     ADMIN access confers total control; the user can delete the resource and
     also manage permissions for other users on it.
     """
+    NONE = -1
     READ = 0
     WRITE = 1
     ADMIN = 2
+
+
+class SettingKey:
+    """
+    Core settings should be enumerated here by a set of constants corresponding
+    to sensible strings.
+    """
+    PLUGINS_ENABLED = 'core.plugins_enabled'
+    COOKIE_LIFETIME = 'core.cookie_lifetime'
+    EMAIL_FROM_ADDRESS = 'core.email_from_address'
+    SMTP_HOST = 'core.smtp_host'

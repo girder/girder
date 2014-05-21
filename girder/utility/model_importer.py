@@ -21,52 +21,42 @@ import importlib
 
 # We want the models to essentially be singletons, so we keep this centralized
 # cache of instantiated models that have been lazy-loaded.
-_modelInstances = {'core': {}}
+_modelInstances = {}
 
 
 def _camelcase(value):
     """
     Helper method to convert module name to class name.
     """
-    return ''.join(str.capitalize(x) if x else '_' for x in value.split("_"))
+    return ''.join(str.capitalize(x) if x else '_' for x in value.split('_'))
 
 
-def _instantiateCoreModel(model):
+def _loadModel(model, module, plugin):
     global _modelInstances
     className = _camelcase(model)
 
     try:
-        imported = importlib.import_module('girder.models.%s' % model)
+        imported = importlib.import_module(module)
     except ImportError:  # pragma: no cover
-        raise Exception('Could not load model module "%s"' % model)
+        raise Exception('Could not load model "{}".'.format(module))
 
     try:
         constructor = getattr(imported, className)
     except AttributeError:  # pragma: no cover
-        raise Exception('Incorrect model class name "%s" for model "%s".'
-                        % (className, model))
-
-    _modelInstances['core'][model] = constructor()
-
-
-def _instantiatePluginModel(model, plugin):
-    global _modelInstances
-    className = _camelcase(model)
-
-    try:
-        imported = importlib.import_module(
-            'girder.plugins.%s.models.%s' % (plugin, model))
-    except ImportError:  # pragma: no cover
-        raise Exception('Could not load plugin model "%s" (%s).'
-                        % (model, plugin))
-
-    try:
-        constructor = getattr(imported, className)
-    except AttributeError:  # pragma: no cover
-        raise Exception('Incorrect model class name "%s" for model "%s (%s)".'
-                        % (className, model, plugin))
+        raise Exception('Incorrect model class name "{}" for model "{}".'
+                        .format(className, module))
 
     _modelInstances[plugin][model] = constructor()
+
+
+def clearModels():
+    """
+    Force reloading of all models by clearing the singleton cache. This is
+    used by the test suite to ensure that indices are built properly
+    at startup.
+    """
+    global _modelInstances
+    _modelInstances = {}
 
 
 class ModelImporter(object):
@@ -74,9 +64,9 @@ class ModelImporter(object):
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
-    def model(self, model):
+    def model(self, model, plugin='_core'):
         """
-        Call this to get the instance of the specified core model. It will be
+        Call this to get the instance of the specified model. It will be
         lazy-instantiated.
 
         :param model: The name of the model to get. This is the module
@@ -84,20 +74,20 @@ class ModelImporter(object):
                       upper-camelcased version of that module name, e.g.
                       "Folder".
         :type model: string
+        :param plugin: If the model you wish to load is a model within a plugin,
+                       set this to the name of the plugin containing the model.
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
-        if not model in _modelInstances['core']:
-            _instantiateCoreModel(model)
+        if plugin not in _modelInstances:
+            _modelInstances[plugin] = {}
 
-        return _modelInstances['core'][model]
+        if model not in _modelInstances[plugin]:
+            if plugin == '_core':
+                module = 'girder.models.{}'.format(model)
+            else:
+                module = 'girder.plugins.{}.models.{}'.format(plugin, model)
 
-    def pluginModel(self, model, plugin):
-        """
-        Just like model(), but loads the model from the specified plugin.
-        """
-        global _modelInstances
-        if not model in _modelInstances[plugin]:
-            _instantiatePluginModel(model, plugin)
+            _loadModel(model, module, plugin)
 
         return _modelInstances[plugin][model]

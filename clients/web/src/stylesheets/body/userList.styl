@@ -1,9 +1,10 @@
 .g-user-list-entry
-  padding 10px 12px
+  padding 11px 14px
   margin 2px 0
-  border-radius 5px
-  background-color #f9fafa
-  border 1px solid #d5dede
+  border-radius 3px
+  background-color #fafafc
+  border 1px solid #eaeaea
+  box-shadow inset 0 0 2px 2px #f4f4f4
 
   .g-user-title
     font-size 17px
@@ -20,10 +21,32 @@
     border-left 1px solid #ddd
     padding-left 8px
     display inline
-    width 210px
+    width 235px
     font-size 14px
     float right
     color #909090
 
   .g-user-joined-date,.g-user-space-used
     color #444
+
+.g-user-list-header
+  padding-bottom 10px
+
+  .g-user-pagination
+    display inline-block
+    >ul
+      margin 0 13px 0 0
+
+    .pagination>li>a
+      float none
+      line-height 1.5
+      padding 7px 12px
+
+  .g-user-search-form
+    display inline
+    .form-group
+      display inline-block
+
+    input[type="text"]
+      width 170px
+      margin-right 13px

@@ -17,18 +17,28 @@
 #  limitations under the License.
 ###############################################################################
 
+import base64
+import codecs
 import cherrypy
+import io
 import json
+import mimetypes
+import os
+import sys
 import unittest
 import urllib
+import uuid
 
 from StringIO import StringIO
-from girder.utility.model_importer import ModelImporter
+from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
-from girder.constants import AccessType
+from girder.constants import AccessType, ROOT_DIR, SettingKey
+from . import mock_smtp
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
+enabledPlugins = []
 
 
 def startServer():
@@ -36,13 +46,15 @@ def startServer():
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
     """
-    setupServer(test=True)
+    setupServer(test=True, plugins=enabledPlugins)
 
     # Make server quiet (won't announce start/stop or requests)
     cherrypy.config.update({'environment': 'embedded'})
 
     cherrypy.server.unsubscribe()
     cherrypy.engine.start()
+
+    mockSmtp.start()
 
 
 def stopServer():
@@ -51,19 +63,22 @@ def stopServer():
     function in their tearDownModule() function.
     """
     cherrypy.engine.exit()
+    mockSmtp.stop()
 
 
 def dropTestDatabase():
     """
-    Call this to clear all contents from the test database.
+    Call this to clear all contents from the test database. Also forces models
+    to reload.
     """
     from girder.models import getDbConnection
     db_connection = getDbConnection()
+    model_importer.clearModels()  # Must clear the models so indices are rebuilt
     db_connection.drop_database('%s_test' %
                                 cherrypy.config['database']['database'])
 
 
-class TestCase(unittest.TestCase, ModelImporter):
+class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
@@ -71,9 +86,13 @@ class TestCase(unittest.TestCase, ModelImporter):
     def setUp(self):
         """
         We want to start with a clean database each time, so we drop the test
-        database before each test.
+        database before each test. We then add an assetstore so the file model
+        can be used without 500 errors.
         """
         dropTestDatabase()
+        self.model('assetstore').createFilesystemAssetstore(
+            name='Test', root=os.path.join(ROOT_DIR, 'tests', 'assetstore'))
+        self.model('setting').set(SettingKey.SMTP_HOST, 'localhost:50002')
 
     def assertStatusOk(self, response):
         """
@@ -130,14 +149,19 @@ class TestCase(unittest.TestCase, ModelImporter):
         self.assertEqual(response.json['type'], 'validation')
         self.assertEqual(response.json.get('field', None), field)
 
-    def assertAccessDenied(self, response, level, modelName):
+    def assertAccessDenied(self, response, level, modelName, user=None):
         if level == AccessType.READ:
             ls = 'Read'
         elif level == AccessType.WRITE:
             ls = 'Write'
         else:
             ls = 'Admin'
-        self.assertStatus(response, 403)
+
+        if user is None:
+            self.assertStatus(response, 401)
+        else:
+            self.assertStatus(response, 403)
+
         self.assertEqual('%s access denied for %s.' % (ls, modelName),
                          response.json['message'])
 
@@ -153,7 +177,8 @@ class TestCase(unittest.TestCase, ModelImporter):
                          response.json.get('message', ''))
         self.assertStatus(response, 400)
 
-    def ensureRequiredParams(self, path='/', method='GET', required=()):
+    def ensureRequiredParams(self, path='/', method='GET', required=(),
+                             user=None):
         """
         Ensure that a set of parameters is required by the endpoint.
 
@@ -164,11 +189,24 @@ class TestCase(unittest.TestCase, ModelImporter):
         """
         for exclude in required:
             params = dict.fromkeys([p for p in required if p != exclude], '')
-            resp = self.request(path=path, method=method, params=params)
+            resp = self.request(path=path, method=method, params=params,
+                                user=user)
             self.assertMissingParameter(resp, exclude)
 
+    def _genCookie(self, user):
+        """
+        Helper method for creating an authentication cookie for the user.
+        """
+        token = self.model('token').createToken(user)
+        cookie = json.dumps({
+            'userId': str(user['_id']),
+            'token': str(token['_id'])
+        }).replace('"', "\\\"")
+        return 'authToken="%s"' % cookie
+
     def request(self, path='/', method='GET', params={}, user=None,
-                prefix='/api/v1', isJson=True):
+                prefix='/api/v1', isJson=True, basicAuth=None, body=None,
+                type=None):
         """
         Make an HTTP request.
 
@@ -180,6 +218,8 @@ class TestCase(unittest.TestCase, ModelImporter):
         :type params: dict
         :param prefix: The prefix to use before the path.
         :param isJson: Whether the response is a JSON object.
+        :param basicAuth: A string to pass with the Authorization: Basic header
+                          of the form 'login:password'
         :returns: The cherrypy response object from the request.
         """
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
@@ -187,8 +227,12 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         if method in ['POST', 'PUT']:
             qs = urllib.urlencode(params)
-            headers.append(('Content-Type',
-                            'application/x-www-form-urlencoded'))
+            if type is None:
+                headers.append(('Content-Type',
+                                'application/x-www-form-urlencoded'))
+            else:
+                headers.append(('Content-Type', type))
+                qs = body
             headers.append(('Content-Length', '%d' % len(qs)))
             fd = StringIO(qs)
             qs = None
@@ -197,26 +241,134 @@ class TestCase(unittest.TestCase, ModelImporter):
 
         app = cherrypy.tree.apps['']
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+        request.show_tracebacks = True
 
         if user is not None:
-            token = self.model('token').createToken(user)
-            cookie = json.dumps({
-                'userId': str(user['_id']),
-                'token': str(token['_id'])
-                }).replace('"', "\\\"")
-            headers.append(('Cookie', 'authToken="%s"' % cookie))
+            headers.append(('Cookie', self._genCookie(user)))
+
+        if basicAuth is not None:
+            authToken = base64.b64encode(basicAuth)
+            headers.append(('Authorization', 'Basic {}'.format(authToken)))
+
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
                                    headers, fd)
         finally:
             if fd:
                 fd.close()
-                fd = None
 
         if isJson:
-            response.json = json.loads(response.collapse_body())
+            try:
+                response.json = json.loads(response.collapse_body())
+            except:
+                print response.collapse_body()
+                raise AssertionError('Did not receive JSON response')
 
         if response.output_status.startswith('500'):
             raise AssertionError("Internal server error: %s" % response.body)
 
         return response
+
+    def multipartRequest(self, fields, files, path, method='POST', user=None,
+                         prefix='/api/v1', isJson=True):
+        """
+        Make an HTTP request with multipart/form-data encoding. This can be
+        used to send files with the request.
+
+        :param fields: List of (name, value) tuples.
+        :param files: List of (name, filename, content) tuples.
+        :param path: The path part of the URI.
+        :type path: str
+        :param method: The HTTP method.
+        :type method: str
+        :param prefix: The prefix to use before the path.
+        :param isJson: Whether the response is a JSON object.
+        :returns: The cherrypy response object from the request.
+        """
+        contentType, body, size = MultipartFormdataEncoder().encode(
+            fields, files)
+
+        headers = [('Host', '127.0.0.1'),
+                   ('Accept', 'application/json'),
+                   ('Content-Type', contentType),
+                   ('Content-Length', str(size))]
+
+        app = cherrypy.tree.apps['']
+        request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+        request.show_tracebacks = True
+
+        if user is not None:
+            headers.append(('Cookie', self._genCookie(user)))
+
+        fd = io.BytesIO(body)
+        try:
+            response = request.run(method, prefix + path, None, 'HTTP/1.1',
+                                   headers, fd)
+        finally:
+            fd.close()
+
+        if isJson:
+            try:
+                response.json = json.loads(response.collapse_body())
+            except:
+                print response.collapse_body()
+                raise AssertionError('Did not receive JSON response')
+
+        if response.output_status.startswith('500'):
+            raise AssertionError("Internal server error: %s" % response.body)
+
+        return response
+
+
+class MultipartFormdataEncoder(object):
+    """
+    This class is adapted from http://stackoverflow.com/a/18888633/2550451
+
+    It is used as a helper for creating multipart/form-data requests to
+    simulate file uploads.
+    """
+    def __init__(self):
+        self.boundary = uuid.uuid4().hex
+        self.contentType = \
+            'multipart/form-data; boundary={}'.format(self.boundary)
+
+    @classmethod
+    def u(cls, s):
+        if sys.hexversion < 0x03000000 and isinstance(s, str):
+            s = s.decode('utf-8')
+        if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+            s = s.decode('utf-8')
+        return s
+
+    def iter(self, fields, files):
+        encoder = codecs.getencoder('utf-8')
+        for (key, value) in fields:
+            key = self.u(key)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u('Content-Disposition: form-data; '
+                                 'name="{}"\r\n').format(key))
+            yield encoder('\r\n')
+            if isinstance(value, int) or isinstance(value, float):
+                value = str(value)
+            yield encoder(self.u(value))
+            yield encoder('\r\n')
+        for (key, filename, content) in files:
+            key = self.u(key)
+            filename = self.u(filename)
+            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder(self.u('Content-Disposition: form-data; name="{}";'
+                          ' filename="{}"\r\n').format(key, filename))
+            yield encoder('Content-Type: application/octet-stream\r\n')
+            yield encoder('\r\n')
+
+            yield (content, len(content))
+            yield encoder('\r\n')
+        yield encoder('--{}--\r\n'.format(self.boundary))
+
+    def encode(self, fields, files):
+        body = io.BytesIO()
+        size = 0
+        for chunk, chunkLen in self.iter(fields, files):
+            body.write(chunk)
+            size += chunkLen
+        return self.contentType, body.getvalue(), size

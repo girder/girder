@@ -21,9 +21,10 @@ import cherrypy
 import pymongo
 
 from bson.objectid import ObjectId
-from girder.constants import AccessType
+from girder import events
+from girder.constants import AccessType, TerminalColor
 from girder.utility.model_importer import ModelImporter
-
+from girder.utility import config
 from girder.models import getDbConfig, getDbConnection
 
 
@@ -38,23 +39,46 @@ class Model(ModelImporter):
     def __init__(self):
         self.name = None
         self._indices = []
-        self.initialize()
+        self._textIndex = None
 
-        assert type(self.name) == str
+        self.initialize()
 
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        if cherrypy.config['server']['mode'] == 'testing':
+        cur_config = config.getConfig()
+        if cur_config['server']['mode'] == 'testing':
             dbName = '%s_test' % db_cfg['database']
         else:
             dbName = db_cfg['database']  # pragma: no cover
-        self.collection = db_connection[dbName][self.name]
-
-        assert isinstance(self.collection, pymongo.collection.Collection)
-        assert type(self._indices) == list
+        self.database = db_connection[dbName]
+        self.collection = self.database[self.name]
 
         for index in self._indices:
             self.collection.ensure_index(index)
+
+        if type(self._textIndex) is dict:
+            textIdx = [(k, 'text') for k in self._textIndex.keys()]
+            try:
+                self.collection.ensure_index(
+                    textIdx, weights=self._textIndex,
+                    default_language=self._textLanguage)
+            except pymongo.errors.OperationFailure:
+                print(
+                    TerminalColor.warning('WARNING: Text search not enabled.'))
+
+    def ensureTextIndex(self, index, language='english'):
+        """
+        Call this during initialize() of the subclass if you want your
+        model to have a full-text searchable index. Each collection may
+        have zero or one full-text index.
+        :param language: The default_language value for the text index,
+        which is used for stemming and stop words. If the text index
+        should not use stemming and stop words, set this param to
+        'none'.
+        :type language: str
+        """
+        self._textIndex = index
+        self._textLanguage = language
 
     def ensureIndices(self, indices):
         """
@@ -104,9 +128,29 @@ class Model(ModelImporter):
         return self.collection.find(spec=query, fields=fields, skip=offset,
                                     limit=limit, sort=sort)
 
+    def textSearch(self, query, project):
+        """
+        Perform a full-text search against the text index for this collection.
+        Only call this on models that have declared a text index using
+        ensureTextIndex.
+
+        :param query: The text query. Will be stemmed internally.
+        :type query: str
+        :param project: Project results onto this dictionary.
+        :type project: dict
+        :returns: The result list. Filtering by permission or any other
+                  parameters is left to the caller.
+        """
+        project['_id'] = 1
+        resp = self.database.command("text", self.name, search=query,
+                                     project=project)
+        return resp['results']
+
     def save(self, document, validate=True):
         """
-        Create or update a document in the collection.
+        Create or update a document in the collection. This triggers two
+        events; one prior to validation, and one prior to saving. Either of
+        these events may have their default action prevented.
 
         :param document: The document to save.
         :type document: dict
@@ -114,11 +158,15 @@ class Model(ModelImporter):
         :type validate: bool
         """
         if validate:
-            document = self.validate(document)
+            event = events.trigger('.'.join(('model', self.name, 'validate')),
+                                   document)
+            if not event.defaultPrevented:
+                document = self.validate(document)
 
-        # This assertion will fail if validate() fails to return the document
-        assert type(document) is dict
-        document['_id'] = self.collection.save(document)
+        event = events.trigger('.'.join(('model', self.name, 'save')), document)
+        if not event.defaultPrevented:
+            document['_id'] = self.collection.save(document)
+
         return document
 
     def update(self, query, update):
@@ -146,30 +194,45 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        return self.collection.remove({'_id': document['_id']}, True)
+        event = events.trigger('.'.join(('model', self.name, 'remove')),
+                               document)
+        if not event.defaultPrevented:
+            return self.collection.remove({'_id': document['_id']})
 
-    def removeWithQuery(self, query, justOne=False):
+    def removeWithQuery(self, query):
         """
         Remove all documents matching a given query from the collection.
         For safety reasons, you may not pass an empty query.
         """
         assert query
 
-        return self.collection.remove(query, justOne)
+        return self.collection.remove(query)
 
-    def load(self, id, objectId=True):
+    def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field.
+        Fetch a single object from the databse using its _id field. If the
+        id is not valid, throws an exception.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
+        :param fields: Fields list to include. Also can be a dict for
+                       exclusion. See pymongo docs for how to use this arg.
+        :param exc: Whether to raise a ValidationException if there is no
+                    document with the given id.
+        :type exc: bool
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
             id = ObjectId(id)
-        return self.collection.find_one({'_id': id})
+        doc = self.collection.find_one({'_id': id}, fields=fields)
+
+        if doc is None and exc is True:
+            raise ValidationException('Invalid {} ID: {}'.format(
+                                      self.name, id), field='_id')
+
+        return doc
 
 
 class AccessControlledModel(Model):
@@ -206,21 +269,21 @@ class AccessControlledModel(Model):
         if type(id) is not ObjectId:
             id = ObjectId(id)
 
-        if not 'access' in doc:
+        if 'access' not in doc:
             doc['access'] = {'groups': [], 'users': []}
-        if not entity in doc['access']:
+        if entity not in doc['access']:
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.
-        doc['access'][entity][:] = [perm for perm in doc['access'][entity]
-                                    if perm['id'] != id]
+        doc['access'][entity] = [perm for perm in doc['access'][entity]
+                                 if perm['id'] != id]
 
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
             doc['access'][entity].append({
                 'id': id,
                 'level': level
-                })
+            })
 
         if save:
             doc = self.save(doc, validate=False)
@@ -250,6 +313,61 @@ class AccessControlledModel(Model):
 
         return doc
 
+    def setAccessList(self, doc, access, save=False):
+        """
+        Set the entire access control list to the given value. This also saves
+        the resource in its new state to the database.
+
+        :param doc: The resource to update.
+        :type doc: dict
+        :param access: The new access control list to set on the object.
+        :type access: dict
+        :param save: Whether to save after updating.
+        :type save: boolean
+        :returns: The updated resource.
+        """
+
+        # First coerce the access list value into a valid form.
+        acList = {
+            'users': [],
+            'groups': []
+        }
+
+        for userAccess in access.get('users', []):
+            if 'id' in userAccess and 'level' in userAccess:
+                if not userAccess['level'] in (AccessType.READ,
+                                               AccessType.WRITE,
+                                               AccessType.ADMIN):
+                    raise ValidationException('Invalid access level', 'access')
+
+                acList['users'].append({
+                    'id': ObjectId(userAccess['id']),
+                    'level': userAccess['level']
+                })
+            else:
+                raise ValidationException('Invalid access list', 'access')
+
+        for groupAccess in access.get('groups', []):
+            if 'id' in groupAccess and 'level' in groupAccess:
+                if not groupAccess['level'] in (AccessType.READ,
+                                                AccessType.WRITE,
+                                                AccessType.ADMIN):
+                    raise ValidationException('Invalid access level', 'access')
+
+                acList['groups'].append({
+                    'id': ObjectId(groupAccess['id']),
+                    'level': groupAccess['level']
+                })
+            else:
+                raise ValidationException('Invalid access list', 'access')
+
+        doc['access'] = acList
+
+        if save:
+            doc = self.save(doc, validate=False)
+
+        return doc
+
     def setGroupAccess(self, doc, group, level, save=False):
         """
         Set group-level access on the resource.
@@ -268,6 +386,67 @@ class AccessControlledModel(Model):
         :returns: The updated resource document.
         """
         return self._setAccess(doc, group['_id'], 'groups', level, save)
+
+    def getAccessLevel(self, doc, user):
+        """
+        Return the maximum access level for a given user on a given object.
+        This can be useful for alerting the user which set of actions they are
+        able to perform on the object in advance of trying to call them.
+
+        :param doc: The object to check access on.
+        :param user: The user to get the access level for.
+        :returns: The max AccessType available for the user on the object.
+        """
+        if user is None:
+            if doc.get('public', False):
+                return AccessType.READ
+            else:
+                return AccessType.NONE
+        elif user.get('admin', False):
+            return AccessType.ADMIN
+        else:
+            access = doc.get('access', {})
+            level = AccessType.NONE
+
+            for group in access.get('groups', []):
+                if group['id'] in user.get('groups', []):
+                    level = max(level, group['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            for userAccess in access.get('users', []):
+                if userAccess['id'] == user['_id']:
+                    level = max(level, userAccess['level'])
+                    if level == AccessType.ADMIN:
+                        return level
+
+            return level
+
+    def getFullAccessList(self, doc):
+        """
+        Return an object representing the full access list on this document.
+        This simply includes the names of the users and groups with the access
+        list.
+        """
+        acList = {
+            'users': doc['access'].get('users', []),
+            'groups': doc['access'].get('groups', [])
+        }
+
+        for user in acList['users']:
+            userDoc = self.model('user').load(
+                user['id'], force=True,
+                fields=['firstName', 'lastName', 'login'])
+            user['login'] = userDoc['login']
+            user['name'] = '{} {}'.format(
+                userDoc['firstName'], userDoc['lastName'])
+
+        for grp in acList['groups']:
+            grpDoc = self.model('group').load(
+                grp['id'], force=True, fields=['name'])
+            grp['name'] = grpDoc['name']
+
+        return acList
 
     def setUserAccess(self, doc, user, level, save=False):
         """
@@ -299,7 +478,7 @@ class AccessControlledModel(Model):
         :type user: dict
         :param level: The access level.
         :type level: AccessType
-        :returns: The updated resource document.
+        :returns: Whether the access is granted.
         """
         if user is None:
             # Short-circuit the case of anonymous users
@@ -340,7 +519,7 @@ class AccessControlledModel(Model):
                                   (perm, self.name))
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False):
+             force=False, fields=None, exc=False):
         """
         We override Model.load to also do permission checking.
 
@@ -354,7 +533,7 @@ class AccessControlledModel(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
@@ -381,11 +560,12 @@ class AccessControlledModel(Model):
             dest = self.save(dest, validate=False)
         return dest
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset):
+    def filterResultsByPermission(self, cursor, user, level, limit, offset,
+                                  removeKeys=()):
         """
-        Given a database result cursor, return only the results that the user
-        has the given level of access on, respecting the limit and offset
-        specified.
+        Given a database result cursor, this generator will yield only the
+        results that the user has the given level of access on, respecting the
+        limit and offset specified.
 
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
@@ -393,20 +573,49 @@ class AccessControlledModel(Model):
         :type level: AccessType
         :param limit: The max size of the result set.
         :param offset: The offset into the result set.
+        :param removeKeys: List of keys that should be removed from each
+                           matching document.
+        :type removeKeys: list
         """
         count = skipped = 0
-        results = []
         for result in cursor:
             if self.hasAccess(result, user=user, level=level):
                 if skipped < offset:
                     skipped += 1
                 else:
-                    results.append(result)
+                    for key in removeKeys:
+                        del result[key]
+                    yield result
                     count += 1
             if count == limit:
                 break
 
-        return results
+    def filterSearchResults(self, results, user, level=AccessType.READ,
+                            limit=20):
+        """
+        Filter search result list by permissions.
+        """
+        count = 0
+        for result in results:
+            if count >= limit:
+                break
+            obj = result['obj']
+            if self.hasAccess(result['obj'], user=user, level=level):
+                obj.pop('access', None)
+                obj.pop('public', None)
+                yield obj
+                count += 1
+
+    def textSearch(self, query, project, user=None, limit=20):
+        """
+        Custom override of Model.textSearch to also force permission-based
+        filtering.
+        """
+        project['access'] = 1
+        project['public'] = 1
+        results = Model.textSearch(self, query=query, project=project)
+        return [r for r in self.filterSearchResults(
+            results, user=user, limit=limit)]
 
 
 class AccessException(Exception):

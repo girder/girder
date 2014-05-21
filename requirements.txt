@@ -1,5 +1,7 @@
+cffi
 CherryPy
 Sphinx
 pymongo
 bcrypt
 nose
+Mako

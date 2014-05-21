@@ -1,0 +1,27 @@
+.modal-dialog
+  .modal-content
+    form#g-upload-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Upload Files
+        .g-dialog-subtitle
+          i.icon-folder-open
+          | #{folder.get('name')}
+      .modal-body
+        .g-drop-zone
+          i.icon-docs
+          |  Browse or drop files
+        .form-group.hide
+          input#g-files(type="file", multiple)
+        .g-current-progress-message
+        .g-progress-current.progress.progress-striped.hide
+          .progress-bar.progress-bar-info(role="progressbar")
+        .g-overall-progress-message No files selected
+        .g-progress-overall.progress.progress-striped.hide
+          .progress-bar.progress-bar-info(role="progressbar")
+        .g-upload-error-message.g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Close
+        button.g-start-upload.btn.btn-small.btn-primary.disabled(type="submit")
+          i.icon-upload
+          |  Start Upload

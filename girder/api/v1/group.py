@@ -17,51 +17,106 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-import pymongo
-
-from .docs import group_docs
-from ..rest import Resource, RestException
+from ..describe import Description
+from ..rest import Resource, RestException, loadmodel
 from ...models.model_base import ValidationException, AccessException
 from ...constants import AccessType
+from girder.utility import mail_utils
 
 
 class Group(Resource):
     """API Endpoint for groups."""
+    def __init__(self):
+        self.resourceName = 'group'
+        self.route('DELETE', (':id',), self.deleteGroup)
+        self.route('DELETE', (':id', 'member'), self.removeFromGroup)
+        self.route('DELETE', (':id', 'moderator'), self.demote)
+        self.route('DELETE', (':id', 'admin'), self.demote)
+        self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getGroup)
+        self.route('GET', (':id', 'access'), self.getGroupAccess)
+        self.route('GET', (':id', 'invitation'), self.getGroupInvitations)
+        self.route('GET', (':id', 'member'), self.listMembers)
+        self.route('POST', (), self.createGroup)
+        self.route('POST', (':id', 'invitation'), self.inviteToGroup)
+        self.route('POST', (':id', 'member'), self.joinGroup)
+        self.route('POST', (':id', 'moderator'), self.promoteToModerator)
+        self.route('POST', (':id', 'admin'), self.promoteToAdmin)
+        self.route('PUT', (':id',), self.updateGroup)
 
-    def _filter(self, group):
+    def _filter(self, group, accessList=False, requests=False):
         """
         Filter a group document for display to the user.
+
+        :param group: The document to filter.
+        :type group: dict
+        :param user: The current user.
+        :type user: dict
+        :param accessList: Whether to include the access control list field.
+        :type accessList: bool
+        :param requests: Whether to include the requests list field.
+        :type requests: bool
+        :returns: The filtered group document.
         """
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+        user = self.getCurrentUser()
+
+        if requests:
+            keys.append('requests')
+
+        accessLevel = self.model('group').getAccessLevel(group, user)
+
+        if accessList:
+            keys.append('access')
+
+        group = self.filterDocument(group, allow=keys)
+        group['_accessLevel'] = accessLevel
+
+        if accessList:
+            group['access'] = self.model('group').getFullAccessList(group)
+
+        if requests:
+            group['requests'] = self.model('group').getFullRequestList(group)
+
         return group
 
     def find(self, params):
         """
         List or search for groups.
 
-        :param text: Pass this parameter to do a full text search.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=name.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: A page of matching Group documents.
         """
-        (limit, offset, sort) = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'name')
 
         user = self.getCurrentUser()
 
-        return self.model('group').search(text=params.get('text'), user=user,
-                                          offset=offset, limit=limit, sort=sort)
+        return [self._filter(group) for group in self.model('group').list(
+            user=user, offset=offset, limit=limit, sort=sort)]
+    find.description = (
+        Description('Search for groups or list all groups.')
+        .param('text', "Pass this to perform a full-text search for groups.",
+               required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the group list by (default=name)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse())
 
     def createGroup(self, params):
         """
-        Create a new folder.
+        Create a new group.
 
-        :param name: The name of the group to create. Must be unique.
-        :param description: Group description.
-        :param public: Public read access flag.
-        :type public: bool
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The created group document.
         """
-        self.requireParams(['name'], params)
+        self.requireParams(('name',), params)
 
         name = params['name'].strip()
         description = params.get('description', '').strip()
@@ -76,65 +131,253 @@ class Group(Resource):
             name=name, creator=user, description=description, public=public)
 
         return self._filter(group)
+    createGroup.description = (
+        Description('Create a new group.')
+        .responseClass('Group')
+        .notes('Must be logged in.')
+        .param('name', 'Unique name for the group.')
+        .param('description', 'Description of the group.', required=False)
+        .param('public', """Whether the group should be public or private. The
+               default is private.""", required=False, dataType='boolean')
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent', 403))
 
-    def updateGroup(self, group, user, params):
-        """
-        Update the group.
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroup(self, group, params):
+        return self._filter(group)
+    getGroup.description = (
+        Description('Get a group by ID.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
 
-        :param name: Name for the group. Must be unique.
-        :param description: Description for the group.
-        :param public: Public read access flag.
-        :type public: bool
-        """
-        self.model('group').requireAccess(group, user, AccessType.WRITE)
-        # TODO implement updating of a group document
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroupAccess(self, group, params):
+        return self._filter(group, accessList=True, requests=True)
+    getGroupAccess.description = (
+        Description('Get the access control list for a group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
 
-    def joinGroup(self, group, user):
-        """
-        Accept a group invitation.
-        """
-        return self.model('group').joinGroup(group, user)
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def getGroupInvitations(self, group, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
+        return self.model('group').getInvites(group, limit, offset, sort)
+    getGroupInvitations.description = (
+        Description('Show outstanding invitations for a group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the invitee list by (default=lastName)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse()
+        .errorResponse('Read access was denied for the group.', 403))
 
-    def inviteToGroup(self, group, user, params):
-        """
-        Invite the user to join the group.
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    def updateGroup(self, group, params):
+        user = self.getCurrentUser()
 
-        :param group: The group to invite the user to.
-        :param user: The user doing the invitation.
-        :param params: Optionally Pass a 'level' param with an
-                       AccessType value (0-2) to grant the user that
-                       access level when they join. Also must pass a
-                       'userId' param, which is the ID of the user to
-                       invite.
-        :type params: dict
-        """
-        self.requireParams(['userId'], params)
-        self.model('group').requireAccess(group, user, AccessType.WRITE)
+        public = params.get('public', 'false').lower() == 'true'
+        self.model('group').setPublic(group, public)
 
+        group['name'] = params.get('name', group['name']).strip()
+        group['description'] = params.get(
+            'description', group['description']).strip()
+
+        group = self.model('group').updateGroup(group)
+        return self._filter(group)
+    updateGroup.description = (
+        Description('Update a group by ID.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('name', 'The name to set on the group.', required=False)
+        .param('description', 'Description for the group.', required=False)
+        .param('public', 'Whether the group should be publicly visible',
+               dataType='boolean', required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied for the group.', 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def joinGroup(self, group, params):
+        """
+        Accept a group invitation. If you have not been invited, this will
+        instead request an invitation.
+
+        :param group: The group to join.
+        :type group: dict
+        :param user: The current user.
+        :type user: dict
+        :returns: The updated group document.
+        """
+        return self._filter(
+            self.model('group').joinGroup(group, self.getCurrentUser()),
+            accessList=True, requests=True)
+    joinGroup.description = (
+        Description('Request to join a group, or accept an invitation to join.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You were not invited to this group, or do not have '
+                       'read access to it.', 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def listMembers(self, group, params):
+        """
+        Paginated member list of group members.
+
+        :returns: A page of User documents representing members of the group.
+        """
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
+
+        return [g for g in self.model('group').listMembers(
+            group, offset=offset, limit=limit, sort=sort)]
+    listMembers.description = (
+        Description('List members of a group.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the member list by (default=lastName)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    def inviteToGroup(self, group, params):
+        """Invite the user to join the group."""
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
         level = int(params.get('level', AccessType.READ))
 
-        userToInvite = self.getObjectById(
-            self.model('user'), user=user, id=params['userId'],
-            checkAccess=True)
-
-        if userToInvite['_id'] == user['_id']:
-            raise RestException('Cannot invite yourself to a group.')
+        userToInvite = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
         # Can only invite into access levels that you yourself have
         self.model('group').requireAccess(group, user, level)
         self.model('group').inviteUser(group, userToInvite, level)
 
-        return {'message': 'Invitation sent.'}
+        if params.get('quiet', '').lower() != 'true':
+            html = mail_utils.renderTemplate('groupInvite.mako', {
+                'userToInvite': userToInvite,
+                'user': user,
+                'group': group
+            })
+            mail_utils.sendEmail(
+                to=userToInvite['email'], text=html,
+                subject="Girder: You've been invited to a group")
 
-    def removeFromGroup(self, group, user, params):
+        return self._filter(group, accessList=True, requests=True)
+    inviteToGroup.description = (
+        Description("Invite a user to join a group, or accept a user's request "
+                    " to join.")
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to invite or accept.')
+        .param('level', 'The access level the user will be given when they '
+               'accept the invitation. Defaults to read access (0).',
+               required=False, dataType='int')
+        .param('quiet', 'If you do not wish this action to send an email, '
+               'set this parameter to "true".', required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied for the group.', 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def promoteToModerator(self, group, params):
+        return self._promote(group, params, AccessType.WRITE)
+    promoteToModerator.description = (
+        Description('Promote a member to be a moderator of the group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to promote.')
+        .errorResponse('ID was invalid.')
+        .errorResponse("You don't have permission to promote users.", 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def promoteToAdmin(self, group, params):
+        return self._promote(group, params, AccessType.ADMIN)
+    promoteToAdmin.description = (
+        Description('Promote a member to be an administrator of the group.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to promote.')
+        .errorResponse('ID was invalid.')
+        .errorResponse("You don't have permission to promote users.", 403))
+
+    def _promote(self, group, params, level):
+        """
+        Promote a user to moderator or administrator.
+        :param group: The group to promote within.
+        :param params: Request parameters.
+        :param level: Either WRITE or ADMIN, for moderator or administrator.
+        :type level: AccessType
+        :returns: The updated group document.
+        """
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
+
+        userToPromote = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
+
+        if not group['_id'] in userToPromote.get('groups', []):
+            raise AccessException('That user is not a group member.')
+
+        group = self.model('group').setUserAccess(
+            group, userToPromote, level=level, save=True)
+        return self._filter(group, accessList=True)
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def demote(self, group, params):
+        """
+        Demote a user down to a normal member.
+
+        :returns: The updated group document.
+        """
+        self.requireParams(('userId',), params)
+        user = self.getCurrentUser()
+
+        userToDemote = self.model('user').load(
+            id=params['userId'], user=user, level=AccessType.READ, exc=True)
+
+        group = self.model('group').setUserAccess(
+            group, userToDemote, level=AccessType.READ, save=True)
+        return self._filter(group, accessList=True, requests=True)
+    demote.description = (
+        Description('Demote a user to a normal group member.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to demote.')
+        .errorResponse()
+        .errorResponse("You don't have permission to demote users.", 403))
+
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    def removeFromGroup(self, group, params):
         """
         Remove a user from a group. Pass a 'userId' key in params to
         remove a specific user; otherwise will remove this user.
+
+        :param group: The group to remove the user from.
+        :type group: dict
+        :param user: The current user (not the user being removed).
+        :type user: dict
+        :param params: Request query parameters.
+        :type params: dict
+        :returns: The updated group document.
         """
+        user = self.getCurrentUser()
+
         if 'userId' in params:
-            userToRemove = self.getObjectById(
-                self.model('user'), user=user, id=params['userId'],
-                checkAccess=True)
+            userToRemove = self.model('user').load(
+                id=params['userId'], user=user, level=AccessType.READ, exc=True)
         else:
             # Assume user is removing himself from the group
             userToRemove = user
@@ -149,57 +392,28 @@ class Group(Resource):
             else:
                 self.model('group').requireAccess(group, user, AccessType.WRITE)
 
-        return self.model('group').removeUser(group, userToRemove)
+        return self._filter(
+            self.model('group').removeUser(group, userToRemove), requests=True,
+            accessList=True)
+    removeFromGroup.description = (
+        Description('Remove a user from a group, or uninvite them.')
+        .responseClass('Group')
+        .notes("""If the specified user is not yet a member of the group, this
+               will delete any oustanding invitation or membership request for
+               the user. Passing no userId parameter will assume that the
+               current user is removing himself.""")
+        .param('id', 'The ID of the group.', paramType='path')
+        .param('userId', 'The ID of the user to remove. If not passed, will '
+               'remove yourself from the group.', required=False)
+        .errorResponse()
+        .errorResponse("You don't have permission to remove that user.", 403))
 
-    @Resource.endpoint
-    def DELETE(self, path, params):
-        """
-        Delete an entire group.
-        """
-        if not path:
-            raise RestException(
-                'Path parameter should be the group ID to delete.')
-
-        user = self.getCurrentUser()
-        group = self.getObjectById(self.model('group'), id=path[0], user=user,
-                                   checkAccess=True, level=AccessType.ADMIN)
-
+    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    def deleteGroup(self, group, params):
         self.model('group').remove(group)
-        return {'message': 'Deleted the %s group.' % group['name']}
-
-    @Resource.endpoint
-    def GET(self, path, params):
-        if not path:
-            return self.find(params)
-        else:  # assume it's an ID
-            user = self.getCurrentUser()
-            group = self.getObjectById(self.model('group'), id=path[0],
-                                       checkAccess=True, user=user)
-            return self._filter(group)
-
-    @Resource.endpoint
-    def POST(self, path, params):
-        """
-        Use this endpoint to create a new folder.
-        """
-        return self.createGroup(params)
-
-    @Resource.endpoint
-    def PUT(self, path, params):
-        if not path:
-            raise RestException('Must have a path parameter.')
-
-        user = self.getCurrentUser()
-        group = self.getObjectById(self.model('group'), id=path[0], user=user,
-                                   checkAccess=True)
-
-        if len(path) == 1:
-            return self.updateGroup(group, user, params)
-        elif path[1] == 'invite':
-            return self.inviteToGroup(group, user, params)
-        elif path[1] == 'join':
-            return self.joinGroup(group, user)
-        elif path[1] == 'remove':
-            return self.removeFromGroup(group, user, params)
-        else:
-            raise RestException('Invalid group update action.')
+        return {'message': 'Deleted the group {}.'.format(group['name'])}
+    deleteGroup.description = (
+        Description('Delete a group by ID.')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the group.', 403))

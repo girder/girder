@@ -18,21 +18,21 @@
 ###############################################################################
 
 import pymongo
-import cherrypy
+
+from girder.utility import config
 
 _db_connection = None
 
 
 def getDbConfig():
-    """Get the database configuration object from the cherrypy config.
-    """
-    return cherrypy.config['database']
+    """Get the database configuration object from the cherrypy config."""
+    cfg = config.getConfig()
+    return cfg['database']
 
 
 def getDbConnection():
     """Get a MongoClient object that is connected to the configured
-    database. Lazy getter so we only have one connection per instance.
-    """
+    database. Lazy getter so we only have one connection per instance."""
     global _db_connection
 
     if _db_connection is not None:
@@ -43,10 +43,11 @@ def getDbConnection():
         _db_uri = 'mongodb://%s:%d' % (db_cfg['host'], db_cfg['port'])
         _db_uri_redacted = _db_uri
     else:
-        _db_uri = 'mongodb://%s:%s@%s:%d' % (db_cfg['user'],
-                                             db_cfg['password'],
-                                             db_cfg['host'],
-                                             db_cfg['port'])
+        _db_uri = 'mongodb://%s:%s@%s:%d/%s' % (db_cfg['user'],
+                                                db_cfg['password'],
+                                                db_cfg['host'],
+                                                db_cfg['port'],
+                                                db_cfg['database'])
         _db_uri_redacted = 'mongodb://%s@%s:%d' % (db_cfg['user'],
                                                    db_cfg['host'],
                                                    db_cfg['port'])

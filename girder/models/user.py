@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import datetime
 import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
+from girder.utility import config
 
 
 class User(AccessControlledModel):
@@ -32,7 +32,12 @@ class User(AccessControlledModel):
 
     def initialize(self):
         self.name = 'user'
-        self.ensureIndices(['login', 'email'])
+        self.ensureIndices(['login', 'email', 'groupInvites.groupId'])
+        self.ensureTextIndex({
+            'login': 1,
+            'firstName': 1,
+            'lastName': 1
+        }, language='none')
 
     def validate(self, doc):
         """
@@ -40,18 +45,20 @@ class User(AccessControlledModel):
         """
         doc['login'] = doc.get('login', '').lower().strip()
         doc['email'] = doc.get('email', '').lower().strip()
-        doc['fname'] = doc.get('firstName', '').strip()
-        doc['lname'] = doc.get('lastName', '').strip()
+        doc['firstName'] = doc.get('firstName', '').strip()
+        doc['lastName'] = doc.get('lastName', '').strip()
+
+        cur_config = config.getConfig()
 
         if not doc.get('salt', ''):  # pragma: no cover
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
 
-        if not doc['fname']:
+        if not doc['firstName']:
             raise ValidationException('First name must not be empty.',
                                       'firstName')
 
-        if not doc['lname']:
+        if not doc['lastName']:
             raise ValidationException('Last name must not be empty.',
                                       'lastName')
 
@@ -60,11 +67,11 @@ class User(AccessControlledModel):
             # an email address from a login
             raise ValidationException('Login may not contain "@".', 'login')
 
-        if not re.match(cherrypy.config['users']['login_regex'], doc['login']):
+        if not re.match(cur_config['users']['login_regex'], doc['login']):
             raise ValidationException(
-                cherrypy.config['users']['login_description'], 'login')
+                cur_config['users']['login_description'], 'login')
 
-        if not re.match(cherrypy.config['users']['email_regex'], doc['email']):
+        if not re.match(cur_config['users']['email_regex'], doc['email']):
             raise ValidationException('Invalid email address.', 'email')
 
         # Ensure unique logins
@@ -85,6 +92,11 @@ class User(AccessControlledModel):
             raise ValidationException('That email is already registered.',
                                       'email')
 
+        # If this is the first user being created, make it an admin
+        existing = self.find({}, limit=1)
+        if existing.count(True) == 0:
+            doc['admin'] = True
+
         return doc
 
     def remove(self, user):
@@ -94,17 +106,18 @@ class User(AccessControlledModel):
         :param user: The user document to delete.
         :type user: dict
         """
-        # Remove creator references on folders and items
+        # Remove creator references for this user.
         creatorQuery = {
             'creatorId': user['_id']
         }
         creatorUpdate = {
             '$set': {'creatorId': None}
         }
+        self.model('collection').update(creatorQuery, creatorUpdate)
         self.model('folder').update(creatorQuery, creatorUpdate)
         self.model('item').update(creatorQuery, creatorUpdate)
 
-        # Remove references to this group from access-controlled collections.
+        # Remove references to this user from access-controlled resources.
         acQuery = {
             'access.users.id': user['_id']
         }
@@ -113,10 +126,10 @@ class User(AccessControlledModel):
                 'access.users': {'id': user['_id']}
             }
         }
-
         self.update(acQuery, acUpdate)
-        self.model('group').update(acQuery, acUpdate)
+        self.model('collection').update(acQuery, acUpdate)
         self.model('folder').update(acQuery, acUpdate)
+        self.model('group').update(acQuery, acUpdate)
 
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})
@@ -125,7 +138,7 @@ class User(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': user['_id'],
             'parentCollection': 'user'
-            }, limit=0)
+        }, limit=0)
         for folder in folders:
             self.model('folder').remove(folder)
 
@@ -151,9 +164,24 @@ class User(AccessControlledModel):
         # afterward.
         cursor = self.find({}, limit=0, sort=sort)
 
-        return self.filterResultsByPermission(cursor=cursor, user=user,
-                                              level=AccessType.READ,
-                                              limit=limit, offset=offset)
+        for r in self.filterResultsByPermission(cursor=cursor, user=user,
+                                                level=AccessType.READ,
+                                                limit=limit, offset=offset):
+            yield r
+
+    def setPassword(self, user, password, save=True):
+        """
+        Change a user's password.
+
+        :param user: The user whose password to change.
+        :param password: The new password.
+        """
+        salt, alg = self.model('password').encryptAndStore(password)
+        user['salt'] = salt
+        user['hashAlg'] = alg
+
+        if save:
+            self.save(user)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
@@ -167,20 +195,19 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
-        (salt, hashAlg) = self.model('password').encryptAndStore(password)
-
-        user = self.save({
+        user = {
             'login': login,
             'email': email,
             'firstName': firstName,
             'lastName': lastName,
-            'salt': salt,
             'created': datetime.datetime.now(),
-            'hashAlg': hashAlg,
             'emailVerified': False,
             'admin': admin,
-            'size': 0
-            })
+            'size': 0,
+            'groupInvites': []
+        }
+
+        self.setPassword(user, password)
 
         self.setPublic(user, public=public)
         # Must have already saved the user prior to calling this since we are

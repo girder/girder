@@ -2,40 +2,54 @@
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-girder.views.LayoutGlobalNavView = Backbone.View.extend({
+girder.views.LayoutGlobalNavView = girder.View.extend({
     events: {
         'click .g-nav-link': function (event) {
             var link = $(event.currentTarget);
 
-            this.$('.g-global-nav-li').removeClass('g-active');
+            girder.router.navigate(link.attr('g-target'), {trigger: true});
+
+            // Must call this after calling navigateTo, since that
+            // deactivates all global nav links.
             link.parent().addClass('g-active');
-            girder.events.trigger('g:navigateTo',
-                                  girder.views[link.attr('g-target')]);
         }
+    },
+
+    initialize: function () {
+        girder.events.on('g:highlightItem', this.selectForView, this);
     },
 
     render: function () {
         var navItems = [{
             'name': 'Collections',
             'icon': 'icon-sitemap',
-            'target': 'CollectionsView'
+            'target': 'collections'
         }, {
             'name': 'Users',
             'icon': 'icon-user',
-            'target': 'UsersView'
+            'target': 'users'
         }, {
             'name': 'Groups',
             'icon': 'icon-users',
-            'target': 'GroupsView'
-        }, {
-            'name': 'Search',
-            'icon': 'icon-search',
-            'target': 'SearchView'
+            'target': 'groups'
         }];
         this.$el.html(jade.templates.layoutGlobalNav({
             navItems: navItems
         }));
 
         return this;
+    },
+
+    /**
+     * Highlight the item with the given target attribute, which is the name
+     * of the view it navigates to.
+     */
+    selectForView: function (viewName) {
+        this.deactivateAll();
+        this.$('[g-name="' + viewName.slice(0, -4) + '"]').parent().addClass('g-active');
+    },
+
+    deactivateAll: function () {
+        this.$('.g-global-nav-li').removeClass('g-active');
     }
 });

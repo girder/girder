@@ -9,6 +9,7 @@ find_program(PYTHON_EXECUTABLE python)
 
 option(PYTHON_STYLE_TESTS "Run Python style tests with pep8" ON)
 option(PYTHON_COVERAGE "Run tests with coverage.py" OFF)
+option(PYTHON_BRANCH_COVERAGE "Use branch-level coverage instead of line-level" OFF)
 option(JAVASCRIPT_STYLE_TESTS "Run Javascript style tests with jslint" ON)
 
 if(PYTHON_COVERAGE)
