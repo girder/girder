@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import re
-
 from .. import base
 
 from girder.constants import AccessType, ROOT_DIR
@@ -41,9 +39,5 @@ class WebRootTestCase(base.TestCase):
         """
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
-
-        regex1 = re.compile('app\\.min\\.js')
-        regex2 = re.compile('libs\\.min\\.js')
-
-        self.assertFalse(not regex1.search(resp.body[0]))
-        self.assertFalse(not regex2.search(resp.body[0]))
+        self.assertTrue('app.min.js' in resp.body[0])
+        self.assertTrue('libs.min.js' in resp.body[0])
