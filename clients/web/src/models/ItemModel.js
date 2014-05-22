@@ -18,7 +18,7 @@ girder.models.ItemModel = girder.Model.extend({
         }
     },
 
-    _sendMetadata: function (metadata, callback) {
+    _sendMetadata: function (metadata, successCallback, errorCallback) {
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/metadata',
             contentType: 'application/json',
@@ -26,30 +26,43 @@ girder.models.ItemModel = girder.Model.extend({
             type: 'PUT',
             error: null
         }).done(_.bind(function (resp) {
-            callback();
+            successCallback();
         }, this)).error(_.bind(function (err) {
-            console.log(err);
+            err.message = err.responseJSON.message;
+            errorCallback(err);
         }, this));
     },
 
-    addMetadata: function (key, value, callback) {
+    addMetadata: function (key, value, successCallback, errorCallback) {
         var datum = {};
         datum[key] = value;
-        this._sendMetadata(datum, callback);
+        if (key in this.get('meta')) {
+            errorCallback({message: key + ' is already a metadata key'});
+            return;
+        }
+        this._sendMetadata(datum, successCallback, errorCallback);
     },
 
-    removeMetadata: function (key, callback) {
-        this.addMetadata(key, null, callback);
+    removeMetadata: function (key, successCallback, errorCallback) {
+        var datum = {};
+        datum[key] = null;
+        this._sendMetadata(datum, successCallback, errorCallback);
     },
 
-    editMetadata: function(newKey, oldKey, value, callback) {
+    editMetadata: function(newKey, oldKey, value, successCallback, errorCallback) {
         if (newKey === oldKey) {
-            this.addMetadata(newKey, value, callback);
+            var datum = {};
+            datum[newKey] = value;
+            this._sendMetadata(datum, successCallback, errorCallback);
         } else {
+            if (newKey in this.get('meta')) {
+                errorCallback({message: newKey + ' is already a metadata key'});
+                return;
+            }
             var metas = {};
             metas[oldKey] = null;
             metas[newKey] = value;
-            this._sendMetadata(metas, callback);
+            this._sendMetadata(metas, successCallback, errorCallback);
         }
     }
 
