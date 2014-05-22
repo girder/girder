@@ -40,7 +40,7 @@ class File(Model):
         file is stored in, and call deleteFile on it, then delete the file
         record from the database.
         """
-        if 'assetstoreId' in file:
+        if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             adapter.deleteFile(file)
@@ -114,7 +114,14 @@ class File(Model):
             'name': name,
             'linkUrl': url
         }
-        return self.save(file)
+
+        try:
+            file = self.save(file)
+            return file
+        except ValidationException:
+            if parentType == 'folder':
+                self.model('item').remove(item)
+            raise
 
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """
