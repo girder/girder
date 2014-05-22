@@ -1,0 +1,10 @@
+#!/bin/bash
+
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+workon girder
+cd /home/cpatrick/Dashboards/girder
+pip install -r requirements.txt
+pip install pep8 coverage
+python setup.py install
+npm install
+/usr/local/bin/ctest -V -VV -S /home/cpatrick/Dashboards/girder/cmake/aiur_nightly.cmake
