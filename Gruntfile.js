@@ -23,6 +23,23 @@ module.exports = function (grunt) {
 
     var defaultTasks = ['stylus', 'build-js'];
 
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            var cfg = JSON.parse(stdout);
+            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
+            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            console.log('Static root: ' + staticRoot.bold);
+            console.log('API root: ' + apiRoot.bold);
+        }
+        catch (e) {
+            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
+        }
+        callback();
+    };
+
     // Project configuration.
     grunt.config.init({
         pkg: grunt.file.readJSON('package.json'),
@@ -88,6 +105,7 @@ module.exports = function (grunt) {
             readServerConfig: {
                 command: 'python config_parse.py girder/conf/local.server.cfg',
                 options: {
+                    stdout: false,
                     callback: setServerConfig
                 }
             }
@@ -164,23 +182,6 @@ module.exports = function (grunt) {
             }
         }
     });
-
-    var setServerConfig = function (err, stdout, stderr, callback) {
-        if (err) {
-            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
-        }
-        try {
-            var cfg = JSON.parse(stdout);
-            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
-            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
-            console.log('Static root: ' + staticRoot.bold);
-            console.log('API root: ' + apiRoot.bold);
-        }
-        catch (e) {
-            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
-        }
-        callback();
-    };
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';

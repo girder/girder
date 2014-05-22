@@ -42,9 +42,10 @@ class File(Resource):
         Before any bytes of the actual file are sent, a request should be made
         to initialize the upload. This creates the temporary record of the
         forthcoming upload that will be passed in chunks to the readChunk
-        method.
+        method. If you pass a "linkUrl" parameter, it will make a link file
+        in the designated parent.
         """
-        self.requireParams(('name', 'parentId', 'parentType', 'size'), params)
+        self.requireParams(('name', 'parentId', 'parentType'), params)
         user = self.getCurrentUser()
 
         mimeType = params.get('mimeType', None)
@@ -56,21 +57,30 @@ class File(Resource):
         parent = self.model(parentType).load(id=params['parentId'], user=user,
                                              level=AccessType.WRITE, exc=True)
 
-        upload = self.model('upload').createUpload(
-            user=user, name=params['name'], parentType=parentType,
-            parent=parent, size=int(params['size']), mimeType=mimeType)
-        if upload['size'] > 0:
-            return upload
+        if 'linkUrl' in params:
+            return self.model('file').createLinkFile(
+                url=params['linkUrl'], parent=parent, name=params['name'],
+                parentType=parentType, creator=user)
         else:
-            return self.model('upload').finalizeUpload(upload)
+            self.requireParams(('size',), params)
+            upload = self.model('upload').createUpload(
+                user=user, name=params['name'], parentType=parentType,
+                parent=parent, size=int(params['size']), mimeType=mimeType)
+            if upload['size'] > 0:
+                return upload
+            else:
+                return self.model('upload').finalizeUpload(upload)
     initUpload.description = (
-        Description('Start a new upload.')
+        Description('Start a new upload or create an empty or link file.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into (folder or item).')
         .param('parentId', 'The ID of the parent.')
-        .param('name', 'Name of the file being uploaded.')
-        .param('size', 'Size in bytes of the file.', dataType='integer')
+        .param('name', 'Name of the file being created.')
+        .param('size', 'Size in bytes of the file.',
+               dataType='integer', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
+        .param('linkUrl', 'If this is a link file, pass its URL instead'
+               'of size and mimeType using this parameter.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
 
