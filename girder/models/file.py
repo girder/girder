@@ -52,12 +52,12 @@ class File(Model):
         file is stored in, and call downloadFile on it. If the file is a link
         file rather than a file in an assetstore, we redirect to it.
         """
-        if 'assetstoreId' in file:
+        if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             return adapter.downloadFile(file, offset=offset, headers=headers)
-        elif 'linkUrl' in file:
-            raise cherrypy.HTTPRedirect(file['linkUrl'], status=302)
+        elif file.get('linkUrl'):
+            raise cherrypy.HTTPRedirect(file['linkUrl'])
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
 
@@ -67,6 +67,8 @@ class File(Model):
                 raise ValidationException(
                     'File must have either an assetstore ID or a link URL.',
                     'linkUrl')
+            doc['linkUrl'] = doc['linkUrl'].strip()
+
             if not doc['linkUrl'].startswith(('http:', 'https:')):
                 raise ValidationException(
                     'Linked file URL must start with http: or https:.',
@@ -95,7 +97,7 @@ class File(Model):
         if parentType == 'folder':
             # Create a new item with the name of the file.
             item = self.model('item').createItem(
-                name=name, creator=user, folder=parent)
+                name=name, creator=creator, folder=parent)
         elif parentType == 'item':
             item = parent
 
