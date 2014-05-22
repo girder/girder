@@ -3,7 +3,8 @@
  */
 girder.views.ItemView = girder.View.extend({
     events: {
-        'click .g-edit-item': 'editItem'
+        'click .g-edit-item': 'editItem',
+        'click .g-delete-item': 'deleteItem'
     },
 
     initialize: function (settings) {
@@ -34,6 +35,19 @@ girder.views.ItemView = girder.View.extend({
             }, this);
         }
         this.editItemWidget.render();
+    },
+
+    deleteItem: function () {
+        var folderId = this.model.get('folderId');
+        girder.confirm({
+            text: 'Are you sure you want to delete <b>' + this.model.get('name') + '</b>?',
+            yesText: 'Delete',
+            confirmCallback: _.bind(function () {
+                this.model.destroy().on('g:deleted', function () {
+                    girder.router.navigate('collections', {trigger: true});
+                });
+            }, this)
+        });
     },
 
     render: function () {
