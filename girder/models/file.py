@@ -57,7 +57,12 @@ class File(Model):
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             return adapter.downloadFile(file, offset=offset, headers=headers)
         elif file.get('linkUrl'):
-            raise cherrypy.HTTPRedirect(file['linkUrl'])
+            if headers:
+                raise cherrypy.HTTPRedirect(file['linkUrl'])
+            else:
+                def stream():
+                    yield file['linkUrl']
+                return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
 
