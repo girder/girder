@@ -49,7 +49,7 @@ girder.models.ItemModel = girder.Model.extend({
         this._sendMetadata(datum, successCallback, errorCallback);
     },
 
-    editMetadata: function(newKey, oldKey, value, successCallback, errorCallback) {
+    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback) {
         if (newKey === oldKey) {
             var datum = {};
             datum[newKey] = value;

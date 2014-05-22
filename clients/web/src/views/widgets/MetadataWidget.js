@@ -16,7 +16,7 @@ girder.views.MetadataWidget = girder.View.extend({
             item: this.item,
             key: '',
             value: '',
-            new: true,
+            newDatum: true,
             accessLevel: this.accessLevel,
             girder: girder
         });
@@ -31,7 +31,7 @@ girder.views.MetadataWidget = girder.View.extend({
             key: row.attr('g-key'),
             value: row.attr('g-value'),
             accessLevel: this.accessLevel,
-            new: false,
+            newDatum: false,
             girder: girder
         });
     },

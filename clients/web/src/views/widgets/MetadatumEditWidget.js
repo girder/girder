@@ -61,7 +61,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             });
         };
 
-        if (this.new) {
+        if (this.newDatum) {
             this.item.addMetadata(tempKey, tempValue, saveCallback, errorCallback);
         } else {
             this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
@@ -74,7 +74,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         this.key = settings.key || '';
         this.value = settings.value || '';
         this.accessLevel = settings.accessLevel;
-        this.new = settings.new;
+        this.newDatum = settings.newDatum;
         this.render();
     },
 
