@@ -9,6 +9,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     deleteMetadatum: function (event) {
+        event.stopImmediatePropagation();
         var metadataList = $(event.currentTarget.parentElement);
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
@@ -17,7 +18,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             confirmCallback: _.bind(function () {
                 this.item.removeMetadata(this.key, function () {
                     metadataList.remove();
-                    this.el.stopListening();
+                    //this.el.stopListening();
                 });
             }, this)
         };
@@ -25,6 +26,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     cancelEdit: function (event) {
+        event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement);
         curRow.removeClass('editing').html(jade.templates.metadatumView({
             key: this.key,
@@ -32,10 +34,11 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             accessLevel: this.accessLevel,
             girder: girder
         }));
-        this.el.stopListening();
+        //this.el.stopListening();
     },
 
     save: function (event) {
+        event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
             tempKey = curRow.find('.g-item-metadata-key-input').val(),
             tempValue = curRow.find('.g-item-metadata-value-input').val();
@@ -66,7 +69,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         } else {
             this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
         }
-        this.el.stopListening();
+        //this.el.stopListening();
     },
 
     initialize: function (settings) {

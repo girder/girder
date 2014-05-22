@@ -26,6 +26,7 @@ girder.models.ItemModel = girder.Model.extend({
             type: 'PUT',
             error: null
         }).done(_.bind(function (resp) {
+            this.set('meta', resp.meta);
             successCallback();
         }, this)).error(_.bind(function (err) {
             err.message = err.responseJSON.message;
@@ -36,7 +37,7 @@ girder.models.ItemModel = girder.Model.extend({
     addMetadata: function (key, value, successCallback, errorCallback) {
         var datum = {};
         datum[key] = value;
-        if (key in this.get('meta')) {
+        if (this.get('meta') && key in this.get('meta')) {
             errorCallback({message: key + ' is already a metadata key'});
             return;
         }
