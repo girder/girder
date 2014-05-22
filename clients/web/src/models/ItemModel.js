@@ -16,6 +16,30 @@ girder.models.ItemModel = girder.Model.extend({
                 callback(this.parent.getAccessLevel());
             }, this).fetch();
         }
+    },
+
+    addMetadata: function (key, value, callback) {
+        var datum = {};
+        datum[key] = value;
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/metadata',
+            contentType: 'application/json',
+            data: JSON.stringify(datum),
+            type: 'PUT',
+            error: null
+        }).done(_.bind(function (resp) {
+            callback();
+        }, this)).error(_.bind(function (err) {
+            console.log(err);
+        }, this));
+    },
+
+    removeMetadata: function (key, callback) {
+        this.addMetadata(key, null, callback);
+    },
+
+    editMetadata: function(newKey, oldKey, value) {
+
     }
 
 });
