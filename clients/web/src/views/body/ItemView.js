@@ -61,6 +61,13 @@ girder.views.ItemView = girder.View.extend({
                 itemId: this.model.get('_id')
             });
 
+            this.metadataWidget = new girder.views.MetadataWidget({
+                el: this.$('.g-item-metadata'),
+                item: this.model,
+                accessLevel: accessLevel,
+                girder: girder
+            });
+
         }, this));
 
         return this;

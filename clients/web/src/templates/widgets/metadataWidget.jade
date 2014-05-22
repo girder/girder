@@ -1,0 +1,12 @@
+include metadatumViewMixin
+if (accessLevel >= girder.AccessType.WRITE)
+  button.btn.btn-sm.btn-primary.g-item-metadata-add-button(title="Add Metadata")
+    i.icon-plus
+.g-item-metadata-header
+  i.icon-tags
+  |  Metadata
+.g-item-metadata-container
+  if (item.get('meta'))
+    each value, key in item.get('meta')
+      .g-item-metadata-row(g-key="#{key}", g-value="#{value}")
+        +metadatum(key, value, accessLevel, girder)
