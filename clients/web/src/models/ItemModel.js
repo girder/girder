@@ -18,13 +18,11 @@ girder.models.ItemModel = girder.Model.extend({
         }
     },
 
-    addMetadata: function (key, value, callback) {
-        var datum = {};
-        datum[key] = value;
+    _sendMetadata: function (metadata, callback) {
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/metadata',
             contentType: 'application/json',
-            data: JSON.stringify(datum),
+            data: JSON.stringify(metadata),
             type: 'PUT',
             error: null
         }).done(_.bind(function (resp) {
@@ -34,12 +32,25 @@ girder.models.ItemModel = girder.Model.extend({
         }, this));
     },
 
+    addMetadata: function (key, value, callback) {
+        var datum = {};
+        datum[key] = value;
+        this._sendMetadata(datum, callback);
+    },
+
     removeMetadata: function (key, callback) {
         this.addMetadata(key, null, callback);
     },
 
-    editMetadata: function(newKey, oldKey, value) {
-
+    editMetadata: function(newKey, oldKey, value, callback) {
+        if (newKey === oldKey) {
+            this.addMetadata(newKey, value, callback);
+        } else {
+            var metas = {};
+            metas[oldKey] = null;
+            metas[newKey] = value;
+            this._sendMetadata(metas, callback);
+        }
     }
 
 });

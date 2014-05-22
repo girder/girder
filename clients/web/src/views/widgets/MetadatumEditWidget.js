@@ -25,32 +25,46 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
     cancelEdit: function (event) {
         var curRow = $(event.currentTarget.parentElement);
-        curRow.removeClass('editing')
-        curRow.html(jade.templates.metadatumView({
+        curRow.removeClass('editing').html(jade.templates.metadatumView({
             key: this.key,
-            value: this.value
+            value: this.value,
+            accessLevel: this.accessLevel,
+            girder: girder
         }));
     },
 
     save: function (event) {
-        var curRow = $(event.currentTarget.parentElement);
-        this.key = curRow.find('.g-item-metadata-key-input').val();
-        this.value = curRow.find('.g-item-metadata-value-input').val();
-        this.item.addMetadata(this.key, this.value, _.bind(function () {
+        var curRow = $(event.currentTarget.parentElement),
+            tempKey = curRow.find('.g-item-metadata-key-input').val(),
+            tempValue = curRow.find('.g-item-metadata-value-input').val();
+
+        var saveCallback = _.bind(function () {
+            this.key = tempKey;
+            this.value = tempValue;
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
                 'g-value': this.value
             }).html(jade.templates.metadatumView({
                 key: this.key,
-                value: this.value
+                value: this.value,
+                accessLevel: this.accessLevel,
+                girder: girder
             }));
-        }, this));
+        }, this);
+
+        if (this.new) {
+            this.item.addMetadata(tempKey, tempValue, saveCallback);
+        } else {
+            this.item.editMetadata(tempKey, this.key, tempValue, saveCallback);
+        }
     },
 
     initialize: function (settings) {
         this.item = settings.item;
         this.key = settings.key || '';
         this.value = settings.value || '';
+        this.accessLevel = settings.accessLevel;
+        this.new = settings.new;
         this.render();
     },
 
@@ -59,6 +73,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             item: this.item,
             key: this.key,
             value: this.value,
+            accessLevel: this.accessLevel,
             girder: girder
         }));
         this.$el.find('.g-item-metadata-key-input').focus();

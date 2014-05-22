@@ -16,6 +16,8 @@ girder.views.MetadataWidget = girder.View.extend({
             item: this.item,
             key: '',
             value: '',
+            new: true,
+            accessLevel: this.accessLevel,
             girder: girder
         });
     },
@@ -28,12 +30,15 @@ girder.views.MetadataWidget = girder.View.extend({
             item: this.item,
             key: row.attr('g-key'),
             value: row.attr('g-value'),
+            accessLevel: this.accessLevel,
+            new: false,
             girder: girder
         });
     },
 
     initialize: function (settings) {
         this.item = settings.item;
+        this.accessLevel = settings.accessLevel;
         this.item.on('g:changed', function () {
             this.render();
         }, this);
@@ -43,6 +48,7 @@ girder.views.MetadataWidget = girder.View.extend({
     render: function () {
         this.$el.html(jade.templates.metadataWidget({
             item: this.item,
+            accessLevel: this.accessLevel,
             girder: girder
         }));
 
