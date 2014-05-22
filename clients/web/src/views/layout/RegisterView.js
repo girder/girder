@@ -65,11 +65,3 @@ girder.views.RegisterView = girder.View.extend({
     }
 
 });
-
-girder.router.route('register', 'register', function () {
-    girder.events.trigger('g:registerUi');
-});
-
-girder.router.route(/^(.*?)\?register$/, 'register', function () {
-    girder.events.trigger('g:registerUi');
-});

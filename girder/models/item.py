@@ -251,7 +251,9 @@ class Item(Model):
 
     def setMetadata(self, item, metadata):
         """
-        Set metadata on an item.
+        Set metadata on an item.  A rest exception is thrown in the cases where
+        the metadata json object is badly formed, or if any of the metadata keys
+        contains a period ('.').
 
         :param item: The item to set the metadata on.
         :type item: dict

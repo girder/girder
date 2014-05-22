@@ -43,10 +43,13 @@ girder.dialogs = {
             queryString = girder.parseQueryString(routeParts.name),
             dialogName = queryString.dialog;
 
-        if (routeParts.base === "") {
-            girder.router.navigate(curRoute + '?dialog=' + name);
-        } else if (routeParts.name !== dialogName) {
-            girder.router.navigate(routeParts.base + '?dialog=' + name);
+        if (dialogName !== name) {
+            queryString.dialog = name;
+            var unparsedQueryString = $.param(queryString);
+            if (unparsedQueryString.length > 0) {
+                unparsedQueryString = '?' + unparsedQueryString;
+            }
+            girder.router.navigate(routeParts.base + unparsedQueryString);
         }
     }
 
