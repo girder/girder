@@ -192,6 +192,18 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
 
+        if parentType == 'folder':
+            parentObject = {'parentId': parent['_id'],
+                            'parentCollection': parentType}
+            pathFromRoot = self.idsToRoot(parentObject, user=creator)
+            if 'baseParentId' not in parent:
+                pathFromRoot = self.idsToRoot(parent, user=creator)
+                parent['baseParentId'] = pathFromRoot[0]['id']
+                parent['baseParentType'] = pathFromRoot[0]['type']
+        else:
+            parent['baseParentId'] = parent['_id']
+            parent['baseParentType'] = parentType
+
         now = datetime.datetime.now()
 
         if creator is None:
@@ -203,6 +215,8 @@ class Folder(AccessControlledModel):
             'name': name,
             'description': description,
             'parentCollection': parentType,
+            'baseParentId': parent['baseParentId'],
+            'baseParentType': parent['baseParentType'],
             'parentId': parent['_id'],
             'creatorId': creatorId,
             'created': now,
@@ -236,3 +250,20 @@ class Folder(AccessControlledModel):
 
         # Validate and save the folder
         return self.save(folder)
+
+    def idsToRoot(self, folder, curPath=[], user=None):
+        """
+        Get the path to traverse to a root of the hierarchy.
+
+        :param item: The item whose root to find
+        :type item: dict
+        :returns: an ordered list of dictionaries from root to the current item
+        """
+        curParentId = folder['parentId']
+        curParentType = folder['parentCollection']
+        curPath = [{'type': curParentType, 'id': curParentId}] + curPath
+        if curParentType == 'user' or curParentType == 'collection':
+            return curPath
+        else:
+            parentObject = self.load(curParentId, user=user)
+            return self.idsToRoot(parentObject, curPath, user=user)

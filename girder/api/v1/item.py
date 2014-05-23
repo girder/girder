@@ -45,7 +45,8 @@ class Item(Resource):
         Filter an item document for display to the user.
         """
         keys = ['_id', 'size', 'updated', 'description', 'created',
-                'meta', 'creatorId', 'folderId', 'name']
+                'meta', 'creatorId', 'folderId', 'name', 'baseParentType',
+                'baseParentId']
 
         filtered = self.filterDocument(item, allow=keys)
 

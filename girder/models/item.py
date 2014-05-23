@@ -88,11 +88,20 @@ class Item(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields,
+                         exc=exc)
 
         if not force and doc is not None:
             self.model('folder').load(doc['folderId'], level, user, objectId,
                                       force, fields)
+
+        if 'baseParentType' not in doc:
+            pathFromRoot = self.idsToRoot(doc, user=user)
+            print doc
+            print pathFromRoot
+            baseParent = pathFromRoot[0]
+            doc['baseParentId'] = baseParent['id']
+            doc['baseParentType'] = baseParent['type']
 
         return doc
 
@@ -226,6 +235,11 @@ class Item(Model):
             # Internal error -- this shouldn't be called without a user.
             raise Exception('Creator must be a user.')
 
+        if 'baseParentType' not in folder:
+            pathFromRoot = self.idsToRoot({'folderId': folder['_id']}, creator)
+            folder['baseParentType'] = pathFromRoot[0]['type']
+            folder['baseParentId'] = pathFromRoot[0]['id']
+
         return self.save({
             'name': name,
             'description': description,
@@ -252,8 +266,8 @@ class Item(Model):
     def setMetadata(self, item, metadata):
         """
         Set metadata on an item.  A rest exception is thrown in the cases where
-        the metadata json object is badly formed, or if any of the metadata keys
-        contains a period ('.').
+        the metadata json object is badly formed, or if any of the metadata
+        keys contains a period ('.').
 
         :param item: The item to set the metadata on.
         :type item: dict
@@ -277,3 +291,16 @@ class Item(Model):
 
         # Validate and save the item
         return self.save(item)
+
+    def idsToRoot(self, item, user=None):
+        """
+        Get the path to traverse to a root of the hierarchy.
+
+        :param item: The item whose root to find
+        :type item: dict
+        :returns: an ordered list of dictionaries from root to the current item
+        """
+        curFolder = self.model('folder').load(item['folderId'], user=user)
+        folderIdsToRoot = self.model('folder').idsToRoot(curFolder, user=user)
+        folderIdsToRoot.append({'type': 'folder', 'id': curFolder['_id']})
+        return folderIdsToRoot

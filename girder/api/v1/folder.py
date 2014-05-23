@@ -46,7 +46,8 @@ class Folder(Resource):
         Filter a folder document for display to the user.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
-                'size', 'parentId', 'parentCollection', 'creatorId']
+                'size', 'parentId', 'parentCollection', 'creatorId',
+                'baseParentType', 'baseParentId']
 
         filtered = self.filterDocument(folder, allow=keys)
 

@@ -39,12 +39,14 @@ girder.views.ItemView = girder.View.extend({
 
     deleteItem: function () {
         var folderId = this.model.get('folderId');
+        var parentRoute = this.model.get('baseParentType') + '/' +
+            this.model.get('baseParentId') + '/folder/' + folderId;
         girder.confirm({
             text: 'Are you sure you want to delete <b>' + this.model.get('name') + '</b>?',
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 this.model.destroy().on('g:deleted', function () {
-                    girder.router.navigate('collections', {trigger: true});
+                    girder.router.navigate(parentRoute, {trigger: true});
                 });
             }, this)
         });
