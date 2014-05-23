@@ -36,6 +36,7 @@ class Item(Resource):
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
+        self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
@@ -258,5 +259,17 @@ class Item(Resource):
     deleteItem.description = (
         Description('Delete an item by ID.')
         .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the item.', 403))
+
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def rootpath(self, item, params):
+        """
+        Get the path to the root of the item's parent hierarchy.
+        """
+        return self.model('item').idsToRoot(item, self.getCurrentUser())
+    rootpath.description = (
+        Description('Get the path to the root of the item\'s hierarchy')
+        .param('id', 'The ID of the item', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the item.', 403))

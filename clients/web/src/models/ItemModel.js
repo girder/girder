@@ -16,6 +16,19 @@ girder.models.ItemModel = girder.Model.extend({
                 callback(this.parent.getAccessLevel());
             }, this).fetch();
         }
+    },
+
+    /**
+     * Get the path to the root of the hierarcy
+     */
+    getRootPath: function (callback) {
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/rootpath'
+        }).done(_.bind(function (resp) {
+            callback(resp);
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
     }
 
 });

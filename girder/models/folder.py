@@ -251,7 +251,7 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
-    def idsToRoot(self, folder, curPath=[], user=None):
+    def idsToRoot(self, folder, curPath=[], user=None, force=False):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -265,5 +265,6 @@ class Folder(AccessControlledModel):
         if curParentType == 'user' or curParentType == 'collection':
             return curPath
         else:
-            parentObject = self.load(curParentId, user=user)
-            return self.idsToRoot(parentObject, curPath, user=user)
+            parentObject = self.load(curParentId, user=user, force=force)
+            return self.idsToRoot(parentObject, curPath, user=user,
+                                  force=force)

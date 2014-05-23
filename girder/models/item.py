@@ -95,10 +95,8 @@ class Item(Model):
             self.model('folder').load(doc['folderId'], level, user, objectId,
                                       force, fields)
 
-        if 'baseParentType' not in doc:
-            pathFromRoot = self.idsToRoot(doc, user=user)
-            print doc
-            print pathFromRoot
+        if doc is not None and 'baseParentType' not in doc:
+            pathFromRoot = self.idsToRoot(doc, user=user, force=force)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['id']
             doc['baseParentType'] = baseParent['type']
@@ -292,7 +290,7 @@ class Item(Model):
         # Validate and save the item
         return self.save(item)
 
-    def idsToRoot(self, item, user=None):
+    def idsToRoot(self, item, user=None, force=False):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -300,7 +298,9 @@ class Item(Model):
         :type item: dict
         :returns: an ordered list of dictionaries from root to the current item
         """
-        curFolder = self.model('folder').load(item['folderId'], user=user)
-        folderIdsToRoot = self.model('folder').idsToRoot(curFolder, user=user)
+        curFolder = self.model('folder').load(item['folderId'], user=user,
+                                              force=force)
+        folderIdsToRoot = self.model('folder').idsToRoot(curFolder, user=user,
+                                                         force=force)
         folderIdsToRoot.append({'type': 'folder', 'id': curFolder['_id']})
         return folderIdsToRoot
