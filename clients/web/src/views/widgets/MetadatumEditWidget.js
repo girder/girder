@@ -27,12 +27,16 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     cancelEdit: function (event) {
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement);
-        curRow.removeClass('editing').html(jade.templates.metadatumView({
-            key: this.key,
-            value: this.value,
-            accessLevel: this.accessLevel,
-            girder: girder
-        }));
+        if (this.newDatum) {
+            curRow.remove();
+        } else {
+            curRow.removeClass('editing').html(jade.templates.metadatumView({
+                key: this.key,
+                value: this.value,
+                accessLevel: this.accessLevel,
+                girder: girder
+            }));
+        }
     },
 
     save: function (event) {
@@ -40,6 +44,14 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         var curRow = $(event.currentTarget.parentElement),
             tempKey = curRow.find('.g-item-metadata-key-input').val(),
             tempValue = curRow.find('.g-item-metadata-value-input').val();
+
+        if (this.newDatum && tempKey === "") {
+            girder.events.trigger('g:alert', {
+                'text': 'A key is required for all metadata.',
+                'type': 'warning'
+            });
+            return;
+        }
 
         var saveCallback = _.bind(function () {
             this.key = tempKey;
@@ -53,6 +65,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
                 accessLevel: this.accessLevel,
                 girder: girder
             }));
+            this.newDatum = false;
         }, this);
 
         var errorCallback = function (out) {
@@ -84,6 +97,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             key: this.key,
             value: this.value,
             accessLevel: this.accessLevel,
+            newDatum: this.newDatum,
             girder: girder
         }));
         this.$el.find('.g-item-metadata-key-input').focus();
