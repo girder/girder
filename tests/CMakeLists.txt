@@ -50,6 +50,8 @@ add_python_test(system)
 add_python_test(user)
 add_python_test(webroot)
 
+add_web_client_test(user "${PROJECT_SOURCE_DIR}/clients/web/test/spec/userSpec.js")
+
 add_subdirectory(clients)
 
 # Look for CMakeLists.txt in plugin dirs, include if they exist
