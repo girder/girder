@@ -312,7 +312,7 @@ module.exports = function (grunt) {
         globs.forEach(function (glob) {
             var files = grunt.file.expand(glob);
             files.forEach(function (file) {
-                inputs.push(process.cwd() + '/' + file);
+                inputs.push('../../../../' + file);
             });
         });
 

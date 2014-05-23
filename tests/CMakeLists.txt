@@ -49,7 +49,7 @@ add_python_test(search)
 add_python_test(system)
 add_python_test(user)
 
-add_web_client_test(user "${PROJECT_SOURCE_DIR}/clients/web/test/TestRunner.html")
+add_web_client_test(user "${PROJECT_SOURCE_DIR}/clients/web/test/spec/userSpec.js")
 
 add_subdirectory(clients)
 

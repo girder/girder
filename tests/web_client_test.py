@@ -45,8 +45,14 @@ class WebClientTestCase(base.TestCase):
             os.path.join(
                 ROOT_DIR, 'clients', 'web', 'test', 'lib', 'blanket',
                 'phantom_jasmine_runner.js'),
+            os.path.join(
+                ROOT_DIR, 'clients', 'web', 'static', 'built', 'testEnv.html'),
             self.specFile
         )
+
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            print stdout
+            print stderr
         self.assertEqual(process.returncode, 0)

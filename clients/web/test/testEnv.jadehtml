@@ -13,29 +13,22 @@ html(lang="en")
 
     script(type="text/javascript").
       (function () {
-          window.blanketTestJasmineExpected=2;
           var jasmineEnv = jasmine.getEnv();
           var htmlReporter = new jasmine.HtmlReporter();
           var consoleReporter = new jasmine.ConsoleReporter();
           window.jasmine_phantom_reporter = consoleReporter;
 
-          jasmineEnv.updateInterval = 1000;
           jasmineEnv.addReporter(htmlReporter);
           jasmineEnv.addReporter(consoleReporter);
-          jasmineEnv.execute();
 
           var currentWindowOnload = window.onload;
 
-          window.onload = function() {
+          window.onload = function () {
               if (currentWindowOnload) {
                   currentWindowOnload();
               }
-              execJasmine();
-          };
-
-          function execJasmine() {
               jasmineEnv.execute();
-          }
+          };
       })();
 
   body
