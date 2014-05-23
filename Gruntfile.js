@@ -18,6 +18,7 @@ module.exports = function (grunt) {
     var apiRoot;
     var staticRoot;
     var fs = require('fs');
+    var jade = require('jade');
     var path = require('path');
     require('colors');
 
@@ -294,7 +295,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
         var fn = jade.compile(buffer, {
@@ -302,6 +302,27 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({
             staticRoot: staticRoot
+        }));
+    });
+
+    grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
+        var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
+        var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
+        var inputs = [];
+        globs.forEach(function (glob) {
+            var files = grunt.file.expand(glob);
+            files.forEach(function (file) {
+                inputs.push(process.cwd() + '/' + file);
+            });
+        });
+
+        var fn = jade.compile(buffer, {
+            client: false,
+            pretty: true
+        });
+        fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
+            cssFiles: [],
+            jsFiles: inputs
         }));
     });
 
@@ -333,7 +354,8 @@ module.exports = function (grunt) {
         'uglify:libs',
         'copy:swagger',
         'shell:readServerConfig',
-        'swagger-ui'
+        'swagger-ui',
+        'test-env-html'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);
