@@ -18,7 +18,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             confirmCallback: _.bind(function () {
                 this.item.removeMetadata(this.key, function () {
                     metadataList.remove();
-                    //this.el.stopListening();
                 });
             }, this)
         };
@@ -34,7 +33,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             accessLevel: this.accessLevel,
             girder: girder
         }));
-        //this.el.stopListening();
     },
 
     save: function (event) {
@@ -69,7 +67,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         } else {
             this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
         }
-        //this.el.stopListening();
     },
 
     initialize: function (settings) {
