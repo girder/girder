@@ -27,6 +27,10 @@ import argparse
 import collections
 import glob
 import os
+import sys
+import time
+
+import xml.etree.cElementTree as ET
 
 
 def reset(args):
@@ -58,8 +62,8 @@ def combine_report(args):
                     lineNum, hit = [int(x) for x in line[1:].split()]
                     currentSource[lineNum] |= hit
 
-    # Step 2: Calculate aggregate coverage
-    aggregate = {
+    # Step 2: Calculate final aggregate and per-file coverage statistics
+    stats = {
         'totalSloc': 0,
         'totalHits': 0,
         'files': {}
@@ -70,20 +74,64 @@ def combine_report(args):
             sloc += 1
             hits += hit
 
-        aggregate['totalSloc'] += sloc
-        aggregate['totalHits'] += hits
-        aggregate['files'][file] = {
+        stats['totalSloc'] += sloc
+        stats['totalHits'] += hits
+        stats['files'][file] = {
             'sloc': sloc,
-            'hits': hits,
-            'lines': lines
+            'hits': hits
         }
 
     # Step 3: Generate the report
-    report(aggregate)
+    report(args, combined, stats)
 
 
-def report(data):
-    print data
+def report(args, combined, stats):
+    """
+    Generate a cobertura-compliant XML coverage report in the current working
+    directory.
+    """
+    percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
+    print 'Overall total: {} / {} ({:.2f}%)'.format(
+        stats['totalHits'], stats['totalSloc'], percent)
+
+    coverageEl = ET.Element('coverage', {
+        'branch-rate': '0',
+        'line-rate': str(percent / 100),
+        'version': '3.6',
+        'timestamp': str(int(time.time()))
+    })
+    packagesEl = ET.SubElement(coverageEl, 'packages')
+    packageEl = ET.SubElement(packagesEl, 'package', {
+        'branch-rate': '0',
+        'complexity': '0',
+        'line-rate': str(percent / 100),
+        'name': ''
+    })
+    classesEl = ET.SubElement(packageEl, 'classes')
+
+    for file, data in combined.iteritems():
+        lineRate = (float(stats['files'][file]['hits']) /
+                    float(stats['files'][file]['sloc']))
+        classEl = ET.SubElement(classesEl, 'class', {
+            'branch-rate': '0',
+            'complexity': '0',
+            'line-rate': str(lineRate),
+            'filename': file,
+            'name': file
+        })
+        linesEl = ET.SubElement(classEl, 'lines')
+        ET.SubElement(classEl, 'methods')
+        for lineNum, hit in data.iteritems():
+            ET.SubElement(linesEl, 'line', {
+                'number': str(lineNum),
+                'hits': str(hit)
+            })
+
+    tree = ET.ElementTree(coverageEl)
+    tree.write('js_coverage.xml')
+    if percent < args.threshold:
+        print 'FAIL: Coverage below threshold ({}%)'.format(args.threshold)
+        sys.exit(1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
