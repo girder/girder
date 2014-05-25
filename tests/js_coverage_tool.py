@@ -24,6 +24,7 @@ as to combine and report it once all of the tests have been run.
 """
 
 import argparse
+import collections
 import glob
 import os
 
@@ -43,7 +44,46 @@ def combine_report(args):
     Combine all of the intermediate coverage files from each js test, and then
     report them into the desired output format(s).
     """
-    pass
+
+    # Step 1: Read and combine intermediate reports
+    combined = collections.defaultdict(lambda: collections.defaultdict(int))
+    currentSource = None
+    files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
+    for file in files:
+        with open(file) as f:
+            for line in f:
+                if line[0] == 'F':
+                    currentSource = combined[line[1:].strip()]
+                elif line[0] == 'L':
+                    lineNum, hit = [int(x) for x in line[1:].split()]
+                    currentSource[lineNum] |= hit
+
+    # Step 2: Calculate aggregate coverage
+    aggregate = {
+        'totalSloc': 0,
+        'totalHits': 0,
+        'files': {}
+    }
+    for file, lines in combined.iteritems():
+        hits, sloc = 0, 0
+        for lineNum, hit in lines.iteritems():
+            sloc += 1
+            hits += hit
+
+        aggregate['totalSloc'] += sloc
+        aggregate['totalHits'] += hits
+        aggregate['files'][file] = {
+            'sloc': sloc,
+            'hits': hits,
+            'lines': lines
+        }
+
+    # Step 3: Generate the report
+    report(aggregate)
+
+
+def report(data):
+    print data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
