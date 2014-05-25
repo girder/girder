@@ -1,42 +1,12 @@
 # Set this variable to the minimum coverage percentage to be considered passing
 set(COVERAGE_MINIMUM_PASS 80)
+set(JS_COVERAGE_MINIMUM_PASS 5)
 
-if(PYTHON_COVERAGE)
-  add_test(
-    NAME py_coverage_reset
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${py_coverage_rc}"
-  )
-  add_test(
-    NAME py_coverage_combine
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
-  )
-  add_test(
-    NAME py_coverage
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report --fail-under=${COVERAGE_MINIMUM_PASS}
-  )
-  add_test(
-    NAME py_coverage_html
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
-            "--title=Girder Coverage Report"
-  )
-  add_test(
-    NAME py_coverage_xml
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml -o "${PROJECT_BINARY_DIR}/coverage.xml"
-  )
-  set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
-  set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
-  set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
-endif()
+python_tests_init()
+javascript_tests_init()
 
-if(PYTHON_STYLE_TESTS)
-  add_python_style_test(pep8_style_core "${PROJECT_SOURCE_DIR}/girder")
-  add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
-endif()
+add_python_style_test(pep8_style_core "${PROJECT_SOURCE_DIR}/girder")
+add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
 add_python_test(collection)
 add_python_test(events NO_LOCK)
