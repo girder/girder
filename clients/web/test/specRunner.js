@@ -19,9 +19,7 @@ if (phantom.args.length < 2) {
 var pageUrl = phantom.args[0];
 var spec = phantom.args[1];
 var coverageOutput = phantom.args[2] || null;
-var coverageThreshold = phantom.args[3] || 5;
 var page = new WebPage();
-var covgOutput = '';
 var accumCoverage = false;
 
 var fs = require('fs');
@@ -31,16 +29,14 @@ if (coverageOutput) {
 }
 
 var terminate = function () {
-    var status = this.page.evaluate(function (threshold) {
+    var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === "success") {
-            return window.coverageHandler.handleCoverage(window._$blanket, {
-                threshold: threshold
-            });
+            return window.coverageHandler.handleCoverage(window._$blanket);
         }
         else {
             return false;
         }
-    }, coverageThreshold);
+    });
 
     if (status) {
         phantom.exit(0);

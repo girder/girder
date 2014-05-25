@@ -25,16 +25,17 @@ function(add_python_style_test name input)
 endfunction()
 
 function(add_web_client_test name specFile)
-  set(name "web_client_${name}")
+  set(testname "web_client_${name}")
   add_test(
-      NAME ${name}
+      NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.web_client_test
   )
   message(${PROJECT_SOURCE_DIR})
-  set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
-  set_property(TEST ${name} PROPERTY ENVIRONMENT
-    "SPEC_FILE=${specFile}" "BUILD_DIR=${PROJECT_BINARY_DIR}"
+  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
+  set_property(TEST ${testname} PROPERTY ENVIRONMENT
+    "SPEC_FILE=${specFile}"
+    "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${name}.cvg"
   )
 endfunction()
 
