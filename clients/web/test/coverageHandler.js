@@ -46,6 +46,14 @@ window.coverageHandler = (function () {
     };
 
     /**
+     * Transforms the source file name from a full path to a path relative
+     * to the root of the repository for portability.
+     */
+    var _transformFilename = function (filename) {
+        return filename.substring(filename.indexOf('clients/web/'));
+    };
+
+    /**
      * Writes the coverage output as a cobertura-compliant XML file. Flushes
      * the output in chunks to the console with the expecation that it will
      * be consumed and written to a file by the containing environment.
@@ -101,7 +109,8 @@ window.coverageHandler = (function () {
             };
 
             _.each(cov, function(data, filename) {
-                perFile[filename] = _getDataForFile(data, overall);
+                var shortFilename = _transformFilename(filename);
+                perFile[shortFilename] = _getDataForFile(data, overall);
             });
 
             overall.coverage = overall.sloc > 0 ?
