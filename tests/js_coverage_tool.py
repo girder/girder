@@ -48,6 +48,9 @@ def combine_report(args):
     Combine all of the intermediate coverage files from each js test, and then
     report them into the desired output format(s).
     """
+    if not os.path.exists(args.coverage_dir):
+        raise Exception('Coverage directory {} does not exist.'.format(
+            args.coverage_dir))
 
     # Step 1: Read and combine intermediate reports
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
@@ -146,10 +149,6 @@ if __name__ == '__main__':
                         'intermediate coverage files.')
 
     args = parser.parse_args()
-
-    if not os.path.exists(args.coverage_dir):
-        raise Exception('Coverage directory {} does not exist.'.format(
-            args.coverage_dir))
 
     if args.task == 'reset':
         reset(args)
