@@ -52,6 +52,13 @@ girder.views.MetadataWidget = girder.View.extend({
             girder: girder
         }));
 
+        this.$('.g-item-metadata-add-button').tooltip({
+            container: this.$el,
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
+
         return this;
     }
 
