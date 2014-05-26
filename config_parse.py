@@ -5,7 +5,10 @@ import json
 import os
 import sys
 
-from ConfigParser import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
@@ -20,4 +23,4 @@ if __name__ == '__main__':
     config = ConfigParser()
     config.read(f)
 
-    print json.dumps({k: dict(config.items(k)) for k in config.sections()})
+    print(json.dumps({k: dict(config.items(k)) for k in config.sections()}))
