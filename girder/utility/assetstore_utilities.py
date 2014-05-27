@@ -23,6 +23,7 @@ from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.constants import AssetstoreType
+from girder import events
 
 
 def getAssetstoreAdapter(assetstore):
