@@ -40,6 +40,11 @@ def getAssetstoreAdapter(assetstore):
         assetstoreAdapter = GridFsAssetstoreAdapter(assetstore)
     elif assetstore['type'] == AssetstoreType.S3:
         raise Exception('S3 assetstore adapter not implemented.')
+    else:
+       e = events.trigger('assetstore.adapter.get', assetstore)
+       if len(e.responses) > 0:
+           return e.responses[-1]
+       raise Exception('No AssetstoreAdapter for type: ' + assetstore['type'])
 
     return assetstoreAdapter
 
