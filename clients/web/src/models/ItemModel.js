@@ -37,7 +37,8 @@ girder.models.ItemModel = girder.Model.extend({
     addMetadata: function (key, value, successCallback, errorCallback) {
         var datum = {};
         datum[key] = value;
-        if (this.get('meta') && key in this.get('meta')) {
+        var meta = this.get('meta');
+        if (meta && key in meta) {
             errorCallback({message: key + ' is already a metadata key'});
             return;
         }

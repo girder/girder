@@ -14,6 +14,12 @@ girder.views.ItemListWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.checked = [];
+
+        new girder.views.LoadingAnimation({
+            el: this.$el
+        }).render();
+
+
         this.collection = new girder.collections.ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
