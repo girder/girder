@@ -6,10 +6,6 @@ set(CTEST_SITE "Travis")
 set(CTEST_BUILD_NAME "Linux-$ENV{TRAVIS_BRANCH}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
-file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "
-PYTHON_COVERAGE:BOOL=ON
-")
-
 ctest_start("Continuous")
 ctest_configure()
 ctest_build()
