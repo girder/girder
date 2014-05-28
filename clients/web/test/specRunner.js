@@ -1,58 +1,66 @@
 /**
+ * Copyright Kitware Inc.
+ *
  * This is the phantomjs runtime script that invokes the girder app in test
  * mode. The test mode page is built with grunt and lives at:
  * clients/web/static/built/testEnv.html. It then executes a jasmine spec within
- * the context of that test application.
+ * the context of that test application, and afterwards runs our custom coverage
+ * handler on the coverage data.
  */
-var PhantomJasmineRunner = function () {
-    function PhantomJasmineRunner (page, exitFunc) {
-        this.page = page;
-        this.exitFunc = exitFunc || phantom.exit;
-    }
-
-    PhantomJasmineRunner.prototype.getStatus = function () {
-        return this.page.evaluate(function (threshold) {
-            if (window.jasmine_phantom_reporter.status === "success"){
-                return window.travisCov.check(window._$blanket, {
-                    threshold: threshold
-                });
-            }
-            else {
-                return false;
-            }
-        }, coverageThreshold);
-    };
-
-    PhantomJasmineRunner.prototype.terminate = function () {
-        if (this.getStatus()) {
-            return this.exitFunc(0);
-        }
-        else {
-            return this.exitFunc(1);
-        }
-    };
-
-    return PhantomJasmineRunner;
-}();
 
 if (phantom.args.length < 2) {
-    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec>');
+    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output>]');
     console.error('  <page> is the path to the HTML page to load');
     console.error('  <spec> is the path to the jasmine spec to run.');
+    console.error('  <covg_output> is the path to a file to write coverage into.');
     phantom.exit(2);
 }
 
 var pageUrl = phantom.args[0];
 var spec = phantom.args[1];
-var coverageThreshold = phantom.args[2] || 5;
+var coverageOutput = phantom.args[2] || null;
 var page = new WebPage();
-var runner = new PhantomJasmineRunner(page);
+var accumCoverage = false;
+
+var fs = require('fs');
+
+if (coverageOutput) {
+    fs.write(coverageOutput, '', 'w');
+}
+
+var terminate = function () {
+    var status = this.page.evaluate(function () {
+        if (window.jasmine_phantom_reporter.status === "success") {
+            return window.coverageHandler.handleCoverage(window._$blanket);
+        }
+        else {
+            return false;
+        }
+    });
+
+    if (status) {
+        phantom.exit(0);
+    }
+    else {
+        phantom.exit(1);
+    }
+};
 
 page.onConsoleMessage = function (msg) {
-  console.log(msg);
-  if (msg === 'ConsoleReporter finished') {
-    return runner.terminate();
-  }
+    if (accumCoverage && coverageOutput) {
+        try {
+            fs.write(coverageOutput, msg, 'a');
+        } catch (e) {
+            console.log('Exception writing coverage results: ', e);
+        }
+    }
+    else {
+        console.log(msg);
+    }
+    if (msg === 'ConsoleReporter finished') {
+        accumCoverage = true;
+        return terminate();
+    }
 };
 
 page.onError = function (msg, trace) {
@@ -74,7 +82,7 @@ page.onLoadFinished = function (status) {
         phantom.exit(1);
     }
 
-    page.injectJs('travisCov.js');
+    page.injectJs('coverageHandler.js');
     if(!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
@@ -87,4 +95,3 @@ page.open(pageUrl, function (status) {
         phantom.exit(1);
     }
 });
-

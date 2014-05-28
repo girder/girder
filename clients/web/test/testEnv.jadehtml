@@ -14,11 +14,9 @@ html(lang="en")
     script(type="text/javascript").
       (function () {
           var jasmineEnv = jasmine.getEnv();
-          var htmlReporter = new jasmine.HtmlReporter();
           var consoleReporter = new jasmine.ConsoleReporter();
           window.jasmine_phantom_reporter = consoleReporter;
 
-          jasmineEnv.addReporter(htmlReporter);
           jasmineEnv.addReporter(consoleReporter);
 
           var currentWindowOnload = window.onload;

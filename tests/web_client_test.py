@@ -36,18 +36,18 @@ def tearDownModule():
 class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
+        self.coverageFile = os.environ['COVERAGE_FILE']
         base.TestCase.setUp(self)
 
     def testWebClientSpec(self):
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
-            os.path.join(
-                ROOT_DIR, 'clients', 'web', 'test', 'lib', 'blanket',
-                'phantom_jasmine_runner.js'),
+            os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             os.path.join(
                 ROOT_DIR, 'clients', 'web', 'static', 'built', 'testEnv.html'),
-            self.specFile
+            self.specFile,
+            self.coverageFile
         )
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
