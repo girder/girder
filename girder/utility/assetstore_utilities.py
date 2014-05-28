@@ -23,6 +23,7 @@ from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.constants import AssetstoreType
+from girder import events
 
 
 def getAssetstoreAdapter(assetstore):
@@ -40,6 +41,11 @@ def getAssetstoreAdapter(assetstore):
         assetstoreAdapter = GridFsAssetstoreAdapter(assetstore)
     elif assetstore['type'] == AssetstoreType.S3:
         raise Exception('S3 assetstore adapter not implemented.')
+    else:
+        e = events.trigger('assetstore.adapter.get', assetstore)
+        if len(e.responses) > 0:
+            return e.responses[-1]
+        raise Exception('No AssetstoreAdapter for type: ' + assetstore['type'])
 
     return assetstoreAdapter
 

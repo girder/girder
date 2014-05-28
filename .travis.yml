@@ -15,8 +15,7 @@ script:
     - mkdir _build
     - cd _build
     - cmake -D PYTHON_COVERAGE:BOOL=ON ..
-    - ctest -VV -S ../cmake/travis_build.cmake
-    - ctest -V -S ../cmake/travis_submit.cmake
+    - ctest -VV -S ../cmake/travis_continuous.cmake
     - cd ..
     - git fetch --unshallow
 deploy:

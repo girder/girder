@@ -102,6 +102,13 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         }));
         this.$el.find('.g-item-metadata-key-input').focus();
 
+        this.$('[title]').tooltip({
+            container: this.$el,
+            placement: 'bottom',
+            animation: false,
+            delay: {show: 100}
+        });
+
         return this;
     }
 

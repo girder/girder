@@ -32,7 +32,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-admin': function () {
-            girder.router.navigate('admin');
+            girder.router.navigate('admin', {trigger: true});
         }
     },
 
