@@ -136,6 +136,8 @@ def endpoint(fun):
             val = {'message': e.message, 'type': 'validation'}
             if e.field is not None:
                 val['field'] = e.field
+        except cherrypy.HTTPRedirect:
+            raise
         except:  # pragma: no cover
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')

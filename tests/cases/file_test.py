@@ -303,3 +303,47 @@ class FileTestCase(base.TestCase):
         self.assertEqual(sha512().hexdigest(), empty['sha512'])
         self._testDownloadFile(empty, '')
         self._testDeleteFile(empty)
+
+    def testLinkFile(self):
+
+        params = {
+            'parentType': 'folder',
+            'parentId': self.privateFolder['_id'],
+            'name': 'My Link Item',
+            'linkUrl': 'javascript:alert("x");'
+        }
+
+        # Try to create a link file with a disallowed URL, should be rejected
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params=params)
+        self.assertValidationError(resp, 'linkUrl')
+
+        # Create a valid link file
+        params['linkUrl'] = ' http://www.google.com  '
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params=params)
+        self.assertStatusOk(resp)
+        file = resp.json
+        self.assertEqual(file['assetstoreId'], None)
+        self.assertEqual(file['name'], 'My Link Item')
+        self.assertEqual(file['linkUrl'], params['linkUrl'].strip())
+
+        # Attempt to download the link file, make sure we are redirected
+        resp = self.request(
+            path='/file/{}/download'.format(file['_id']), method='GET',
+            isJson=False, user=self.user)
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'], params['linkUrl'].strip())
+
+        # Download containing folder as zip file
+        resp = self.request(
+            path='/folder/{}/download'.format(self.privateFolder['_id']),
+            method='GET', user=self.user, isJson=False)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        body = ''.join([str(_) for _ in resp.body])
+        zip = zipfile.ZipFile(io.BytesIO(body), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        # The file should just contain the URL of the link
+        extracted = zip.read('Private/My Link Item')
+        self.assertEqual(extracted, params['linkUrl'].strip())
