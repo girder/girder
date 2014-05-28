@@ -127,10 +127,13 @@ class AsyncEventsThread(threading.Thread):
 
         while(not self.terminate):
             eventName, info, callback = self.eventQueue.get(block=True)
-            event = trigger(eventName, info)
-
-            if isinstance(callback, types.FunctionType):
-                callback(event)
+            try:
+                event = trigger(eventName, info)
+                if isinstance(callback, types.FunctionType):
+                    callback(event)
+            except:
+                logger.exception('In handler for event "{}":'.format(eventName))
+                pass  # Must continue the event loop even if handler failed
 
         print TerminalColor.info('Stopped asynchronous event manager thread.')
 
@@ -213,11 +216,7 @@ def trigger(eventName, info=None):
     e = Event(eventName, info)
     for handlerName, handler in _mapping.get(eventName, {}).iteritems():
         e.currentHandlerName = handlerName
-        try:
-            handler(e)
-        except:
-            logger.exception('In handler "{}" for event "{}":'
-                             .format(handlerName, eventName))
+        handler(e)
 
         if e.propagate is False:
             break
