@@ -5,8 +5,7 @@ ul.g-file-list
                          target="{file.get('linkUrl') ? '_blank' : '_self'}")
         if (file.get('linkUrl'))
           i.icon-link
-          | #{file.get('name')}
-          span.g-linkfile-spacer
+          span.g-file-name #{file.get('name')}
           i.icon-link-ext
         else
           i.icon-doc-inv
