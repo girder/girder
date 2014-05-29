@@ -15,9 +15,22 @@ vegaPlugin.views.VegaWidget = girder.View.extend({
     render: function () {
         var meta = this.item.get('meta');
 
-        if (this.accessLevel >= girder.AccessType.READ && meta && meta.lyra) {
+        if (this.accessLevel >= girder.AccessType.READ && meta && meta.vega) {
             $("#g-app-body-container")
                 .append(jade.templates.vega());
+            $.ajax({
+                url: "/api/v1/item/" + this.item.get("_id") + "/download",
+                type: "GET",
+                dataType: "json",
+                success: function (spec) {
+                    vg.parse.spec(spec, function (chart) {
+                        chart({
+                            el: ".g-item-vega-vis",
+                            renderer: "svg"
+                        }).update();
+                    });
+                }
+            });
         } else {
             $(".g-item-vega")
                 .remove();
