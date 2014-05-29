@@ -13,6 +13,7 @@ set(CTEST_BUILD_NAME "Linux-master-nightly")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 ctest_start("Nightly")
+ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
 ctest_configure()
 ctest_build()
 ctest_test(PARALLEL_LEVEL 3 RETURN_VALUE res)
