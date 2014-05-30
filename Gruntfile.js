@@ -150,10 +150,10 @@ module.exports = function (grunt) {
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
                         'node_modules/d3/d3.js',
-                        'clients/web/lib/js/bootstrap.min.js',
-                        'clients/web/lib/js/bootstrap-switch.min.js',
-                        'clients/web/lib/js/jquery.jqplot.min.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.min.js'
+                        'clients/web/lib/js/bootstrap.js',
+                        'clients/web/lib/js/bootstrap-switch.js',
+                        'clients/web/lib/js/jquery.jqplot.js',
+                        'clients/web/lib/js/jqplot.pieRenderer.js'
                     ],
                     'clients/web/static/built/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
