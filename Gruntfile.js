@@ -36,7 +36,7 @@ module.exports = function (grunt) {
             console.log('API root: ' + apiRoot.bold);
         }
         catch (e) {
-            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
+            grunt.warn('Invalid json from config_parse: ' + stdout);
         }
         callback();
     };
@@ -104,7 +104,7 @@ module.exports = function (grunt) {
                 }
             },
             readServerConfig: {
-                command: 'python config_parse.py girder/conf/local.server.cfg',
+                command: 'python config_parse.py girder/conf/girder.local.cfg',
                 options: {
                     stdout: false,
                     callback: setServerConfig
@@ -328,20 +328,15 @@ module.exports = function (grunt) {
 
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        // Copy all configuration files that don't already exist
-        var cfgDir = 'girder/conf';
-        var configs = grunt.file.expand(cfgDir + '/*.cfg');
-        configs.forEach(function (config) {
-            var name = path.basename(config);
-            if (name.substring(0, 5) === 'local') {
-                return;
-            }
-            var local = cfgDir + '/local.' + name;
-            if (!fs.existsSync(local)) {
-                fs.writeFileSync(local, fs.readFileSync(config));
-                console.log('Created config ' + local.magenta + '.');
-            }
-        });
+        // If the local config file doesn't exist, we make it
+        var confDir = 'girder/conf';
+        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
+            fs.writeFileSync(
+                confDir + '/girder.local.cfg',
+                fs.readFileSync(confDir + '/girder.dist.cfg')
+            );
+            console.log('Created local config file.');
+        }
     });
 
     grunt.registerTask('build-js', [
