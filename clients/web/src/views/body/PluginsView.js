@@ -3,6 +3,10 @@
  */
 girder.views.PluginsView = girder.View.extend({
     events: {
+        'click a.g-plugin-config-link': function (evt) {
+            var route = $(evt.currentTarget).attr('g-route');
+            girder.router.navigate(route, {trigger: true});
+        }
     },
 
     initialize: function (settings) {
@@ -28,6 +32,7 @@ girder.views.PluginsView = girder.View.extend({
         _.each(this.allPlugins, function (info, name) {
             if (this.enabled.indexOf(name) >= 0) {
                 info.enabled = true;
+                info.configRoute = girder.getPluginConfigRoute(name);
             }
         }, this);
 
@@ -50,6 +55,12 @@ girder.views.PluginsView = girder.View.extend({
                 }
                 view._updatePlugins();
             });
+        this.$('.g-plugin-config-link').tooltip({
+            container: this.$el,
+            animation: false,
+            placement: 'bottom',
+            delay: {show: 100}
+        });
 
         return this;
     },

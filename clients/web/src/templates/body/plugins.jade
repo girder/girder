@@ -6,5 +6,11 @@
     .g-plugin-list-item
       input.g-plugin-switch(type="checkbox", key="#{key}",
                             checked=(plugin.enabled ? "checked" : undefined))
-      .g-plugin-name #{plugin.name}
+      .g-plugin-name
+        | #{plugin.name}
+        if(plugin.configRoute)
+          a.g-plugin-config-link(g-route="#{plugin.configRoute}",
+                                 title="Configure Plugin")
+            i.icon-cog
       .g-plugin-description #{plugin.description}
+

@@ -134,3 +134,21 @@ girder.parseQueryString = function (queryString) {
     }
     return params;
 };
+
+
+(function () {
+    var _pluginConfigRoutes = {};
+
+    /**
+     * Expose a plugin configuration page via the admin plugins page.
+     * @param pluginName The canonical plugin name, i.e. its directory name
+     * @param route The route to trigger that will render the plugin config.
+     */
+    girder.exposePluginConfig = function (pluginName, route) {
+        _pluginConfigRoutes[pluginName] = route;
+    };
+
+    girder.getPluginConfigRoute = function (pluginName) {
+        return _pluginConfigRoutes[pluginName];
+    };
+})();
