@@ -40,27 +40,88 @@ class File(Model):
         file is stored in, and call deleteFile on it, then delete the file
         record from the database.
         """
-        assetstore = self.model('assetstore').load(file['assetstoreId'])
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        adapter.deleteFile(file)
+        if file.get('assetstoreId'):
+            assetstore = self.model('assetstore').load(file['assetstoreId'])
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            adapter.deleteFile(file)
         Model.remove(self, file)
 
     def download(self, file, offset=0, headers=True):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
-        file is stored in, and call downloadFile on it.
+        file is stored in, and call downloadFile on it. If the file is a link
+        file rather than a file in an assetstore, we redirect to it.
         """
-        assetstore = self.model('assetstore').load(file['assetstoreId'])
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        return adapter.downloadFile(file, offset=offset, headers=headers)
+        if file.get('assetstoreId'):
+            assetstore = self.model('assetstore').load(file['assetstoreId'])
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            return adapter.downloadFile(file, offset=offset, headers=headers)
+        elif file.get('linkUrl'):
+            if headers:
+                raise cherrypy.HTTPRedirect(file['linkUrl'])
+            else:
+                def stream():
+                    yield file['linkUrl']
+                return stream
+        else:  # pragma: no cover
+            raise Exception('File has no known download mechanism.')
 
     def validate(self, doc):
+        if doc.get('assetstoreId') is None:
+            if 'linkUrl' not in doc:
+                raise ValidationException(
+                    'File must have either an assetstore ID or a link URL.',
+                    'linkUrl')
+            doc['linkUrl'] = doc['linkUrl'].strip()
+
+            if not doc['linkUrl'].startswith(('http:', 'https:')):
+                raise ValidationException(
+                    'Linked file URL must start with http: or https:.',
+                    'linkUrl')
         if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 
         doc['exts'] = doc['name'].split('.')[1:]
 
         return doc
+
+    def createLinkFile(self, name, parent, parentType, url, creator):
+        """
+        Create a file that is a link to a URL rather than something we maintain
+        in an assetstore.
+        :param name: The local name for the file.
+        :type name: str
+        :param parent: The parent object for this file.
+        :type parent: folder or item
+        :param parentType: The parent type (folder or item)
+        :type parentType: str
+        :param url: The URL that this file points to
+        :param creator: The user creating the file.
+        :type user: user
+        """
+        if parentType == 'folder':
+            # Create a new item with the name of the file.
+            item = self.model('item').createItem(
+                name=name, creator=creator, folder=parent)
+        elif parentType == 'item':
+            item = parent
+
+        file = {
+            'created': datetime.datetime.now(),
+            'itemId': item['_id'],
+            'creatorId': creator['_id'],
+            'assetstoreId': None,
+            'name': name,
+            'linkUrl': url
+        }
+
+        try:
+            file = self.save(file)
+            return file
+        except ValidationException:
+            if parentType == 'folder':
+                self.model('item').remove(item)
+            raise
 
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """

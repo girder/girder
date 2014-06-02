@@ -1,0 +1,6 @@
+mixin metadatum(key, value, accessLevel, girder)
+  if (accessLevel >= girder.AccessType.WRITE)
+    button.btn.btn-sm.btn-default.g-item-metadata-edit-button
+      i.icon-pencil
+  span.g-item-metadata-key #{key}:
+  span.g-item-metadata-value #{value}

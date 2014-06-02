@@ -18,10 +18,28 @@ module.exports = function (grunt) {
     var apiRoot;
     var staticRoot;
     var fs = require('fs');
+    var jade = require('jade');
     var path = require('path');
     require('colors');
 
     var defaultTasks = ['stylus', 'build-js'];
+
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            var cfg = JSON.parse(stdout);
+            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
+            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            console.log('Static root: ' + staticRoot.bold);
+            console.log('API root: ' + apiRoot.bold);
+        }
+        catch (e) {
+            grunt.warn('Invalid json from config_parse: ' + stdout);
+        }
+        callback();
+    };
 
     // Project configuration.
     grunt.config.init({
@@ -86,8 +104,9 @@ module.exports = function (grunt) {
                 }
             },
             readServerConfig: {
-                command: 'python config_parse.py girder/conf/local.server.cfg',
+                command: 'python config_parse.py girder/conf/girder.local.cfg',
                 options: {
+                    stdout: false,
                     callback: setServerConfig
                 }
             }
@@ -97,7 +116,10 @@ module.exports = function (grunt) {
             options: {
                 sourceMap: environment === 'dev',
                 sourceMapIncludeSources: true,
-                report: 'min'
+                report: 'min',
+                beautify: {
+                    ascii_only: true
+                }
             },
             app: {
                 files: {
@@ -127,10 +149,16 @@ module.exports = function (grunt) {
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
-                        'clients/web/lib/js/bootstrap.min.js',
-                        'clients/web/lib/js/bootstrap-switch.min.js',
-                        'clients/web/lib/js/jquery.jqplot.min.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.min.js'
+                        'clients/web/lib/js/d3.js',
+                        'clients/web/lib/js/bootstrap.js',
+                        'clients/web/lib/js/bootstrap-switch.js',
+                        'clients/web/lib/js/jquery.jqplot.js',
+                        'clients/web/lib/js/jqplot.pieRenderer.js'
+                    ],
+                    'clients/web/static/built/testing.min.js': [
+                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
+                        'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
+                        'clients/web/test/lib/jasmine-1.3.1/console_runner.js'
                     ]
                 }
             }
@@ -164,23 +192,6 @@ module.exports = function (grunt) {
             }
         }
     });
-
-    var setServerConfig = function (err, stdout, stderr, callback) {
-        if (err) {
-            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
-        }
-        try {
-            var cfg = JSON.parse(stdout);
-            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
-            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
-            console.log('Static root: ' + staticRoot.bold);
-            console.log('API root: ' + apiRoot.bold);
-        }
-        catch (e) {
-            grunt.fail.fatal('Invalid json from config_parse: ' + stdout);
-        }
-        callback();
-    };
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';
@@ -278,14 +289,12 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-contrib-jade');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
 
         var fn = jade.compile(buffer, {
@@ -296,26 +305,41 @@ module.exports = function (grunt) {
         }));
     });
 
+    grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
+        var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
+        var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
+        var inputs = [];
+        globs.forEach(function (glob) {
+            var files = grunt.file.expand(glob);
+            files.forEach(function (file) {
+                inputs.push('../../../../' + file);
+            });
+        });
+
+        var fn = jade.compile(buffer, {
+            client: false,
+            pretty: true
+        });
+        fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
+            cssFiles: [],
+            jsFiles: inputs
+        }));
+    });
+
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        // Copy all configuration files that don't already exist
-        var cfgDir = 'girder/conf';
-        var configs = grunt.file.expand(cfgDir + '/*.cfg');
-        configs.forEach(function (config) {
-            var name = path.basename(config);
-            if (name.substring(0, 5) === 'local') {
-                return;
-            }
-            var local = cfgDir + '/local.' + name;
-            if (!fs.existsSync(local)) {
-                fs.writeFileSync(local, fs.readFileSync(config));
-                console.log('Created config ' + local.magenta + '.');
-            }
-        });
+        // If the local config file doesn't exist, we make it
+        var confDir = 'girder/conf';
+        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
+            fs.writeFileSync(
+                confDir + '/girder.local.cfg',
+                fs.readFileSync(confDir + '/girder.dist.cfg')
+            );
+            console.log('Created local config file.');
+        }
     });
 
     grunt.registerTask('build-js', [
-        'shell:readServerConfig',
         'jade',
         'uglify:app'
     ]);
@@ -324,7 +348,8 @@ module.exports = function (grunt) {
         'uglify:libs',
         'copy:swagger',
         'shell:readServerConfig',
-        'swagger-ui'
+        'swagger-ui',
+        'test-env-html'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);

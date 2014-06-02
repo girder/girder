@@ -24,20 +24,22 @@ import re
 
 
 def loadConfig():
-    baseCfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
-                             '{}.cfg'.format(c)) for c in constants.CONFIGS]
-    for cfg in baseCfgs:
-        cherrypy.config.update(cfg)
+    cherrypy.config.update(
+        os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
 
-    cfgs = [os.path.join(constants.ROOT_DIR, 'girder', 'conf',
-                         'local.%s.cfg' % c) for c in constants.CONFIGS]
-    for cfg in cfgs:
-        cherrypy.config.update(cfg)
+    local = os.path.join(constants.ROOT_DIR, 'girder', 'conf',
+                         'girder.local.cfg')
+    if os.path.exists(local):
+        cherrypy._cpconfig.merge(cherrypy.config, local)
+    else:
+        print constants.TerminalColor.warning(
+            'WARNING: "{}" does not exist.'.format(local))
 
     # The PORT environment variable will override the config port
-    cherrypy.config.update(
-        {'server.socket_port':
-         int(os.environ.get('PORT', cherrypy.config['server.socket_port']))})
+    if 'PORT' in os.environ:
+        port = int(os.environ['PORT'])
+        print 'Using PORT env value ({})'.format(port)
+        cherrypy.config['server.socket_port'] = port
 
     # The MONGOLAB_URI should override the database config
     if os.getenv('MONGOLAB_URI'):  # for Heroku

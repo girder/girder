@@ -16,12 +16,48 @@ configure_file(
   @ONLY
 )
 
+function(python_tests_init)
+  if(PYTHON_COVERAGE)
+    add_test(
+      NAME py_coverage_reset
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${py_coverage_rc}"
+    )
+    add_test(
+      NAME py_coverage_combine
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
+    )
+    add_test(
+      NAME py_coverage
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report --fail-under=${COVERAGE_MINIMUM_PASS}
+    )
+    add_test(
+      NAME py_coverage_html
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
+              "--title=Girder Coverage Report"
+    )
+    add_test(
+      NAME py_coverage_xml
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml -o "${PROJECT_BINARY_DIR}/coverage.xml"
+    )
+    set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
+    set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
+    set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
+  endif()
+endfunction()
+
 function(add_python_style_test name input)
-  add_test(
-    NAME ${name}
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PEP8_EXECUTABLE}" "--config=${pep8_config}" "${input}"
-  )
+  if(PYTHON_STYLE_TESTS)
+    add_test(
+      NAME ${name}
+      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+      COMMAND "${PEP8_EXECUTABLE}" "--config=${pep8_config}" "${input}"
+    )
+  endif()
 endfunction()
 
 function(add_python_test case)
@@ -42,7 +78,6 @@ function(add_python_test case)
     set(pythonpath "")
     set(other_covg "")
   endif()
-
 
   if(PYTHON_COVERAGE)
     add_test(

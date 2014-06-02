@@ -34,6 +34,9 @@ class EventsTestCase(unittest.TestCase):
         self.ctr = 0
         self.responses = None
 
+    def _raiseException(self, event):
+        raise Exception('Failure condition')
+
     def _increment(self, event):
         self.ctr += event.info['amount']
 
@@ -50,9 +53,17 @@ class EventsTestCase(unittest.TestCase):
         self.fail('This should not be called due to stopPropagation().')
 
     def testSynchronousEvents(self):
-        name = '_test.event'
+        name, failname = '_test.event', '_test.failure'
         handlerName = '_test.handler'
         events.bind(name, handlerName, self._increment)
+        events.bind(failname, handlerName, self._raiseException)
+
+        # Make sure our exception propagates out of the handler
+        try:
+            events.trigger(failname)
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertEqual(e.message, 'Failure condition')
 
         # Bind an event to increment the counter
         self.assertEqual(self.ctr, 0)
@@ -81,18 +92,24 @@ class EventsTestCase(unittest.TestCase):
         self.assertEqual(event.responses, [{'foo': 'bar'}])
 
     def testAsyncEvents(self):
-        name = '_test.event'
+        name, failname = '_test.event', '_test.failure'
         handlerName = '_test.handler'
+        events.bind(failname, handlerName, self._raiseException)
         events.bind(name, handlerName, self._incrementWithResponse)
 
         def callback(event):
             self.ctr += 1
             self.responses = event.responses
 
-        # Triggering the event before the daemon starts should do nothing
+        # Make sure an async handler that fails does not break the event loop
+        # and that its callback is not triggered.
         self.assertEqual(events.daemon.eventQueue.qsize(), 0)
-        events.daemon.trigger(name, {'amount': 2}, callback)
+        events.daemon.trigger(failname, handlerName, callback)
+
+        # Triggering the event before the daemon starts should do nothing
         self.assertEqual(events.daemon.eventQueue.qsize(), 1)
+        events.daemon.trigger(name, {'amount': 2}, callback)
+        self.assertEqual(events.daemon.eventQueue.qsize(), 2)
         self.assertEqual(self.ctr, 0)
 
         # Now run the asynchronous event handler, which should eventually

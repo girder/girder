@@ -51,6 +51,16 @@ def setup(test=False, plugins=None):
         }
     }
 
+    if test:
+        appconf['/src'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'clients/web/src',
+        }
+        appconf['/test'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'clients/web/test',
+        }
+
     cur_config.update(appconf)
 
     if test:

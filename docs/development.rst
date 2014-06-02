@@ -415,9 +415,7 @@ To add tests for your plugin, you can make use of some handy CMake functions
 provided by the core system. For example: ::
 
     add_python_test(cat PLUGIN cats)
-    if(PYTHON_STYLE_TESTS)
-      add_python_style_test(pep8_style_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
-    endif()
+    add_python_style_test(pep8_style_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
 
 Then you should create a ``plugin_tests`` package in your plugin: ::
 

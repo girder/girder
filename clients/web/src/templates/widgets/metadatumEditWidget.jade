@@ -1,0 +1,9 @@
+input.input-sm.form-control.g-item-metadata-key-input(type="text", value=key, placeholder="Key")
+input.input-sm.form-control.g-item-metadata-value-input(type="text", value=value, placeholder="Value")
+button.btn.btn-sm.btn-warning.g-item-metadata-cancel-button(title="Cancel")
+  i.icon-cancel
+button.btn.btn-sm.btn-primary.g-item-metadata-save-button(title="Accept")
+  i.icon-ok
+if !newDatum
+  button.btn.btn-sm.btn-danger.g-item-metadata-delete-button(title="Delete")
+    i.icon-trash

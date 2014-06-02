@@ -1,7 +1,7 @@
 language: cpp
 services: mongodb
 compiler:
-    - clang
+    - gcc
 before_install:
     - sudo apt-get install npm
     - "mongo --eval 'db.runCommand({setParameter: 1, textSearchEnabled: true})' admin"
@@ -15,8 +15,7 @@ script:
     - mkdir _build
     - cd _build
     - cmake -D PYTHON_COVERAGE:BOOL=ON ..
-    - ctest -V -S ../cmake/travis_build.cmake
-    - ctest -V -S ../cmake/travis_submit.cmake
+    - ctest -VV -S ../cmake/travis_continuous.cmake
     - cd ..
     - git fetch --unshallow
 deploy:
