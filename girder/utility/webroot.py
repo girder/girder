@@ -57,6 +57,7 @@ class Webroot(object):
               href="${staticRoot}/lib/jqplot/css/jquery.jqplot.min.css">
         <link rel="stylesheet"
               href="${staticRoot}/built/app.min.css">
+        <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
 
         % for plugin in pluginCss:
             <link rel="stylesheet"
