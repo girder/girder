@@ -52,9 +52,8 @@ class WebClientTestCase(base.TestCase):
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        if process.returncode != 0:
-            print stdout
-            print 'Client test failed, run: '
-            print ' '.join(cmd)
+        for line in iter(process.stdout.readline, b''):
+            print line,
+        process.communicate()
+
         self.assertEqual(process.returncode, 0)
