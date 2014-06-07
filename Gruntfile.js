@@ -345,6 +345,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build-js', [
         'jade',
         'uglify:app',
+        'shell:readServerConfig',
         'test-env-html'
     ]);
     grunt.registerTask('init', [
