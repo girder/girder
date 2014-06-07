@@ -344,15 +344,15 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build-js', [
         'jade',
-        'uglify:app'
+        'uglify:app',
+        'test-env-html'
     ]);
     grunt.registerTask('init', [
         'setup',
         'uglify:libs',
         'copy:swagger',
         'shell:readServerConfig',
-        'swagger-ui',
-        'test-env-html'
+        'swagger-ui'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);
