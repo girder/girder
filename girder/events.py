@@ -203,7 +203,7 @@ def unbindAll():
 
 def trigger(eventName, info=None):
     """
-    Fire an event with the given name. All listeners bound on that name will be s s s
+    Fire an event with the given name. All listeners bound on that name will be
     called until they are exhausted or one of the handlers calls the
     stopPropagation() method on the event.
 

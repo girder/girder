@@ -40,6 +40,7 @@ remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
 mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
 enabledPlugins = []
 
+
 def startServer(mock=True):
     """
     Test cases that communicate with the server should call this
