@@ -26,7 +26,8 @@ from . import base
 
 
 def setUpModule():
-    base.startServer()
+    os.environ['PORT'] = '50001'
+    base.startServer(False)
 
 
 def tearDownModule():
@@ -44,8 +45,7 @@ class WebClientTestCase(base.TestCase):
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
-            os.path.join(
-                ROOT_DIR, 'clients', 'web', 'static', 'built', 'testEnv.html'),
+            'http://localhost:50001/static/built/testEnv.html',
             self.specFile,
             self.coverageFile
         )
@@ -53,6 +53,8 @@ class WebClientTestCase(base.TestCase):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         for line in iter(process.stdout.readline, b''):
+            print line,
+        for line in iter(process.stderr.readline, b''):
             print line,
         process.communicate()
 
