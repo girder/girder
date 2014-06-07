@@ -63,7 +63,7 @@ def combine_report(args):
                     currentSource = combined[line[1:].strip()]
                 elif line[0] == 'L':
                     lineNum, hit = [int(x) for x in line[1:].split()]
-                    currentSource[lineNum] |= hit
+                    currentSource[lineNum] |= bool(hit)
 
     # Step 2: Calculate final aggregate and per-file coverage statistics
     stats = {

@@ -8,8 +8,6 @@ girder.views.LayoutHeaderView = girder.View.extend({
         }
     },
 
-    searchWidget: {},
-
     render: function () {
         this.$el.html(jade.templates.layoutHeader());
 
@@ -20,22 +18,13 @@ girder.views.LayoutHeaderView = girder.View.extend({
         this.searchWidget = new girder.views.SearchFieldWidget({
             el: this.$('.g-quick-search-container'),
             placeholder: 'Quick Search...',
-            types: ['item']
-        }).off().on('g:resultClicked', this._gotoItem, this).render();
-
-    },
-
-    /**
-     * When the user clicks a search result item, this helper method
-     * will navigate them to the view for that specific item.
-     */
-    _gotoItem: function (result) {
-        var item = new girder.models.ItemModel();
-        item.set('_id', result.id).on('g:fetched', function () {
+            types: ['item', 'folder', 'group', 'collection', 'user']
+        }).off().on('g:resultClicked', function (result) {
             this.searchWidget.resetState();
-            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-        }, this).fetch();
+            girder.router.navigate(result.type + '/' + result.id, {
+                trigger: true
+            });
+        }, this).render();
 
-        return this;
     }
 });

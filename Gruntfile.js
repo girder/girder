@@ -158,7 +158,8 @@ module.exports = function (grunt) {
                     'clients/web/static/built/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/console_runner.js'
+                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
+                        'clients/web/test/testUtils.js'
                     ]
                 }
             }
@@ -312,7 +313,7 @@ module.exports = function (grunt) {
         globs.forEach(function (glob) {
             var files = grunt.file.expand(glob);
             files.forEach(function (file) {
-                inputs.push('../../../../' + file);
+                inputs.push('/' + file);
             });
         });
 
@@ -322,7 +323,9 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
             cssFiles: [],
-            jsFiles: inputs
+            jsFiles: inputs,
+            staticRoot: staticRoot,
+            apiRoot: apiRoot
         }));
     });
 
@@ -341,15 +344,16 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build-js', [
         'jade',
-        'uglify:app'
+        'uglify:app',
+        'shell:readServerConfig',
+        'test-env-html'
     ]);
     grunt.registerTask('init', [
         'setup',
         'uglify:libs',
         'copy:swagger',
         'shell:readServerConfig',
-        'swagger-ui',
-        'test-env-html'
+        'swagger-ui'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);

@@ -41,7 +41,7 @@ mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
 enabledPlugins = []
 
 
-def startServer():
+def startServer(mock=True):
     """
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
@@ -51,7 +51,9 @@ def startServer():
     # Make server quiet (won't announce start/stop or requests)
     cherrypy.config.update({'environment': 'embedded'})
 
-    cherrypy.server.unsubscribe()
+    if mock:
+        cherrypy.server.unsubscribe()
+
     cherrypy.engine.start()
 
     mockSmtp.start()
