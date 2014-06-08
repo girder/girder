@@ -47,28 +47,6 @@ class User(Resource):
         self.route('PUT', ('password',), self.changePassword)
         self.route('DELETE', ('password',), self.resetPassword)
 
-    def _filter(self, user):
-        """
-        Helper to filter the user model.
-        """
-        if user is None:
-            return None
-
-        currentUser = self.getCurrentUser()
-
-        keys = ['_id', 'login', 'public', 'firstName', 'lastName', 'admin',
-                'created']
-
-        if self.model('user').hasAccess(user, currentUser, AccessType.ADMIN):
-            keys.extend(['size', 'email', 'groups', 'groupInvites'])
-
-        filtered = self.filterDocument(user, allow=keys)
-
-        filtered['_accessLevel'] = self.model('user').getAccessLevel(
-            user, currentUser)
-
-        return filtered
-
     def _sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
         token = self.model('token').createToken(user, days=self.COOKIE_LIFETIME)
@@ -102,10 +80,11 @@ class User(Resource):
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
+        currentUser = self.getCurrentUser()
 
-        return [self._filter(user)
+        return [self.model('user').filter(user, currentUser)
                 for user in self.model('user').search(
-                    text=params.get('text'), user=self.getCurrentUser(),
+                    text=params.get('text'), user=currentUser,
                     offset=offset, limit=limit, sort=sort)]
     find.description = (
         Description('List or search for users.')
@@ -123,7 +102,8 @@ class User(Resource):
 
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     def getUser(self, userToGet, params):
-        return self._filter(userToGet)
+        currentUser = self.getCurrentUser()
+        return self.model('user').filter(userToGet, currentUser)
     getUser.description = (
         Description('Get a user by ID.')
         .responseClass('User')
@@ -132,7 +112,8 @@ class User(Resource):
         .errorResponse('You do not have permission to see this user.', 403))
 
     def getMe(self, params):
-        return self._filter(self.getCurrentUser())
+        currentUser = self.getCurrentUser()
+        return self.model('user').filter(currentUser, currentUser)
     getMe.description = (
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User'))
@@ -176,7 +157,7 @@ class User(Resource):
             token = self._sendAuthTokenCookie(user)
 
         return {
-            'user': self._filter(user),
+            'user': self.model('user').filter(user, user),
             'authToken': {
                 'token': token['_id'],
                 'expires': token['expires'],
@@ -211,7 +192,9 @@ class User(Resource):
 
         self._sendAuthTokenCookie(user)
 
-        return self._filter(user)
+        currentUser = self.getCurrentUser()
+
+        return self.model('user').filter(user, currentUser)
     createUser.description = (
         Description('Create a new user.')
         .responseClass('User')
@@ -240,7 +223,10 @@ class User(Resource):
         user['firstName'] = params['firstName']
         user['lastName'] = params['lastName']
         user['email'] = params['email']
-        return self._filter(self.model('user').save(user))
+
+        currentUser = self.getCurrentUser()
+        savedUser = self.model('user').save(user)
+        return self.model('user').filter(savedUser, currentUser)
     updateUser.description = (
         Description("Update a user's information.")
         .param('id', 'The ID of the user.', paramType='path')

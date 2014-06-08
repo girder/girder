@@ -40,6 +40,21 @@ class Folder(AccessControlledModel):
             'description': 1
         })
 
+    def filter(self, folder, user):
+        """
+        Filter a folder document for display to the user.
+        """
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
+                'size', 'parentId', 'parentCollection', 'creatorId',
+                'baseParentType', 'baseParentId']
+
+        filtered = self.filterDocument(folder, allow=keys)
+
+        filtered['_accessLevel'] = self.getAccessLevel(
+            folder, user)
+
+        return filtered
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['description'] = doc['description'].strip()
@@ -195,10 +210,10 @@ class Folder(AccessControlledModel):
         if parentType == 'folder':
             parentObject = {'parentId': parent['_id'],
                             'parentCollection': parentType}
-            pathFromRoot = self.idsToRoot(parentObject, user=creator)
+            pathFromRoot = self.parentsToRoot(parentObject, user=creator)
             if 'baseParentId' not in parent:
-                pathFromRoot = self.idsToRoot(parent, user=creator)
-                parent['baseParentId'] = pathFromRoot[0]['id']
+                pathFromRoot = self.parentsToRoot(parent, user=creator)
+                parent['baseParentId'] = pathFromRoot[0]['object']['_id']
                 parent['baseParentType'] = pathFromRoot[0]['type']
         else:
             parent['baseParentId'] = parent['_id']
@@ -251,7 +266,7 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
-    def idsToRoot(self, folder, curPath=[], user=None, force=False):
+    def parentsToRoot(self, folder, curPath=[], user=None, force=False):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -261,10 +276,17 @@ class Folder(AccessControlledModel):
         """
         curParentId = folder['parentId']
         curParentType = folder['parentCollection']
-        curPath = [{'type': curParentType, 'id': curParentId}] + curPath
         if curParentType == 'user' or curParentType == 'collection':
-            return curPath
+            curParentObject = self.model(curParentType).load(curParentId,
+                                                             user=user,
+                                                             force=force)
+            parentFiltered = self.model(curParentType).filter(curParentObject,
+                                                              user)
+            return [{'type': curParentType,
+                     'object': parentFiltered}] + curPath
         else:
-            parentObject = self.load(curParentId, user=user, force=force)
-            return self.idsToRoot(parentObject, curPath, user=user,
-                                  force=force)
+            curParentObject = self.load(curParentId, user=user, force=force)
+            curPath = [{'type': curParentType,
+                        'object': self.filter(curParentObject, user)}] + curPath
+            return self.parentsToRoot(curParentObject, curPath, user=user,
+                                      force=force)

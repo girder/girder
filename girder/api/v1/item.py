@@ -41,18 +41,6 @@ class Item(Resource):
         self.route('PUT', (':id',), self.updateItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    def _filter(self, item):
-        """
-        Filter an item document for display to the user.
-        """
-        keys = ['_id', 'size', 'updated', 'description', 'created',
-                'meta', 'creatorId', 'folderId', 'name', 'baseParentType',
-                'baseParentId']
-
-        filtered = self.filterDocument(item, allow=keys)
-
-        return filtered
-
     def find(self, params):
         """
         Get a list of items with given search parameters. Currently accepted
@@ -109,7 +97,7 @@ class Item(Resource):
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def getItem(self, item, params):
-        return self._filter(item)
+        return self.model('item').filter(item)
     getItem.description = (
         Description('Get an item by ID.')
         .responseClass('Item')
@@ -138,7 +126,7 @@ class Item(Resource):
         item = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
 
-        return self._filter(item)
+        return self.model('item').filter(item)
     createItem.description = (
         Description('Create a new item.')
         .responseClass('Item')
@@ -156,7 +144,7 @@ class Item(Resource):
             'description', item['description']).strip()
 
         item = self.model('item').updateItem(item)
-        return self._filter(item)
+        return self.model('item').filter(item)
     updateItem.description = (
         Description('Edit an item by ID.')
         .responseClass('Item')
@@ -267,7 +255,7 @@ class Item(Resource):
         """
         Get the path to the root of the item's parent hierarchy.
         """
-        return self.model('item').idsToRoot(item, self.getCurrentUser())
+        return self.model('item').parentsToRoot(item, self.getCurrentUser())
     rootpath.description = (
         Description('Get the path to the root of the item\'s hierarchy')
         .param('id', 'The ID of the item', paramType='path')

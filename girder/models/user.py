@@ -39,6 +39,22 @@ class User(AccessControlledModel):
             'lastName': 1
         }, language='none')
 
+    def filter(self, user, currentUser):
+        if user is None:
+            return None
+
+        keys = ['_id', 'login', 'public', 'firstName', 'lastName', 'admin',
+                'created']
+
+        if self.hasAccess(user, currentUser, AccessType.ADMIN):
+            keys.extend(['size', 'email', 'groups', 'groupInvites'])
+
+        filtered = self.filterDocument(user, allow=keys)
+
+        filtered['_accessLevel'] = self.getAccessLevel(user, currentUser)
+
+        return filtered
+
     def validate(self, doc):
         """
         Validate the user every time it is stored in the database.

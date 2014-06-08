@@ -63,6 +63,41 @@ class Group(AccessControlledModel):
             'description': 1
         })
 
+    def filter(self, group, user, accessList=False, requests=False):
+        """
+        Filter a group document for display to the user.
+
+        :param group: The document to filter.
+        :type group: dict
+        :param user: The current user.
+        :type user: dict
+        :param accessList: Whether to include the access control list field.
+        :type accessList: bool
+        :param requests: Whether to include the requests list field.
+        :type requests: bool
+        :returns: The filtered group document.
+        """
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
+
+        if requests:
+            keys.append('requests')
+
+        accessLevel = self.getAccessLevel(group, user)
+
+        if accessList:
+            keys.append('access')
+
+        group = self.filterDocument(group, allow=keys)
+        group['_accessLevel'] = accessLevel
+
+        if accessList:
+            group['access'] = self.getFullAccessList(group)
+
+        if requests:
+            group['requests'] = self.getFullRequestList(group)
+
+        return group
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()

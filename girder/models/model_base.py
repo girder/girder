@@ -234,6 +234,26 @@ class Model(ModelImporter):
 
         return doc
 
+    def filterDocument(self, doc, allow=[]):
+        """
+        This method will filter the given document to make it suitable to
+        output to the user.
+
+        :param doc: The document to filter.
+        :type doc: dict
+        :param allow: The whitelist of fields to allow in the output document.
+        :type allow: List of strings
+        """
+        if doc is None:
+            return None
+
+        out = {}
+        for field in allow:
+            if field in doc:
+                out[field] = doc[field]
+
+        return out
+
 
 class AccessControlledModel(Model):
     """

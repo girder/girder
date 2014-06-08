@@ -37,6 +37,18 @@ class Item(Model):
             'description': 1
         })
 
+    def filter(self, item):
+        """
+        Filter an item document for display to the user.
+        """
+        keys = ['_id', 'size', 'updated', 'description', 'created',
+                'meta', 'creatorId', 'folderId', 'name', 'baseParentType',
+                'baseParentId']
+
+        filtered = self.filterDocument(item, allow=keys)
+
+        return filtered
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['description'] = doc['description'].strip()
@@ -96,9 +108,9 @@ class Item(Model):
                                       force, fields)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.idsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
             baseParent = pathFromRoot[0]
-            doc['baseParentId'] = baseParent['id']
+            doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
 
         return doc
@@ -234,9 +246,10 @@ class Item(Model):
             raise Exception('Creator must be a user.')
 
         if 'baseParentType' not in folder:
-            pathFromRoot = self.idsToRoot({'folderId': folder['_id']}, creator)
+            pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
+                                              creator)
             folder['baseParentType'] = pathFromRoot[0]['type']
-            folder['baseParentId'] = pathFromRoot[0]['id']
+            folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
         return self.save({
             'name': name,
@@ -290,7 +303,7 @@ class Item(Model):
         # Validate and save the item
         return self.save(item)
 
-    def idsToRoot(self, item, user=None, force=False):
+    def parentsToRoot(self, item, user=None, force=False):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -300,7 +313,9 @@ class Item(Model):
         """
         curFolder = self.model('folder').load(item['folderId'], user=user,
                                               force=force)
-        folderIdsToRoot = self.model('folder').idsToRoot(curFolder, user=user,
-                                                         force=force)
-        folderIdsToRoot.append({'type': 'folder', 'id': curFolder['_id']})
+        folderIdsToRoot = self.model('folder').parentsToRoot(curFolder,
+                                                             user=user,
+                                                             force=force)
+        filteredFolder = self.model('folder').filter(curFolder, user)
+        folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
         return folderIdsToRoot

@@ -37,6 +37,17 @@ class Collection(AccessControlledModel):
             'description': 1
         })
 
+    def filter(self, collection, user=None):
+        """Helper to filter the collection model."""
+        filtered = self.filterDocument(
+            collection, allow=('_id', 'name', 'description', 'public',
+                               'created', 'updated', 'size'))
+
+        if user:
+            filtered['_accessLevel'] = self.getAccessLevel(collection, user)
+
+        return filtered
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         if doc['description']:
