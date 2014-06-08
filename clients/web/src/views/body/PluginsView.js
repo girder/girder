@@ -41,10 +41,11 @@ girder.views.PluginsView = girder.View.extend({
         }));
 
         var view = this;
-        this.$('.g-plugin-switch').bootstrapSwitch().off('switchChange')
-            .on('switchChange', function (e, data) {
-                var plugin = data.el.attr('key');
-                if (data.value) {
+        this.$('.g-plugin-switch').bootstrapSwitch()
+            .off('switchChange.bootstrapSwitch')
+            .on('switchChange.bootstrapSwitch', function (event, state) {
+                var plugin = $(event.currentTarget).attr('key');
+                if (state === true) {
                     view.enabled.push(plugin);
                 }
                 else {
