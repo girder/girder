@@ -41,20 +41,6 @@ class Folder(Resource):
         self.route('PUT', (':id',), self.updateFolder)
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
 
-    def _filter(self, folder, user):
-        """
-        Filter a folder document for display to the user.
-        """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
-                'size', 'parentId', 'parentCollection', 'creatorId']
-
-        filtered = self.filterDocument(folder, allow=keys)
-
-        filtered['_accessLevel'] = self.model('folder').getAccessLevel(
-            folder, user)
-
-        return filtered
-
     def find(self, params):
         """
         Get a list of folders with given search parameters. Currently accepted
@@ -91,7 +77,7 @@ class Folder(Resource):
                 id=params['parentId'], user=user, level=AccessType.READ,
                 exc=True)
 
-            return [self._filter(folder, user) for folder in
+            return [self.model('folder').filter(folder, user) for folder in
                     self.model('folder').childFolders(
                         parentType=parentType, parent=parent, user=user,
                         offset=offset, limit=limit, sort=sort)]
@@ -173,7 +159,7 @@ class Folder(Resource):
             'description', folder['description']).strip()
 
         folder = self.model('folder').updateFolder(folder)
-        return self._filter(folder, self.getCurrentUser())
+        return self.model('folder').filter(folder, self.getCurrentUser())
     updateFolder.description = (
         Description('Update a folder by ID.')
         .responseClass('Folder')
@@ -249,7 +235,7 @@ class Folder(Resource):
         elif parentType == 'collection':
             # TODO set appropriate top-level community folder permissions
             pass
-        return self._filter(folder, user)
+        return self.model('folder').filter(folder, user)
     createFolder.description = (
         Description('Create a new folder.')
         .responseClass('Folder')
@@ -268,7 +254,7 @@ class Folder(Resource):
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def getFolder(self, folder, params):
         """Get a folder by ID."""
-        return self._filter(folder, self.getCurrentUser())
+        return self.model('folder').filter(folder, self.getCurrentUser())
     getFolder.description = (
         Description('Get a folder by ID.')
         .responseClass('Folder')

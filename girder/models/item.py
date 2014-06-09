@@ -37,6 +37,18 @@ class Item(Model):
             'description': 1
         })
 
+    def filter(self, item):
+        """
+        Filter an item document for display to the user.
+        """
+        keys = ['_id', 'size', 'updated', 'description', 'created',
+                'meta', 'creatorId', 'folderId', 'name', 'baseParentType',
+                'baseParentId']
+
+        filtered = self.filterDocument(item, allow=keys)
+
+        return filtered
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['description'] = doc['description'].strip()
@@ -88,11 +100,18 @@ class Item(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
+        doc = Model.load(self, id=id, objectId=objectId, fields=fields,
+                         exc=exc)
 
         if not force and doc is not None:
             self.model('folder').load(doc['folderId'], level, user, objectId,
                                       force, fields)
+
+        if doc is not None and 'baseParentType' not in doc:
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            baseParent = pathFromRoot[0]
+            doc['baseParentId'] = baseParent['object']['_id']
+            doc['baseParentType'] = baseParent['type']
 
         return doc
 
@@ -226,6 +245,12 @@ class Item(Model):
             # Internal error -- this shouldn't be called without a user.
             raise Exception('Creator must be a user.')
 
+        if 'baseParentType' not in folder:
+            pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
+                                              creator)
+            folder['baseParentType'] = pathFromRoot[0]['type']
+            folder['baseParentId'] = pathFromRoot[0]['object']['_id']
+
         return self.save({
             'name': name,
             'description': description,
@@ -252,8 +277,8 @@ class Item(Model):
     def setMetadata(self, item, metadata):
         """
         Set metadata on an item.  A rest exception is thrown in the cases where
-        the metadata json object is badly formed, or if any of the metadata keys
-        contains a period ('.').
+        the metadata json object is badly formed, or if any of the metadata
+        keys contains a period ('.').
 
         :param item: The item to set the metadata on.
         :type item: dict
@@ -277,3 +302,20 @@ class Item(Model):
 
         # Validate and save the item
         return self.save(item)
+
+    def parentsToRoot(self, item, user=None, force=False):
+        """
+        Get the path to traverse to a root of the hierarchy.
+
+        :param item: The item whose root to find
+        :type item: dict
+        :returns: an ordered list of dictionaries from root to the current item
+        """
+        curFolder = self.model('folder').load(item['folderId'], user=user,
+                                              force=force)
+        folderIdsToRoot = self.model('folder').parentsToRoot(curFolder,
+                                                             user=user,
+                                                             force=force)
+        filteredFolder = self.model('folder').filter(curFolder, user)
+        folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
+        return folderIdsToRoot

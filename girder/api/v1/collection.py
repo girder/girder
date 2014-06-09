@@ -36,17 +36,6 @@ class Collection(Resource):
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
 
-    def _filter(self, collection):
-        """Helper to filter the collection model."""
-        filtered = self.filterDocument(
-            collection, allow=('_id', 'name', 'description', 'public',
-                               'created', 'updated', 'size'))
-
-        filtered['_accessLevel'] = self.model('collection').getAccessLevel(
-            collection, self.getCurrentUser())
-
-        return filtered
-
     def find(self, params):
         user = self.getCurrentUser()
         limit, offset, sort = self.getPagingParameters(params, 'name')
@@ -57,8 +46,9 @@ class Collection(Resource):
                     'name': 1
                 })
 
-        return [self._filter(c) for c in self.model('collection').list(
-                user=user, offset=offset, limit=limit, sort=sort)]
+        cols = self.model('collection').list(user=user, offset=offset,
+                                             limit=limit, sort=sort)
+        return [self.model('collection').filter(c, user) for c in cols]
     find.description = (
         Description('List or search for collections.')
         .responseClass('Collection')
@@ -86,7 +76,7 @@ class Collection(Resource):
             name=params['name'], description=params.get('description'),
             public=public, creator=user)
 
-        return self._filter(collection)
+        return self.model('collection').filter(collection)
     createCollection.description = (
         Description('Create a new collection.')
         .responseClass('Collection')
@@ -98,7 +88,7 @@ class Collection(Resource):
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
     def getCollection(self, coll, params):
-        return self._filter(coll)
+        return self.model('collection').filter(coll)
     getCollection.description = (
         Description('Get a collection by ID.')
         .responseClass('Collection')
@@ -142,7 +132,7 @@ class Collection(Resource):
             'description', coll['description']).strip()
 
         coll = self.model('collection').updateCollection(coll)
-        return self._filter(coll)
+        return self.model('collection').filter(coll)
     updateCollection.description = (
         Description('Edit a collection by ID.')
         .responseClass('Collection')

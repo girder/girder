@@ -40,6 +40,21 @@ class Folder(AccessControlledModel):
             'description': 1
         })
 
+    def filter(self, folder, user):
+        """
+        Filter a folder document for display to the user.
+        """
+        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
+                'size', 'parentId', 'parentCollection', 'creatorId',
+                'baseParentType', 'baseParentId']
+
+        filtered = self.filterDocument(folder, allow=keys)
+
+        filtered['_accessLevel'] = self.getAccessLevel(
+            folder, user)
+
+        return filtered
+
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['description'] = doc['description'].strip()
@@ -192,6 +207,18 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
 
+        if parentType == 'folder':
+            parentObject = {'parentId': parent['_id'],
+                            'parentCollection': parentType}
+            pathFromRoot = self.parentsToRoot(parentObject, user=creator)
+            if 'baseParentId' not in parent:
+                pathFromRoot = self.parentsToRoot(parent, user=creator)
+                parent['baseParentId'] = pathFromRoot[0]['object']['_id']
+                parent['baseParentType'] = pathFromRoot[0]['type']
+        else:
+            parent['baseParentId'] = parent['_id']
+            parent['baseParentType'] = parentType
+
         now = datetime.datetime.now()
 
         if creator is None:
@@ -203,6 +230,8 @@ class Folder(AccessControlledModel):
             'name': name,
             'description': description,
             'parentCollection': parentType,
+            'baseParentId': parent['baseParentId'],
+            'baseParentType': parent['baseParentType'],
             'parentId': parent['_id'],
             'creatorId': creatorId,
             'created': now,
@@ -236,3 +265,28 @@ class Folder(AccessControlledModel):
 
         # Validate and save the folder
         return self.save(folder)
+
+    def parentsToRoot(self, folder, curPath=[], user=None, force=False):
+        """
+        Get the path to traverse to a root of the hierarchy.
+
+        :param item: The item whose root to find
+        :type item: dict
+        :returns: an ordered list of dictionaries from root to the current item
+        """
+        curParentId = folder['parentId']
+        curParentType = folder['parentCollection']
+        if curParentType == 'user' or curParentType == 'collection':
+            curParentObject = self.model(curParentType).load(curParentId,
+                                                             user=user,
+                                                             force=force)
+            parentFiltered = self.model(curParentType).filter(curParentObject,
+                                                              user)
+            return [{'type': curParentType,
+                     'object': parentFiltered}] + curPath
+        else:
+            curParentObject = self.load(curParentId, user=user, force=force)
+            curPath = [{'type': curParentType,
+                        'object': self.filter(curParentObject, user)}] + curPath
+            return self.parentsToRoot(curParentObject, curPath, user=user,
+                                      force=force)

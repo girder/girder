@@ -44,42 +44,6 @@ class Group(Resource):
         self.route('POST', (':id', 'admin'), self.promoteToAdmin)
         self.route('PUT', (':id',), self.updateGroup)
 
-    def _filter(self, group, accessList=False, requests=False):
-        """
-        Filter a group document for display to the user.
-
-        :param group: The document to filter.
-        :type group: dict
-        :param user: The current user.
-        :type user: dict
-        :param accessList: Whether to include the access control list field.
-        :type accessList: bool
-        :param requests: Whether to include the requests list field.
-        :type requests: bool
-        :returns: The filtered group document.
-        """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
-        user = self.getCurrentUser()
-
-        if requests:
-            keys.append('requests')
-
-        accessLevel = self.model('group').getAccessLevel(group, user)
-
-        if accessList:
-            keys.append('access')
-
-        group = self.filterDocument(group, allow=keys)
-        group['_accessLevel'] = accessLevel
-
-        if accessList:
-            group['access'] = self.model('group').getFullAccessList(group)
-
-        if requests:
-            group['requests'] = self.model('group').getFullRequestList(group)
-
-        return group
-
     def find(self, params):
         """
         List or search for groups.
@@ -92,8 +56,10 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        return [self._filter(group) for group in self.model('group').list(
-            user=user, offset=offset, limit=limit, sort=sort)]
+        groupList = self.model('group').list(user=user, offset=offset,
+                                             limit=limit, sort=sort)
+
+        return [self.model('group').filter(group, user) for group in groupList]
     find.description = (
         Description('Search for groups or list all groups.')
         .param('text', "Pass this to perform a full-text search for groups.",
@@ -130,7 +96,7 @@ class Group(Resource):
         group = self.model('group').createGroup(
             name=name, creator=user, description=description, public=public)
 
-        return self._filter(group)
+        return self.model('group').filter(group, user)
     createGroup.description = (
         Description('Create a new group.')
         .responseClass('Group')
@@ -144,7 +110,8 @@ class Group(Resource):
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroup(self, group, params):
-        return self._filter(group)
+        user = self.getCurrentUser()
+        return self.model('group').filter(group, user)
     getGroup.description = (
         Description('Get a group by ID.')
         .responseClass('Group')
@@ -154,7 +121,9 @@ class Group(Resource):
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroupAccess(self, group, params):
-        return self._filter(group, accessList=True, requests=True)
+        user = self.getCurrentUser()
+        return self.model('group').filter(group, user, accessList=True,
+                                          requests=True)
     getGroupAccess.description = (
         Description('Get the access control list for a group.')
         .responseClass('Group')
@@ -193,7 +162,7 @@ class Group(Resource):
             'description', group['description']).strip()
 
         group = self.model('group').updateGroup(group)
-        return self._filter(group)
+        return self.model('group').filter(group, user)
     updateGroup.description = (
         Description('Update a group by ID.')
         .param('id', 'The ID of the group.', paramType='path')
@@ -216,9 +185,10 @@ class Group(Resource):
         :type user: dict
         :returns: The updated group document.
         """
-        return self._filter(
-            self.model('group').joinGroup(group, self.getCurrentUser()),
-            accessList=True, requests=True)
+        user = self.getCurrentUser()
+        joinedGroup = self.model('group').joinGroup(group, user)
+        return self.model('group').filter(joinedGroup, user, accessList=True,
+                                          requests=True)
     joinGroup.description = (
         Description('Request to join a group, or accept an invitation to join.')
         .responseClass('Group')
@@ -276,7 +246,8 @@ class Group(Resource):
                 to=userToInvite['email'], text=html,
                 subject="Girder: You've been invited to a group")
 
-        return self._filter(group, accessList=True, requests=True)
+        return self.model('group').filter(group, user, accessList=True,
+                                          requests=True)
     inviteToGroup.description = (
         Description("Invite a user to join a group, or accept a user's request "
                     " to join.")
@@ -333,7 +304,7 @@ class Group(Resource):
 
         group = self.model('group').setUserAccess(
             group, userToPromote, level=level, save=True)
-        return self._filter(group, accessList=True)
+        return self.model('group').filter(group, user, accessList=True)
 
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def demote(self, group, params):
@@ -350,7 +321,8 @@ class Group(Resource):
 
         group = self.model('group').setUserAccess(
             group, userToDemote, level=AccessType.READ, save=True)
-        return self._filter(group, accessList=True, requests=True)
+        return self.model('group').filter(group, user, accessList=True,
+                                          requests=True)
     demote.description = (
         Description('Demote a user to a normal group member.')
         .responseClass('Group')
@@ -392,9 +364,9 @@ class Group(Resource):
             else:
                 self.model('group').requireAccess(group, user, AccessType.WRITE)
 
-        return self._filter(
-            self.model('group').removeUser(group, userToRemove), requests=True,
-            accessList=True)
+        groupSansUser = self.model('group').removeUser(group, userToRemove)
+        return self.model('group').filter(groupSansUser, user, requests=True,
+                                          accessList=True)
     removeFromGroup.description = (
         Description('Remove a user from a group, or uninvite them.')
         .responseClass('Group')

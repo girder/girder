@@ -344,3 +344,36 @@ class ItemTestCase(base.TestCase):
 
         # assert that the private data is not included
         self.assertNotHasKeys(resp.json, ['private'])
+
+    def testPathToRoot(self):
+        firstChildName = 'firstChild'
+        firstChildDesc = 'firstDesc'
+        secondChildName = 'secondChild'
+        secondChildDesc = 'secondDesc'
+
+        firstChild = self.model('folder').createFolder(self.publicFolder,
+                                                       firstChildName,
+                                                       firstChildDesc,
+                                                       creator=self.users[0])
+        secondChild = self.model('folder').createFolder(firstChild,
+                                                        secondChildName,
+                                                        secondChildDesc,
+                                                        creator=self.users[0])
+        baseItem = self.model('item').createItem('blah', self.users[0],
+                                                 secondChild, 'foo')
+
+        resp = self.request(path='/item/{}/rootpath'.format(baseItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        pathToRoot = resp.json
+
+        self.assertEqual(pathToRoot[0]['type'], 'user')
+        self.assertEqual(pathToRoot[0]['object']['email'],
+                         self.users[0]['email'])
+        self.assertEqual(pathToRoot[1]['type'], 'folder')
+        self.assertEqual(pathToRoot[1]['object']['name'],
+                         self.publicFolder['name'])
+        self.assertEqual(pathToRoot[2]['type'], 'folder')
+        self.assertEqual(pathToRoot[2]['object']['name'], firstChild['name'])
+        self.assertEqual(pathToRoot[3]['type'], 'folder')
+        self.assertEqual(pathToRoot[3]['object']['name'], secondChild['name'])

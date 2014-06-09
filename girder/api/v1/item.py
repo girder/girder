@@ -36,20 +36,10 @@ class Item(Resource):
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
+        self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
-
-    def _filter(self, item):
-        """
-        Filter an item document for display to the user.
-        """
-        keys = ['_id', 'size', 'updated', 'description', 'created',
-                'meta', 'creatorId', 'folderId', 'name']
-
-        filtered = self.filterDocument(item, allow=keys)
-
-        return filtered
 
     def find(self, params):
         """
@@ -107,7 +97,7 @@ class Item(Resource):
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def getItem(self, item, params):
-        return self._filter(item)
+        return self.model('item').filter(item)
     getItem.description = (
         Description('Get an item by ID.')
         .responseClass('Item')
@@ -136,7 +126,7 @@ class Item(Resource):
         item = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
 
-        return self._filter(item)
+        return self.model('item').filter(item)
     createItem.description = (
         Description('Create a new item.')
         .responseClass('Item')
@@ -154,7 +144,7 @@ class Item(Resource):
             'description', item['description']).strip()
 
         item = self.model('item').updateItem(item)
-        return self._filter(item)
+        return self.model('item').filter(item)
     updateItem.description = (
         Description('Edit an item by ID.')
         .responseClass('Item')
@@ -257,5 +247,17 @@ class Item(Resource):
     deleteItem.description = (
         Description('Delete an item by ID.')
         .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the item.', 403))
+
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def rootpath(self, item, params):
+        """
+        Get the path to the root of the item's parent hierarchy.
+        """
+        return self.model('item').parentsToRoot(item, self.getCurrentUser())
+    rootpath.description = (
+        Description('Get the path to the root of the item\'s hierarchy')
+        .param('id', 'The ID of the item', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the item.', 403))
