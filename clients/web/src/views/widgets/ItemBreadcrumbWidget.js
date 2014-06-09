@@ -7,6 +7,10 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
             var link = $(event.currentTarget);
             girder.router.navigate(link.data('type') + '/' + link.data('id'),
                                    {trigger: true});
+        },
+        'click a.g-hierarchy-level-up': function () {
+            var folder = this.parentChain.pop().object;
+            girder.router.navigate('folder/' + folder._id, {trigger: true});
         }
     },
 
@@ -19,5 +23,12 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
         this.$el.html(jade.templates.itemBreadcrumb({
             parentChain: this.parentChain
         }));
+
+        this.$('.g-hierarchy-level-up').tooltip({
+            container: this.$el,
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
     }
 });

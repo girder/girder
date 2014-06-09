@@ -86,7 +86,7 @@ girder.views.ItemView = girder.View.extend({
 
             this.model.getRootPath(_.bind(function (resp) {
                 this.breadcrumbWidget = new girder.views.ItemBreadcrumbWidget({
-                    el: this.$('.g-item-breadcrumb'),
+                    el: this.$('.g-item-breadcrumb-container'),
                     parentChain: resp
                 });
             }, this));
