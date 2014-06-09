@@ -1,0 +1,11 @@
+each parent in parentChain
+  a.g-item-breadcrumb-link(data-id="#{parent.object._id}"
+                           data-type="#{parent.type}")
+    if (parent.type == "user")
+      i.icon-user
+      | #{parent.object.login}
+    else if (parent.type == "collection")
+      i.icon-sitemap
+      | #{parent.object.name}
+    else
+      | &nbsp;/ #{parent.object.name}
