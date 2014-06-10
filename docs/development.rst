@@ -23,9 +23,13 @@ object is: ::
     from girder.utility import config
     cur_config = config.getConfig()
 
-If the configuration files from **girder/conf** have not yet been loaded, they
-will be pulled in automatically. The loading order is: \*.cfg, \*.local.cfg,
-certain environment variables.
+There is a configuration file for girder located in **girder/conf**. The file
+**girder.dist.cfg** is the file distributed with the repository and containing
+the default configuration values. This file shouldn't be edited when deploying
+girder. Rather, edit the **girder.local.cfg** file. You only need to edit the
+values in the file that you wish to change from their default values; the system
+loads the **dist** file first, then the **local** file, so your local settings
+will override the defaults.
 
 Sending Emails
 ^^^^^^^^^^^^^^
