@@ -33,6 +33,13 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
             'icon': 'icon-users',
             'target': 'groups'
         }];
+        if (girder.currentUser && girder.currentUser.get('admin')) {
+            navItems.push({
+                'name': 'Admin Console',
+                'icon': 'icon-wrench',
+                'target': 'admin'
+            });
+        }
         this.$el.html(jade.templates.layoutGlobalNav({
             navItems: navItems
         }));
