@@ -93,6 +93,37 @@ class Folder(AccessControlledModel):
 
         return doc
 
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False, fields=None, exc=False):
+        """
+        We override load in order to ensure the folder has certain fields
+        within it, and if not, we add them lazily at read time.
+
+        :param id: The id of the resource.
+        :type id: string or ObjectId
+        :param user: The user to check access against.
+        :type user: dict or None
+        :param level: The required access type for the object.
+        :type level: AccessType
+        :param force: If you explicity want to circumvent access
+                      checking on this resource, set this to True.
+        :type force: bool
+        """
+        doc = AccessControlledModel.load(
+            self, id=id, objectId=objectId, level=level, fields=fields,
+            exc=exc, force=force, user=user)
+
+        if doc is not None and 'baseParentType' not in doc:
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            baseParent = pathFromRoot[0]
+            doc['baseParentId'] = baseParent['object']['_id']
+            doc['baseParentType'] = baseParent['type']
+            self.save(doc)
+        if doc is not None and 'lowerName' not in doc:
+            self.save(doc)
+
+        return doc
+
     def remove(self, folder):
         """
         Delete a folder recursively.

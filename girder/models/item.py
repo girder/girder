@@ -113,6 +113,9 @@ class Item(Model):
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
+            self.save(doc)
+        if doc is not None and 'lowerName' not in doc:
+            self.save(doc)
 
         return doc
 
