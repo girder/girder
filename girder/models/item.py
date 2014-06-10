@@ -31,7 +31,7 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(['folderId', 'lowerName'])
+        self.ensureIndices(('folderId', 'name', 'lowerName'))
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -51,6 +51,7 @@ class Item(Model):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
+        doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
         if not doc['name']:

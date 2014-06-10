@@ -34,7 +34,7 @@ class Folder(AccessControlledModel):
 
     def initialize(self):
         self.name = 'folder'
-        self.ensureIndices(['parentId', 'name'])
+        self.ensureIndices(['parentId', 'name', 'lowerName'])
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -57,6 +57,7 @@ class Folder(AccessControlledModel):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
+        doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
         if not doc['name']:

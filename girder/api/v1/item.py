@@ -57,18 +57,15 @@ class Item(Resource):
         :param folderId: Get child items of a particular folder.
         :param limit: The result set size limit, default=50.
         :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=name.
+        :param sort: The field to sort by, default=lowerName.
         :param sortdir: 1 for ascending, -1 for descending, default=1.
         """
-        limit, offset, sort = self.getPagingParameters(params, 'name')
+        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
 
         if 'text' in params:
             return self.model('item').textSearch(
                 params['text'], {'name': 1}, user=user, limit=limit)
-            """return self.model('item').search(
-                params['text'], user=user, offset=offset, limit=limit,
-                sort=sort)"""
         elif 'folderId' in params:
             folder = self.model('folder').load(id=params['folderId'], user=user,
                                                level=AccessType.READ, exc=True)
