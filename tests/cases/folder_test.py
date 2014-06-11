@@ -175,3 +175,33 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder, None)
         self.assertEqual(subfolder, None)
         self.assertEqual(item, None)
+
+    def testLazyFieldComputation(self):
+        """
+        Demonstrate that a folder that is saved in the database without
+        derived fields (like lowerName or baseParentId) get those values
+        computed at load() time.
+        """
+        folder = self.model('folder').createFolder(
+            parent=self.user, parentType='user', creator=self.user,
+            name=' My Folder Name')
+
+        self.assertEqual(folder['lowerName'], 'my folder name')
+        self.assertEqual(folder['baseParentType'], 'user')
+
+        # Force the item to be saved without lowerName and baseParentType fields
+        del folder['lowerName']
+        del folder['baseParentType']
+        self.model('folder').save(folder, validate=False)
+
+        folder = self.model('folder').find({'_id': folder['_id']}).next()
+        self.assertNotHasKeys(folder, ('lowerName', 'baseParentType'))
+
+        # Now ensure that calling load() actually populates those fields and
+        # saves the results persistently
+        self.model('folder').load(folder['_id'], force=True)
+        folder = self.model('folder').find({'_id': folder['_id']}).next()
+        self.assertHasKeys(folder, ('lowerName', 'baseParentType'))
+        self.assertEqual(folder['lowerName'], 'my folder name')
+        self.assertEqual(folder['baseParentType'], 'user')
+        self.assertEqual(folder['baseParentId'], self.user['_id'])

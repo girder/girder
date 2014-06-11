@@ -377,3 +377,32 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(pathToRoot[2]['object']['name'], firstChild['name'])
         self.assertEqual(pathToRoot[3]['type'], 'folder')
         self.assertEqual(pathToRoot[3]['object']['name'], secondChild['name'])
+
+    def testLazyFieldComputation(self):
+        """
+        Demonstrate that an item that is saved in the database without
+        derived fields (like lowerName or baseParentId) get those values
+        computed at load() time.
+        """
+        item = self.model('item').createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder)
+
+        self.assertEqual(item['lowerName'], 'my item name')
+        self.assertEqual(item['baseParentId'], self.users[0]['_id'])
+
+        # Force the item to be saved without lowerName and baseParentType fields
+        del item['lowerName']
+        del item['baseParentType']
+        self.model('item').save(item, validate=False)
+
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertNotHasKeys(item, ('lowerName', 'baseParentType'))
+
+        # Now ensure that calling load() actually populates those fields and
+        # saves the results persistently
+        self.model('item').load(item['_id'], force=True)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertHasKeys(item, ('lowerName', 'baseParentType'))
+        self.assertEqual(item['lowerName'], 'my item name')
+        self.assertEqual(item['baseParentType'], 'user')
+        self.assertEqual(item['baseParentId'], self.users[0]['_id'])

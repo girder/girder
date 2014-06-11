@@ -260,6 +260,8 @@ class Item(Model):
             'description': description,
             'folderId': folder['_id'],
             'creatorId': creator['_id'],
+            'baseParentType': folder['baseParentType'],
+            'baseParentId': folder['baseParentId'],
             'created': now,
             'updated': now,
             'size': 0
