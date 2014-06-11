@@ -15,10 +15,9 @@ set(CTEST_SITE "Aiur.kitware")
 set(CTEST_BUILD_NAME "Linux-master-nightly-js-cov")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
-
-file(RENAME "${CTEST_BINARY_DIRECTORY}/../coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 ctest_start("Nightly")
 ctest_configure()
+file(RENAME "${CTEST_BINARY_DIRECTORY}/../coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 ctest_coverage()
 file(REMOVE "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 ctest_submit()
