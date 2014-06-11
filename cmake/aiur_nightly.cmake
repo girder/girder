@@ -11,6 +11,7 @@ include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 set(CTEST_SITE "Aiur.kitware")
 set(CTEST_BUILD_NAME "Linux-master-nightly")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(CTEST_UPDATE_COMMAND "git pull")
 
 ctest_start("Nightly")
 ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
