@@ -31,7 +31,7 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(['folderId', 'lowerName'])
+        self.ensureIndices(('folderId', 'name', 'lowerName'))
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -51,6 +51,7 @@ class Item(Model):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
+        doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
         if not doc['name']:
@@ -112,6 +113,9 @@ class Item(Model):
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
+            self.save(doc)
+        if doc is not None and 'lowerName' not in doc:
+            self.save(doc)
 
         return doc
 
@@ -256,6 +260,8 @@ class Item(Model):
             'description': description,
             'folderId': folder['_id'],
             'creatorId': creator['_id'],
+            'baseParentType': folder['baseParentType'],
+            'baseParentId': folder['baseParentId'],
             'created': now,
             'updated': now,
             'size': 0
