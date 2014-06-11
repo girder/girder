@@ -34,7 +34,7 @@ class Folder(AccessControlledModel):
 
     def initialize(self):
         self.name = 'folder'
-        self.ensureIndices(['parentId', 'name'])
+        self.ensureIndices(['parentId', 'name', 'lowerName'])
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -57,6 +57,7 @@ class Folder(AccessControlledModel):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
+        doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
         if not doc['name']:
@@ -89,6 +90,37 @@ class Folder(AccessControlledModel):
         if duplicates.count() != 0:
             raise ValidationException('An item with that name already '
                                       'exists here.', 'name')
+
+        return doc
+
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False, fields=None, exc=False):
+        """
+        We override load in order to ensure the folder has certain fields
+        within it, and if not, we add them lazily at read time.
+
+        :param id: The id of the resource.
+        :type id: string or ObjectId
+        :param user: The user to check access against.
+        :type user: dict or None
+        :param level: The required access type for the object.
+        :type level: AccessType
+        :param force: If you explicity want to circumvent access
+                      checking on this resource, set this to True.
+        :type force: bool
+        """
+        doc = AccessControlledModel.load(
+            self, id=id, objectId=objectId, level=level, fields=fields,
+            exc=exc, force=force, user=user)
+
+        if doc is not None and 'baseParentType' not in doc:
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            baseParent = pathFromRoot[0]
+            doc['baseParentId'] = baseParent['object']['_id']
+            doc['baseParentType'] = baseParent['type']
+            self.save(doc)
+        if doc is not None and 'lowerName' not in doc:
+            self.save(doc)
 
         return doc
 
