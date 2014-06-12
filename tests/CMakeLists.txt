@@ -19,6 +19,7 @@ add_python_test(search)
 add_python_test(system)
 add_python_test(user)
 add_python_test(webroot)
+add_python_test(api_describe)
 
 add_web_client_test(data "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js")
 
