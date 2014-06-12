@@ -51,7 +51,10 @@ class Model(ModelImporter):
         self.collection = self.database[self.name]
 
         for index in self._indices:
-            self.collection.ensure_index(index)
+            if isinstance(index, (list, tuple)):
+                self.collection.ensure_index(index[0], **index[1])
+            else:
+                self.collection.ensure_index(index)
 
         if type(self._textIndex) is dict:
             textIdx = [(k, 'text') for k in self._textIndex.keys()]
@@ -70,8 +73,7 @@ class Model(ModelImporter):
         have zero or one full-text index.
         :param language: The default_language value for the text index,
         which is used for stemming and stop words. If the text index
-        should not use stemming and stop words, set this param to
-        'none'.
+        should not use stemming and stop words, set this param to 'none'.
         :type language: str
         """
         self._textIndex = index
@@ -81,9 +83,18 @@ class Model(ModelImporter):
         """
         Subclasses should call this with a list of strings representing
         fields that should be indexed in the database if there are any.
-        Otherwise, it is not necessary to call this method.
+        Otherwise, it is not necessary to call this method. Elements of the list
+        may also be a list or tuple, where the second element is a dictionary
+        that will be passed as kwargs to the pymongo ensure_index call.
         """
-        self._indices = indices
+        self._indices.extend(indices)
+
+    def ensureIndex(self, index):
+        """
+        Like ensureIndices, but declares just a single index rather than a list
+        of them.
+        """
+        self._indices.append(index)
 
     def validate(self, doc):
         """

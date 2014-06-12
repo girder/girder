@@ -42,6 +42,7 @@ class Token(AccessControlledModel):
     """
     def initialize(self):
         self.name = 'token'
+        self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
 
     def validate(self, doc):
         # TODO one validation that might be nice would be adding a maximum
@@ -50,16 +51,6 @@ class Token(AccessControlledModel):
         # per user to support things like logging in from multiple machines, but
         # we can still set a sensible maximum.
         return doc
-
-    def cleanExpired(self):
-        """
-        Remove all expired tokens from the database.
-        """
-        self.removeWithQuery({
-            'expires': {
-                '$lt': datetime.datetime.now()
-            }
-        })
 
     def createToken(self, user, days=180):
         """
