@@ -52,6 +52,10 @@ def loadConfig():
                'database': matcher.group(5)}
         cherrypy.config['database'] = res
 
+    if 'GIRDER_TEST_DB' in os.environ:
+        cherrypy.config['database']['database'] =\
+            os.environ['GIRDER_TEST_DB'].replace('.', '_')
+
 
 def getConfig():
     if 'database' not in cherrypy.config:

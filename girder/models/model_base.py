@@ -46,10 +46,7 @@ class Model(ModelImporter):
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
         cur_config = config.getConfig()
-        if cur_config['server']['mode'] == 'testing':
-            dbName = '%s_test' % db_cfg['database']
-        else:
-            dbName = db_cfg['database']  # pragma: no cover
+        dbName = db_cfg['database']
         self.database = db_connection[dbName]
         self.collection = self.database[self.name]
 

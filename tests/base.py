@@ -37,7 +37,7 @@ from . import mock_smtp
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
-mockSmtp = mock_smtp.MockSmtpReceiver(('localhost', 50002))
+mockSmtp = mock_smtp.MockSmtpReceiver()
 enabledPlugins = []
 
 
@@ -76,8 +76,12 @@ def dropTestDatabase():
     from girder.models import getDbConnection
     db_connection = getDbConnection()
     model_importer.clearModels()  # Must clear the models so indices are rebuilt
-    db_connection.drop_database('%s_test' %
-                                cherrypy.config['database']['database'])
+    dbName = cherrypy.config['database']['database']
+
+    if 'girder_test_' not in dbName:
+        raise Exception('Expected a testing database name, but got {}'
+                        .format(dbName))
+    db_connection.drop_database(dbName)
 
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
@@ -94,7 +98,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         dropTestDatabase()
         self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=os.path.join(ROOT_DIR, 'tests', 'assetstore'))
-        self.model('setting').set(SettingKey.SMTP_HOST, 'localhost:50002')
+        addr = ':'.join(map(str, mockSmtp.address))
+        self.model('setting').set(SettingKey.SMTP_HOST, addr)
 
     def assertStatusOk(self, response):
         """

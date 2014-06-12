@@ -23,6 +23,9 @@ import smtpd
 import threading
 import time
 
+_startPort = 50002
+_maxTries = 20
+
 
 class MockSmtpServer(smtpd.SMTPServer):
     mailQueue = Queue.Queue()
@@ -32,12 +35,19 @@ class MockSmtpServer(smtpd.SMTPServer):
 
 
 class MockSmtpReceiver(object):
-    def __init__(self, address):
-        self.address = address
-
     def start(self):
-        """Start the mock SMTP server"""
-        self.smtp = MockSmtpServer(self.address, None)
+        """Start the mock SMTP server. Attempt to bind to any port
+        within the range specified by _startPort and _maxTries"""
+        for port in range(_startPort, _startPort + _maxTries):
+            try:
+                self.address = ('localhost', port)
+                self.smtp = MockSmtpServer(self.address, None)
+                break
+            except:
+                pass
+        else:
+            raise Exception('Could not bind to any port for Mock SMTP server')
+
         self.thread = threading.Thread(target=asyncore.loop,
                                        kwargs={'timeout': 0})
         self.thread.start()

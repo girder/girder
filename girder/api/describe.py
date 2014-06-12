@@ -32,6 +32,8 @@ major version.
 """
 API_VERSION = "0.1.0"
 
+SWAGGER_VERSION = "1.2"
+
 
 class Description(object):
     """
@@ -114,7 +116,7 @@ class Describe(Resource):
     def listResources(self, params):
         return {
             'apiVersion': API_VERSION,
-            'swaggerVersion': '1.2',
+            'swaggerVersion': SWAGGER_VERSION,
             'basePath': cherrypy.url(),
             'apis': [{'path': '/{}'.format(resource)}
                      for resource in sorted(docs.discovery)]
@@ -126,7 +128,7 @@ class Describe(Resource):
 
         return {
             'apiVersion': API_VERSION,
-            'swaggerVersion': '1.2',
+            'swaggerVersion': SWAGGER_VERSION,
             'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
             'apis': [{'path': route, 'operations': ops}
                      for route, ops in docs.routes[resource].iteritems()]

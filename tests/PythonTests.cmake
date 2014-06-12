@@ -63,9 +63,8 @@ endfunction()
 function(add_python_test case)
   set(name "server_${case}")
 
-  set(_options NO_LOCK)
   set(_args PLUGIN)
-  set(_multival_args "")
+  set(_multival_args RESOURCE_LOCKS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PLUGIN)
@@ -94,10 +93,12 @@ function(add_python_test case)
     )
   endif()
 
-  set_property(TEST ${name} PROPERTY ENVIRONMENT "PYTHONPATH=${pythonpath}")
-
-  if(NOT fn_NO_LOCK)
-    set_property(TEST ${name} PROPERTY RESOURCE_LOCK mongo cherrypy)
+  set_property(TEST ${name} PROPERTY ENVIRONMENT
+    "PYTHONPATH=${pythonpath}"
+    "GIRDER_TEST_DB=girder_test_${name}"
+  )
+  if(fn_RESOURCE_LOCKS)
+    set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
   endif()
 
   if(PYTHON_COVERAGE)
