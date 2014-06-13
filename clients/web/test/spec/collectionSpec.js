@@ -96,7 +96,11 @@ describe('Test collection actions', function () {
         }, 'new collection to appear');
 
         expect($('.g-collection-list-entry').text()).not.toContain('collName0');
-        expect($('.g-collection-list-entry').text()).toContain('collName1');
+
+        waitsFor(function () {
+            return $('.g-collection-list-entry').text().match('collName1').length > 0;
+        }, 'collName1 to appear');
+
     });
 
 });
