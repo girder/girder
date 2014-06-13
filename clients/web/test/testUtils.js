@@ -67,3 +67,33 @@ girderTest.logout = function () {
         }, 'login link to appear');
     };
 };
+
+// This assumes that you're logged into the system
+girderTest.createCollection = function (collName, collDesc) {
+
+    return function () {
+
+        runs(function () {
+            $('.g-collection-create-button').click();
+        });
+
+        waitsFor(function () {
+            return $('input#g-name').length > 0;
+        }, 'create collection dialog to appear');
+
+        runs(function () {
+            $('#g-name').val(collName);
+            $('#g-description').val(collDesc);
+            $('.g-save-collection').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-name').text() === collName;
+        }, 'new collection page to load');
+
+        waitsFor(function () {
+            return $('.g-collection-description').text() === collDesc;
+        }, 'collection description to load');
+
+    };
+};

@@ -74,10 +74,9 @@ girder.views.CollectionsView = girder.View.extend({
     userChanged: function () {
         // When the user changes, we should refresh the page to reveal the
         // appropriate collections
-        this.collection.reset();
         this.collection.off('g:fetched').on('g:fetched', function () {
             this.render();
-        }, this).fetch();
+        }, this).fetch({}, true);
     }
 });
 
