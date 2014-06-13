@@ -23,14 +23,26 @@ import os
 import re
 
 
+def _mergeConfig(filename):
+    '''
+    Load `filename` into the cherrypy config.
+    Also, handle global options by putting them in the root.
+    '''
+    cherrypy._cpconfig.merge(cherrypy.config, filename)
+    global_config = cherrypy.config.pop('global', {})
+
+    for option, value in global_config.iteritems():
+        cherrypy.config[option] = value
+
+
 def loadConfig():
-    cherrypy.config.update(
+    _mergeConfig(
         os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
 
     local = os.path.join(constants.ROOT_DIR, 'girder', 'conf',
                          'girder.local.cfg')
     if os.path.exists(local):
-        cherrypy._cpconfig.merge(cherrypy.config, local)
+        _mergeConfig(local)
     else:
         print constants.TerminalColor.warning(
             'WARNING: "{}" does not exist.'.format(local))
