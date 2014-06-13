@@ -88,7 +88,7 @@ class Collection(Resource):
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
     def getCollection(self, coll, params):
-        return self.model('collection').filter(coll)
+        return self.model('collection').filter(coll, self.getCurrentUser())
     getCollection.description = (
         Description('Get a collection by ID.')
         .responseClass('Collection')

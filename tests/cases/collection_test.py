@@ -111,6 +111,12 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], newCollId)
         self.assertEqual(resp.json[0]['name'], 'New collection')
 
+        # Test collection get
+        resp = self.request(path='/collection/{}'.format(newCollId),
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_accessLevel'], AccessType.ADMIN)
+
     def testDeleteCollection(self):
         # Requesting with no path should fail
         resp = self.request(path='/collection', method='DELETE',
