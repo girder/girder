@@ -8,7 +8,6 @@ $(function () {
 });
 
 describe('Create a data hierarchy', function () {
-    console.log(girderTest.createUser);
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
