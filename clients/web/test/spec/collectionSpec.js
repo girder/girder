@@ -92,10 +92,11 @@ describe('Test collection actions', function () {
 
     it('check if public collection is viewable (and ensure private is not)', function () {
         waitsFor(function () {
-            return $('.g-collection-list-entry').text().match('collName1').length > 0;
+            return $('.g-collection-list-entry').length > 0;
         }, 'new collection to appear');
 
         expect($('.g-collection-list-entry').text()).not.toContain('collName0');
+        expect($('.g-collection-list-entry').text()).toContain('collName1');
     });
 
 });
