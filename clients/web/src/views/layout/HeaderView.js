@@ -3,8 +3,8 @@
  */
 girder.views.LayoutHeaderView = girder.View.extend({
     events: {
-        'submit .g-item-search-form': function (event) {
-            event.preventDefault();
+        'click .g-app-title': function (event) {
+            girder.router.navigate('', {trigger: true});
         }
     },
 

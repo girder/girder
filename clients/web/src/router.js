@@ -19,11 +19,6 @@ girder.Router = Backbone.Router.extend({
 
 girder.router = new girder.Router();
 
-// Empty for now...
-girder.router.route('', 'index', function () {
-
-});
-
 // When the back button is pressed, we want to close open modals.
 girder.router.on('route', function (route, params) {
     if ($('.modal').hasClass('in')) {
