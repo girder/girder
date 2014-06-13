@@ -317,11 +317,10 @@ class Item(Model):
         :type item: dict
         :returns: an ordered list of dictionaries from root to the current item
         """
-        curFolder = self.model('folder').load(item['folderId'], user=user,
-                                              force=force)
-        folderIdsToRoot = self.model('folder').parentsToRoot(curFolder,
-                                                             user=user,
-                                                             force=force)
+        curFolder = self.model('folder').load(
+            item['folderId'], user=user, level=AccessType.READ, force=force)
+        folderIdsToRoot = self.model('folder').parentsToRoot(
+            curFolder, user=user, level=AccessType.READ, force=force)
         filteredFolder = self.model('folder').filter(curFolder, user)
         folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
         return folderIdsToRoot

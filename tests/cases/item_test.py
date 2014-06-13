@@ -363,13 +363,13 @@ class ItemTestCase(base.TestCase):
                                                  secondChild, 'foo')
 
         resp = self.request(path='/item/{}/rootpath'.format(baseItem['_id']),
-                            method='GET', user=self.users[0])
+                            method='GET')
         self.assertStatusOk(resp)
         pathToRoot = resp.json
 
         self.assertEqual(pathToRoot[0]['type'], 'user')
-        self.assertEqual(pathToRoot[0]['object']['email'],
-                         self.users[0]['email'])
+        self.assertEqual(pathToRoot[0]['object']['login'],
+                         self.users[0]['login'])
         self.assertEqual(pathToRoot[1]['type'], 'folder')
         self.assertEqual(pathToRoot[1]['object']['name'],
                          self.publicFolder['name'])

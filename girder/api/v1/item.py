@@ -257,4 +257,4 @@ class Item(Resource):
         Description('Get the path to the root of the item\'s hierarchy')
         .param('id', 'The ID of the item', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied for the item.', 403))
+        .errorResponse('Read access was denied for the item.', 403))
