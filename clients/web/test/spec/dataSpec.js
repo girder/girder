@@ -8,40 +8,13 @@ $(function () {
 });
 
 describe('Create a data hierarchy', function () {
-    it('register a user', function () {
-        expect(girder.currentUser).toBe(null);
-
-        waitsFor(function () {
-            return $('.g-register').length > 0;
-        }, 'girder app to render');
-
-        runs(function () {
-            $('.g-register').click();
-        });
-
-        waitsFor(function () {
-            return $('input#g-email').length > 0;
-        }, 'register dialog to appear');
-
-        runs(function () {
-            $('#g-login').val('johndoe');
-            $('#g-email').val('john.doe@email.com');
-            $('#g-firstName').val('John');
-            $('#g-lastName').val('Doe');
-            $('#g-password,#g-password2').val('password!');
-            $('#g-register-button').click();
-        });
-
-        waitsFor(function () {
-            return $('.modal-dialog:visible').length === 0;
-        }, 'registration dialog to disappear');
-
-        runs(function () {
-            expect(girder.currentUser).not.toBe(null);
-            expect(girder.currentUser.name()).toBe('John Doe');
-            expect(girder.currentUser.get('login')).toBe('johndoe');
-        });
-    });
+    console.log(girderTest.createUser);
+    it('register a user',
+        girderTest.createUser('johndoe',
+                              'john.doe@email.com',
+                              'John',
+                              'Doe',
+                              'password!'));
 
     it('create a folder', function () {
         expect($('#g-user-action-menu.open').length).toBe(0);

@@ -22,6 +22,7 @@ add_python_test(webroot)
 add_python_test(api_describe)
 
 add_web_client_test(data "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js")
+add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js")
 
 add_subdirectory(clients)
 
