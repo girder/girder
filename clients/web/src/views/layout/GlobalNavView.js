@@ -17,6 +17,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
 
     initialize: function () {
         girder.events.on('g:highlightItem', this.selectForView, this);
+        girder.events.on('g:login', this.render, this);
     },
 
     render: function () {
