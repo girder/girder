@@ -109,6 +109,9 @@ girderTest.createCollection = function (collName, collDesc) {
 girderTest.goToGroupsPage = function () {
 
     return function () {
+
+        waits(1000);
+
         waitsFor(function () {
             return $("a.g-nav-link[g-target='groups']:visible").length > 0;
         }, 'groups nav link to appear');
