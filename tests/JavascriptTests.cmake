@@ -39,6 +39,7 @@ function(add_web_client_test name specFile)
     "SPEC_FILE=${specFile}"
     "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${name}.cvg"
     "GIRDER_TEST_DB=girder_test_webclient"
+    "GIRDER_TEST_ASSETSTORE=webclient"
   )
   set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
   set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
