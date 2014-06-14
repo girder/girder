@@ -98,6 +98,10 @@ describe('Test collection actions', function () {
 
     it('check if public collection is viewable (and ensure private is not)', function () {
 
+        waitsFor(function () {
+            return $('li.active .g-page-number').text() === 'Page 1';
+        });
+
         waitsFor(function() {
             return $('.g-collection-create-button').length === 0;
         }, 'collection create button to dissappear');

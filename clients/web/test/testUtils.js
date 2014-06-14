@@ -72,10 +72,19 @@ girderTest.logout = function () {
     };
 };
 
-// This assumes that you're logged into the system
+// This assumes that you're logged into the system and on the create collection
+// page.
 girderTest.createCollection = function (collName, collDesc) {
 
     return function () {
+
+        waitsFor(function () {
+            return $('li.active .g-page-number').text() === 'Page 1';
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-button').length > 0;
+        });
 
         runs(function () {
             $('.g-collection-create-button').click();
