@@ -158,8 +158,7 @@ module.exports = function (grunt) {
                     'clients/web/static/built/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
-                        'clients/web/test/testUtils.js'
+                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
                 }
             }

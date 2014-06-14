@@ -99,18 +99,17 @@ describe('Test collection actions', function () {
     it('check if public collection is viewable (and ensure private is not)', function () {
 
         waitsFor(function () {
-            return $('li.active .g-page-number').text() === 'Page 1';
-        });
-
-        waitsFor(function() {
-            return $('.g-collection-create-button').length === 0;
-        }, 'collection create button to dissappear');
+            return $('li.active .g-page-number').text() === 'Page 1' &&
+                   $('.g-collection-create-button').length === 0;
+        }, 'collection create button to disappear');
 
         waitsFor(function () {
             return $('.g-collection-list-entry').length > 0;
-        }, 'new collection to appear', 10000);
+        }, 'collection list to load', 10000);
 
-        expect($('.g-collection-list-entry').text()).not.toContain('collName0');
+        runs(function () {
+            expect($('.g-collection-list-entry').text()).not.toContain('collName0');
+        });
 
         waitsFor(function () {
             return $('.g-collection-list-entry').text().match('collName1').length > 0;

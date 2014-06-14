@@ -79,12 +79,9 @@ girderTest.createCollection = function (collName, collDesc) {
     return function () {
 
         waitsFor(function () {
-            return $('li.active .g-page-number').text() === 'Page 1';
-        });
-
-        waitsFor(function () {
-            return $('.g-collection-create-button').length > 0;
-        });
+            return $('li.active .g-page-number').text() === 'Page 1' &&
+                   $('.g-collection-create-button').length > 0;
+        }, 'create collection button to appear');
 
         runs(function () {
             $('.g-collection-create-button').click();
@@ -101,12 +98,8 @@ girderTest.createCollection = function (collName, collDesc) {
         });
 
         waitsFor(function () {
-            return $('.g-collection-name').text() === collName;
+            return $('.g-collection-name').text() === collName &&
+                   $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
-
-        waitsFor(function () {
-            return $('.g-collection-description').text() === collDesc;
-        }, 'collection description to load');
-
     };
 };
