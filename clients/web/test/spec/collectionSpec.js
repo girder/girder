@@ -73,7 +73,8 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-save-access-list').length > 0;
+            return $('.g-save-access-list').length > 0 &&
+                   $('.radio.g-selected').text().match("Public").length > 0
         }, 'access save button to appear');
 
         runs(function () {
