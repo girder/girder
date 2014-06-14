@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
@@ -131,6 +133,10 @@ class File(Resource):
             raise RestException(
                 'Server has received %s bytes, but client sent offset %s.'
                 % (upload['received'], offset))
+
+        if type(params['chunk']) != cherrypy._cpreqbody.Part:
+            raise RestException(
+                'The chunk param must be passed as a multipart-encoded file.')
 
         return self.model('upload').handleChunk(upload, params['chunk'].file)
     readChunk.description = (
