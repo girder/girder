@@ -46,6 +46,7 @@ class Description(object):
         self._summary = summary
         self._params = []
         self._responses = []
+        self._consumes = []
         self._responseClass = None
         self._notes = None
 
@@ -53,13 +54,18 @@ class Description(object):
         """
         Returns this description object as an appropriately formatted dict
         """
-        return {
+        resp = {
             'summary': self._summary,
             'notes': self._notes,
             'parameters': self._params,
             'responseMessages': self._responses,
             'responseClass': self._responseClass
         }
+
+        if self._consumes is not None:
+            resp['consumes'] = self._consumes
+
+        return resp
 
     def responseClass(self, obj):
         self._responseClass = obj
@@ -76,10 +82,14 @@ class Description(object):
             'name': name,
             'description': description,
             'paramType': paramType,
-            'dataType': dataType,
+            'type': dataType,
             'allowMultiple': False,
             'required': required
         })
+        return self
+
+    def consumes(self, value):
+        self._consumes.append(value)
         return self
 
     def notes(self, notes):

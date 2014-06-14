@@ -141,9 +141,12 @@ class File(Resource):
         return self.model('upload').handleChunk(upload, params['chunk'].file)
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
-        .param('uploadId', 'The ID of the upload record.')
-        .param('offset', 'Offset of the chunk in the file.', dataType='integer')
-        .param('chunk', 'The actual bytes of the chunk.', dataType='byte')
+        .consumes('multipart/form-data')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .param('offset', 'Offset of the chunk in the file.', dataType='integer',
+               paramType='form')
+        .param('chunk', 'The actual bytes of the chunk.', dataType='File',
+               paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
