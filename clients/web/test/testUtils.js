@@ -14,7 +14,9 @@ girderTest.TIMEOUT = 5000;
 girderTest.createUser = function (login, email, firstName, lastName, password) {
 
     return function () {
-        expect(girder.currentUser).toBe(null);
+        runs(function () {
+            expect(girder.currentUser).toBe(null);
+        });
 
         waitsFor(function () {
             return $('.g-register').length > 0;
@@ -52,7 +54,9 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
 girderTest.logout = function () {
 
     return function () {
-        expect(girder.currentUser).not.toBe(null);
+        runs(function () {
+            expect(girder.currentUser).not.toBe(null);
+        });
 
         waitsFor(function () {
             return $('.g-logout').length > 0;
@@ -65,5 +69,37 @@ girderTest.logout = function () {
         waitsFor(function () {
             return $('.g-login').length > 0;
         }, 'login link to appear');
+    };
+};
+
+// This assumes that you're logged into the system and on the create collection
+// page.
+girderTest.createCollection = function (collName, collDesc) {
+
+    return function () {
+
+        waitsFor(function () {
+            return $('li.active .g-page-number').text() === 'Page 1' &&
+                   $('.g-collection-create-button').length > 0;
+        }, 'create collection button to appear');
+
+        runs(function () {
+            $('.g-collection-create-button').click();
+        });
+
+        waitsFor(function () {
+            return $('input#g-name').length > 0;
+        }, 'create collection dialog to appear');
+
+        runs(function () {
+            $('#g-name').val(collName);
+            $('#g-description').val(collDesc);
+            $('.g-save-collection').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-name').text() === collName &&
+                   $('.g-collection-description').text() === collDesc;
+        }, 'new collection page to load');
     };
 };
