@@ -96,8 +96,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         can be used without 500 errors.
         """
         dropTestDatabase()
+        assetstorePath = os.path.join(
+            ROOT_DIR, 'tests', 'assetstore',
+            os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
         self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=os.path.join(ROOT_DIR, 'tests', 'assetstore'))
+            name='Test', root=assetstorePath)
+
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
 

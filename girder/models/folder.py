@@ -298,7 +298,8 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
-    def parentsToRoot(self, folder, curPath=[], user=None, force=False):
+    def parentsToRoot(self, folder, curPath=[], user=None, force=False,
+                      level=AccessType.READ):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -309,15 +310,15 @@ class Folder(AccessControlledModel):
         curParentId = folder['parentId']
         curParentType = folder['parentCollection']
         if curParentType == 'user' or curParentType == 'collection':
-            curParentObject = self.model(curParentType).load(curParentId,
-                                                             user=user,
-                                                             force=force)
+            curParentObject = self.model(curParentType).load(
+                curParentId, user=user, level=level, force=force)
             parentFiltered = self.model(curParentType).filter(curParentObject,
                                                               user)
             return [{'type': curParentType,
                      'object': parentFiltered}] + curPath
         else:
-            curParentObject = self.load(curParentId, user=user, force=force)
+            curParentObject = self.load(
+                curParentId, user=user, level=level, force=force)
             curPath = [{'type': curParentType,
                         'object': self.filter(curParentObject, user)}] + curPath
             return self.parentsToRoot(curParentObject, curPath, user=user,

@@ -50,14 +50,11 @@ class ItemTestCase(base.TestCase):
             self.users[0], 'user', user=self.users[0])
         (self.publicFolder, self.privateFolder) = folders
 
-        root = os.path.join(ROOT_DIR, 'tests', 'assetstore')
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        assetstore = self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=root)
-        self.assetstore = assetstore
+        self.assetstore = self.model('assetstore').getCurrent()
+        root = self.assetstore['root']
 
         # Clean out the test assetstore on disk
-        shutil.rmtree(assetstore['root'])
+        shutil.rmtree(root)
 
         # First clean out the temp directory
         tmpdir = os.path.join(root, 'temp')
@@ -363,13 +360,13 @@ class ItemTestCase(base.TestCase):
                                                  secondChild, 'foo')
 
         resp = self.request(path='/item/{}/rootpath'.format(baseItem['_id']),
-                            method='GET', user=self.users[0])
+                            method='GET')
         self.assertStatusOk(resp)
         pathToRoot = resp.json
 
         self.assertEqual(pathToRoot[0]['type'], 'user')
-        self.assertEqual(pathToRoot[0]['object']['email'],
-                         self.users[0]['email'])
+        self.assertEqual(pathToRoot[0]['object']['login'],
+                         self.users[0]['login'])
         self.assertEqual(pathToRoot[1]['type'], 'folder')
         self.assertEqual(pathToRoot[1]['object']['name'],
                          self.publicFolder['name'])
