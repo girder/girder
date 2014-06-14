@@ -76,7 +76,9 @@ describe('Test collection actions', function () {
     });
 
     it('go back to collections page again', function () {
-        $("a.g-nav-link[g-target='collections']").click();
+        runs(function () {
+            $("a.g-nav-link[g-target='collections']").click();
+        });
 
         waitsFor(function () {
             return $('.g-collection-create-button').length > 0;
