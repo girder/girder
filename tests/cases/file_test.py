@@ -216,14 +216,11 @@ class FileTestCase(base.TestCase):
         """
         Test usage of the Filesystem assetstore type.
         """
-        root = os.path.join(ROOT_DIR, 'tests', 'assetstore')
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        assetstore = self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=root)
-        self.assetstore = assetstore
+        self.assetstore = self.model('assetstore').getCurrent()
+        root = self.assetstore['root']
 
         # Clean out the test assetstore on disk
-        shutil.rmtree(assetstore['root'])
+        shutil.rmtree(root)
 
         # First clean out the temp directory
         tmpdir = os.path.join(root, 'temp')

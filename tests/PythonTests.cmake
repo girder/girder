@@ -96,6 +96,7 @@ function(add_python_test case)
   set_property(TEST ${name} PROPERTY ENVIRONMENT
     "PYTHONPATH=${pythonpath}"
     "GIRDER_TEST_DB=girder_test_${name}"
+    "GIRDER_TEST_ASSETSTORE=${name}"
   )
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
