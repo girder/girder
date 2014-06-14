@@ -21,6 +21,7 @@ girder.views.GroupsView = girder.View.extend({
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+        girder.events.on('g:login', this.userChanged, this);
     },
 
     render: function () {
@@ -70,7 +71,16 @@ girder.views.GroupsView = girder.View.extend({
         group.set('_id', result.id).on('g:fetched', function () {
             girder.router.navigate('group/' + group._id, {trigger: true});
         }, this).fetch();
+    },
+
+    userChanged: function () {
+        // When the user changes, we should refresh the page to reveal the
+        // appropriate groups
+        this.collection.off('g:fetched').on('g:fetched', function () {
+            this.render();
+        }, this).fetch({}, true);
     }
+
 });
 
 girder.router.route('groups', 'groups', function () {
