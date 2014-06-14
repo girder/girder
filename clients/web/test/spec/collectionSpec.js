@@ -93,6 +93,11 @@ describe('Test collection actions', function () {
     it('logout to become anonymous', girderTest.logout());
 
     it('check if public collection is viewable (and ensure private is not)', function () {
+
+        waitsFor(function () {
+            return $('.g-collection-list-header').length > 0;
+        }, 'collection list header to appear');
+
         waitsFor(function () {
             return $('.g-collection-list-entry').length > 0;
         }, 'new collection to appear');
