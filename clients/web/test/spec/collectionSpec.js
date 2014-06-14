@@ -25,7 +25,9 @@ describe('Test collection actions', function () {
             return $('.g-collection-create-button').length > 0;
         }, 'navigate to collections page');
 
-        expect($('.g-collection-list-entry').length).toBe(0);
+        runs(function () {
+            expect($('.g-collection-list-entry').length).toBe(0);
+        });
     });
 
     it('create a collection',
@@ -77,6 +79,10 @@ describe('Test collection actions', function () {
         runs(function () {
             $('.g-save-access-list').click();
         });
+
+        waitsFor(function () {
+            return !$('#g-dialog-container').hasClass('in');
+        }, 'access dialog to be hidden');
     });
 
     it('go back to collections page again', function () {
@@ -100,12 +106,9 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-create-button').length === 0;
-        }, 'collection create button to disappear');
-
-        waitsFor(function () {
-            return $('.g-collection-list-entry').length > 0;
-        }, 'collection list to load', 10000);
+                   $('.g-collection-create-button').length === 0 &&
+                   $('.g-collection-list-entry').length > 0;
+        }, 'collection list page to reload');
 
         runs(function () {
             expect($('.g-collection-list-entry').text()).not.toContain('collName0');
