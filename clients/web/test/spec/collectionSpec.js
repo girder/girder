@@ -66,7 +66,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-public').length > 0;
+                   $('#g-access-public:visible').length > 0;
         }, 'dialog and public access radio button to appear');
 
         runs(function () {
