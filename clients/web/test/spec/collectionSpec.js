@@ -108,7 +108,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('.g-collection-list-entry').length > 0;
-        }, 'new collection to appear');
+        }, 'new collection to appear', 10000);
 
         expect($('.g-collection-list-entry').text()).not.toContain('collName0');
 
