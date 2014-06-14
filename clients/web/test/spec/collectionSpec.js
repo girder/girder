@@ -22,7 +22,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-collection-create-button').length > 0;
+            return $('.g-collection-create-button:visible').length > 0;
         }, 'navigate to collections page');
 
         runs(function () {
@@ -39,12 +39,16 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-collection-create-button').length > 0;
+            return $('.g-collection-create-button:visible').length > 0;
         }, 'navigate to collections page');
 
         waitsFor(function () {
-            return $('.g-collection-list-entry').text().match('collName0').length > 0;
-        }, 'new collection to appear');
+            return $('.g-collection-list-entry').length === 1;
+        }, 'collection list to appear');
+
+        runs(function () {
+            expect($('.g-collection-list-entry').text().match('collName0').length > 0);
+        });
 
     });
 
@@ -52,12 +56,17 @@ describe('Test collection actions', function () {
         girderTest.createCollection('collName1', 'coll Desc 1'));
 
     it('make new collection public', function () {
+
+        waitsFor(function () {
+            return $('.g-collection-actions-button:visible').is(':enabled');
+        }, 'collection actions link to appear');
+
         runs(function () {
             $('.g-collection-actions-button').click();
         });
 
         waitsFor(function () {
-            return $('.g-collection-access-control').length > 0;
+            return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
         }, 'access control menu item to appear');
 
         runs(function () {
@@ -66,7 +75,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-public:visible').length > 0;
+                   $('#g-access-public:visible').is(':enabled');
         }, 'dialog and public access radio button to appear');
 
         runs(function () {
@@ -74,8 +83,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-save-access-list:visible').length > 0 &&
-                   $('.g-save-access-list:visible').length > 0 &&
+            return $('.g-save-access-list:visible').is(':enabled') &&
                    $('.radio.g-selected').text().match("Public").length > 0;
         }, 'access save button to appear');
 
@@ -94,7 +102,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-collection-create-button').length > 0;
+            return $('.g-collection-create-button').is(':enabled');
         }, 'navigate to collections page');
 
         waitsFor(function () {
@@ -109,8 +117,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-create-button').length === 0 &&
-                   $('.g-collection-list-entry').length > 0;
+                   $('.g-collection-list-entry').length === 1;
         }, 'collection list page to reload');
 
         runs(function () {

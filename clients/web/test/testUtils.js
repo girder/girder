@@ -80,7 +80,7 @@ girderTest.createCollection = function (collName, collDesc) {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-create-button').length > 0;
+                   $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
         runs(function () {
@@ -88,7 +88,8 @@ girderTest.createCollection = function (collName, collDesc) {
         });
 
         waitsFor(function () {
-            return $('input#g-name').length > 0;
+            return $('input#g-name').length > 0 &&
+                   $('.g-save-collection:visible').is(':enabled');
         }, 'create collection dialog to appear');
 
         runs(function () {
@@ -117,7 +118,7 @@ girderTest.goToGroupsPage = function () {
         });
 
         waitsFor(function () {
-            return $('.g-group-create-button').length > 0;
+            return $(".g-group-search-form .g-search-field:visible").is(':enabled');
         }, 'navigate to groups page');
     };
 
@@ -128,9 +129,11 @@ girderTest.createGroup = function (groupName, groupDesc, public) {
 
     return function () {
 
+        waits(1000);
+
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-group-create-button:visible').length > 0;
+                   $('.g-group-create-button:visible').is(':enabled');
         }, 'create group button to appear');
 
         runs(function () {
