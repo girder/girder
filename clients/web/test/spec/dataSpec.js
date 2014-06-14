@@ -16,10 +16,12 @@ describe('Create a data hierarchy', function () {
                               'password!'));
 
     it('create a folder', function () {
-        expect($('#g-user-action-menu.open').length).toBe(0);
-        $('.g-user-text>a:first').click();
-        expect($('#g-user-action-menu.open').length).toBe(1);
-        $('a.g-my-folders').click();
+        runs(function () {
+            expect($('#g-user-action-menu.open').length).toBe(0);
+            $('.g-user-text>a:first').click();
+            expect($('#g-user-action-menu.open').length).toBe(1);
+            $('a.g-my-folders').click();
+        });
 
         waitsFor(function () {
             return $('li.g-folder-list-entry').length > 0;
@@ -61,8 +63,10 @@ describe('Create a data hierarchy', function () {
     });
 
     it('search using quick search box', function () {
-        $('.g-quick-search-container input.g-search-field')
-            .val('john').trigger('input');
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('john').trigger('input');
+        });
 
         waitsFor(function () {
             return $('.g-quick-search-container .g-search-results').hasClass('open');

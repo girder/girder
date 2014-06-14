@@ -14,7 +14,9 @@ girderTest.TIMEOUT = 5000;
 girderTest.createUser = function (login, email, firstName, lastName, password) {
 
     return function () {
-        expect(girder.currentUser).toBe(null);
+        runs(function () {
+            expect(girder.currentUser).toBe(null);
+        });
 
         waitsFor(function () {
             return $('.g-register').length > 0;
@@ -52,7 +54,9 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
 girderTest.logout = function () {
 
     return function () {
-        expect(girder.currentUser).not.toBe(null);
+        runs(function () {
+            expect(girder.currentUser).not.toBe(null);
+        });
 
         waitsFor(function () {
             return $('.g-logout').length > 0;
