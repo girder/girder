@@ -156,7 +156,8 @@ girder.views.GroupView = girder.View.extend({
             delay: {show: 100}
         });
 
-        girder.router.navigate('group/' + this.model.get('_id') + '/' + this.tab);
+        girder.router.navigate('group/' + this.model.get('_id') + '/' +
+                               this.tab, {replace: true});
 
         _.each($('.g-group-tabs>li>a'), function (el) {
             var tabLink = $(el);
