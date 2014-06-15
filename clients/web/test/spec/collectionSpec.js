@@ -57,6 +57,8 @@ describe('Test collection actions', function () {
 
     it('make new collection public', function () {
 
+        waits(1000);
+
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
         }, 'collection actions link to appear');
@@ -65,6 +67,8 @@ describe('Test collection actions', function () {
             $('.g-collection-actions-button').click();
         });
 
+        waits(1000);
+
         waitsFor(function () {
             return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
         }, 'access control menu item to appear');
@@ -72,6 +76,8 @@ describe('Test collection actions', function () {
         runs(function () {
             $('.g-collection-access-control').click();
         });
+
+        waits(1000);
 
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
@@ -82,6 +88,8 @@ describe('Test collection actions', function () {
             $('#g-access-public').click();
         });
 
+        waits(1000);
+
         waitsFor(function () {
             return $('.g-save-access-list:visible').is(':enabled') &&
                    $('.radio.g-selected').text().match("Public").length > 0;
@@ -90,6 +98,8 @@ describe('Test collection actions', function () {
         runs(function () {
             $('.g-save-access-list').click();
         });
+
+        waits(1000);
 
         waitsFor(function () {
             return !$('#g-dialog-container').hasClass('in');
