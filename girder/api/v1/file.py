@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
@@ -132,12 +134,19 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.'
                 % (upload['received'], offset))
 
+        if type(params['chunk']) != cherrypy._cpreqbody.Part:
+            raise RestException(
+                'The chunk param must be passed as a multipart-encoded file.')
+
         return self.model('upload').handleChunk(upload, params['chunk'].file)
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
-        .param('uploadId', 'The ID of the upload record.')
-        .param('offset', 'Offset of the chunk in the file.', dataType='integer')
-        .param('chunk', 'The actual bytes of the chunk.', dataType='byte')
+        .consumes('multipart/form-data')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .param('offset', 'Offset of the chunk in the file.', dataType='integer',
+               paramType='form')
+        .param('chunk', 'The actual bytes of the chunk.', dataType='File',
+               paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
