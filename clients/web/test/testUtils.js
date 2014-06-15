@@ -80,7 +80,7 @@ girderTest.createCollection = function (collName, collDesc) {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-create-button').length > 0;
+                   $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
         runs(function () {
@@ -88,7 +88,8 @@ girderTest.createCollection = function (collName, collDesc) {
         });
 
         waitsFor(function () {
-            return $('input#g-name').length > 0;
+            return $('input#g-name').length > 0 &&
+                   $('.g-save-collection:visible').is(':enabled');
         }, 'create collection dialog to appear');
 
         runs(function () {
@@ -101,5 +102,75 @@ girderTest.createCollection = function (collName, collDesc) {
             return $('.g-collection-name').text() === collName &&
                    $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
+    };
+};
+
+// Go to groups page
+girderTest.goToGroupsPage = function () {
+
+    return function () {
+
+        waits(1000);
+
+        waitsFor(function () {
+            return $("a.g-nav-link[g-target='groups']:visible").length > 0;
+        }, 'groups nav link to appear');
+
+        runs(function () {
+            $("a.g-nav-link[g-target='groups']").click();
+        });
+
+        waitsFor(function () {
+            return $(".g-group-search-form .g-search-field:visible").is(':enabled');
+        }, 'navigate to groups page');
+    };
+
+};
+
+// This assumes that you're logged into the system and on the groups page.
+girderTest.createGroup = function (groupName, groupDesc, public) {
+
+    return function () {
+
+        waits(1000);
+
+        waitsFor(function () {
+            return $('li.active .g-page-number').text() === 'Page 1' &&
+                   $('.g-group-create-button:visible').is(':enabled');
+        }, 'create group button to appear');
+
+        runs(function () {
+            $('.g-group-create-button').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container').hasClass('in') &&
+                   $('#g-access-public:visible').length > 0 &&
+                   $('#g-name:visible').length > 0 &&
+                   $('#g-description:visible').length > 0 &&
+                   $('.g-save-group:visible').length > 0;
+        }, 'create group dialog to appear');
+
+        if (public) {
+            runs(function () {
+                $('#g-access-public').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-save-group:visible').length > 0 &&
+                       $('.radio.g-selected').text().match("Public").length > 0;
+            }, 'access selection to be set to public');
+        }
+
+        runs(function () {
+            $('#g-name').val(groupName);
+            $('#g-description').val(groupDesc);
+            $('.g-save-group').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-group-name').text() === groupName &&
+                   $('.g-group-description').text() === groupDesc;
+        }, 'new group page to load');
     };
 };
