@@ -10,7 +10,7 @@ $(function () {
 describe('Create an admin and non-admin user', function () {
 
     it('No admin console without logging in', function () {
-        expect($('.g-global-nav-li span').text()).not.toContain('Admin Console');
+        expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 
     it('register a user (first is admin)',
@@ -21,13 +21,13 @@ describe('Create an admin and non-admin user', function () {
                               'adminpassword!'));
 
     it('Admin console should show when admin is logged in', function () {
-        expect($('.g-global-nav-li span').text()).toContain('Admin Console');
+        expect($('.g-global-nav-li span').text()).toContain('Admin console');
     });
 
     it('logout from admin account', girderTest.logout());
 
     it('No admin console directly after admin logs out', function () {
-        expect($('.g-global-nav-li span').text()).not.toContain('Admin Console');
+        expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 
     it('register a (normal user)',
@@ -38,6 +38,6 @@ describe('Create an admin and non-admin user', function () {
                               'password!'));
 
     it('No admin console when logging in as a normal user', function () {
-        expect($('.g-global-nav-li span').text()).not.toContain('Admin Console');
+        expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 });
