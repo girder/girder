@@ -2,7 +2,7 @@
   .modal-content
     .modal-header
       button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
-      h4.modal-title Invite User to Group
+      h4.modal-title Invite user to group
       .g-dialog-subtitle
         i.icon-user
         | #{user.text}
@@ -21,7 +21,7 @@
                 group, but may not change properties of the group.
               .g-invite-as-member.btn.btn-primary
                 i.icon-mail
-                |  Invite as Member
+                |  Invite as member
 
         .panel.panel-default
           .panel-heading: .panel-title
@@ -35,7 +35,7 @@
                 group properties.
               .g-invite-as-moderator.btn.btn-primary
                 i.icon-mail
-                |  Invite as Moderator
+                |  Invite as moderator
 
         if (level > accessType.WRITE)
           .panel.panel-default
@@ -51,9 +51,8 @@
                   group itself.
                 .g-invite-as-admin.btn.btn-primary
                   i.icon-mail
-                  |  Invite as Administrator
+                  |  Invite as administrator
 
       .g-validation-failed-message
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
-

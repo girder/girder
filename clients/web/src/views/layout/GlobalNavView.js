@@ -36,7 +36,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         }];
         if (girder.currentUser && girder.currentUser.get('admin')) {
             navItems.push({
-                'name': 'Admin Console',
+                'name': 'Admin console',
                 'icon': 'icon-wrench',
                 'target': 'admin'
             });
