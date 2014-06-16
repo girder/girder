@@ -41,8 +41,10 @@ girder.views.EditGroupWidget = girder.View.extend({
                 view.$('#g-name').val(view.model.get('name'));
                 view.$('#g-description').val(view.model.get('description'));
             }
-
             view.$('#g-name').focus();
+            girder.dialogs.handleOpen('edit');
+        }).on('hidden.bs.modal', function () {
+            girder.dialogs.handleClose('edit');
         });
         this.$('#g-name').focus();
 

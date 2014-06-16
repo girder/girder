@@ -32,6 +32,32 @@ describe('Test group actions', function () {
     it('Create a public group',
        girderTest.createGroup('pubGroup', 'public group', true));
 
+    it('Open edit dialog and check url state', function () {
+        waitsFor(function () {
+            return $('.g-group-actions-button:visible').length === 1;
+        }, 'the group actions button to appear');
+
+        waitsFor(function () {
+            return $('.g-edit-group:visible').length === 1;
+        }, 'the group edit action to appear');
+
+        runs(function () {
+            $('.g-edit-group').click();
+        });
+
+        waitsFor(function () {
+            return Backbone.history.fragment.slice(-18) === '/roles?dialog=edit';
+        }, 'the url state to change');
+
+        waitsFor(function () {
+            return $('a.btn-default').text() === 'Cancel';
+        }, 'the cancel button to appear');
+
+        runs(function () {
+            $('a.btn-default').click();
+        });
+    });
+
     it('go back to groups page', girderTest.goToGroupsPage());
 
     it('check that the groups page has both groups for admin', function () {
