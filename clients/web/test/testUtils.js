@@ -88,6 +88,10 @@ girderTest.createCollection = function (collName, collDesc) {
         });
 
         waitsFor(function () {
+            return Backbone.history.fragment.slice(-14) === '?dialog=create';
+        }, 'url state to change indicating a creation dialog');
+
+        waitsFor(function () {
             return $('input#g-name').length > 0 &&
                    $('.g-save-collection:visible').is(':enabled');
         }, 'create collection dialog to appear');
