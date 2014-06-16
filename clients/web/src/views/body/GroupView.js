@@ -19,6 +19,7 @@ girder.views.GroupView = girder.View.extend({
 
     initialize: function (settings) {
         this.tab = settings.tab || 'roles';
+        this.edit = settings.edit || false;
 
         // If group model is already passed, there is no need to fetch.
         if (settings.group) {
@@ -159,6 +160,10 @@ girder.views.GroupView = girder.View.extend({
         girder.router.navigate('group/' + this.model.get('_id') + '/' +
                                this.tab, {replace: true});
 
+        if (this.edit) {
+            this.editGroup();
+        }
+
         _.each($('.g-group-tabs>li>a'), function (el) {
             var tabLink = $(el);
             var view = this;
@@ -264,32 +269,32 @@ girder.views.GroupView = girder.View.extend({
     }
 });
 
-girder.router.route('group/:id', 'group', function (id) {
-    // Fetch the group by id, then render the view.
+/**
+ * Helper function for fetching the user and rendering the view with
+ * an arbitrary set of extra parameters.
+ */
+var _fetchAndInit = function (groupId, params) {
     var group = new girder.models.GroupModel();
     group.set({
-        _id: id
+        _id: groupId
     }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.GroupView, {
+        girder.events.trigger('g:navigateTo', girder.views.GroupView, _.extend({
             group: group
-        }, group);
+        }, params || {}));
     }, this).on('g:error', function () {
-        girder.router.navigate('groups', {trigger: true});
+        girder.router.navigate('/groups', {trigger: true});
     }, this).fetch();
+};
+
+girder.router.route('group/:id', 'groupView', function (groupId, params) {
+    _fetchAndInit(groupId, {
+        edit: params.dialog === 'edit'
+    });
 });
 
-// Add routes for the tabs
-girder.router.route('group/:id/:tab', 'groupTab', function (id, tab) {
-    // Fetch the group by id, then render the view, and switch to the tab.
-    var group = new girder.models.GroupModel();
-    group.set({
-        _id: id
-    }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.GroupView, {
-            group: group,
-            tab: tab
-        }, group);
-    }, this).on('g:error', function () {
-        girder.router.navigate('groups', {trigger: true});
-    }, this).fetch();
+girder.router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
+    _fetchAndInit(groupId, {
+        edit: params.dialog === 'edit',
+        tab: tab
+    });
 });
