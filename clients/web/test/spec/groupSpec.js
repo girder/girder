@@ -48,6 +48,14 @@ describe('Test group actions', function () {
         waitsFor(function () {
             return Backbone.history.fragment.slice(-18) === '/roles?dialog=edit';
         }, 'the url state to change');
+
+        waitsFor(function () {
+            return $('a.btn-default').text() === 'Cancel';
+        }, 'the cancel button to appear');
+
+        runs(function () {
+            $('a.btn-default').click();
+        });
     });
 
     it('go back to groups page', girderTest.goToGroupsPage());
