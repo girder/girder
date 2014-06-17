@@ -24,3 +24,39 @@ Girder to keep any customization separate. ::
     $ heroku open
 
 You should now see your girder instance running on Heroku. Congratulations!
+
+Apache Reverse Proxy
+--------------------
+
+In many cases, it is useful to route multiple web services from a single server.
+You can configure Apache's `mod_proxy <http://httpd.apache.org/docs/current/mod/mod_proxy.html>`_
+to route traffic to these services using a reverse proxy.  For example, if you have an
+Apache server accepting requests at ``www.example.com``, and you want to forward requests
+to ``www.example.com/girder`` to a Girder instance listening on port ``9000``.  You can
+add the following section to your Apache config: ::
+
+    <VirtualHost *:80>
+        ProxyPass /girder http://localhost:9000
+        ProxyPassReverse /girder http://localhost:9000
+    </VirtualHost>
+
+In such a scenario, Girder must be configured properly in order to serve content
+correctly.  Fortunately, this can be accomplished by setting a few parameters in
+your local configuration file at ``girder/conf/girder.local.cfg``.  In this example,
+we have the following: ::
+
+    [global]
+    server.socket_host: "0.0.0.0"
+    server.socket_port: 9000
+    tools.proxy.on: True
+    tools.proxy.base: "http://www.example.com/girder"
+    tools.proxy.local: ""
+
+    [server]
+    api_root: "/girder/api/v1"
+    static_root: "/girder/static"
+
+After modifying the configuration, always remember to rebuild Girder by changing to
+the main Girder directory and issuing the following command: ::
+
+    $ grunt init && grunt
