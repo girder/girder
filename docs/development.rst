@@ -7,6 +7,31 @@ loosely coupled. As such, development of girder can be divided into the server
 client. This section is intended to get prospective contributors to understand
 the tools used to develop Girder.
 
+Configuring Your Development Environment
+----------------------------------------
+
+In order to develop girder, you can refer to the :doc:`prerequisites` and
+:doc:`installation` sections to setup a local development environment. Once
+girder is started via ``python -m girder``, the server will reload itself
+whenever a python file is modified.
+
+To get the same auto-building behavior for javascript, we use ``grunt-watch``.
+Thus, running ``grunt watch`` in the root of the repository will watch for
+javascript, stylus, and jade changes in order to rebuild them on-the-fly.
+
+Vagrant
+^^^^^^^
+
+A shortcut to going through the installation steps for development is to use
+vagrant to setup the environment on a virtualbox virtual machine. To setup this
+environment run ``vagrant up`` in the root of the repository. This will spin
+up and provision a virtual machine, provided you have vagrant and virtualbox
+installed. Once this process is complete, you can run ``vagrant ssh`` in order to
+start girder. There is a helper script in the vagrant home directory that will
+start girder in a detached screen session. You may want to run a similar process
+to run ``grunt watch`` as detailed above.
+
+
 Utilities
 ---------
 

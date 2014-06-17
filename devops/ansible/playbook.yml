@@ -1,0 +1,85 @@
+
+
+- hosts: all
+
+  handlers:
+  - name: restart nginx
+    action: service name=nginx pattern=/etc/init.d/nginx state=restarted enabled=yes
+
+  - name: restart mongodb
+    action: service name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
+
+  tasks:
+
+  - name: add nodejs ppa
+    apt_repository: repo='ppa:chris-lea/node.js'
+    sudo: yes
+
+  - name: update apt cache
+    apt: update_cache=yes
+    sudo: yes
+
+  - name: install package dependencies
+    apt: name={{ item }} state=present
+    sudo: yes
+    with_items:
+      - python-pip
+      - python2.7-dev
+      - build-essential
+      - mongodb
+      - python-software-properties
+      - libffi-dev
+      - nodejs
+      - screen
+      - nginx
+
+  - name: Enable mongo full-text search
+    lineinfile: dest=/etc/mongodb.conf regexp=^setParameter= line=setParameter=textSearchEnabled=true
+    sudo: yes
+    notify:
+      - restart mongodb
+
+  - name: install girder requirements
+    pip: requirements=/vagrant/requirements.txt
+    sudo: yes
+
+  - name: install girder for development
+    command: python setup.py develop chdir=/vagrant
+    sudo: yes
+
+  - name: install grunt and globally
+    npm: name={{ item }} global=yes
+    with_items:
+      - grunt
+      - grunt-cli
+    sudo: yes
+
+  - name: run npm install
+    npm: path=/vagrant
+
+  - name: run grunt init
+    command: grunt init chdir=/vagrant
+
+  - name: run grunt
+    command: grunt chdir=/vagrant
+
+  - name: disable default nginx site
+    command: rm /etc/nginx/sites-enabled/default removes=/etc/nginx/sites-enabled/default
+    sudo: yes
+    notify:
+      - restart nginx
+
+  - name: add the girder nginx site
+    template: src=nginx.j2 dest=/etc/nginx/sites-available/girder
+    sudo: yes
+    notify:
+      - restart nginx
+
+  - name: enable girder nginx site
+    command: ln -s /etc/nginx/sites-available/girder /etc/nginx/sites-enabled/girder creates=/etc/nginx/sites-enabled/girder
+    sudo: yes
+    notify:
+      - restart nginx
+
+  - name: copy helper script
+    copy: src=start_girder_in_screen.sh dest=/home/vagrant mode=0744
