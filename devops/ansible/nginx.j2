@@ -1,0 +1,18 @@
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+
+    root /vagrant/clients/web;
+
+    # Make site accessible from http://localhost/
+    server_name localhost;
+
+    location / {
+         proxy_pass http://localhost:8080;
+         include /etc/nginx/proxy_params;
+    }
+
+    location /static {
+        try_files $uri $uri/ /index.html;
+    }
+}

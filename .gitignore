@@ -7,3 +7,4 @@ girder.egg-info
 .DS_Store
 .*.swp
 .*.swo
+.vagrant
