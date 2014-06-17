@@ -21,6 +21,8 @@ girder.views.CollectionsView = girder.View.extend({
             this.render();
         }, this).fetch();
 
+        this.create = settings.dialog === 'create';
+
         // This page should be re-rendered if the user logs in or out
         girder.events.on('g:login', this.userChanged, this);
     },
@@ -56,6 +58,10 @@ girder.views.CollectionsView = girder.View.extend({
             types: ['collection']
         }).off().on('g:resultClicked', this._gotoCollection, this).render();
 
+        if (this.create) {
+            this.createCollectionDialog();
+        }
+
         return this;
     },
 
@@ -80,7 +86,7 @@ girder.views.CollectionsView = girder.View.extend({
     }
 });
 
-girder.router.route('collections', 'collections', function () {
-    girder.events.trigger('g:navigateTo', girder.views.CollectionsView);
+girder.router.route('collections', 'collections', function (params) {
+    girder.events.trigger('g:navigateTo', girder.views.CollectionsView, params || {});
     girder.events.trigger('g:highlightItem', 'CollectionsView');
 });
