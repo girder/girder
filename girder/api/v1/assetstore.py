@@ -19,7 +19,7 @@
 
 from .. import describe
 from ..describe import Description
-from ..rest import Resource, RestException
+from ..rest import Resource, RestException, loadmodel
 from girder.constants import AssetstoreType
 
 
@@ -31,6 +31,7 @@ class Assetstore(Resource):
         self.resourceName = 'assetstore'
         self.route('GET', (), self.find)
         self.route('POST', (), self.createAssetstore)
+        self.route('PUT', (':id',), self.updateAssetstore)
 
     def find(self, params):
         """
@@ -85,5 +86,37 @@ class Assetstore(Resource):
         .notes('You must be an administrator to call this.')
         .param('name', 'Unique name for the assetstore.')
         .param('type', 'Type of the assetstore.', dataType='integer')
+        .param('root', 'Root path on disk (for filesystem type)',
+               required=False)
+        .param('db', 'Database name (for GridFS type)', required=False)
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403))
+
+    @loadmodel(map={'id': 'assetstore'}, model='assetstore')
+    def updateAssetstore(self, assetstore, params):
+        self.requireAdmin(self.getCurrentUser())
+        self.requireParams(('name', 'current'), params)
+
+        assetstore['name'] = params['name'].strip()
+        assetstore['current'] = params['current'].lower() == 'true'
+
+        if assetstore['type'] == AssetstoreType.FILESYSTEM:
+            self.requireParams(('root',), params)
+            assetstore['root'] = params['root']
+        elif assetstore['type'] == AssetstoreType.GRIDFS:
+            self.requireParams(('db',), params)
+            assetstore['db'] = params['db']
+
+        return self.model('assetstore').save(assetstore)
+    updateAssetstore.description = (
+        Description('Update an existing assetstore.')
+        .responseClass('Assetstore')
+        .param('id', 'The ID of the assetstore.', paramType='path')
+        .param('name', 'Unique name for the assetstore')
+        .param('root', 'Root path on disk (for Filesystem type)',
+               required=False)
+        .param('db', 'Database name (for GridFS type)', required=False)
+        .param('current', 'Whether this is the current assetstore',
+               dataType='boolean')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))

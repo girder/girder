@@ -3,7 +3,7 @@
  */
 girder.views.AssetstoresView = girder.View.extend({
     events: {
-
+        'click .g-set-current': 'setCurrentAssetstore'
     },
 
     initialize: function () {
@@ -23,6 +23,7 @@ girder.views.AssetstoresView = girder.View.extend({
     },
 
     render: function () {
+        console.log('rendering');
         if (!girder.currentUser || !girder.currentUser.get('admin')) {
             this.$el.text('Must be logged in as admin to view this page.');
             return;
@@ -79,6 +80,21 @@ girder.views.AssetstoresView = girder.View.extend({
                 shadow: false
             }
         });
+    },
+
+    setCurrentAssetstore: function (evt) {
+        var el = $(evt.currentTarget);
+        var assetstore = this.collection.get(el.attr('cid'));
+        assetstore.set({current: true});
+        assetstore.off('g:saved').on('g:saved', function () {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Changed current assetstore.',
+                type: 'success',
+                timeout: 4000
+            });
+            this.collection.fetch({}, true);
+        }, this).save();
     }
 });
 
