@@ -32,6 +32,7 @@ class Assetstore(Resource):
         self.route('GET', (), self.find)
         self.route('POST', (), self.createAssetstore)
         self.route('PUT', (':id',), self.updateAssetstore)
+        self.route('DELETE', (':id',), self.deleteAssetstore)
 
     def find(self, params):
         """
@@ -119,4 +120,17 @@ class Assetstore(Resource):
         .param('current', 'Whether this is the current assetstore',
                dataType='boolean')
         .errorResponse()
+        .errorResponse('You are not an administrator.', 403))
+
+    @loadmodel(map={'id': 'assetstore'}, model='assetstore')
+    def deleteAssetstore(self, assetstore, params):
+        self.requireAdmin(self.getCurrentUser())
+        self.model('assetstore').remove(assetstore)
+        return {'message': 'Deleted assetstore {}.'.format(assetstore['name'])}
+    deleteAssetstore.description = (
+        Description('Delete an assetstore.')
+        .notes('This will fail if there are any files in the assetstore.')
+        .param('id', 'The ID of the assetstore.', paramType='path')
+        .errorResponse()
+        .errorResponse('The assetstore is not empty.')
         .errorResponse('You are not an administrator.', 403))

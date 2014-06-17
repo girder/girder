@@ -46,12 +46,13 @@ class AssetstoreTestCase(base.TestCase):
         }
         self.admin = self.model('user').createUser(**info)
 
-    def testAssetstoreManagement(self):
+    def testCreateAndSetCurrent(self):
         # Non admin users should not be able to see assetstore list
         resp = self.request(path='/assetstore', method='GET')
         self.assertStatus(resp, 401)
 
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json))
         oldAssetstore = resp.json[0]
 
@@ -104,3 +105,42 @@ class AssetstoreTestCase(base.TestCase):
         # The old assetstore should no longer be current
         oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
         self.assertFalse(oldAssetstore['current'])
+
+    def testDeleteAssetstore(self):
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(1, len(resp.json))
+        assetstore = self.model('assetstore').load(resp.json[0]['_id'])
+
+        # Anonymous user should not be able to delete assestores
+        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+                            method='DELETE')
+        self.assertStatus(resp, 401)
+
+        # Simulate the existence of a file within the assetstore
+        folders = self.model('folder').childFolders(
+            self.admin, 'user', user=self.admin)
+        item = self.model('item').createItem(
+            name='x.txt', creator=self.admin, folder=folders.next())
+        file = self.model('file').createFile(
+            creator=self.admin, item=item, name='x.txt',
+            size=1, assetstore=assetstore, mimeType='text/plain')
+        file['sha512'] = 'x'  # add this dummy value to simulate real file
+
+        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+                            method='DELETE', user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'You may not delete an '
+                         'assetstore that contains files.')
+
+        # Delete the offending file, we can now delete the assetstore
+        self.model('file').remove(file)
+        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+                            method='DELETE', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'],
+                         'Deleted assetstore {}.'.format(assetstore['name']))
+
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(0, len(resp.json))
