@@ -126,7 +126,7 @@ girder.views.AssetstoresView = girder.View.extend({
                 }, this).destroy();
             }, this)
         });
-    },
+    }
 });
 
 girder.router.route('assetstores', 'assetstores', function () {
