@@ -71,17 +71,24 @@ girder.Model = Backbone.Model.extend({
 
     /**
      * Delete the model on the server.
+     * @param throwError Whether to throw an error (bool, default=true)
      */
-    destroy: function () {
+    destroy: function (throwError) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
         }
 
-        girder.restRequest({
+        var params = {
             path: this.resourceName + '/' + this.get('_id'),
             type: 'DELETE'
-        }).done(_.bind(function () {
+        };
+
+        if (throwError !== false) {
+            params.error = null;
+        }
+
+        girder.restRequest(params).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }

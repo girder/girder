@@ -8,6 +8,7 @@ javascript_tests_init()
 add_python_style_test(pep8_style_core "${PROJECT_SOURCE_DIR}/girder")
 add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
+add_python_test(assetstore)
 add_python_test(collection)
 add_python_test(events)
 add_python_test(routes)
