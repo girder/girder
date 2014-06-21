@@ -17,8 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
+import boto
+import os
+
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException
+from girder import logger
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -47,8 +51,21 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if not doc.get('accessKeyId'):
             raise ValidationException(
                 'Access key ID must not be empty.', 'accessKeyId')
-        return doc
 
+        # Make sure we can write into the given bucket using boto
+        try:
+            conn = boto.connect_s3(aws_access_key_id=doc['accessKeyId'],
+                                   aws_secret_access_key=doc['secret'])
+            bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
+            testKey = boto.s3.key.Key(
+                bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
+            testKey.set_contents_from_string('')
+        except:
+            logger.exception('S3 assetstore validation exception')
+            raise ValidationException('Unable to write into bucket "{}".'
+                                      .format(doc['bucket']), 'bucket')
+
+        return doc
 
     def __init__(self, assetstore):
         """

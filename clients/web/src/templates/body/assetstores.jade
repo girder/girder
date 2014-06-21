@@ -21,20 +21,32 @@
             b Type:
             span.g-assetstore-type  Filesystem
           div
-            b Root:
+            b Root path:
             span.g-assetstore-root  #{assetstore.get('root')}
         else if assetstore.get('type') == types.GRIDFS
           div
             b Type:
             span.g-assetstore-type  GridFS
           div
-            b Database Name:
+            b Database name:
             span.g-assetstore-root  #{assetstore.get('db')}
         else if assetstore.get('type') == types.S3
           div
             b Type:
             span.g-assetstore-type  S3
-
+          div
+            b Bucket:
+            span.g-assetstore-bucket  #{assetstore.get('bucket')}
+          if assetstore.get('prefix')
+            div
+              b Path prefix:
+              span.g-assetstore-prefix  #{assetstore.get('prefix')}
+          div
+            b Access key ID:
+            span.g-access-key-id  #{assetstore.get('accessKeyId')}
+          div
+            b Secret access key:
+            span.g-secret-key  #{assetstore.get('secret')}
         div
           b Capacity:
           span.g-assetstore-capacity  #{assetstore.capacityString()}
@@ -48,7 +60,7 @@
               cid="#{assetstore.cid}") Delete
 
           if !assetstore.get('current')
-            button.g-set-current.btn.btn-small.btn-primary(
+            button.g-set-current.btn.btn-sm.btn-primary(
               cid="#{assetstore.cid}") Set as current
 
 
