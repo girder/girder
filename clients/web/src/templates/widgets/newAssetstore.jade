@@ -20,13 +20,13 @@
           will attempt to create it.
         form#g-new-fs-form(role="form")
           .form-group
-            label.control-label(for="g-new-fs-name") Assetstore Name
+            label.control-label(for="g-new-fs-name") Assetstore name
             input.input-sm.form-control#g-new-fs-name(type="text",
                                                       placeholder="Name")
           .form-group
-            label.control-label(for="g-new-fs-root") Root Directory
+            label.control-label(for="g-new-fs-root") Root directory
             input.input-sm.form-control#g-new-fs-root(
-              type="text", placeholder="Root Directory")
+              type="text", placeholder="Root directory")
           p#g-new-fs-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
             type="submit", value="Create")
@@ -51,13 +51,13 @@
           |  from the rest of the server's information to avoid locking issues.
         form#g-new-gridfs-form(role="form")
           .form-group
-            label.control-label(for="g-new-gridfs-name") Assetstore Name
+            label.control-label(for="g-new-gridfs-name") Assetstore name
             input.input-sm.form-control#g-new-gridfs-name(type="text",
                                                           placeholder="Name")
           .form-group
-            label.control-label(for="g-new-gridfs-db") Database Name
+            label.control-label(for="g-new-gridfs-db") Database name
             input.input-sm.form-control#g-new-gridfs-db(
-              type="text", placeholder="Database Name")
+              type="text", placeholder="Database name")
           p#g-new-gridfs-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
             type="submit", value="Create")
@@ -75,15 +75,30 @@
     #g-create-s3-tab.panel-collapse.collapse
       .panel-body
         p
-          | This type of assetstore keeps files on an
+          | This type of assetstore keeps files in an
           a(target="_blank", href="http://aws.amazon.com/s3/")  Amazon S3
-          |  server.
+          |  bucket.
         form#g-new-s3-form(role="form")
           .form-group
-            label.control-label(for="g-new-s3-name") Assetstore Name
+            label.control-label(for="g-new-s3-name") Assetstore name
             input.input-sm.form-control#g-new-s3-name(type="text",
                                                       placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-s3-bucket") S3 bucket name
+            input.input-sm.form-control#g-new-s3-bucket(type="text",
+                placeholder="Bucket")
+          .form-group
+            label.control-label(for="g-new-s3-prefix") Path prefix (optional)
+            input.input-sm.form-control#g-new-s3-prefix(type="text",
+                placeholder="Prefix")
+          .form-group
+            label.control-label(for="g-new-s3-access-key-id") Access key ID
+            input.input-sm.form-control#g-new-s3-access-key-id(type="text",
+                placeholder="Access key ID")
+          .form-group
+            label.control-label(for="g-new-s3-secret") Secret access key
+            input.input-sm.form-control#g-new-s3-secret(type="text",
+                placeholder="Secret access key")
           p#g-new-s3-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
             type="submit", value="Create")
-

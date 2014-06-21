@@ -26,6 +26,7 @@ from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
+from girder.models.model_base import ValidationException
 
 BUF_SIZE = 65536
 
@@ -36,6 +37,24 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     directory. Files are named by their SHA-512 hash, which avoids duplication
     of file content.
     """
+
+    @staticmethod
+    def validateInfo(doc):
+        """
+        Makes sure the root field is a valid absolute path and is writeable.
+        """
+        if not os.path.isabs(doc['root']):
+            raise ValidationException('You must provide an absolute path '
+                                      'for the root directory.', 'root')
+        if not os.path.isdir(doc['root']):
+            try:
+                os.makedirs(doc['root'])
+            except OSError:
+                raise ValidationException('Could not make directory "{}".'
+                                          .format(doc['root'], 'root'))
+        if not os.access(doc['root'], os.W_OK):
+            raise ValidationException('Unable to write into directory "{}".'
+                                      .format(doc['root'], 'root'))
 
     @staticmethod
     def fileIndexFields():

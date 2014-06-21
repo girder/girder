@@ -23,6 +23,10 @@ import os
 
 from .model_base import Model, ValidationException
 from girder.utility import assetstore_utilities
+from girder.utility.filesystem_assetstore_adapter import\
+    FilesystemAssetstoreAdapter
+from girder.utility.gridfs_assetstore_adapter import GridFsAssetstoreAdapter
+from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter
 from girder.constants import AssetstoreType
 
 
@@ -47,28 +51,13 @@ class Assetstore(Model):
         if not doc['name']:
             raise ValidationException('Name must not be empty.', 'name')
 
-        # Filesystem assetstores must have their directory exist and writeable
+        # Adapter classes validate each type internally
         if doc['type'] == AssetstoreType.FILESYSTEM:
-            if not os.path.isabs(doc['root']):
-                raise ValidationException('You must provide an absolute path '
-                                          'for the root directory.', 'root')
-            if not os.path.isdir(doc['root']):
-                try:
-                    os.makedirs(doc['root'])
-                except OSError:
-                    raise ValidationException('Could not make directory "%s".'
-                                              % doc['root'], 'root')
-            if not os.access(doc['root'], os.W_OK):
-                raise ValidationException('Unable to write into directory "%s".'
-                                          % doc['root'], 'root')
-
-        if doc['type'] == AssetstoreType.GRIDFS:
-            if not doc['db']:
-                raise ValidationException('Database Name must not be empty.',
-                                          'db')
-            if '.' in doc['db'] or ' ' in doc['db']:
-                raise ValidationException('Database Name cannot contain spaces'
-                                          ' or periods.', 'db')
+            FilesystemAssetstoreAdapter.validateInfo(doc)
+        elif doc['type'] == AssetstoreType.GRIDFS:
+            GridFsAssetstoreAdapter.validateInfo(doc)
+        elif doc['type'] == AssetstoreType.S3:
+            S3AssetstoreAdapter.validateInfo(doc)
 
         # If no current assetstore exists yet, set this one as the current.
         current = self.find({'current': True}, limit=1, fields=['_id'])
@@ -92,7 +81,6 @@ class Assetstore(Model):
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
         """
-        # Delete all folders in the community recursively
         files = self.model('file').find({
             'assetstoreId': assetstore['_id']
             }, limit=1)
@@ -136,8 +124,16 @@ class Assetstore(Model):
             'db': db
         })
 
-    def createS3Assetstore(self, name):
-        raise Exception('S3 assetstore not implemented yet.')
+    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix=''):
+        return self.save({
+            'type': AssetstoreType.S3,
+            'created': datetime.datetime.now(),
+            'name': name,
+            'accessKeyId': accessKeyId,
+            'secret': secret,
+            'prefix': prefix,
+            'bucket': bucket
+        })
 
     def getCurrent(self):
         """

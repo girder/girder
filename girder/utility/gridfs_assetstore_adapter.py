@@ -23,11 +23,12 @@ import pymongo
 import uuid
 
 from girder.models import getDbConnection
+from girder.models.model_base import ValidationException
 
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from .model_importer import ModelImporter
+
 
 # 2MB chunks. Clients must not send any chunks that are smaller than this
 # unless they are sending the final chunk.
@@ -39,6 +40,19 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     This assetstore type stores files within mongoDB using the GridFS data
     model.
     """
+
+    @staticmethod
+    def validateInfo(doc):
+        """
+        Makes sure the database name is valid.
+        """
+        if not doc.get('db'):
+            raise ValidationException('Database name must not be empty.', 'db')
+        if '.' in doc['db'] or ' ' in doc['db']:
+            raise ValidationException('Database name cannot contain spaces'
+                                      ' or periods.', 'db')
+        return doc
+
     @staticmethod
     def fileIndexFields():
         return ['sha512']
