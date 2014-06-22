@@ -1,5 +1,6 @@
 girder.models.FileModel = girder.Model.extend({
     resourceName: 'file',
+
     resumeInfo: null,
 
     /**
@@ -45,10 +46,23 @@ girder.models.FileModel = girder.Model.extend({
             type: 'GET',
             data: {
                 uploadId: this.resumeInfo.uploadId
-            }
+            },
+            error: null
         }).done(_.bind(function (resp) {
             this.startByte = resp.offset;
             this._uploadChunk(this.resumeInfo.file, this.resumeInfo.uploadId);
+        }, this)).error(_.bind(function (resp) {
+            var msg;
+
+            if (resp.status === 0) {
+                msg = 'Could not connect to the server.';
+            }
+            else {
+                msg = 'An error occurred when resuming upload, check console.';
+            }
+            this.trigger('g:upload.error', {
+                message: msg
+            });
         }, this));
     },
 

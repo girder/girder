@@ -119,7 +119,7 @@ girder.views.UploadWidget = girder.View.extend({
         }
 
         this.currentFile = new girder.models.FileModel();
-        this.currentFile.on('g:upload.complete', function (info) {
+        this.currentFile.on('g:upload.complete', function () {
             this.currentIndex += 1;
             this._uploadNextFile();
         }, this).on('g:upload.chunkSent', function (info) {
