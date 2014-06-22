@@ -8,7 +8,10 @@
 girder.views.UploadWidget = girder.View.extend({
     events: {
         'submit #g-upload-form': 'startUpload',
-        'click .g-resume-upload': 'resumeUpload',
+        'click .g-resume-upload': function () {
+            this.$('.g-upload-error-message').html('');
+            this.currentFile.resumeUpload();
+        },
         'change #g-files': function (e) {
             var files = this.$('#g-files')[0].files;
 
@@ -99,31 +102,13 @@ girder.views.UploadWidget = girder.View.extend({
 
         this.currentIndex = 0;
         this.overallProgress = 0;
-        this.resumeUploadId = null;
         this._uploadNextFile();
-    },
-
-    resumeUpload: function () {
-        this.$('.g-upload-error-message').html('');
-
-        // Request the actual offset we need to start at
-        girder.restRequest({
-            path: 'file/offset',
-            type: 'GET',
-            data: {
-                'uploadId': this.resumeUploadId
-            }
-        }).done(_.bind(function (resp) {
-            this.startByte = resp.offset;
-            this._uploadChunk(this.resumeUploadId);
-        }, this));
     },
 
     /**
      * Initializes the upload of a file by requesting the upload token
      * from the server. If successful, this will call _uploadChunk to send the
-     * actual bytes from the file if it is of non-zero length. Calling this
-     * will also resume an interrupted upload.
+     * actual bytes from the file if it is of non-zero length.
      */
     _uploadNextFile: function () {
         if (this.currentIndex >= this.files.length) {
@@ -133,11 +118,12 @@ girder.views.UploadWidget = girder.View.extend({
             return;
         }
 
-        var fileModel = new girder.models.FileModel();
-        fileModel.on('g:upload.complete', function (info) {
-            this.overallProgress += info.bytesSent;
+        this.currentFile = new girder.models.FileModel();
+        this.currentFile.on('g:upload.complete', function (info) {
             this.currentIndex += 1;
             this._uploadNextFile();
+        }, this).on('g:upload.chunkSent', function (info) {
+            this.overallProgress += info.bytes;
         }, this).on('g:upload.progress', function (info) {
             var currentProgress = info.startByte + info.loaded;
 
@@ -158,7 +144,6 @@ girder.views.UploadWidget = girder.View.extend({
             var text = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
             $('.g-upload-error-message').html(text);
-            // TODO set necessary resume info
         }, this).upload(this.folder, this.files[this.currentIndex]);
     }
 });

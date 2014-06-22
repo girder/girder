@@ -1,5 +1,6 @@
 girder.models.FileModel = girder.Model.extend({
     resourceName: 'file',
+    resumeInfo: null,
 
     /**
      * Upload a file. Handles uploading into all of the core assetstore types.
@@ -8,6 +9,8 @@ girder.models.FileModel = girder.Model.extend({
      */
     upload: function (parentModel, file) {
         this.startByte = 0;
+        this.resumeInfo = null;
+
         // Authenticate and generate the upload token for this file
         girder.restRequest({
             path: 'file',
@@ -26,10 +29,26 @@ girder.models.FileModel = girder.Model.extend({
             }
             else {
                 // Empty file, so we are done
-                this.trigger('g:upload.complete', {
-                    bytesSent: 0
-                });
+                this.trigger('g:upload.complete');
             }
+        }, this));
+    },
+
+    /**
+     * If an error was triggered during the upload of this file, call this
+     * in order to attempt to resume it.
+     */
+    resumeUpload: function () {
+        // Request the actual offset we need to resume at
+        girder.restRequest({
+            path: 'file/offset',
+            type: 'GET',
+            data: {
+                uploadId: this.resumeInfo.uploadId
+            }
+        }).done(_.bind(function (resp) {
+            this.startByte = resp.offset;
+            this._uploadChunk(this.resumeInfo.file, this.resumeInfo.uploadId);
         }, this));
     },
 
@@ -55,12 +74,14 @@ girder.models.FileModel = girder.Model.extend({
             contentType: false,
             processData: false,
             success: function () {
+                model.trigger('g:upload.chunkSent', {
+                    bytes: endByte - model.startByte
+                });
+
                 if (endByte === file.size) {
-                    model.resumeUploadId = null;
                     model.startByte = 0;
-                    model.trigger('g:upload.complete', {
-                        bytesSent: endByte - model.startByte
-                    });
+                    model.resumeInfo = null;
+                    model.trigger('g:upload.complete');
                 }
                 else {
                     model.startByte = endByte;
@@ -77,9 +98,12 @@ girder.models.FileModel = girder.Model.extend({
                     text += xhr.responseJSON.message;
                 }
 
-                model.resumeUploadId = uploadId;
-                model.trigger('g:upload.error', {
+                model.resumeInfo = {
                     uploadId: uploadId,
+                    file: file
+                };
+
+                model.trigger('g:upload.error', {
                     message: text
                 });
 
