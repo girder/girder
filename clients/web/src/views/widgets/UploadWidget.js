@@ -133,128 +133,32 @@ girder.views.UploadWidget = girder.View.extend({
             return;
         }
 
-        var file = this.files[this.currentIndex];
+        var fileModel = new girder.models.FileModel();
+        fileModel.on('g:upload.complete', function (info) {
+            this.overallProgress += info.bytesSent;
+            this.currentIndex += 1;
+            this._uploadNextFile();
+        }, this).on('g:upload.progress', function (info) {
+            var currentProgress = info.startByte + info.loaded;
 
-        // Authenticate and generate the upload token for this file
-        girder.restRequest({
-            path: 'file',
-            type: 'POST',
-            data: {
-                'parentType': 'folder',
-                'parentId': this.folder.get('_id'),
-                'name': file.name,
-                'size': file.size,
-                'mimeType': file.type
-            }
-        }).done(_.bind(function (upload) {
-            if (file.size > 0) {
-                // Begin uploading chunks of this file
-                this.startByte = 0;
-                this._uploadChunk(upload._id);
-            }
-            else {
-                // Empty file, so we are done
-                this.currentIndex += 1;
-                this._uploadNextFile();
-            }
-        }, this));
-    },
-
-    /**
-     * Reads and uploads a chunk of the file starting at startByte. Pass
-     * the uploadId generated in _uploadNextFile.
-     */
-    _uploadChunk: function (uploadId) {
-        var file = this.files[this.currentIndex];
-        var endByte = Math.min(this.startByte + girder.UPLOAD_CHUNK_SIZE,
-                               file.size);
-
-        this.chunkLength = endByte - this.startByte;
-
-        var blob = file.slice(this.startByte, endByte);
-        var view = this;
-
-        var fd = new FormData();
-        fd.append('offset', view.startByte);
-        fd.append('uploadId', uploadId);
-        fd.append('chunk', blob);
-
-        $.ajax({
-            url: girder.apiRoot + '/file/chunk',
-            type: 'POST',
-            dataType: 'json',
-            data: fd,
-            contentType: false,
-            processData: false,
-            success: function () {
-                view.overallProgress += endByte - view.startByte;
-                if (endByte === file.size) {
-                    view.resumeUploadId = null;
-                    view.startByte = 0;
-                    view.currentIndex += 1;
-                    view._uploadNextFile();
-                }
-                else {
-                    view.startByte = endByte;
-                    view._uploadChunk(uploadId);
-                }
-            },
-            error: function (xhr) {
-                var text = 'Error: ';
-
-                if (xhr.status === 0) {
-                    text += 'Connection to the server interrupted.';
-                }
-                else {
-                    text += xhr.responseJSON.message;
-                }
-                text += ' <a class="g-resume-upload">' +
-                    'Click to resume upload</a>';
-                view.$('.g-upload-error-message').html(text);
-                view.resumeUploadId = uploadId;
-            },
-            xhr: function () {
-                // Custom XHR so we can register a progress handler
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function (e) {
-                    view._uploadProgress(e);
-                });
-                return xhr;
-            }
-        });
-    },
-
-    /**
-     * Progress callback from XHR during upload. This will update the bar
-     * and the text accordingly.
-     */
-    _uploadProgress: function (e) {
-        if (!e.lengthComputable) {
-            return;
-        }
-
-        var file = this.files[this.currentIndex];
-        // We only want to count bytes of the actual file, not the bytes of
-        // the request body corresponding to the other form parameters that
-        // we are also sending.
-        var loaded = this.chunkLength + e.loaded - e.total;
-
-        if (loaded < 0) {
-            return;
-        }
-
-        this.$('.g-progress-current>.progress-bar').css('width',
-            Math.ceil(100 * (this.startByte + loaded) / file.size) + '%');
-        this.$('.g-progress-overall>.progress-bar').css('width',
-            Math.ceil(100 * (this.overallProgress + loaded) / this.totalSize) +
-            '%');
-        this.$('.g-current-progress-message').html(
-            '<i class="icon-doc-text"/>' + (this.currentIndex + 1) + ' of ' +
-            this.files.length + ' - <b>' + file.name + '</b>: ' +
-            girder.formatSize(this.startByte + loaded) + ' / ' +
-            girder.formatSize(file.size));
-        this.$('.g-overall-progress-message').html('Overall progress: ' +
-            girder.formatSize(this.overallProgress + loaded) + ' / ' +
-            girder.formatSize(this.totalSize));
+            this.$('.g-progress-current>.progress-bar').css('width',
+                Math.ceil(100 * currentProgress / info.total) + '%');
+            this.$('.g-progress-overall>.progress-bar').css('width',
+                Math.ceil(100 * (this.overallProgress + info.loaded) /
+                          this.totalSize) + '%');
+            this.$('.g-current-progress-message').html(
+                '<i class="icon-doc-text"/>' + (this.currentIndex + 1) + ' of ' +
+                this.files.length + ' - <b>' + info.file.name + '</b>: ' +
+                girder.formatSize(currentProgress) + ' / ' +
+                girder.formatSize(info.total));
+            this.$('.g-overall-progress-message').html('Overall progress: ' +
+                girder.formatSize(this.overallProgress + info.loaded) + ' / ' +
+                girder.formatSize(this.totalSize));
+        }, this).on('g:upload.error', function (info) {
+            var text = info.message + ' <a class="g-resume-upload">' +
+                'Click to resume upload</a>';
+            $('.g-upload-error-message').html(text);
+            // TODO set necessary resume info
+        }, this).upload(this.folder, this.files[this.currentIndex]);
     }
 });
