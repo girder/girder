@@ -17,8 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import base64
 import boto
+import hashlib
+import hmac
 import os
+import time
+import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException
@@ -31,6 +36,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     HMAC-signed messages that authorize the client to communicate directly with
     the S3 server where the files are stored.
     """
+
+    CHUNK_LEN = 1024 * 1024 * 64
+    HMAC_TTL = 120  # Num. of seconds message is valid
 
     @staticmethod
     def validateInfo(doc):
@@ -74,13 +82,66 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         self.assetstore = assetstore
 
     def initUpload(self, upload):
-        pass  # TODO
+        """
+        Build the request required to initiate an authorized upload to S3.
+        """
+        uid = uuid.uuid4()
+        key = '/'.join((uid[0:2], uid[2:4], uid))
+        path = '/{}/{}'.format(self.assetstore['bucket'], key)
+        headers = '\n'.join(('x-amz-acl: private',))
+        url = 'https://{}.s3.amazonaws.com/{}'.format(
+            self.assetstore['bucket'], key)
+
+        chunked = upload['size'] > self.CHUNK_LEN
+        expires = int(time.time() + self.HMAC_TTL)
+
+        upload['behavior'] = 's3'
+        upload['s3'] = {
+            'chunked': chunked,
+            'chunkLength': self.CHUNK_LEN
+        }
+
+        if chunked:
+            msg = ('POST', '', '', expires, headers, path + '?uploads')
+            url += '?uploads'
+            signature = base64.b64encode(hmac.new(
+                self.assetstore['secret'],
+                '\n'.join(msg), hashlib.sha1).digest())
+
+            upload['s3']['request'] = {
+                'method': 'POST',
+                'url': url,
+                'headers': {
+                    'Authorization': 'AWS {}:{}'.format(
+                        self.assetstore['accessKeyId'], signature),
+                    'Date': expires,
+                    'x-amz-acl': 'private'
+                }
+            }
+        else:
+            msg = ('PUT', '', upload['mimeType'], expires, headers, path)
+            signature = base64.b64encode(hmac.new(
+                self.assetstore['secret'],
+                '\n'.join(msg), hashlib.sha1).digest())
+
+            upload['s3']['request'] = {
+                'method': 'PUT',
+                'url': url,
+                'headers': {
+                    'Authorization': 'AWS {}:{}'.format(
+                        self.assetstore['accessKeyId'], signature),
+                    'Date': expires,
+                    'x-amz-acl': 'private'
+                }
+            }
+
+        return upload
 
     def uploadChunk(self, upload, chunk):
         pass  # TODO
 
     def requestOffset(self, upload):
-        pass  # TODO
+        raise Exception('S3 assetstore does not support requestOffset.')
 
     def finalizeUpload(self, upload, file):
         pass  # TODO
