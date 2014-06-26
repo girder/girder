@@ -84,6 +84,24 @@ class Assetstore(Model):
 
         return doc
 
+    def remove(self, assetstore):
+        """
+        Delete an assetstore. If there are any files within this assetstore,
+        a validation exception is raised.
+
+        :param assetstore: The assetstore document to delete.
+        :type assetstore: dict
+        """
+        # Delete all folders in the community recursively
+        files = self.model('file').find({
+            'assetstoreId': assetstore['_id']
+            }, limit=1)
+        if files.count(True) > 0:
+            raise ValidationException('You may not delete an assetstore that '
+                                      'contains files.')
+
+        Model.remove(self, assetstore)
+
     def list(self, limit=50, offset=0, sort=None):
         """
         List all assetstores.

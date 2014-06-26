@@ -3,7 +3,8 @@
  */
 girder.views.AssetstoresView = girder.View.extend({
     events: {
-
+        'click .g-set-current': 'setCurrentAssetstore',
+        'click .g-delete-assetstore': 'deleteAssetstore'
     },
 
     initialize: function () {
@@ -78,6 +79,52 @@ girder.views.AssetstoresView = girder.View.extend({
                 borderColor: '#fff',
                 shadow: false
             }
+        });
+    },
+
+    setCurrentAssetstore: function (evt) {
+        var el = $(evt.currentTarget);
+        var assetstore = this.collection.get(el.attr('cid'));
+        assetstore.set({current: true});
+        assetstore.off('g:saved').on('g:saved', function () {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Changed current assetstore.',
+                type: 'success',
+                timeout: 4000
+            });
+            this.collection.fetch({}, true);
+        }, this).save();
+    },
+
+    deleteAssetstore: function (evt) {
+        var el = $(evt.currentTarget);
+        var assetstore = this.collection.get(el.attr('cid'));
+
+        girder.confirm({
+            text: 'Are you sure you want to delete the assetstore <b>' +
+                  assetstore.get('name') + '</b>?',
+            yesText: 'Delete',
+            confirmCallback: _.bind(function () {
+                assetstore.on('g:deleted', function () {
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Assetstore deleted.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+
+                    this.collection.remove(assetstore);
+                    this.render();
+                }, this).off('g:error').on('g:error', function (resp) {
+                    girder.events.trigger('g:alert', {
+                        icon: 'attention',
+                        text: resp.responseJSON.message,
+                        type: 'danger',
+                        timeout: 4000
+                    });
+                }, this).destroy();
+            }, this)
         });
     }
 });
