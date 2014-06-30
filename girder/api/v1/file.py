@@ -38,7 +38,7 @@ class File(Resource):
         self.route('GET', (':id', 'download', ':name'), self.download)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
-        self.route('POST', ('finalize',), self.finalizeUpload)
+        self.route('POST', ('completion',), self.finalizeUpload)
 
     def initUpload(self, params):
         """
@@ -88,7 +88,7 @@ class File(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     def finalizeUpload(self, params):
-        self.requireParams(('uploadId'), params)
+        self.requireParams(('uploadId',), params)
         user = self.getCurrentUser()
 
         upload = self.model('upload').load(params['uploadId'], exc=True)

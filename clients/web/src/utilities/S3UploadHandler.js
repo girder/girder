@@ -54,7 +54,32 @@
             this.payloadLength = this.params.file.size;
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    console.log('DONE!'); // TODO FINALIZE to girder
+                    handler.trigger('g:upload.chunkSent', {
+                        bytes: this.payloadLength
+                    });
+
+                    girder.restRequest({
+                        path: 'file/completion',
+                        type: 'POST',
+                        data: {
+                            uploadId: handler.params.upload._id
+                        },
+                        error: null
+                    }).done(_.bind(function (resp) {
+                        this.trigger('g:upload.complete');
+                    }, handler)).error(_.bind(function (resp) {
+                        var msg;
+
+                        if (resp.status === 0) {
+                            msg = 'Could not connect to the server.';
+                        }
+                        else {
+                            msg = 'An error occurred when resuming upload, check console.';
+                        }
+                        this.trigger('g:upload.error', {
+                            message: msg
+                        });
+                    }, handler));
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +

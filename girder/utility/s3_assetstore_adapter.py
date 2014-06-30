@@ -38,8 +38,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     the S3 server where the files are stored.
     """
 
-    CHUNK_LEN = 1024 * 1024 * 64
-    HMAC_TTL = 120  # Num. of seconds message is valid
+    CHUNK_LEN = 1024 * 1024 * 40  # Chunk size for uploading
+    HMAC_TTL = 120  # Number of seconds each signed message is valid
 
     def _getSignature(self, msg):
         """
@@ -104,17 +104,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                            uid[0:2], uid[2:4], uid)
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
         headers = '\n'.join(('x-amz-acl:private',))
-        url = ('https://{}.s3.amazonaws.com/{}'
-               '?Expires={}&AWSAccessKeyId={}').format(
-            self.assetstore['bucket'], key, expires,
-            self.assetstore['accessKeyId'])
+        fullpath = 'https://{}.s3.amazonaws.com/{}'.format(
+            self.assetstore['bucket'], key)
+        url = ('{}?Expires={}&AWSAccessKeyId={}').format(
+            fullpath, expires, self.assetstore['accessKeyId'])
 
         chunked = upload['size'] > self.CHUNK_LEN
 
         upload['behavior'] = 's3'
         upload['s3'] = {
             'chunked': chunked,
-            'chunkLength': self.CHUNK_LEN
+            'chunkLength': self.CHUNK_LEN,
+            'path': fullpath
         }
 
         if chunked:
@@ -152,7 +153,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         raise Exception('S3 assetstore does not support requestOffset.')
 
     def finalizeUpload(self, upload, file):
-        pass  # TODO
+        file['path'] = upload['s3']['path']
+        return file
 
     def downloadFile(self, file, offset=0, headers=True):
         pass  # TODO
