@@ -24,6 +24,7 @@ import io
 import json
 import mimetypes
 import os
+import signal
 import sys
 import unittest
 import urllib
@@ -383,3 +384,12 @@ class MultipartFormdataEncoder(object):
             body.write(chunk)
             size += chunkLen
         return self.contentType, body.getvalue(), size
+
+
+def _sigintHandler(*args):
+    print 'Received SIGINT, shutting down mock SMTP server...'
+    mockSmtp.stop()
+    sys.exit(1)
+
+
+signal.signal(signal.SIGINT, _sigintHandler)
