@@ -24,6 +24,35 @@ girder.models.FileModel = girder.Model.extend({
                 'mimeType': file.type
             }
         }).done(_.bind(function (upload) {
+            var behavior = upload.behavior;
+            if (behavior && girder.uploadHandlers[behavior]) {
+                var uploadHandler = new girder.uploadHandlers[behavior]({
+                    upload: upload,
+                    parentModel: parentModel,
+                    file: file
+                });
+                uploadHandler.on({
+                    'g:upload.complete': function (params) {
+                        this.trigger('g:upload.complete', params);
+                    },
+                    'g:upload.chunkSent': function (params) {
+                        this.trigger('g:upload.chunkSent', params);
+                    },
+                    'g:upload.error': function (params) {
+                        this.trigger('g:upload.error', params);
+                    },
+                    'g:upload.progress': function (params) {
+                        this.trigger('g:upload.progress', {
+                            startByte: params.startByte,
+                            loaded: params.loaded,
+                            total: params.file.size,
+                            file: params.file
+                        });
+                    }
+                }, this);
+                return uploadHandler.execute();
+            }
+
             if (file.size > 0) {
                 // Begin uploading chunks of this file
                 this._uploadChunk(file, upload._id);

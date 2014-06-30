@@ -22,6 +22,7 @@ var girder = {
     staticRoot: $('#g-global-info-staticroot').text(),
     currentUser: null,
     events: _.clone(Backbone.Events),
+    uploadHandlers: {},
 
     /**
      * Constants and enums:

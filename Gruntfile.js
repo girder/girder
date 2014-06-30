@@ -24,6 +24,9 @@ module.exports = function (grunt) {
 
     var defaultTasks = ['stylus', 'build-js'];
 
+    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
+    var environment = grunt.option('env') || 'dev';
+
     var setServerConfig = function (err, stdout, stderr, callback) {
         if (err) {
             grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
@@ -192,9 +195,6 @@ module.exports = function (grunt) {
             }
         }
     });
-
-    // Pass a "--env=<value>" argument to grunt. Default value is "dev".
-    var environment = grunt.option('env') || 'dev';
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');

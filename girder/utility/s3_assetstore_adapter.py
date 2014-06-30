@@ -23,6 +23,7 @@ import hashlib
 import hmac
 import os
 import time
+import urllib
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -39,6 +40,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     CHUNK_LEN = 1024 * 1024 * 64
     HMAC_TTL = 120  # Num. of seconds message is valid
+
+    def _getSignature(self, msg):
+        """
+        Provide a message to HMAC-sign in the form of a string or list of
+        lines.
+        """
+        if not isinstance(msg, basestring):
+            msg = '\n'.join(map(str, msg))
+
+        return base64.b64encode(hmac.new(
+            str(self.assetstore['secret']),
+            msg, hashlib.sha1).digest())
 
     @staticmethod
     def validateInfo(doc):
@@ -85,15 +98,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Build the request required to initiate an authorized upload to S3.
         """
-        uid = uuid.uuid4()
-        key = '/'.join((uid[0:2], uid[2:4], uid))
+        uid = uuid.uuid4().hex
+        expires = int(time.time() + self.HMAC_TTL)
+        key = os.path.join(self.assetstore.get('prefix', ''),
+                           uid[0:2], uid[2:4], uid)
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
-        headers = '\n'.join(('x-amz-acl: private',))
-        url = 'https://{}.s3.amazonaws.com/{}'.format(
-            self.assetstore['bucket'], key)
+        headers = '\n'.join(('x-amz-acl:private',))
+        url = ('https://{}.s3.amazonaws.com/{}'
+               '?Expires={}&AWSAccessKeyId={}').format(
+            self.assetstore['bucket'], key, expires,
+            self.assetstore['accessKeyId'])
 
         chunked = upload['size'] > self.CHUNK_LEN
-        expires = int(time.time() + self.HMAC_TTL)
 
         upload['behavior'] = 's3'
         upload['s3'] = {
@@ -102,38 +118,30 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         }
 
         if chunked:
-            msg = ('POST', '', '', expires, headers, path + '?uploads')
-            url += '?uploads'
-            signature = base64.b64encode(hmac.new(
-                self.assetstore['secret'],
-                '\n'.join(msg), hashlib.sha1).digest())
+            signature = self._getSignature(
+                ('POST', '', '', expires, headers, path + '?uploads'))
+            url += '&uploads&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
                 'method': 'POST',
                 'url': url,
                 'headers': {
-                    'Authorization': 'AWS {}:{}'.format(
-                        self.assetstore['accessKeyId'], signature),
-                    'Date': expires,
                     'x-amz-acl': 'private'
                 }
             }
         else:
-            msg = ('PUT', '', upload['mimeType'], expires, headers, path)
-            signature = base64.b64encode(hmac.new(
-                self.assetstore['secret'],
-                '\n'.join(msg), hashlib.sha1).digest())
+            signature = self._getSignature(
+                ('PUT', '', upload['mimeType'], expires, headers, path))
+            url += '&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
                 'method': 'PUT',
                 'url': url,
                 'headers': {
-                    'Authorization': 'AWS {}:{}'.format(
-                        self.assetstore['accessKeyId'], signature),
-                    'Date': expires,
                     'x-amz-acl': 'private'
                 }
             }
+
 
         return upload
 

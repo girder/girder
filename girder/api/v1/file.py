@@ -38,6 +38,7 @@ class File(Resource):
         self.route('GET', (':id', 'download', ':name'), self.download)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
+        self.route('POST', ('finalize',), self.finalizeUpload)
 
     def initUpload(self, params):
         """
@@ -85,6 +86,26 @@ class File(Resource):
                'of size and mimeType using this parameter.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
+
+    def finalizeUpload(self, params):
+        self.requireParams(('uploadId'), params)
+        user = self.getCurrentUser()
+
+        upload = self.model('upload').load(params['uploadId'], exc=True)
+
+        if upload['userId'] != user['_id']:
+            raise AccessException('You did not initiate this upload.')
+
+        return self.model('upload').finalizeUpload(upload)
+    finalizeUpload.description = (
+        Description('Finalize an upload explicitly if necessary.')
+        .notes('This is only required in certain non-standard upload '
+               'behaviors. Clients should know which behavior models require '
+               'the finalize step to be called in their behavior handlers.')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .errorResponse('ID was invalid.')
+        .errorResponse('The upload does not require finalization.')
+        .errorResponse('You are not the user who initiated the upload.', 403))
 
     def requestOffset(self, params):
         """
