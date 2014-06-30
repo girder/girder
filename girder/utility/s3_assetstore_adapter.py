@@ -19,6 +19,7 @@
 
 import base64
 import boto
+import cherrypy
 import hashlib
 import hmac
 import os
@@ -106,7 +107,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         headers = '\n'.join(('x-amz-acl:private',))
         fullpath = 'https://{}.s3.amazonaws.com/{}'.format(
             self.assetstore['bucket'], key)
-        url = ('{}?Expires={}&AWSAccessKeyId={}').format(
+        url = '{}?Expires={}&AWSAccessKeyId={}'.format(
             fullpath, expires, self.assetstore['accessKeyId'])
 
         chunked = upload['size'] > self.CHUNK_LEN
@@ -115,7 +116,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['s3'] = {
             'chunked': chunked,
             'chunkLength': self.CHUNK_LEN,
-            'path': fullpath
+            'fullpath': fullpath,
+            'relpath': path
         }
 
         if chunked:
@@ -143,7 +145,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 }
             }
 
-
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -153,11 +154,22 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         raise Exception('S3 assetstore does not support requestOffset.')
 
     def finalizeUpload(self, upload, file):
-        file['path'] = upload['s3']['path']
+        file['fullpath'] = upload['s3']['fullpath']
+        file['relpath'] = upload['s3']['relpath']
         return file
 
     def downloadFile(self, file, offset=0, headers=True):
-        pass  # TODO
+        if headers:
+            expires = int(time.time() + self.HMAC_TTL)
+            signature = self._getSignature(
+                ('GET', '', '', expires, file['relpath']))
+            url = '{}?Expires={}&AWSAccessKeyId={}&Signature={}'.format(
+                file['fullpath'], expires,
+                self.assetstore['accessKeyId'], signature)
+            raise cherrypy.HTTPRedirect(url)
+        else:
+            def stream():
+                yield 'S3 File: {}'.format(file['fullpath'])
 
     def deleteFile(self, file):
         pass  # TODO
