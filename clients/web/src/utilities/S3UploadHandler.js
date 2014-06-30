@@ -11,7 +11,13 @@
  * sent in order to create the final unified record in S3.
  */
 (function () {
-    var _xhrProgress = function (file, event) {
+    girder.uploadHandlers.s3 = function (params) {
+        this.params = params;
+        this.startByte = 0;
+        return _.extend(this, Backbone.Events);
+    };
+
+    girder.uploadHandlers.s3.prototype._xhrProgress = function (event) {
         if (!event.lengthComputable) {
             return;
         }
@@ -25,16 +31,10 @@
             this.trigger('g:upload.progress', {
                 startByte: this.startByte,
                 loaded: loaded,
-                total: file.size,
-                file: file
+                total: this.params.file.size,
+                file: this.params.file
             });
         }
-    }
-
-    girder.uploadHandlers.s3 = function (params) {
-        this.params = params;
-        this.startByte = 0;
-        return _.extend(this, Backbone.Events);
     };
 
     girder.uploadHandlers.s3.prototype.execute = function () {
@@ -54,7 +54,7 @@
             this.payloadLength = this.params.file.size;
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    console.log('DONE!');
+                    console.log('DONE!'); // TODO FINALIZE to girder
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +
@@ -69,7 +69,9 @@
                     event: event
                 });
             });
-            xhr.upload.addEventListener('progress', this._xhrProgress);
+            xhr.upload.addEventListener('progress', function (event) {
+                handler._xhrProgress.call(handler, event)
+            });
 
             xhr.send(this.params.file);
         }
