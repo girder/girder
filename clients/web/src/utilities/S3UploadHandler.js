@@ -95,7 +95,7 @@
                 });
             });
             xhr.upload.addEventListener('progress', function (event) {
-                handler._xhrProgress.call(handler, event)
+                handler._xhrProgress.call(handler, event);
             });
 
             xhr.send(this.params.file);

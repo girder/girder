@@ -29,7 +29,7 @@ import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException
-from girder import logger
+from girder import logger, events
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -127,7 +127,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'chunked': chunked,
             'chunkLength': self.CHUNK_LEN,
             'fullpath': fullpath,
-            'relpath': path
+            'relpath': path,
+            'key': key
         }
 
         if chunked:
@@ -162,6 +163,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def finalizeUpload(self, upload, file):
         file['fullpath'] = upload['s3']['fullpath']
         file['relpath'] = upload['s3']['relpath']
+        file['s3Key'] = upload['s3']['key']
         return file
 
     def downloadFile(self, file, offset=0, headers=True):
@@ -178,4 +180,30 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 yield '==S3==\n{}'.format(file['fullpath'])
 
     def deleteFile(self, file):
-        pass  # TODO
+        """
+        We want to queue up files to be deleted asynchronously since it requires
+        an external HTTP request per file in order to delete them, and we don't
+        want to wait on that.
+        """
+        events.daemon.trigger('_s3_assetstore_delete_file', {
+            'accessKeyId': self.assetstore['accessKeyId'],
+            'secret': self.assetstore['secret'],
+            'bucket': self.assetstore['bucket'],
+            'key': file['s3Key']
+        })
+
+
+def _deleteFileImpl(event):
+    """
+    Uses boto to delete the key.
+    """
+    info = event.info
+    conn = boto.connect_s3(aws_access_key_id=info['accessKeyId'],
+                           aws_secret_access_key=info['secret'])
+    bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
+    key = boto.s3.key.Key(bucket=bucket, name=info['key'])
+    bucket.delete_key(key)
+
+
+events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file',
+            _deleteFileImpl)
