@@ -38,6 +38,7 @@ def reset(args):
     This simply deletes all of the intermediate coverage result files in the
     specified directory.
     """
+    print('reset javascript coverage')
     files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
     for file in files:
         os.remove(file)

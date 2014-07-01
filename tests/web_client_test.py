@@ -20,27 +20,39 @@
 import os
 import subprocess
 import sys
+import unittest
 
 from girder.constants import ROOT_DIR
-from . import base
+from tests import base
+
+
+print('get test case')
 
 
 def setUpModule():
+    print('start setup')
     os.environ['PORT'] = '50001'
     base.startServer(False)
+    print('done setup')
 
 
 def tearDownModule():
     base.stopServer()
+    print('done teardown')
 
 
 class WebClientTestCase(base.TestCase):
     def setUp(self):
+        print('foo -- setup 1')
         self.specFile = os.environ['SPEC_FILE']
         self.coverageFile = os.environ['COVERAGE_FILE']
+        print('foo -- setup 1')
         base.TestCase.setUp(self)
+        print('foo -- setup 2')
 
     def testWebClientSpec(self):
+        print('foo -- 1')
+
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
@@ -51,11 +63,15 @@ class WebClientTestCase(base.TestCase):
         )
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        for line in iter(process.stdout.readline, b''):
-            print line,
-        for line in iter(process.stderr.readline, b''):
-            print line,
-        process.communicate()
+                                   stderr=subprocess.STDOUT)
 
+        (stdoutdata, stderrdata) = process.communicate()
+
+        print stdoutdata
+
+        print('foo')
+        print(process.returncode)
         self.assertEqual(process.returncode, 0)
+
+if __name__ == '__main__':
+    unittest.main(exit=False)
