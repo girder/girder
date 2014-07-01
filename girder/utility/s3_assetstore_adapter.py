@@ -104,7 +104,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         key = os.path.join(self.assetstore.get('prefix', ''),
                            uid[0:2], uid[2:4], uid)
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
-        headers = '\n'.join(('x-amz-acl:private',))
+        headers = {
+            'Content-Disposition': 'attachment; filename="{}"'
+                                   .format(upload['name'])
+        }
+        signedHeaders = {
+            'x-amz-acl': 'private'
+        }
+        headersStr = '\n'.join(
+            map(lambda (k, v): '{}:{}'.format(k, v), signedHeaders.iteritems()))
+        allHeaders = dict(headers.items() + signedHeaders.items())
+
         fullpath = 'https://{}.s3.amazonaws.com/{}'.format(
             self.assetstore['bucket'], key)
         url = '{}?Expires={}&AWSAccessKeyId={}'.format(
@@ -122,27 +132,23 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if chunked:
             signature = self._getSignature(
-                ('POST', '', '', expires, headers, path + '?uploads'))
+                ('POST', '', '', expires, headersStr, path + '?uploads'))
             url += '&uploads&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
                 'method': 'POST',
                 'url': url,
-                'headers': {
-                    'x-amz-acl': 'private'
-                }
+                'headers': allHeaders
             }
         else:
             signature = self._getSignature(
-                ('PUT', '', upload['mimeType'], expires, headers, path))
+                ('PUT', '', upload['mimeType'], expires, headersStr, path))
             url += '&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
                 'method': 'PUT',
                 'url': url,
-                'headers': {
-                    'x-amz-acl': 'private'
-                }
+                'headers': allHeaders
             }
 
         return upload
@@ -165,11 +171,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 ('GET', '', '', expires, file['relpath']))
             url = '{}?Expires={}&AWSAccessKeyId={}&Signature={}'.format(
                 file['fullpath'], expires,
-                self.assetstore['accessKeyId'], signature)
+                self.assetstore['accessKeyId'], urllib.quote(signature))
             raise cherrypy.HTTPRedirect(url)
-        else:
+        else:  # Can't really support archive file downloading for S3 files
             def stream():
-                yield 'S3 File: {}'.format(file['fullpath'])
+                yield '==S3==\n{}'.format(file['fullpath'])
 
     def deleteFile(self, file):
         pass  # TODO
