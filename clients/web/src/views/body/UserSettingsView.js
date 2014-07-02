@@ -10,7 +10,7 @@ girder.views.UserAccountView = girder.View.extend({
             var params = {
                 email: this.$('#g-email').val(),
                 firstName: this.$('#g-firstName').val(),
-                lastName: this.$('#g-lastName').val(),
+                lastName: this.$('#g-lastName').val()
             };
 
             if (this.$('#g-admin').length > 0) {

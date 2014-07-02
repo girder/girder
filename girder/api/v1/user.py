@@ -227,12 +227,13 @@ class User(Resource):
         currentUser = self.getCurrentUser()
 
         # Only admins can change admin state
-        newAdminState = params['admin'] == 'true'
-        if currentUser['admin']:
-            user['admin'] = newAdminState
-        else:
-            if 'admin' in params and newAdminState != user['admin']:
-                raise AccessException('Must be an admin to change admin state.')
+        if 'admin' in params:
+            newAdminState = params['admin'] == 'true'
+            if currentUser['admin']:
+                user['admin'] = newAdminState
+            else:
+                if newAdminState != user['admin']:
+                    raise AccessException('Only admins may change admin state.')
 
         savedUser = self.model('user').save(user)
         return self.model('user').filter(savedUser, currentUser)
