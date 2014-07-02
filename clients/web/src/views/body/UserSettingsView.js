@@ -7,11 +7,17 @@ girder.views.UserAccountView = girder.View.extend({
             event.preventDefault();
             this.$('#g-user-info-error-msg').empty();
 
-            this.user.set({
+            var params = {
                 email: this.$('#g-email').val(),
                 firstName: this.$('#g-firstName').val(),
-                lastName: this.$('#g-lastName').val()
-            });
+                lastName: this.$('#g-lastName').val(),
+            };
+
+            if (this.$('#g-admin').length > 0) {
+                params.admin = this.$('#g-admin').is(':checked');
+            }
+
+            this.user.set(params);
 
             this.user.off('g:error').on('g:error', function (err) {
                 var msg = err.responseJSON.message;
@@ -64,8 +70,8 @@ girder.views.UserAccountView = girder.View.extend({
         this.isCurrentUser = girder.currentUser &&
             settings.user.get('_id') === girder.currentUser.get('_id');
 
-        if (!this.user) {
-            console.error('Not logged in.');
+        if (!this.user ||
+            this.user.getAccessLevel() < girder.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
         }
         this.render();
