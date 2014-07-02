@@ -173,10 +173,11 @@
                     handler.trigger('g:upload.chunkSent', {
                         bytes: handler.payloadLength
                     });
+                    // ETag gets sent wrapped in quotes, we must strip them
                     handler.eTagList[handler.chunkN] =
                         xhr.getResponseHeader('ETag').replace(/"/g, '');
                     handler.startByte += handler.payloadLength;
-                    handler.chunkN ++;
+                    handler.chunkN += 1;
 
                     if (handler.startByte < handler.params.file.size) {
                         handler._sendNextChunk.call(handler);
@@ -245,6 +246,10 @@
             var xhr = new XMLHttpRequest();
 
             xhr.open(req.method, req.url);
+
+            _.each(req.headers, function (v, k) {
+                xhr.setRequestHeader(k, v);
+            });
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
