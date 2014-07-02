@@ -22,6 +22,7 @@ import boto
 import cherrypy
 import hashlib
 import hmac
+import json
 import os
 import time
 import urllib
@@ -39,7 +40,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     the S3 server where the files are stored.
     """
 
-    CHUNK_LEN = 1024 * 1024 * 40  # Chunk size for uploading
+    CHUNK_LEN = 1024 * 1024 * 32  # Chunk size for uploading
     HMAC_TTL = 120  # Number of seconds each signed message is valid
 
     def _getSignature(self, msg):
@@ -113,7 +114,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         headersStr = '\n'.join(
             map(lambda (k, v): '{}:{}'.format(k, v), signedHeaders.iteritems()))
-        allHeaders = dict(headers.items() + signedHeaders.items())
+        allHeaders = dict(headers)
+        allHeaders.update(signedHeaders)
 
         fullpath = 'https://{}.s3.amazonaws.com/{}'.format(
             self.assetstore['bucket'], key)
@@ -155,7 +157,31 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return upload
 
     def uploadChunk(self, upload, chunk):
-        pass  # TODO
+        """
+        Rather than processing actual bytes of the chunk, this will generate
+        the signature required to upload the chunk.
+
+        :param chunk: This should be a JSON string containing the chunk number
+        and S3 upload ID.
+        """
+        info = json.loads(chunk)
+        expires = int(time.time() + self.HMAC_TTL)
+        queryStr = '?partNumber={}&uploadId={}'.format(
+            info['partNumber'], info['s3UploadId'])
+        sig = self._getSignature(
+            ('PUT', '', '', expires, upload['s3']['relpath'] + queryStr))
+        url = (
+            'https://{}.s3.amazonaws.com/{}{}&Expires={}&AWSAccessKeyId={}'
+            '&Signature={}').format(
+                  self.assetstore['bucket'], upload['s3']['key'], queryStr,
+                  expires, self.assetstore['accessKeyId'], urllib.quote(sig))
+
+        upload['s3']['uploadId'] = info['s3UploadId']
+        upload['s3']['request'] = {
+            'method': 'PUT',
+            'url': url
+        }
+        return upload
 
     def requestOffset(self, upload):
         raise Exception('S3 assetstore does not support requestOffset.')
@@ -164,6 +190,30 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['fullpath'] = upload['s3']['fullpath']
         file['relpath'] = upload['s3']['relpath']
         file['s3Key'] = upload['s3']['key']
+
+        if upload['s3']['chunked']:
+            expires = int(time.time() + self.HMAC_TTL)
+            queryStr = '?uploadId=' + upload['s3']['uploadId']
+            contentType = 'text/plain;charset=UTF-8'
+
+            signature = self._getSignature(
+                ('POST', '', contentType, expires,
+                 upload['s3']['relpath'] + queryStr))
+            url = (
+                'https://{}.s3.amazonaws.com/{}{}&Expires={}&AWSAccessKeyId={}'
+                '&Signature={}').format(
+                      self.assetstore['bucket'], upload['s3']['key'], queryStr,
+                      expires, self.assetstore['accessKeyId'],
+                      urllib.quote(signature))
+
+            file['s3FinalizeRequest'] = {
+                'method': 'POST',
+                'url': url,
+                'headers': {
+                    'Content-Type': 'text/plain;charset=UTF-8'
+                }
+            }
+
         return file
 
     def downloadFile(self, file, offset=0, headers=True):

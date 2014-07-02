@@ -11,13 +11,16 @@
  * sent in order to create the final unified record in S3.
  */
 (function () {
+    // Constructor
     girder.uploadHandlers.s3 = function (params) {
         this.params = params;
         this.startByte = 0;
         return _.extend(this, Backbone.Events);
     };
 
-    girder.uploadHandlers.s3.prototype._xhrProgress = function (event) {
+    var prototype = girder.uploadHandlers.s3.prototype;
+
+    prototype._xhrProgress = function (event) {
         if (!event.lengthComputable) {
             return;
         }
@@ -37,7 +40,7 @@
         }
     };
 
-    girder.uploadHandlers.s3.prototype.execute = function () {
+    prototype.execute = function () {
         var s3Info = this.params.upload.s3;
         var handler = this;
 
@@ -48,14 +51,14 @@
         });
 
         if (s3Info.chunked) {
-            console.log('Chunked uploading not supported yet!');
+            this._multiChunkUpload(xhr);
         }
         else {
             this.payloadLength = this.params.file.size;
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     handler.trigger('g:upload.chunkSent', {
-                        bytes: this.payloadLength
+                        bytes: handler.payloadLength
                     });
 
                     girder.restRequest({
@@ -83,22 +86,190 @@
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +
-                            xhr.status + ').',
-                        event: event
+                            xhr.status + ').'
                     });
                 }
             };
+
+            xhr.upload.addEventListener('progress', function (event) {
+                handler._xhrProgress.call(handler, event);
+            });
+
             xhr.addEventListener('error', function (event) {
                 handler.trigger('g:upload.error', {
                     message: 'Error occurred uploading to S3.',
                     event: event
                 });
             });
+
+            xhr.send(this.params.file);
+        }
+    };
+
+    /**
+     * If the file being uploaded is larger than a single chunk length, it
+     * should be uploaded using the S3 multipart protocol.
+     */
+    prototype._multiChunkUpload = function (xhr) {
+        var handler = this;
+        this.eTagList = {};
+        this.startByte = 0;
+        this.chunkN = 1;
+
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                handler.s3UploadId =
+                    xhr.responseText.match(/<UploadId>(.*)<\/UploadId>/).pop();
+                handler._sendNextChunk.call(handler);
+            } else {
+                handler.trigger('g:upload.error', {
+                    message: 'Error while initializing multichunk S3 upload.',
+                    event: event
+                });
+            }
+        };
+
+        xhr.addEventListener('error', function (event) {
+            handler.trigger('g:upload.error', {
+                message: 'Error occurred uploading to S3.',
+                event: event
+            });
+        });
+
+        xhr.send();
+    };
+
+    /**
+     * Internal helper method used during multichunk upload protocol. This
+     * requests a signed chunk upload request from girder, then uses that
+     * authorized request to send the chunk to S3.
+     */
+    prototype._sendNextChunk = function () {
+        var data = this.params.file.slice(this.startByte,
+            this.startByte + this.params.upload.s3.chunkLength);
+        this.payloadLength = data.size;
+
+        // Get the authorized request from girder
+        girder.restRequest({
+            path: 'file/chunk',
+            type: 'POST',
+            data: {
+                offset: 0,
+                chunk: JSON.stringify({
+                    s3UploadId: this.s3UploadId,
+                    partNumber: this.chunkN
+                }),
+                uploadId: this.params.upload._id
+            },
+            error: null
+        }).done(_.bind(function (resp) {
+            // Send the chunk to S3
+            var handler = this;
+            var xhr = new XMLHttpRequest();
+            xhr.open(resp.s3.request.method, resp.s3.request.url);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    handler.trigger('g:upload.chunkSent', {
+                        bytes: handler.payloadLength
+                    });
+                    handler.eTagList[handler.chunkN] =
+                        xhr.getResponseHeader('ETag').replace(/"/g, '');
+                    handler.startByte += handler.payloadLength;
+                    handler.chunkN ++;
+
+                    if (handler.startByte < handler.params.file.size) {
+                        handler._sendNextChunk.call(handler);
+                    }
+                    else {
+                        handler._finalizeMultiChunkUpload.call(handler);
+                    }
+                } else {
+                    handler.trigger('g:upload.error', {
+                        message: 'Error occurred uploading to S3 (' +
+                            xhr.status + ').'
+                    });
+                }
+            };
+
             xhr.upload.addEventListener('progress', function (event) {
                 handler._xhrProgress.call(handler, event);
             });
 
-            xhr.send(this.params.file);
-        }
+            xhr.addEventListener('error', function (event) {
+                handler.trigger('g:upload.error', {
+                    message: 'Error occurred uploading to S3.',
+                    event: event
+                });
+            });
+
+            xhr.send(data);
+        }, this)).error(_.bind(function (resp) {
+            this.trigger('g:upload.error', {
+                message: 'Error getting signed chunk request from girder.'
+            });
+        }, this));
+    };
+
+    /**
+     * When all chunks of a multichunk upload have been sent, this must be
+     * called in order to finalize the upload.
+     */
+    prototype._finalizeMultiChunkUpload = function () {
+        girder.restRequest({
+            path: 'file/completion',
+            type: 'POST',
+            data: {
+                uploadId: this.params.upload._id
+            },
+            error: null
+        }).done(_.bind(function (resp) {
+            // Create the XML document that will be the request body to S3
+            var handler = this;
+            var doc = document.implementation.createDocument(null, null, null);
+            var root = doc.createElement('CompleteMultipartUpload');
+
+            _.each(this.eTagList, function (etag, partNumber) {
+                var partEl = doc.createElement('Part');
+                var partNumberEl = doc.createElement('PartNumber');
+                var etagEl = doc.createElement('ETag');
+
+                partNumberEl.appendChild(doc.createTextNode(partNumber));
+                etagEl.appendChild(doc.createTextNode(etag));
+                partEl.appendChild(partNumberEl);
+                partEl.appendChild(etagEl);
+                root.appendChild(partEl);
+            });
+
+            var req = resp.s3FinalizeRequest;
+            var xhr = new XMLHttpRequest();
+
+            xhr.open(req.method, req.url);
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    handler.trigger('g:upload.complete');
+                } else {
+                    handler.trigger('g:upload.error', {
+                        message: 'Error occurred uploading to S3 (' +
+                            xhr.status + ').'
+                    });
+                }
+            };
+
+            xhr.send(new XMLSerializer().serializeToString(root));
+        }, this)).error(_.bind(function (resp) {
+            var msg;
+
+            if (resp.status === 0) {
+                msg = 'Could not connect to the server.';
+            }
+            else {
+                msg = 'Upload error during finalize, check console.';
+            }
+            this.trigger('g:upload.error', {
+                message: msg
+            });
+        }, this));
     };
 }) ();
