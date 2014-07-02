@@ -237,9 +237,10 @@ class Resource(ModelImporter):
             resource = handler.__module__.rsplit('.', 1)[-1]
 
         if hasattr(handler, 'description'):
-            docs.addRouteDocs(
-                resource=resource, route=route, method=method,
-                info=handler.description.asDict(), handler=handler)
+            if handler.description is not None:
+                docs.addRouteDocs(
+                    resource=resource, route=route, method=method,
+                    info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
             print TerminalColor.warning(
