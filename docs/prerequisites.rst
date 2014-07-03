@@ -26,7 +26,7 @@ Ubuntu
 
 Use APT to install the prerequisites on Ubuntu.::
 
-    sudo apt-get install mongodb python-pip
+    sudo apt-get install mongodb python-pip libffi-dev
 
 Node.js currently isn't in the standard repositories, so run: ::
 
