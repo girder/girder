@@ -29,12 +29,12 @@ def validateSettings(event):
         if not val:
             raise ValidationException(
                 'Google client ID must not be empty.', 'value')
-        event.preventDefault()
+        event.preventDefault().stopPropagation()
     elif key == constants.PluginSettings.GOOGLE_CLIENT_SECRET:
         if not val:
             raise ValidationException(
                 'Google client secret must not be empty.', 'value')
-        event.preventDefault()
+        event.preventDefault().stopPropagation()
 
 
 def load(info):
