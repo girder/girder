@@ -1,0 +1,26 @@
+.g-config-breadcrumb-container
+
+.g-oauth-provider-list-title Configure supported providers below
+
+.panel-group#g-oauth-provider-accordion
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-oauth-provider-accordion",
+          href="#g-oauth-provider-google")
+          i.icon-gplus
+          |  Google
+    #g-oauth-provider-google.panel-collapse.collapse.in
+      .panel-body
+        p Client IDs and secret keys are managed in the Google Developer Console.
+        form#g-oauth-provider-google-form(role="form")
+          .form-group
+            label.control-label(for="g-oauth-provider-google-client-id") Google client ID
+            input.input-sm.form-control#g-oauth-provider-google-client-id(
+              type="text", placeholder="Client ID")
+          .form-group
+            label.control-label(for="g-oauth-provider-google-client-secret") Google client secret
+            input.input-sm.form-control#g-oauth-provider-google-client-secret(
+              type="text", placeholder="Client secret")
+          p#g-oauth-provider-google.g-validation-failed-message
+          input.btn.btn-sm.btn-primary(type="submit", value="Save")
