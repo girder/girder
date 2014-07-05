@@ -1,3 +1,11 @@
+include LICENSE
+include setup.py
+include requirements.txt
+recursive-include girder *
+recursive-include clients *
+recursive-include plugins *
+recursive-include logs *
+include girder/conf/girder.dist.cfg
 recursive-exclude tests *
 include girder/girder-version.json
 include package.json

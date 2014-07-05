@@ -21,7 +21,7 @@ import cherrypy
 import logging.handlers
 import os
 
-from girder.constants import ROOT_DIR, MAX_LOG_SIZE, LOG_BACKUP_COUNT
+from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
 
 
 class LogLevelFilter(object):
@@ -60,13 +60,15 @@ def _setupLogger():
     logger = logging.getLogger('girder')
     logger.setLevel(logging.DEBUG)
 
+    if not os.path.exists(LOG_ROOT):
+        os.makedirs(LOG_ROOT)
     eh = logging.handlers.RotatingFileHandler(
-        os.path.join(ROOT_DIR, 'logs', 'error.log'), maxBytes=MAX_LOG_SIZE,
+        os.path.join(LOG_ROOT, 'error.log'), maxBytes=MAX_LOG_SIZE,
         backupCount=LOG_BACKUP_COUNT)
     eh.setLevel(logging.WARNING)
     eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
     ih = logging.handlers.RotatingFileHandler(
-        os.path.join(ROOT_DIR, 'logs', 'info.log'), maxBytes=MAX_LOG_SIZE,
+        os.path.join(LOG_ROOT, 'info.log'), maxBytes=MAX_LOG_SIZE,
         backupCount=LOG_BACKUP_COUNT)
     ih.setLevel(logging.INFO)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))

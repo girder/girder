@@ -131,6 +131,10 @@ def findAllPlugins():
     """
     allPlugins = {}
     pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    if not os.path.exists(pluginsDir):
+        print(TerminalColor.warning('Plugin directory not found. No plugins '
+              'loaded.'))
+        return allPlugins
     dirs = [dir for dir in os.listdir(pluginsDir) if os.path.isdir(
             os.path.join(pluginsDir, dir))]
 
