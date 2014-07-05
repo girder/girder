@@ -26,6 +26,7 @@ add_web_client_test(data "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.j
 add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js")
 add_web_client_test(collection "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionSpec.js")
 add_web_client_test(group "${PROJECT_SOURCE_DIR}/clients/web/test/spec/groupSpec.js")
+add_web_client_test(user "${PROJECT_SOURCE_DIR}/clients/web/test/spec/userSpec.js")
 
 add_subdirectory(clients)
 

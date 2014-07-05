@@ -21,7 +21,7 @@ import base64
 import cherrypy
 import json
 
-from ..rest import Resource, RestException, loadmodel
+from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description
 from girder.constants import AccessType, SettingKey
 from girder.models.token import genToken
@@ -225,6 +225,16 @@ class User(Resource):
         user['email'] = params['email']
 
         currentUser = self.getCurrentUser()
+
+        # Only admins can change admin state
+        if 'admin' in params:
+            newAdminState = params['admin'] == 'true'
+            if currentUser['admin']:
+                user['admin'] = newAdminState
+            else:
+                if newAdminState != user['admin']:
+                    raise AccessException('Only admins may change admin state.')
+
         savedUser = self.model('user').save(user)
         return self.model('user').filter(savedUser, currentUser)
     updateUser.description = (
@@ -233,8 +243,11 @@ class User(Resource):
         .param('firstName', 'First name of the user.')
         .param('lastName', 'Last name of the user.')
         .param('email', 'The email of the user.')
+        .param('admin', 'Is the user a site admin (admin access required)',
+               required=False, dataType='boolean')
         .errorResponse()
-        .errorResponse('You do not have write access for this user.', 403))
+        .errorResponse('You do not have write access for this user.', 403)
+        .errorResponse('Must be an admin to create an admin.', 403))
 
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)

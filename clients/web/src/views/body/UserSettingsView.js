@@ -7,11 +7,17 @@ girder.views.UserAccountView = girder.View.extend({
             event.preventDefault();
             this.$('#g-user-info-error-msg').empty();
 
-            this.user.set({
+            var params = {
                 email: this.$('#g-email').val(),
                 firstName: this.$('#g-firstName').val(),
                 lastName: this.$('#g-lastName').val()
-            });
+            };
+
+            if (this.$('#g-admin').length > 0) {
+                params.admin = this.$('#g-admin').is(':checked');
+            }
+
+            this.user.set(params);
 
             this.user.off('g:error').on('g:error', function (err) {
                 var msg = err.responseJSON.message;
@@ -64,16 +70,29 @@ girder.views.UserAccountView = girder.View.extend({
         this.isCurrentUser = girder.currentUser &&
             settings.user.get('_id') === girder.currentUser.get('_id');
 
-        if (!this.user) {
-            console.error('Not logged in.');
+        this.model = this.user;
+
+        if (!this.user ||
+            this.user.getAccessLevel() < girder.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
+            return;
         }
+
         this.render();
+
+        // This page should be re-rendered if the user logs in or out
+        girder.events.on('g:login', this.userChanged, this);
     },
 
     render: function () {
+
+        if (girder.currentUser === null) {
+            girder.router.navigate('users', {trigger: true});
+            return;
+        }
+
         this.$el.html(jade.templates.userSettings({
-            user: this.user,
+            user: this.model,
             girder: girder
         }));
 
@@ -83,7 +102,7 @@ girder.views.UserAccountView = girder.View.extend({
             tabLink.tab().on('shown.bs.tab', function (e) {
                 view.tab = $(e.currentTarget).attr('name');
                 girder.router.navigate('useraccount/' +
-                    view.user.get('_id') + '/' + view.tab);
+                    view.model.get('_id') + '/' + view.tab);
             });
 
             if (tabLink.attr('name') === this.tab) {
@@ -92,6 +111,18 @@ girder.views.UserAccountView = girder.View.extend({
         }, this);
 
         return this;
+    },
+
+    userChanged: function () {
+        // When the user changes, we should refresh the model to update the
+        // _accessLevel attribute on the viewed user, then re-render the page.
+        this.model.off('g:fetched').on('g:fetched', function () {
+            this.render();
+        }, this).on('g:error', function () {
+            // Current user no longer has write access to this user, so we
+            // send them back to the user list page.
+            girder.router.navigate('users', {trigger: true});
+        }, this).fetch();
     }
 });
 
