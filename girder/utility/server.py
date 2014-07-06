@@ -18,8 +18,9 @@
 ###############################################################################
 
 import cherrypy
-import girder.events
+import os
 
+import girder.events
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
@@ -39,10 +40,14 @@ def setup(test=False, plugins=None):
     """
     cur_config = config.getConfig()
 
+    curStaticRoot = constants.ROOT_DIR
+    if not os.path.exists(os.path.join(curStaticRoot, 'clients')):
+        curStaticRoot = os.path.join(curStaticRoot, 'girder', 'clients')
+
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root': constants.ROOT_DIR,
+            'tools.staticdir.root': curStaticRoot,
             'request.show_tracebacks': test
         },
         '/static': {
