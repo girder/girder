@@ -23,7 +23,7 @@ import girder.events
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
-from . import dev_endpoints, webroot
+from . import webroot
 
 
 def setup(test=False, plugins=None):
@@ -81,9 +81,6 @@ def setup(test=False, plugins=None):
 
     root = webroot.Webroot()
     api_main.addApiToNode(root)
-
-    if cur_config['server']['mode'] is 'development':
-        dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
 
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
