@@ -15,8 +15,6 @@ girder.views.AdminView = girder.View.extend({
     },
 
     initialize: function () {
-        // This page should be re-rendered if the user logs in or out
-        girder.events.on('g:login', this.render, this);
         this.render();
     },
 

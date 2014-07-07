@@ -22,9 +22,6 @@ girder.views.CollectionsView = girder.View.extend({
         }, this).fetch();
 
         this.create = settings.dialog === 'create';
-
-        // This page should be re-rendered if the user logs in or out
-        girder.events.on('g:login', this.userChanged, this);
     },
 
     /**
@@ -75,14 +72,6 @@ girder.views.CollectionsView = girder.View.extend({
             girder.router.navigate('/collection/' + this.id, {trigger: true});
         }, this).fetch();
 
-    },
-
-    userChanged: function () {
-        // When the user changes, we should refresh the page to reveal the
-        // appropriate collections
-        this.collection.off('g:fetched').on('g:fetched', function () {
-            this.render();
-        }, this).fetch({}, true);
     }
 });
 

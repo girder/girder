@@ -21,6 +21,7 @@ girder.App = Backbone.View.extend({
         girder.events.on('g:registerUi', this.registerDialog, this);
         girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         girder.events.on('g:alert', this.alert, this);
+        girder.events.on('g:login', this.login, this);
     },
 
     render: function () {
@@ -136,6 +137,14 @@ girder.App = Backbone.View.extend({
                 });
             }, options.timeout);
         }
+    },
 
+    /**
+     * On login or logout, we re-render the current body view.
+     */
+    login: function () {
+        var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
+        Backbone.history.fragment = null;
+        girder.router.navigate(route, {trigger: true});
     }
 });

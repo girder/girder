@@ -62,10 +62,22 @@ var girder = {
             type: 'GET',
 
             error: function (error) {
-                alert('An error occurred while communicating with the server. ' +
-                      'Details have been logged in the console.');
+                var msg = 'An error occurred while communicating with the ' +
+                    'server. Details have been logged in the console.';
+                girder.events.trigger('g:alert', {
+                    icon: 'cancel',
+                    text: msg,
+                    type: 'danger',
+                    timeout: 5000
+                });
                 console.error(error.status + ' ' + error.statusText, error.responseText);
                 girder.lastError = error;
+            },
+
+            statusCode: {
+                401: function () {
+                    girder.events.trigger('g:loginUi');
+                }
             }
         };
 
