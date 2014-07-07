@@ -62,9 +62,10 @@ var girder = {
             type: 'GET',
 
             error: function (error) {
+                var info;
                 if (error.status === 401) {
                     girder.events.trigger('g:loginUi');
-                    var info = {
+                    info = {
                         text: 'You must log in to view this resource',
                         type: 'warning',
                         timeout: 4000,
@@ -72,7 +73,7 @@ var girder = {
                     };
                 }
                 else if (error.status === 403) {
-                    var info = {
+                    info = {
                         text: 'Access denied. See the console for more details.',
                         type: 'danger',
                         timeout: 5000,
@@ -80,7 +81,7 @@ var girder = {
                     };
                 }
                 else {
-                    var info = {
+                    info = {
                         text: 'An error occurred while communicating with the ' +
                               'server. Details have been logged in the console.',
                         type: 'danger',
