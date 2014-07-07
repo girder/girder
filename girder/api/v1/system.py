@@ -86,12 +86,12 @@ class System(Resource):
             try:
                 keys = json.loads(params['list'])
 
-                if type(settings) is not list:
+                if type(keys) is not list:
                     raise ValueError()
             except ValueError:
                 raise RestException('List was not a valid JSON list.')
 
-            return [self.model('setting').get(k) for k in keys]
+            return {k: self.model('setting').get(k) for k in keys}
         else:
             self.requireParams(('key',), params)
             return self.model('setting').get(params['key'])

@@ -6,6 +6,7 @@ girder.views.oauth_ConfigView = girder.View.extend({
     events: {
         'submit #g-oauth-provider-google-form': function (event) {
             event.preventDefault();
+            this.$('#g-oauth-provider-google-error-message').empty();
 
             this._saveSettings([{
                 key: 'oauth.google_client_id',
@@ -16,8 +17,23 @@ girder.views.oauth_ConfigView = girder.View.extend({
             }]);
         }
     },
-    initialize: function (settings) {
-        this.render();
+    initialize: function () {
+        girder.restRequest({
+            type: 'GET',
+            path: 'system/setting',
+            data: {
+              list: JSON.stringify(['oauth.google_client_id',
+                                    'oauth.google_client_secret'])
+            }
+        }).done(_.bind(function (resp) {
+            this.render();
+            this.$('#g-oauth-provider-google-client-id').val(
+                resp['oauth.google_client_id']
+            );
+            this.$('#g-oauth-provider-google-client-secret').val(
+                resp['oauth.google_client_secret']
+            );
+        }, this));
     },
 
     render: function () {
@@ -42,9 +58,15 @@ girder.views.oauth_ConfigView = girder.View.extend({
             },
             error: null
         }).done(_.bind(function (resp) {
-            console.log('do a success alert here', resp);
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Settings saved.',
+                type: 'success',
+                timeout: 4000
+            });
         }, this)).error(_.bind(function (resp) {
-            console.log('do an error alert here', resp);
+            this.$('#g-oauth-provider-google-error-message').text(
+                resp.responseJSON.message);
         }, this));
     }
 });
