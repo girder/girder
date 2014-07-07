@@ -28,6 +28,13 @@ ul.g-account-tabs.nav.nav-tabs
         .form-group
           label(for="g-lastName") Last name
           input.input-sm.form-control#g-lastName(type="text", value="#{user.get('lastName')}")
+        if girder.currentUser.get('admin')
+          .form-group
+            label(for="g-admin") User is site admin
+            if user.get('admin')
+              input.input-sm-form-control#g-admin(type="checkbox", checked)
+            else
+              input.input-sm-form-control#g-admin(type="checkbox")
         button.btn.btn-default.btn-sm(type="submit")
           i.icon-edit
           | Save

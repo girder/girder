@@ -207,6 +207,11 @@ class UserTestCase(base.TestCase):
             'password': 'goodpassword'
         }
         user = self.model('user').createUser(**params)
+
+        params['email'] = 'notasgood@email.com'
+        params['login'] = 'notasgoodlogin'
+        nonAdminUser = self.model('user').createUser(**params)
+
         resp = self.request(path='/user/{}'.format(user['_id']))
         self._verifyUserDocument(resp.json, admin=False)
 
@@ -228,6 +233,25 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['email'], 'valid@email.com')
         self.assertEqual(resp.json['firstName'], 'NewFirst')
         self.assertEqual(resp.json['lastName'], 'New Last')
+
+        # test admin checkbox
+        params = {
+            'email': 'valid@email.com',
+            'firstName': 'NewFirst ',
+            'lastName': ' New Last ',
+            'admin': 'true'
+        }
+        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+                            user=user, params=params)
+        self.assertStatusOk(resp)
+        self._verifyUserDocument(resp.json)
+        self.assertEqual(resp.json['admin'], True)
+
+        # test admin flag as non-admin
+        params['admin'] = 'false'
+        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+                            user=nonAdminUser, params=params)
+        self.assertStatus(resp, 403)
 
     def testDeleteUser(self):
         """

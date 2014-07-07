@@ -4,6 +4,27 @@
      * This view shows a single user's page.
      */
     girder.views.UserView = girder.View.extend({
+        events: {
+
+            'click a.g-edit-user': function (event) {
+                var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
+                girder.router.navigate(editUrl, {trigger: true});
+            },
+
+            'click a.g-delete-user': function (event) {
+                girder.confirm({
+                    text: 'Are you sure you want to delete <b>' +
+                          this.model.get('login') + '</b>?',
+                    yesText: 'Delete',
+                    confirmCallback: _.bind(function () {
+                        this.model.destroy().on('g:deleted', function () {
+                            girder.router.navigate('users', {trigger: true});
+                        });
+                    }, this)
+                });
+            }
+        },
+
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
@@ -40,7 +61,8 @@
 
         render: function () {
             this.$el.html(jade.templates.userPage({
-                user: this.model
+                user: this.model,
+                girder: girder
             }));
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
