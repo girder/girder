@@ -17,13 +17,34 @@
 #  limitations under the License.
 ###############################################################################
 
+import re
 import requests
 
-from girder.utility.model_importer import ModelImporter
+from girder.utility import config, model_importer
 from . import constants
 
 
-class Google(ModelImporter):
+def _deriveLogin(email, userModel):
+    """
+    Attempt to derive a sensible login from the given email. If this fails,
+    it will return None and the caller must use some unique default.
+    """
+    login = email.split('@')[0]  # Try first part of email address
+    regex = config.getConfig()['users']['login_regex']
+    if not re.match(regex, login):
+        login = re.sub('[\W_]+', '', login)  # Remove non-alphanumeric chars
+
+    if not re.match(regex, login):
+        return None  # Still doesn't match regex, we're hosed
+
+    cursor = userModel.find({'login': login}, limit=1)
+    if cursor.count(True) > 0:
+        return None  # This is already taken, we're hosed
+
+    return login
+
+
+class Google(model_importer.ModelImporter):
     def __init__(self, clientId, clientSecret, redirectUri):
         self.clientId = clientId
         self.clientSecret = clientSecret
@@ -58,9 +79,12 @@ class Google(ModelImporter):
 
         firstName = resp['name'].get('givenName', '')
         lastName = resp['name'].get('familyName', '')
-        login = 'googleuser' + resp['id']
+
         cursor = self.model('user').find({'email': email}, limit=1)
         if cursor.count(True) == 0:
+            login = _deriveLogin(email, self.model('user'))
+            if login is None:
+                login = 'googleuser' + resp['id']
             user = self.model('user').createUser(
                 login=login, password=None, firstName=firstName,
                 lastName=lastName, email=email)
