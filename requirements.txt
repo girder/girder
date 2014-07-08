@@ -6,3 +6,4 @@ bcrypt
 nose
 Mako
 requests
+httmock==1.2.2

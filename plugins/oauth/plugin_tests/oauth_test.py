@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import httmock
 import json
 
 from server.constants import PluginSettings
@@ -109,7 +110,7 @@ class OauthTest(base.TestCase):
                       '&scope=profile+email'
         })
 
-        # At least cover the error condition for google callback
+        # Test the error condition for google callback
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
             'error': 'access_denied',
@@ -117,3 +118,66 @@ class OauthTest(base.TestCase):
         })
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie.values()), 0)
+
+        # Test logging in with an existing user
+        email = 'admin@mail.com'
+        @httmock.all_requests
+        def google_mock(url, request):
+            if url.netloc == 'accounts.google.com':
+                return json.dumps({
+                    'token_type': 'Bearer',
+                    'access_token': 'abcd'
+                })
+            elif url.netloc == 'www.googleapis.com':
+                return json.dumps({
+                    'name': {
+                        'givenName': 'John',
+                        'familyName': 'Doe'
+                    },
+                    'emails': [{
+                        'type': 'account',
+                        'value': email
+                    }],
+                    'id': 9876
+                })
+            else:
+                raise Exception('Unexpected url {}'.format(url))
+
+        with httmock.HTTMock(google_mock):
+            resp = self.request('/oauth/google/callback', isJson=False, params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            })
+
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'],
+                         'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie.values()), 1)
+        authToken = json.loads(resp.cookie.values()[0].value)
+
+        self.assertEqual(authToken['userId'], str(self.admin['_id']))
+
+        # Test login in with a new user
+        email = 'anotheruser@mail.com'
+        with httmock.HTTMock(google_mock):
+            resp = self.request('/oauth/google/callback', isJson=False, params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            })
+
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'],
+                         'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie.values()), 1)
+        authToken = json.loads(resp.cookie.values()[0].value)
+
+        self.assertNotEqual(authToken['userId'], str(self.admin['_id']))
+
+        newUser = self.model('user').load(authToken['userId'], force=True)
+        self.assertEqual(newUser['login'], 'anotheruser')
+        self.assertEqual(newUser['email'], 'anotheruser@mail.com')
+        self.assertEqual(newUser['oauth'], {
+            'provider': 'Google',
+            'id': 9876
+        })
