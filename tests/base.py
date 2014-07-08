@@ -218,7 +218,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def request(self, path='/', method='GET', params={}, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None):
+                type=None, exception=False):
         """
         Make an HTTP request.
 
@@ -232,6 +232,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param isJson: Whether the response is a JSON object.
         :param basicAuth: A string to pass with the Authorization: Basic header
                           of the form 'login:password'
+        :param exception: Set this to True if a 500 is expected from this call.
         :returns: The cherrypy response object from the request.
         """
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
@@ -276,7 +277,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 print response.collapse_body()
                 raise AssertionError('Did not receive JSON response')
 
-        if response.output_status.startswith('500'):
+        if not exception and response.output_status.startswith('500'):
             raise AssertionError("Internal server error: %s" % response.body)
 
         return response

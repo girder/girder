@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+
 # Constants representing the setting keys for this plugin
 class PluginSettings:
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
