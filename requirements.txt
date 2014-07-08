@@ -5,3 +5,4 @@ pymongo
 bcrypt
 nose
 Mako
+requests

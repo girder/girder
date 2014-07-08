@@ -28,7 +28,7 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import AccessType, TerminalColor
+from girder.constants import AccessType, SettingKey, TerminalColor
 from girder.models.model_base import AccessException, ValidationException,\
     AccessControlledModel
 from girder.utility.model_importer import ModelImporter
@@ -436,6 +436,29 @@ class Resource(ModelImporter):
 
         else:  # user is not logged in
             return (None, None) if returnToken else None
+
+    def sendAuthTokenCookie(self, user):
+        """ Helper method to send the authentication cookie """
+        days = int(self.model('setting').get(
+            SettingKey.COOKIE_LIFETIME, default=180))
+        token = self.model('token').createToken(user, days=days)
+
+        cookie = cherrypy.response.cookie
+        cookie['authToken'] = json.dumps({
+            'userId': str(user['_id']),
+            'token': str(token['_id'])
+        })
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = days * 3600 * 24
+
+        return token
+
+    def deleteAuthTokenCookie(self):
+        """ Helper method to kill the authentication cookie """
+        cookie = cherrypy.response.cookie
+        cookie['authToken'] = ''
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = 0
 
     @endpoint
     def DELETE(self, path, params):

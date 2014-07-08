@@ -22,5 +22,7 @@ class PluginSettings:
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
     GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'
 
-GOOGLE_URL = 'https://accounts.google.com/o/oauth2/auth'
+GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
+GOOGLE_TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
+GOOGLE_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
 GOOGLE_SCOPES = ('profile', 'email')

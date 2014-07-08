@@ -66,7 +66,7 @@ class User(AccessControlledModel):
 
         cur_config = config.getConfig()
 
-        if not doc.get('salt', ''):  # pragma: no cover
+        if 'salt' not in doc:  # pragma: no cover
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
 
@@ -190,11 +190,16 @@ class User(AccessControlledModel):
         Change a user's password.
 
         :param user: The user whose password to change.
-        :param password: The new password.
+        :param password: The new password. If set to None, no password will
+        be stored for this user. This should be done in cases where an external
+        system is responsible for authenticating the user.
         """
-        salt, alg = self.model('password').encryptAndStore(password)
-        user['salt'] = salt
-        user['hashAlg'] = alg
+        if password is None:
+            user['salt'] = None
+        else:
+            salt, alg = self.model('password').encryptAndStore(password)
+            user['salt'] = salt
+            user['hashAlg'] = alg
 
         if save:
             self.save(user)

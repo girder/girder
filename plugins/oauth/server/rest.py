@@ -24,7 +24,7 @@ import urllib
 from girder.utility.model_importer import ModelImporter
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
-from . import constants
+from . import constants, providers
 
 
 class OAuth(Resource):
@@ -63,14 +63,30 @@ class OAuth(Resource):
 
         query = urllib.urlencode({
             'response_type': 'code',
+            'access_type': 'online',
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': redirect,
             'scope': ' '.join(constants.GOOGLE_SCOPES)
         })
 
-        return '{}?{}'.format(constants.GOOGLE_URL, query)
+        return '{}?{}'.format(constants.GOOGLE_AUTH_URL, query)
 
     def googleCallback(self, params):
-        pass  # TODO implement callback
+        self.requireParams(('state', 'code'), params)
+        redirect = params['state']
+
+        if 'error' in params:
+            raise cherrypy.HTTPRedirect(redirect)
+
+        clientId = self.model('setting').get(
+            constants.PluginSettings.GOOGLE_CLIENT_ID)
+        clientSecret = self.model('setting').get(
+            constants.PluginSettings.GOOGLE_CLIENT_SECRET)
+
+        user = providers.Google(
+            clientId, clientSecret, cherrypy.url()).getUser(params['code'])
+
+        self.sendAuthTokenCookie(user)
+        raise cherrypy.HTTPRedirect(redirect)
     googleCallback.description = None
