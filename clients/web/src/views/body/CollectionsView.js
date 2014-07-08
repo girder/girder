@@ -71,7 +71,6 @@ girder.views.CollectionsView = girder.View.extend({
         collection.set('_id', result.id).on('g:fetched', function () {
             girder.router.navigate('/collection/' + this.id, {trigger: true});
         }, this).fetch();
-
     }
 });
 

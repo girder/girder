@@ -45,6 +45,11 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
             navItems: navItems
         }));
 
+        if (Backbone.history.fragment) {
+            this.$('[g-target="' + Backbone.history.fragment + '"]')
+                .parent().addClass('g-active');
+        }
+
         return this;
     },
 
