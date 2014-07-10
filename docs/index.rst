@@ -12,6 +12,7 @@ Girder: High-Performance Data Management
    installation
    deploy
    user-guide
+   plugins
    build-docs
    api-docs
    development
@@ -22,4 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

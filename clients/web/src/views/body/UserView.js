@@ -57,9 +57,6 @@
                     this.render();
                 }, this).fetch();
             }
-
-            // This page should be re-rendered if the user logs in or out
-            girder.events.on('g:login', this.userChanged, this);
         },
 
         render: function () {
@@ -77,18 +74,6 @@
             });
 
             return this;
-        },
-
-        userChanged: function () {
-            // When the user changes, we should refresh the model to update the
-            // accessLevel attribute on the viewed user, then re-render the page.
-            this.model.off('g:fetched').on('g:fetched', function () {
-                this.render();
-            }, this).on('g:error', function () {
-                // Current user no longer has read access to this user, so we
-                // send them back to the user list page.
-                girder.router.navigate('users', {trigger: true});
-            }, this).fetch();
         }
     });
 

@@ -300,6 +300,12 @@ example: ::
 That will make your route automatically appear in the swagger documentation
 and will allow users to interact with it via that UI.
 
+If you are creating routes that you explicitly do not wish to be exposed in the
+swagger documentation for whatever reason, you can set the handler's description
+to ``None``, and then no warning will appear. ::
+
+    myHandler.description = None
+
 Adding a new resource type to the web API
 *****************************************
 

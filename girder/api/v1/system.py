@@ -45,32 +45,62 @@ class System(Resource):
         passed to the model as the corresponding dict, otherwise it is simply
         passed as a raw string.
         """
-        self.requireParams(('key', 'value'), params)
         self.requireAdmin(self.getCurrentUser())
 
-        try:
-            value = json.loads(params['value'])
-        except ValueError:
-            value = params['value']
+        if 'list' in params:
+            try:
+                settings = json.loads(params['list'])
 
-        return self.model('setting').set(key=params['key'], value=value)
+                if type(settings) is not list:
+                    raise ValueError()
+            except ValueError:
+                raise RestException('List was not a valid JSON list.')
+        else:
+            self.requireParams(('key', 'value'), params)
+            settings = ({'key': params['key'], 'value': params['value']},)
+
+        for setting in settings:
+            try:
+                value = json.loads(setting['value'])
+            except ValueError:
+                value = setting['value']
+
+            self.model('setting').set(key=setting['key'], value=value)
+
+        return True
     setSetting.description = (
-        Description('Set the value for a system setting.')
-        .notes("""Must be a system administrator to call this. If the string
+        Description('Set the value for a system setting, or a list of them.')
+        .notes("""Must be a system administrator to call this. If the value
                passed is a valid JSON object, it will be parsed and stored
                as an object.""")
-        .param('key', 'The key identifying this setting.')
-        .param('value', 'The value for this setting.')
+        .param('key', 'The key identifying this setting.', required=False)
+        .param('value', 'The value for this setting.', required=False)
+        .param('list', 'A JSON list of objects with key and value representing '
+               'a list of settings to set.', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
     def getSetting(self, params):
-        self.requireParams(('key',), params)
         self.requireAdmin(self.getCurrentUser())
-        return self.model('setting').get(params['key'])
+
+        if 'list' in params:
+            try:
+                keys = json.loads(params['list'])
+
+                if type(keys) is not list:
+                    raise ValueError()
+            except ValueError:
+                raise RestException('List was not a valid JSON list.')
+
+            return {k: self.model('setting').get(k) for k in keys}
+        else:
+            self.requireParams(('key',), params)
+            return self.model('setting').get(params['key'])
     getSetting.description = (
-        Description('Get the value of a system setting.')
+        Description('Get the value of a system setting, or a list of them.')
         .notes('Must be a system administrator to call this.')
-        .param('key', 'The key identifying this setting.')
+        .param('key', 'The key identifying this setting.', required=False)
+        .param('list', 'A JSON list of keys representing a set of settings to'
+               ' return.', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
     def getPlugins(self, params):

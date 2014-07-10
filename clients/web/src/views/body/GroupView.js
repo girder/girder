@@ -38,8 +38,6 @@ girder.views.GroupView = girder.View.extend({
                 }, this).fetchAccess();
             }, this).fetch();
         }
-        // This page should be re-rendered if the user logs in or out
-        girder.events.on('g:login', this.userChanged, this);
     },
 
     editGroup: function () {
@@ -178,18 +176,6 @@ girder.views.GroupView = girder.View.extend({
         }, this);
 
         return this;
-    },
-
-    userChanged: function () {
-        // When the user changes, we should refresh the model to update the
-        // _accessLevel attribute on the viewed group, then re-render the page.
-        this.model.off('g:fetched').on('g:fetched', function () {
-            this.render();
-        }, this).on('g:error', function () {
-            // Current user no longer has read access to this group, so we
-            // send them back to the group list page.
-            girder.router.navigate('groups', {trigger: true});
-        }, this).fetch();
     },
 
     joinGroup: function () {

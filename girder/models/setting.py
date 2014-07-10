@@ -37,7 +37,6 @@ class Setting(Model):
         assumes it is a core setting and does the validation here.
         """
         key = doc['key']
-        # TODO allow plugins to intercept the set setting event
 
         if key == SettingKey.PLUGINS_ENABLED:
             if not type(doc['value']) is list:
