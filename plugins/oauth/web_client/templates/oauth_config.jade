@@ -12,7 +12,15 @@
           |  Google
     #g-oauth-provider-google.panel-collapse.collapse.in
       .panel-body
-        p Client IDs and secret keys are managed in the Google Developer Console.
+        p.
+          Client IDs and secret keys are managed in the Google Developer Console. When
+          creating your client ID there, use the following values:
+        .g-oauth-value-container
+          b Authorized javascript origins:
+          span.g-oauth-value #{google.jsOrigin}
+        .g-oauth-value-container
+          b Authorized redirect URI:
+          span.g-oauth-value #{google.redirectUri}
         form#g-oauth-provider-google-form(role="form")
           .form-group
             label.control-label(for="g-oauth-provider-google-client-id") Google client ID

@@ -37,7 +37,13 @@ girder.views.oauth_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.oauth_config());
+        var origin = window.location.protocol + '//' + window.location.host;
+        this.$el.html(jade.templates.oauth_config({
+            google: {
+                jsOrigin: origin,
+                redirectUri: origin + girder.apiRoot + '/oauth/google/callback'
+            }
+        }));
 
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
