@@ -24,9 +24,9 @@ girder.views.oauth_LoginView = girder.View.extend({
         var buttons = [];
         _.each(this.providers, function (url, provider) {
             var btn = this._buttons[provider];
-            btn.provider = provider;
 
             if (btn) {
+                btn.provider = provider;
                 buttons.push(btn);
             }
             else {
