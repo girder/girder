@@ -184,7 +184,7 @@ class Folder(Resource):
         Description('Update the access control list for a folder.')
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
-        .param('public', "Whether the folder should be public or private.",
+        .param('public', "Whether the folder should be publicly visible.",
                dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
@@ -236,7 +236,7 @@ class Folder(Resource):
         .param('parentId', "The ID of the folder's parent.")
         .param('name', "Name of the folder.")
         .param('description', "Description for the folder.", required=False)
-        .param('public', """Wheter the folder should be public or private. By
+        .param('public', """Whether the folder should be publicly visible. By
                default, inherits the value from parent folder, or in the
                case of user or collection parentType, defaults to False.""",
                required=False, dataType='boolean')

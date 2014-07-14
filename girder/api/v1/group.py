@@ -102,7 +102,7 @@ class Group(Resource):
         .notes('Must be logged in.')
         .param('name', 'Unique name for the group.')
         .param('description', 'Description of the group.', required=False)
-        .param('public', """Whether the group should be public or private. The
+        .param('public', """Whether the group should be publicly visible. The
                default is private.""", required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
