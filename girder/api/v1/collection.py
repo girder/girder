@@ -82,7 +82,8 @@ class Collection(Resource):
         .responseClass('Collection')
         .param('name', 'Name for the collection. Must be unique.')
         .param('description', 'Collection description.', required=False)
-        .param('public', 'Whether the collection should be publicly visible.', dataType='boolean')
+        .param('public', 'Whether the collection should be publicly visible.',
+               dataType='boolean')
         .errorResponse()
         .errorResponse('You are not an administrator', 403))
 
@@ -122,7 +123,8 @@ class Collection(Resource):
         Description('Set the access control list for a collection.')
         .param('id', 'The ID of the collection.', paramType='path')
         .param('access', 'The access control list as JSON.')
-        .param('public', 'Whether the collection should be publicly visible.', dataType='boolean')
+        .param('public', 'Whether the collection should be publicly visible.',
+               dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403))
 
