@@ -349,6 +349,29 @@ class Resource(ModelImporter):
             if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)
 
+    def boolParam(self, key, params, default=None):
+        """
+        Coerce a parameter value from a str to a bool. This function is case
+        insensitive. The following string values will be interpreted as True:
+
+          'true'
+          'on'
+          '1'
+          'yes'
+
+        All other strings will be interpreted as False. If the given param
+        is not passed at all, returns the value specified by the default arg.
+        """
+        if key not in params:
+            return default
+
+        val = params[key]
+
+        if type(val) is bool:
+            return val
+
+        return val.lower().strip() in ('true', 'on', '1', 'yes')
+
     def requireAdmin(self, user):
         """
         Calling this on a user will ensure that they have admin rights.
