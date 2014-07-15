@@ -55,6 +55,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             str(self.assetstore['secret']),
             msg, hashlib.sha1).digest())
 
+    def _getCanonicalizedHeaders(self, headers):
+        sortedHeaders = sorted(headers.items())
+        return '\n'.join(
+            map(lambda (k, v): '{}:{}'.format(k, v), sortedHeaders))
+
+    @staticmethod
+    def fileIndexFields():
+        """
+        File documents should have an index on their verified field.
+        """
+        return ['s3Verified']
+
     @staticmethod
     def validateInfo(doc):
         """
@@ -100,6 +112,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Build the request required to initiate an authorized upload to S3.
         """
+        if upload['size'] <= 0:
+            return upload
+
         uid = uuid.uuid4().hex
         expires = int(time.time() + self.HMAC_TTL)
         key = os.path.join(self.assetstore.get('prefix', ''),
@@ -110,10 +125,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                                    .format(upload['name'])
         }
         signedHeaders = {
-            'x-amz-acl': 'private'
+            'x-amz-acl': 'private',
+            'x-amz-meta-authorized-length': upload['size'],
+            'x-amz-meta-uploader-id': upload['userId'],
+            'x-amz-meta-uploader-ip': cherrypy.request.remote.ip
         }
-        headersStr = '\n'.join(
-            map(lambda (k, v): '{}:{}'.format(k, v), signedHeaders.iteritems()))
+        headersStr = self._getCanonicalizedHeaders(signedHeaders)
         allHeaders = dict(headers)
         allHeaders.update(signedHeaders)
 
@@ -187,9 +204,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         raise Exception('S3 assetstore does not support requestOffset.')
 
     def finalizeUpload(self, upload, file):
+        if upload['size'] <= 0:
+            return file
+
         file['fullpath'] = upload['s3']['fullpath']
         file['relpath'] = upload['s3']['relpath']
         file['s3Key'] = upload['s3']['key']
+        file['s3Verified'] = False
 
         if upload['s3']['chunked']:
             expires = int(time.time() + self.HMAC_TTL)
@@ -218,16 +239,28 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def downloadFile(self, file, offset=0, headers=True):
         if headers:
-            expires = int(time.time() + self.HMAC_TTL)
-            signature = self._getSignature(
-                ('GET', '', '', expires, file['relpath']))
-            url = '{}?Expires={}&AWSAccessKeyId={}&Signature={}'.format(
-                file['fullpath'], expires,
-                self.assetstore['accessKeyId'], urllib.quote(signature))
-            raise cherrypy.HTTPRedirect(url)
+            if file['size'] > 0:
+                expires = int(time.time() + self.HMAC_TTL)
+                signature = self._getSignature(
+                    ('GET', '', '', expires, file['relpath']))
+                url = '{}?Expires={}&AWSAccessKeyId={}&Signature={}'.format(
+                    file['fullpath'], expires,
+                    self.assetstore['accessKeyId'], urllib.quote(signature))
+                raise cherrypy.HTTPRedirect(url)
+            else:
+                cherrypy.response.headers['Content-Length'] = '0'
+                cherrypy.response.headers['Content-Type'] = \
+                    'application/octet-stream'
+                cherrypy.response.headers['Content-Disposition'] = \
+                    'attachment; filename="{}"'.format(file['name'])
+
+                def stream():
+                    yield ''
+                return stream
         else:  # Can't really support archive file downloading for S3 files
             def stream():
                 yield '==S3==\n{}'.format(file['fullpath'])
+            return stream
 
     def deleteFile(self, file):
         """
@@ -235,12 +268,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         an external HTTP request per file in order to delete them, and we don't
         want to wait on that.
         """
-        events.daemon.trigger('_s3_assetstore_delete_file', {
-            'accessKeyId': self.assetstore['accessKeyId'],
-            'secret': self.assetstore['secret'],
-            'bucket': self.assetstore['bucket'],
-            'key': file['s3Key']
-        })
+        if file['size'] > 0:
+            events.daemon.trigger('_s3_assetstore_delete_file', {
+                'accessKeyId': self.assetstore['accessKeyId'],
+                'secret': self.assetstore['secret'],
+                'bucket': self.assetstore['bucket'],
+                'key': file['s3Key']
+            })
 
 
 def _deleteFileImpl(event):
