@@ -1,6 +1,5 @@
 girder.models.FileModel = girder.Model.extend({
     resourceName: 'file',
-
     resumeInfo: null,
 
     /**
@@ -11,6 +10,7 @@ girder.models.FileModel = girder.Model.extend({
     upload: function (parentModel, file) {
         this.startByte = 0;
         this.resumeInfo = null;
+        this.uploadHandler = null;
 
         // Authenticate and generate the upload token for this file
         girder.restRequest({
@@ -26,14 +26,15 @@ girder.models.FileModel = girder.Model.extend({
         }).done(_.bind(function (upload) {
             var behavior = upload.behavior;
             if (behavior && girder.uploadHandlers[behavior]) {
-                var uploadHandler = new girder.uploadHandlers[behavior]({
+                this.uploadHandler = new girder.uploadHandlers[behavior]({
                     upload: upload,
                     parentModel: parentModel,
                     file: file
                 });
-                uploadHandler.on({
+                this.uploadHandler.on({
                     'g:upload.complete': function (params) {
                         this.trigger('g:upload.complete', params);
+                        this.uploadHandler = null;
                     },
                     'g:upload.chunkSent': function (params) {
                         this.trigger('g:upload.chunkSent', params);
@@ -50,7 +51,7 @@ girder.models.FileModel = girder.Model.extend({
                         });
                     }
                 }, this);
-                return uploadHandler.execute();
+                return this.uploadHandler.execute();
             }
 
             if (file.size > 0) {
@@ -69,6 +70,10 @@ girder.models.FileModel = girder.Model.extend({
      * in order to attempt to resume it.
      */
     resumeUpload: function () {
+        if (this.uploadHandler !== null && this.uploadHandler.resume) {
+            return this.uploadHandler.resume();
+        }
+
         // Request the actual offset we need to resume at
         girder.restRequest({
             path: 'file/offset',

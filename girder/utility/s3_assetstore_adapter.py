@@ -55,11 +55,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             str(self.assetstore['secret']),
             msg, hashlib.sha1).digest())
 
-    def _getCanonicalizedHeaders(self, headers):
-        sortedHeaders = sorted(headers.items())
-        return '\n'.join(
-            map(lambda (k, v): '{}:{}'.format(k, v), sortedHeaders))
-
     @staticmethod
     def fileIndexFields():
         """
@@ -108,6 +103,26 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         self.assetstore = assetstore
 
+    def _getRequestHeaders(self, upload):
+        headers = {
+            'Content-Disposition': 'attachment; filename="{}"'
+                                   .format(upload['name'])
+        }
+        signedHeaders = {
+            'x-amz-acl': 'private',
+            'x-amz-meta-authorized-length': upload['size'],
+            'x-amz-meta-uploader-id': upload['userId'],
+            'x-amz-meta-uploader-ip': cherrypy.request.remote.ip
+        }
+        canonicalHeaders = '\n'.join(
+            map(lambda (k, v): '{}:{}'.format(k, v),
+                sorted(signedHeaders.items())))
+
+        allHeaders = dict(headers)
+        allHeaders.update(signedHeaders)
+
+        return canonicalHeaders, allHeaders
+
     def initUpload(self, upload):
         """
         Build the request required to initiate an authorized upload to S3.
@@ -120,19 +135,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         key = os.path.join(self.assetstore.get('prefix', ''),
                            uid[0:2], uid[2:4], uid)
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
-        headers = {
-            'Content-Disposition': 'attachment; filename="{}"'
-                                   .format(upload['name'])
-        }
-        signedHeaders = {
-            'x-amz-acl': 'private',
-            'x-amz-meta-authorized-length': upload['size'],
-            'x-amz-meta-uploader-id': upload['userId'],
-            'x-amz-meta-uploader-ip': cherrypy.request.remote.ip
-        }
-        headersStr = self._getCanonicalizedHeaders(signedHeaders)
-        allHeaders = dict(headers)
-        allHeaders.update(signedHeaders)
+        canonical, allHeaders = self._getRequestHeaders(upload)
 
         fullpath = 'https://{}.s3.amazonaws.com/{}'.format(
             self.assetstore['bucket'], key)
@@ -152,7 +155,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if chunked:
             signature = self._getSignature(
-                ('POST', '', '', expires, headersStr, path + '?uploads'))
+                ('POST', '', '', expires, canonical, path + '?uploads'))
             url += '&uploads&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
@@ -162,7 +165,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             }
         else:
             signature = self._getSignature(
-                ('PUT', '', upload['mimeType'], expires, headersStr, path))
+                ('PUT', '', upload['mimeType'], expires, canonical, path))
             url += '&Signature=' + urllib.quote(signature)
 
             upload['s3']['request'] = {
@@ -194,6 +197,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             expires, self.assetstore['accessKeyId'], urllib.quote(sig))
 
         upload['s3']['uploadId'] = info['s3UploadId']
+        upload['s3']['partNumber'] = info['partNumber']
         upload['s3']['request'] = {
             'method': 'PUT',
             'url': url
@@ -201,7 +205,23 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return upload
 
     def requestOffset(self, upload):
-        raise Exception('S3 assetstore does not support requestOffset.')
+        if upload['s3']['chunked']:
+            raise ValidationException('You should not call requestOffset on '
+                                      'a chunked S3 upload.')
+
+        expires = int(time.time() + self.HMAC_TTL)
+        canonical, allHeaders = self._getRequestHeaders(upload)
+        signature = self._getSignature(('PUT', '', upload['mimeType'], expires,
+                                        canonical, upload['s3']['relpath']))
+        url = '{}?Expires={}&AWSAccessKeyId={}&Signature={}'.format(
+            upload['s3']['fullpath'], expires, self.assetstore['accessKeyId'],
+            urllib.quote(signature))
+
+        return {
+            'method': 'PUT',
+            'url': url,
+            'headers': allHeaders
+        }
 
     def finalizeUpload(self, upload, file):
         if upload['size'] <= 0:

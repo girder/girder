@@ -117,15 +117,19 @@ class File(Resource):
         self.requireParams(('uploadId',), params)
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
-        upload['received'] = offset
-        self.model('upload').save(upload)
 
-        return {'offset': offset}
+        if type(offset) is int:
+            upload['received'] = offset
+            self.model('upload').save(upload)
+            return {'offset': offset}
+        else:
+            return offset
+
     requestOffset.description = (
         Description('Request required offset before resuming an upload.')
         .param('uploadId', 'The ID of the upload record.')
-        .errorResponse("""The ID was invalid, or the offset did not match the
-                       server's record."""))
+        .errorResponse("The ID was invalid, or the offset did not match the "
+                       "server's record."))
 
     def readChunk(self, params):
         """

@@ -106,6 +106,38 @@
         }
     };
 
+    prototype.resume = function () {
+        if (this.params.upload.s3.chunked) {
+            return this._sendNextChunk();
+        }
+
+        // If this is a single-chunk upload, we have to use the offset method
+        // to re-generate the initial request with a new timestamp.
+        girder.restRequest({
+            path: 'file/offset',
+            type: 'GET',
+            data: {
+                uploadId: this.params.upload._id
+            },
+            error: null
+        }).done(_.bind(function (resp) {
+            this.params.upload.s3.request = resp;
+            this.execute();
+        }, this)).error(_.bind(function (resp) {
+            var msg;
+
+            if (resp.status === 0) {
+                msg = 'Could not connect to the Girder server.';
+            }
+            else {
+                msg = 'An error occurred when resuming upload, check console.';
+            }
+            this.trigger('g:upload.error', {
+                message: msg
+            });
+        }, this));
+    };
+
     /**
      * If the file being uploaded is larger than a single chunk length, it
      * should be uploaded using the S3 multipart protocol.
