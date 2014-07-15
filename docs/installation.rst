@@ -58,7 +58,7 @@ The next recommended action is to enable any plugins you want to run on your ser
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
 enabled, you must restart the cherrypy server in order for the change to take
-effect.
+effect. For information about specific plugins, see the :ref:`Plugins <plugins>` section.
 
 After you have enabled any desired plugins and restarted the server, the next
 recommended action is to create an ``Assetstore`` for your system. No users

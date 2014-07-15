@@ -4,6 +4,27 @@
      * This view shows a single user's page.
      */
     girder.views.UserView = girder.View.extend({
+        events: {
+
+            'click a.g-edit-user': function (event) {
+                var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
+                girder.router.navigate(editUrl, {trigger: true});
+            },
+
+            'click a.g-delete-user': function (event) {
+                girder.confirm({
+                    text: 'Are you sure you want to delete <b>' +
+                          this.model.get('login') + '</b>?',
+                    yesText: 'Delete',
+                    confirmCallback: _.bind(function () {
+                        this.model.destroy().on('g:deleted', function () {
+                            girder.router.navigate('users', {trigger: true});
+                        });
+                    }, this)
+                });
+            }
+        },
+
         initialize: function (settings) {
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
@@ -36,14 +57,12 @@
                     this.render();
                 }, this).fetch();
             }
-
-            // This page should be re-rendered if the user logs in or out
-            girder.events.on('g:login', this.userChanged, this);
         },
 
         render: function () {
             this.$el.html(jade.templates.userPage({
-                user: this.model
+                user: this.model,
+                girder: girder
             }));
 
             this.hierarchyWidget = new girder.views.HierarchyWidget({
@@ -55,18 +74,6 @@
             });
 
             return this;
-        },
-
-        userChanged: function () {
-            // When the user changes, we should refresh the model to update the
-            // accessLevel attribute on the viewed user, then re-render the page.
-            this.model.off('g:fetched').on('g:fetched', function () {
-                this.render();
-            }, this).on('g:error', function () {
-                // Current user no longer has read access to this user, so we
-                // send them back to the user list page.
-                girder.router.navigate('users', {trigger: true});
-            }, this).fetch();
         }
     });
 

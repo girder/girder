@@ -53,7 +53,6 @@ class Group(Resource):
         :returns: A page of matching Group documents.
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
-
         user = self.getCurrentUser()
 
         groupList = self.model('group').list(user=user, offset=offset,
@@ -86,7 +85,7 @@ class Group(Resource):
 
         name = params['name'].strip()
         description = params.get('description', '').strip()
-        public = params.get('public', '').lower() == 'true'
+        public = self.boolParam('public', params, default=False)
 
         user = self.getCurrentUser()
 
@@ -103,7 +102,7 @@ class Group(Resource):
         .notes('Must be logged in.')
         .param('name', 'Unique name for the group.')
         .param('description', 'Description of the group.', required=False)
-        .param('public', """Whether the group should be public or private. The
+        .param('public', """Whether the group should be publicly visible. The
                default is private.""", required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
@@ -154,7 +153,7 @@ class Group(Resource):
     def updateGroup(self, group, params):
         user = self.getCurrentUser()
 
-        public = params.get('public', 'false').lower() == 'true'
+        public = self.boolParam('public', params, default=False)
         self.model('group').setPublic(group, public)
 
         group['name'] = params.get('name', group['name']).strip()
@@ -169,7 +168,7 @@ class Group(Resource):
         .param('name', 'The name to set on the group.', required=False)
         .param('description', 'Description for the group.', required=False)
         .param('public', 'Whether the group should be publicly visible',
-               dataType='boolean', required=False)
+               dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 

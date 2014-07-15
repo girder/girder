@@ -32,6 +32,9 @@
       - nodejs
       - screen
       - nginx
+      - cmake
+      - cmake-curses-gui
+      - git
 
   - name: Enable mongo full-text search
     lineinfile: dest=/etc/mongodb.conf regexp=^setParameter= line=setParameter=textSearchEnabled=true
@@ -41,6 +44,10 @@
 
   - name: install girder requirements
     pip: requirements=/vagrant/requirements.txt
+    sudo: yes
+
+  - name: install pep8
+    pip: name=pep8
     sudo: yes
 
   - name: install girder for development

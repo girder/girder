@@ -21,9 +21,9 @@ import base64
 import cherrypy
 import json
 
-from ..rest import Resource, RestException, loadmodel
+from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType
 from girder.models.token import genToken
 from girder.utility import mail_utils
 
@@ -33,8 +33,6 @@ class User(Resource):
 
     def __init__(self):
         self.resourceName = 'user'
-        self.COOKIE_LIFETIME = int(self.model('setting').get(
-            SettingKey.COOKIE_LIFETIME, default=180))
 
         self.route('DELETE', ('authentication',), self.logout)
         self.route('DELETE', (':id',), self.deleteUser)
@@ -46,27 +44,6 @@ class User(Resource):
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
         self.route('DELETE', ('password',), self.resetPassword)
-
-    def _sendAuthTokenCookie(self, user):
-        """ Helper method to send the authentication cookie """
-        token = self.model('token').createToken(user, days=self.COOKIE_LIFETIME)
-
-        cookie = cherrypy.response.cookie
-        cookie['authToken'] = json.dumps({
-            'userId': str(user['_id']),
-            'token': str(token['_id'])
-        })
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = self.COOKIE_LIFETIME * 3600 * 24
-
-        return token
-
-    def _deleteAuthTokenCookie(self):
-        """ Helper method to kill the authentication cookie """
-        cookie = cherrypy.response.cookie
-        cookie['authToken'] = ''
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = 0
 
     def find(self, params):
         """
@@ -154,7 +131,7 @@ class User(Resource):
                 raise RestException('Login failed.', code=403)
 
             setattr(cherrypy.request, 'girderUser', user)
-            token = self._sendAuthTokenCookie(user)
+            token = self.sendAuthTokenCookie(user)
 
         return {
             'user': self.model('user').filter(user, user),
@@ -173,7 +150,7 @@ class User(Resource):
         .errorResponse('Invalid login or password.', 403))
 
     def logout(self, params):
-        self._deleteAuthTokenCookie()
+        self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
     logout.description = (
         Description('Log out of the system.')
@@ -190,7 +167,7 @@ class User(Resource):
             lastName=params['lastName'])
         setattr(cherrypy.request, 'girderUser', user)
 
-        self._sendAuthTokenCookie(user)
+        self.sendAuthTokenCookie(user)
 
         currentUser = self.getCurrentUser()
 
@@ -225,6 +202,16 @@ class User(Resource):
         user['email'] = params['email']
 
         currentUser = self.getCurrentUser()
+
+        # Only admins can change admin state
+        if 'admin' in params:
+            newAdminState = params['admin'] == 'true'
+            if currentUser['admin']:
+                user['admin'] = newAdminState
+            else:
+                if newAdminState != user['admin']:
+                    raise AccessException('Only admins may change admin state.')
+
         savedUser = self.model('user').save(user)
         return self.model('user').filter(savedUser, currentUser)
     updateUser.description = (
@@ -233,8 +220,11 @@ class User(Resource):
         .param('firstName', 'First name of the user.')
         .param('lastName', 'Last name of the user.')
         .param('email', 'The email of the user.')
+        .param('admin', 'Is the user a site admin (admin access required)',
+               required=False, dataType='boolean')
         .errorResponse()
-        .errorResponse('You do not have write access for this user.', 403))
+        .errorResponse('You do not have write access for this user.', 403)
+        .errorResponse('Must be an admin to create an admin.', 403))
 
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)

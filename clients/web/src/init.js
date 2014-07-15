@@ -63,8 +63,34 @@ var girder = {
             type: 'GET',
 
             error: function (error) {
-                alert('An error occurred while communicating with the server. ' +
-                      'Details have been logged in the console.');
+                var info;
+                if (error.status === 401) {
+                    girder.events.trigger('g:loginUi');
+                    info = {
+                        text: 'You must log in to view this resource',
+                        type: 'warning',
+                        timeout: 4000,
+                        icon: 'info'
+                    };
+                }
+                else if (error.status === 403) {
+                    info = {
+                        text: 'Access denied. See the console for more details.',
+                        type: 'danger',
+                        timeout: 5000,
+                        icon: 'attention'
+                    };
+                }
+                else {
+                    info = {
+                        text: 'An error occurred while communicating with the ' +
+                              'server. Details have been logged in the console.',
+                        type: 'danger',
+                        timeout: 5000,
+                        icon: 'attention'
+                    };
+                }
+                girder.events.trigger('g:alert', info);
                 console.error(error.status + ' ' + error.statusText, error.responseText);
                 girder.lastError = error;
             }

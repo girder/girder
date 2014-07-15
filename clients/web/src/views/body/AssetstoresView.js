@@ -19,8 +19,6 @@ girder.views.AssetstoresView = girder.View.extend({
         else {
             this.render();
         }
-        // This page should be re-rendered if the user logs in or out
-        girder.events.on('g:login', this.render, this);
     },
 
     render: function () {

@@ -28,7 +28,7 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import AccessType, TerminalColor
+from girder.constants import AccessType, SettingKey, TerminalColor
 from girder.models.model_base import AccessException, ValidationException,\
     AccessControlledModel
 from girder.utility.model_importer import ModelImporter
@@ -237,9 +237,10 @@ class Resource(ModelImporter):
             resource = handler.__module__.rsplit('.', 1)[-1]
 
         if hasattr(handler, 'description'):
-            docs.addRouteDocs(
-                resource=resource, route=route, method=method,
-                info=handler.description.asDict(), handler=handler)
+            if handler.description is not None:
+                docs.addRouteDocs(
+                    resource=resource, route=route, method=method,
+                    info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
             print TerminalColor.warning(
@@ -348,6 +349,29 @@ class Resource(ModelImporter):
             if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)
 
+    def boolParam(self, key, params, default=None):
+        """
+        Coerce a parameter value from a str to a bool. This function is case
+        insensitive. The following string values will be interpreted as True:
+
+          'true'
+          'on'
+          '1'
+          'yes'
+
+        All other strings will be interpreted as False. If the given param
+        is not passed at all, returns the value specified by the default arg.
+        """
+        if key not in params:
+            return default
+
+        val = params[key]
+
+        if type(val) is bool:
+            return val
+
+        return val.lower().strip() in ('true', 'on', '1', 'yes')
+
     def requireAdmin(self, user):
         """
         Calling this on a user will ensure that they have admin rights.
@@ -435,6 +459,29 @@ class Resource(ModelImporter):
 
         else:  # user is not logged in
             return (None, None) if returnToken else None
+
+    def sendAuthTokenCookie(self, user):
+        """ Helper method to send the authentication cookie """
+        days = int(self.model('setting').get(
+            SettingKey.COOKIE_LIFETIME, default=180))
+        token = self.model('token').createToken(user, days=days)
+
+        cookie = cherrypy.response.cookie
+        cookie['authToken'] = json.dumps({
+            'userId': str(user['_id']),
+            'token': str(token['_id'])
+        })
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = days * 3600 * 24
+
+        return token
+
+    def deleteAuthTokenCookie(self):
+        """ Helper method to kill the authentication cookie """
+        cookie = cherrypy.response.cookie
+        cookie['authToken'] = ''
+        cookie['authToken']['path'] = '/'
+        cookie['authToken']['expires'] = 0
 
     @endpoint
     def DELETE(self, path, params):

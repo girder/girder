@@ -41,6 +41,7 @@ class WebClientTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
     def testWebClientSpec(self):
+
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
@@ -51,11 +52,10 @@ class WebClientTestCase(base.TestCase):
         )
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        for line in iter(process.stdout.readline, b''):
-            print line,
-        for line in iter(process.stderr.readline, b''):
-            print line,
-        process.communicate()
+                                   stderr=subprocess.STDOUT)
+
+        (stdoutdata, stderrdata) = process.communicate()
+
+        print(stdoutdata)
 
         self.assertEqual(process.returncode, 0)

@@ -34,9 +34,6 @@
                 else {
                     this.render();
                 }
-
-                // This page should be re-rendered if the user logs in or out
-                girder.events.on('g:login', this.userChanged, this);
             }
             else if (settings.id) {
                 this.model = new girder.models.CollectionModel();
@@ -91,19 +88,6 @@
             }
 
             return this;
-        },
-
-        userChanged: function () {
-            // When the user changes, we should refresh the model to update the
-            // _accessLevel attribute on the viewed collection, then re-render the
-            // page.
-            this.model.off('g:fetched').on('g:fetched', function () {
-                this.render();
-            }, this).on('g:error', function () {
-                // Current user no longer has read access to this user, so we
-                // send them back to the user list page.
-                girder.router.navigate('collections', {trigger: true});
-            }, this).fetch();
         },
 
         editAccess: function () {

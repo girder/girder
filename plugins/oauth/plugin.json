@@ -1,0 +1,4 @@
+{
+    "name": "OAuth login",
+    "description": "Allow users to login via supported OAuth providers."
+}
