@@ -4,7 +4,7 @@ compiler:
     - gcc
 before_install:
     - sudo apt-get install npm
-    - "mongo --eval 'db.runCommand({setParameter: 1, textSearchEnabled: true})' admin"
+    - mongo --version
 install:
     - sudo pip install -r requirements.txt
     - sudo pip install pep8 coverage
