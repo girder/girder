@@ -30,6 +30,7 @@ girder.views.FrontPageView = girder.View.extend({
 
     render: function () {
         this.$el.html(jade.templates.frontPage({
+            apiRoot: girder.apiRoot,
             staticRoot: girder.staticRoot,
             currentUser: girder.currentUser
         }));
