@@ -71,13 +71,15 @@ class Item(Resource):
                 filters['$text'] = {
                     '$search': params['text']
                 }
-            return [item for item in self.model('folder').childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort,
-                filters=filters)]
+            return [self.model('item').filter(item) for item in
+                    self.model('folder').childItems(
+                        folder=folder, limit=limit, offset=offset, sort=sort,
+                        filters=filters)]
         elif 'text' in params:
-            return self.model('item').textSearch(
-                params['text'], user=user, limit=limit, offset=offset,
-                sort=sort)
+            return [self.model('item').filter(item) for item in
+                    self.model('item').textSearch(
+                        params['text'], user=user, limit=limit, offset=offset,
+                        sort=sort)]
         else:
             raise RestException('Invalid search mode.')
     find.description = (

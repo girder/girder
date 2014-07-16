@@ -84,9 +84,10 @@ class Folder(Resource):
                         parentType=parentType, parent=parent, user=user,
                         offset=offset, limit=limit, sort=sort, filters=filters)]
         elif 'text' in params:
-            return self.model('folder').textSearch(
-                params['text'], user=user, limit=limit, offset=offset,
-                sort=sort)
+            return [self.model('folder').filter(folder, user) for folder in
+                    self.model('folder').textSearch(
+                        params['text'], user=user, limit=limit, offset=offset,
+                        sort=sort)]
         else:
             raise RestException('Invalid search mode.')
     find.description = (

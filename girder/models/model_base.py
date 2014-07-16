@@ -628,7 +628,7 @@ class AccessControlledModel(Model):
             '$search': query
         }
         results = self.find(
-            query=filters, limit=0, offset=offset, sort=sort, fields=fields)
+            query=filters, limit=0, sort=sort, fields=fields)
         return [r for r in self.filterResultsByPermission(
             results, user=user, level=AccessType.READ, limit=limit,
             offset=offset)]
