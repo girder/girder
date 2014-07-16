@@ -136,23 +136,21 @@ class Model(ModelImporter):
         return self.collection.find(spec=query, fields=fields, skip=offset,
                                     limit=limit, sort=sort)
 
-    def textSearch(self, query, project):
+    def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
+                   filters={}):
         """
         Perform a full-text search against the text index for this collection.
-        Only call this on models that have declared a text index using
-        ensureTextIndex.
 
         :param query: The text query. Will be stemmed internally.
         :type query: str
-        :param project: Project results onto this dictionary.
-        :type project: dict
-        :returns: The result list. Filtering by permission or any other
-                  parameters is left to the caller.
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
         """
-        project['_id'] = 1
-        resp = self.database.command("text", self.name, search=query,
-                                     project=project)
-        return resp['results']
+        filters['$text'] = {
+            '$search': query
+        }
+        return [r for r in self.find(filters, offset=offset, limit=limit,
+                                     sort=sort, fields=fields)]
 
     def save(self, document, validate=True):
         """
@@ -618,41 +616,29 @@ class AccessControlledModel(Model):
             if count == limit:
                 break
 
-    def filterSearchResults(self, results, user, level=AccessType.READ,
-                            limit=20):
-        """
-        Filter search result list by permissions.
-        """
-        count = 0
-        for result in results:
-            if count >= limit:
-                break
-            obj = result['obj']
-            if self.hasAccess(result['obj'], user=user, level=level):
-                obj.pop('access', None)
-                obj.pop('public', None)
-                yield obj
-                count += 1
-
-    def textSearch(self, query, project, user=None, limit=20):
+    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+                   sort=None, fields=None):
         """
         Custom override of Model.textSearch to also force permission-based
-        filtering.
+        filtering. The parameters are the same as Model.textSearch, except:
+
+        :param user: The user to apply permission filtering for.
         """
-        project['access'] = 1
-        project['public'] = 1
-        results = Model.textSearch(self, query=query, project=project)
-        return [r for r in self.filterSearchResults(
-            results, user=user, limit=limit)]
+        filters['$text'] = {
+            '$search': query
+        }
+        results = self.find(
+            query=filters, limit=0, offset=offset, sort=sort, fields=fields)
+        return [r for r in self.filterResultsByPermission(
+            results, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)]
 
 
 class AccessException(Exception):
     """
     Represents denial of access to a resource.
     """
-    def __init__(self, message):
-        # TODO log the error
-        Exception.__init__(self, message)
+    pass
 
 
 class ValidationException(Exception):

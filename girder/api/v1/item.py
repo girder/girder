@@ -63,15 +63,21 @@ class Item(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
 
-        if 'text' in params:
-            return self.model('item').textSearch(
-                params['text'], {'name': 1}, user=user, limit=limit)
-        elif 'folderId' in params:
+        if 'folderId' in params:
             folder = self.model('folder').load(id=params['folderId'], user=user,
                                                level=AccessType.READ, exc=True)
-
+            filters = {}
+            if 'text' in params:
+                filters['$text'] = {
+                    '$search': params['text']
+                }
             return [item for item in self.model('folder').childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort)]
+                folder=folder, limit=limit, offset=offset, sort=sort,
+                filters=filters)]
+        elif 'text' in params:
+            return self.model('item').textSearch(
+                params['text'], user=user, limit=limit, offset=offset,
+                sort=sort)
         else:
             raise RestException('Invalid search mode.')
     find.description = (
