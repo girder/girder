@@ -1,0 +1,4 @@
+{
+"name": "Provenance Plugin",
+"description": "Tracks provenance of objects in Girder"
+}
