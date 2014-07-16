@@ -144,3 +144,90 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(0, len(resp.json))
+
+    def testS3AssetstoreAdapter(self):
+        # Delete the default assetstore
+        self.model('assetstore').remove(self.assetstore)
+
+        params = {
+            'name': 'S3 Assetstore',
+            'type': AssetstoreType.S3,
+            'bucket': 'bucketname',
+            'accessKeyId': 'someKey',
+            'secretKey': 'someSecret',
+            'prefix': 'foo/bar',
+            'current': True
+        }
+
+        # Validation should fail with bad credentials
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'field': 'bucket',
+            'message': 'Unable to write into bucket "bucketname".'
+        })
+
+        # Force save of the assetstore since we can't validate it in test mode
+        params['secret'] = params['secretKey']
+        del params['secretKey']
+        assetstore = self.model('assetstore').save(params, validate=False)
+
+        # Test init for a single-chunk upload
+        folders = self.model('folder').childFolders(
+            self.admin, 'user', user=self.admin)
+        params = {
+            'parentType': 'folder',
+            'parentId': folders.next()['_id'],
+            'name': 'My File.txt',
+            'size': 1024,
+            'mimeType': 'text/plain'
+        }
+        resp = self.request(path='/file', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['received'], 0)
+        self.assertEqual(resp.json['size'], 1024)
+        self.assertEqual(resp.json['behavior'], 's3')
+
+        s3Info = resp.json['s3']
+        self.assertEqual(s3Info['chunked'], False)
+        self.assertEqual(type(s3Info['chunkLength']), int)
+        self.assertEqual(s3Info['request']['method'], 'PUT')
+        self.assertTrue(s3Info['request']['url'].startswith(
+                        'https://bucketname.s3.amazonaws.com/foo/bar'))
+        self.assertEqual(s3Info['request']['headers']['x-amz-acl'], 'private')
+
+        # Test finalize for a single-chunk upload
+        resp = self.request(path='/file/completion', method='POST',
+                            user=self.admin,
+                            params={'uploadId': resp.json['_id']})
+        self.assertStatusOk(resp)
+        self.assertFalse(resp.json['s3Verified'])
+        self.assertEqual(resp.json['size'], 1024)
+        self.assertEqual(resp.json['assetstoreId'], str(assetstore['_id']))
+        self.assertTrue('s3Key' in resp.json)
+        self.assertTrue(resp.json['fullpath'].startswith(
+            'https://bucketname.s3.amazonaws.com/foo/bar/'))
+
+        # Test init for a multi-chunk upload
+        params['size'] = 1024 * 1024 * 1024 * 5
+        resp = self.request(path='/file', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+
+        s3Info = resp.json['s3']
+        self.assertEqual(s3Info['chunked'], True)
+        self.assertEqual(type(s3Info['chunkLength']), int)
+        self.assertEqual(s3Info['request']['method'], 'POST')
+        self.assertTrue(s3Info['request']['url'].startswith(
+                        'https://bucketname.s3.amazonaws.com/foo/bar'))
+
+        # Test init for an empty file (should be no-op)
+        params['size'] = 0
+        resp = self.request(path='/file', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertFalse('behavior' in resp.json)
+        self.assertFalse('s3' in resp.json)
