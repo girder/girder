@@ -297,8 +297,9 @@ example: ::
         .param('cat', 'The cat value.', required=False)
         .errorResponse())
 
-That will make your route automatically appear in the swagger documentation
-and will allow users to interact with it via that UI.
+That will make your route automatically appear in the Swagger documentation
+and will allow users to interact with it via that UI. See the
+:ref:`RESTful API docs<restapi>` for more information about the Swagger page.
 
 If you are creating routes that you explicitly do not wish to be exposed in the
 swagger documentation for whatever reason, you can set the handler's description
