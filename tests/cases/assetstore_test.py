@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import os
 
 from .. import base
@@ -217,12 +218,37 @@ class AssetstoreTestCase(base.TestCase):
                             params=params)
         self.assertStatusOk(resp)
 
-        s3Info = resp.json['s3']
+        upload = resp.json
+        s3Info = upload['s3']
         self.assertEqual(s3Info['chunked'], True)
         self.assertEqual(type(s3Info['chunkLength']), int)
         self.assertEqual(s3Info['request']['method'], 'POST')
         self.assertTrue(s3Info['request']['url'].startswith(
                         'https://bucketname.s3.amazonaws.com/foo/bar'))
+
+        # Test uploading a chunk
+        resp = self.request(path='/file/chunk', method='POST',
+                            user=self.admin, params={
+                                'uploadId': upload['_id'],
+                                'offset': 0,
+                                'chunk': json.dumps({
+                                    'partNumber': 1,
+                                    's3UploadId': 'abcd'
+                                })
+                            })
+        self.assertStatusOk(resp)
+        self.assertTrue(resp.json['s3']['request']['url'].startswith(
+                        'https://bucketname.s3.amazonaws.com/foo/bar'))
+        self.assertEqual(resp.json['s3']['request']['method'], 'PUT')
+
+        # Test finalize for a multi-chunk upload
+        resp = self.request(path='/file/completion', method='POST',
+                            user=self.admin,
+                            params={'uploadId': upload['_id']})
+        self.assertStatusOk(resp)
+        self.assertTrue(resp.json['s3FinalizeRequest']['url'].startswith(
+                        'https://bucketname.s3.amazonaws.com/foo/bar'))
+        self.assertEqual(resp.json['s3FinalizeRequest']['method'], 'POST')
 
         # Test init for an empty file (should be no-op)
         params['size'] = 0
