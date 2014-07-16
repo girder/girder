@@ -46,6 +46,7 @@ class Resource(BaseResource):
         user = self.getCurrentUser()
 
         limit = int(params.get('limit', 10))
+        offset = int(params.get('offset', 0))
 
         results = {}
         try:
@@ -54,32 +55,30 @@ class Resource(BaseResource):
             raise RestException('The types parameter must be JSON.')
 
         if 'item' in types:
-            results['item'] = self.model('item').textSearch(
-                params['q'], user=user, limit=limit, project={
-                    'name': 1
-                })
+            results['item'] = [
+                self.model('item').filter(item) for item in
+                self.model('item').textSearch(
+                    params['q'], user=user, limit=limit, offset=offset)]
         if 'collection' in types:
-            results['collection'] = self.model('collection').textSearch(
-                params['q'], user=user, limit=limit, project={
-                    'name': 1
-                })
+            results['collection'] = [
+                self.model('collection').filter(c, user) for c in
+                self.model('collection').textSearch(
+                    params['q'], user=user, limit=limit, offset=offset)]
         if 'folder' in types:
-            results['folder'] = self.model('folder').textSearch(
-                params['q'], user=user, limit=limit, project={
-                    'name': 1
-                })
+            results['folder'] = [
+                self.model('folder').filter(f, user) for f in
+                self.model('folder').textSearch(
+                    params['q'], user=user, limit=limit, offset=offset)]
         if 'group' in types:
-            results['group'] = self.model('group').textSearch(
-                params['q'], user=user, limit=limit, project={
-                    'name': 1
-                })
+            results['group'] = [
+                self.model('group').filter(g, user) for g in
+                self.model('group').textSearch(
+                    params['q'], user=user, limit=limit, offset=offset)]
         if 'user' in types:
-            results['user'] = self.model('user').textSearch(
-                params['q'], user=user, limit=limit, project={
-                    'firstName': 1,
-                    'lastName': 1,
-                    'login': 1
-                })
+            results['user'] = [
+                self.model('user').filter(u, user) for u in
+                self.model('user').textSearch(
+                    params['q'], user=user, limit=limit, offset=offset)]
         return results
     search.description = (
         Description('Text search for resources in the system.')
