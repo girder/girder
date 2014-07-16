@@ -41,10 +41,9 @@ class Collection(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         if 'text' in params:
-            return self.model('collection').textSearch(
-                params['text'], user=user, limit=limit, project={
-                    'name': 1
-                })
+            return [self.model('collection').filter(c, user) for c in
+                    self.model('collection').textSearch(
+                        params['text'], user=user, limit=limit, offset=offset)]
 
         cols = self.model('collection').list(user=user, offset=offset,
                                              limit=limit, sort=sort)

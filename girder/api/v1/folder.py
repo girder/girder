@@ -62,7 +62,6 @@ class Folder(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
 
-
         if 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType not in ('collection', 'folder', 'user'):

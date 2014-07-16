@@ -149,6 +149,14 @@ class Model(ModelImporter):
         filters['$text'] = {
             '$search': query
         }
+
+        if sort is None:
+            if fields is None:
+                fields = {'_textScore': {'$meta': 'textScore'}}
+            else:
+                fields['_textScore'] = {'$meta': 'textScore'}
+            sort = [('_textScore', {'$meta': 'textScore'})]
+
         return [r for r in self.find(filters, offset=offset, limit=limit,
                                      sort=sort, fields=fields)]
 
@@ -624,11 +632,9 @@ class AccessControlledModel(Model):
 
         :param user: The user to apply permission filtering for.
         """
-        filters['$text'] = {
-            '$search': query
-        }
-        results = self.find(
-            query=filters, limit=0, sort=sort, fields=fields)
+        results = Model.textSearch(
+            self, query=query, filters=filters, limit=0, sort=sort,
+            fields=fields)
         return [r for r in self.filterResultsByPermission(
             results, user=user, level=AccessType.READ, limit=limit,
             offset=offset)]

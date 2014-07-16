@@ -158,17 +158,17 @@ class SearchTestCase(base.TestCase):
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         }, user=user)
-        self.assertEqual(resp.json, {
-            'folder': [{
-                '_id': str(privateFolder['_id']),
-                'name': 'Private'
-            }],
-            'user': [],
-            'collection': [{
-                '_id': str(coll2['_id']),
-                'name': coll2['name']
-            }]
-        })
+        self.assertEqual(1, len(resp.json['folder']))
+        self.assertDictContainsSubset({
+            '_id': str(privateFolder['_id']),
+            'name': 'Private'
+        }, resp.json['folder'][0])
+        self.assertEqual(1, len(resp.json['collection']))
+        self.assertDictContainsSubset({
+            '_id': str(coll2['_id']),
+            'name': coll2['name']
+        }, resp.json['collection'][0])
+        self.assertEqual(0, len(resp.json['user']))
 
         # Ensure that weights are respected, e.g. description should be
         # weighted less than name.
@@ -176,38 +176,36 @@ class SearchTestCase(base.TestCase):
             'q': 'magic',
             'types': '["collection"]'
         }, user=admin)
-        self.assertEqual(resp.json, {
-            'collection': [{
-                '_id': str(coll2['_id']),
-                'name': coll2['name']
-            }, {
-                '_id': str(coll1['_id']),
-                'name': coll1['name']
-            }]
-        })
+        self.assertEqual(2, len(resp.json['collection']))
+        self.assertDictContainsSubset({
+            '_id': str(coll2['_id']),
+            'name': coll2['name']
+        }, resp.json['collection'][0])
+        self.assertDictContainsSubset({
+            '_id': str(coll1['_id']),
+            'name': coll1['name']
+        }, resp.json['collection'][1])
 
         # Exercise user search by login
         resp = self.request(path='/resource/search', params={
             'q': 'goodlogin',
             'types': '["user"]'
         }, user=admin)
-        self.assertEqual(resp.json, {
-            'user': [{
-                '_id': str(user['_id']),
-                'firstName': user['firstName'],
-                'lastName': user['lastName'],
-                'login': user['login']
-            }]
-        })
+        self.assertEqual(1, len(resp.json['user']))
+        self.assertDictContainsSubset({
+            '_id': str(user['_id']),
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'login': user['login']
+        }, resp.json['user'][0])
 
         # check item search with proper permissions
         resp = self.request(path='/resource/search', params={
             'q': 'object',
             'types': '["item"]'
         }, user=user)
-        self.assertEqual(resp.json, {
-            'item': [{
-                '_id': str(item1['_id']),
-                'name': item1['name']
-            }]
-        })
+        self.assertEqual(1, len(resp.json['item']))
+        self.assertDictContainsSubset({
+            '_id': str(item1['_id']),
+            'name': item1['name']
+        }, resp.json['item'][0])
