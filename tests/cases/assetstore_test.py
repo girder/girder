@@ -153,13 +153,24 @@ class AssetstoreTestCase(base.TestCase):
         params = {
             'name': 'S3 Assetstore',
             'type': AssetstoreType.S3,
-            'bucket': 'bucketname',
+            'bucket': '',
             'accessKeyId': 'someKey',
             'secretKey': 'someSecret',
-            'prefix': 'foo/bar',
+            'prefix': '/foo/bar/',
             'current': True
         }
 
+        # Validation should fail with empty bucket name
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'field': 'bucket',
+            'message': 'Bucket must not be empty.'
+        })
+
+        params['bucket'] = 'bucketname'
         # Validation should fail with bad credentials
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
@@ -171,6 +182,7 @@ class AssetstoreTestCase(base.TestCase):
         })
 
         # Force save of the assetstore since we can't validate it in test mode
+        params['prefix'] = 'foo/bar'
         params['secret'] = params['secretKey']
         del params['secretKey']
         assetstore = self.model('assetstore').save(params, validate=False)
@@ -192,7 +204,8 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(resp.json['size'], 1024)
         self.assertEqual(resp.json['behavior'], 's3')
 
-        s3Info = resp.json['s3']
+        singleChunkUpload = resp.json
+        s3Info = singleChunkUpload['s3']
         self.assertEqual(s3Info['chunked'], False)
         self.assertEqual(type(s3Info['chunkLength']), int)
         self.assertEqual(s3Info['request']['method'], 'PUT')
@@ -200,10 +213,19 @@ class AssetstoreTestCase(base.TestCase):
                         'https://bucketname.s3.amazonaws.com/foo/bar'))
         self.assertEqual(s3Info['request']['headers']['x-amz-acl'], 'private')
 
+        # Test resume of a single-chunk upload
+        resp = self.request(path='/file/offset', method='GET', user=self.admin,
+                            params={'uploadId': resp.json['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['method'], 'PUT')
+        self.assertTrue('headers' in resp.json)
+        self.assertTrue(resp.json['url'].startswith(
+            'https://bucketname.s3.amazonaws.com/foo/bar/'))
+
         # Test finalize for a single-chunk upload
         resp = self.request(path='/file/completion', method='POST',
                             user=self.admin,
-                            params={'uploadId': resp.json['_id']})
+                            params={'uploadId': singleChunkUpload['_id']})
         self.assertStatusOk(resp)
         self.assertFalse(resp.json['s3Verified'])
         self.assertEqual(resp.json['size'], 1024)
@@ -218,8 +240,8 @@ class AssetstoreTestCase(base.TestCase):
                             params=params)
         self.assertStatusOk(resp)
 
-        upload = resp.json
-        s3Info = upload['s3']
+        multiChunkUpload = resp.json
+        s3Info = multiChunkUpload['s3']
         self.assertEqual(s3Info['chunked'], True)
         self.assertEqual(type(s3Info['chunkLength']), int)
         self.assertEqual(s3Info['request']['method'], 'POST')
@@ -229,7 +251,7 @@ class AssetstoreTestCase(base.TestCase):
         # Test uploading a chunk
         resp = self.request(path='/file/chunk', method='POST',
                             user=self.admin, params={
-                                'uploadId': upload['_id'],
+                                'uploadId': multiChunkUpload['_id'],
                                 'offset': 0,
                                 'chunk': json.dumps({
                                     'partNumber': 1,
@@ -241,10 +263,20 @@ class AssetstoreTestCase(base.TestCase):
                         'https://bucketname.s3.amazonaws.com/foo/bar'))
         self.assertEqual(resp.json['s3']['request']['method'], 'PUT')
 
+        # We should not be able to call file/offset with multi-chunk upload
+        resp = self.request(path='/file/offset', method='GET', user=self.admin,
+                            params={'uploadId': multiChunkUpload['_id']})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Do not call requestOffset on a chunked S3 upload.'
+        })
+
         # Test finalize for a multi-chunk upload
         resp = self.request(path='/file/completion', method='POST',
                             user=self.admin,
-                            params={'uploadId': upload['_id']})
+                            params={'uploadId': multiChunkUpload['_id']})
+        largeFile = resp.json
         self.assertStatusOk(resp)
         self.assertTrue(resp.json['s3FinalizeRequest']['url'].startswith(
                         'https://bucketname.s3.amazonaws.com/foo/bar'))
@@ -254,6 +286,23 @@ class AssetstoreTestCase(base.TestCase):
         params['size'] = 0
         resp = self.request(path='/file', method='POST', user=self.admin,
                             params=params)
+        emptyFile = resp.json
         self.assertStatusOk(resp)
         self.assertFalse('behavior' in resp.json)
         self.assertFalse('s3' in resp.json)
+
+        # Test download for an empty file
+        resp = self.request(path='/file/{}/download'.format(emptyFile['_id']),
+                            user=self.admin, method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.collapse_body(), '')
+        self.assertEqual(resp.headers['Content-Length'], '0')
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="My File.txt"')
+
+        # Test download of a non-empty file
+        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+                            user=self.admin, method='GET', isJson=False)
+        self.assertStatus(resp, 303)
+        self.assertTrue(resp.headers['Location'].startswith(
+            'https://bucketname.s3.amazonaws.com/foo/bar/'))

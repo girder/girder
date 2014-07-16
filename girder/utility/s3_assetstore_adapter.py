@@ -206,8 +206,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def requestOffset(self, upload):
         if upload['s3']['chunked']:
-            raise ValidationException('You should not call requestOffset on '
-                                      'a chunked S3 upload.')
+            raise ValidationException('Do not call requestOffset on a chunked '
+                                      'S3 upload.')
 
         expires = int(time.time() + self.HMAC_TTL)
         canonical, allHeaders = self._getRequestHeaders(upload)
