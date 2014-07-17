@@ -1,6 +1,23 @@
 API Documentation
 =================
 
+.. _restapi:
+
+RESTful API
+-----------
+
+Clients access Girder servers uniformly via its RESTful web API. By providing
+a single, stable, consistent web API, it is possible to write multiple
+interchangeable clients using different technologies.
+
+When a Girder instance is deployed, it typically also serves a page
+that uses `Swagger <https://helloreverb.com/developers/swagger>`_ to document
+all available RESTful endpoints in the web API, and also provide an easy way
+for users to execute those endpoints with parameters of their choosing. In
+this way, the Swagger page is just the simplest and lightest client application
+for Girder. This page is served out of the path ``/api`` under the root path of
+your Girder instance.
+
 .. _models:
 
 Models
@@ -100,8 +117,8 @@ Setting
 .. automodule:: girder.models.setting
    :members:
 
-Web API Endpoints
------------------
+Python API for RESTful web API
+------------------------------
 
 Base Classes and Helpers
 ^^^^^^^^^^^^^^^^^^^^^^^^
