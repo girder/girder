@@ -23,10 +23,8 @@ from girder import events
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
 
-class ResourceExt(Resource):
 
-    def __init__(self):
-        self.itemModel = ModelImporter().model('item')
+class ItemExt(Resource):
 
     def incrementVersion(self, provenance, provenanceEvent):
         if len(provenance) == 0:
@@ -46,6 +44,7 @@ class ResourceExt(Resource):
             self.snapshotItemMeta(item, provenanceEvent)
 
     def metadataDiffsExist(self, prevItem, currItem):
+        # check for diffs in order of cheapest to most expensive operations
         prevMetaEmpty = 'meta' not in prevItem or len(prevItem['meta']) == 0
         currMetaEmpty = 'meta' not in currItem or len(currItem['meta']) == 0
         if prevMetaEmpty and currMetaEmpty:
@@ -54,11 +53,15 @@ class ResourceExt(Resource):
             return True
         prevMeta = prevItem['meta']
         currMeta = currItem['meta']
-        prevMetaSet = set(prevMeta)
-        currMetaSet = set(currMeta)
-        if len(prevMetaSet.intersection(currMetaSet)) != len(prevMetaSet):
+        if len(currMeta) != len(prevMeta):
             return True
-        return any([True for key in prevMeta.keys() if prevMeta[key] != currMeta[key]])
+        for key in prevMeta.keys():
+            if prevMeta[key] != currMeta[key]:
+                return True
+        for key in currMeta.keys():
+            if prevMeta[key] != currMeta[key]:
+                return True
+        return False
 
     def versioningChangesExist(self, prevItem, currItem):
         # TODO: keep in sync with snapshotItem
@@ -81,11 +84,11 @@ class ResourceExt(Resource):
     def createNewItemProvenance(self, item):
         provenance = []
         creationEvent = {
-          'eventType': 'creation',
-          'createdBy': item['creatorId'],
-          'created': item['created'],
-          'createdIn': item['folderId'],
-          'updated': item['updated'],
+            'eventType': 'creation',
+            'createdBy': item['creatorId'],
+            'created': item['created'],
+            'createdIn': item['folderId'],
+            'updated': item['updated'],
         }
         item['provenance'] = provenance
         self.addProvenanceEvent(item, creationEvent)
@@ -100,7 +103,8 @@ class ResourceExt(Resource):
 
     def updateItemProvenance(self, currItem):
         user = self.getCurrentUser()
-        prevItem = self.itemModel.load(currItem['_id'], level=AccessType.READ, user=user)
+        prevItem = self.model('item').load(currItem['_id'],
+                                           level=AccessType.READ, user=user)
         if self.versioningChangesExist(prevItem, currItem):
             provenance = currItem['provenance']
             provUpdateEvent = {
@@ -111,8 +115,9 @@ class ResourceExt(Resource):
             self.addProvenanceEvent(currItem, provUpdateEvent)
 
     def itemSaveHandler(self, event):
-        item = event.info    
-        if '_id' not in item or ('provenance' not in item and item['updated'] == item['created']):
+        item = event.info
+        if ('_id' not in item or
+           ('provenance' not in item and item['updated'] == item['created'])):
             self.createNewItemProvenance(item)
         else:
             if 'provenance' not in item:
@@ -122,7 +127,7 @@ class ResourceExt(Resource):
 
     def provenanceGetHandler(self, id, params):
         user = self.getCurrentUser()
-        item = self.itemModel.load(id, level=AccessType.READ, user=user)
+        item = self.model('item').load(id, level=AccessType.READ, user=user)
         return {
             'itemId': id,
             'provenance': item['provenance']
@@ -131,10 +136,13 @@ class ResourceExt(Resource):
     provenanceGetHandler.description = (
         Description('Get the provenance for a given item.')
         .param('id', 'The item ID', paramType='path')
-        .param('provenance', 'The provenance for the item with passed in ID', required=False)
+        .param('provenance', 'The provenance for the item with passed in ID',
+               required=False)
         .errorResponse())
 
+
 def load(info):
-    ext = ResourceExt()
+    ext = ItemExt()
     events.bind('model.item.save', 'provenance', ext.itemSaveHandler)
-    info['apiRoot'].item.route('GET', (':id', 'provenance'), ext.provenanceGetHandler)
+    info['apiRoot'].item.route('GET', (':id', 'provenance'),
+                               ext.provenanceGetHandler)

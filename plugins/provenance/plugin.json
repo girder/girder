@@ -1,4 +1,4 @@
 {
-"name": "Provenance Plugin",
-"description": "Tracks provenance of objects in Girder"
+"name": "Provenance tracker",
+"description": "Tracks provenance of items in Girder"
 }
