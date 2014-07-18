@@ -55,11 +55,10 @@ class ItemExt(Resource):
         currMeta = currItem['meta']
         if len(currMeta) != len(prevMeta):
             return True
+        # since the keysets have the same sizes, we only need to check
+        # if all of the k:v are the same based on the keys in one
         for key in prevMeta.keys():
-            if prevMeta[key] != currMeta[key]:
-                return True
-        for key in currMeta.keys():
-            if prevMeta[key] != currMeta[key]:
+            if key not in currMeta or prevMeta[key] != currMeta[key]:
                 return True
         return False
 

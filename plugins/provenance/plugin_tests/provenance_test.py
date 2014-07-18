@@ -176,3 +176,11 @@ class ProvenanceTestCase(base.TestCase):
         resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
         # ensure version 8, updated by regular user, with update event, and meta in provenance matches
         self.ensureProvenanceResponse(resp, item1['_id'], 8, user['_id'], 'update', metadata)
+
+        # update meta to {a:b} by regular user
+        metadata = {'a': 'b', 'q': None}
+        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
+        # ensure version 9, updated by regular user, with update event, and meta in provenance matches
+        self.ensureProvenanceResponse(resp, item1['_id'], 9, user['_id'], 'update', {'a': 'b'})
+
+
