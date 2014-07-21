@@ -18,9 +18,12 @@
 ###############################################################################
 
 import cherrypy
+import datetime
 import os
 import urllib
 
+from girder import logger
+from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
@@ -66,7 +69,7 @@ class OAuth(Resource):
             'access_type': 'online',
             'client_id': clientId,
             'redirect_uri': callbackUrl,
-            'state': redirect,
+            'state': self._setSecureState(redirect),
             'scope': ' '.join(constants.GOOGLE_SCOPES)
         })
 
@@ -74,7 +77,7 @@ class OAuth(Resource):
 
     def googleCallback(self, params):
         self.requireParams(('state', 'code'), params)
-        redirect = params['state']
+        redirect = self._parseSecureState(params['state'])
 
         if 'error' in params:
             raise cherrypy.HTTPRedirect(redirect)
@@ -88,5 +91,35 @@ class OAuth(Resource):
             clientId, clientSecret, cherrypy.url()).getUser(params['code'])
 
         self.sendAuthTokenCookie(user)
+
         raise cherrypy.HTTPRedirect(redirect)
     googleCallback.description = None
+
+    def _setSecureState(self, redirect):
+        """
+        Adds CSRF protection to create a state parameter that will later be
+        consumed by _getSecureRedirect upon completion of the OAuth login flow.
+        This can be used consistently across all of the OAuth providers.
+        """
+        csrfToken = self.model('token').createToken(days=0.25)
+        return '{}_{}'.format(csrfToken['_id'], redirect)
+
+    def _parseSecureState(self, state):
+        """
+        Returns the URL that the user should be directed to based on the state
+        parameter, performing the CSRF mitigation in the process and deleting
+        the token upon success.
+        """
+        csrfToken, redirect = state.split('_', 1)
+        token = self.model('token').load(
+            csrfToken, objectId=False, level=AccessType.READ)
+
+        if token is None:
+            raise Exception('Invalid CSRF token (state="{}").'.format(state))
+
+        self.model('token').remove(token)
+
+        if token['expires'] < datetime.datetime.now():
+            raise Exception('Expired CSRF token (state="{}").'.format(state))
+
+        return redirect

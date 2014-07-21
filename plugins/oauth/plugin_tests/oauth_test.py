@@ -19,6 +19,7 @@
 
 import httmock
 import json
+import urlparse
 
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
@@ -102,25 +103,42 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {
-            'Google': 'https://accounts.google.com/o/oauth2/auth?access_type='
-                      'online&state=http%3A%2F%2Flocalhost%2F%23foo%2Fbar'
-                      '&redirect_uri=http%3A%2F%2F127.0.0.1%2Fapi%2Fv1%2Foauth'
-                      '%2Fgoogle%2Fcallback&response_type=code&client_id=foo'
-                      '&scope=profile+email'
-        })
+        self.assertTrue('Google' in resp.json)
+        urlParts = urlparse.urlparse(resp.json['Google'])
+        queryParams = urlparse.parse_qs(urlParts.query)
+        self.assertEqual(urlParts.scheme, 'https')
+        self.assertEqual(urlParts.netloc, 'accounts.google.com')
+        self.assertEqual(queryParams['response_type'], ['code'])
+        self.assertEqual(queryParams['access_type'], ['online'])
+        self.assertEqual(queryParams['scope'], ['profile email'])
+        self.assertEqual(queryParams['redirect_uri'],
+                         ['http://127.0.0.1/api/v1/oauth/google/callback'])
+        self.assertTrue(queryParams['state'][0].endswith(
+            '_http://localhost/#foo/bar'))
 
         # Test the error condition for google callback
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
             'error': 'access_denied',
-            'state': 'http://localhost/#foo/bar'
+            'state': queryParams['state'][0]
         })
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
         self.assertEqual(len(resp.cookie.values()), 0)
 
         # Test logging in with an existing user
+
+        # Get a fresh token since last one was destroyed
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        urlParts = urlparse.urlparse(resp.json['Google'])
+        queryParams = urlparse.parse_qs(urlParts.query)
+        state = queryParams['state'][0]
+        tokenId = state.split('_')[0]
+        token = self.model('token').load(tokenId, objectId=False, force=True)
+        self.assertTrue(type(token) is dict)
+
         email = 'admin@mail.com'
         @httmock.all_requests
         def google_mock(url, request):
@@ -147,7 +165,7 @@ class OauthTest(base.TestCase):
         with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
-                'state': 'http://localhost/#foo/bar'
+                'state': state
             })
 
         self.assertStatus(resp, 303)
@@ -158,12 +176,28 @@ class OauthTest(base.TestCase):
 
         self.assertEqual(authToken['userId'], str(self.admin['_id']))
 
+        # Make sure the CSRF token is now deleted
+        token = self.model('token').load(tokenId, objectId=False, force=True)
+        self.assertTrue(token is None)
+
         # Test login in with a new user
+
+        # Get a fresh token
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        urlParts = urlparse.urlparse(resp.json['Google'])
+        queryParams = urlparse.parse_qs(urlParts.query)
+        state = queryParams['state'][0]
+        tokenId = state.split('_')[0]
+        token = self.model('token').load(tokenId, objectId=False, force=True)
+        self.assertTrue(type(token) is dict)
+
         email = 'anotheruser@mail.com'
         with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
-                'state': 'http://localhost/#foo/bar'
+                'state': state
             })
 
         self.assertStatus(resp, 303)
