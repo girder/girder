@@ -147,6 +147,8 @@ girderTest.createCollection = function (collName, collDesc) {
                    $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
+        waits(500);
+
         runs(function () {
             $('.g-collection-create-button').click();
         });
