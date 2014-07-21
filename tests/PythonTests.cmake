@@ -98,6 +98,7 @@ function(add_python_test case)
     "GIRDER_TEST_DB=girder_test_${name}"
     "GIRDER_TEST_ASSETSTORE=${name}"
   )
+  set_property(TEST ${name} PROPERTY COST 50)
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
   endif()

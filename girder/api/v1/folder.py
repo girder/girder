@@ -62,12 +62,7 @@ class Folder(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
 
-        if 'text' in params:
-            return self.model('folder').textSearch(
-                params['text'], user=user, limit=limit, project={
-                    'name': 1
-                })
-        elif 'parentId' in params and 'parentType' in params:
+        if 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType not in ('collection', 'folder', 'user'):
                 raise RestException('The parentType must be user, collection,'
@@ -77,10 +72,21 @@ class Folder(Resource):
                 id=params['parentId'], user=user, level=AccessType.READ,
                 exc=True)
 
+            filters = {}
+            if 'text' in params:
+                filters['$text'] = {
+                    '$search': params['text']
+                }
+
             return [self.model('folder').filter(folder, user) for folder in
                     self.model('folder').childFolders(
                         parentType=parentType, parent=parent, user=user,
-                        offset=offset, limit=limit, sort=sort)]
+                        offset=offset, limit=limit, sort=sort, filters=filters)]
+        elif 'text' in params:
+            return [self.model('folder').filter(folder, user) for folder in
+                    self.model('folder').textSearch(
+                        params['text'], user=user, limit=limit, offset=offset,
+                        sort=sort)]
         else:
             raise RestException('Invalid search mode.')
     find.description = (
