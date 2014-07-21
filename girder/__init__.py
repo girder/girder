@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import logging.handlers
 import os
 
@@ -34,6 +35,22 @@ class LogLevelFilter(object):
     def filter(self, logRecord):
         level = logRecord.levelno
         return level <= self.maxLevel and level >= self.minLevel
+
+
+class LogFormatter(logging.Formatter):
+    """
+    Custom formatter that adds useful information about the request to the logs
+    when an exception happens.
+    """
+    def formatException(self, exc):
+        info = '\n'.join((
+            '  Request URL: {} {}'.format(cherrypy.request.method.upper(),
+                                          cherrypy.url()),
+            '  Query string: {}'.format(cherrypy.request.query_string),
+            '  Remote IP: {}'.format(cherrypy.request.remote.ip)
+        ))
+        return '{}\nAdditional info:\n{}'.format(
+            logging.Formatter.formatException(self, exc), info)
 
 
 def _setupLogger():
@@ -54,7 +71,7 @@ def _setupLogger():
     ih.setLevel(logging.INFO)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
 
-    fmt = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+    fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     eh.setFormatter(fmt)
     ih.setFormatter(fmt)
 
