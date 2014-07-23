@@ -77,8 +77,11 @@ class Assetstore(Resource):
             return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:
+            self.requireParams(('bucket', 'accessKeyId', 'secretKey'), params)
             return self.model('assetstore').createS3Assetstore(
-                name=params['name'])
+                name=params['name'], bucket=params['bucket'],
+                prefix=params.get('prefix', ''), secret=params['secretKey'],
+                accessKeyId=params.get('accessKeyId'))
         else:
             raise RestException('Invalid type parameter')
     createAssetstore.description = (
@@ -87,9 +90,17 @@ class Assetstore(Resource):
         .notes('You must be an administrator to call this.')
         .param('name', 'Unique name for the assetstore.')
         .param('type', 'Type of the assetstore.', dataType='integer')
-        .param('root', 'Root path on disk (for filesystem type)',
+        .param('root', 'Root path on disk (for filesystem type).',
                required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
+        .param('bucket', 'The S3 bucket to store data in (for S3 type).',
+               required=False)
+        .param('prefix', 'Optional path prefix within the bucket under which '
+               'files will be stored (for S3 type).', required=False)
+        .param('accessKeyId', 'The AWS access key ID to use for authentication '
+               '(for S3 type).', required=False)
+        .param('secretKey', 'The AWS secret key to use for authentication '
+               '(for S3 type).', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
 

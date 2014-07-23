@@ -21,6 +21,7 @@ import os
 
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
+from .s3_assetstore_adapter import S3AssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.constants import AssetstoreType
 from girder import events
@@ -40,7 +41,7 @@ def getAssetstoreAdapter(assetstore):
     elif assetstore['type'] == AssetstoreType.GRIDFS:
         assetstoreAdapter = GridFsAssetstoreAdapter(assetstore)
     elif assetstore['type'] == AssetstoreType.S3:
-        raise Exception('S3 assetstore adapter not implemented.')
+        assetstoreAdapter = S3AssetstoreAdapter(assetstore)
     else:
         e = events.trigger('assetstore.adapter.get', assetstore)
         if len(e.responses) > 0:
@@ -57,5 +58,6 @@ def fileIndexFields():
     """
     return list(set(
         FilesystemAssetstoreAdapter.fileIndexFields() +
-        GridFsAssetstoreAdapter.fileIndexFields()
+        GridFsAssetstoreAdapter.fileIndexFields() +
+        S3AssetstoreAdapter.fileIndexFields()
         ))
