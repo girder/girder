@@ -23,7 +23,11 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
         'submit #g-new-s3-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-s3-error'), {
                 type: girder.AssetstoreType.S3,
-                name: this.$('#g-new-s3-name').val()
+                name: this.$('#g-new-s3-name').val(),
+                bucket: this.$('#g-new-s3-bucket').val(),
+                prefix: this.$('#g-new-s3-prefix').val(),
+                accessKeyId: this.$('#g-new-s3-access-key-id').val(),
+                secretKey: this.$('#g-new-s3-secret').val()
             });
         }
     },

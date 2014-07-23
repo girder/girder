@@ -100,7 +100,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
-        self.model('assetstore').createFilesystemAssetstore(
+        self.assetstore = self.model('assetstore').createFilesystemAssetstore(
             name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address))

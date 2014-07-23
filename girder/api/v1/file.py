@@ -38,6 +38,7 @@ class File(Resource):
         self.route('GET', (':id', 'download', ':name'), self.download)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
+        self.route('POST', ('completion',), self.finalizeUpload)
 
     def initUpload(self, params):
         """
@@ -86,6 +87,26 @@ class File(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
 
+    def finalizeUpload(self, params):
+        self.requireParams(('uploadId',), params)
+        user = self.getCurrentUser()
+
+        upload = self.model('upload').load(params['uploadId'], exc=True)
+
+        if upload['userId'] != user['_id']:
+            raise AccessException('You did not initiate this upload.')
+
+        return self.model('upload').finalizeUpload(upload)
+    finalizeUpload.description = (
+        Description('Finalize an upload explicitly if necessary.')
+        .notes('This is only required in certain non-standard upload '
+               'behaviors. Clients should know which behavior models require '
+               'the finalize step to be called in their behavior handlers.')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .errorResponse('ID was invalid.')
+        .errorResponse('The upload does not require finalization.')
+        .errorResponse('You are not the user who initiated the upload.', 403))
+
     def requestOffset(self, params):
         """
         This should be called when resuming an interrupted upload. It will
@@ -96,15 +117,19 @@ class File(Resource):
         self.requireParams(('uploadId',), params)
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
-        upload['received'] = offset
-        self.model('upload').save(upload)
 
-        return {'offset': offset}
+        if type(offset) is int:
+            upload['received'] = offset
+            self.model('upload').save(upload)
+            return {'offset': offset}
+        else:
+            return offset
+
     requestOffset.description = (
         Description('Request required offset before resuming an upload.')
         .param('uploadId', 'The ID of the upload record.')
-        .errorResponse("""The ID was invalid, or the offset did not match the
-                       server's record."""))
+        .errorResponse("The ID was invalid, or the offset did not match the "
+                       "server's record."))
 
     def readChunk(self, params):
         """
@@ -114,39 +139,36 @@ class File(Resource):
         the writer of the chunk is the same as the person who initiated the
         upload. The passed offset is a verification mechanism for ensuring the
         server and client agree on the number of bytes sent/received.
-        :param offset: The number of bytes of the file already uploaded prior
-                       to this chunk. Should match the server's record of the
-                       number of bytes already received.
-        :param uploadId: The _id of the temp upload record.
-        :param chunk: The blob of data itself.
         """
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
         user = self.getCurrentUser()
 
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = int(params['offset'])
+        chunk = params['chunk']
 
         if upload['userId'] != user['_id']:
             raise AccessException('You did not initiate this upload.')
 
         if upload['received'] != offset:
             raise RestException(
-                'Server has received %s bytes, but client sent offset %s.'
-                % (upload['received'], offset))
+                'Server has received {} bytes, but client sent offset {}.'
+                .format(upload['received'], offset))
 
-        if type(params['chunk']) != cherrypy._cpreqbody.Part:
-            raise RestException(
-                'The chunk param must be passed as a multipart-encoded file.')
-
-        return self.model('upload').handleChunk(upload, params['chunk'].file)
+        if type(chunk) == cherrypy._cpreqbody.Part:
+            return self.model('upload').handleChunk(upload, chunk.file)
+        else:
+            return self.model('upload').handleChunk(upload, chunk)
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
         .param('uploadId', 'The ID of the upload record.', paramType='form')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='form')
-        .param('chunk', 'The actual bytes of the chunk.', dataType='File',
-               paramType='body')
+        .param('chunk', 'The actual bytes of the chunk. For external upload '
+               'behaviors, this may be set to an opaque string that will be '
+               'handled by the assetstore adapter.',
+               dataType='File', paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 

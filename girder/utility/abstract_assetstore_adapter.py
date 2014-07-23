@@ -20,6 +20,24 @@ class AbstractAssetstoreAdapter(object):
     This defines the interace to be used by all assetstore adapters.
     """
 
+    @staticmethod
+    def validateInfo(doc):
+        """
+        Adapters may implement this if they need to perform any validation
+        steps whenever the assetstore info is saved to the database. It should
+        return the document with any necessary alterations in the success case,
+        or throw an exception if validation fails.
+        """
+        return doc
+
+    @staticmethod
+    def fileIndexFields():
+        """
+        Default behavior is that no additional file fields need to be indexed
+        within the database.
+        """
+        return []
+
     def capacityInfo(self):
         """
         Assetstore types that are able to report how much free and/or total
