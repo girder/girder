@@ -19,6 +19,7 @@
 
 import cherrypy
 import datetime
+import json
 import os
 import urllib
 
@@ -69,15 +70,19 @@ class OAuth(Resource):
             'access_type': 'online',
             'client_id': clientId,
             'redirect_uri': callbackUrl,
-            'state': self._setSecureState(redirect),
+            'state': redirect,
             'scope': ' '.join(constants.GOOGLE_SCOPES)
         })
+
+        self._setCsrfToken(redirect)
 
         return '{}?{}'.format(constants.GOOGLE_AUTH_URL, query)
 
     def googleCallback(self, params):
         self.requireParams(('state', 'code'), params)
-        redirect = self._parseSecureState(params['state'])
+
+        redirect = params['state']
+        self._validateCsrfToken(redirect)
 
         if 'error' in params:
             raise cherrypy.HTTPRedirect(redirect)
@@ -95,31 +100,50 @@ class OAuth(Resource):
         raise cherrypy.HTTPRedirect(redirect)
     googleCallback.description = None
 
-    def _setSecureState(self, redirect):
+    def _setCsrfToken(self, redirect):
         """
-        Adds CSRF protection to create a state parameter that will later be
-        consumed by _getSecureRedirect upon completion of the OAuth login flow.
+        Generate an anti-CSRF token and set it in a cookie for the user. It will
+        be verified upon completion of the OAuth login flow.
         This can be used consistently across all of the OAuth providers.
         """
         csrfToken = self.model('token').createToken(days=0.25)
-        return '{}_{}'.format(csrfToken['_id'], redirect)
 
-    def _parseSecureState(self, state):
+        cookie = cherrypy.response.cookie
+        cookie['oauthLogin'] = json.dumps({
+            'redirect': redirect,
+            'token': str(csrfToken['_id'])
+        })
+        cookie['oauthLogin']['path'] = '/'
+        cookie['oauthLogin']['expires'] = 3600 * 6  # 0.25 days
+
+    def _validateCsrfToken(self, redirect):
         """
-        Returns the URL that the user should be directed to based on the state
-        parameter, performing the CSRF mitigation in the process and deleting
-        the token upon success.
+        Tests the CSRF token value in the cookie to authenticate the user as
+        the originator of the OAuth login. Raises an Exception if the token
+        is invalid.
         """
-        csrfToken, redirect = state.split('_', 1)
+        cookie = cherrypy.request.cookie
+        if 'oauthLogin' not in cookie:
+            raise Exception('No CSRF cookie (state="{}").'.format(redirect))
+
+        info = json.loads(cookie['oauthLogin'].value)
+
+        cookie = cherrypy.response.cookie
+        cookie['oauthLogin'] = ''
+        cookie['oauthLogin']['path'] = '/'
+        cookie['oauthLogin']['expires'] = 0
+
+        if info['redirect'] != redirect:
+            raise Exception('Redirect does not match original value ({}, {})'
+                            .format(info['redirect'], redirect))
+
         token = self.model('token').load(
-            csrfToken, objectId=False, level=AccessType.READ)
+            info['token'], objectId=False, level=AccessType.READ)
 
         if token is None:
-            raise Exception('Invalid CSRF token (state="{}").'.format(state))
+            raise Exception('Invalid CSRF token (state="{}").'.format(redirect))
 
         self.model('token').remove(token)
 
         if token['expires'] < datetime.datetime.now():
-            raise Exception('Expired CSRF token (state="{}").'.format(state))
-
-        return redirect
+            raise Exception('Expired CSRF token (state="{}").'.format(redirect))

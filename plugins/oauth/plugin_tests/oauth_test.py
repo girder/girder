@@ -113,18 +113,31 @@ class OauthTest(base.TestCase):
         self.assertEqual(queryParams['scope'], ['profile email'])
         self.assertEqual(queryParams['redirect_uri'],
                          ['http://127.0.0.1/api/v1/oauth/google/callback'])
-        self.assertTrue(queryParams['state'][0].endswith(
-            '_http://localhost/#foo/bar'))
+        self.assertEqual(queryParams['state'][0], 'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie.values()), 1)
+
+        cookie = resp.cookie
 
         # Test the error condition for google callback
+        resp = self.request('/oauth/google/callback', params={
+            'code': None,
+            'error': 'access_denied',
+            'state': queryParams['state'][0]
+        }, exception=True)
+        self.assertStatus(resp, 500)
+        self.assertEqual(
+            resp.json['message'],
+            'Exception: No CSRF cookie (state="http://localhost/#foo/bar").')
+
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
             'error': 'access_denied',
             'state': queryParams['state'][0]
-        })
+        }, cookie=self._createCsrfCookie(cookie))
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 0)
+        self.assertEqual(len(resp.cookie.values()), 1)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
 
         # Test logging in with an existing user
 
@@ -132,12 +145,7 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
-        urlParts = urlparse.urlparse(resp.json['Google'])
-        queryParams = urlparse.parse_qs(urlParts.query)
-        state = queryParams['state'][0]
-        tokenId = state.split('_')[0]
-        token = self.model('token').load(tokenId, objectId=False, force=True)
-        self.assertTrue(type(token) is dict)
+        cookie = resp.cookie
 
         email = 'admin@mail.com'
         @httmock.all_requests
@@ -165,20 +173,19 @@ class OauthTest(base.TestCase):
         with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
-                'state': state
-            })
+                'state': 'http://localhost/#foo/bar'
+            }, cookie=self._createCsrfCookie(cookie))
 
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
-        authToken = json.loads(resp.cookie.values()[0].value)
+        self.assertEqual(len(resp.cookie.values()), 2)
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('authToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+        authToken = json.loads(resp.cookie['authToken'].value)
 
         self.assertEqual(authToken['userId'], str(self.admin['_id']))
-
-        # Make sure the CSRF token is now deleted
-        token = self.model('token').load(tokenId, objectId=False, force=True)
-        self.assertTrue(token is None)
 
         # Test login in with a new user
 
@@ -186,25 +193,22 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
-        urlParts = urlparse.urlparse(resp.json['Google'])
-        queryParams = urlparse.parse_qs(urlParts.query)
-        state = queryParams['state'][0]
-        tokenId = state.split('_')[0]
-        token = self.model('token').load(tokenId, objectId=False, force=True)
-        self.assertTrue(type(token) is dict)
+        cookie = resp.cookie
 
         email = 'anotheruser@mail.com'
         with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
-                'state': state
-            })
+                'state': 'http://localhost/#foo/bar'
+            }, cookie=self._createCsrfCookie(cookie))
 
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
-        authToken = json.loads(resp.cookie.values()[0].value)
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('authToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+        authToken = json.loads(resp.cookie['authToken'].value)
 
         self.assertNotEqual(authToken['userId'], str(self.admin['_id']))
 
@@ -215,3 +219,12 @@ class OauthTest(base.TestCase):
             'provider': 'Google',
             'id': 9876
         })
+        self.assertEqual(newUser['firstName'], 'John')
+        self.assertEqual(newUser['lastName'], 'Doe')
+
+    def _createCsrfCookie(self, cookie):
+        info = json.loads(cookie['oauthLogin'].value)
+        return 'oauthLogin="{}"'.format(json.dumps({
+            'redirect': info['redirect'],
+            'token': info['token'],
+        }).replace('"', "\\\""))

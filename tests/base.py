@@ -218,7 +218,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def request(self, path='/', method='GET', params={}, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None, exception=False):
+                type=None, exception=False, cookie=None):
         """
         Make an HTTP request.
 
@@ -233,6 +233,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param basicAuth: A string to pass with the Authorization: Basic header
                           of the form 'login:password'
         :param exception: Set this to True if a 500 is expected from this call.
+        :param cookie: A custom cookie value to set.
         :returns: The cherrypy response object from the request.
         """
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
@@ -256,7 +257,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        if user is not None:
+        if cookie is not None:
+            headers.append(('Cookie', cookie))
+        elif user is not None:
             headers.append(('Cookie', self._genCookie(user)))
 
         if basicAuth is not None:
