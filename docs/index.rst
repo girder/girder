@@ -16,6 +16,7 @@ Girder: High-Performance Data Management
    build-docs
    api-docs
    development
+   external-web-clients
 
 Indices and tables
 ------------------
