@@ -23,6 +23,9 @@ girder.dialogs = {
     },
 
     handleClose: function (name) {
+        if (!girder.handleRouting) {
+            return;
+        }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
             queryString = girder.parseQueryString(routeParts.name),
@@ -38,6 +41,9 @@ girder.dialogs = {
     },
 
     handleOpen: function (name) {
+        if (!girder.handleRouting) {
+            return;
+        }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
             queryString = girder.parseQueryString(routeParts.name),
