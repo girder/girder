@@ -19,6 +19,7 @@
 
 import httmock
 import json
+import urlparse
 
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
@@ -102,25 +103,50 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {
-            'Google': 'https://accounts.google.com/o/oauth2/auth?access_type='
-                      'online&state=http%3A%2F%2Flocalhost%2F%23foo%2Fbar'
-                      '&redirect_uri=http%3A%2F%2F127.0.0.1%2Fapi%2Fv1%2Foauth'
-                      '%2Fgoogle%2Fcallback&response_type=code&client_id=foo'
-                      '&scope=profile+email'
-        })
+        self.assertTrue('Google' in resp.json)
+        urlParts = urlparse.urlparse(resp.json['Google'])
+        queryParams = urlparse.parse_qs(urlParts.query)
+        self.assertEqual(urlParts.scheme, 'https')
+        self.assertEqual(urlParts.netloc, 'accounts.google.com')
+        self.assertEqual(queryParams['response_type'], ['code'])
+        self.assertEqual(queryParams['access_type'], ['online'])
+        self.assertEqual(queryParams['scope'], ['profile email'])
+        self.assertEqual(queryParams['redirect_uri'],
+                         ['http://127.0.0.1/api/v1/oauth/google/callback'])
+        self.assertEqual(queryParams['state'][0], 'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie.values()), 1)
+
+        cookie = resp.cookie
 
         # Test the error condition for google callback
+        resp = self.request('/oauth/google/callback', params={
+            'code': None,
+            'error': 'access_denied',
+            'state': queryParams['state'][0]
+        }, exception=True)
+        self.assertStatus(resp, 500)
+        self.assertEqual(
+            resp.json['message'],
+            'Exception: No CSRF cookie (state="http://localhost/#foo/bar").')
+
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
             'error': 'access_denied',
-            'state': 'http://localhost/#foo/bar'
-        })
+            'state': queryParams['state'][0]
+        }, cookie=self._createCsrfCookie(cookie))
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 0)
+        self.assertEqual(len(resp.cookie.values()), 1)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
 
         # Test logging in with an existing user
+
+        # Get a fresh token since last one was destroyed
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
         email = 'admin@mail.com'
         @httmock.all_requests
         def google_mock(url, request):
@@ -148,29 +174,41 @@ class OauthTest(base.TestCase):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
-            })
+            }, cookie=self._createCsrfCookie(cookie))
 
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
-        authToken = json.loads(resp.cookie.values()[0].value)
+        self.assertEqual(len(resp.cookie.values()), 2)
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('authToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+        authToken = json.loads(resp.cookie['authToken'].value)
 
         self.assertEqual(authToken['userId'], str(self.admin['_id']))
 
         # Test login in with a new user
+
+        # Get a fresh token
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
         email = 'anotheruser@mail.com'
         with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
-            })
+            }, cookie=self._createCsrfCookie(cookie))
 
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
-        authToken = json.loads(resp.cookie.values()[0].value)
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('authToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+        authToken = json.loads(resp.cookie['authToken'].value)
 
         self.assertNotEqual(authToken['userId'], str(self.admin['_id']))
 
@@ -181,3 +219,12 @@ class OauthTest(base.TestCase):
             'provider': 'Google',
             'id': 9876
         })
+        self.assertEqual(newUser['firstName'], 'John')
+        self.assertEqual(newUser['lastName'], 'Doe')
+
+    def _createCsrfCookie(self, cookie):
+        info = json.loads(cookie['oauthLogin'].value)
+        return 'oauthLogin="{}"'.format(json.dumps({
+            'redirect': info['redirect'],
+            'token': info['token'],
+        }).replace('"', "\\\""))

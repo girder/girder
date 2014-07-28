@@ -19,7 +19,6 @@
 
 import cherrypy
 import datetime
-import hashlib
 import random
 import string
 
@@ -45,16 +44,12 @@ class Token(AccessControlledModel):
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
 
     def validate(self, doc):
-        # TODO one validation that might be nice would be adding a maximum
-        # number of tokens per user. If they exceeded the max, it would begin
-        # to delete the oldest ones. We have to support multiple valid tokens
-        # per user to support things like logging in from multiple machines, but
-        # we can still set a sensible maximum.
         return doc
 
-    def createToken(self, user, days=180):
+    def createToken(self, user=None, days=180):
         """
-        Creates a new token for the user.
+        Creates a new token for the user. You can create an anonymous token
+        (such as for CSRF mitigation) by passing "None" for the user argument.
 
         :param user: The user to create the session for.
         :type user: dict
@@ -66,8 +61,13 @@ class Token(AccessControlledModel):
         token = {
             '_id': genToken(),
             'created': now,
-            'userId': user['_id'],
             'expires': now + datetime.timedelta(days=days)
             }
-        self.setUserAccess(token, user=user, level=AccessType.ADMIN)
+
+        if user is None:
+            self.setPublic(token, True)
+        else:
+            token['userId'] = user['_id']
+            self.setUserAccess(token, user=user, level=AccessType.ADMIN)
+
         return self.save(token)

@@ -130,6 +130,7 @@ def endpoint(fun):
                 cherrypy.response.status = 401
             else:
                 cherrypy.response.status = 403
+                logger.exception('403 Error')
             val = {'message': e.message, 'type': 'access'}
         except ValidationException as e:
             cherrypy.response.status = 400
