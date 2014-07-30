@@ -148,16 +148,23 @@ class Item(Resource):
         item['description'] = params.get(
             'description', item['description']).strip()
 
-        item = self.model('item').updateItem(item)
+        self.model('item').updateItem(item)
+
+        if 'folderId' in params:
+            folder = self.model('folder').load(
+                params['folderId'], user=user, level=AccessType.WRITE, exc=True)
+            self.model('item').move(item, folder)
         return self.model('item').filter(item)
     updateItem.description = (
-        Description('Edit an item by ID.')
+        Description('Edit an item or move it to another folder.')
         .responseClass('Item')
         .param('id', 'The ID of the item.', paramType='path')
         .param('name', 'Name for the item.', required=False)
-        .param('description', 'Description for the item', required=False)
+        .param('description', 'Description for the item.', required=False)
+        .param('folderId', 'Pass this to move the item to a new folder.',
+               required=False)
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied for the item.', 403))
+        .errorResponse('Write access was denied for the item or folder.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def setMetadata(self, item, params):
@@ -166,13 +173,11 @@ class Item(Resource):
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
-        # Make sure we let user know if we can't accept one of their metadata
-        # keys
+        # Make sure we let user know if we can't accept one a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException('The key name ' + k + ' must not ' +
-                                    'contain a period or begin with a ' +
-                                    'dollar sign.')
+                raise RestException('The key name {} must not contain a period '
+                                    'or begin with a dollar sign.'.format(k))
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
@@ -262,7 +267,7 @@ class Item(Resource):
         """
         return self.model('item').parentsToRoot(item, self.getCurrentUser())
     rootpath.description = (
-        Description('Get the path to the root of the item\'s hierarchy')
-        .param('id', 'The ID of the item', paramType='path')
+        Description('Get the path to the root of the item\'s hierarchy.')
+        .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))

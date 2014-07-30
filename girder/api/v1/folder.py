@@ -152,26 +152,37 @@ class Folder(Resource):
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
     def updateFolder(self, folder, params):
-        """
-        Update the folder.
-
-        :param name: Name for the folder.
-        :param description: Description for the folder.
-        """
+        user = self.getCurrentUser()
         folder['name'] = params.get('name', folder['name']).strip()
         folder['description'] = params.get(
             'description', folder['description']).strip()
 
         folder = self.model('folder').updateFolder(folder)
-        return self.model('folder').filter(folder, self.getCurrentUser())
+
+        if 'parentType' in params and 'parentId' in params:
+            parentType = params['parentType'].lower()
+            if parentType not in ('user', 'collection', 'folder'):
+                raise RestException('Invalid parentType.')
+
+            parent = self.model(parentType).load(
+                params['parentId'], level=AccessType.WRITE, user=user, exc=True)
+
+            folder = self.model('folder').move(folder, parent, parentType)
+
+        return self.model('folder').filter(folder, user)
     updateFolder.description = (
-        Description('Update a folder by ID.')
+        Description('Update a folder or move it into a new parent.')
         .responseClass('Folder')
         .param('id', 'The ID of the folder.', paramType='path')
-        .param('name', 'Name of the folder.')
+        .param('name', 'Name of the folder.', required=False)
         .param('description', 'Description for the folder.', required=False)
+        .param('parentType', 'Parent type for the new parent of this folder.',
+               required=False)
+        .param('parentId', 'Parent ID for the new parent of this folder.',
+               required=False)
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied for the folder.', 403))
+        .errorResponse('Write access was denied for the folder or its new '
+                       'parent object.', 403))
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
