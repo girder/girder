@@ -25,6 +25,12 @@ var girder = {
     uploadHandlers: {},
 
     /**
+     * Whether girder should control routing. This is useful for allowing or
+     * disallowing girder's routing system.
+     */
+    handleRouting: true,
+
+    /**
      * Constants and enums:
      */
     UPLOAD_CHUNK_SIZE: 1024 * 1024 * 64, // 64MB
