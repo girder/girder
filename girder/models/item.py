@@ -220,6 +220,14 @@ class Item(Model):
 
         return filtered
 
+    def hasAccess(self, item, user=None, level=AccessType.READ):
+        """
+        Test access for a given user to this item. Simply calls this method
+        on the parent folder.
+        """
+        folder = self.model('folder').load(item['folderId'], force=True)
+        return self.model('folder').hasAccess(folder, user=user, level=level)
+
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
         """

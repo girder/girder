@@ -85,6 +85,31 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['name'], 'Public')
         self.assertEqual(resp.json[1]['name'], 'Private')
+        publicFolder = resp.json[0]
+        privateFolder = resp.json[1]
+
+        # Change properties of a folder
+        resp = self.request(
+            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            user=self.user, params={
+                'name': 'New name ',
+                'description': ' A description '
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'New name')
+        self.assertEqual(resp.json['description'], 'A description')
+
+        # Move the folder under another folder
+        resp = self.request(
+            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            user=self.user, params={
+                'parentType': 'folder',
+                'parentId': privateFolder['_id']
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['parentCollection'], 'folder')
+        self.assertEqual(resp.json['parentId'], privateFolder['_id'])
+        self.assertEqual(resp.json['name'], 'New name')
 
     def testCreateFolder(self):
         self.ensureRequiredParams(
