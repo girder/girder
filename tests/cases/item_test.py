@@ -217,6 +217,28 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], params['name'])
         self.assertEqual(resp.json['description'], params['description'])
 
+        # Test moving an item to the public folder
+        item = self.model('item').load(item['_id'], force=True)
+        self.assertFalse(self.model('item').hasAccess(item))
+        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+                            user=self.users[0], params={
+                                'folderId': self.publicFolder['_id']
+                                })
+        self.assertStatusOk(resp)
+        item = self.model('item').load(resp.json['_id'], force=True)
+        self.assertTrue(self.model('item').hasAccess(item))
+
+        # Move should fail if we don't have write permission on the dest folder
+        self.publicFolder = self.model('folder').setUserAccess(
+            self.publicFolder, self.users[1], AccessType.WRITE, save=True)
+        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+                            user=self.users[1], params={
+                                'folderId': self.privateFolder['_id']
+                                })
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'],
+                         'Write access denied for folder.')
+
         # Try to update/PUT without an id
         resp = self.request(path='/item/', method='PUT',
                             params=params, user=self.users[0])

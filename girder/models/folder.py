@@ -124,6 +124,29 @@ class Folder(AccessControlledModel):
 
         return doc
 
+    def move(self, folder, parent, parentType):
+        """
+        Move the given folder from its current parent to another parent object.
+
+        :param folder: The folder to move.
+        :type folder: dict
+        :param parent: The new parent object.
+        :param parentType: The type of the new parent object (user, collection,
+        or folder).
+        :type parentType: str
+        """
+        folder['parentId'] = parent['_id']
+        folder['parentCollection'] = parentType
+
+        if parentType == 'folder':
+            folder['baseParentType'] = parent['baseParentType']
+            folder['baseParentId'] = parent['baseParentId']
+        else:
+            folder['baseParentType'] = parentType
+            folder['baseParentId'] = parent['_id']
+
+        return self.save(folder)
+
     def remove(self, folder):
         """
         Delete a folder recursively.

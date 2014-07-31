@@ -119,6 +119,21 @@ class Item(Model):
 
         return doc
 
+    def move(self, item, folder):
+        """
+        Move the given item from its current folder into another folder.
+
+        :param item: The item to move.
+        :type item: dict
+        :param folder: The folder to move the item into.
+        :type folder: dict.
+        """
+        item['folderId'] = folder['_id']
+        item['baseParentType'] = folder['baseParentType']
+        item['baseParentId'] = folder['baseParentId']
+
+        return self.save(item)
+
     def childFiles(self, item, limit=50, offset=0, sort=None):
         """
         Generator function that yields child files in the item.
@@ -204,6 +219,14 @@ class Item(Model):
                     break
 
         return filtered
+
+    def hasAccess(self, item, user=None, level=AccessType.READ):
+        """
+        Test access for a given user to this item. Simply calls this method
+        on the parent folder.
+        """
+        folder = self.model('folder').load(item['folderId'], force=True)
+        return self.model('folder').hasAccess(folder, user=user, level=level)
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
