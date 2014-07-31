@@ -173,7 +173,7 @@ class Item(Resource):
         except ValueError:
             raise RestException('Invalid JSON passed in request body.')
 
-        # Make sure we let user know if we can't accept one a metadata key
+        # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
                 raise RestException('The key name {} must not contain a period '
