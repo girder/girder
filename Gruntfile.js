@@ -170,28 +170,23 @@ module.exports = function (grunt) {
         watch: {
             stylus_core: {
                 files: ['clients/web/src/stylesheets/**/*.styl'],
-                tasks: ['stylus:core'],
-                options: {failOnError: false}
+                tasks: ['stylus:core']
             },
             js_core: {
                 files: ['clients/web/src/**/*.js'],
-                tasks: ['uglify:app'],
-                options: {failOnError: false}
+                tasks: ['uglify:app']
             },
             jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['build-js'],
-                options: {failOnError: false}
+                tasks: ['build-js']
             },
             swagger: {
                 files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
-                tasks: ['swagger-ui'],
-                options: {failOnError: false}
+                tasks: ['swagger-ui']
             },
             sphinx: {
                 files: ['docs/*.rst'],
-                tasks: ['docs'],
-                options: {failOnError: false}
+                tasks: ['docs']
             }
         }
     });
@@ -220,8 +215,7 @@ module.exports = function (grunt) {
             });
             grunt.config.set('watch.jade_' + pluginName, {
                 files: [jadeDir + '/**/*.jade'],
-                tasks: ['jade:plugin_' + pluginName, 'uglify:plugin_' + pluginName],
-                options: {failOnError: false}
+                tasks: ['jade:plugin_' + pluginName, 'uglify:plugin_' + pluginName]
             });
         }
 
@@ -234,8 +228,7 @@ module.exports = function (grunt) {
             });
             grunt.config.set('watch.stylus_' + pluginName, {
                 files: [cssDir + '/**/*.styl'],
-                tasks: ['stylus:plugin_' + pluginName],
-                options: {failOnError: false}
+                tasks: ['stylus:plugin_' + pluginName]
             });
         }
 
@@ -251,8 +244,7 @@ module.exports = function (grunt) {
             });
             grunt.config.set('watch.js_' + pluginName, {
                 files: [jsDir + '/**/*.js'],
-                tasks: ['uglify:plugin_' + pluginName],
-                options: {failOnError: false}
+                tasks: ['uglify:plugin_' + pluginName]
             });
             defaultTasks.push('uglify:plugin_' + pluginName);
         }
@@ -267,8 +259,7 @@ module.exports = function (grunt) {
             });
             grunt.config.set('watch.copy_' + pluginName, {
                 files: [extraDir + '/**/*'],
-                tasks: ['copy:plugin_' + pluginName],
-                options: {failOnError: false}
+                tasks: ['copy:plugin_' + pluginName]
             });
             defaultTasks.push('copy:plugin_' + pluginName);
         }
