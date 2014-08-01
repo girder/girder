@@ -4,7 +4,7 @@
 girder.views.AdminView = girder.View.extend({
     events: {
         'click .g-server-config': function () {
-            girder.events.trigger('g:navigateTo', girder.views.AdminConfig);
+            girder.router.navigate('settings', {trigger: true});
         },
         'click .g-assetstore-config': function () {
             girder.router.navigate('assetstores', {trigger: true});

@@ -65,7 +65,7 @@ def sendEmail(to, subject, text):
     msg['Subject'] = subject
     msg['To'] = to
     msg['From'] = ModelImporter().model('setting').get(
-        SettingKey.EMAIL_FROM_ADDRESS, 'no-reply@girder')
+        SettingKey.EMAIL_FROM_ADDRESS, 'no-reply@girder.org')
 
     events.daemon.trigger('_sendmail', info=msg)
 
