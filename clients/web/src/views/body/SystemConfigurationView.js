@@ -6,6 +6,42 @@ girder.views.SystemConfigurationView = girder.View.extend({
         'submit .g-settings-form': function (event) {
             event.preventDefault();
             this.$('.g-submit-settings').addClass('disabled');
+            this.$('#g-settings-error-message').empty();
+
+            var settings = [{
+                key: 'core.cookie_lifetime',
+                value: $('#g-cookie-lifetime').val() || null
+            }, {
+                key: 'core.email_from_address',
+                value: $('#g-email-from-address').val() || null
+            }, {
+                key: 'core.registration_policy',
+                value: $('#g-registration-policy').val()
+            }, {
+                key: 'core.smtp_host',
+                value: $('#g-core-smtp-host').val() || null
+            }];
+
+            girder.restRequest({
+                type: 'PUT',
+                path: 'system/setting',
+                data: {
+                    list: JSON.stringify(settings)
+                },
+                error: null
+            }).done(_.bind(function (resp) {
+                this.$('.g-submit-settings').removeClass('disabled');
+                girder.events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Settings saved.',
+                    type: 'success',
+                    timeout: 4000
+                });
+            }, this)).error(_.bind(function (resp) {
+                this.$('.g-submit-settings').removeClass('disabled');
+                this.$('#g-settings-error-message').text(
+                    resp.responseJSON.message);
+            }, this));
         }
     },
 
@@ -38,6 +74,11 @@ girder.views.SystemConfigurationView = girder.View.extend({
             animation: false,
             delay: {show: 200}
         });
+
+        if (this.settings['core.registration_policy'] !== null) {
+            this.$('#g-registration-policy').val(
+                this.settings['core.registration_policy']);
+        }
 
         return this;
     }
