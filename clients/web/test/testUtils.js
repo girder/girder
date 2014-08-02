@@ -254,6 +254,8 @@ girderTest.createGroup = function (groupName, groupDesc, public) {
             }, 'access selection to be set to public');
         }
 
+        waits(1000);
+
         runs(function () {
             $('#g-name').val(groupName);
             $('#g-description').val(groupDesc);
