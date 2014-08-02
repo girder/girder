@@ -35,9 +35,24 @@ girder.views.EditItemWidget = girder.View.extend({
                 if (view.item) {
                     view.$('#g-name').val(view.item.get('name'));
                     view.$('#g-description').val(view.item.get('description'));
+                    view.create = false;
+                } else {
+                    view.create = true;
                 }
                 view.$('#g-name').focus();
+            }).on('hidden.bs.modal', function () {
+                if (view.create) {
+                    girder.dialogs.handleClose('itemcreate');
+                } else {
+                    girder.dialogs.handleClose('itemedit');
+                }
             });
+
+        if (view.item) {
+            girder.dialogs.handleOpen('itemedit');
+        } else {
+            girder.dialogs.handleOpen('itemcreate');
+        }
 
         return this;
     },
@@ -45,7 +60,7 @@ girder.views.EditItemWidget = girder.View.extend({
     createItem: function (fields) {
         var item = new girder.models.ItemModel();
         item.set(_.extend(fields, {
-            parentId: this.parentModel.get('_id')
+            folderId: this.parentModel.get('_id')
         }));
         item.on('g:saved', function () {
             this.$el.modal('hide');

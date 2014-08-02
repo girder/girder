@@ -7,6 +7,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
+        'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-folder-access-button': 'editFolderAccess',
         'click .g-hierarchy-level-up': 'upOneLevel'
@@ -206,6 +207,19 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentModel: this.parentModel
         }).on('g:saved', function (folder) {
             this.folderListView.insertFolder(folder);
+            this.updateChecked();
+        }, this).render();
+    },
+
+    /**
+     * Prompt the user to create a new item in the current folder
+     */
+    createItemDialog: function () {
+        new girder.views.EditItemWidget({
+            el: $('#g-dialog-container'),
+            parentModel: this.parentModel
+        }).on('g:saved', function (item) {
+            this.itemListView.insertItem(item);
             this.updateChecked();
         }, this).render();
     },
