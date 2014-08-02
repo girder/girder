@@ -23,7 +23,7 @@ import json
 
 from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 from girder.models.token import genToken
 from girder.utility import mail_utils
 
@@ -161,17 +161,29 @@ class User(Resource):
         self.requireParams(
             ('firstName', 'lastName', 'login', 'password', 'email'), params)
 
+        currentUser = self.getCurrentUser()
+
+        if currentUser is not None and currentUser['admin']:
+            admin = self.boolParam('admin', params, default=False)
+        else:
+            admin = False
+            regPolicy = self.model('setting').get(
+                SettingKey.REGISTRATION_POLICY, default='open')
+            if regPolicy != 'open':
+                raise RestException(
+                    'Registration on this instance is closed. Contact an '
+                    'administrator to create an account for you.')
+
         user = self.model('user').createUser(
             login=params['login'], password=params['password'],
             email=params['email'], firstName=params['firstName'],
-            lastName=params['lastName'])
-        setattr(cherrypy.request, 'girderUser', user)
+            lastName=params['lastName'], admin=admin)
 
-        self.sendAuthTokenCookie(user)
+        if currentUser is None:
+            setattr(cherrypy.request, 'girderUser', user)
+            self.sendAuthTokenCookie(user)
 
-        currentUser = self.getCurrentUser()
-
-        return self.model('user').filter(user, currentUser)
+        return self.model('user').filter(user, user)
     createUser.description = (
         Description('Create a new user.')
         .responseClass('User')
@@ -180,6 +192,8 @@ class User(Resource):
         .param('firstName', "The user's first name.")
         .param('lastName', "The user's last name.")
         .param('password', "The user's requested password")
+        .param('admin', 'Whether this user should be a site administrator.',
+               required=False, dataType='boolean')
         .errorResponse('A parameter was invalid, or the specified login or'
                        ' email already exists in the system.'))
 

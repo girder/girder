@@ -410,3 +410,55 @@ class UserTestCase(base.TestCase):
         self.assertHasKeys(
             resp.json['authToken'], ('token', 'expires', 'userId'))
         self._verifyAuthCookie(resp)
+
+    def testUserCreation(self):
+        admin = self.model('user').createUser(
+            'user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        self.assertTrue(admin['admin'])
+
+        # Close registration
+        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
+
+        params = {
+            'email': 'some.email@email.com',
+            'login': 'otheruser',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'mypass'
+        }
+
+        # Make sure we get a 400 when trying to register
+        resp = self.request(path='/user', method='POST', params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Registration on this instance is closed. Contact an '
+                         'administrator to create an account for you.')
+
+        # Admins should still be able to create users
+        resp = self.request(path='/user', method='POST', params=params,
+                            user=admin)
+        self.assertStatusOk(resp)
+        user = resp.json
+        self.assertFalse(user['admin'])
+
+        # Normal users should not be able to create new users
+        resp = self.request(path='/user', method='POST', params=params,
+                            user=user)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Registration on this instance is closed. Contact an '
+                         'administrator to create an account for you.')
+
+        # Admins should be able to create other admin users
+        params = {
+            'email': 'other.email@email.com',
+            'login': 'otheruser2',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'mypass',
+            'admin': True
+        }
+        resp = self.request(path='/user', method='POST', params=params,
+                            user=admin)
+        self.assertStatusOk(resp)
+        self.assertTrue(resp.json['admin'])
