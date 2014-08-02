@@ -9,6 +9,8 @@ girder.views.ItemView = girder.View.extend({
 
     initialize: function (settings) {
 
+        this.edit = settings.edit || false;
+
         // If collection model is already passed, there is no need to fetch.
         if (settings.item) {
             this.model = settings.item;
@@ -88,22 +90,37 @@ girder.views.ItemView = girder.View.extend({
                 });
             }, this));
 
+            if (this.edit) {
+                this.editItem();
+            }
+
         }, this));
 
         return this;
     }
 });
 
-girder.router.route('item/:id', 'item', function (id) {
-    // Fetch the collection by id, then render the view.
+/**
+ * Helper function for fetching the user and rendering the view with
+ * an arbitrary set of extra parameters.
+ */
+var _fetchAndInit = function (itemId, params) {
     var item = new girder.models.ItemModel();
     item.set({
-        _id: id
+        _id: itemId
     }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.ItemView, {
+        girder.events.trigger('g:navigateTo', girder.views.ItemView, _.extend({
             item: item
-        }, item);
+        }, params || {}));
     }, this).on('g:error', function () {
         girder.router.navigate('collections', {trigger: true});
     }, this).fetch();
+};
+
+
+
+girder.router.route('item/:id', 'item', function (itemId, params) {
+    _fetchAndInit(itemId, {
+        edit: params.dialog === 'itemedit'
+    });
 });
