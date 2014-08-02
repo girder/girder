@@ -462,3 +462,23 @@ class UserTestCase(base.TestCase):
                             user=admin)
         self.assertStatusOk(resp)
         self.assertTrue(resp.json['admin'])
+
+    def testAdminFlag(self):
+        admin = self.model('user').createUser(
+            'user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        self.assertTrue(admin['admin'])
+
+        params = {
+            'email': 'some.email@email.com',
+            'login': 'otheruser',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'mypass',
+            'admin': True
+        }
+
+        # Setting admin param to True should have no effect for normal
+        # registration process
+        resp = self.request(path='/user', method='POST', params=params)
+        self.assertStatusOk(resp)
+        self.assertFalse(resp.json['admin'])
