@@ -20,6 +20,8 @@
 import re
 import requests
 
+from girder.api.rest import RestException
+from girder.constants import SettingKey
 from girder.utility import config, model_importer
 from . import constants
 
@@ -42,6 +44,20 @@ def _deriveLogin(email, userModel):
         return None  # This is already taken, we're hosed
 
     return login
+
+
+def _verifyOpenRegistration():
+    """
+    Raises a REST exception if registration policy on the server is not set to
+    'open'. This should be called by the provider-specific code in the case when
+    a user logs in with an email that is not already tied to an existing user.
+    """
+    policy = model_importer.ModelImporter().model('setting').get(
+        SettingKey.REGISTRATION_POLICY, default='open')
+    if policy != 'open':
+        raise RestException(
+            'Registration on this instance is closed. Contact an administrator '
+            'to create an account for you.')
 
 
 class Google(model_importer.ModelImporter):
@@ -82,6 +98,7 @@ class Google(model_importer.ModelImporter):
 
         cursor = self.model('user').find({'email': email}, limit=1)
         if cursor.count(True) == 0:
+            _verifyOpenRegistration()
             login = _deriveLogin(email, self.model('user'))
             if login is None:
                 login = 'googleuser' + resp['id']
