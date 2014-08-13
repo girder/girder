@@ -59,12 +59,12 @@ def _cacheAuthUser(fun):
     return inner
 
 
-def loadmodel(map, model, level=None):
+def loadmodel(map, model, plugin='_core', level=None):
     """
     This is a meta-decorator that can be used to convert parameters that are
     ObjectID's into the actual documents.
     """
-    _model = _importer.model(model)
+    _model = _importer.model(model, plugin)
 
     def meta(fun):
         def wrapper(self, *args, **kwargs):
