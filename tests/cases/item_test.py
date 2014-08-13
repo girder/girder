@@ -254,14 +254,18 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/', method='DELETE', user=self.users[1])
         self.assertStatus(resp, 400)
 
-        # User 1 should not be able to delete the item
+        # User 1 should not be able to delete the item with read access
+        self.publicFolder = self.model('folder').setUserAccess(
+            self.publicFolder, self.users[1], AccessType.READ, save=True)
         resp = self.request(path='/item/%s' % str(item['_id']), method='DELETE',
                             user=self.users[1])
         self.assertStatus(resp, 403)
 
-        # User 0 should be able to delete the item
+        # User 1 should be able to delete the item with write access
+        self.publicFolder = self.model('folder').setUserAccess(
+            self.publicFolder, self.users[1], AccessType.WRITE, save=True)
         resp = self.request(path='/item/%s' % str(item['_id']), method='DELETE',
-                            user=self.users[0])
+                            user=self.users[1])
         self.assertStatusOk(resp)
 
         # Verify that the item is deleted

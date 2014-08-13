@@ -10,9 +10,9 @@ li
     i.icon-download
     | Download checked resources
 
-if (minLevel >= AccessType.ADMIN)
+if (minFolderLevel >= AccessType.ADMIN && minItemLevel >= AccessType.WRITE)
   li.g-admin.divider
   li.g-admin
-    a.g-download-checked
+    a.g-delete-checked
       i.icon-trash
       | Delete checked resources

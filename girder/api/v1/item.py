@@ -247,7 +247,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.ADMIN)
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def deleteItem(self, item, params):
         """
         Delete an item and its contents.
@@ -258,7 +258,7 @@ class Item(Resource):
         Description('Delete an item by ID.')
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied for the item.', 403))
+        .errorResponse('Write access was denied for the item.', 403))
 
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def rootpath(self, item, params):
