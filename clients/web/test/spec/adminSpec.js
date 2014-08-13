@@ -65,7 +65,7 @@ describe('Test the settings page', function () {
 
     it('Settings should display their expected values', function () {
         expect($('#g-cookie-lifetime').val()).toBe('');
-        expect($('#g-smtp-host').val()).toBe('localhost:50002');
+        expect($('#g-smtp-host').val()).toMatch(/^localhost:500/);
         expect($('#g-email-from-address').val()).toBe('');
         expect($('#g-registration-policy').val()).toBe('open');
     });
