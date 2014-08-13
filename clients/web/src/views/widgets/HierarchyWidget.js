@@ -289,22 +289,24 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.
-        var minLevel = girder.AccessType.ADMIN;
+        var minFolderLevel = girder.AccessType.ADMIN;
         _.every(folders, function (cid) {
             var folder = this.folderListView.collection.get(cid);
-            minLevel = Math.min(minLevel, folder.getAccessLevel());
-            return minLevel > girder.AccessType.READ; // acts as 'break'
+            minFolderLevel = Math.min(minFolderLevel, folder.getAccessLevel());
+            return minFolderLevel > girder.AccessType.READ; // acts as 'break'
         }, this);
 
+        var minItemLevel = girder.AccessType.ADMIN;
         if (this.itemListView) {
             items = this.itemListView.checked;
             if (items.length) {
-                minLevel = Math.min(minLevel, this.parentModel.getAccessLevel());
+                minItemLevel = Math.min(minItemLevel, this.parentModel.getAccessLevel());
             }
         }
 
         this.checkedMenuWidget.update({
-            minLevel: minLevel,
+            minFolderLevel: minFolderLevel,
+            minItemLevel: minItemLevel,
             folderCount: folders.length,
             itemCount: items.length
         });

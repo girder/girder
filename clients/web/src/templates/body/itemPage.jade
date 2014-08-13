@@ -18,7 +18,7 @@
           a.g-edit-item(role="menuitem")
             i.icon-edit
             | Edit item
-      if (accessLevel >= girder.AccessType.ADMIN)
+      if (accessLevel >= girder.AccessType.WRITE)
         li.divider(role="presentation")
         li(role="presentation")
           a.g-delete-item(role="menuitem")

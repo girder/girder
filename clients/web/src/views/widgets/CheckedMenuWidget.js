@@ -7,7 +7,8 @@ girder.views.CheckedMenuWidget = girder.View.extend({
     initialize: function (params) {
         this.folderCount = params.folderCount || 0;
         this.itemCount = params.itemCount || 0;
-        this.minLevel = girder.AccessType.READ;
+        this.minFolderLevel = girder.AccessType.READ;
+        this.minItemLevel = girder.AccessType.READ;
 
         this.dropdownToggle = params.dropdownToggle;
     },
@@ -21,7 +22,8 @@ girder.views.CheckedMenuWidget = girder.View.extend({
 
         this.dropdownToggle.removeAttr('disabled');
         this.$el.html(jade.templates.checkedActionsMenu({
-            minLevel: this.minLevel,
+            minFolderLevel: this.minFolderLevel,
+            minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,
             itemCount: this.itemCount,
             AccessType: girder.AccessType
@@ -36,7 +38,8 @@ girder.views.CheckedMenuWidget = girder.View.extend({
      * @param itemCount The number of checked items.
      */
     update: function (params) {
-        this.minLevel = params.minLevel;
+        this.minFolderLevel = params.minFolderLevel;
+        this.minItemLevel = params.minItemLevel;
         this.folderCount = params.folderCount || 0;
         this.itemCount = params.itemCount || 0;
 
