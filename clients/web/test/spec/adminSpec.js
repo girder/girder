@@ -41,3 +41,32 @@ describe('Create an admin and non-admin user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 });
+
+describe('Test the settings page', function () {
+    it('Logout', girderTest.logout());
+    it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
+    it('Go to settings page', function () {
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+
+        waitsFor(function () {
+            return $('.g-server-config').length > 0;
+        }, 'admin page to load');
+
+        runs(function () {
+            $('.g-server-config').click();
+        });
+
+        waitsFor(function () {
+            return $('input#g-cookie-lifetime').length > 0;
+        }, 'settings page to load');
+    });
+
+    it('Settings should display their expected values', function () {
+        expect($('#g-cookie-lifetime').val()).toBe('');
+        expect($('#g-smtp-host').val()).toMatch(/^localhost:500/);
+        expect($('#g-email-from-address').val()).toBe('');
+        expect($('#g-registration-policy').val()).toBe('open');
+    });
+});

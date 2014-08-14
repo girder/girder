@@ -60,12 +60,18 @@ class System(Resource):
             settings = ({'key': params['key'], 'value': params['value']},)
 
         for setting in settings:
-            try:
-                value = json.loads(setting['value'])
-            except ValueError:
-                value = setting['value']
+            if setting['value'] is None:
+                value = None
+            else:
+                try:
+                    value = json.loads(setting['value'])
+                except ValueError:
+                    value = setting['value']
 
-            self.model('setting').set(key=setting['key'], value=value)
+            if value is None:
+                self.model('setting').unset(key=setting['key'])
+            else:
+                self.model('setting').set(key=setting['key'], value=value)
 
         return True
     setSetting.description = (

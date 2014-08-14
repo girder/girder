@@ -21,6 +21,7 @@ import httmock
 import json
 import urlparse
 
+from girder.constants import SettingKey
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
 from tests import base
@@ -65,6 +66,9 @@ class OauthTest(base.TestCase):
             self.assertEqual(output, expected)
 
     def testGoogleOauth(self):
+        # Close registration to start off.
+        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
+
         # We should get a 500 if no client ID is set
         resp = self.request('/oauth/provider', exception=True, params={
             'redirect': 'http://localhost/#foo/bar'})
@@ -197,11 +201,29 @@ class OauthTest(base.TestCase):
 
         email = 'anotheruser@mail.com'
         with httmock.HTTMock(google_mock):
+            resp = self.request('/oauth/google/callback', params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            }, cookie=self._createCsrfCookie(cookie))
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Registration on this instance is closed. Contact an '
+                         'administrator to create an account for you.')
+
+        # Open registration
+        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'open')
+
+        # Get a fresh token
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
+        with httmock.HTTMock(google_mock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
             }, cookie=self._createCsrfCookie(cookie))
-
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')

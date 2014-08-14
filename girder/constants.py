@@ -96,4 +96,5 @@ class SettingKey:
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
+    REGISTRATION_POLICY = 'core.registration_policy'
     SMTP_HOST = 'core.smtp_host'

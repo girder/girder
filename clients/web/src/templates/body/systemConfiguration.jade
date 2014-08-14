@@ -1,0 +1,31 @@
+.g-body-title System configuration
+
+form.g-settings-form(role="form")
+  .form-group
+    label(for="g-cookie-lifetime") Cookie duration (days)
+    input#g-cookie-lifetime.form-control.input-sm(
+      type="text", value="#{settings['core.cookie_lifetime'] || ''}",
+      placeholder="Default: 180",
+      title="How long users will stay logged in.")
+  .form-group
+    label(for="g-smtp-host") SMTP host
+    input#g-smtp-host.form-control.input-sm(
+      type="text", value="#{settings['core.smtp_host'] || ''}",
+      placeholder="Default: localhost:25",
+      title="The address of the SMTP server used to send emails.")
+  .form-group
+    label(for="g-email-from-address") Email from address
+    input#g-email-from-address.form-control.input-sm(
+      type="text", value="#{settings['core.email_from_address'] || ''}",
+      placeholder="Default: no-reply@girder.org",
+      title="The email address the system will use when sending emails.")
+  .form-group
+    label(for="g-registration-policy") Registration policy
+    select#g-registration-policy.form-control.input-sm
+      option(value="open") Open registration
+      option(value="closed") Closed registration
+  .form-group
+    button.g-submit-settings.btn.btn-default.btn-sm
+      i.icon-ok
+      |  Save
+  #g-settings-error-message.g-validation-failed-message
