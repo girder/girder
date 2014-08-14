@@ -278,6 +278,15 @@ module.exports = function (grunt) {
         }
     });
 
+    // Merge plugin grunt configs to allow complex plugin
+    // code processsing
+    var pluginGrunts = grunt.file.expand('plugins/*/Gruntfile.js')
+    pluginGrunts.forEach(function (gruntFile) {
+        require('./' + gruntFile)(grunt);
+        var pluginName = path.basename(path.dirname(gruntFile));
+        defaultTasks.push(pluginName);
+    });
+
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-jade');
