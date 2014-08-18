@@ -229,35 +229,6 @@ administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart will be required in order for the
 change to take effect.
 
-For more complex plugins which require custom Grunt tasks to build, the user can
-specify custom targets within their own Grunt file that will be executed when
-the main Girder grunt step is executed. To use this functionality, add a **grunt**
-key to your **plugin.json** file. ::
-
-    "grunt": {
-        "file" : "Gruntfile.js",
-        "defaultTargets": [ "MY_PLUGIN_TASK" ]
-    }
-
-This will allow to register a grunt file relative to the plugin root directory
-and add any target to the default one using the "defaultTargets" array.
-
-.. note:: The **file** key within the **grunt** object must be a path that is
-   relative to the root directory of your plugin. It does not have to be called
-   ``Gruntfile.js``, it can be called anything you want.
-
-All paths within your custom grunt file must be absolute as shown in the following
-example: ::
-
-    module.exports = function (grunt) {
-        grunt.registerTask('MY_PLUGIN_TASK', 'Custom plugin build task', function () {
-            /* ... Execute custom behavior ... */
-        });
-    };
-
-Jade and Stylus plugin are naturally run by Girder, hence it is not necessary
-to list them inside the default target list.
-
 Extending the server-side application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -556,6 +527,39 @@ that can be used to import content:
   directory. Any additional public static content that is required by your
   plugin that doesn't fall into one of the above categories can be placed here,
   such as static images, fonts, or third-party static libraries.
+
+Executing custom Grunt build steps for your plugin
+**************************************************
+
+For more complex plugins which require custom Grunt tasks to build, the user can
+specify custom targets within their own Grunt file that will be executed when
+the main Girder grunt step is executed. To use this functionality, add a **grunt**
+key to your **plugin.json** file. ::
+
+    {
+    "name": "MY_PLUGIN",
+    "grunt":
+        {
+        "file" : "Gruntfile.js",
+        "defaultTargets": [ "MY_PLUGIN_TASK" ]
+        }
+    }
+
+This will allow to register a grunt file relative to the plugin root directory
+and add any target to the default one using the "defaultTargets" array.
+
+.. note:: The **file** key within the **grunt** object must be a path that is
+   relative to the root directory of your plugin. It does not have to be called
+   ``Gruntfile.js``, it can be called anything you want.
+
+All paths within your custom grunt tasks must be relative to the root dir of the
+Girder source repository, rather than relative to the plugin directory. ::
+
+    module.exports = function (grunt) {
+        grunt.registerTask('MY_PLUGIN_TASK', 'Custom plugin build task', function () {
+            /* ... Execute custom behavior ... */
+        });
+    };
 
 Javascript extension capabilities
 *********************************
