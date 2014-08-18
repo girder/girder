@@ -229,6 +229,82 @@ administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart will be required in order for the
 change to take effect.
 
+For more complex plugin which require custom Grunt task, the user can create
+and define its own Gruntfile.js which can then be merged into the main Girder
+grunt file. To do so you can add a "grunt" section inside the plugin.json
+file like follow:
+
+    "grunt": {
+        "file" : "Gruntfile.js",
+        "defaultTargets": [ "YOUR_PLUGIN_TASK" ],
+        "pluginTargets": {
+            "target_name" : "Description for given target."
+        }
+    }
+
+This will allow to register a grunt file relative to the plugin root directory
+and add any target to the default one using the "defaultTargets" array.
+In case of additional registered target, you can document them inside the
+"pluginTargets" dictionary. The "grunt init" command will then display to the user
+those custom target informations.
+
+All path within your grunt file needs to be absolute like shown in the following
+example:
+
+    module.exports = function (grunt) {
+
+        grunt.config.merge({
+            jade: {
+                YOUR_PLUGIN_www: {
+                    files: {
+                        'plugins/YOUR_PLUGIN/client/built/templates.js': [
+                            'plugins/YOUR_PLUGIN/client/src/templates/**/*.jade'
+                        ]
+                    }
+                }
+            },
+
+            stylus: {
+                YOUR_PLUGIN_www: {
+                    files: {
+                        'plugins/YOUR_PLUGIN/www/app.min.css': [
+                            'plugins/YOUR_PLUGIN/client/src/stylesheets/**/*.styl'
+                        ]
+                    }
+                }
+            },
+
+            uglify: {
+                YOUR_PLUGIN_www_app: {
+                    files: {
+                        'plugins/YOUR_PLUGIN/www/app.min.js': [
+                            'plugins/YOUR_PLUGIN/client/built/templates.js',
+                            'plugins/YOUR_PLUGIN/client/src/app.js'
+                        ]
+                    }
+                }
+            },
+
+            copy: {
+                YOUR_PLUGIN_www: {
+                    files: [{
+                        expand: true,
+                        cwd: 'plugins/YOUR_PLUGIN/client/static',
+                        src: ['**'],
+                        dest: 'plugins/YOUR_PLUGIN/www'
+                    }]
+                }
+            }
+        });
+
+        // Register plugin name as task
+        grunt.registerTask('YOUR_PLUGIN_TASK', [
+            'uglify:YOUR_PLUGIN_www_app', 'copy:YOUR_PLUGIN_www' ]);
+    };
+
+Jade and Stylus plugin are naturally run by Girder, hence it is not necessary
+to list them inside the default target list.
+
 Extending the server-side application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
