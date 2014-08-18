@@ -263,6 +263,30 @@ module.exports = function (grunt) {
             });
             defaultTasks.push('copy:plugin_' + pluginName);
         }
+
+        // Handle plugin with Grunt file
+        var pluginDescription = grunt.file.readJSON( pluginDir + '/plugin.json');
+        if(pluginDescription.hasOwnProperty('grunt')) {
+            var pluginGruntCfg = pluginDescription['grunt'],
+                gruntFileName = pluginGruntCfg['file'],
+                defaultTargets = pluginGruntCfg['defaultTargets'],
+                defaultSize = defaultTargets.length,
+                pluginTargets = pluginGruntCfg['pluginTargets'];
+
+            // Merge plugin Grunt file
+            require('./' + pluginDir + '/' + gruntFileName)(grunt);
+
+            // Register default targets
+            for(var idx = 0; idx < defaultSize; ++idx) {
+                defaultTasks.push(defaultTargets[idx]);
+            }
+
+            // Print information regarding new targets
+            for(var key in pluginTargets) {
+                console.log('\t' + (key).bold.underline + '\t: ' + pluginTargets[key])
+            }
+        }
+
     };
 
     // Glob for front-end plugins and configure each one to build
