@@ -34,11 +34,11 @@ describe('Create a data hierarchy', function () {
         });
 
         waitsFor(function () {
-            return $('ol.breadcrumb>li.active').text() === 'Private';
+            return $('ol.breadcrumb>li.active').text() === 'Private' &&
+                   $('.g-empty-parent-message:visible').length === 1;
         }, 'descending into Private folder');
 
         runs(function () {
-            expect($('.g-empty-parent-message:visible').length).toBe(1);
             $('.g-folder-actions-button').click();
             $('.g-create-subfolder').click();
         });
@@ -49,6 +49,8 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             $('input#g-name').val("John's subfolder");
+            $('#g-description').val(' Some description');
+
             $('.g-save-folder').click();
         });
 
@@ -59,7 +61,16 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('a.g-folder-list-link:first').text()).toBe("John's subfolder");
             expect($('.g-folder-privacy:first').text()).toBe('Private');
+            $('a.g-folder-list-link:first').click();
         });
+
+        runs(function () {
+            $('a.g-edit-folder').click();
+        });
+
+        waitsFor(function () {
+            return $('textarea#g-description').val() === 'Some description';
+        }, 'the edit folder dialog to appear');
     });
 
     it('search using quick search box', function () {

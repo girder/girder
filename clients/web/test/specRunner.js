@@ -46,7 +46,20 @@ var terminate = function () {
     }
 };
 
+// Set decent viewport size for screenshots.
+page.viewportSize = {
+    width: 1024,
+    height: 769
+};
+
 page.onConsoleMessage = function (msg) {
+    if (msg.indexOf('__SCREENSHOT__') === 0) {
+        var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
+        page.render(imageFile);
+        console.log('Created screenshot: ' + imageFile);
+        return;
+    }
+
     if (accumCoverage && coverageOutput) {
         try {
             fs.write(coverageOutput, msg, 'a');

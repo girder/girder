@@ -95,6 +95,7 @@
         var items = spec.results().getItems();
         _.each(items, function (item) {
             if (!item.passed()) {
+                this.log('__SCREENSHOT__phantom-' + new Date().toISOString() + '.png');
                 this.log('\n Error: ' + item.message, 'red');
                 this._printStackTrace(item.trace.stackArray);
             }
