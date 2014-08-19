@@ -57,6 +57,9 @@ page.onConsoleMessage = function (msg) {
         var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
         page.render(imageFile);
         console.log('Created screenshot: ' + imageFile);
+
+        console.log('<DartMeasurementFile name="TestImage" type="image/png">' +
+            fs.workingDirectory + '/' + imageFile + '</DartMeasurementFile>');
         return;
     }
 
