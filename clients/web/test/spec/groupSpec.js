@@ -37,6 +37,10 @@ describe('Test group actions', function () {
             return $('.g-group-actions-button:visible').length === 1;
         }, 'the group actions button to appear');
 
+        runs(function () {
+            $('.g-group-actions-button').click();
+        });
+
         waitsFor(function () {
             return $('.g-edit-group:visible').length === 1;
         }, 'the group edit action to appear');
