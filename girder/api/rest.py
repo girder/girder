@@ -153,7 +153,7 @@ def endpoint(fun):
                 val['field'] = e.field
         except cherrypy.HTTPRedirect:
             raise
-        except:  # pragma: no cover
+        except:
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
