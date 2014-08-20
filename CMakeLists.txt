@@ -16,7 +16,7 @@ if(PYTHON_COVERAGE)
   find_program(PYTHON_COVERAGE_EXECUTABLE coverage)
 endif()
 
-if(PYTHON_STYLE_TESTS)
+if(PYTHON_STATIC_ANALYSIS)
   find_program(FLAKE8_EXECUTABLE flake8)
 endif()
 
