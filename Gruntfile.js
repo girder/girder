@@ -326,7 +326,12 @@ module.exports = function (grunt) {
             pretty: true
         });
         fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
-            cssFiles: [],
+            cssFiles: [
+                '/clients/web/static/lib/bootstrap/css/bootstrap.min.css',
+                '/clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css',
+                '/clients/web/static/lib/fontello/css/fontello.css',
+                '/clients/web/static/built/app.min.css'
+            ],
             jsFiles: inputs,
             staticRoot: staticRoot,
             apiRoot: apiRoot
