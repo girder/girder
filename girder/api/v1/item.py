@@ -22,9 +22,8 @@ import json
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
-from ...models.model_base import ValidationException
-from ...utility import ziputil
-from ...constants import AccessType
+from girder.utility import ziputil
+from girder.constants import AccessType
 
 
 class Item(Resource):

@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-from .. import describe
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from girder.constants import AssetstoreType

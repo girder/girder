@@ -17,12 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
-
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
-from .model_importer import ModelImporter
 from girder.constants import AssetstoreType
 from girder import events
 

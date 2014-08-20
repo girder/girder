@@ -22,7 +22,7 @@ import json
 from .. import base
 
 from girder.api.describe import API_VERSION
-from girder.constants import AccessType, SettingKey
+from girder.constants import SettingKey
 
 
 def setUpModule():

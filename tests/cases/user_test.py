@@ -312,9 +312,9 @@ class UserTestCase(base.TestCase):
         Test user list endpoint.
         """
         # Create some users.
-        users = [self.model('user').createUser(
-            'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
-            for x in ['c', 'a', 'b']]
+        for x in ('c', 'a', 'b'):
+            self.model('user').createUser(
+                'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1

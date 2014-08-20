@@ -22,11 +22,9 @@ import os
 import smtplib
 
 from email.mime.text import MIMEText
-from mako.template import Template
 from mako.lookup import TemplateLookup
 from girder import events
 from girder.constants import SettingKey, ROOT_DIR
-from . import config
 from .model_importer import ModelImporter
 
 

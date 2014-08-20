@@ -29,11 +29,10 @@ import types
 from . import docs
 from girder import events, logger
 from girder.constants import AccessType, SettingKey, TerminalColor
-from girder.models.model_base import AccessException, ValidationException,\
-    AccessControlledModel
+from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
-from bson.objectid import ObjectId, InvalidId
+from bson.objectid import ObjectId
 
 
 _importer = ModelImporter()

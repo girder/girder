@@ -41,7 +41,6 @@ function to be called when the task is finished. That callback function will
 receive the Event object as its only argument.
 """
 
-import copy
 import Queue
 import threading
 import types

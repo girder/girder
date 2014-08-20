@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import datetime
 import random
 import string
