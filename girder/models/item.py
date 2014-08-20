@@ -19,7 +19,7 @@
 
 import datetime
 
-from .model_base import Model, ValidationException, AccessException
+from .model_base import Model, ValidationException
 from girder.constants import AccessType
 
 

@@ -18,8 +18,8 @@
 ###############################################################################
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel
-from ...models.model_base import ValidationException, AccessException
+from ..rest import Resource, loadmodel
+from ...models.model_base import AccessException
 from ...constants import AccessType
 from girder.utility import mail_utils
 

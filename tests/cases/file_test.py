@@ -25,7 +25,6 @@ import zipfile
 from hashlib import sha512
 from .. import base
 
-from girder.constants import AccessType, ROOT_DIR
 from girder.models import getDbConnection
 
 

@@ -21,7 +21,7 @@ import json
 import os
 
 from .. import base
-from girder.constants import AccessType, AssetstoreType, ROOT_DIR
+from girder.constants import AssetstoreType
 
 
 def setUpModule():

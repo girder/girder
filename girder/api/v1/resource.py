@@ -21,8 +21,6 @@ import json
 
 from ..describe import Description
 from ..rest import Resource as BaseResource, RestException
-from ...constants import AccessType
-from ...utility import ziputil
 
 
 class Resource(BaseResource):

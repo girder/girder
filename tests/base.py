@@ -22,7 +22,6 @@ import codecs
 import cherrypy
 import io
 import json
-import mimetypes
 import os
 import signal
 import sys

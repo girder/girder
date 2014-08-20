@@ -19,7 +19,6 @@
 
 import os
 import subprocess
-import sys
 
 from girder.constants import ROOT_DIR
 from . import base

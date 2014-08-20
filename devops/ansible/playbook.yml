@@ -46,10 +46,6 @@
     pip: requirements=/vagrant/requirements.txt
     sudo: yes
 
-  - name: install pep8
-    pip: name=pep8
-    sudo: yes
-
   - name: install girder for development
     command: python setup.py develop chdir=/vagrant
     sudo: yes

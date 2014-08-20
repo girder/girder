@@ -17,14 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import pymongo
 
 from bson.objectid import ObjectId
 from girder import events
 from girder.constants import AccessType, TerminalColor
 from girder.utility.model_importer import ModelImporter
-from girder.utility import config
 from girder.models import getDbConfig, getDbConnection
 
 
@@ -45,7 +43,6 @@ class Model(ModelImporter):
 
         db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        cur_config = config.getConfig()
         dbName = db_cfg['database']
         self.database = db_connection[dbName]
         self.collection = self.database[self.name]

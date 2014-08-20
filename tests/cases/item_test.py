@@ -25,7 +25,7 @@ import zipfile
 
 from .. import base
 
-from girder.constants import AccessType, ROOT_DIR
+from girder.constants import AccessType
 
 
 def setUpModule():

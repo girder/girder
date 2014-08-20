@@ -19,9 +19,7 @@
 
 import datetime
 
-from .model_base import AccessControlledModel,\
-    ValidationException,\
-    AccessException
+from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
 

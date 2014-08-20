@@ -29,11 +29,10 @@ import types
 from . import docs
 from girder import events, logger
 from girder.constants import AccessType, SettingKey, TerminalColor
-from girder.models.model_base import AccessException, ValidationException,\
-    AccessControlledModel
+from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
-from bson.objectid import ObjectId, InvalidId
+from bson.objectid import ObjectId
 
 
 _importer = ModelImporter()
@@ -85,6 +84,31 @@ def loadmodel(map, model, plugin='_core', level=None):
     return meta
 
 
+def _createResponse(val):
+    """
+    Helper that encodes the response according to the requested "Accepts"
+    header from the client. Currently supports "application/json" and
+    "text/html".
+    """
+    accepts = cherrypy.request.headers.elements('Accept')
+    for accept in accepts:
+        if accept.value == 'application/json':
+            break
+        elif accept.value == 'text/html':  # pragma: no cover
+            # Pretty-print and HTMLify the response for the browser
+            cherrypy.response.headers['Content-Type'] = 'text/html'
+            resp = json.dumps(val, indent=4, sort_keys=True,
+                              separators=(',', ': '), default=str)
+            resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
+            resp = '<div style="font-family:monospace;">%s</div>' % resp
+            return resp
+
+    # Default behavior will just be normal JSON output. Keep this
+    # outside of the loop body in case no Accept header is passed.
+    cherrypy.response.headers['Content-Type'] = 'application/json'
+    return json.dumps(val, default=str)
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -99,17 +123,7 @@ def endpoint(fun):
     """
     def endpointDecorator(self, *args, **kwargs):
         try:
-            # First, we should encode any unicode form data down into
-            # UTF-8 so the actual REST classes are always dealing with
-            # str types.
-            params = {}
-            for k, v in kwargs.iteritems():
-                if type(v) in (str, unicode):
-                    params[k] = v.encode('utf-8')
-                else:
-                    params[k] = v  # pragma: no cover
-
-            val = fun(self, args, params)
+            val = fun(self, args, kwargs)
 
             if isinstance(val, types.FunctionType):
                 # If the endpoint returned a function, we assume it's a
@@ -139,7 +153,7 @@ def endpoint(fun):
                 val['field'] = e.field
         except cherrypy.HTTPRedirect:
             raise
-        except:  # pragma: no cover
+        except:
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
@@ -151,23 +165,7 @@ def endpoint(fun):
                 # Unless we are in production mode, send a traceback too
                 val['trace'] = traceback.extract_tb(tb)
 
-        accepts = cherrypy.request.headers.elements('Accept')
-        for accept in accepts:
-            if accept.value == 'application/json':
-                break
-            elif accept.value == 'text/html':  # pragma: no cover
-                # Pretty-print and HTMLify the response for the browser
-                cherrypy.response.headers['Content-Type'] = 'text/html'
-                resp = json.dumps(val, indent=4, sort_keys=True,
-                                  separators=(',', ': '), default=str)
-                resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
-                resp = '<div style="font-family:monospace;">%s</div>' % resp
-                return resp
-
-        # Default behavior will just be normal JSON output. Keep this
-        # outside of the loop body in case no Accept header is passed.
-        cherrypy.response.headers['Content-Type'] = 'application/json'
-        return json.dumps(val, default=str)
+        return _createResponse(val)
     return endpointDecorator
 
 

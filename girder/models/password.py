@@ -57,9 +57,11 @@ class Password(Model):
                 raise Exception('Bcrypt module is not installed. '
                                 'See local.auth.cfg.')
 
+            if type(password) is unicode:
+                password = password.encode('utf-8')
+
             if salt is None:
-                rounds = cur_config['auth']['bcrypt_rounds']
-                assert type(rounds) is int
+                rounds = int(cur_config['auth']['bcrypt_rounds'])
                 return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
                 if type(salt) is unicode:

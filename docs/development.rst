@@ -93,13 +93,7 @@ Server Side Testing
 Running the tests
 ^^^^^^^^^^^^^^^^^
 
-Before you can run the tests, you'll need to install
-`pep8 <http://www.python.org/dev/peps/pep-0008/>`_ for Python style
-checking. ::
-
-    pip install pep8
-
-Also, you'll need to configure the project with CMake. ::
+First, you'll need to configure the project with CMake. ::
 
     mkdir ../girder-build
     cd ../girder-build
@@ -451,7 +445,7 @@ To add tests for your plugin, you can make use of some handy CMake functions
 provided by the core system. For example: ::
 
     add_python_test(cat PLUGIN cats)
-    add_python_style_test(pep8_style_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
+    add_python_style_test(python_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
 
 Then you should create a ``plugin_tests`` package in your plugin: ::
 

@@ -19,7 +19,6 @@
 
 import base64
 import cherrypy
-import json
 
 from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description

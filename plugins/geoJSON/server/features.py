@@ -248,7 +248,7 @@ class Geometry(Base):
         to the coordinate class associated with the geometry.
         """
         if self.coordinate is None:  # pragma: no cover
-            raise AbastractMethodException
+            raise AbstractMethodException
 
         self.coord = self.coordinate(**kw)
 

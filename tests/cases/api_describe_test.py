@@ -19,7 +19,6 @@
 
 from .. import base
 
-from girder.constants import AccessType, ROOT_DIR
 from girder.api import describe
 
 

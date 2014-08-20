@@ -17,9 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import datetime
-import os
 
 from .model_base import Model, ValidationException
 from girder.utility import assetstore_utilities
