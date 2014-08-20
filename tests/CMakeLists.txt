@@ -5,8 +5,8 @@ set(JS_COVERAGE_MINIMUM_PASS 5)
 python_tests_init()
 javascript_tests_init()
 
-add_python_style_test(pep8_style_core "${PROJECT_SOURCE_DIR}/girder")
-add_python_style_test(pep8_style_core_tests "${PROJECT_SOURCE_DIR}/tests")
+add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
+add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
 add_python_test(api_describe)
 add_python_test(assetstore)

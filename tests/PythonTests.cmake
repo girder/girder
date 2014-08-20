@@ -1,7 +1,7 @@
 include(CMakeParseArguments)
 
 set(py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
-set(pep8_config "${PROJECT_SOURCE_DIR}/tests/pep8.cfg")
+set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
 
 if(PYTHON_BRANCH_COVERAGE)
@@ -51,11 +51,11 @@ function(python_tests_init)
 endfunction()
 
 function(add_python_style_test name input)
-  if(PYTHON_STYLE_TESTS)
+  if(PYTHON_STATIC_ANALYSIS)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PEP8_EXECUTABLE}" "--config=${pep8_config}" "${input}"
+      COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
   endif()
 endfunction()
