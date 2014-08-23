@@ -33,6 +33,9 @@ girder.views.HierarchyWidget = girder.View.extend({
      *   [showItems=true]: Whether to show items in the list (or just folders).
      *   [checkboxes=true]: Whether to show checkboxes next to each resource.
      *   [routing=true]: Whether the route should be updated by this widget.
+     *   [onItemClick]: A function that will be called when an item is clicked,
+     *                  passed the Item model as its only argument. By default,
+     *                  navigates to the item view page.
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
@@ -43,6 +46,9 @@ girder.views.HierarchyWidget = girder.View.extend({
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
+        this._onItemClick = settings.onItemClick || function (item) {
+            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
+        };
 
         this.breadcrumbs = [this.parentModel];
 
@@ -155,9 +161,8 @@ girder.views.HierarchyWidget = girder.View.extend({
                 el: this.$('.g-item-list-container'),
                 checkboxes: this._checkboxes
             });
-            this.itemListView.on('g:itemClicked', function (item) {
-                girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-            }, this).off('g:checkboxesChanged')
+            this.itemListView.on('g:itemClicked', this._onItemClick)
+                    .off('g:checkboxesChanged')
                     .on('g:checkboxesChanged', this.updateChecked, this)
                     .off('g:changed').on('g:changed', function () {
                 this.itemCount = this.itemListView.collection.length;
