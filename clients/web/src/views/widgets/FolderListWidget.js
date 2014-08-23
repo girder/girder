@@ -16,6 +16,7 @@ girder.views.FolderListWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.checked = [];
+        this._checkboxes = settings.checkboxes;
 
         new girder.views.LoadingAnimation({
             el: this.$el
@@ -36,7 +37,8 @@ girder.views.FolderListWidget = girder.View.extend({
         this.checked = [];
         this.$el.html(jade.templates.folderList({
             folders: this.collection.models,
-            hasMore: this.collection.hasNextPage()
+            hasMore: this.collection.hasNextPage(),
+            checkboxes: this._checkboxes
         }));
 
         var view = this;

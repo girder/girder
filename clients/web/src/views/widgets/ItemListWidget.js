@@ -14,6 +14,7 @@ girder.views.ItemListWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.checked = [];
+        this._checkboxes = settings.checkboxes;
 
         new girder.views.LoadingAnimation({
             el: this.$el
@@ -35,7 +36,8 @@ girder.views.ItemListWidget = girder.View.extend({
         this.$el.html(jade.templates.itemList({
             items: this.collection.models,
             hasMore: this.collection.hasNextPage(),
-            girder: girder
+            girder: girder,
+            checkboxes: this._checkboxes
         }));
 
         var view = this;

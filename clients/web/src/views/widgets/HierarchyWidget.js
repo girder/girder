@@ -26,15 +26,23 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     /**
-     * This should be instantiated with the following properties:
-     * -parentModel: The model representing the root node. Must be a User,
-                     Collection, or Folder model.
+     * This should be instantiated with the following settings:
+     *   parentModel: The model representing the root node. Must be a User,
+     *                 Collection, or Folder model.
+     *   [showActions=true]: Whether to show the action bar.
+     *   [showItems=true]: Whether to show items in the list (or just folders).
+     *   [checkboxes=true]: Whether to show checkboxes next to each resource.
+     *   [routing=true]: Whether the route should be updated by this widget.
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
         this.upload = settings.upload;
         this.access = settings.access;
         this.edit = settings.edit;
+        this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
+        this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
+        this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
+        this._routing = _.has(settings, 'routing') ? settings.routing : true;
 
         this.breadcrumbs = [this.parentModel];
 
@@ -47,12 +55,14 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     _setRoute: function () {
-        var route = this.breadcrumbs[0].resourceName + '/' +
-            this.breadcrumbs[0].get('_id');
-        if (this.parentModel.resourceName === 'folder') {
-            route += '/folder/' + this.parentModel.get('_id');
+        if (this._routing) {
+            var route = this.breadcrumbs[0].resourceName + '/' +
+                this.breadcrumbs[0].get('_id');
+            if (this.parentModel.resourceName === 'folder') {
+                route += '/folder/' + this.parentModel.get('_id');
+            }
+            girder.router.navigate(route);
         }
-        girder.router.navigate(route);
     },
 
     _fetchToRoot: function (folder) {
@@ -82,7 +92,9 @@ girder.views.HierarchyWidget = girder.View.extend({
             type: this.parentModel.resourceName,
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
-            AccessType: girder.AccessType
+            AccessType: girder.AccessType,
+            showActions: this._showActions,
+            checkboxes: this._checkboxes
         }));
 
         var view = this;
@@ -120,7 +132,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.folderListView = new girder.views.FolderListWidget({
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
-            el: this.$('.g-folder-list-container')
+            el: this.$('.g-folder-list-container'),
+            checkboxes: this._checkboxes
         });
         this.folderListView.on('g:folderClicked', function (folder) {
             this.descend(folder);
@@ -135,11 +148,12 @@ girder.views.HierarchyWidget = girder.View.extend({
             this._childCountCheck();
         }, this);
 
-        if (this.parentModel.resourceName === 'folder') {
+        if (this.parentModel.resourceName === 'folder' && this._showItems) {
             // Setup the child item list view
             this.itemListView = new girder.views.ItemListWidget({
                 folderId: this.parentModel.get('_id'),
-                el: this.$('.g-item-list-container')
+                el: this.$('.g-item-list-container'),
+                checkboxes: this._checkboxes
             });
             this.itemListView.on('g:itemClicked', function (item) {
                 girder.router.navigate('item/' + item.get('_id'), {trigger: true});
