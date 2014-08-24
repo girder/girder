@@ -5,7 +5,7 @@ girder.views.ItemListWidget = girder.View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
-            this.trigger('g:itemClicked', this.collection.get(cid));
+            this.trigger('g:itemClicked', this.collection.get(cid), event);
         },
         'click a.g-show-more-items': function () {
             this.collection.fetchNextPage();
@@ -82,5 +82,26 @@ girder.views.ItemListWidget = girder.View.extend({
         }
 
         this.trigger('g:checkboxesChanged');
+    },
+
+    /**
+     * Select (highlight) an item in the list.
+     * @param item An ItemModel instance representing the item to select.
+     */
+    selectItem: function (item) {
+        this.$('li.g-item-list-entry').removeClass('g-selected');
+        this.$('a.g-item-list-link[g-item-cid=' + item.cid + ']')
+            .parents('li.g-item-list-entry').addClass('g-selected');
+    },
+
+    /**
+     * Return the currently selected item, or null if there is no selected item.
+     */
+    getSelectedItem: function () {
+        var el = this.$('li.g-item-list-entry.g-selected');
+        if (!el.length) {
+            return null;
+        }
+        return this.collection.get(el[0].attr('g-item-cid'));
     }
 });

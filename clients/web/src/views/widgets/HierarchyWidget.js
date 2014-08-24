@@ -33,9 +33,11 @@ girder.views.HierarchyWidget = girder.View.extend({
      *   [showItems=true]: Whether to show items in the list (or just folders).
      *   [checkboxes=true]: Whether to show checkboxes next to each resource.
      *   [routing=true]: Whether the route should be updated by this widget.
+     *   [appendPages=false]: Whether new pages should be appended instead of
+     *                        replaced.
      *   [onItemClick]: A function that will be called when an item is clicked,
-     *                  passed the Item model as its only argument. By default,
-     *                  navigates to the item view page.
+     *                  passed the Item model as its first argument and the
+     *                  event as its second.
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
@@ -46,6 +48,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
+        this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || function (item) {
             girder.router.navigate('item/' + item.get('_id'), {trigger: true});
         };
@@ -161,7 +164,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 el: this.$('.g-item-list-container'),
                 checkboxes: this._checkboxes
             });
-            this.itemListView.on('g:itemClicked', this._onItemClick)
+            this.itemListView.on('g:itemClicked', this._onItemClick, this)
                     .off('g:checkboxesChanged')
                     .on('g:checkboxesChanged', this.updateChecked, this)
                     .off('g:changed').on('g:changed', function () {
@@ -344,6 +347,21 @@ girder.views.HierarchyWidget = girder.View.extend({
         }).on('g:saved', function (folder) {
             // need to do anything?
         }, this);
+    },
+
+    /**
+     * Select (highlight) an item in the list.
+     * @param item An ItemModel instance representing the item to select.
+     */
+    selectItem: function (item) {
+        this.itemListView.selectItem(item);
+    },
+
+    /**
+     * Return the currently selected item, or null if there is no selected item.
+     */
+    getSelectedItem: function () {
+        return this.itemListView.getSelectedItem();
     }
 });
 
