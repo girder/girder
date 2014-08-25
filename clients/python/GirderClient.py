@@ -11,7 +11,7 @@ class GirderClient(object):
     c = GirderClient('myhost', 9000)
     c.authenticate('myname', 'mypass')
 
-    itemId = c.createitem(folderId, 'some item name', 'and description')
+    itemId = c.createItem(folderId, 'some item name', 'and description')
     c.addMetaDataToItem(itemId, {'metakey': 'metavalue'})
     c.uploadFileToItem(itemId, '/full/path/to/your/file.txt')
 
