@@ -1,6 +1,7 @@
 import json
 import requests
 import os
+import os.path
 
 
 class GirderClient(object):
@@ -13,7 +14,7 @@ class GirderClient(object):
 
     itemId = c.createItem(folderId, 'some item name', 'and description')
     c.addMetaDataToItem(itemId, {'metakey': 'metavalue'})
-    c.uploadFileToItem(itemId, '/full/path/to/your/file.txt')
+    c.uploadFileToItem(itemId, 'path/to/your/file.txt')
 
     r1 = c.getItem('52e935037bee0436e29a7130')
     r2 = c.sendRestRequest('GET', 'item', {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
@@ -174,6 +175,7 @@ class GirderClient(object):
         """
         data = None
 
+        filepath = os.path.abspath(filepath)
         with open(filepath, 'rb') as fd :
             data = fd.read()
 
