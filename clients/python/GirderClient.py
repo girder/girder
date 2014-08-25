@@ -4,6 +4,10 @@ import os
 import os.path
 
 
+class AuthenticationError(RuntimeError):
+    pass
+
+
 class GirderClient(object):
     """
     A class for interacting with the Girder RESTful api.  Some simple examples
@@ -69,8 +73,12 @@ class GirderClient(object):
             raise Exception('A user name and password are required')
 
         authResponse = requests.get(self.urlBase + 'user/authentication',
-                                    auth=(username, password))
-        self.token = authResponse.json()['authToken']['token']
+                                    auth=(username, password)).json()
+
+        if 'authToken' not in authResponse:
+            raise AuthenticationError()
+
+        self.token = authResponse['authToken']['token']
 
     #-------------------------------------------------------------------------
     # Construct url and send request
