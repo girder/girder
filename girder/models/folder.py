@@ -268,7 +268,7 @@ class Folder(AccessControlledModel):
         # Delete this folder
         AccessControlledModel.remove(self, folder)
 
-    def childItems(self, folder, limit=50, offset=0, sort=None, filters={}):
+    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None):
         """
         Generator function that yields child items in a folder.
 
@@ -278,6 +278,9 @@ class Folder(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
         """
+        if not filters:
+            filters = {}
+
         q = {
             'folderId': folder['_id']
         }
@@ -289,7 +292,7 @@ class Folder(AccessControlledModel):
             yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
-                     sort=None, filters={}):
+                     sort=None, filters=None):
         """
         This generator will yield child folders of a user, collection, or
         folder, with access policy filtering.
@@ -305,6 +308,9 @@ class Folder(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
         """
+        if not filters:
+            filters = {}
+
         parentType = parentType.lower()
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
@@ -411,7 +417,7 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
-    def parentsToRoot(self, folder, curPath=[], user=None, force=False,
+    def parentsToRoot(self, folder, curPath=None, user=None, force=False,
                       level=AccessType.READ):
         """
         Get the path to traverse to a root of the hierarchy.
@@ -420,6 +426,9 @@ class Folder(AccessControlledModel):
         :type item: dict
         :returns: an ordered list of dictionaries from root to the current item
         """
+        if not curPath:
+            curPath = []
+
         curParentId = folder['parentId']
         curParentType = folder['parentCollection']
         if curParentType == 'user' or curParentType == 'collection':

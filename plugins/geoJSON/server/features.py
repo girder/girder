@@ -296,7 +296,7 @@ class Feature(Base):
     typeName = 'Feature'  # feature type string
     geometry = None       # geometry associated with this feature
 
-    def __init__(self, keys=None, flatten=[], **kw):
+    def __init__(self, keys=None, flatten=None, **kw):
         """
         Initialize the feature object.  Extra keyword arguments are passed
         to the associated geometry class.
@@ -310,6 +310,9 @@ class Feature(Base):
                         flatten hierarchical objects into a single object.
         :type flatten: [str]
         """
+        if not flatten:
+            flatten = []
+
         if self.geometry is None:  # pragma: no cover
             raise AbstractMethodException
 

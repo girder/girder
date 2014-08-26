@@ -114,7 +114,7 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
+    def find(self, query=None, offset=0, limit=50, sort=None, fields=None):
         """
         Search the collection by a set of parameters.
 
@@ -130,11 +130,14 @@ class Model(ModelImporter):
         :type fields: List of strings
         :returns: A pymongo database cursor.
         """
+        if not query:
+            query = {}
+
         return self.collection.find(spec=query, fields=fields, skip=offset,
                                     limit=limit, sort=sort)
 
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
-                   filters={}):
+                   filters=None):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -143,6 +146,9 @@ class Model(ModelImporter):
         :param filters: Any additional query operators to apply.
         :type filters: dict
         """
+        if not filters:
+            filters = {}
+
         filters['$text'] = {
             '$search': query
         }
@@ -272,7 +278,7 @@ class Model(ModelImporter):
 
         return doc
 
-    def filterDocument(self, doc, allow=[]):
+    def filterDocument(self, doc, allow=None):
         """
         This method will filter the given document to make it suitable to
         output to the user.
@@ -282,6 +288,9 @@ class Model(ModelImporter):
         :param allow: The whitelist of fields to allow in the output document.
         :type allow: List of strings
         """
+        if not allow:
+            allow = []
+
         if doc is None:
             return None
 
@@ -648,7 +657,7 @@ class AccessControlledModel(Model):
             if count == limit:
                 break
 
-    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to also force permission-based
@@ -656,6 +665,9 @@ class AccessControlledModel(Model):
 
         :param user: The user to apply permission filtering for.
         """
+        if not filters:
+            filters = {}
+
         results = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)

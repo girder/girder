@@ -74,7 +74,7 @@ class GirderClient(object):
     #-------------------------------------------------------------------------
     # Construct url and send request
     #-------------------------------------------------------------------------
-    def sendRestRequest(self, method, path, parameters={}):
+    def sendRestRequest(self, method, path, parameters=None):
         """
         This method looks up the appropriate method, constructs a request
         url from the base url, path, and parameters, and then sends the
@@ -96,6 +96,9 @@ class GirderClient(object):
             as the key/value pairs in the request parameters.
 
         """
+        if not parameters:
+            parameters = {}
+
         # Make sure we got a valid method
         assert method in self.METHODS
 
