@@ -126,7 +126,7 @@ class AsyncEventsThread(threading.Thread):
         """
         print TerminalColor.info('Started asynchronous event manager thread.')
 
-        while(not self.terminate):
+        while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
             try:
                 event = trigger(eventName, info)

@@ -420,7 +420,7 @@ class Resource(ModelImporter):
         else:
             sort = None
 
-        return (limit, offset, sort)
+        return limit, offset, sort
 
     @_cacheAuthUser
     def getCurrentUser(self, returnToken=False):

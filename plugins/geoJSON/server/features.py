@@ -211,7 +211,7 @@ class Position(Base):
         """
         lon = self.get(self.longitude, data)
         lat = self.get(self.latitude, data)
-        return (lon, lat)
+        return lon, lat
 
 
 # more geoJSON coordinate types to be implemented
