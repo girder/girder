@@ -17,7 +17,7 @@
 
 class AbstractAssetstoreAdapter(object):
     """
-    This defines the interace to be used by all assetstore adapters.
+    This defines the interface to be used by all assetstore adapters.
     """
 
     @staticmethod

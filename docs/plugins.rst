@@ -31,11 +31,11 @@ and select the option to log in with Google.
 Google Analytics
 ----------------
 
-The Google Analytics plugin enables the use of google analytics to track
-pageviews with the Girder one-page application. It is primarily a client-side
+The Google Analytics plugin enables the use of Google Analytics to track
+page views with the Girder one-page application. It is primarily a client-side
 plugin with the tracking ID stored in the database. Each routing change will
-trigger a pageview event and the hierarchy widget has special handling (though
-it doesn't technically trigger routing events for hierarchy navigation).
+trigger a page view event and the hierarchy widget has special handling (though
+it does not technically trigger routing events for hierarchy navigation).
 
 To use this plugin, simply copy your tracking ID from Google Analytics into the
 plugin configuration page.

@@ -27,7 +27,7 @@ Listeners should bind to events by calling:
     girder.events.bind('event.name', 'my.handler', handlerFunction)
 
 And events should be fired in one of two ways; if the event should be handled
-synchronouly, fire it with:
+synchronously, fire it with:
 
     girder.events.trigger('event.name', info)
 

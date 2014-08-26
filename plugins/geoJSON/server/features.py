@@ -126,7 +126,7 @@ class Base(object):
         """
         The call method is used by subclasses to transform
         and argument or iterable into a specific geoJSON
-        component.  It must be overriden by subclasses.
+        component.  It must be overridden by subclasses.
         """
         raise AbstractMethodException
 
@@ -147,7 +147,7 @@ class Base(object):
     @classmethod
     def get(cls, acc, data):
         """
-        Get a property of a data elemennt determined by an accessor.
+        Get a property of a data element determined by an accessor.
 
         The data objects should implement the [] operator like a
         `dict` or `list`.
@@ -158,7 +158,7 @@ class Base(object):
         an int.
 
         The accessor can also reference subobjects by using a '.'
-        to seperate keys.  For example:
+        to separate keys.  For example:
 
             >>> Base.get('a.b.1', {'a': {'b': [10, 11]}})
             11

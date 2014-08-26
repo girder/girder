@@ -94,7 +94,7 @@ def _createResponse(val):
         if accept.value == 'application/json':
             break
         elif accept.value == 'text/html':  # pragma: no cover
-            # Pretty-print and HTMLify the response for the browser
+            # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
             resp = json.dumps(val, indent=4, sort_keys=True,
                               separators=(',', ': '), default=str)

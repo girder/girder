@@ -105,7 +105,7 @@ class Folder(AccessControlledModel):
         :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
-        :param force: If you explicity want to circumvent access
+        :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
         """

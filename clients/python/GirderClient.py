@@ -79,7 +79,7 @@ class GirderClient(object):
         This method looks up the appropriate method, constructs a request
         url from the base url, path, and parameters, and then sends the
         request.  If the method is unknown or if the path is not found,
-        an exception is raisde, otherwise a json object is returned with
+        an exception is raised, otherwise a json object is returned with
         the Girder response.
 
         This is a convenience method to use when making basic requests

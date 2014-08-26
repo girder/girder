@@ -255,7 +255,7 @@ class Model(ModelImporter):
 
     def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field.
+        Fetch a single object from the database using its _id field.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
@@ -596,7 +596,7 @@ class AccessControlledModel(Model):
         :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
-        :param force: If you explicity want to circumvent access
+        :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
         """

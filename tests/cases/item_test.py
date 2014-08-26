@@ -228,7 +228,8 @@ class ItemTestCase(base.TestCase):
         item = self.model('item').load(resp.json['_id'], force=True)
         self.assertTrue(self.model('item').hasAccess(item))
 
-        # Move should fail if we don't have write permission on the dest folder
+        # Move should fail if we don't have write permission on the
+        # destination folder
         self.publicFolder = self.model('folder').setUserAccess(
             self.publicFolder, self.users[1], AccessType.WRITE, save=True)
         resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
