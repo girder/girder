@@ -112,13 +112,8 @@ parallel. More information about CTest can be found
 Running the tests with coverage tracing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to run coverage, make sure you have installed
-`coverage.py <http://nedbatchelder.com/code/coverage/>`_: ::
-
-    pip install coverage
-
-And in your CMake configuration, set **PYTHON_COVERAGE** to **ON**. Then,
-configure with cmake and run **ctest**, and the coverage will be created. After
+To run python coverage on your tests, configure with cmake and run **ctest**,
+and the coverage data will be automatically generated. After
 the tests are run, you can find the HTML output from the coverage tool in the
 source directory under **/clients/web/dev/built/py_coverage**.
 

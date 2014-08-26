@@ -9,7 +9,7 @@ before_install:
     - "sudo apt-get install mongodb-org-server"
     - mongod --version
 install:
-    - sudo pip install -r requirements.txt
+    - sudo pip install -r requirements.txt -r requirements-dev.txt
     - sudo pip install coverage
     - sudo python setup.py install
     - npm install -g grunt grunt-cli
@@ -17,7 +17,7 @@ install:
 script:
     - mkdir _build
     - cd _build
-    - cmake -D PYTHON_COVERAGE:BOOL=ON ..
+    - cmake ..
     - ctest -VV -S ../cmake/travis_continuous.cmake
     - cd ..
     - git fetch --unshallow
