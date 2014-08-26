@@ -112,10 +112,10 @@ parallel. More information about CTest can be found
 Running the tests with coverage tracing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To run python coverage on your tests, configure with cmake and run **ctest**,
-and the coverage data will be automatically generated. After
-the tests are run, you can find the HTML output from the coverage tool in the
-source directory under **/clients/web/dev/built/py_coverage**.
+To run python coverage on your tests, configure with cmake and run **ctest**.
+The coverage data will be automatically generated. After the tests are run,
+you can find the HTML output from the coverage tool in the source directory
+under **/clients/web/dev/built/py_coverage**.
 
 Creating tests
 ^^^^^^^^^^^^^^
