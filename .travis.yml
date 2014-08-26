@@ -10,7 +10,6 @@ before_install:
     - mongod --version
 install:
     - sudo pip install -r requirements.txt -r requirements-dev.txt
-    - sudo pip install coverage
     - sudo python setup.py install
     - npm install -g grunt grunt-cli
     - npm install
