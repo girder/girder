@@ -129,7 +129,7 @@ class FolderTestCase(base.TestCase):
             user=self.user, params={
                 'parentId': self.admin['_id'],
                 'parentType': 'user'
-                })
+            })
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Write access denied for user.')
 

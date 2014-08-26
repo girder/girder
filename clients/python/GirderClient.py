@@ -22,10 +22,12 @@ class GirderClient(object):
 
     # A convenience dictionary mapping method names to functions
     # in the requests module.
-    METHODS = { 'GET': requests.get,
-                'POST': requests.post,
-                'PUT': requests.put,
-                'DELETE': requests.delete }
+    METHODS = {
+        'GET': requests.get,
+        'POST': requests.post,
+        'PUT': requests.put,
+        'DELETE': requests.delete
+    }
 
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
@@ -64,7 +66,7 @@ class GirderClient(object):
             password: A string containing the password to use in basic
             authentication.
         """
-        if username is None or password is None :
+        if username is None or password is None:
             raise Exception('A user name and password are required')
 
         authResponse = requests.get(self.urlBase + 'user/authentication',
@@ -115,7 +117,7 @@ class GirderClient(object):
         result = f(url, params=parameters)
 
         # If success, return the json object.  Otherwise throw an exception.
-        if result.status_code == 200 or result.status_code == 403 :
+        if result.status_code == 200 or result.status_code == 403:
             return result.json()
         else:
             print 'Showing result before raising exception:'
@@ -125,39 +127,43 @@ class GirderClient(object):
     #-------------------------------------------------------------------------
     # A convenience method for creating a new item.
     #-------------------------------------------------------------------------
-    def createItem(self, parentFolderId, name, description) :
+    def createItem(self, parentFolderId, name, description):
         """
         Creates an item and returns the new item id.
         """
         path = 'item'
-        params = { 'folderId': parentFolderId,
-                   'name': name,
-                   'description': description }
+        params = {
+            'folderId': parentFolderId,
+            'name': name,
+            'description': description
+        }
         obj = self.sendRestRequest('POST', path, params)
-        if '_id' in obj :
+        if '_id' in obj:
             return obj['_id']
-        else :
+        else:
             raise Exception('Error, expected the returned item object to have an "_id" field')
 
     #-------------------------------------------------------------------------
     # A convenience method for creating a new folder.
     #-------------------------------------------------------------------------
-    def createFolder(self, parentId, parentType, name, description) :
+    def createFolder(self, parentId, parentType, name, description):
         path = 'folder'
-        params = { 'parentId': parentId,
-                   'parentType': parentType,
-                   'name': name,
-                   'description': description }
+        params = {
+            'parentId': parentId,
+            'parentType': parentType,
+            'name': name,
+            'description': description
+        }
         obj = self.sendRestRequest('POST', path, params)
-        if '_id' in obj :
+        if '_id' in obj:
             return obj['_id']
-        else :
+        else:
             raise Exception('Error, expected to get a folder back with an "_id" field')
 
     #-------------------------------------------------------------------------
     # A convenience method for adding metadata to an existing item
     #-------------------------------------------------------------------------
-    def addMetaDataToItem(self, itemId, metadata) :
+    def addMetaDataToItem(self, itemId, metadata):
         """
         Takes an item id and a json object containing the metadata.
         """
@@ -169,7 +175,7 @@ class GirderClient(object):
     #-------------------------------------------------------------------------
     # A convenience method for uploading a file to an existing item
     #-------------------------------------------------------------------------
-    def uploadFileToItem(self, itemId, filepath) :
+    def uploadFileToItem(self, itemId, filepath):
         """
         Uploads a file to an item.  Currently only supports uploading
         in a single chunk, so files larger than 64 MB will raise an
@@ -177,48 +183,54 @@ class GirderClient(object):
         """
         data = None
 
-        with open(filepath, 'rb') as fd :
+        with open(filepath, 'rb') as fd:
             data = fd.read()
 
         datalen = len(data)
 
-        if datalen > self.MAX_CHUNK_SIZE :
-            raise Exception('Currently sending file larger than ' + \
-                            str(self.MAX_CHUNK_SIZE) + ' bytes is' + \
-                            ' not supported.  Your file is ' + \
+        if datalen > self.MAX_CHUNK_SIZE:
+            raise Exception('Currently sending file larger than ' +
+                            str(self.MAX_CHUNK_SIZE) + ' bytes is' +
+                            ' not supported.  Your file is ' +
                             str(datalen) + ' bytes.')
 
         filename = os.path.basename(filepath)
-        params = { 'parentType': 'item',
-                   'parentId': itemId,
-                   'name': filename,
-                   'size': datalen }
+        params = {
+            'parentType': 'item',
+            'parentId': itemId,
+            'name': filename,
+            'size': datalen
+        }
 
         obj = self.sendRestRequest('POST', 'file', params)
 
         uploadId = None
 
-        if '_id' in obj :
+        if '_id' in obj:
             uploadId = obj['_id']
-        else :
-            raise Exception('After creating an upload token, expected' + \
-                            ' an object with an id.  Got instead: ' + \
+        else:
+            raise Exception('After creating an upload token, expected' +
+                            ' an object with an id.  Got instead: ' +
                             json.dumps(obj))
 
-        parameters = { 'token': self.token,
-                       'offset': '0',
-                       'uploadId': uploadId }
+        parameters = {
+            'token': self.token,
+            'offset': '0',
+            'uploadId': uploadId
+        }
 
-        filedata = { 'chunk': data }
+        filedata = {
+            'chunk': data
+        }
 
         upResult = requests.post(self.urlBase + 'file/chunk', params=parameters, files=filedata)
         obj = upResult.json()
 
-        if '_id' in obj :
+        if '_id' in obj:
             return obj['_id']
-        else :
-            raise Exception('After uploading file as single chunk, did ' + \
-                            'not receive object with _id.  Got instead: ' + \
+        else:
+            raise Exception('After uploading file as single chunk, did ' +
+                            'not receive object with _id.  Got instead: ' +
                             json.dumps(obj))
 
     #-------------------------------------------------------------------------
