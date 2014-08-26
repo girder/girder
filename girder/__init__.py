@@ -34,7 +34,7 @@ class LogLevelFilter(object):
 
     def filter(self, logRecord):
         level = logRecord.levelno
-        return level <= self.maxLevel and level >= self.minLevel
+        return self.maxLevel >= level >= self.minLevel
 
 
 class LogFormatter(logging.Formatter):
