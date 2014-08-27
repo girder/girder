@@ -9,6 +9,11 @@ dependencies: ::
 
     pip install -r requirements.txt
 
+.. note:: If you intend to develop Girder or want to run the test suite, you should also
+   install the development dependencies: ::
+
+        pip install -r requirements-dev.txt
+
 Before you can build the client-side code project, you must install the
 `Grunt <http://gruntjs.com>`_ command line utilities: ::
 
@@ -38,7 +43,7 @@ Run
 
 To run the server, first make sure the mongo daemon is running. To manually start it, run: ::
 
-    mongod --setParameter textSearchEnabled=true &
+    mongod &
 
 Then, just run: ::
 
