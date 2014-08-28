@@ -2,7 +2,7 @@
 node_modules
 docs/_build
 docs/_output
-.coverage
+.coverage*
 girder.egg-info
 .DS_Store
 .*.swp
