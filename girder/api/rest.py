@@ -342,8 +342,18 @@ class Resource(ModelImporter):
 
     def requireParams(self, required, provided):
         """
-        Pass a list of required parameters.
+        Throws an exception if any of the parameters in the required iterable
+        is not found in the provided parameter set.
+
+        :param required: An iterable of required params, or if just one is
+        required, you can simply pass it as a string.
+        :type required: list, tuple, or str
+        :param provided: The list of provided parameters.
+        :type provided: dict
         """
+        if isinstance(required, basestring):
+            required = (required,)
+
         for param in required:
             if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)

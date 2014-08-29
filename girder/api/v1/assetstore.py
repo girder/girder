@@ -68,11 +68,11 @@ class Assetstore(Resource):
         assetstoreType = int(params['type'])
 
         if assetstoreType == AssetstoreType.FILESYSTEM:
-            self.requireParams(('root',), params)
+            self.requireParams('root', params)
             return self.model('assetstore').createFilesystemAssetstore(
                 name=params['name'], root=params['root'])
         elif assetstoreType == AssetstoreType.GRIDFS:
-            self.requireParams(('db',), params)
+            self.requireParams('db', params)
             return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:
@@ -112,10 +112,10 @@ class Assetstore(Resource):
         assetstore['current'] = params['current'].lower() == 'true'
 
         if assetstore['type'] == AssetstoreType.FILESYSTEM:
-            self.requireParams(('root',), params)
+            self.requireParams('root', params)
             assetstore['root'] = params['root']
         elif assetstore['type'] == AssetstoreType.GRIDFS:
-            self.requireParams(('db',), params)
+            self.requireParams('db', params)
             assetstore['db'] = params['db']
 
         return self.model('assetstore').save(assetstore)

@@ -64,7 +64,7 @@ class Collection(Resource):
 
     def createCollection(self, params):
         """Create a new collection. Requires global admin."""
-        self.requireParams(['name'], params)
+        self.requireParams('name', params)
 
         user = self.getCurrentUser()
         self.requireAdmin(user)
@@ -107,7 +107,7 @@ class Collection(Resource):
 
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def updateCollectionAccess(self, coll, params):
-        self.requireParams(('access',), params)
+        self.requireParams('access', params)
 
         public = self.boolParam('public', params, default=False)
         self.model('collection').setPublic(coll, public)

@@ -99,7 +99,7 @@ class System(Resource):
 
             return {k: self.model('setting').get(k) for k in keys}
         else:
-            self.requireParams(('key',), params)
+            self.requireParams('key', params)
             return self.model('setting').get(params['key'])
     getSetting.description = (
         Description('Get the value of a system setting, or a list of them.')
@@ -131,7 +131,7 @@ class System(Resource):
         'Get the version information for this server.')
 
     def enablePlugins(self, params):
-        self.requireParams(('plugins',), params)
+        self.requireParams('plugins', params)
         self.requireAdmin(self.getCurrentUser())
         try:
             plugins = json.loads(params['plugins'])
@@ -147,7 +147,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403))
 
     def unsetSetting(self, params):
-        self.requireParams(('key',), params)
+        self.requireParams('key', params)
         self.requireAdmin(self.getCurrentUser())
         return self.model('setting').unset(params['key'])
     unsetSetting.description = (

@@ -23,6 +23,7 @@ from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
+from girder.utility.assetstore_utilities import getAssetstoreAdapter
 
 
 class File(Resource):
@@ -39,6 +40,8 @@ class File(Resource):
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
         self.route('POST', ('completion',), self.finalizeUpload)
+        self.route('PUT', (':id',), self.updateFile)
+        self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
     def initUpload(self, params):
         """
@@ -65,7 +68,7 @@ class File(Resource):
                 url=params['linkUrl'], parent=parent, name=params['name'],
                 parentType=parentType, creator=user)
         else:
-            self.requireParams(('size',), params)
+            self.requireParams('size', params)
             upload = self.model('upload').createUpload(
                 user=user, name=params['name'], parentType=parentType,
                 parent=parent, size=int(params['size']), mimeType=mimeType)
@@ -88,7 +91,7 @@ class File(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     def finalizeUpload(self, params):
-        self.requireParams(('uploadId',), params)
+        self.requireParams('uploadId', params)
         user = self.getCurrentUser()
 
         upload = self.model('upload').load(params['uploadId'], exc=True)
@@ -114,7 +117,7 @@ class File(Resource):
         :param uploadId: The _id of the temp upload record being resumed.
         :returns: The offset in bytes that the client should use.
         """
-        self.requireParams(('uploadId',), params)
+        self.requireParams('uploadId', params)
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
 
@@ -194,10 +197,42 @@ class File(Resource):
     def deleteFile(self, file, params):
         user = self.getCurrentUser()
         self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.ADMIN, exc=True)
+                                level=AccessType.WRITE, exc=True)
         self.model('file').remove(file)
     deleteFile.description = (
         Description('Delete a file by ID.')
         .param('id', 'The ID of the file.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403))
+
+    @loadmodel(map={'id': 'file'}, model='file')
+    def updateFile(self, file, params):
+        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
+                                level=AccessType.WRITE, exc=True)
+        file['name'] = params.get('name', file['name']).strip()
+        file['mimeType'] = params.get('mimeType', file['mimeType']).strip()
+        return self.model('file').save(file)
+    updateFile.description = (
+        Description('Change file metadata such as name or MIME type.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('name', 'The name to set on the file.', required=False)
+        .param('mimeType', 'The MIME type of the file.', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied on the parent folder.', 403))
+
+    @loadmodel(map={'id': 'file'}, model='file')
+    def updateFileContents(self, file, params):
+        self.requireParams('size', params)
+        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
+                                level=AccessType.WRITE, exc=True)
+        adapter = getAssetstoreAdapter(
+            self.model('assetstore').load(file['assetstoreId']))
+        adapter.deleteFile(file)
+        upload = self.model('upload').createUploadToFile(
+            user=self.getCurrentUser(), file=file, size=int(params['size']))
+    updateFileContents.description = (
+        Description('Change the contents of an existing file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('size', 'Size in bytes of the new file.', dataType='integer')
+        .notes('After calling this, send the chunks just like you would with a '
+               'normal file upload.'))
