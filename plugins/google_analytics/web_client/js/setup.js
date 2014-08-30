@@ -2,7 +2,8 @@ girder.exposePluginConfig('google_analytics', 'plugins/google_analytics/config')
 girder.events.on('g:appload.after', function () {
 
     // We ignore this block of code as it is the standard Google Analytics
-    // snippet.
+    // snippet. We also make sure that JSHint knows we have a ga object for
+    // interacting with it.
     /* global ga */
     /* jshint ignore:start */
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
