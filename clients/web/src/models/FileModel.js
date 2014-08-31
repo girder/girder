@@ -3,17 +3,33 @@ girder.models.FileModel = girder.Model.extend({
     resumeInfo: null,
 
     /**
+     * Upload into an existing file object (i.e. this model) to change its
+     * contents. This does not change the name or MIME type of the existing
+     * file.
+     * @param file The browser File object to be uploaded.
+     */
+    updateContents: function (file) {
+        this.upload(null, file, {
+            path: 'file/' + this.get('_id') + '/contents',
+            type: 'PUT',
+            data: {
+                'size': file.size
+            }
+        });
+    },
+
+    /**
      * Upload a file. Handles uploading into all of the core assetstore types.
      * @param parentModel The parent folder or item to upload into.
      * @param file The browser File object to be uploaded.
+     * @param [_restParams] Override the rest request parameters. This is meant
+     * for internal use; do not pass this parameter.
      */
-    upload: function (parentModel, file) {
+    upload: function (parentModel, file, _restParams) {
         this.startByte = 0;
         this.resumeInfo = null;
         this.uploadHandler = null;
-
-        // Authenticate and generate the upload token for this file
-        girder.restRequest({
+        _restParams = _restParams || {
             path: 'file',
             type: 'POST',
             data: {
@@ -23,7 +39,10 @@ girder.models.FileModel = girder.Model.extend({
                 'size': file.size,
                 'mimeType': file.type
             }
-        }).done(_.bind(function (upload) {
+        };
+
+        // Authenticate and generate the upload token for this file
+        girder.restRequest(_restParams).done(_.bind(function (upload) {
             var behavior = upload.behavior;
             if (behavior && girder.uploadHandlers[behavior]) {
                 this.uploadHandler = new girder.uploadHandlers[behavior]({
