@@ -23,7 +23,6 @@ from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
-from girder.utility.assetstore_utilities import getAssetstoreAdapter
 
 
 class File(Resource):
@@ -225,11 +224,15 @@ class File(Resource):
         self.requireParams('size', params)
         self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
                                 level=AccessType.WRITE, exc=True)
-        adapter = getAssetstoreAdapter(
-            self.model('assetstore').load(file['assetstoreId']))
-        adapter.deleteFile(file)
+
+        # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
-            user=self.getCurrentUser(), file=file, size=int(params['size']))
+            file=file, user=self.getCurrentUser(), size=int(params['size']))
+
+        if upload['size'] > 0:
+            return upload
+        else:
+            return self.model('upload').finalizeUpload(upload)
     updateFileContents.description = (
         Description('Change the contents of an existing file.')
         .param('id', 'The ID of the file.', paramType='path')
