@@ -1,6 +1,6 @@
 # Set this variable to the minimum coverage percentage to be considered passing
 set(COVERAGE_MINIMUM_PASS 80)
-set(JS_COVERAGE_MINIMUM_PASS 5)
+set(JS_COVERAGE_MINIMUM_PASS 50)
 
 python_tests_init()
 javascript_tests_init()
