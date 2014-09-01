@@ -22,3 +22,15 @@ girder.events.on('g:appload.after', function () {
         ga('create', resp['google_analytics.tracking_id'], 'none');
     }, this));
 });
+
+/**
+ * Add analytics for the hierarchy widget specifically since it routes without
+ * triggering (calling navigate without {trigger: true}).
+ */
+girder.events.on('g:hierarchy.route', function (args) {
+    var curRoute = args.route;
+    if (!/^\//.test(curRoute)) {
+      curRoute = '/' + curRoute;
+    }
+    ga('send', 'pageview', curRoute);
+});
