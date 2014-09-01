@@ -70,7 +70,8 @@ def loadPlugins(plugins, root, appconf):
         for plugin in pset:
             try:
                 loadPlugin(plugin, root, appconf)
-                print TerminalColor.success('Loaded plugin "{}"'.format(plugin))
+                print TerminalColor.success('Loaded plugin "{}"'
+                                            .format(plugin))
             except:
                 print TerminalColor.error(
                     'ERROR: Failed to load plugin "{}":'.format(plugin))
