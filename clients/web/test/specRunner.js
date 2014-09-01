@@ -70,6 +70,10 @@ page.onConsoleMessage = function (msg) {
             console.log('Exception writing coverage results: ', e);
         }
     }
+    else if (msg.indexOf('__ATTACH__') === 0) {
+        var parts = msg.substring('__ATTACH__'.length).split(' ');
+        page.uploadFile(parts[0], parts[1]);
+    }
     else {
         console.log(msg);
     }
