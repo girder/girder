@@ -17,8 +17,7 @@
             if (settings.item) {
                 this.model = settings.item;
                 this.render();
-            }
-            else {
+            } else {
                 console.error('Implement fetch then render item');
             }
 
@@ -127,4 +126,4 @@
         });
     });
 
-}) ();
+}());

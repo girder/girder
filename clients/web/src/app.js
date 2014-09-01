@@ -72,8 +72,7 @@ girder.App = Backbone.View.extend({
              */
             /*jshint -W055 */
             this.bodyView = new view(settings);
-        }
-        else {
+        } else {
             console.error('Undefined page.');
         }
         return this;

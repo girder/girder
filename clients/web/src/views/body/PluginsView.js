@@ -14,8 +14,7 @@ girder.views.PluginsView = girder.View.extend({
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.render();
-        }
-        else {
+        } else {
             // Fetch the plugin list
             girder.restRequest({
                 path: 'system/plugins',
@@ -47,8 +46,7 @@ girder.views.PluginsView = girder.View.extend({
                 var plugin = $(event.currentTarget).attr('key');
                 if (state === true) {
                     view.enabled.push(plugin);
-                }
-                else {
+                } else {
                     var idx;
                     while ((idx = view.enabled.indexOf(plugin)) >= 0) {
                         view.enabled.splice(idx, 1);

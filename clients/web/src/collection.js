@@ -96,8 +96,7 @@ girder.Collection = Backbone.Collection.extend({
                 // the extra that we fetched.
                 list.pop();
                 this._hasMorePages = true;
-            }
-            else {
+            } else {
                 this._hasMorePages = false;
             }
 
@@ -110,8 +109,7 @@ girder.Collection = Backbone.Collection.extend({
             if (list.length > 0 || reset) {
                 if (this.append) {
                     this.add(list);
-                }
-                else {
+                } else {
                     this.set(list);
                 }
             }

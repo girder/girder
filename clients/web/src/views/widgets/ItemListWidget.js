@@ -19,7 +19,6 @@ girder.views.ItemListWidget = girder.View.extend({
             el: this.$el
         }).render();
 
-
         this.collection = new girder.collections.ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
@@ -43,8 +42,7 @@ girder.views.ItemListWidget = girder.View.extend({
             var cid = $(this).attr('g-item-cid');
             if (this.checked) {
                 view.checked.push(cid);
-            }
-            else {
+            } else {
                 var idx = view.checked.indexOf(cid);
                 if (idx !== -1) {
                     view.checked.splice(idx, 1);

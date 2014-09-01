@@ -79,8 +79,7 @@ girder.views.UploadWidget = girder.View.extend({
         if (this.files.length === 0) {
             this.$('.g-overall-progress-message').text('No files selected');
             this.$('.g-start-upload').addClass('disabled');
-        }
-        else {
+        } else {
             this.totalSize = 0;
             _.each(this.files, function (file) {
                 this.totalSize += file.size;
@@ -90,8 +89,7 @@ girder.views.UploadWidget = girder.View.extend({
 
             if (this.files.length > 1) {
                 msg = 'Selected ' + this.files.length + ' files';
-            }
-            else {
+            } else {
                 msg = 'Selected <b>' + this.files[0].name + '</b>';
             }
             this.$('.g-overall-progress-message').html('<i class="icon-ok"/> ' +
@@ -131,7 +129,7 @@ girder.views.UploadWidget = girder.View.extend({
         }
 
         this.currentFile = this.parentType === 'file' ?
-            this.parent : new girder.models.FileModel();
+                this.parent : new girder.models.FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
             this.currentIndex += 1;
@@ -148,9 +146,10 @@ girder.views.UploadWidget = girder.View.extend({
                           this.totalSize) + '%');
             this.$('.g-current-progress-message').html(
                 '<i class="icon-doc-text"/>' + (this.currentIndex + 1) + ' of ' +
-                this.files.length + ' - <b>' + info.file.name + '</b>: ' +
-                girder.formatSize(currentProgress) + ' / ' +
-                girder.formatSize(info.total));
+                    this.files.length + ' - <b>' + info.file.name + '</b>: ' +
+                    girder.formatSize(currentProgress) + ' / ' +
+                    girder.formatSize(info.total)
+            );
             this.$('.g-overall-progress-message').html('Overall progress: ' +
                 girder.formatSize(this.overallProgress + info.loaded) + ' / ' +
                 girder.formatSize(this.totalSize));
@@ -162,8 +161,7 @@ girder.views.UploadWidget = girder.View.extend({
 
         if (this.parentType === 'file') {
             this.currentFile.updateContents(this.files[this.currentIndex]);
-        }
-        else {
+        } else {
             this.currentFile.upload(this.parent, this.files[this.currentIndex]);
         }
     }

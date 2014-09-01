@@ -12,8 +12,7 @@ girder.views.EditFolderWidget = girder.View.extend({
 
             if (this.folder) {
                 this.updateFolder(fields);
-            }
-            else {
+            } else {
                 this.createFolder(fields);
             }
 

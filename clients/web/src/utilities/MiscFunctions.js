@@ -39,7 +39,6 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-
     // If it's > 1GB, report to two decimal places, otherwise just one.
     var precision = sizeBytes > 1073741824 ? 2 : 1;
 
@@ -48,7 +47,8 @@ girder.formatSize = function (sizeBytes) {
         precision = 0;
     }
 
-    for (var i = 0; sizeBytes >= 1024; i += 1) {
+    var i;
+    for (i = 0; sizeBytes >= 1024; i += 1) {
         sizeBytes /= 1024;
     }
 
@@ -91,16 +91,12 @@ girder.caseInsensitiveComparator = function (model1, model2) {
     var a1 = model1.get(this.sortField),
         a2 = model2.get(this.sortField);
 
-    if (typeof(a1) === 'string') {
+    if (typeof (a1) === 'string') {
         a1 = a1.toLowerCase();
         a2 = a2.toLowerCase();
     }
-    if (a1 > a2) {
-        return this.sortDir;
-    }
-    else {
-        return -this.sortDir;
-    }
+
+    return a1 > a2 ? this.sortDir : -this.sortDir;
 };
 
 /**
@@ -151,4 +147,4 @@ girder.parseQueryString = function (queryString) {
     girder.getPluginConfigRoute = function (pluginName) {
         return _pluginConfigRoutes[pluginName];
     };
-})();
+}());

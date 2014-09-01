@@ -5,20 +5,20 @@ girder.views.GroupMembersWidget = girder.View.extend({
     events: {
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
-                $(e.currentTarget).parents('li').attr('cid'));
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: model.get('_id')
-            });
+                $(e.currentTarget).parents('li').attr('cid')
+            );
+            girder.router.navigate('user/' + model.get('_id'), {trigger: true});
         },
 
         'click a.g-group-member-remove': function (e) {
             var view = this;
             var user = this.membersColl.get(
-                $(e.currentTarget).parents('li').attr('cid'));
+                $(e.currentTarget).parents('li').attr('cid')
+            );
 
             girder.confirm({
                 text: 'Are you sure you want to remove <b> ' + user.name() +
-                '</b> from this group?',
+                    '</b> from this group?',
                 confirmCallback: function () {
                     view.trigger('g:removeMember', user);
                 }

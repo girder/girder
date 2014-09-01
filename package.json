@@ -23,7 +23,8 @@
     "underscore": "~1.5",
     "colors": "0.6.2",
     "phantomjs": "~1.9.1",
-    "blanket": "1.1.6"
+    "blanket": "1.1.6",
+    "nodelint": "0.6.2"
   },
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"

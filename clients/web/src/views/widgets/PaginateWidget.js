@@ -30,15 +30,13 @@ girder.views.PaginateWidget = girder.View.extend({
 
         if (this.collection.hasNextPage()) {
             this.$('.g-page-next').removeClass('disabled');
-        }
-        else {
+        } else {
             this.$('.g-page-next').addClass('disabled');
         }
 
         if (this.collection.hasPreviousPage()) {
             this.$('.g-page-prev').removeClass('disabled');
-        }
-        else {
+        } else {
             this.$('.g-page-prev').addClass('disabled');
         }
         return this;

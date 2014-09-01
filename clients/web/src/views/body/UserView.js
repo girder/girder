@@ -5,7 +5,6 @@
      */
     girder.views.UserView = girder.View.extend({
         events: {
-
             'click a.g-edit-user': function (event) {
                 var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
                 girder.router.navigate(editUrl, {trigger: true});
@@ -44,12 +43,10 @@
                         this.folder = null;
                         this.render();
                     }, this).fetch();
-                }
-                else {
+                } else {
                     this.render();
                 }
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.UserModel();
                 this.model.set('_id', settings.id);
 
@@ -107,4 +104,4 @@
         });
     });
 
-}) ();
+}());

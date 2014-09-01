@@ -15,8 +15,7 @@ girder.views.AssetstoresView = girder.View.extend({
             this.collection.on('g:changed', function () {
                 this.render();
             }, this).fetch();
-        }
-        else {
+        } else {
             this.render();
         }
     },

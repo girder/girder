@@ -76,8 +76,7 @@ girder.models.FileModel = girder.Model.extend({
             if (file.size > 0) {
                 // Begin uploading chunks of this file
                 this._uploadChunk(file, upload._id);
-            }
-            else {
+            } else {
                 // Empty file, so we are done
                 this.trigger('g:upload.complete');
             }
@@ -109,8 +108,7 @@ girder.models.FileModel = girder.Model.extend({
 
             if (resp.status === 0) {
                 msg = 'Could not connect to the server.';
-            }
-            else {
+            } else {
                 msg = 'An error occurred when resuming upload, check console.';
             }
             this.trigger('g:upload.error', {
@@ -149,8 +147,7 @@ girder.models.FileModel = girder.Model.extend({
                     model.startByte = 0;
                     model.resumeInfo = null;
                     model.trigger('g:upload.complete');
-                }
-                else {
+                } else {
                     model.startByte = endByte;
                     model._uploadChunk(file, uploadId);
                 }
@@ -160,8 +157,7 @@ girder.models.FileModel = girder.Model.extend({
 
                 if (xhr.status === 0) {
                     text += 'Connection to the server interrupted.';
-                }
-                else {
+                } else {
                     text += xhr.responseJSON.message;
                 }
 

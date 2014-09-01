@@ -30,12 +30,10 @@
                         this.folder = null;
                         this.render();
                     }, this).fetch();
-                }
-                else {
+                } else {
                     this.render();
                 }
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.CollectionModel();
                 this.model.set('_id', settings.id);
 
@@ -138,4 +136,4 @@
             });
         });
 
-}) ();
+}());

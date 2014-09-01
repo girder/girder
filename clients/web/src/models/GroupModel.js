@@ -77,8 +77,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         var role;
         if (level === girder.AccessType.WRITE) {
             role = 'moderator';
-        }
-        else if (level === girder.AccessType.ADMIN) {
+        } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
         girder.restRequest({
@@ -106,8 +105,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         var role;
         if (level === girder.AccessType.WRITE) {
             role = 'moderator';
-        }
-        else if (level === girder.AccessType.ADMIN) {
+        } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
         girder.restRequest({

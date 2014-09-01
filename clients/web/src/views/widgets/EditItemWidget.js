@@ -11,8 +11,7 @@ girder.views.EditItemWidget = girder.View.extend({
 
             if (this.item) {
                 this.updateItem(fields);
-            }
-            else {
+            } else {
                 this.createItem(fields);
             }
 
