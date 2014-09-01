@@ -85,8 +85,13 @@ class Upload(Model):
         if 'fileId' in upload:  # Updating an existing file's contents
             file = self.model('file').load(upload['fileId'])
 
+            # Delete the previous file contents from the containing assetstore
+            assetstore_utilities.getAssetstoreAdapter(
+                self.model('assetstore').load(
+                    file['assetstoreId'])).deleteFile(file)
+
             # Update parent item size to reflect new file size
-            item = self.model('item').load(file['itemId'])
+            item = self.model('item').load(file['itemId'], force=True)
             item['size'] -= file['size']
             item['size'] += upload['size']
             self.model('item').save(item)
@@ -139,11 +144,6 @@ class Upload(Model):
         :param user: The user performing this upload.
         :param size: The size of the new file contents.
         """
-        # Delete the existing file contents from the containing assetstore
-        assetstore_utilities.getAssetstoreAdapter(
-            self.model('assetstore').load(
-                file['assetstoreId'])).deleteFile(file)
-
         assetstore = self.model('assetstore').getCurrent()
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.now()

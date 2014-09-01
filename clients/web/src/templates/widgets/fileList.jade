@@ -10,6 +10,11 @@ ul.g-file-list
         else
           i.icon-doc-inv
           | #{file.get('name')}
+      .g-file-actions-container(file-cid="#{file.cid}")
+        a.g-update-info(title="Edit file info")
+          i.icon-edit
+        a.g-update-contents(title="Replace file contents")
+          i.icon-upload
   if (hasMore)
     li.g-show-more
       a.g-show-more-files

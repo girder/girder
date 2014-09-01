@@ -271,7 +271,8 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         new girder.views.UploadWidget({
             el: container,
-            folder: this.parentModel
+            parent: this.parentModel,
+            parentType: this.parentType
         }).on('g:uploadFinished', function () {
             girder.dialogs.handleClose('upload');
             this.upload = false;
