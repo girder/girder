@@ -34,7 +34,7 @@ import sys
 import traceback
 
 from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
-from girder.utility import mail_utils
+from girder.utility import mail_utils, config
 
 
 def loadPlugins(plugins, root, appconf):
@@ -53,9 +53,14 @@ def loadPlugins(plugins, root, appconf):
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
+    cur_config = config.getConfig()
+    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
+        pluginDir = cur_config['plugins']['plugin_directory']
+    else:
+        pluginDir = os.path.join(ROOT_DIR, 'plugins')
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
-            '__path__': os.path.join(ROOT_DIR, 'plugins'),
+            '__path__': pluginDir,
             '__package__': ROOT_PLUGINS_PACKAGE,
             '__name__': ROOT_PLUGINS_PACKAGE
         })()
@@ -90,7 +95,12 @@ def loadPlugin(name, root, appconf):
     :param appconf: The cherrypy configuration for the server.
     :type appconf: dict
     """
-    pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
+    cur_config = config.getConfig()
+    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
+        pluginDir = os.path.join(cur_config['plugins']['plugin_directory'],
+                                 name)
+    else:
+        pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
@@ -131,7 +141,11 @@ def findAllPlugins():
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
-    pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    cur_config = config.getConfig()
+    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
+        pluginsDir = cur_config['plugins']['plugin_directory']
+    else:
+        pluginsDir = os.path.join(ROOT_DIR, 'plugins')
     if not os.path.exists(pluginsDir):
         print(TerminalColor.warning('Plugin directory not found. No plugins '
               'loaded.'))
