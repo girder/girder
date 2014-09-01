@@ -53,6 +53,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             route += '/folder/' + this.parentModel.get('_id');
         }
         girder.router.navigate(route);
+        girder.events.trigger('g:hierarchy.route', {route: route});
     },
 
     _fetchToRoot: function (folder) {
