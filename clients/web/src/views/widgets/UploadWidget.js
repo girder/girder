@@ -164,7 +164,7 @@ girder.views.UploadWidget = girder.View.extend({
             this.currentFile.updateContents(this.files[this.currentIndex]);
         }
         else {
-            this.currentFile.upload(this.folder, this.files[this.currentIndex]);
+            this.currentFile.upload(this.parent, this.files[this.currentIndex]);
         }
     }
 });
