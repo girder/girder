@@ -22,6 +22,7 @@ import logging.handlers
 import os
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
+from girder.utility import config
 
 
 class LogLevelFilter(object):
@@ -60,15 +61,41 @@ def _setupLogger():
     logger = logging.getLogger('girder')
     logger.setLevel(logging.DEBUG)
 
-    if not os.path.exists(LOG_ROOT):
-        os.makedirs(LOG_ROOT)
+    # Determine log paths
+    cur_config = config.getConfig()
+    if 'logging' in cur_config:
+        if 'log_root' in cur_config['logging']:
+            log_root = cur_config['logging']['log_root']
+        else:
+            log_root = LOG_ROOT
+        if 'error_log_file' in cur_config['logging']:
+            error_log_file = cur_config['logging']['error_log_file']
+        else:
+            error_log_file = os.path.join(log_root, 'error.log')
+        if 'info_log_file' in cur_config['logging']:
+            info_log_file = cur_config['loggging']['info_log_file']
+        else:
+            info_log_file = os.path.join(log_root, 'info.log')
+    else:
+        log_root = LOG_ROOT
+        error_log_file = os.path.join(log_root, 'error.log')
+        info_log_file = os.path.join(log_root, 'info.log')
+
+    # Ensure log paths are valid
+    if not os.path.exists(log_root):
+        os.makedirs(log_root)
+    if not os.path.exists(os.path.dirname(info_log_file)):
+        os.makedirs(os.path.dirname(info_log_file))
+    if not os.path.exists(os.path.dirname(error_log_file)):
+        os.makedirs(os.path.dirname(error_log_file))
+
     eh = logging.handlers.RotatingFileHandler(
-        os.path.join(LOG_ROOT, 'error.log'), maxBytes=MAX_LOG_SIZE,
+        error_log_file, maxBytes=MAX_LOG_SIZE,
         backupCount=LOG_BACKUP_COUNT)
     eh.setLevel(logging.WARNING)
     eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
     ih = logging.handlers.RotatingFileHandler(
-        os.path.join(LOG_ROOT, 'info.log'), maxBytes=MAX_LOG_SIZE,
+        info_log_file, maxBytes=MAX_LOG_SIZE,
         backupCount=LOG_BACKUP_COUNT)
     ih.setLevel(logging.INFO)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
