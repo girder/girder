@@ -63,23 +63,12 @@ def _setupLogger():
 
     # Determine log paths
     cur_config = config.getConfig()
-    if 'logging' in cur_config:
-        if 'log_root' in cur_config['logging']:
-            log_root = cur_config['logging']['log_root']
-        else:
-            log_root = LOG_ROOT
-        if 'error_log_file' in cur_config['logging']:
-            error_log_file = cur_config['logging']['error_log_file']
-        else:
-            error_log_file = os.path.join(log_root, 'error.log')
-        if 'info_log_file' in cur_config['logging']:
-            info_log_file = cur_config['loggging']['info_log_file']
-        else:
-            info_log_file = os.path.join(log_root, 'info.log')
-    else:
-        log_root = LOG_ROOT
-        error_log_file = os.path.join(log_root, 'error.log')
-        info_log_file = os.path.join(log_root, 'info.log')
+    log_config = cur_config.get('logging', {})
+    log_root = log_config.get('log_root', LOG_ROOT)
+    error_log_file = log_config.get('error_log_file',
+                                    os.path.join(log_root, 'error.log'))
+    info_log_file = log_config.get('info_log_file',
+                                   os.path.join(log_root, 'info.log'))
 
     # Ensure log paths are valid
     if not os.path.exists(log_root):
