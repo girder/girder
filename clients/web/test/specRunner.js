@@ -93,6 +93,10 @@ page.onError = function (msg, trace) {
         });
     }
     console.error(msgStack.join('\n'));
+    console.log('Saved phantom_error_screenshot.png');
+    console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
+        fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
+    page.render('phantom_error_screenshot.png');
     phantom.exit(1);
 };
 
@@ -103,7 +107,7 @@ page.onLoadFinished = function (status) {
     }
 
     page.injectJs('coverageHandler.js');
-    if(!page.injectJs(spec)) {
+    if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
     }

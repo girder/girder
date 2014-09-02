@@ -22,7 +22,7 @@
     "swagger-ui": "2.0.13",
     "underscore": "~1.5",
     "colors": "0.6.2",
-    "phantomjs": "~1.9.1",
+    "phantomjs": "1.9.7",
     "blanket": "1.1.6",
     "nodelint": "0.6.2"
   },

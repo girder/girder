@@ -98,7 +98,7 @@ describe('Create a data hierarchy', function () {
         });
 
         waitsFor(function () {
-            return $('.g-drop-zone:visible').length === 0;
+            return $('.modal-content:visible').length === 0;
         }, 'the upload to finish');
     });
 
@@ -124,9 +124,5 @@ describe('Create a data hierarchy', function () {
             expect(Backbone.history.fragment).toBe(
                 'user/' + girder.currentUser.get('_id'));
         });
-    });
-
-    it('upload a file into the hierarchy', function () {
-
     });
 });

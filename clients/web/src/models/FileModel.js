@@ -122,8 +122,8 @@ girder.models.FileModel = girder.Model.extend({
                                file.size);
 
         this.chunkLength = endByte - this.startByte;
-
-        var blob = file.slice(this.startByte, endByte);
+        var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
+        var blob = file[sliceFn](this.startByte, endByte);
         var model = this;
 
         var fd = new FormData();
