@@ -6,9 +6,7 @@ girder.views.GroupMembersWidget = girder.View.extend({
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid'));
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: model.get('_id')
-            });
+            girder.router.navigate('user/' + model.get('_id'), {trigger: true});
         },
 
         'click a.g-group-member-remove': function (e) {
