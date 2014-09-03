@@ -248,7 +248,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         var view = this;
         var params = {
             text: 'Are you sure you want to delete the folder <b>' +
-                  this.parentModel.get('name') + '</b>?',
+                  this.parentModel.escape('name') + '</b>?',
+            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: function () {
                 view.parentModel.destroy().on('g:deleted', function () {

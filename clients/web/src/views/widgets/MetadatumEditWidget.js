@@ -13,7 +13,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         var metadataList = $(event.currentTarget.parentElement);
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
-                  this.key + '</b>?',
+                  _.escape(this.key) + '</b>?',
+            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 this.item.removeMetadata(this.key, function () {

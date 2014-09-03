@@ -42,8 +42,9 @@
             var parentRoute = this.model.get('baseParentType') + '/' +
                 this.model.get('baseParentId') + '/folder/' + folderId;
             girder.confirm({
-                text: 'Are you sure you want to delete <b>' + this.model.get('name') + '</b>?',
+                text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
                 yesText: 'Delete',
+                escapedHtml: true,
                 confirmCallback: _.bind(function () {
                     this.model.destroy().on('g:deleted', function () {
                         girder.router.navigate(parentRoute, {trigger: true});

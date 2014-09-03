@@ -97,8 +97,8 @@ girder.views.UploadWidget = girder.View.extend({
                 ') -- Press start button');
             this.$('.g-start-upload').removeClass('disabled');
             this.$('.g-progress-overall,.g-progress-current').addClass('hide');
-            this.$('.g-current-progress-message').html('');
-            this.$('.g-upload-error-message').html('');
+            this.$('.g-current-progress-message').empty();
+            this.$('.g-upload-error-message').empty();
         }
     },
 
@@ -108,7 +108,7 @@ girder.views.UploadWidget = girder.View.extend({
         this.$('.g-drop-zone').addClass('hide');
         this.$('.g-start-upload').addClass('disabled');
         this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
-        this.$('.g-upload-error-message').html('');
+        this.$('.g-upload-error-message').empty();
 
         this.currentIndex = 0;
         this.overallProgress = 0;
@@ -154,9 +154,9 @@ girder.views.UploadWidget = girder.View.extend({
                 girder.formatSize(this.overallProgress + info.loaded) + ' / ' +
                 girder.formatSize(this.totalSize));
         }, this).on('g:upload.error', function (info) {
-            var text = info.message + ' <a class="g-resume-upload">' +
+            var html = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
-            $('.g-upload-error-message').html(text);
+            $('.g-upload-error-message').html(html);
         }, this);
 
         if (this.parentType === 'file') {

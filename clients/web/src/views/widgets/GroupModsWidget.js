@@ -9,7 +9,8 @@ girder.views.GroupModsWidget = girder.View.extend({
 
             girder.confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
-                    'from <b>' + li.attr('username') + '</b>?',
+                    'from <b>' + _.escape(li.attr('username')) + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.trigger('g:demoteUser', li.attr('userid'));
                 }

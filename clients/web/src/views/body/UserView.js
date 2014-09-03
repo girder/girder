@@ -12,9 +12,10 @@
 
             'click a.g-delete-user': function (event) {
                 girder.confirm({
-                    text: 'Are you sure you want to delete <b>' +
-                          this.model.get('login') + '</b>?',
+                    text: 'Are you sure you want to delete the user <b>' +
+                          this.model.escape('login') + '</b>?',
                     yesText: 'Delete',
+                    escapedHtml: true,
                     confirmCallback: _.bind(function () {
                         this.model.destroy().on('g:deleted', function () {
                             girder.router.navigate('users', {trigger: true});

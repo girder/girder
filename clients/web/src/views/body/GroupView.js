@@ -59,7 +59,8 @@
             var view = this;
             girder.confirm({
                 text: 'Are you sure you want to delete the group <b>' +
-                    view.model.get('name') + '</b>?',
+                    view.model.escape('name') + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.model.on('g:deleted', function () {
                         girder.router.navigate('groups', {trigger: true});

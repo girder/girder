@@ -62,6 +62,9 @@ girder.formatSize = function (sizeBytes) {
  * @param [yesText] The text for the confirm button.
  * @param [yesClass] Class string to apply to the confirm button.
  * @param [noText] The text for the no/cancel button.
+ * @param [escapedHtml] If you want to render the text as HTML rather than
+ *        plain text, set this to true to acknowledge that you have escaped any
+ *        user-created data within the text to prevent XSS exploits.
  * @param confirmCallback Callback function when the user confirms the action.
  */
 girder.confirm = function (params) {
@@ -69,13 +72,19 @@ girder.confirm = function (params) {
         text: 'Are you sure?',
         yesText: 'Yes',
         yesClass: 'btn-danger',
-        noText: 'Cancel'
+        noText: 'Cancel',
+        escapedHtml: false
     }, params);
     $('#g-dialog-container').html(jade.templates.confirmDialog({
         params: params
     })).girderModal(false);
 
-    $('#g-dialog-container').find('.modal-body>p').html(params.text);
+    var el = $('#g-dialog-container').find('.modal-body>p');
+    if (params.escapedHtml) {
+        el.html(params.text);
+    } else {
+        el.text(params.text);
+    }
 
     $('#g-confirm-button').unbind('click').click(function () {
         $('#g-dialog-container').modal('hide');

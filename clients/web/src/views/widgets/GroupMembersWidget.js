@@ -17,8 +17,9 @@ girder.views.GroupMembersWidget = girder.View.extend({
             );
 
             girder.confirm({
-                text: 'Are you sure you want to remove <b> ' + user.name() +
+                text: 'Are you sure you want to remove <b> ' + _.escape(user.name()) +
                     '</b> from this group?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.trigger('g:removeMember', user);
                 }
