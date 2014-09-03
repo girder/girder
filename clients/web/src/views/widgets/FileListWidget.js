@@ -22,6 +22,20 @@ girder.views.FileListWidget = girder.View.extend({
                     timeout: 4000
                 });
             }, this).render();
+        },
+
+        'click a.g-update-info': function (e) {
+            var cid = $(e.currentTarget).parent().attr('file-cid');
+
+            if (!this.editFileWidget) {
+                this.editFileWidget = new girder.views.EditFileWidget({
+                    el: $('#g-dialog-container'),
+                    file: this.collection.get(cid)
+                }).off('g:saved', null, this).on('g:saved', function (file) {
+                    this.render();
+                }, this);
+            }
+            this.editFileWidget.render();
         }
     },
 
@@ -61,5 +75,4 @@ girder.views.FileListWidget = girder.View.extend({
         this.trigger('g:changed');
         this.render();
     }
-
 });

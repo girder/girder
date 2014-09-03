@@ -16,7 +16,7 @@ girder.views.EditItemWidget = girder.View.extend({
             }
 
             this.$('button.g-save-item').addClass('disabled');
-            this.$('.g-validation-failed-message').text('');
+            this.$('.g-validation-failed-message').empty();
 
             return false;
         }
