@@ -38,6 +38,7 @@ class Model(ModelImporter):
         self.name = None
         self._indices = []
         self._textIndex = None
+        self._textLanguage = None
 
         self.initialize()
 
