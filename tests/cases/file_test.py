@@ -230,6 +230,12 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
 
+        # Test editing of the file info
+        resp = self.request(path='/file/{}'.format(file['_id']), method='PUT',
+                            user=self.user, params={'name': ' newName.json'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'newName.json')
+
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
         hash = sha512(chunk1 + chunk2).hexdigest()
@@ -242,6 +248,29 @@ class FileTestCase(base.TestCase):
 
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
+
+        # Test updating of the file contents
+        newContents = 'test'
+        resp = self.request(
+            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            user=self.user, params={'size': len(newContents)})
+
+        # Old contents should not be immediately destroyed
+        self.assertTrue(os.path.isfile(abspath))
+
+        # Send the first chunk
+        fields = (('offset', 0), ('uploadId', resp.json['_id']))
+        files = (('chunk', 'newName.json', newContents),)
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        file = resp.json
+
+        # Old contents should now be destroyed, new contents should be present
+        self.assertFalse(os.path.isfile(abspath))
+        abspath = os.path.join(root, file['path'])
+        self.assertTrue(os.path.isfile(abspath))
+        self._testDownloadFile(file, newContents)
 
         self._testDeleteFile(file)
         self.assertFalse(os.path.isfile(abspath))
