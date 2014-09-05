@@ -145,6 +145,9 @@ class File(Resource):
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
         user = self.getCurrentUser()
 
+        if not user:
+            raise AccessException('You must be logged in to upload.')
+
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = int(params['offset'])
         chunk = params['chunk']

@@ -105,6 +105,13 @@ var girder = {
         }
         opts.url = girder.apiRoot + opts.path;
 
-        return Backbone.ajax(_.extend(defaults, opts));
+        opts = _.extend(defaults, opts);
+
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            opts.headers = opts.headers || {};
+            opts.headers['Girder-Token'] = token;
+        }
+        return Backbone.ajax(opts);
     }
 };

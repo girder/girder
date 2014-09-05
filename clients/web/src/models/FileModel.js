@@ -131,8 +131,8 @@ girder.models.FileModel = girder.Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
-        $.ajax({
-            url: girder.apiRoot + '/file/chunk',
+        girder.restRequest({
+            path: 'file/chunk',
             type: 'POST',
             dataType: 'json',
             data: fd,

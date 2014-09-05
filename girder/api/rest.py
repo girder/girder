@@ -438,12 +438,11 @@ class Resource(ModelImporter):
         if event.defaultPrevented and len(event.responses) > 0:
             return event.responses[0]
 
-        cookie = cherrypy.request.cookie
         tokenStr = None
-        if 'girderToken' in cookie:
-            tokenStr = cookie['girderToken'].value
-        elif 'token' in cherrypy.request.params:  # Token as a parameter
+        if 'token' in cherrypy.request.params:  # Token as a parameter
             tokenStr = cherrypy.request.params.get('token')
+        elif 'Girder-Token' in cherrypy.request.headers:
+            tokenStr = cherrypy.request.headers['Girder-Token']
 
         if not tokenStr:
             return (None, None) if returnToken else None
