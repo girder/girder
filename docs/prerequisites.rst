@@ -3,7 +3,7 @@ System Prerequisites
 
 The following software packages are required to be installed on your system:
 
-* `Python 2 <http://python.org>`_
+* `Python 2 <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `node.js <http://nodejs.org/>`_
@@ -28,7 +28,7 @@ Use APT to install the prerequisites on Ubuntu.::
 
     sudo apt-get install python-pip libffi-dev
 
-Node.js currently isn't in the standard repositories, so run: ::
+Node.js is not currently in the standard repositories, so run: ::
 
     sudo apt-get install python-software-properties python g++ make
     sudo add-apt-repository ppa:chris-lea/node.js
@@ -51,16 +51,16 @@ TODO
 
 .. _mac-osx:
 
-Mac OSX
--------
+OS X
+----
 
 It is recommened to use `Homebrew <http://brew.sh/>`_ to install the required
-packages on OSX.
+packages on OS X.
 
 To install all of the prerequisites at once just use: ::
 
     brew install python mongodb node
 
-.. note:: OSX ships with python in /usr/bin, so you might need to change your
-   PATH or explicitly run /usr/local/bin/python when invoking the server so
+.. note:: OS X ships with Python in ``/usr/bin``, so you might need to change your
+   PATH or explicitly run ``/usr/local/bin/python`` when invoking the server so
    that you use the version with the correct site packages installed.
