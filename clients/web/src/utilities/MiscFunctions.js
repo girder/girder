@@ -140,6 +140,40 @@ girder.parseQueryString = function (queryString) {
     return params;
 };
 
+girder.cookie = {
+    findAll: function () {
+        var cookies = {};
+        _(document.cookie.split(';'))
+            .chain()
+            .map(function (m) {
+                return m.replace(/^\s+/, '').replace(/\s+$/, '');
+            })
+            .each(function (c) {
+                var arr = c.split('='),
+                    key = arr[0],
+                    value = null,
+                    size = _.size(arr);
+                if (size > 1) {
+                    value = arr.slice(1).join('');
+                }
+                cookies[key] = value;
+            });
+        return cookies;
+    },
+
+    find: function (name) {
+        var cookie = null,
+            list = this.findAll();
+
+        _.each(list, function (value, key) {
+            if (key === name) {
+                cookie = value;
+            }
+        });
+        return cookie;
+    }
+};
+
 
 (function () {
     var _pluginConfigRoutes = {};

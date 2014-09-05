@@ -185,11 +185,8 @@ class OauthTest(base.TestCase):
                          'http://localhost/#foo/bar')
         self.assertEqual(len(resp.cookie.values()), 2)
         self.assertTrue('oauthLogin' in resp.cookie)
-        self.assertTrue('authToken' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')
-        authToken = json.loads(resp.cookie['authToken'].value)
-
-        self.assertEqual(authToken['userId'], str(self.admin['_id']))
 
         # Test login in with a new user
 
@@ -228,13 +225,12 @@ class OauthTest(base.TestCase):
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
         self.assertTrue('oauthLogin' in resp.cookie)
-        self.assertTrue('authToken' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')
-        authToken = json.loads(resp.cookie['authToken'].value)
 
-        self.assertNotEqual(authToken['userId'], str(self.admin['_id']))
-
-        newUser = self.model('user').load(authToken['userId'], force=True)
+        token = self.model('token').load(resp.cookie['girderToken'].value,
+                                         force=True, objectId=False)
+        newUser = self.model('user').load(token['userId'], force=True)
         self.assertEqual(newUser['login'], 'anotheruser')
         self.assertEqual(newUser['email'], 'anotheruser@mail.com')
         self.assertEqual(newUser['oauth'], {
