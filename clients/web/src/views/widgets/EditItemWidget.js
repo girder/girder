@@ -11,13 +11,12 @@ girder.views.EditItemWidget = girder.View.extend({
 
             if (this.item) {
                 this.updateItem(fields);
-            }
-            else {
+            } else {
                 this.createItem(fields);
             }
 
             this.$('button.g-save-item').addClass('disabled');
-            this.$('.g-validation-failed-message').text('');
+            this.$('.g-validation-failed-message').empty();
 
             return false;
         }

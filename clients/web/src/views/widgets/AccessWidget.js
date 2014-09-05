@@ -14,8 +14,7 @@ girder.views.AccessWidget = girder.View.extend({
 
         if (this.model.get('access')) {
             this.render();
-        }
-        else {
+        } else {
             this.model.on('g:accessFetched', function () {
                 this.render();
             }, this).fetchAccess();
@@ -89,8 +88,7 @@ girder.views.AccessWidget = girder.View.extend({
         this.searchWidget.resetState();
         if (entry.type === 'user') {
             this._addUserEntry(entry);
-        }
-        else if (entry.type === 'group') {
+        } else if (entry.type === 'group') {
             this._addGroupEntry(entry);
         }
     },
@@ -162,7 +160,9 @@ girder.views.AccessWidget = girder.View.extend({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
                 level: parseInt(
-                    $el.find('.g-access-col-right>select').val(), 10)
+                    $el.find('.g-access-col-right>select').val(),
+                    10
+                )
             });
         }, this);
 
@@ -173,7 +173,9 @@ girder.views.AccessWidget = girder.View.extend({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
                 level: parseInt(
-                    $el.find('.g-access-col-right>select').val(), 10)
+                    $el.find('.g-access-col-right>select').val(),
+                    10
+                )
             });
         }, this);
 
@@ -184,8 +186,8 @@ girder.views.AccessWidget = girder.View.extend({
 
         this.model.off('g:accessListSaved')
                   .on('g:accessListSaved', function () {
-            this.$el.modal('hide');
-        }, this).updateAccess();
+                this.$el.modal('hide');
+            }, this).updateAccess();
     },
 
     removeAccessEntry: function (event) {

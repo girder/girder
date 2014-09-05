@@ -136,8 +136,7 @@ class User(Resource):
             'user': self.model('user').filter(user, user),
             'authToken': {
                 'token': token['_id'],
-                'expires': token['expires'],
-                'userId': user['_id']
+                'expires': token['expires']
             },
             'message': 'Login succeeded.'
         }
@@ -260,7 +259,7 @@ class User(Resource):
         .errorResponse('Your new password is invalid.'))
 
     def resetPassword(self, params):
-        self.requireParams(('email',), params)
+        self.requireParams('email', params)
         email = params['email'].lower().strip()
 
         cursor = self.model('user').find({'email': email}, limit=1)

@@ -24,7 +24,7 @@ girder.views.MetadataWidget = girder.View.extend({
 
     editMetadata: function (event) {
         var row = $(event.currentTarget.parentElement);
-        row.addClass('editing').html('');
+        row.addClass('editing').empty();
         this.metadatumEditWidget = new girder.views.MetadatumEditWidget({
             el: row,
             item: this.item,

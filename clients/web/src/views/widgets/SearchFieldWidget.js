@@ -15,8 +15,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
 
             if (this.ajaxLock) {
                 this.pending = q;
-            }
-            else {
+            } else {
                 this._doSearch(q);
             }
         },
@@ -86,8 +85,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
 
             if (this.pending) {
                 this._doSearch(this.pending);
-            }
-            else {
+            } else {
                 var list = this.$('.g-search-results>ul');
                 var resources = [];
                 _.each(this.types, function (type) {
@@ -97,24 +95,19 @@ girder.views.SearchFieldWidget = girder.View.extend({
                             text = result.firstName + ' ' + result.lastName +
                                 ' (' + result.login + ')';
                             icon = 'user';
-                        }
-                        else if (type === 'group') {
+                        } else if (type === 'group') {
                             text = result.name;
                             icon = 'users';
-                        }
-                        else if (type === 'collection') {
+                        } else if (type === 'collection') {
                             text = result.name;
                             icon = 'sitemap';
-                        }
-                        else if (type === 'folder') {
+                        } else if (type === 'folder') {
                             text = result.name;
                             icon = 'folder';
-                        }
-                        else if (type === 'item') {
+                        } else if (type === 'item') {
                             text = result.name;
                             icon = 'doc-text-inv';
-                        }
-                        else {
+                        } else {
                             // TODO plugin callback to render results
                             text = '[unknown type]';
                             icon = 'attention';

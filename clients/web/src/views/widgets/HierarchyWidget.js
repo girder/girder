@@ -40,8 +40,7 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         if (this.parentModel.resourceName === 'folder') {
             this._fetchToRoot(this.parentModel);
-        }
-        else {
+        } else {
             this.render();
         }
     },
@@ -67,8 +66,7 @@ girder.views.HierarchyWidget = girder.View.extend({
 
             if (parentType === 'folder') {
                 this._fetchToRoot(parent);
-            }
-            else {
+            } else {
                 this.breadcrumbs.reverse();
                 this.render();
             }
@@ -132,9 +130,9 @@ girder.views.HierarchyWidget = girder.View.extend({
         }, this).off('g:checkboxesChanged')
                 .on('g:checkboxesChanged', this.updateChecked, this)
                 .off('g:changed').on('g:changed', function () {
-            this.folderCount = this.folderListView.collection.length;
-            this._childCountCheck();
-        }, this);
+                this.folderCount = this.folderListView.collection.length;
+                this._childCountCheck();
+            }, this);
 
         if (this.parentModel.resourceName === 'folder') {
             // Setup the child item list view
@@ -147,11 +145,10 @@ girder.views.HierarchyWidget = girder.View.extend({
             }, this).off('g:checkboxesChanged')
                     .on('g:checkboxesChanged', this.updateChecked, this)
                     .off('g:changed').on('g:changed', function () {
-                this.itemCount = this.itemListView.collection.length;
-                this._childCountCheck();
-            }, this);
-        }
-        else {
+                    this.itemCount = this.itemListView.collection.length;
+                    this._childCountCheck();
+                }, this);
+        } else {
             this.itemCount = 0;
         }
 
@@ -251,7 +248,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         var view = this;
         var params = {
             text: 'Are you sure you want to delete the folder <b>' +
-                  this.parentModel.get('name') + '</b>?',
+                  this.parentModel.escape('name') + '</b>?',
+            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: function () {
                 view.parentModel.destroy().on('g:deleted', function () {
@@ -272,7 +270,8 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         new girder.views.UploadWidget({
             el: container,
-            folder: this.parentModel
+            parent: this.parentModel,
+            parentType: this.parentType
         }).on('g:uploadFinished', function () {
             girder.dialogs.handleClose('upload');
             this.upload = false;
@@ -315,7 +314,7 @@ girder.views.HierarchyWidget = girder.View.extend({
 
     downloadFolder: function () {
         window.location = girder.apiRoot + '/folder/' +
-           this.parentModel.get('_id') + '/download';
+                this.parentModel.get('_id') + '/download';
     },
 
     editFolderAccess: function () {

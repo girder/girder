@@ -5,7 +5,6 @@
      */
     girder.views.UserView = girder.View.extend({
         events: {
-
             'click a.g-edit-user': function (event) {
                 var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
                 girder.router.navigate(editUrl, {trigger: true});
@@ -13,9 +12,10 @@
 
             'click a.g-delete-user': function (event) {
                 girder.confirm({
-                    text: 'Are you sure you want to delete <b>' +
-                          this.model.get('login') + '</b>?',
+                    text: 'Are you sure you want to delete the user <b>' +
+                          this.model.escape('login') + '</b>?',
                     yesText: 'Delete',
+                    escapedHtml: true,
                     confirmCallback: _.bind(function () {
                         this.model.destroy().on('g:deleted', function () {
                             girder.router.navigate('users', {trigger: true});
@@ -44,12 +44,10 @@
                         this.folder = null;
                         this.render();
                     }, this).fetch();
-                }
-                else {
+                } else {
                     this.render();
                 }
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.UserModel();
                 this.model.set('_id', settings.id);
 
@@ -107,4 +105,4 @@
         });
     });
 
-}) ();
+}());

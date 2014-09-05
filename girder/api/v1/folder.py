@@ -186,7 +186,7 @@ class Folder(Resource):
 
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
-        self.requireParams(['access'], params)
+        self.requireParams('access', params)
 
         public = self.boolParam('public', params, default=False)
         self.model('folder').setPublic(folder, public)

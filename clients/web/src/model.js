@@ -27,8 +27,7 @@ girder.Model = Backbone.Model.extend({
         if (this.has('_id')) {
             path = this.resourceName + '/' + this.get('_id');
             type = 'PUT';
-        }
-        else {
+        } else {
             path = this.resourceName;
             type = 'POST';
         }
@@ -166,16 +165,14 @@ girder.AccessControlledModel = girder.Model.extend({
             }).done(_.bind(function (resp) {
                 if (resp.access) {
                     this.set(resp);
-                }
-                else {
+                } else {
                     this.set('access', resp);
                 }
                 this.trigger('g:accessFetched');
             }, this)).error(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
-        }
-        else {
+        } else {
             this.trigger('g:accessFetched');
         }
 

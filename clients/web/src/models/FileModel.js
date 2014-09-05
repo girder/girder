@@ -3,17 +3,33 @@ girder.models.FileModel = girder.Model.extend({
     resumeInfo: null,
 
     /**
+     * Upload into an existing file object (i.e. this model) to change its
+     * contents. This does not change the name or MIME type of the existing
+     * file.
+     * @param file The browser File object to be uploaded.
+     */
+    updateContents: function (file) {
+        this.upload(null, file, {
+            path: 'file/' + this.get('_id') + '/contents',
+            type: 'PUT',
+            data: {
+                'size': file.size
+            }
+        });
+    },
+
+    /**
      * Upload a file. Handles uploading into all of the core assetstore types.
      * @param parentModel The parent folder or item to upload into.
      * @param file The browser File object to be uploaded.
+     * @param [_restParams] Override the rest request parameters. This is meant
+     * for internal use; do not pass this parameter.
      */
-    upload: function (parentModel, file) {
+    upload: function (parentModel, file, _restParams) {
         this.startByte = 0;
         this.resumeInfo = null;
         this.uploadHandler = null;
-
-        // Authenticate and generate the upload token for this file
-        girder.restRequest({
+        _restParams = _restParams || {
             path: 'file',
             type: 'POST',
             data: {
@@ -23,7 +39,10 @@ girder.models.FileModel = girder.Model.extend({
                 'size': file.size,
                 'mimeType': file.type
             }
-        }).done(_.bind(function (upload) {
+        };
+
+        // Authenticate and generate the upload token for this file
+        girder.restRequest(_restParams).done(_.bind(function (upload) {
             var behavior = upload.behavior;
             if (behavior && girder.uploadHandlers[behavior]) {
                 this.uploadHandler = new girder.uploadHandlers[behavior]({
@@ -57,8 +76,7 @@ girder.models.FileModel = girder.Model.extend({
             if (file.size > 0) {
                 // Begin uploading chunks of this file
                 this._uploadChunk(file, upload._id);
-            }
-            else {
+            } else {
                 // Empty file, so we are done
                 this.trigger('g:upload.complete');
             }
@@ -90,8 +108,7 @@ girder.models.FileModel = girder.Model.extend({
 
             if (resp.status === 0) {
                 msg = 'Could not connect to the server.';
-            }
-            else {
+            } else {
                 msg = 'An error occurred when resuming upload, check console.';
             }
             this.trigger('g:upload.error', {
@@ -105,8 +122,8 @@ girder.models.FileModel = girder.Model.extend({
                                file.size);
 
         this.chunkLength = endByte - this.startByte;
-
-        var blob = file.slice(this.startByte, endByte);
+        var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
+        var blob = file[sliceFn](this.startByte, endByte);
         var model = this;
 
         var fd = new FormData();
@@ -114,8 +131,8 @@ girder.models.FileModel = girder.Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
-        $.ajax({
-            url: girder.apiRoot + '/file/chunk',
+        girder.restRequest({
+            path: 'file/chunk',
             type: 'POST',
             dataType: 'json',
             data: fd,
@@ -130,8 +147,7 @@ girder.models.FileModel = girder.Model.extend({
                     model.startByte = 0;
                     model.resumeInfo = null;
                     model.trigger('g:upload.complete');
-                }
-                else {
+                } else {
                     model.startByte = endByte;
                     model._uploadChunk(file, uploadId);
                 }
@@ -141,8 +157,7 @@ girder.models.FileModel = girder.Model.extend({
 
                 if (xhr.status === 0) {
                     text += 'Connection to the server interrupted.';
-                }
-                else {
+                } else {
                     text += xhr.responseJSON.message;
                 }
 

@@ -52,8 +52,7 @@
 
         if (s3Info.chunked) {
             this._multiChunkUpload(xhr);
-        }
-        else {
+        } else {
             this.payloadLength = this.params.file.size;
             xhr.onload = function () {
                 if (xhr.status === 200) {
@@ -75,8 +74,7 @@
 
                         if (resp.status === 0) {
                             msg = 'Could not connect to the server.';
-                        }
-                        else {
+                        } else {
                             msg = 'An error occurred when resuming upload, check console.';
                         }
                         this.trigger('g:upload.error', {
@@ -128,8 +126,7 @@
 
             if (resp.status === 0) {
                 msg = 'Could not connect to the Girder server.';
-            }
-            else {
+            } else {
                 msg = 'An error occurred when resuming upload, check console.';
             }
             this.trigger('g:upload.error', {
@@ -213,8 +210,7 @@
 
                     if (handler.startByte < handler.params.file.size) {
                         handler._sendNextChunk.call(handler);
-                    }
-                    else {
+                    } else {
                         handler._finalizeMultiChunkUpload.call(handler);
                     }
                 } else {
@@ -294,14 +290,13 @@
                 }
             };
 
-            xhr.send(new XMLSerializer().serializeToString(root));
+            xhr.send(new window.XMLSerializer().serializeToString(root));
         }, this)).error(_.bind(function (resp) {
             var msg;
 
             if (resp.status === 0) {
                 msg = 'Could not connect to the server.';
-            }
-            else {
+            } else {
                 msg = 'Upload error during finalize, check console.';
             }
             this.trigger('g:upload.error', {
@@ -309,4 +304,4 @@
             });
         }, this));
     };
-}) ();
+}());

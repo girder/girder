@@ -15,8 +15,7 @@ girder.views.AssetstoresView = girder.View.extend({
             this.collection.on('g:changed', function () {
                 this.render();
             }, this).fetch();
-        }
-        else {
+        } else {
             this.render();
         }
     },
@@ -101,7 +100,8 @@ girder.views.AssetstoresView = girder.View.extend({
 
         girder.confirm({
             text: 'Are you sure you want to delete the assetstore <b>' +
-                  assetstore.get('name') + '</b>?',
+                  assetstore.escape('name') + '</b>?',
+            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 assetstore.on('g:deleted', function () {

@@ -51,7 +51,7 @@ girder.models.ItemModel = girder.Model.extend({
         var datum = {};
         datum[key] = value;
         var meta = this.get('meta');
-        if (meta && key in meta) {
+        if (meta && _.has(meta, key)) {
             errorCallback({message: key + ' is already a metadata key'});
             return;
         }
@@ -70,7 +70,7 @@ girder.models.ItemModel = girder.Model.extend({
             datum[newKey] = value;
             this._sendMetadata(datum, successCallback, errorCallback);
         } else {
-            if (newKey in this.get('meta')) {
+            if (_.has(this.get('meta'), newKey)) {
                 errorCallback({message: newKey + ' is already a metadata key'});
                 return;
             }

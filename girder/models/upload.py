@@ -82,21 +82,42 @@ class Upload(Model):
         if assetstore is None:
             assetstore = self.model('assetstore').load(upload['assetstoreId'])
 
-        if upload['parentType'] == 'folder':
-            # Create a new item with the name of the file.
-            item = self.model('item').createItem(
-                name=upload['name'], creator={'_id': upload['userId']},
-                folder={'_id': upload['parentId']})
-        else:
-            item = self.model('item').load(id=upload['parentId'],
-                                           objectId=True,
-                                           user={'_id': upload['userId']},
-                                           level=AccessType.WRITE)
+        if 'fileId' in upload:  # Updating an existing file's contents
+            file = self.model('file').load(upload['fileId'])
 
-        file = self.model('file').createFile(
-            item=item, name=upload['name'], size=upload['size'],
-            creator={'_id': upload['userId']}, assetstore=assetstore,
-            mimeType=upload['mimeType'])
+            # Delete the previous file contents from the containing assetstore
+            assetstore_utilities.getAssetstoreAdapter(
+                self.model('assetstore').load(
+                    file['assetstoreId'])).deleteFile(file)
+
+            # Update parent item size to reflect new file size
+            item = self.model('item').load(file['itemId'], force=True)
+            item['size'] -= file['size']
+            item['size'] += upload['size']
+            self.model('item').save(item)
+
+            # Update file info
+            file['creatorId'] = upload['userId']
+            file['created'] = datetime.datetime.now()
+            file['assetstoreId'] = assetstore['_id']
+            file['size'] = upload['size']
+            self.model('file').save(file)
+        else:  # Creating a new file record
+            if upload['parentType'] == 'folder':
+                # Create a new item with the name of the file.
+                item = self.model('item').createItem(
+                    name=upload['name'], creator={'_id': upload['userId']},
+                    folder={'_id': upload['parentId']})
+            else:
+                item = self.model('item').load(id=upload['parentId'],
+                                               objectId=True,
+                                               user={'_id': upload['userId']},
+                                               level=AccessType.WRITE)
+
+            file = self.model('file').createFile(
+                item=item, name=upload['name'], size=upload['size'],
+                creator={'_id': upload['userId']}, assetstore=assetstore,
+                mimeType=upload['mimeType'])
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         file = adapter.finalizeUpload(upload, file)
@@ -110,6 +131,36 @@ class Upload(Model):
         })
 
         return file
+
+    def createUploadToFile(self, file, user, size):
+        """
+        Creates a new upload record into a file that already exists. This should
+        be used when updating the contents of a file. Deletes any previous
+        file content from the assetstore it was in. This will upload
+        into the current assetstore rather than assetstore the file was
+        previously contained in.
+
+        :param file: The file record to update.
+        :param user: The user performing this upload.
+        :param size: The size of the new file contents.
+        """
+        assetstore = self.model('assetstore').getCurrent()
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        now = datetime.datetime.now()
+
+        upload = {
+            'created': now,
+            'updated': now,
+            'userId': user['_id'],
+            'fileId': file['_id'],
+            'assetstoreId': assetstore['_id'],
+            'size': size,
+            'name': file['name'],
+            'mimeType': file['mimeType'],
+            'received': 0
+        }
+        upload = adapter.initUpload(upload)
+        return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType):
         """

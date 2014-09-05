@@ -20,9 +20,14 @@ endfunction()
 
 function(add_javascript_style_test name input)
   add_test(
-    NAME "js_style_${name}"
+    NAME "jshint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
     COMMAND "${JSHINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jshint.cfg" "${input}"
+  )
+  add_test(
+    NAME "jslint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
+    COMMAND "${JSLINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/nodelint.cfg" "${input}"
   )
 endfunction()
 

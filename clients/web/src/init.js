@@ -78,16 +78,14 @@ var girder = {
                         timeout: 4000,
                         icon: 'info'
                     };
-                }
-                else if (error.status === 403) {
+                } else if (error.status === 403) {
                     info = {
                         text: 'Access denied. See the console for more details.',
                         type: 'danger',
                         timeout: 5000,
                         icon: 'attention'
                     };
-                }
-                else {
+                } else {
                     info = {
                         text: 'An error occurred while communicating with the ' +
                               'server. Details have been logged in the console.',
@@ -107,6 +105,13 @@ var girder = {
         }
         opts.url = girder.apiRoot + opts.path;
 
-        return Backbone.ajax(_.extend(defaults, opts));
+        opts = _.extend(defaults, opts);
+
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            opts.headers = opts.headers || {};
+            opts.headers['Girder-Token'] = token;
+        }
+        return Backbone.ajax(opts);
     }
 };

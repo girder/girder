@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import json
 import re
 
 from .. import base
@@ -37,19 +36,19 @@ def tearDownModule():
 class UserTestCase(base.TestCase):
 
     def _verifyAuthCookie(self, resp):
-        self.assertTrue('authToken' in resp.cookie)
-        cookieVal = json.loads(resp.cookie['authToken'].value)
-        self.assertHasKeys(cookieVal, ['token', 'userId'])
+        self.assertTrue('girderToken' in resp.cookie)
+        cookieVal = resp.cookie['girderToken'].value
+        self.assertFalse(not cookieVal)
         lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME,
                                                  default=180))
         self.assertEqual(
-            resp.cookie['authToken']['expires'],
+            resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
 
     def _verifyDeletedCookie(self, resp):
-        self.assertTrue('authToken' in resp.cookie)
-        self.assertEqual(resp.cookie['authToken'].value, '')
-        self.assertEqual(resp.cookie['authToken']['expires'], 0)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(resp.cookie['girderToken'].value, '')
+        self.assertEqual(resp.cookie['girderToken']['expires'], 0)
 
     def _verifyUserDocument(self, doc, admin=True):
         self.assertHasKeys(
@@ -132,7 +131,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
         self.assertHasKeys(
-            resp.json['authToken'], ['token', 'expires', 'userId'])
+            resp.json['authToken'], ['token', 'expires'])
         self._verifyAuthCookie(resp)
 
         # Invalid login
@@ -368,7 +367,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
-            resp.json['authToken'], ('token', 'expires', 'userId'))
+            resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
         # Now test changing passwords the normal way
@@ -408,7 +407,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
-            resp.json['authToken'], ('token', 'expires', 'userId'))
+            resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
     def testUserCreation(self):

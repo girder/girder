@@ -25,22 +25,23 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                     .on('g:saved', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Info saved.',
-                    type: 'success',
-                    timeout: 4000
-                });
-            }, this).save();
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Info saved.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+                }, this).save();
         },
         'submit #g-password-change-form': function (event) {
             event.preventDefault();
             this.$('#g-password-change-error-msg').empty();
 
             if (this.$('#g-password-new').val() !==
-                this.$('#g-password-retype').val()) {
+                    this.$('#g-password-retype').val()) {
                 this.$('#g-password-change-error-msg').text(
-                    'Passwords do not match, try again.');
+                    'Passwords do not match, try again.'
+                );
                 this.$('#g-password-retype,#g-password-new').val('');
                 this.$('#g-password-new').focus();
                 return;
@@ -51,16 +52,17 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Password changed.',
-                    type: 'success',
-                    timeout: 4000
-                });
-                this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
-            }, this).changePassword(
-                this.$('#g-password-old').val(),
-                this.$('#g-password-new').val());
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Password changed.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+                    this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
+                }, this).changePassword(
+                    this.$('#g-password-old').val(),
+                    this.$('#g-password-new').val()
+                );
         }
     },
 
@@ -73,7 +75,7 @@ girder.views.UserAccountView = girder.View.extend({
         this.model = this.user;
 
         if (!this.user ||
-            this.user.getAccessLevel() < girder.AccessType.WRITE) {
+                this.user.getAccessLevel() < girder.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
             return;
         }

@@ -39,8 +39,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 });
             }, this)).error(_.bind(function (resp) {
                 this.$('.g-submit-settings').removeClass('disabled');
-                this.$('#g-settings-error-message').text(
-                    resp.responseJSON.message);
+                this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
         }
     },
@@ -77,7 +76,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
 
         if (this.settings['core.registration_policy'] !== null) {
             this.$('#g-registration-policy').val(
-                this.settings['core.registration_policy']);
+                this.settings['core.registration_policy']
+            );
         }
 
         return this;

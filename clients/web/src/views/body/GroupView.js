@@ -29,8 +29,7 @@
                 this.model.on('g:accessFetched', function () {
                     this.render();
                 }, this).fetchAccess();
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.GroupModel();
                 this.model.set('_id', settings.id);
 
@@ -60,7 +59,8 @@
             var view = this;
             girder.confirm({
                 text: 'Are you sure you want to delete the group <b>' +
-                view.model.get('name') + '</b>?',
+                    view.model.escape('name') + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.model.on('g:deleted', function () {
                         girder.router.navigate('groups', {trigger: true});
@@ -114,8 +114,7 @@
                     invitees: this.invitees,
                     group: this.model
                 }).render();
-            }
-            else {
+            } else {
                 var container = this.$('.g-group-invites-body');
                 new girder.views.LoadingAnimation({
                     el: container
@@ -142,11 +141,11 @@
                 }, this).sendInvitation(params.user.id, params.level);
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:moderatorAdded', function () {
-                        this._updateRolesLists();
-                    }, this)
+                    this._updateRolesLists();
+                }, this)
                     .on('g:adminAdded', function () {
-                        this._updateRolesLists();
-                    }, this);
+                    this._updateRolesLists();
+                }, this);
 
             this._updateRolesLists();
 
@@ -229,8 +228,7 @@
             _.each(this.model.get('access').users, function (userAccess) {
                 if (userAccess.level === girder.AccessType.WRITE) {
                     mods.push(userAccess);
-                }
-                else if (userAccess.level === girder.AccessType.ADMIN) {
+                } else if (userAccess.level === girder.AccessType.ADMIN) {
                     admins.push(userAccess);
                 }
             }, this);
@@ -287,4 +285,4 @@
         });
     });
 
-}) ();
+}());

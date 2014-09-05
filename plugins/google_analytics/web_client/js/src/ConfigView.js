@@ -19,7 +19,7 @@ girder.views.google_analytics_ConfigView = girder.View.extend({
             type: 'GET',
             path: 'system/setting',
             data: {
-              list: JSON.stringify(['google_analytics.tracking_id'])
+                list: JSON.stringify(['google_analytics.tracking_id'])
             }
         }).done(_.bind(function (resp) {
             this.render();
@@ -59,7 +59,8 @@ girder.views.google_analytics_ConfigView = girder.View.extend({
             });
         }, this)).error(_.bind(function (resp) {
             this.$('#g-google_analytics-error-message').text(
-                resp.responseJSON.message);
+                resp.responseJSON.message
+            );
         }, this));
     }
 });

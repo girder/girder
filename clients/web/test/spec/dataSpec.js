@@ -73,6 +73,35 @@ describe('Create a data hierarchy', function () {
         }, 'the edit folder dialog to appear');
     });
 
+    it('upload a file into the current folder', function () {
+        runs(function () {
+            $('.g-upload-here-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-drop-zone:visible').length > 0;
+        }, 'the upload dialog to appear');
+
+        runs(function () {
+            // Incantation that causes the phantom environment to send us a File.
+            $('#g-files').parent().removeClass('hide');
+            console.log('__ATTACH__#g-files clients/web/static/img/Girder_Mark.png');
+        });
+
+        waitsFor(function () {
+            return $('.g-overall-progress-message i.icon-ok').length > 0;
+        }, 'the file to be received');
+
+        runs(function () {
+            $('#g-files').parent().addClass('hide');
+            $('.g-start-upload').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal-content:visible').length === 0;
+        }, 'the upload to finish');
+    });
+
     it('search using quick search box', function () {
         runs(function () {
             $('.g-quick-search-container input.g-search-field')

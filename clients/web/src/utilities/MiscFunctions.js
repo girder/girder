@@ -39,7 +39,6 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-
     // If it's > 1GB, report to two decimal places, otherwise just one.
     var precision = sizeBytes > 1073741824 ? 2 : 1;
 
@@ -48,7 +47,8 @@ girder.formatSize = function (sizeBytes) {
         precision = 0;
     }
 
-    for (var i = 0; sizeBytes >= 1024; i += 1) {
+    var i;
+    for (i = 0; sizeBytes >= 1024; i += 1) {
         sizeBytes /= 1024;
     }
 
@@ -62,6 +62,9 @@ girder.formatSize = function (sizeBytes) {
  * @param [yesText] The text for the confirm button.
  * @param [yesClass] Class string to apply to the confirm button.
  * @param [noText] The text for the no/cancel button.
+ * @param [escapedHtml] If you want to render the text as HTML rather than
+ *        plain text, set this to true to acknowledge that you have escaped any
+ *        user-created data within the text to prevent XSS exploits.
  * @param confirmCallback Callback function when the user confirms the action.
  */
 girder.confirm = function (params) {
@@ -69,13 +72,19 @@ girder.confirm = function (params) {
         text: 'Are you sure?',
         yesText: 'Yes',
         yesClass: 'btn-danger',
-        noText: 'Cancel'
+        noText: 'Cancel',
+        escapedHtml: false
     }, params);
     $('#g-dialog-container').html(jade.templates.confirmDialog({
         params: params
     })).girderModal(false);
 
-    $('#g-dialog-container').find('.modal-body>p').html(params.text);
+    var el = $('#g-dialog-container').find('.modal-body>p');
+    if (params.escapedHtml) {
+        el.html(params.text);
+    } else {
+        el.text(params.text);
+    }
 
     $('#g-confirm-button').unbind('click').click(function () {
         $('#g-dialog-container').modal('hide');
@@ -91,16 +100,12 @@ girder.caseInsensitiveComparator = function (model1, model2) {
     var a1 = model1.get(this.sortField),
         a2 = model2.get(this.sortField);
 
-    if (typeof(a1) === 'string') {
+    if (typeof (a1) === 'string') {
         a1 = a1.toLowerCase();
         a2 = a2.toLowerCase();
     }
-    if (a1 > a2) {
-        return this.sortDir;
-    }
-    else {
-        return -this.sortDir;
-    }
+
+    return a1 > a2 ? this.sortDir : -this.sortDir;
 };
 
 /**
@@ -135,6 +140,40 @@ girder.parseQueryString = function (queryString) {
     return params;
 };
 
+girder.cookie = {
+    findAll: function () {
+        var cookies = {};
+        _(document.cookie.split(';'))
+            .chain()
+            .map(function (m) {
+                return m.replace(/^\s+/, '').replace(/\s+$/, '');
+            })
+            .each(function (c) {
+                var arr = c.split('='),
+                    key = arr[0],
+                    value = null,
+                    size = _.size(arr);
+                if (size > 1) {
+                    value = arr.slice(1).join('');
+                }
+                cookies[key] = value;
+            });
+        return cookies;
+    },
+
+    find: function (name) {
+        var cookie = null,
+            list = this.findAll();
+
+        _.each(list, function (value, key) {
+            if (key === name) {
+                cookie = value;
+            }
+        });
+        return cookie;
+    }
+};
+
 
 (function () {
     var _pluginConfigRoutes = {};
@@ -151,4 +190,4 @@ girder.parseQueryString = function (queryString) {
     girder.getPluginConfigRoute = function (pluginName) {
         return _pluginConfigRoutes[pluginName];
     };
-})();
+}());

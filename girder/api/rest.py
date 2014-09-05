@@ -28,11 +28,10 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import AccessType, SettingKey, TerminalColor
+from girder.constants import SettingKey, TerminalColor
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
-from bson.objectid import ObjectId
 
 
 _importer = ModelImporter()
@@ -342,8 +341,18 @@ class Resource(ModelImporter):
 
     def requireParams(self, required, provided):
         """
-        Pass a list of required parameters.
+        Throws an exception if any of the parameters in the required iterable
+        is not found in the provided parameter set.
+
+        :param required: An iterable of required params, or if just one is
+        required, you can simply pass it as a string.
+        :type required: list, tuple, or str
+        :param provided: The list of provided parameters.
+        :type provided: dict
         """
+        if isinstance(required, basestring):
+            required = (required,)
+
         for param in required:
             if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)
@@ -429,35 +438,23 @@ class Resource(ModelImporter):
         if event.defaultPrevented and len(event.responses) > 0:
             return event.responses[0]
 
-        cookie = cherrypy.request.cookie
-        if 'authToken' in cookie:
-            info = json.loads(cookie['authToken'].value)
-            try:
-                userId = ObjectId(info['userId'])
-            except:
-                return (None, None) if returnToken else None
+        tokenStr = None
+        if 'token' in cherrypy.request.params:  # Token as a parameter
+            tokenStr = cherrypy.request.params.get('token')
+        elif 'Girder-Token' in cherrypy.request.headers:
+            tokenStr = cherrypy.request.headers['Girder-Token']
 
-            user = self.model('user').load(userId, force=True)
-            token = self.model('token').load(info['token'], AccessType.ADMIN,
-                                             objectId=False, user=user)
-
-            if token is None or token['expires'] < datetime.datetime.now():
-                return (None, token) if returnToken else None
-            else:
-                return (user, token) if returnToken else user
-        elif 'token' in cherrypy.request.params:  # Token as a parameter
-            token = self.model('token').load(
-                cherrypy.request.params.get('token'), objectId=False,
-                force=True)
-            user = self.model('user').load(token['userId'], force=True)
-
-            if token is None or token['expires'] < datetime.datetime.now():
-                return (None, token) if returnToken else None
-            else:
-                return (user, token) if returnToken else user
-
-        else:  # user is not logged in
+        if not tokenStr:
             return (None, None) if returnToken else None
+
+        token = self.model('token').load(tokenStr, force=True,
+                                         objectId=False)
+
+        if token is None or token['expires'] < datetime.datetime.now():
+            return (None, token) if returnToken else None
+        else:
+            user = self.model('user').load(token['userId'], force=True)
+            return (user, token) if returnToken else user
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
@@ -466,21 +463,18 @@ class Resource(ModelImporter):
         token = self.model('token').createToken(user, days=days)
 
         cookie = cherrypy.response.cookie
-        cookie['authToken'] = json.dumps({
-            'userId': str(user['_id']),
-            'token': str(token['_id'])
-        })
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = days * 3600 * 24
+        cookie['girderToken'] = str(token['_id'])
+        cookie['girderToken']['path'] = '/'
+        cookie['girderToken']['expires'] = days * 3600 * 24
 
         return token
 
     def deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
         cookie = cherrypy.response.cookie
-        cookie['authToken'] = ''
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = 0
+        cookie['girderToken'] = ''
+        cookie['girderToken']['path'] = '/'
+        cookie['girderToken']['expires'] = 0
 
     @endpoint
     def DELETE(self, path, params):

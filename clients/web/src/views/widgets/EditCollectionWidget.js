@@ -13,8 +13,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
             if (this.model) {
                 this.updateCollection(fields);
-            }
-            else {
+            } else {
                 this.createCollection(fields);
             }
 

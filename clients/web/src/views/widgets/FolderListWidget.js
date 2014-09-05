@@ -44,8 +44,7 @@ girder.views.FolderListWidget = girder.View.extend({
             var cid = $(this).attr('g-folder-cid');
             if (this.checked) {
                 view.checked.push(cid);
-            }
-            else {
+            } else {
                 var idx = view.checked.indexOf(cid);
                 if (idx !== -1) {
                     view.checked.splice(idx, 1);

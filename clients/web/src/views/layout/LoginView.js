@@ -6,8 +6,8 @@ girder.views.LoginView = girder.View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            var authStr = btoa(this.$('#g-login').val() + ':' +
-                               this.$('#g-password').val());
+            var authStr = window.btoa(this.$('#g-login').val() + ':' +
+                this.$('#g-password').val());
             girder.restRequest({
                 path: 'user/authentication',
                 type: 'GET',

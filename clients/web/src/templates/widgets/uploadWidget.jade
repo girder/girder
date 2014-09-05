@@ -3,16 +3,27 @@
     form#g-upload-form.modal-form(role="form")
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
-        h4.modal-title Upload Files
+        h4.modal-title= title
         .g-dialog-subtitle
-          i.icon-folder-open
-          | #{folder.get('name')}
+          if (parentType === 'folder')
+            i.icon-folder-open
+          else if (parentType === 'item')
+            i.icon-doc-text-inv
+          else if (parentType === 'file')
+            i.icon-doc-inv
+          | #{parent.name()}
       .modal-body
         .g-drop-zone
           i.icon-docs
-          |  Browse or drop files
+          if (parentType === 'file')
+            |  Browse or drop a file here
+          else
+            |  Browse or drop files here
         .form-group.hide
-          input#g-files(type="file", multiple)
+          if (parentType === 'file')
+            input#g-files(type="file")
+          else
+            input#g-files(type="file", multiple)
         .g-current-progress-message
         .g-progress-current.progress.progress-striped.hide
           .progress-bar.progress-bar-info(role="progressbar")

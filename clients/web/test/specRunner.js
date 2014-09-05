@@ -70,6 +70,10 @@ page.onConsoleMessage = function (msg) {
             console.log('Exception writing coverage results: ', e);
         }
     }
+    else if (msg.indexOf('__ATTACH__') === 0) {
+        var parts = msg.substring('__ATTACH__'.length).split(' ');
+        page.uploadFile(parts[0], parts[1]);
+    }
     else {
         console.log(msg);
     }
@@ -89,6 +93,10 @@ page.onError = function (msg, trace) {
         });
     }
     console.error(msgStack.join('\n'));
+    console.log('Saved phantom_error_screenshot.png');
+    console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
+        fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
+    page.render('phantom_error_screenshot.png');
     phantom.exit(1);
 };
 
@@ -99,7 +107,7 @@ page.onLoadFinished = function (status) {
     }
 
     page.injectJs('coverageHandler.js');
-    if(!page.injectJs(spec)) {
+    if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
     }

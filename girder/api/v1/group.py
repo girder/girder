@@ -81,7 +81,7 @@ class Group(Resource):
         :type params: dict
         :returns: The created group document.
         """
-        self.requireParams(('name',), params)
+        self.requireParams('name', params)
 
         name = params['name'].strip()
         description = params.get('description', '').strip()
@@ -224,7 +224,7 @@ class Group(Resource):
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
     def inviteToGroup(self, group, params):
         """Invite the user to join the group."""
-        self.requireParams(('userId',), params)
+        self.requireParams('userId', params)
         user = self.getCurrentUser()
         level = int(params.get('level', AccessType.READ))
 
@@ -292,7 +292,7 @@ class Group(Resource):
         :type level: AccessType
         :returns: The updated group document.
         """
-        self.requireParams(('userId',), params)
+        self.requireParams('userId', params)
         user = self.getCurrentUser()
 
         userToPromote = self.model('user').load(
@@ -312,7 +312,7 @@ class Group(Resource):
 
         :returns: The updated group document.
         """
-        self.requireParams(('userId',), params)
+        self.requireParams('userId', params)
         user = self.getCurrentUser()
 
         userToDemote = self.model('user').load(

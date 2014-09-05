@@ -14,8 +14,7 @@ girder.views.EditGroupWidget = girder.View.extend({
 
             if (this.model) {
                 this.updateGroup(fields);
-            }
-            else {
+            } else {
                 this.createGroup(fields);
             }
 
@@ -32,10 +31,10 @@ girder.views.EditGroupWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var public = this.model ? this.model.get('public') : false;
+        var pub = this.model ? this.model.get('public') : false;
         this.$el.html(jade.templates.editGroupWidget({
             group: this.model,
-            public: public
+            public: pub
         })).girderModal(this).on('shown.bs.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));

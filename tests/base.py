@@ -204,16 +204,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                                 user=user)
             self.assertMissingParameter(resp, exclude)
 
-    def _genCookie(self, user):
+    def _genToken(self, user):
         """
-        Helper method for creating an authentication cookie for the user.
+        Helper method for creating an authentication token for the user.
         """
         token = self.model('token').createToken(user)
-        cookie = json.dumps({
-            'userId': str(user['_id']),
-            'token': str(token['_id'])
-        }).replace('"', "\\\"")
-        return 'authToken="%s"' % cookie
+        return str(token['_id'])
 
     def request(self, path='/', method='GET', params={}, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
@@ -258,12 +254,13 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if cookie is not None:
             headers.append(('Cookie', cookie))
-        elif user is not None:
-            headers.append(('Cookie', self._genCookie(user)))
+
+        if user is not None:
+            headers.append(('Girder-Token', self._genToken(user)))
 
         if basicAuth is not None:
-            authToken = base64.b64encode(basicAuth)
-            headers.append(('Authorization', 'Basic {}'.format(authToken)))
+            auth = base64.b64encode(basicAuth)
+            headers.append(('Authorization', 'Basic {}'.format(auth)))
 
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
@@ -313,7 +310,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request.show_tracebacks = True
 
         if user is not None:
-            headers.append(('Cookie', self._genCookie(user)))
+            headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)
         try:
