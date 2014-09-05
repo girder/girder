@@ -191,8 +191,9 @@ class User(AccessControlledModel):
 
         :param user: The user whose password to change.
         :param password: The new password. If set to None, no password will
-        be stored for this user. This should be done in cases where an external
-        system is responsible for authenticating the user.
+                         be stored for this user. This should be done in cases
+                         where an external system is responsible for
+                         authenticating the user.
         """
         if password is None:
             user['salt'] = None

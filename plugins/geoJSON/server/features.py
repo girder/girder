@@ -35,14 +35,14 @@ are stored as follows:
 This module can be used as follows with cursor returned by a mongo query
 over some girder items:
 
-    >>> pointSpec = { \
-            "latitude": "meta.lat", \
-            "longitude": "meta.lon", \
-            "keys": ["meta"], \
-            "flatten": ["meta"] \
-        }
-    >>> collection = FeatureCollection(myPoints=pointSpec)
-    >>> obj = features(myPoints=cursor)
+    pointSpec = {
+            "latitude": "meta.lat",
+            "longitude": "meta.lon",
+            "keys": ["meta"],
+            "flatten": ["meta"]
+    }
+    collection = FeatureCollection(myPoints=pointSpec)
+    obj = features(myPoints=cursor)
 
 The resulting object will contain an array of point features with properties
 set to the item metadata as follows:
