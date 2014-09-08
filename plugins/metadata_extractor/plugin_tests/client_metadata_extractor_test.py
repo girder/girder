@@ -28,6 +28,7 @@ from . metadata_extractor_test import MetadataExtractorTestCase
 
 
 def setUpModule():
+    os.environ['PORT'] = '50001'
     base.startServer(False)
 
 
@@ -47,7 +48,7 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
 
         from GirderClient import GirderClient
 
-        client = GirderClient()
+        client = GirderClient('localhost', 50001)
         client.authenticate(self.user['login'], self.password)
         extractor = ClientMetadataExtractor(client, self.path, self.item['_id'])
         extractor.extractMetadata()
