@@ -392,6 +392,13 @@ perform logic each time a folder is saved to the database. You can use
 ``preventDefault`` on the passed event if you wish for the normal saving logic
 not to be performed.
 
+* **After model save**
+
+You can also receive an event `after` a resource of a specific type is saved
+to the database. This is useful if your handler needs to know the ``_id`` field
+of the document. You cannot prevent any default actions with this hook. The
+format of the event name is, e.g. ``model.folder.save.after``.
+
 * **Before model deletion**
 
 Triggered each time a model is about to be deleted. You can bind to this via

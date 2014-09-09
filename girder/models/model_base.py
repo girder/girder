@@ -174,9 +174,10 @@ class Model(ModelImporter):
             if not event.defaultPrevented:
                 document = self.validate(document)
 
-        event = events.trigger('.'.join(('model', self.name, 'save')), document)
+        event = events.trigger('model.{}.save'.format(self.name), document)
         if not event.defaultPrevented:
             document['_id'] = self.collection.save(document)
+            events.trigger('model.{}.save.after'.format(self.name), document)
 
         return document
 
