@@ -173,8 +173,11 @@ class Model(ModelImporter):
         if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
                                    document)
-            if not event.defaultPrevented:
-                document = self.validate(document)
+            if event.defaultPrevented:
+                validate = False
+
+        if validate:
+            document = self.validate(document)
 
         if triggerEvents:
             event = events.trigger('model.{}.save'.format(self.name), document)
