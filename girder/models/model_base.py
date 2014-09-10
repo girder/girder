@@ -157,7 +157,7 @@ class Model(ModelImporter):
         return [r for r in self.find(filters, offset=offset, limit=limit,
                                      sort=sort, fields=fields)]
 
-    def save(self, document, validate=True):
+    def save(self, document, validate=True, triggerEvents=True):
         """
         Create or update a document in the collection. This triggers two
         events; one prior to validation, and one prior to saving. Either of
@@ -167,16 +167,24 @@ class Model(ModelImporter):
         :type document: dict
         :param validate: Whether to call the model's validate() before saving.
         :type validate: bool
+        :param triggerEvents: Whether to trigger events for validate and
+        pre- and post-save hooks.
         """
-        if validate:
+        if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
                                    document)
             if not event.defaultPrevented:
                 document = self.validate(document)
 
-        event = events.trigger('.'.join(('model', self.name, 'save')), document)
-        if not event.defaultPrevented:
-            document['_id'] = self.collection.save(document)
+        if triggerEvents:
+            event = events.trigger('model.{}.save'.format(self.name), document)
+            if event.defaultPrevented:
+                return document
+
+        document['_id'] = self.collection.save(document)
+
+        if triggerEvents:
+            events.trigger('model.{}.save.after'.format(self.name), document)
 
         return document
 
