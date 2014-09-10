@@ -22,6 +22,7 @@ import re
 
 from .. import base
 
+from girder import events
 from girder.constants import AccessType, SettingKey
 
 
@@ -481,3 +482,35 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='POST', params=params)
         self.assertStatusOk(resp)
         self.assertFalse(resp.json['admin'])
+
+    def testModelSaveHooks(self):
+        """
+        This tests the general correctness of the model save hooks
+        """
+        self.ctr = 0
+
+        def preSave(event):
+            if '_id' not in event.info:
+                self.ctr += 1
+
+        def postSave(event):
+            self.ctr += 2
+
+        events.bind('model.user.save', 'test', preSave)
+
+        user = self.model('user').createUser(
+            login='myuser', password='passwd', firstName='A', lastName='A',
+            email='email@email.com')
+        self.assertEqual(self.ctr, 1)
+
+        events.bind('model.user.save.after', 'test', postSave)
+        self.ctr = 0
+
+        user = self.model('user').save(user, triggerEvents=False)
+        self.assertEqual(self.ctr, 0)
+
+        self.model('user').save(user)
+        self.assertEqual(self.ctr, 2)
+
+        events.unbind('model.user.save', 'test')
+        events.unbind('model.user.save.after', 'test')
