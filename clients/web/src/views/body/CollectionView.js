@@ -5,7 +5,26 @@
     girder.views.CollectionView = girder.View.extend({
         events: {
             'click .g-edit-collection': 'editCollection',
-            'click .g-collection-access-control': 'editAccess'
+            'click .g-collection-access-control': 'editAccess',
+            'click .g-delete-collection': function () {
+                girder.confirm({
+                    text: 'Are you sure you want to delete the collection <b>' +
+                          this.model.escape('name') + '</b>?',
+                    yesText: 'Delete',
+                    escapedHtml: true,
+                    confirmCallback: _.bind(function () {
+                        this.model.destroy().on('g:deleted', function () {
+                            girder.events.trigger('g:alert', {
+                                icon: 'ok',
+                                text: 'Collection deleted.',
+                                type: 'success',
+                                timeout: 4000
+                            });
+                            girder.router.navigate('collections', {trigger: true});
+                        });
+                    }, this)
+                });
+            }
         },
 
         initialize: function (settings) {
