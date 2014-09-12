@@ -12,7 +12,7 @@ girder.views.LoginView = girder.View.extend({
                 path: 'user/authentication',
                 type: 'GET',
                 headers: {
-                    'Authorization': 'Basic ' + authStr
+                    Authorization: 'Basic ' + authStr
                 },
                 error: null // don't do default error behavior
             }).done(_.bind(function (resp) {

@@ -130,9 +130,9 @@ girder.views.HierarchyWidget = girder.View.extend({
         }, this).off('g:checkboxesChanged')
                 .on('g:checkboxesChanged', this.updateChecked, this)
                 .off('g:changed').on('g:changed', function () {
-                this.folderCount = this.folderListView.collection.length;
-                this._childCountCheck();
-            }, this);
+                    this.folderCount = this.folderListView.collection.length;
+                    this._childCountCheck();
+                }, this);
 
         if (this.parentModel.resourceName === 'folder') {
             // Setup the child item list view
@@ -145,24 +145,28 @@ girder.views.HierarchyWidget = girder.View.extend({
             }, this).off('g:checkboxesChanged')
                     .on('g:checkboxesChanged', this.updateChecked, this)
                     .off('g:changed').on('g:changed', function () {
-                    this.itemCount = this.itemListView.collection.length;
-                    this._childCountCheck();
-                }, this);
+                        this.itemCount = this.itemListView.collection.length;
+                        this._childCountCheck();
+                    }, this);
         } else {
             this.itemCount = 0;
         }
 
         this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
-               '.g-upload-here-button,.g-checked-actions-button').tooltip({
-            container: this.$el,
-            animation: false,
-            delay: {show: 100}
-        });
+            '.g-upload-here-button,.g-checked-actions-button').tooltip({
+                container: this.$el,
+                animation: false,
+                delay: {
+                    show: 100
+                }
+            });
         this.$('.g-folder-actions-button,.g-hierarchy-level-up').tooltip({
             container: this.$el,
             placement: 'left',
             animation: false,
-            delay: {show: 100}
+            delay: {
+                show: 100
+            }
         });
 
         if (this.upload) {

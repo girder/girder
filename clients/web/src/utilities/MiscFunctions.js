@@ -174,7 +174,6 @@ girder.cookie = {
     }
 };
 
-
 (function () {
     var _pluginConfigRoutes = {};
 
