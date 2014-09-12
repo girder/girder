@@ -302,7 +302,7 @@ class Item(Model):
         """
         item['updated'] = datetime.datetime.now()
 
-        # Validate and save the collection
+        # Validate and save the item
         return self.save(item)
 
     def setMetadata(self, item, metadata):

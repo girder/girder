@@ -191,7 +191,7 @@ class Model(ModelImporter):
 
         return document
 
-    def update(self, query, update):
+    def update(self, query, update, multi=True):
         """
         This method should be used for updating multiple documents in the
         collection. This is useful for things like removing all references in
@@ -208,7 +208,7 @@ class Model(ModelImporter):
         :param update: The update specifier.
         :type update: dict
         """
-        self.collection.update(query, update, multi=True)
+        self.collection.update(query, update, multi=multi)
 
     def remove(self, document):
         """

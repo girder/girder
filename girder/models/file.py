@@ -51,17 +51,7 @@ class File(Model):
             adapter.deleteFile(file)
 
         item = self.model('item').load(file['itemId'], force=True)
-
-        if updateItemSize:
-            # Propagate size change up to item
-            item['size'] = max(0, item['size'] - file['size'])
-            self.model('item').save(item)
-
-        # Propagate size up to root data node
-        rootNode = self.model(item['baseParentType']).load(
-            item['baseParentId'], force=True)
-        rootNode['size'] = max(0, rootNode['size'] - file['size'])
-        self.model(item['baseParentType']).save(rootNode)
+        self.propagateSizeChange(item, -file['size'], updateItemSize)
 
         Model.remove(self, file)
 
@@ -142,6 +132,45 @@ class File(Model):
                 self.model('item').remove(item)
             raise
 
+    def propagateSizeChange(self, item, sizeIncrement, updateItemSize=True):
+        """
+        Propagates a file size change (or file creation) to the necessary
+        parents in the hierarchy. Internally, this records subtree size in
+        the item, the parent folder, and the root node under which the item
+        lives. Should be called anytime a new file is added, a file is
+        deleted, or a file size changes. Uses an update command with $inc to
+        allow the DBMS to atomically update size info.
+
+        :param item: The parent item of the file.
+        :type item: dict
+        :param sizeIncrement: The change in size to propagate.
+        :type sizeIncrement: int
+        :param updateItemSize: Whether the item size should be updated. Set to
+        False if you plan to delete the item immediately and don't care to
+        update its size.
+        """
+        if updateItemSize:
+            # Propagate size up to item
+            self.model('item').update(query={
+                '_id': item['_id']
+            }, update={
+                '$inc': {'size': sizeIncrement}
+            }, multi=False)
+
+        # Propagate size to direct parent folder
+        self.model('folder').update(query={
+            '_id': item['folderId']
+        }, update={
+            '$inc': {'size': sizeIncrement}
+        }, multi=False)
+
+        # Propagate size up to root data node
+        self.model(item['baseParentType']).update(query={
+            '_id': item['baseParentId']
+        }, update={
+            '$inc': {'size': sizeIncrement}
+        }, multi=False)
+
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """
         Create a new file record in the database.
@@ -165,14 +194,6 @@ class File(Model):
             'size': size
         }
 
-        # Propagate size up to item
-        item['size'] += size
-        self.model('item').save(item)
-
-        # Propagate size up to root data node
-        rootNode = self.model(item['baseParentType']).load(
-            item['baseParentId'], force=True)
-        rootNode['size'] += size
-        self.model(item['baseParentType']).save(rootNode)
+        self.propagateSizeChange(item, size)
 
         return self.save(file)

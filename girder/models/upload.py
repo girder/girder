@@ -90,16 +90,9 @@ class Upload(Model):
                 self.model('assetstore').load(
                     file['assetstoreId'])).deleteFile(file)
 
-            # Update parent item size to reflect new file size
             item = self.model('item').load(file['itemId'], force=True)
-            item['size'] += upload['size'] - file['size']
-            self.model('item').save(item)
-
-            # Propagate size change up to root data node
-            rootNode = self.model(item['baseParentType']).load(
-                item['baseParentId'], force=True)
-            rootNode['size'] += upload['size'] - file['size']
-            self.model(item['baseParentType']).save(rootNode)
+            self.model('file').propagateSizeChange(
+                item, upload['size'] - file['size'])
 
             # Update file info
             file['creatorId'] = upload['userId']
