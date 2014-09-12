@@ -26,7 +26,7 @@
     "jshint": "2.5.5",
     "phantomjs": "~1.9.1",
     "blanket": "1.1.6",
-    "nodelint": "0.6.2"
+    "jscs": "1.6.1"
   },
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"

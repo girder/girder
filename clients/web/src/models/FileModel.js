@@ -13,7 +13,7 @@ girder.models.FileModel = girder.Model.extend({
             path: 'file/' + this.get('_id') + '/contents',
             type: 'PUT',
             data: {
-                'size': file.size
+                size: file.size
             }
         });
     },
@@ -33,11 +33,11 @@ girder.models.FileModel = girder.Model.extend({
             path: 'file',
             type: 'POST',
             data: {
-                'parentType': parentModel.resourceName,
-                'parentId': parentModel.get('_id'),
-                'name': file.name,
-                'size': file.size,
-                'mimeType': file.type
+                parentType: parentModel.resourceName,
+                parentId: parentModel.get('_id'),
+                name: file.name,
+                size: file.size,
+                mimeType: file.type
             }
         };
 

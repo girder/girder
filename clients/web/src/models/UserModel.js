@@ -67,8 +67,8 @@ girder.models.UserModel = girder.Model.extend({
         girder.restRequest({
             path: this.resourceName + '/password',
             data: {
-                'old': oldPassword,
-                'new': newPassword
+                old: oldPassword,
+                new: newPassword
             },
             type: 'PUT',
             error: null

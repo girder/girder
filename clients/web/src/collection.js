@@ -85,10 +85,10 @@ girder.Collection = Backbone.Collection.extend({
         girder.restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
-                'limit': this.pageLimit + 1,
-                'offset': this.offset,
-                'sort': this.sortField,
-                'sortdir': this.sortDir
+                limit: this.pageLimit + 1,
+                offset: this.offset,
+                sort: this.sortField,
+                sortdir: this.sortDir
             }, this.params)
         }).done(_.bind(function (list) {
             if (list.length > this.pageLimit) {

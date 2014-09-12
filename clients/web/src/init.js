@@ -1,7 +1,7 @@
 /*global girder:true*/
 /*global console:true*/
 
-"use strict";
+'use strict';
 
 /*
  * Some cross-browser globals
@@ -36,8 +36,10 @@ var girder = {
     UPLOAD_CHUNK_SIZE: 1024 * 1024 * 64, // 64MB
     SORT_ASC: 1,
     SORT_DESC: -1,
-    MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-             'August', 'September', 'October', 'November', 'December'],
+    MONTHS: [
+        'January', 'February', 'March', 'April', 'May', 'June', 'July',
+        'August', 'September', 'October', 'November', 'December'
+    ],
     AccessType: {
         NONE: -1,
         READ: 0,

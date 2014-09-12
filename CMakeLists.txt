@@ -22,7 +22,7 @@ endif()
 
 if(JAVASCRIPT_STYLE_TESTS)
   find_program(JSHINT_EXECUTABLE jshint ${PROJECT_SOURCE_DIR}/node_modules/jshint/bin)
-  find_program(JSLINT_EXECUTABLE nodelint ${PROJECT_SOURCE_DIR}/node_modules/nodelint)
+  find_program(JSSTYLE_EXECUTABLE jscs ${PROJECT_SOURCE_DIR}/node_modules/jscs/bin)
 endif()
 
 if(BUILD_TESTING)

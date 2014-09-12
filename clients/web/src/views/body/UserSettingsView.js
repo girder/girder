@@ -25,13 +25,13 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                     .on('g:saved', function () {
-                    girder.events.trigger('g:alert', {
-                        icon: 'ok',
-                        text: 'Info saved.',
-                        type: 'success',
-                        timeout: 4000
-                    });
-                }, this).save();
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Info saved.',
+                            type: 'success',
+                            timeout: 4000
+                        });
+                    }, this).save();
         },
         'submit #g-password-change-form': function (event) {
             event.preventDefault();
@@ -52,17 +52,17 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
-                    girder.events.trigger('g:alert', {
-                        icon: 'ok',
-                        text: 'Password changed.',
-                        type: 'success',
-                        timeout: 4000
-                    });
-                    this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
-                }, this).changePassword(
-                    this.$('#g-password-old').val(),
-                    this.$('#g-password-new').val()
-                );
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Password changed.',
+                            type: 'success',
+                            timeout: 4000
+                        });
+                        this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
+                    }, this).changePassword(
+                        this.$('#g-password-old').val(),
+                        this.$('#g-password-new').val()
+                    );
         }
     },
 

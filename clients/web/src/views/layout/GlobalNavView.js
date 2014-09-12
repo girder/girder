@@ -22,23 +22,23 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
 
     render: function () {
         var navItems = [{
-            'name': 'Collections',
-            'icon': 'icon-sitemap',
-            'target': 'collections'
+            name: 'Collections',
+            icon: 'icon-sitemap',
+            target: 'collections'
         }, {
-            'name': 'Users',
-            'icon': 'icon-user',
-            'target': 'users'
+            name: 'Users',
+            icon: 'icon-user',
+            target: 'users'
         }, {
-            'name': 'Groups',
-            'icon': 'icon-users',
-            'target': 'groups'
+            name: 'Groups',
+            icon: 'icon-users',
+            target: 'groups'
         }];
         if (girder.currentUser && girder.currentUser.get('admin')) {
             navItems.push({
-                'name': 'Admin console',
-                'icon': 'icon-wrench',
-                'target': 'admin'
+                name: 'Admin console',
+                icon: 'icon-wrench',
+                target: 'admin'
             });
         }
         this.$el.html(jade.templates.layoutGlobalNav({
