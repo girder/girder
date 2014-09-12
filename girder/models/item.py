@@ -128,9 +128,26 @@ class Item(Model):
         :param folder: The folder to move the item into.
         :type folder: dict.
         """
+        def propagateSizeChange(item, inc):
+            self.model('folder').update(query={
+                '_id': item['folderId']
+            }, update={
+                '$inc': {'size': inc}
+            }, multi=False)
+
+            self.model(item['baseParentType']).update(query={
+                '_id': item['baseParentId']
+            }, update={
+                '$inc': {'size': inc}
+            }, multi=False)
+
+        propagateSizeChange(item, -item['size'])
+
         item['folderId'] = folder['_id']
         item['baseParentType'] = folder['baseParentType']
         item['baseParentId'] = folder['baseParentId']
+
+        propagateSizeChange(item, item['size'])
 
         return self.save(item)
 
