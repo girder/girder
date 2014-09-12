@@ -124,6 +124,25 @@ class Folder(AccessControlledModel):
 
         return doc
 
+    def getSizeRecursive(self, folder):
+        """
+        Calculate the total size of the folder by recursing into all of its
+        descendent folders.
+
+        :param folder: The folder to calculate the size of.
+        """
+        size = folder['size']
+
+        q = {
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        }
+
+        for child in self.find(q, limit=0):
+            size += self.getSizeRecursive(child)
+
+        return size
+
     def move(self, folder, parent, parentType):
         """
         Move the given folder from its current parent to another parent object.
@@ -135,6 +154,16 @@ class Folder(AccessControlledModel):
         or folder).
         :type parentType: str
         """
+        def propagateSizeChange(folder, inc):
+            self.model(folder['baseParentType']).update(query={
+                '_id': folder['baseParentId']
+            }, update={
+                '$inc': {'size': inc}
+            }, multi=False)
+
+        totalSize = self.getSizeRecursive(folder)
+        propagateSizeChange(folder, -totalSize)
+
         folder['parentId'] = parent['_id']
         folder['parentCollection'] = parentType
 
@@ -144,6 +173,8 @@ class Folder(AccessControlledModel):
         else:
             folder['baseParentType'] = parentType
             folder['baseParentId'] = parent['_id']
+
+        propagateSizeChange(folder, totalSize)
 
         return self.save(folder)
 

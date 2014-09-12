@@ -166,8 +166,9 @@ class Folder(Resource):
 
             parent = self.model(parentType).load(
                 params['parentId'], level=AccessType.WRITE, user=user, exc=True)
-
-            folder = self.model('folder').move(folder, parent, parentType)
+            if (parentType, parent['_id']) !=\
+               (folder['parentCollection'], folder['parentId']):
+                folder = self.model('folder').move(folder, parent, parentType)
 
         return self.model('folder').filter(folder, user)
     updateFolder.description = (
