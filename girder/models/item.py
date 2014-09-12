@@ -165,7 +165,7 @@ class Item(Model):
             'itemId': item['_id']
         }, limit=0)
         for file in files:
-            self.model('file').remove(file)
+            self.model('file').remove(file, updateItemSize=False)
 
         # Delete pending uploads into this item
         uploads = self.model('upload').find({

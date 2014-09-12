@@ -92,9 +92,14 @@ class Upload(Model):
 
             # Update parent item size to reflect new file size
             item = self.model('item').load(file['itemId'], force=True)
-            item['size'] -= file['size']
-            item['size'] += upload['size']
+            item['size'] += upload['size'] - file['size']
             self.model('item').save(item)
+
+            # Propagate size change up to root data node
+            rootNode = self.model(item['baseParentType']).load(
+                item['baseParentId'], force=True)
+            rootNode['size'] += upload['size'] - file['size']
+            self.model(item['baseParentType']).save(rootNode)
 
             # Update file info
             file['creatorId'] = upload['userId']

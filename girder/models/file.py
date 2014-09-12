@@ -34,16 +34,35 @@ class File(Model):
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
 
-    def remove(self, file):
+    def remove(self, file, updateItemSize=True):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call deleteFile on it, then delete the file
         record from the database.
+
+        :param file: The file document to remove.
+        :param updateItemSize: Whether to update the item size. Only set this
+        to False if you plan to delete the item and do not care about updating
+        its size.
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             adapter.deleteFile(file)
+
+        item = self.model('item').load(file['itemId'], force=True)
+
+        if updateItemSize:
+            # Propagate size change up to item
+            item['size'] = max(0, item['size'] - file['size'])
+            self.model('item').save(item)
+
+        # Propagate size up to root data node
+        rootNode = self.model(item['baseParentType']).load(
+            item['baseParentId'], force=True)
+        rootNode['size'] = max(0, rootNode['size'] - file['size'])
+        self.model(item['baseParentType']).save(rootNode)
+
         Model.remove(self, file)
 
     def download(self, file, offset=0, headers=True):
@@ -149,5 +168,11 @@ class File(Model):
         # Propagate size up to item
         item['size'] += size
         self.model('item').save(item)
+
+        # Propagate size up to root data node
+        rootNode = self.model(item['baseParentType']).load(
+            item['baseParentId'], force=True)
+        rootNode['size'] += size
+        self.model(item['baseParentType']).save(rootNode)
 
         return self.save(file)
