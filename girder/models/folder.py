@@ -161,20 +161,21 @@ class Folder(AccessControlledModel):
                 '$inc': {'size': inc}
             }, multi=False)
 
-        totalSize = self.getSizeRecursive(folder)
-        propagateSizeChange(folder, -totalSize)
-
         folder['parentId'] = parent['_id']
         folder['parentCollection'] = parentType
 
         if parentType == 'folder':
-            folder['baseParentType'] = parent['baseParentType']
-            folder['baseParentId'] = parent['baseParentId']
+            rootType, rootId = parent['baseParentType'], parent['baseParentId']
         else:
-            folder['baseParentType'] = parentType
-            folder['baseParentId'] = parent['_id']
+            rootType, rootId = parentType, parent['_id']
 
-        propagateSizeChange(folder, totalSize)
+        if (folder['baseParentType'], folder['baseParentId']) !=\
+           (rootType, rootId):
+            totalSize = self.getSizeRecursive(folder)
+            propagateSizeChange(folder, -totalSize)
+            folder['baseParentType'] = rootType
+            folder['baseParentId'] = rootId
+            propagateSizeChange(folder, totalSize)
 
         return self.save(folder)
 
