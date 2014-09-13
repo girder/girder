@@ -46,10 +46,10 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             tempKey = curRow.find('.g-item-metadata-key-input').val(),
             tempValue = curRow.find('.g-item-metadata-value-input').val();
 
-        if (this.newDatum && tempKey === "") {
+        if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
-                'text': 'A key is required for all metadata.',
-                'type': 'warning'
+                text: 'A key is required for all metadata.',
+                type: 'warning'
             });
             return;
         }
@@ -71,8 +71,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
         var errorCallback = function (out) {
             girder.events.trigger('g:alert', {
-                'text': out.message,
-                'type': 'danger'
+                text: out.message,
+                type: 'danger'
             });
         };
 

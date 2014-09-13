@@ -141,11 +141,10 @@
                 }, this).sendInvitation(params.user.id, params.level);
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:moderatorAdded', function () {
-                    this._updateRolesLists();
-                }, this)
-                    .on('g:adminAdded', function () {
-                    this._updateRolesLists();
-                }, this);
+                        this._updateRolesLists();
+                    }, this).on('g:adminAdded', function () {
+                        this._updateRolesLists();
+                    }, this);
 
             this._updateRolesLists();
 

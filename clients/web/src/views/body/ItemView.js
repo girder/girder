@@ -119,8 +119,6 @@
         }, this).fetch();
     };
 
-
-
     girder.router.route('item/:id', 'item', function (itemId, params) {
         _fetchAndInit(itemId, {
             edit: params.dialog === 'itemedit'

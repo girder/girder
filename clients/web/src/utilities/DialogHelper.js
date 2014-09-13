@@ -14,12 +14,12 @@ girder.dialogs = {
         }
 
         if (lastIndex === -1) {
-            dialogName = "";
+            dialogName = '';
         } else {
             dialogName = route.slice(lastIndex + 1);
         }
 
-        return {'name': dialogName, 'base': baseRoute};
+        return {name: dialogName, base: baseRoute};
     },
 
     handleClose: function (name) {

@@ -133,8 +133,8 @@ girder.AccessControlledModel = girder.Model.extend({
             path: this.resourceName + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: {
-                'access': JSON.stringify(this.get('access')),
-                'public': this.get('public')
+                access: JSON.stringify(this.get('access')),
+                public: this.get('public')
             }
         }).done(_.bind(function () {
             this.trigger('g:accessListSaved');

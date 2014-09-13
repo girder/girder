@@ -71,7 +71,9 @@ girder.App = Backbone.View.extend({
              * normally against convention.
              */
             /*jshint -W055 */
+            // jscs:disable requireCapitalizedConstructors
             this.bodyView = new view(settings);
+            // jscs:enable requireCapitalizedConstructors
         } else {
             console.error('Undefined page.');
         }
