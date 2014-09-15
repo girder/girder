@@ -109,7 +109,7 @@ class Item(Model):
                                       force, fields)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
@@ -293,7 +293,7 @@ class Item(Model):
 
         if 'baseParentType' not in folder:
             pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
-                                              creator)
+                                              creator, force=True)
             folder['baseParentType'] = pathFromRoot[0]['type']
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 

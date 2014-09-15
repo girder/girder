@@ -174,6 +174,7 @@ class File(Model):
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """
         Create a new file record in the database.
+
         :param item: The parent item.
         :param creator: The user creating the file.
         :param assetstore: The assetstore this file is stored in.

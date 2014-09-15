@@ -114,7 +114,7 @@ class Folder(AccessControlledModel):
             exc=exc, force=force, user=user)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
@@ -128,8 +128,6 @@ class Folder(AccessControlledModel):
         """
         Calculate the total size of the folder by recursing into all of its
         descendent folders.
-
-        :param folder: The folder to calculate the size of.
         """
         size = folder['size']
 
@@ -143,6 +141,32 @@ class Folder(AccessControlledModel):
 
         return size
 
+    def _updateDescendants(self, folderId, updateQuery):
+        """
+        This helper is used to update all items and folders underneath a
+        folder. This is expensive, so think carefully before using it.
+
+        :param folderId: The _id of the folder at the root of the subtree.
+        :param updateQuery: The mongo query to apply to all of the children of
+        the folder.
+        :type updateQuery: dict
+        """
+        self.model('folder').update(query={
+            'parentId': folderId,
+            'parentCollection': 'folder'
+        }, update=updateQuery, multi=True)
+        self.model('item').update(query={
+            'folderId': folderId,
+        }, update=updateQuery, multi=True)
+
+        q = {
+            'parentId': folderId,
+            'parentCollection': 'folder'
+        }
+        for child in self.find(q, limit=0):
+            self._updateDescendants(
+                child['_id'], updateQuery)
+
     def move(self, folder, parent, parentType):
         """
         Move the given folder from its current parent to another parent object.
@@ -154,13 +178,6 @@ class Folder(AccessControlledModel):
         or folder).
         :type parentType: str
         """
-        def propagateSizeChange(folder, inc):
-            self.model(folder['baseParentType']).update(query={
-                '_id': folder['baseParentId']
-            }, update={
-                '$inc': {'size': inc}
-            }, multi=False)
-
         folder['parentId'] = parent['_id']
         folder['parentCollection'] = parentType
 
@@ -171,11 +188,24 @@ class Folder(AccessControlledModel):
 
         if (folder['baseParentType'], folder['baseParentId']) !=\
            (rootType, rootId):
+            def propagateSizeChange(folder, inc):
+                self.model(folder['baseParentType']).update(query={
+                    '_id': folder['baseParentId']
+                }, update={
+                    '$inc': {'size': inc}
+                }, multi=False)
+
             totalSize = self.getSizeRecursive(folder)
             propagateSizeChange(folder, -totalSize)
             folder['baseParentType'] = rootType
             folder['baseParentId'] = rootId
             propagateSizeChange(folder, totalSize)
+            self._updateDescendants(folder['_id'], {
+                '$set': {
+                    'baseParentType': rootType,
+                    'baseParentId': rootId
+                }
+            })
 
         return self.save(folder)
 
@@ -299,11 +329,9 @@ class Folder(AccessControlledModel):
                                       'collection, or user.')
 
         if parentType == 'folder':
-            parentObject = {'parentId': parent['_id'],
-                            'parentCollection': parentType}
-            pathFromRoot = self.parentsToRoot(parentObject, user=creator)
             if 'baseParentId' not in parent:
-                pathFromRoot = self.parentsToRoot(parent, user=creator)
+                pathFromRoot = self.parentsToRoot(
+                    parent, user=creator, force=True)
                 parent['baseParentId'] = pathFromRoot[0]['object']['_id']
                 parent['baseParentType'] = pathFromRoot[0]['type']
         else:
