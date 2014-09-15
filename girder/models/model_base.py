@@ -232,8 +232,7 @@ class Model(ModelImporter):
 
     def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field. If the
-        id is not valid, throws an exception.
+        Fetch a single object from the databse using its _id field.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId

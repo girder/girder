@@ -167,9 +167,33 @@ class Folder(AccessControlledModel):
             self._updateDescendants(
                 child['_id'], updateQuery)
 
+    def isAncestor(self, a, b):
+        """
+        Returns whether folder a is an ancestor of folder b, or if they are the
+        same folder.
+
+        :param a: The folder to test as an ancestor.
+        :type a: folder
+        :param b: The folder to test as a descendant.
+        :type b: folder
+        """
+        if a['_id'] == b['_id']:
+            return True
+
+        if b['parentCollection'] != 'folder':
+            return False
+
+        b = self.load(b['parentId'], force=True)
+
+        if b is None:
+            return False
+
+        return self.isAncestor(a, b)
+
     def move(self, folder, parent, parentType):
         """
         Move the given folder from its current parent to another parent object.
+        Raises an exception if folder is an ancestor of parent.
 
         :param folder: The folder to move.
         :type folder: dict
@@ -178,6 +202,10 @@ class Folder(AccessControlledModel):
         or folder).
         :type parentType: str
         """
+        if parentType == 'folder' and self.isAncestor(folder, parent):
+            raise ValidationException(
+                'You may not move a folder underneath itself.')
+
         folder['parentId'] = parent['_id']
         folder['parentCollection'] = parentType
 

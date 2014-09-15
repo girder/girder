@@ -148,6 +148,17 @@ class SizeTestCase(base.TestCase):
         self.assertNodeSize(self.coll1, 'collection', 10)
 
     def testMoveAndDeleteFolder(self):
+        # Ensure we cannot move a folder under itself
+        resp = self.request(
+            path='/folder/{}'.format(self.folder1['_id']), method='PUT',
+            user=self.admin, params={
+                'parentId': self.folder2['_id'],
+                'parentType': 'folder'
+            })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'You may not move a folder underneath itself.')
+
         self.assertNodeSize(self.coll1, 'collection', 11)
         self.assertNodeSize(self.coll2, 'collection', 0)
 
