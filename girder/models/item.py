@@ -129,17 +129,13 @@ class Item(Model):
         :type folder: dict.
         """
         def propagateSizeChange(item, inc):
-            self.model('folder').update(query={
+            self.model('folder').increment(query={
                 '_id': item['folderId']
-            }, update={
-                '$inc': {'size': inc}
-            }, multi=False)
+            }, field='size', amount=inc, multi=False)
 
-            self.model(item['baseParentType']).update(query={
+            self.model(item['baseParentType']).increment(query={
                 '_id': item['baseParentId']
-            }, update={
-                '$inc': {'size': inc}
-            }, multi=False)
+            }, field='size', amount=inc, multi=False)
 
         propagateSizeChange(item, -item['size'])
 

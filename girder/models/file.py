@@ -138,8 +138,7 @@ class File(Model):
         parents in the hierarchy. Internally, this records subtree size in
         the item, the parent folder, and the root node under which the item
         lives. Should be called anytime a new file is added, a file is
-        deleted, or a file size changes. Uses an update command with $inc to
-        allow the DBMS to atomically update size info.
+        deleted, or a file size changes.
 
         :param item: The parent item of the file.
         :type item: dict
@@ -151,25 +150,19 @@ class File(Model):
         """
         if updateItemSize:
             # Propagate size up to item
-            self.model('item').update(query={
+            self.model('item').increment(query={
                 '_id': item['_id']
-            }, update={
-                '$inc': {'size': sizeIncrement}
-            }, multi=False)
+            }, field='size', amount=sizeIncrement, multi=False)
 
         # Propagate size to direct parent folder
-        self.model('folder').update(query={
+        self.model('folder').increment(query={
             '_id': item['folderId']
-        }, update={
-            '$inc': {'size': sizeIncrement}
-        }, multi=False)
+        }, field='size', amount=sizeIncrement, multi=False)
 
         # Propagate size up to root data node
-        self.model(item['baseParentType']).update(query={
+        self.model(item['baseParentType']).increment(query={
             '_id': item['baseParentId']
-        }, update={
-            '$inc': {'size': sizeIncrement}
-        }, multi=False)
+        }, field='size', amount=sizeIncrement, multi=False)
 
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """

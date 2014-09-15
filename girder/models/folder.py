@@ -217,11 +217,9 @@ class Folder(AccessControlledModel):
         if (folder['baseParentType'], folder['baseParentId']) !=\
            (rootType, rootId):
             def propagateSizeChange(folder, inc):
-                self.model(folder['baseParentType']).update(query={
+                self.model(folder['baseParentType']).increment(query={
                     '_id': folder['baseParentId']
-                }, update={
-                    '$inc': {'size': inc}
-                }, multi=False)
+                }, field='size', amount=inc, multi=False)
 
             totalSize = self.getSizeRecursive(folder)
             propagateSizeChange(folder, -totalSize)

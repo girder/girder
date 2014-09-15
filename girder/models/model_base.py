@@ -210,6 +210,23 @@ class Model(ModelImporter):
         """
         self.collection.update(query, update, multi=multi)
 
+    def increment(self, query, field, amount, **kwargs):
+        """
+        This is a specialization of the update method that atomically increments
+        a field by a given amount. Additional kwargs are passed directly through
+        to update.
+
+        :param query: The query selector for documents to update.
+        :type query: dict
+        :param field: The name of the field in the document to increment.
+        :type field: str
+        :param amount: The amount to increment the field by.
+        :type amount: int or float
+        """
+        self.update(query=query, update={
+            '$inc': {field: amount}
+        }, **kwargs)
+
     def remove(self, document):
         """
         Delete an object from the collection; must have its _id set.
