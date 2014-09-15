@@ -16,11 +16,11 @@ each collection in collections
         i.icon-clock
         | Created on
         span.g-collection-created-date  #{girder.formatDate(collection.get('created'), girder.DATE_MINUTE)}
-      .g-collection-updated
-        i.icon-clock
-        | Updated on
-        span.g-collection-updated-date  #{girder.formatDate(collection.get('updated'), girder.DATE_MINUTE)}
-
+      if (collection.get('size') !== undefined)
+        .g-space-used
+          i.icon-floppy
+          | Currently using
+          span.g-user-space-used  #{girder.formatSize(collection.get('size'))}
     .g-collection-title
       a.g-collection-link(g-collection-cid="#{collection.cid}")
         b #{collection.get('name')}

@@ -152,7 +152,9 @@ class Item(Resource):
         if 'folderId' in params:
             folder = self.model('folder').load(
                 params['folderId'], user=user, level=AccessType.WRITE, exc=True)
-            self.model('item').move(item, folder)
+            if folder['_id'] != item['folderId']:
+                self.model('item').move(item, folder)
+
         return self.model('item').filter(item)
     updateItem.description = (
         Description('Edit an item or move it to another folder.')

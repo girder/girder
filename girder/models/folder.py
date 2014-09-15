@@ -114,7 +114,7 @@ class Folder(AccessControlledModel):
             exc=exc, force=force, user=user)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
@@ -124,9 +124,76 @@ class Folder(AccessControlledModel):
 
         return doc
 
+    def getSizeRecursive(self, folder):
+        """
+        Calculate the total size of the folder by recursing into all of its
+        descendent folders.
+        """
+        size = folder['size']
+
+        q = {
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        }
+
+        for child in self.find(q, limit=0):
+            size += self.getSizeRecursive(child)
+
+        return size
+
+    def _updateDescendants(self, folderId, updateQuery):
+        """
+        This helper is used to update all items and folders underneath a
+        folder. This is expensive, so think carefully before using it.
+
+        :param folderId: The _id of the folder at the root of the subtree.
+        :param updateQuery: The mongo query to apply to all of the children of
+        the folder.
+        :type updateQuery: dict
+        """
+        self.model('folder').update(query={
+            'parentId': folderId,
+            'parentCollection': 'folder'
+        }, update=updateQuery, multi=True)
+        self.model('item').update(query={
+            'folderId': folderId,
+        }, update=updateQuery, multi=True)
+
+        q = {
+            'parentId': folderId,
+            'parentCollection': 'folder'
+        }
+        for child in self.find(q, limit=0):
+            self._updateDescendants(
+                child['_id'], updateQuery)
+
+    def _isAncestor(self, ancestor, descendant):
+        """
+        Returns whether folder "ancestor" is an ancestor of folder "descendant",
+        or if they are the same folder.
+
+        :param ancestor: The folder to test as an ancestor.
+        :type ancestor: folder
+        :param descendant: The folder to test as a descendant.
+        :type descendant: folder
+        """
+        if ancestor['_id'] == descendant['_id']:
+            return True
+
+        if descendant['parentCollection'] != 'folder':
+            return False
+
+        descendant = self.load(descendant['parentId'], force=True)
+
+        if descendant is None:
+            return False
+
+        return self._isAncestor(ancestor, descendant)
+
     def move(self, folder, parent, parentType):
         """
         Move the given folder from its current parent to another parent object.
+        Raises an exception if folder is an ancestor of parent.
 
         :param folder: The folder to move.
         :type folder: dict
@@ -135,15 +202,36 @@ class Folder(AccessControlledModel):
         or folder).
         :type parentType: str
         """
+        if parentType == 'folder' and self._isAncestor(folder, parent):
+            raise ValidationException(
+                'You may not move a folder underneath itself.')
+
         folder['parentId'] = parent['_id']
         folder['parentCollection'] = parentType
 
         if parentType == 'folder':
-            folder['baseParentType'] = parent['baseParentType']
-            folder['baseParentId'] = parent['baseParentId']
+            rootType, rootId = parent['baseParentType'], parent['baseParentId']
         else:
-            folder['baseParentType'] = parentType
-            folder['baseParentId'] = parent['_id']
+            rootType, rootId = parentType, parent['_id']
+
+        if (folder['baseParentType'], folder['baseParentId']) !=\
+           (rootType, rootId):
+            def propagateSizeChange(folder, inc):
+                self.model(folder['baseParentType']).increment(query={
+                    '_id': folder['baseParentId']
+                }, field='size', amount=inc, multi=False)
+
+            totalSize = self.getSizeRecursive(folder)
+            propagateSizeChange(folder, -totalSize)
+            folder['baseParentType'] = rootType
+            folder['baseParentId'] = rootId
+            propagateSizeChange(folder, totalSize)
+            self._updateDescendants(folder['_id'], {
+                '$set': {
+                    'baseParentType': rootType,
+                    'baseParentId': rootId
+                }
+            })
 
         return self.save(folder)
 
@@ -267,11 +355,9 @@ class Folder(AccessControlledModel):
                                       'collection, or user.')
 
         if parentType == 'folder':
-            parentObject = {'parentId': parent['_id'],
-                            'parentCollection': parentType}
-            pathFromRoot = self.parentsToRoot(parentObject, user=creator)
             if 'baseParentId' not in parent:
-                pathFromRoot = self.parentsToRoot(parent, user=creator)
+                pathFromRoot = self.parentsToRoot(
+                    parent, user=creator, force=True)
                 parent['baseParentId'] = pathFromRoot[0]['object']['_id']
                 parent['baseParentType'] = pathFromRoot[0]['type']
         else:

@@ -109,7 +109,7 @@ class Item(Model):
                                       force, fields)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
@@ -128,9 +128,22 @@ class Item(Model):
         :param folder: The folder to move the item into.
         :type folder: dict.
         """
+        def propagateSizeChange(item, inc):
+            self.model('folder').increment(query={
+                '_id': item['folderId']
+            }, field='size', amount=inc, multi=False)
+
+            self.model(item['baseParentType']).increment(query={
+                '_id': item['baseParentId']
+            }, field='size', amount=inc, multi=False)
+
+        propagateSizeChange(item, -item['size'])
+
         item['folderId'] = folder['_id']
         item['baseParentType'] = folder['baseParentType']
         item['baseParentId'] = folder['baseParentId']
+
+        propagateSizeChange(item, item['size'])
 
         return self.save(item)
 
@@ -165,7 +178,7 @@ class Item(Model):
             'itemId': item['_id']
         }, limit=0)
         for file in files:
-            self.model('file').remove(file)
+            self.model('file').remove(file, updateItemSize=False)
 
         # Delete pending uploads into this item
         uploads = self.model('upload').find({
@@ -276,7 +289,7 @@ class Item(Model):
 
         if 'baseParentType' not in folder:
             pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
-                                              creator)
+                                              creator, force=True)
             folder['baseParentType'] = pathFromRoot[0]['type']
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
@@ -302,7 +315,7 @@ class Item(Model):
         """
         item['updated'] = datetime.datetime.now()
 
-        # Validate and save the collection
+        # Validate and save the item
         return self.save(item)
 
     def setMetadata(self, item, metadata):

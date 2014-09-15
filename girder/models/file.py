@@ -34,16 +34,25 @@ class File(Model):
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
 
-    def remove(self, file):
+    def remove(self, file, updateItemSize=True):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call deleteFile on it, then delete the file
         record from the database.
+
+        :param file: The file document to remove.
+        :param updateItemSize: Whether to update the item size. Only set this
+        to False if you plan to delete the item and do not care about updating
+        its size.
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             adapter.deleteFile(file)
+
+        item = self.model('item').load(file['itemId'], force=True)
+        self.propagateSizeChange(item, -file['size'], updateItemSize)
+
         Model.remove(self, file)
 
     def download(self, file, offset=0, headers=True):
@@ -123,9 +132,42 @@ class File(Model):
                 self.model('item').remove(item)
             raise
 
+    def propagateSizeChange(self, item, sizeIncrement, updateItemSize=True):
+        """
+        Propagates a file size change (or file creation) to the necessary
+        parents in the hierarchy. Internally, this records subtree size in
+        the item, the parent folder, and the root node under which the item
+        lives. Should be called anytime a new file is added, a file is
+        deleted, or a file size changes.
+
+        :param item: The parent item of the file.
+        :type item: dict
+        :param sizeIncrement: The change in size to propagate.
+        :type sizeIncrement: int
+        :param updateItemSize: Whether the item size should be updated. Set to
+        False if you plan to delete the item immediately and don't care to
+        update its size.
+        """
+        if updateItemSize:
+            # Propagate size up to item
+            self.model('item').increment(query={
+                '_id': item['_id']
+            }, field='size', amount=sizeIncrement, multi=False)
+
+        # Propagate size to direct parent folder
+        self.model('folder').increment(query={
+            '_id': item['folderId']
+        }, field='size', amount=sizeIncrement, multi=False)
+
+        # Propagate size up to root data node
+        self.model(item['baseParentType']).increment(query={
+            '_id': item['baseParentId']
+        }, field='size', amount=sizeIncrement, multi=False)
+
     def createFile(self, creator, item, name, size, assetstore, mimeType):
         """
         Create a new file record in the database.
+
         :param item: The parent item.
         :param creator: The user creating the file.
         :param assetstore: The assetstore this file is stored in.
@@ -146,8 +188,6 @@ class File(Model):
             'size': size
         }
 
-        # Propagate size up to item
-        item['size'] += size
-        self.model('item').save(item)
+        self.propagateSizeChange(item, size)
 
         return self.save(file)

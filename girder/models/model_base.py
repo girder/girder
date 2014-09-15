@@ -191,7 +191,7 @@ class Model(ModelImporter):
 
         return document
 
-    def update(self, query, update):
+    def update(self, query, update, multi=True):
         """
         This method should be used for updating multiple documents in the
         collection. This is useful for things like removing all references in
@@ -208,7 +208,24 @@ class Model(ModelImporter):
         :param update: The update specifier.
         :type update: dict
         """
-        self.collection.update(query, update, multi=True)
+        self.collection.update(query, update, multi=multi)
+
+    def increment(self, query, field, amount, **kwargs):
+        """
+        This is a specialization of the update method that atomically increments
+        a field by a given amount. Additional kwargs are passed directly through
+        to update.
+
+        :param query: The query selector for documents to update.
+        :type query: dict
+        :param field: The name of the field in the document to increment.
+        :type field: str
+        :param amount: The amount to increment the field by.
+        :type amount: int or float
+        """
+        self.update(query=query, update={
+            '$inc': {field: amount}
+        }, **kwargs)
 
     def remove(self, document):
         """
@@ -232,8 +249,7 @@ class Model(ModelImporter):
 
     def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field. If the
-        id is not valid, throws an exception.
+        Fetch a single object from the databse using its _id field.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
