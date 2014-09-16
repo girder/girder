@@ -29,6 +29,6 @@
     "jscs": "1.6.1"
   },
   "scripts": {
-    "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"
+    "postinstall": "grunt init && grunt"
   }
 }
