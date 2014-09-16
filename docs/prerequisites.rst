@@ -18,6 +18,7 @@ See the specific instructions for your platform below.
 * :ref:`ubuntu`
 * :ref:`rhel-fedora-centos`
 * :ref:`mac-osx`
+* :ref:`windows`
 
 .. _ubuntu:
 
@@ -64,3 +65,22 @@ To install all of the prerequisites at once just use: ::
 .. note:: OS X ships with Python in ``/usr/bin``, so you might need to change your
    PATH or explicitly run ``/usr/local/bin/python`` when invoking the server so
    that you use the version with the correct site packages installed.
+
+.. _windows:
+
+Windows
+------
+
+Install setuptools `<https://pypi.python.org/pypi/setuptools>`_ for python.
+You may need to add python\scripts to your path (it is necessary for npm to work as expected).
+
+From a command prompt, install pip: ::
+
+    easy_install pip
+
+If bcrypt fails to install using pip (this happened on Windows 7-64 and python 2.7), you need to remove it from the requirements.txt file and manually install it.  You can build it from source or install it from a wheel file from `<https://bitbucket.org/alexandrul/py-bcrypt/downloads>`_.  You can then install the wheel file: ::
+
+    pip install wheel
+    pip install py_bcrypt.whl
+
+
