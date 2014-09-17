@@ -79,10 +79,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         For filesystem assetstores, we just need to report the free and total
         space on the filesystem where the assetstore lives.
         """
-        if platform.system()=='Windows':
+        if platform.system() == 'Windows':  # pragma: no cover
             free_bytes = ctypes.c_ulonglong(0)
             total_bytes = ctypes.c_ulonglong(0)
-            ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(self.assetstore['root']), None, ctypes.pointer(total_bytes), ctypes.pointer(free_bytes))
+            ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+                ctypes.c_wchar_p(self.assetstore['root']), None,
+                ctypes.pointer(total_bytes), ctypes.pointer(free_bytes))
             return {
                 'free': free_bytes.value,
                 'total': total_bytes.value,
