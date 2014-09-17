@@ -71,14 +71,22 @@ To install all of the prerequisites at once just use: ::
 Windows
 ------
 
+.. note:: **Windows is not supported and tested.  This information is provided
+    for developers; use at your own risk.**
+
 Install setuptools `<https://pypi.python.org/pypi/setuptools>`_ for python.
-You may need to add python\scripts to your path (it is necessary for npm to work as expected).
+You may need to add python\scripts to your path (it is necessary for npm to
+work as expected).
 
 From a command prompt, install pip: ::
 
     easy_install pip
 
-If bcrypt fails to install using pip (this happened on Windows 7-64 and python 2.7), you need to remove it from the requirements.txt file and manually install it.  You can build it from source or install it from a wheel file from `<https://bitbucket.org/alexandrul/py-bcrypt/downloads>`_.  You can then install the wheel file: ::
+If bcrypt fails to install using pip (this happened on Windows 7-64 and python
+2.7), you need to remove it from the requirements.txt file and manually install
+it.  You can build it from source or install it from a wheel file from
+`<https://bitbucket.org/alexandrul/py-bcrypt/downloads>`_.  You can then
+install the wheel file: ::
 
     pip install wheel
     pip install py_bcrypt.whl
