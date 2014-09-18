@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
+
 from .. import base
 
 from girder.constants import AccessType
@@ -189,6 +191,81 @@ class FolderTestCase(base.TestCase):
             })
         self.assertValidationError(resp, 'name')
 
+    def testFolderMetadataCrud(self):
+        """
+        Test CRUD of metadata on folders
+        """
+
+        # Grab the default user folders
+        resp = self.request(
+            path='/folder', method='GET', user=self.admin, params={
+                'parentType': 'user',
+                'parentId': self.admin['_id'],
+                'sort': 'name',
+                'sortdir': 1
+            })
+        self.assertStatusOk(resp)
+        publicFolder = resp.json[1]
+
+        # Actually create subfolder under Public
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertStatusOk(resp)
+        folder = resp.json
+
+        # Add some metadata
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+
+        folder = resp.json
+        self.assertEqual(folder['meta']['foo'], metadata['foo'])
+        self.assertEqual(folder['meta']['test'], metadata['test'])
+
+        # Edit and remove metadata
+        metadata['test'] = None
+        metadata['foo'] = 'baz'
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+
+        folder = resp.json
+        self.assertEqual(folder['meta']['foo'], metadata['foo'])
+        self.assertNotHasKeys(folder['meta'], ['test'])
+
+        # Make sure metadata cannot be added if there is a period in the key
+        # name
+        metadata = {
+            'foo.bar': 'notallowed'
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name foo.bar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
+        # Make sure metadata cannot be added if the key begins with a
+        # dollar sign
+        metadata = {
+            '$foobar': 'alsonotallowed'
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name $foobar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
     def testDeleteFolder(self):
         # Requesting with no path should fail
         resp = self.request(path='/folder', method='DELETE', user=self.admin)
@@ -235,7 +312,8 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder['lowerName'], 'my folder name')
         self.assertEqual(folder['baseParentType'], 'user')
 
-        # Force the item to be saved without lowerName and baseParentType fields
+        # Force the item to be saved without lowerName and baseParentType
+        # fields
         del folder['lowerName']
         del folder['baseParentType']
         self.model('folder').save(folder, validate=False)
