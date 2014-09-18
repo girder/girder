@@ -155,7 +155,7 @@ class Folder(AccessControlledModel):
         :returns: the folder document
         """
         if 'meta' not in folder:
-            folder['meta'] = dict()
+            folder['meta'] = {}
 
         # Add new metadata to existing metadata
         folder['meta'].update(metadata.items())
