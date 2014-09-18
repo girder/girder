@@ -45,7 +45,7 @@ class Folder(AccessControlledModel):
         Filter a folder document for display to the user.
         """
         keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
-                'size', 'parentId', 'parentCollection', 'creatorId',
+                'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
                 'baseParentType', 'baseParentId']
 
         filtered = self.filterDocument(folder, allow=keys)
@@ -140,6 +140,35 @@ class Folder(AccessControlledModel):
             size += self.getSizeRecursive(child)
 
         return size
+
+    def setMetadata(self, folder, metadata):
+        """
+        Set metadata on a folder.  A rest exception is thrown in the cases
+        where the metadata json object is badly formed, or if any of the
+        metadata keys contains a period ('.').
+
+        :param folder: The folder to set the metadata on.
+        :type folder: dict
+        :param metadata: A dictionary containing key-value pairs to add to
+                     the folder's meta field
+        :type metadata: dict
+        :returns: the folder document
+        """
+        if 'meta' not in folder:
+            folder['meta'] = dict()
+
+        # Add new metadata to existing metadata
+        folder['meta'].update(metadata.items())
+
+        # Remove metadata fields that were set to null (use items in py3)
+        toDelete = [k for k, v in folder['meta'].iteritems() if v is None]
+        for key in toDelete:
+            del folder['meta'][key]
+
+        folder['updated'] = datetime.datetime.now()
+
+        # Validate and save the item
+        return self.save(folder)
 
     def _updateDescendants(self, folderId, updateQuery):
         """
