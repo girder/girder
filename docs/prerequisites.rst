@@ -71,8 +71,8 @@ To install all of the prerequisites at once just use: ::
 Windows
 ------
 
-.. note:: **Windows is not supported and tested.  This information is provided
-    for developers; use at your own risk.**
+.. warning:: **Windows is not supported or tested.  This information is
+    provided for developers; use at your own risk.**
 
 Install setuptools `<https://pypi.python.org/pypi/setuptools>`_ for python.
 You may need to add python\scripts to your path (it is necessary for npm to
