@@ -18,9 +18,7 @@
 ###############################################################################
 
 import cherrypy
-import ctypes
 import os
-import platform
 import stat
 import tempfile
 
@@ -79,21 +77,17 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         For filesystem assetstores, we just need to report the free and total
         space on the filesystem where the assetstore lives.
         """
-        if platform.system() == 'Windows':  # pragma: no cover
-            free_bytes = ctypes.c_ulonglong(0)
-            total_bytes = ctypes.c_ulonglong(0)
-            ctypes.windll.kernel32.GetDiskFreeSpaceExW(
-                ctypes.c_wchar_p(self.assetstore['root']), None,
-                ctypes.pointer(total_bytes), ctypes.pointer(free_bytes))
-            return {
-                'free': free_bytes.value,
-                'total': total_bytes.value,
-            }
-        else:
+        if hasattr(os, 'statvfs'):
             stat = os.statvfs(self.assetstore['root'])
             return {
                 'free': stat.f_bavail * stat.f_frsize,
                 'total': stat.f_blocks * stat.f_frsize
+            }
+        # If we don't have statvfs, just report nothing regarding disk capacity
+        else:  # pragma: no cover
+            return {
+                'free': None,
+                'total': None
             }
 
     def initUpload(self, upload):
