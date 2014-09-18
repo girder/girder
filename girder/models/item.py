@@ -332,7 +332,7 @@ class Item(Model):
         :returns: the item document
         """
         if 'meta' not in item:
-            item['meta'] = dict()
+            item['meta'] = {}
 
         # Add new metadata to existing metadata
         item['meta'].update(metadata.items())

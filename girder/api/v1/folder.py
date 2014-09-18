@@ -40,6 +40,7 @@ class Folder(Resource):
         self.route('POST', (), self.createFolder)
         self.route('PUT', (':id',), self.updateFolder)
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
+        self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     def find(self, params):
         """
@@ -297,3 +298,30 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
+
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
+    def setMetadata(self, folder, params):
+        try:
+            metadata = json.load(cherrypy.request.body)
+        except ValueError:
+            raise RestException('Invalid JSON passed in request body.')
+
+        # Make sure we let user know if we can't accept a metadata key
+        for k in metadata:
+            if '.' in k or k[0] == '$':
+                raise RestException('The key name {} must not contain a '
+                                    'period or begin with a dollar sign.'
+                                    .format(k))
+
+        return self.model('folder').setMetadata(folder, metadata)
+    setMetadata.description = (
+        Description('Set metadata fields on an folder.')
+        .responseClass('Folder')
+        .notes('Set metadata fields to null in order to delete them.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .param('body', 'A JSON object containing the metadata keys to add',
+               paramType='body')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Invalid JSON passed in request body.')
+        .errorResponse('Metadata key name was invalid.')
+        .errorResponse('Write access was denied for the folder.', 403))
