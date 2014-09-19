@@ -5,6 +5,9 @@
      */
     girder.views.ItemView = girder.View.extend({
         events: {
+            'click .g-download-item': function () {
+                this.model.download();
+            },
             'click .g-edit-item': 'editItem',
             'click .g-delete-item': 'deleteItem'
         },
@@ -20,7 +23,6 @@
             } else {
                 console.error('Implement fetch then render item');
             }
-
         },
 
         editItem: function () {

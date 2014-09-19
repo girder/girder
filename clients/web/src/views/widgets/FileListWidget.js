@@ -7,6 +7,11 @@ girder.views.FileListWidget = girder.View.extend({
             this.collection.fetchNextPage();
         },
 
+        'click a.g-file-list-link': function (e) {
+            var cid = $(e.currentTarget).attr('cid');
+            this.collection.get(cid).download();
+        },
+
         'click a.g-update-contents': function (e) {
             var cid = $(e.currentTarget).parent().attr('file-cid');
             new girder.views.UploadWidget({
