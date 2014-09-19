@@ -125,6 +125,7 @@ class CollectionTestCase(base.TestCase):
                             params={'id': newCollId,
                                     'name': 'New collection name'})
         self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'New collection name')
 
     def testDeleteCollection(self):
         # Requesting with no path should fail
