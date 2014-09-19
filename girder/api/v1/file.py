@@ -98,6 +98,14 @@ class File(Resource):
         if upload['userId'] != user['_id']:
             raise AccessException('You did not initiate this upload.')
 
+        # If we don't have as much data as we were told would be uploaded and
+        # the upload hasn't specified it has an alternate behavior, refuse to
+        # complete the upload.
+        if upload['received'] != upload['size'] and 'behavior' not in upload:
+            raise RestException(
+                'Server has only received {} bytes, but the file should be {} '
+                'bytes.'.format(upload['received'], upload['size']))
+
         return self.model('upload').finalizeUpload(upload)
     finalizeUpload.description = (
         Description('Finalize an upload explicitly if necessary.')
@@ -107,6 +115,7 @@ class File(Resource):
         .param('uploadId', 'The ID of the upload record.', paramType='form')
         .errorResponse('ID was invalid.')
         .errorResponse('The upload does not require finalization.')
+        .errorResponse('Not enough bytes have been uploaded.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
     def requestOffset(self, params):

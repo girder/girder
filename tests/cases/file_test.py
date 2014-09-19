@@ -115,6 +115,12 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
 
+        # Ask for completion before sending second chunk should fail
+        fields = [('uploadId', uploadId)]
+        resp = self.request(path='/file/completion', method='POST',
+                            user=self.user, params={'uploadId': uploadId})
+        self.assertStatus(resp, 400)
+
         # Request offset from server (simulate a resume event)
         resp = self.request(path='/file/offset', method='GET', user=self.user,
                             params={'uploadId': uploadId})
