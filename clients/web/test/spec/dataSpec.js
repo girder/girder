@@ -1,4 +1,22 @@
 /**
+ * As of v1.9.9, phantomJS does not correctly support sending Blobs in XHRs,
+ * and the FormData API is extremely limited (i.e. does not support anything
+ * other than "append"). We fake the chunk request to get around this by
+ * wrapping XHR.prototype.send.
+ */
+!function (send) {
+    XMLHttpRequest.prototype.send = function (data) {
+        if(data && data instanceof FormData) {
+            data = new FormData();
+            data.append('offset', 0);
+            data.append('uploadId', girder._uploadId);
+            data.append('chunk', 'hello');
+        }
+        send.call(this, data);
+    };
+} (XMLHttpRequest.prototype.send);
+
+/**
  * Start the girder backbone app.
  */
 $(function () {
@@ -85,7 +103,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             // Incantation that causes the phantom environment to send us a File.
             $('#g-files').parent().removeClass('hide');
-            console.log('__ATTACH__#g-files clients/web/static/img/Girder_Mark.png');
+            console.log('__ATTACH__#g-files clients/web/test/testFile.txt');
         });
 
         waitsFor(function () {
@@ -98,8 +116,14 @@ describe('Create a data hierarchy', function () {
         });
 
         waitsFor(function () {
-            return $('.modal-content:visible').length === 0;
+            return $('.modal-content:visible').length === 0 &&
+                   $('.g-item-list-entry').length === 1;
         }, 'the upload to finish');
+
+        runs(function () {
+            // The backdrops don't get properly removed on phantomJS so we do it manually
+            $('.modal-backdrop').remove();
+        });
     });
 
     it('search using quick search box', function () {
