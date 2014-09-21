@@ -4,7 +4,7 @@
  * other than "append"). We fake the chunk request to get around this by
  * wrapping XHR.prototype.send.
  */
-!function (send) {
+(function (impl) {
     XMLHttpRequest.prototype.send = function (data) {
         if(data && data instanceof FormData) {
             data = new FormData();
@@ -12,9 +12,19 @@
             data.append('uploadId', girder._uploadId);
             data.append('chunk', 'hello');
         }
-        send.call(this, data);
+        impl.call(this, data);
     };
-} (XMLHttpRequest.prototype.send);
+} (XMLHttpRequest.prototype.send));
+
+/**
+ * Intercept window.location.assign calls so we can test the behavior of,
+ * e.g. download directives that occur from js.
+ */
+(function (impl) {
+    window.location.assign = function (url) {
+        girderTest._redirect = url;
+    };
+} (window.location.assign));
 
 /**
  * Start the girder backbone app.
@@ -119,10 +129,31 @@ describe('Create a data hierarchy', function () {
             return $('.modal-content:visible').length === 0 &&
                    $('.g-item-list-entry').length === 1;
         }, 'the upload to finish');
+    });
 
+    it('download the file', function () {
         runs(function () {
             // The backdrops don't get properly removed on phantomJS so we do it manually
             $('.modal-backdrop').remove();
+            $('.g-item-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-file-list-link').length === 1;
+        }, 'the item page to display the file list');
+
+        runs(function () {
+            girderTest._redirect = null;
+            $('.g-file-list-link').click();
+        });
+
+        waitsFor(function () {
+            return girderTest._redirect !== null;
+        }, 'redirect to the file download URL');
+
+        runs(function () {
+            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download\?token=.*$/.test(
+                girderTest._redirect)).toBe(true);
         });
     });
 

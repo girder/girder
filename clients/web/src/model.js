@@ -81,7 +81,7 @@ girder.Model = Backbone.Model.extend({
             url += '?token=' + token;
         }
 
-        window.location = url;
+        window.location.assign(url);
     },
 
     /**
