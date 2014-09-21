@@ -19,7 +19,6 @@
 
 import datetime
 
-from StringIO import StringIO
 from girder import events
 from girder.utility import assetstore_utilities
 from .model_base import Model, ValidationException
@@ -58,9 +57,6 @@ class Upload(Model):
         """
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-
-        if isinstance(chunk, basestring):
-            chunk = StringIO(chunk)
 
         upload = self.save(adapter.uploadChunk(upload, chunk))
 
