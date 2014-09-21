@@ -22,6 +22,7 @@ import os
 import stat
 import tempfile
 
+from StringIO import StringIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -98,6 +99,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Appends the chunk into the temporary file.
         """
+        if isinstance(chunk, basestring):
+            chunk = StringIO(chunk)
+
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
 

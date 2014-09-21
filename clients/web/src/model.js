@@ -69,6 +69,22 @@ girder.Model = Backbone.Model.extend({
     },
 
     /**
+     * For models that can be downloaded, this method should be used to
+     * initiate the download in the browser.
+     */
+    download: function () {
+        var url = girder.apiRoot + '/' + this.resourceName + '/' +
+            this.get('_id') + '/download';
+
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            url += '?token=' + token;
+        }
+
+        window.location.assign(url);
+    },
+
+    /**
      * Delete the model on the server.
      * @param throwError Whether to throw an error (bool, default=true)
      */
