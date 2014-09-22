@@ -124,3 +124,15 @@ class AbstractAssetstoreAdapter(object):
         """
         raise Exception('Must override downloadFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover
+
+    def copyFile(self, srcFile, destFile):
+        """
+        This method copies the necessary fields and data so that the
+        destination file contains the same data as the source file.
+        :param srcFile: The original File document.
+        :type srcFile: dict
+        :param destFile: The File which should have the data copied to it.
+        :type destFile: dict
+        :returns: A dict with the destination file.
+        """
+        return destFile

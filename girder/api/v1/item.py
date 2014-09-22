@@ -38,6 +38,7 @@ class Item(Resource):
         self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
+        self.route('POST', (':id',), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     def find(self, params):
@@ -179,6 +180,9 @@ class Item(Resource):
             if '.' in k or k[0] == '$':
                 raise RestException('The key name {} must not contain a period '
                                     'or begin with a dollar sign.'.format(k))
+            if not len(k):
+                raise RestException('The key name {} must be a least one '
+                                    'character long.'.format(k))
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
@@ -272,3 +276,41 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
+
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def copyItem(self, item, params):
+        """
+        Copy an existing item to a new item.
+
+        :param folderId: The _id of the parent folder for the new item.
+        :type folderId: str
+        :param name: The name of the item to create.
+        :param description: Item description.
+        """
+        folderId = params.get('folderId', item['folderId'])
+        user = self.getCurrentUser()
+        name = params.get('name', item['name']).strip()
+        description = params.get('description', item['description']).strip()
+
+        folder = self.model('folder').load(id=folderId, user=user,
+                                           level=AccessType.WRITE, exc=True)
+
+        new_item = self.model('item').createItem(
+            folder=folder, name=name, creator=user, description=description)
+        # copy metadata
+        self.model('item').setMetadata(new_item, item.get('meta', {}))
+        # copy files
+        for file in self.model('item').childFiles(item=item, limit=0):
+            self.model('file').copyFile(file, creator=user, item=new_item)
+        return self.model('item').filter(new_item)
+    copyItem.description = (
+        Description('Copy an item.')
+        .responseClass('Item')
+        .param('id', 'The ID of the original item.', paramType='path')
+        .param('folderId', 'The ID of the parent folder.', required=False)
+        .param('name', 'Name for the new item.', required=False)
+        .param('description', "Description for the new item.", required=False)
+        .errorResponse()
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the original item.', 403)
+        .errorResponse('Write access was denied on the parent folder.', 403))

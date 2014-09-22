@@ -21,6 +21,7 @@ import cherrypy
 import datetime
 
 from .model_base import Model, ValidationException
+from ..constants import AccessType
 from girder.utility import assetstore_utilities
 
 
@@ -51,7 +52,9 @@ class File(Model):
             adapter.deleteFile(file)
 
         item = self.model('item').load(file['itemId'], force=True)
-        self.propagateSizeChange(item, -file['size'], updateItemSize)
+        # files that are linkUrls might not have a size field
+        if 'size' in file:
+            self.propagateSizeChange(item, -file['size'], updateItemSize)
 
         Model.remove(self, file)
 
@@ -190,4 +193,33 @@ class File(Model):
 
         self.propagateSizeChange(item, size)
 
+        return self.save(file)
+
+    def copyFile(self, srcFile, creator, item=None):
+        """
+        Copy a file so that we don't need to duplicate stored data.
+        :param srcFile: The file to copy.
+        :type srcFile: dict
+        :param creator: The user copying the file.
+        :param item: a new item to assign this file to (optional)
+        :return: a dict with the new file.
+        """
+        # Copy the source file's dictionary.  The individual assetstore
+        # implementations will need to fix references if they cannot be
+        # directly duplicated.
+        file = srcFile.copy()
+        file['copied'] = datetime.datetime.now()
+        file['copierId'] = creator['_id']
+        if item:
+            file['itemId'] = item['_id']
+        if file.get('assetstoreId'):
+            assetstore = self.model('assetstore').load(file['assetstoreId'])
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            adapter.copyFile(srcFile, file)
+        elif file.get('linkUrl'):
+            file['linkUrl'] = srcFile['linkUrl']
+        item = self.model('item').load(id=file['itemId'], user=creator,
+                                       level=AccessType.WRITE, exc=True)
+        if 'size' in file:
+            self.propagateSizeChange(item, file['size'])
         return self.save(file)
