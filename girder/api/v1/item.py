@@ -39,7 +39,7 @@ class Item(Resource):
         self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
-        self.route('POST', (':id',), self.copyItem)
+        self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     def find(self, params):
@@ -297,14 +297,14 @@ class Item(Resource):
         folder = self.model('folder').load(id=folderId, user=user,
                                            level=AccessType.WRITE, exc=True)
 
-        new_item = self.model('item').createItem(
+        newItem = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
         # copy metadata
-        self.model('item').setMetadata(new_item, item.get('meta', {}))
+        self.model('item').setMetadata(newItem, item.get('meta', {}))
         # copy files
         for file in self.model('item').childFiles(item=item, limit=0):
-            self.model('file').copyFile(file, creator=user, item=new_item)
-        return self.model('item').filter(new_item)
+            self.model('file').copyFile(file, creator=user, item=newItem)
+        return self.model('item').filter(newItem)
     copyItem.description = (
         Description('Copy an item.')
         .responseClass('Item')

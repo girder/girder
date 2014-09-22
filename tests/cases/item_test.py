@@ -511,7 +511,7 @@ class ItemTestCase(base.TestCase):
         params = {
             'name': 'copied_item'
         }
-        resp = self.request(path='/item/{}'.format(origItem['_id']),
+        resp = self.request(path='/item/{}/copy'.format(origItem['_id']),
                             method='POST', user=self.users[0], params=params)
         self.assertStatusOk(resp)
         # Now ask for the new item explicitly and check its metadata
@@ -526,11 +526,36 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/files'.format(newItem['_id']),
                             method='GET', user=self.users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json[0]['name'], 'file_1')
-        self.assertEqual(resp.json[1]['name'], 'file_2')
-        self.assertEqual(resp.json[2]['name'], 'link_file')
-        self.assertEqual(resp.json[0]['size'], 6)
-        self.assertEqual(resp.json[1]['size'], 5)
+        newFiles = resp.json
+        self.assertEqual(newFiles[0]['name'], 'file_1')
+        self.assertEqual(newFiles[1]['name'], 'file_2')
+        self.assertEqual(newFiles[2]['name'], 'link_file')
+        self.assertEqual(newFiles[0]['size'], 6)
+        self.assertEqual(newFiles[1]['size'], 5)
         self._testDownloadMultiFileItem(newItem, self.users[0],
                                         ('foobar', 'foobz',
                                          'http://www.google.com'))
+        # Check to make sure the original item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'test_for_copy'})
+        self.assertStatusOk(resp)
+        self.assertEqual(origItem['_id'], resp.json[0]['_id'])
+        # Check to make sure the new item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'copied_item'})
+        self.assertStatusOk(resp)
+        self.assertEqual(newItem['_id'], resp.json[0]['_id'])
+        # Check if we can download the files from the old item and that they
+        # are distinct from the files in the original item
+        resp = self.request(path='/item/{}/files'.format(origItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        origFiles = resp.json
+        self._testDownloadMultiFileItem(origItem, self.users[0],
+                                        ('foobar', 'foobz',
+                                         'http://www.google.com'))
+        for index, file in enumerate(origFiles):
+            self.assertNotEqual(origFiles[index]['_id'],
+                                newFiles[index]['_id'])
