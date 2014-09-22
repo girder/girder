@@ -19,6 +19,7 @@
 
 import cherrypy
 import json
+import pymongo
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -177,12 +178,12 @@ class Item(Resource):
 
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
+            if not len(k):
+                raise RestException('Key names must be at least one character '
+                                    'long.')
             if '.' in k or k[0] == '$':
                 raise RestException('The key name {} must not contain a period '
                                     'or begin with a dollar sign.'.format(k))
-            if not len(k):
-                raise RestException('The key name {} must be a least one '
-                                    'character long.'.format(k))
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
@@ -204,7 +205,8 @@ class Item(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
-            for file in self.model('item').childFiles(item=item, limit=0):
+            for file in self.model('item').childFiles(
+                item=item, limit=0, sort=[('created', pymongo.ASCENDING)]):
                 for data in zip.addFile(self.model('file')
                                             .download(file, headers=False),
                                         file['name']):
