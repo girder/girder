@@ -206,7 +206,7 @@ class Item(Resource):
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
             for file in self.model('item').childFiles(
-                item=item, limit=0, sort=[('created', pymongo.ASCENDING)]):
+                    item=item, limit=0, sort=[('created', pymongo.ASCENDING)]):
                 for data in zip.addFile(self.model('file')
                                             .download(file, headers=False),
                                         file['name']):
