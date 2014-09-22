@@ -208,6 +208,8 @@ class File(Model):
         # implementations will need to fix references if they cannot be
         # directly duplicated.
         file = srcFile.copy()
+        # Immediately delete the original id so that we get a new one.
+        del file['_id']
         file['copied'] = datetime.datetime.now()
         file['copierId'] = creator['_id']
         if item:
