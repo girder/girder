@@ -289,22 +289,15 @@ class Item(Resource):
         :param name: The name of the item to create.
         :param description: Item description.
         """
-        folderId = params.get('folderId', item['folderId'])
         user = self.getCurrentUser()
-        name = params.get('name', item['name']).strip()
-        description = params.get('description', item['description']).strip()
-
+        name = params.get('name', None)
+        folderId = params.get('folderId', item['folderId'])
         folder = self.model('folder').load(id=folderId, user=user,
                                            level=AccessType.WRITE, exc=True)
-
-        newItem = self.model('item').createItem(
-            folder=folder, name=name, creator=user, description=description)
-        # copy metadata
-        self.model('item').setMetadata(newItem, item.get('meta', {}))
-        # copy files
-        for file in self.model('item').childFiles(item=item, limit=0):
-            self.model('file').copyFile(file, creator=user, item=newItem)
-        return self.model('item').filter(newItem)
+        description = params.get('description', None)
+        return self.model('item').copyItem(item, creator=user, name=name,
+                                           folder=folder,
+                                           description=description)
     copyItem.description = (
         Description('Copy an item.')
         .responseClass('Item')

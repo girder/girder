@@ -202,7 +202,7 @@ class File(Model):
         :type srcFile: dict
         :param creator: The user copying the file.
         :param item: a new item to assign this file to (optional)
-        :return: a dict with the new file.
+        :returns: a dict with the new file.
         """
         # Copy the source file's dictionary.  The individual assetstore
         # implementations will need to fix references if they cannot be
