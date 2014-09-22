@@ -8,7 +8,7 @@
 girder.EventStream = function () {
     if (window.EventSource) {
         this._eventSource = new window.EventSource(
-            girder.apiRoot + '/sse_stream');
+            girder.apiRoot + '/notification/stream');
 
         var stream = this;
         this._eventSource.addEventListener('message', function (e) {
