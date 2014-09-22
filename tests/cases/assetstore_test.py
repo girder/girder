@@ -306,3 +306,8 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 303)
         self.assertTrue(resp.headers['Location'].startswith(
             'https://bucketname.s3.amazonaws.com/foo/bar/'))
+
+        # Test delete for a non-empty file
+        resp = self.request(path='/file/{}'.format(largeFile['_id']),
+                            user=self.admin, method='DELETE')
+        self.assertStatus(resp, 200)
