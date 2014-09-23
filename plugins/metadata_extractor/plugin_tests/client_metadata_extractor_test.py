@@ -54,8 +54,17 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
         extractor.extractMetadata()
         sys.path.remove(clientPath)
 
-        time.sleep(5)
-        item = self.model('item').load(self.item['_id'], user=self.user)
+        start = time.time()
+        while True:
+            if time.time() - start > 15:
+                break
+
+            item = self.model('item').load(self.item['_id'], user=self.user)
+            if 'meta' in item and item['meta']['MIME type'] == self.mimeType:
+                break
+
+            time.sleep(0.2)
+
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
         self.assertEqual(item['meta']['MIME type'], self.mimeType)
