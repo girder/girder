@@ -41,24 +41,23 @@ give access to specific resources to any member of a ``Group``.
 Items
 -----
 
-A Girder ``Item`` is an atomic file (cannot be separated into smaller parts
-within Girder).  This could be a collection of files (or tar, zip, etc), but
-from Girder's persective it is considered an atomic file.  ``Items`` in Girder
-live in exactly one ``Folder``.  ``Items`` in Girder do not have permissions set
+A Girder ``Item`` is the basic unit of data in the system. ``Items`` live beneath
+``Folders`` and contain 0 or more ``Files``. ``Items`` in Girder do not have permissions set
 on them, they inherit permissions by virtue of living in a ``Folder`` (which has
-permissions set on it).
+permissions set on it). Most ``Items`` contain a single ``File``, except
+in special cases where multiple files make up a single piece of data.
 
-A Girder ``Item`` can contain any number of arbitrary key/value pairs, termed
-metadata.  Metadata keys must be strings and must never contain a period ('.')
+Each ``Item`` may contain any number of arbitrary key/value pairs, termed
+metadata.  Metadata keys must be non-empty strings and must not contain a period ('.')
 or begin with a dollar sign ('$').  Metadata values can be anything, including
 strings, numeric values, and even arbitrary JSON objects.
 
 Files
 -----
 
-``Files`` represent discrete data objects known to Girder. ``Files`` exist
-within ``Items``, typically with a one-to-one relationship between the
-``File``and its containing ``Item``. ``Files`` in Girder are much like files on
+``Files`` represent raw data objects, just like the typical concept of files in
+a filesystem. ``Files`` exist within ``Items``, typically with a one-to-one relationship
+between the ``File`` and its containing ``Item``. ``Files`` in Girder are much like files on
 a filesystem, but they are actually more abstract. For instance, some ``Files``
 are simply links to external URLs. All ``Files`` that are not external links
 must be contained within an ``Assetstore``.
@@ -183,7 +182,7 @@ Collections
 ^^^^^^^^^^^
 
 ``Collections`` can be ``Public`` (meaning viewable even by anonymous users) or
-``Private`` (meaning viewable only by those with ``READ`` access). 
+``Private`` (meaning viewable only by those with ``READ`` access).
 ``Collections`` can have permissions set on them at the individual ``User``
 level and ``Group`` level, meaning that a given ``User`` or ``Group`` can have
 ``READ``, ``WRITE``, or ``ADMIN`` permissions set on the ``Collection``.
