@@ -22,7 +22,7 @@ dependencies: ::
 Before you can build the client-side code project, you must install the
 `Grunt <http://gruntjs.com>`_ command line utilities: ::
 
-    npm install -g grunt grunt-cli
+    npm install -g grunt-cli
 
 Then cd into the root of the repository and run: ::
 
