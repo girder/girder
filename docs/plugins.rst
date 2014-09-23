@@ -31,11 +31,56 @@ and select the option to log in with Google.
 Google Analytics
 ----------------
 
-The Google Analytics plugin enables the use of google analytics to track
-pageviews with the Girder one-page application. It is primarily a client-side
+The Google Analytics plugin enables the use of Google Analytics to track
+page views with the Girder one-page application. It is primarily a client-side
 plugin with the tracking ID stored in the database. Each routing change will
-trigger a pageview event and the hierarchy widget has special handling (though
-it doesn't technically trigger routing events for hierarchy navigation).
+trigger a page view event and the hierarchy widget has special handling (though
+it does not technically trigger routing events for hierarchy navigation).
 
 To use this plugin, simply copy your tracking ID from Google Analytics into the
 plugin configuration page.
+
+Metadata Extractor
+------------------
+
+The metadata extractor plugin enables the extraction of metadata from uploaded
+files such as archives, images, and videos. It may be used as either a
+server-side plugin that extracts metadata on the server when a file is added
+to a filesystem asset store local to the server or as a remote client that
+extracts metadata from a file on a filesystem local to the client that is then
+sent to the server using the Girder Python client.
+
+The server-side plugin requires several `Hachoir <https://bitbucket.org/haypo/hachoir/wiki/Home>`_
+Python packages to parse files and extract metadata from them. These packages
+may be installed using **pip** as follows. ::
+
+    pip install -r plugins/metadata_extractor/requirements.txt
+
+Once the packages are installed, the plugin may be enabled via the admin
+console on the server.
+
+The remote client requires the same Python packages as the server plugin, but
+additionally requires the `Requests <http://docs.python-requests.org/en/latest>`_ Python
+package to communicate with the server using the Girder Python client. These
+packages may be installed using **pip** as follows. ::
+
+    pip install requests -r plugins/metadata_extractor/requirements.txt
+
+Assuming ``GirderClient.py`` and ``metadata_extractor.py`` are located in
+the module path, the following code fragment will extract metadata from a file
+located at ``path`` on the remote filesystem that has been uploaded to
+``itemId`` on the server:
+
+.. code-block:: python
+
+    from GirderClient import GirderClient
+    from metadata_extractor import ClientMetadataExtractor
+
+    client = GirderClient(host='localhost', port=8080)
+    client.authenticate(login, password)
+
+    extractor = ClientMetadataExtractor(client, path, itemId)
+    extractor.extractMetadata()
+
+The user authenticating with ``login`` and ``password`` must have ``WRITE``
+access to the file located at ``itemId`` on the server.

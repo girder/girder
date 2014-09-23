@@ -152,7 +152,7 @@ def findAllPlugins():
 
 def toposort(data):
     """
-    General-purpose topoligical sort function. Dependencies are expressed as a
+    General-purpose topological sort function. Dependencies are expressed as a
     dictionary whose keys are items and whose values are a set of dependent
     items. Output is a list of sets in topological order. This is a generator
     function that returns a sequence of sets in topological order.
@@ -171,10 +171,10 @@ def toposort(data):
     # Find all items that don't depend on anything.
     extra = functools.reduce(
         set.union, data.itervalues()) - set(data.iterkeys())
-    # Add empty dependences where needed
+    # Add empty dependencies where needed
     data.update({item: set() for item in extra})
 
-    # Perform the toposort.
+    # Perform the topological sort.
     while True:
         ordered = set(item for item, dep in data.iteritems() if not dep)
         if not ordered:

@@ -370,7 +370,7 @@ class Group(Resource):
         Description('Remove a user from a group, or uninvite them.')
         .responseClass('Group')
         .notes("""If the specified user is not yet a member of the group, this
-               will delete any oustanding invitation or membership request for
+               will delete any outstanding invitation or membership request for
                the user. Passing no userId parameter will assume that the
                current user is removing himself.""")
         .param('id', 'The ID of the group.', paramType='path')
