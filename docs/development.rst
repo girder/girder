@@ -2,35 +2,35 @@ Developing Girder
 =================
 
 Girder is a platform-centric web application whose client and server are very
-loosely coupled. As such, development of girder can be divided into the server
-(a cherrypy-based python module) and the primary client (a backbone-based) web
+loosely coupled. As such, development of Girder can be divided into the server
+(a CherryPy-based Python module) and the primary client (a Backbone-based) web
 client. This section is intended to get prospective contributors to understand
 the tools used to develop Girder.
 
 Configuring Your Development Environment
 ----------------------------------------
 
-In order to develop girder, you can refer to the :doc:`prerequisites` and
+In order to develop Girder, you can refer to the :doc:`prerequisites` and
 :doc:`installation` sections to setup a local development environment. Once
-girder is started via ``python -m girder``, the server will reload itself
-whenever a python file is modified.
+Girder is started via ``python -m girder``, the server will reload itself
+whenever a Python file is modified.
 
-To get the same auto-building behavior for javascript, we use ``grunt-watch``.
+To get the same auto-building behavior for JavaScript, we use ``grunt-watch``.
 Thus, running ``grunt watch`` in the root of the repository will watch for
-javascript, stylus, and jade changes in order to rebuild them on-the-fly.
+JavaScript, Stylus, and Jade changes in order to rebuild them on-the-fly.
 
 Vagrant
 ^^^^^^^
 
 A shortcut to going through the installation steps for development is to use
-vagrant to setup the environment on a virtualbox virtual machine. To setup this
-environment run ``vagrant up`` in the root of the repository. This will spin
-up and provision a virtual machine, provided you have vagrant and virtualbox
-installed. Once this process is complete, you can run ``vagrant ssh`` in order to
-start girder. There is a helper script in the vagrant home directory that will
-start girder in a detached screen session. You may want to run a similar process
-to run ``grunt watch`` as detailed above.
-
+`Vagrant <https://www.vagrantup.com>`_ to setup the environment on a
+`VirtualBox <https://www.virtualbox.org>`_ virtual machine. To setup this
+environment run ``vagrant up`` in the root of the repository. This will spin up
+and provision a virtual machine, provided you have Vagrant and VirtualBox
+installed. Once this process is complete, you can run ``vagrant ssh`` in order
+to start Girder. There is a helper script in the Vagrant home directory that
+will start Girder in a detached screen session. You may want to run a similar
+process to run ``grunt watch`` as detailed above.
 
 Utilities
 ---------
@@ -41,17 +41,17 @@ for certain functionality. Detailed API documentation can be found :ref:`here <a
 Configuration Loading
 ^^^^^^^^^^^^^^^^^^^^^
 
-The girder configuration loader allows for lazy-loading of configuration values
-in a cherrypy-agnostic manner. The recommended idiom for getting the config
+The Girder configuration loader allows for lazy-loading of configuration values
+in a CherryPy-agnostic manner. The recommended idiom for getting the config
 object is: ::
 
     from girder.utility import config
     cur_config = config.getConfig()
 
-There is a configuration file for girder located in **girder/conf**. The file
+There is a configuration file for Girder located in **girder/conf**. The file
 **girder.dist.cfg** is the file distributed with the repository and containing
-the default configuration values. This file shouldn't be edited when deploying
-girder. Rather, edit the **girder.local.cfg** file. You only need to edit the
+the default configuration values. This file should not be edited when deploying
+Girder. Rather, edit the **girder.local.cfg** file. You only need to edit the
 values in the file that you wish to change from their default values; the system
 loads the **dist** file first, then the **local** file, so your local settings
 will override the defaults.
@@ -65,7 +65,8 @@ as `Mako templates <http://www.makotemplates.org/>`_ in the
 **girder/mail_templates** directory. By convention, email templates should
 include ``_header.mako`` above and ``_footer.mako`` below the content. If you wish
 to send an email from some point within the application, you can use the
-utility functions within ``girder.utility.mail_utils``, as in the example below: ::
+utility functions within ``girder.utility.mail_utils``, as in the example
+below: ::
 
     from girder.utility import mail_utils
 
@@ -82,7 +83,8 @@ If you wish to send email from within a plugin, simply create a
 **server/mail_templates** directory within your plugin, and it will be
 automatically added to the mail template search path when your plugin is loaded.
 To avoid name collisions, convention dictates that mail templates within your
-plugin should be prefixed by your plugin name, e.g. "my_plugin.my_template.mako".
+plugin should be prefixed by your plugin name, e.g.,
+``my_plugin.my_template.mako``.
 
 .. note:: All emails are sent as rich text (``text/html`` MIME type).
 
@@ -90,16 +92,17 @@ plugin should be prefixed by your plugin name, e.g. "my_plugin.my_template.mako"
 Server Side Testing
 -------------------
 
-Running the tests
+Running the Tests
 ^^^^^^^^^^^^^^^^^
 
-First, you'll need to configure the project with CMake. ::
+First, you will need to configure the project with
+`CMake <http://www.cmake.org>`_. ::
 
     mkdir ../girder-build
     cd ../girder-build
     cmake ../girder
 
-You only need to do that once. From then on, whenever you want to run the
+You only need to do this once. From then on, whenever you want to run the
 tests, just: ::
 
     cd girder-build
@@ -107,24 +110,24 @@ tests, just: ::
 
 There are many ways to filter tests when running CTest, or run the tests in
 parallel. More information about CTest can be found
-`here <http://www.cmake.org/cmake/help/v2.8.8/ctest.html>`_.
+`here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_.
 
-Running the tests with coverage tracing
+Running the Tests with Coverage Tracing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To run python coverage on your tests, configure with cmake and run **ctest**.
+To run Python coverage on your tests, configure with CMake and run CTest.
 The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
 under **/clients/web/dev/built/py_coverage**.
 
-Creating tests
+Creating Tests
 ^^^^^^^^^^^^^^
 
-The server side python tests are run using
-`unittest <http://docs.python.org/2/library/unittest.html>`_. All of the actual
+The server side Python tests are run using
+`unittest <https://docs.python.org/2/library/unittest.html>`_. All of the actual
 test cases are stored under `tests/cases`.
 
-Adding to an existing test case
+Adding to an Existing Test Case
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you want to add tests to an existing test case, just create a new function
@@ -133,12 +136,14 @@ the existing test case has **setUp** or **tearDown** methods, be advised that
 those methods will be run before and after *each* of the test methods in the
 class.
 
-Creating a new test case
+Creating a New Test Case
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 To create an entirely new test case, create a new file in **cases** that ends
 with **_test.py**. To start off, put the following code in the module (with
-appropriate class name of course): ::
+appropriate class name of course):
+
+.. code-block:: python
 
     from .. import base
 
@@ -151,8 +156,8 @@ appropriate class name of course): ::
     class MyTestCase(base.TestCase):
 
 .. note:: If your test case does not need to communicate with the server, you
-   don't need to call base.startServer() and base.stopServer() in the
-   setUpModule() and tearDownModule() functions. Those functions are called
+   do not need to call **base.startServer()** and **base.stopServer()** in the
+   **setUpModule()** and **tearDownModule()** functions. Those functions are called
    once per module rather than once per test method.
 
 Then, in the **MyTestCase** class, just add functions that start with **test**,
@@ -160,33 +165,35 @@ and they will automatically be run by unittest.
 
 Finally, you'll need to register your test in the `CMakeLists.txt` file in the
 `tests` directory. Just add a line like the ones already there at the bottom.
-For example, if the test file you created was called thing_test.py, you would
-add: ::
+For example, if the test file you created was called `thing_test.py`, you would
+add:
+
+.. code-block:: cmake
 
     add_python_test(thing)
 
-Re-run cmake in the build directory, and then run ctest, and your test will be
+Re-run CMake in the build directory, and then run CTest, and your test will be
 run.
 
-.. note:: By default, **add_python_test** will run each python test serially
+.. note:: By default, **add_python_test** will run each Python test serially
    by using the RESOURCE_LOCK capability of CTest. However, if it is OK for
-   your test to be run in parallel with other python tests (i.e. it does not
-   require a specific shared database state), then call add_python_test with
+   your test to be run in parallel with other Python tests (i.e., it does not
+   require a specific shared database state), then call **add_python_test** with
    the **NO_LOCK** option: ``add_python_test(thing NO_LOCK)``
 
 Plugin Development
 ------------------
 
-The capabilities of girder can be extended via plugins. The plugin framework is
-designed to allow girder to be as flexible as possible, on both the client
+The capabilities of Girder can be extended via plugins. The plugin framework is
+designed to allow Girder to be as flexible as possible, on both the client
 and server sides.
 
 A plugin is self-contained in a single directory. To create your plugin, simply
 create a directory within the **plugins** directory. In fact, that directory
-is the only thing that is truly required to make a plugin in girder. All of the
+is the only thing that is truly required to make a plugin in Girder. All of the
 other components discussed henceforth are optional.
 
-Example plugin
+Example Plugin
 ^^^^^^^^^^^^^^
 
 We'll use a contrived example to demonstrate the capabilities and components of
@@ -205,7 +212,9 @@ This JSON file should specify a human-readable name and description for your
 plugin, and can optionally contain a list of other plugins that your plugin
 depends on. If your plugin has dependencies, the other plugins will be
 enabled whenever your plugin is enabled. The contents of plugin.json for our
-example will be: ::
+example will be:
+
+.. code-block:: json
 
     {
     "name": "My Cats Plugin",
@@ -218,14 +227,14 @@ administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart will be required in order for the
 change to take effect.
 
-Extending the server-side application
+Extending the Server-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Girder plugins can augment and alter the core functionality of the system in
 almost any way imaginable. These changes can be achieved via several mechanisms
 which are described below. First, in order to implement the functionality of
 your plugin, create a **server** directory within your plugin, and make it
-a python package by creating **__init__.py**. ::
+a Python package by creating **__init__.py**. ::
 
     cd cats ; mkdir server ; touch server/__init__.py
 
@@ -246,7 +255,7 @@ to the web API.
 
 Within your plugin, you may import packages using relative imports or via
 the ``girder.plugins`` package. This will work for your own plugin, but you can
-also import modules from any active plugin. You can also import core girder
+also import modules from any active plugin. You can also import core Girder
 modules using the ``girder`` package as usual. Example: ::
 
     from girder.plugins.cats import some_module
@@ -291,7 +300,7 @@ and will allow users to interact with it via that UI. See the
 :ref:`RESTful API docs<restapi>` for more information about the Swagger page.
 
 If you are creating routes that you explicitly do not wish to be exposed in the
-swagger documentation for whatever reason, you can set the handler's description
+Swagger documentation for whatever reason, you can set the handler's description
 to ``None``, and then no warning will appear. ::
 
     myHandler.description = None
@@ -303,7 +312,6 @@ Perhaps for our use case we determine that ``cat`` should be its own resource
 type rather than being referenced via the ``item`` resource. If we wish to add
 a new resource type entirely, it will look much like one of the core resource
 classes, and we can add it to the API in the ``load()`` method. ::
-
 
     from girder.api.rest import Resource
 
@@ -372,7 +380,7 @@ events are enumerated below.
 Whenever a REST API route is called, just before executing its default handler,
 plugins will have an opportunity to execute code or conditionally override the
 default behavior using ``preventDefault`` and ``addResponse``. The identifiers
-for these events are of the form, e.g. ``rest.get.item/:id.before``. They
+for these events are of the form ``rest.get.item/:id.before``. They
 receive the same kwargs as the default route handler in the event's info.
 
 *  **After REST call**
@@ -380,7 +388,7 @@ receive the same kwargs as the default route handler in the event's info.
 Just like the before REST call event, but this is fired after the default
 handler has already executed and returned its value. That return value is
 also passed in the event.info for possible alteration by the receiving handler.
-The identifier for this event is, e.g. ``rest.get.item/:id.after``. You may
+The identifier for this event is, e.g., ``rest.get.item/:id.after``. You may
 alter the existing return value or override it completely using
 ``preventDefault`` and ``addResponse`` on the event.
 
@@ -402,7 +410,7 @@ format of the event name is, e.g. ``model.folder.save.after``.
 * **Before model deletion**
 
 Triggered each time a model is about to be deleted. You can bind to this via
-e.g. ``model.folder.remove`` and optionally ``preventDefault`` on the event.
+e.g., ``model.folder.remove`` and optionally ``preventDefault`` on the event.
 
 *  **Override model validation**
 
@@ -410,7 +418,7 @@ You can also override or augment the default ``validate`` methods for a core
 model type. Like the normal validation, you should raise a
 ``ValidationException`` for failure cases, and you can also ``preventDefault``
 if you wish for the normal validation procedure not to be executed. The
-identifier for these events is, e.g. ``model.user.validate``.
+identifier for these events is, e.g., ``model.user.validate``.
 
 *  **Override user authentication**
 
@@ -430,21 +438,23 @@ You can bind to this event using the identifier ``data.process``.
    plugins, and want to potentially alert them of your own events, it can
    be worthwhile to trigger your own events from within the plugin. If you do
    that, the identifiers for those events should begin with the name of your
-   plugin, e.g. ``events.trigger('cats.something_happened', info='foo')``
+   plugin, e.g., ``events.trigger('cats.something_happened', info='foo')``
 
 Automated testing for plugins
 *****************************
 
 Girder makes it easy to add automated testing to your plugin that integrates
-with the main girder testing framework. In general, any CMake code that you
+with the main Girder testing framework. In general, any CMake code that you
 want to be executed for your plugin can be performed by adding a
 **plugin.cmake** file in your plugin. ::
 
     cd plugins/cats ; touch plugin.cmake
 
-That file will be automatically included when girder is configured by CMake.
+That file will be automatically included when Girder is configured by CMake.
 To add tests for your plugin, you can make use of some handy CMake functions
-provided by the core system. For example: ::
+provided by the core system. For example:
+
+.. code-block:: cmake
 
     add_python_test(cat PLUGIN cats)
     add_python_style_test(python_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
@@ -474,13 +484,13 @@ The **cat_test.py** file should look like: ::
 
 You can use all of the testing utilities provided by the ``base.TestCase`` class
 from core. You will also get coverage results for your plugin aggregated with
-the main girder coverage results if coverage is enabled.
+the main Girder coverage results if coverage is enabled.
 
-Extending the client-side application
+Extending the Client-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The web client may be extended independently of the server side. Plugins may
-import jade templates, stylus files, and javascript files into the application.
+import Jade templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
@@ -502,19 +512,19 @@ that can be used to import content:
 - ``templates``: Any files ending with **.jade** in this directory or any of its
   subdirectories will be automatically built as templates available in the
   application. Just like in core, these templates are uniquely identified by
-  the name of their file; e.g. ``myTemplate.jade`` could be rendered at runtime
+  the name of their file; e.g., ``myTemplate.jade`` could be rendered at runtime
   by calling ``jade.templates.myTemplate()``. So, if you want to override an
   existing core template, simply create one in this directory with the same
   name. If you want to create a template that is not an override of a core
   template, but simply belongs to your plugin, convention dictates that it should
-  begin with your plugin name followed by an underscore to avoid collisions, e.g.
+  begin with your plugin name followed by an underscore to avoid collisions, e.g.,
   ``cats_catPage.jade``. Documentation for the Jade language can be found
   `here <http://jade-lang.com/reference/>`_.
 
 - ``js``: Any files ending with **.js** in this directory or any of its
   subdirectories will be compiled using uglify and imported into the front-end
-  application. The compiled javascript file will be loaded after all of the core
-  javascript files are loaded, so it can access all of the objects declared by
+  application. The compiled JavaScript file will be loaded after all of the core
+  JavaScript files are loaded, so it can access all of the objects declared by
   core. The source map for these files will be automatically built and served
   as well.
 
@@ -529,8 +539,10 @@ Executing custom Grunt build steps for your plugin
 
 For more complex plugins which require custom Grunt tasks to build, the user can
 specify custom targets within their own Grunt file that will be executed when
-the main Girder grunt step is executed. To use this functionality, add a **grunt**
-key to your **plugin.json** file. ::
+the main Girder Grunt step is executed. To use this functionality, add a **grunt**
+key to your **plugin.json** file.
+
+.. code-block:: json
 
     {
     "name": "MY_PLUGIN",
@@ -541,15 +553,17 @@ key to your **plugin.json** file. ::
         }
     }
 
-This will allow to register a grunt file relative to the plugin root directory
+This will allow to register a Gruntfile relative to the plugin root directory
 and add any target to the default one using the "defaultTargets" array.
 
 .. note:: The **file** key within the **grunt** object must be a path that is
    relative to the root directory of your plugin. It does not have to be called
    ``Gruntfile.js``, it can be called anything you want.
 
-All paths within your custom grunt tasks must be relative to the root dir of the
-Girder source repository, rather than relative to the plugin directory. ::
+All paths within your custom Grunt tasks must be relative to the root directory
+of the Girder source repository, rather than relative to the plugin directory.
+
+.. code-block:: javascript
 
     module.exports = function (grunt) {
         grunt.registerTask('MY_PLUGIN_TASK', 'Custom plugin build task', function () {
@@ -557,7 +571,7 @@ Girder source repository, rather than relative to the plugin directory. ::
         });
     };
 
-Javascript extension capabilities
+JavaScript extension capabilities
 *********************************
 
 Plugins may bind to any of the normal events triggered by core via the
@@ -573,7 +587,9 @@ instead, we'll use a slightly less straightforward but equally powerful
 mechanism. This is best demonstrated by example. Let's say we want to execute
 some code any time the core ``HierarchyWidget`` is rendered, for instance to
 inject some additional elements into the view. We use the ``girder.wrap``
-function to `wrap` the method of the core prototype with our own function. ::
+function to `wrap` the method of the core prototype with our own function.
+
+.. code-block:: javascript
 
     girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
         // Call the underlying render function that we are wrapping
@@ -587,8 +603,10 @@ Notice that instead of simply calling ``render()``, we call ``render.call(this)`
 That is important, as otherwise the value of ``this`` will not be set properly
 in the wrapped function.
 
-Now that we've added the link to the core view, we can bind an event handler to
-it to make it functional: ::
+Now that we have added the link to the core view, we can bind an event handler to
+it to make it functional:
+
+.. code-block:: javascript
 
     girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
         alert('meow!');

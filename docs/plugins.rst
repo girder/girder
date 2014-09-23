@@ -17,7 +17,7 @@ On the plugin configuration page, you must enter a **Client ID** and **Client se
 Those values can be created in the Google Developer Console, in the **APIS & AUTH** >
 **Credentials** section. When you create a new Client ID, you must enter the
 ``AUTHORIZED_JAVASCRIPT_ORIGINS`` and ``AUTHORIZED_REDIRECT_URI`` fields. These *must*
-point back to your girder instance. For example, if your Girder instance is hosted
+point back to your Girder instance. For example, if your Girder instance is hosted
 at ``https://my.girder.com``, then you should specify the following values: ::
 
     AUTHORIZED_JAVASCRIPT_ORIGINS: https://my.girder.com
@@ -52,7 +52,7 @@ sent to the server using the Girder Python client.
 
 The server-side plugin requires several `Hachoir <https://bitbucket.org/haypo/hachoir/wiki/Home>`_
 Python packages to parse files and extract metadata from them. These packages
-may be installed using **pip** as follows. ::
+may be installed using **pip** as follows: ::
 
     pip install -r plugins/metadata_extractor/requirements.txt
 
@@ -62,16 +62,14 @@ console on the server.
 The remote client requires the same Python packages as the server plugin, but
 additionally requires the `Requests <http://docs.python-requests.org/en/latest>`_ Python
 package to communicate with the server using the Girder Python client. These
-packages may be installed using **pip** as follows. ::
+packages may be installed using **pip** as follows: ::
 
     pip install requests -r plugins/metadata_extractor/requirements.txt
 
 Assuming ``GirderClient.py`` and ``metadata_extractor.py`` are located in
 the module path, the following code fragment will extract metadata from a file
 located at ``path`` on the remote filesystem that has been uploaded to
-``itemId`` on the server:
-
-.. code-block:: python
+``itemId`` on the server: ::
 
     from GirderClient import GirderClient
     from metadata_extractor import ClientMetadataExtractor

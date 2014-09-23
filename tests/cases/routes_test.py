@@ -46,7 +46,7 @@ class RoutesTestCase(unittest.TestCase):
         # Bad route should give a useful exception.
         exc = None
         try:
-            r = dummy.handleRoute('GET', (), {})
+            dummy.handleRoute('GET', (), {})
         except RestException as e:
             exc = e.message
         self.assertEqual(exc, 'No matching route for "GET "')

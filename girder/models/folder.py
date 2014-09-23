@@ -228,7 +228,7 @@ class Folder(AccessControlledModel):
         :type folder: dict
         :param parent: The new parent object.
         :param parentType: The type of the new parent object (user, collection,
-        or folder).
+                           or folder).
         :type parentType: str
         """
         if parentType == 'folder' and self._isAncestor(folder, parent):
