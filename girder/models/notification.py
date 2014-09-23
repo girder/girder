@@ -19,7 +19,7 @@
 
 import datetime
 
-from .model_base import Model, ValidationException
+from .model_base import Model
 
 
 class ProgressState(object):
@@ -55,7 +55,7 @@ class Notification(Model):
         """ TODO """
         return doc
 
-    def _createRecord(self, type, data, user, expires=None):
+    def _createNotification(self, type, data, user, expires=None):
         """
         Helper method to create the notification record that gets saved.
         """
@@ -71,12 +71,13 @@ class Notification(Model):
 
         return self.save(doc)
 
-    def createProgressRecord(self, user, title, total,
-                             state=ProgressState.ACTIVE, current=0, message=''):
+    def initProgress(self, user, title, total, state=ProgressState.ACTIVE,
+                     current=0, message=''):
         """
         Create a "progress" type notification that can be updated anytime there
         is progress on some task. Progress records that are not updated for more
-        than one hour will be deleted.
+        than one hour will be deleted. The "time" field of a progress record
+        indicates the time the task was started.
 
         :param title: The title of the task. This should not change over the
         course of the task. (e.g. 'Deleting folder "foo"')
@@ -102,7 +103,7 @@ class Notification(Model):
         }
         expires = datetime.datetime.now() + datetime.timedelta(hours=1)
 
-        return self._createRecord('progress', data, user, expires)
+        return self._createNotification('progress', data, user, expires)
 
     def updateProgress(self, record, **kwargs):
         """
@@ -123,10 +124,20 @@ class Notification(Model):
         :param message: Message corresponding to the current state of the task.
         :type message: str
         """
-        for field, value in kwargs:
+        for field, value in kwargs.iteritems():
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
             else:
                 raise Exception('Invalid kwarg: ' + field)
 
+        record['expires'] = datetime.datetime.now() + datetime.timedelta(
+            hours=1)
+
         return self.save(record)
+
+    def get(self, user):
+        """
+        Get outstanding notifications for the given user.
+        """
+        for result in self.find({'userId': user['_id']}):
+            yield result

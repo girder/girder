@@ -5,8 +5,11 @@ girder.App = Backbone.View.extend({
         girder.restRequest({
             path: 'user/me'
         }).done(_.bind(function (user) {
+            girder.eventStream = new girder.EventStream();
+
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
+                girder.eventStream.open();
             }
             this.render();
 
@@ -147,5 +150,12 @@ girder.App = Backbone.View.extend({
         var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         girder.router.navigate(route, {trigger: true});
+
+        if (girder.currentUser) {
+            girder.eventStream.open();
+        }
+        else {
+            girder.eventStream.close();
+        }
     }
 });
