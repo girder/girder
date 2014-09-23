@@ -17,8 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+import boto
 import json
+import moto
 import os
+import time
 
 from .. import base
 from girder.constants import AssetstoreType
@@ -146,6 +149,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(0, len(resp.json))
 
+    @moto.mock_s3
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore
         self.model('assetstore').remove(self.assetstore)
@@ -181,11 +185,17 @@ class AssetstoreTestCase(base.TestCase):
             'message': 'Unable to write into bucket "bucketname".'
         })
 
-        # Force save of the assetstore since we can't validate it in test mode
-        params['prefix'] = 'foo/bar'
-        params['secret'] = params['secretKey']
-        del params['secretKey']
-        assetstore = self.model('assetstore').save(params, validate=False)
+        # Create a bucket (mocked using moto), so that we can create an
+        # assetstore in it
+        conn = boto.connect_s3(aws_access_key_id=params['accessKeyId'],
+                               aws_secret_access_key=params['secretKey'])
+        bucket = conn.create_bucket("bucketname")
+
+        # Create an assetstore
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        assetstore = self.model('assetstore').load(resp.json['_id'])
 
         # Test init for a single-chunk upload
         folders = self.model('folder').childFolders(
@@ -306,3 +316,30 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 303)
         self.assertTrue(resp.headers['Location'].startswith(
             'https://bucketname.s3.amazonaws.com/foo/bar/'))
+
+        # Create the file key in the moto s3 store so that we can test that it
+        # gets deleted.
+        file = self.model('file').load(largeFile['_id'])
+        bucket.initiate_multipart_upload(file['s3Key'])
+        key = bucket.new_key(file['s3Key'])
+        key.set_contents_from_string("test")
+
+        # Test delete for a non-empty file
+        resp = self.request(path='/file/{}'.format(largeFile['_id']),
+                            user=self.admin, method='DELETE')
+        self.assertStatusOk(resp)
+
+        # The file should be gone now
+        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+                            user=self.admin, method='GET', isJson=False)
+        self.assertStatus(resp, 400)
+        # The actual delete may still be in the event queue, so we want to
+        # check the S3 bucket directly.
+        startTime = time.time()
+        while True:
+            if bucket.get_key(file['s3Key']) is None:
+                break
+            if time.time()-startTime > 15:
+                break  # give up and fail
+            time.sleep(0.1)
+        self.assertIsNone(bucket.get_key(file['s3Key']))

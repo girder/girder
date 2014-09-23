@@ -122,10 +122,20 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/download'.format(item['_id']),
                             method='GET', user=user, isJson=False)
         self.assertStatusOk(resp)
-        zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        # cherrypy doesn't collapse the body properly when unicode is mixed
+        # with binary data.  Instead of using
+        #  zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        # we have to generate the body ourselves.
+        body = []
+        for chunk in resp.body:
+            if isinstance(chunk, unicode):
+                chunk = chunk.encode("utf8")
+            body.append(chunk)
+        body = "".join(body)
+        zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')
         filesInItem = zipFile.namelist()
-        self.assertEqual(zipFile.read(filesInItem[0]), contents[0])
-        self.assertEqual(zipFile.read(filesInItem[1]), contents[1])
+        for index, content in enumerate(contents):
+            self.assertEqual(zipFile.read(filesInItem[index]), content)
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],
@@ -205,6 +215,25 @@ class ItemTestCase(base.TestCase):
                             params=params)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        # Test finding the item using a text string with and without a folderId
+        params['text'] = 'my item name'
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        del params['folderId']
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        # Finding should fail with no parameters
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid search mode.')
 
         # Test update of the item
         params = {
@@ -311,6 +340,18 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
+        # Make sure metadata cannot be added with invalid JSON
+        metadata = {
+            'test': 'allowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata).replace('"', "'"),
+                            type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Invalid JSON passed in request body.')
+
         # Make sure metadata cannot be added if there is a period in the key
         # name
         metadata = {
@@ -336,6 +377,17 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json['message'],
                          'The key name $foobar must not contain a period' +
                          ' or begin with a dollar sign.')
+
+        # Make sure metadata cannot be added with a blank key
+        metadata = {
+            '': 'stillnotallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Key names must be at least one character long.')
 
     def testItemFiltering(self):
         """
@@ -428,3 +480,81 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
+
+    def testItemCopy(self):
+        origItem = self._createItem(self.publicFolder['_id'],
+                                    'test_for_copy', 'fake description',
+                                    self.users[0])
+        # Add metadata and files, since we want to make sure those get copied
+        metadata = {
+            'foo': 'value1',
+            'test': 2
+        }
+        self.request(path='/item/{}/metadata'.format(origItem['_id']),
+                     method='PUT', user=self.users[0],
+                     body=json.dumps(metadata), type='application/json')
+        self._testUploadFileToItem(origItem, 'file_1', self.users[0], 'foobar')
+        self._testUploadFileToItem(origItem, 'file_2', self.users[0], 'foobz')
+        # Also upload a link
+        params = {
+            'parentType': 'item',
+            'parentId': origItem['_id'],
+            'name': 'link_file',
+            'linkUrl': 'http://www.google.com'
+        }
+        resp = self.request(path='/file', method='POST', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        # Copy to a new item.  It will be in the same folder, but we want a
+        # different name.
+        params = {
+            'name': 'copied_item'
+        }
+        resp = self.request(path='/item/{}/copy'.format(origItem['_id']),
+                            method='POST', user=self.users[0], params=params)
+        self.assertStatusOk(resp)
+        # Now ask for the new item explicitly and check its metadata
+        self.request(path='/item/{}'.format(resp.json['_id']),
+                     user=self.users[0], type='application/json')
+        self.assertStatusOk(resp)
+        newItem = resp.json
+        self.assertEqual(newItem['name'], 'copied_item')
+        self.assertEqual(newItem['meta']['foo'], metadata['foo'])
+        self.assertEqual(newItem['meta']['test'], metadata['test'])
+        # Check if we can download the files from the new item
+        resp = self.request(path='/item/{}/files'.format(newItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        newFiles = resp.json
+        self.assertEqual(newFiles[0]['name'], 'file_1')
+        self.assertEqual(newFiles[1]['name'], 'file_2')
+        self.assertEqual(newFiles[2]['name'], 'link_file')
+        self.assertEqual(newFiles[0]['size'], 6)
+        self.assertEqual(newFiles[1]['size'], 5)
+        self._testDownloadMultiFileItem(newItem, self.users[0],
+                                        ('foobar', 'foobz',
+                                         'http://www.google.com'))
+        # Check to make sure the original item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'test_for_copy'})
+        self.assertStatusOk(resp)
+        self.assertEqual(origItem['_id'], resp.json[0]['_id'])
+        # Check to make sure the new item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'copied_item'})
+        self.assertStatusOk(resp)
+        self.assertEqual(newItem['_id'], resp.json[0]['_id'])
+        # Check if we can download the files from the old item and that they
+        # are distinct from the files in the original item
+        resp = self.request(path='/item/{}/files'.format(origItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        origFiles = resp.json
+        self._testDownloadMultiFileItem(origItem, self.users[0],
+                                        ('foobar', 'foobz',
+                                         'http://www.google.com'))
+        for index, file in enumerate(origFiles):
+            self.assertNotEqual(origFiles[index]['_id'],
+                                newFiles[index]['_id'])

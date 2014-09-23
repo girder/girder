@@ -22,6 +22,7 @@ import cherrypy
 import pymongo
 import uuid
 
+from .model_importer import ModelImporter
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
 
@@ -203,4 +204,10 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Delete all of the chunks in the collection that correspond to the
         given file.
         """
-        self.chunkColl.remove({'uuid': file['chunkUuid']})
+        q = {
+            'chunkUuid': file['chunkUuid'],
+            'assetstoreId': self.assetstore['_id']
+        }
+        matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+        if matching.count(True) == 1:
+            self.chunkColl.remove({'uuid': file['chunkUuid']})
