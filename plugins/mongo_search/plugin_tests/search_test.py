@@ -118,8 +118,6 @@ class MongoSearchTestCase(base.TestCase):
                 'sort': 'name',
                 'sortdir': 1
             })
-        privateFolder = resp.json[0]
-        publicFolder = resp.json[1]
 
         # First test all of the required parameters.
         self.ensureRequiredParams(

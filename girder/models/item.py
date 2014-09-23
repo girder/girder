@@ -191,12 +191,15 @@ class Item(Model):
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to filter items by permissions
         of the parent folder.
         """
+        if not filters:
+            filters = {}
+
         # get the non-filtered search result from Model.textSearch
         results = Model.textSearch(self, query=query, limit=0, sort=sort,
                                    filters=filters)

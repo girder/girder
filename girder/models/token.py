@@ -61,7 +61,7 @@ class Token(AccessControlledModel):
             '_id': genToken(),
             'created': now,
             'expires': now + datetime.timedelta(days=days)
-            }
+        }
 
         if user is None:
             self.setPublic(token, True)

@@ -27,7 +27,7 @@ $(function () {
         link = [api, "item", item._id, "download"].join("/");
         div.append("p")
             .html("<a href=" + link + ">Download</a>");
-    }
+    };
 
     $("#girder-browser").girderBrowser({
         label: "Girder",

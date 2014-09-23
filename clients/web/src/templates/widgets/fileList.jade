@@ -1,8 +1,7 @@
 ul.g-file-list
   each file in files
     li.g-file-list-entry
-      a.g-file-list-link(href="#{girder.apiRoot + '/file/' + file.get('_id') + '/download/' + file.get('name')}",
-                         target="{file.get('linkUrl') ? '_blank' : '_self'}")
+      a.g-file-list-link(cid="#{file.cid}" target="#{file.get('linkUrl') ? '_blank' : '_self'}")
         if (file.get('linkUrl'))
           i.icon-link
           span.g-file-name #{file.get('name')}

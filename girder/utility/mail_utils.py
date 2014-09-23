@@ -28,7 +28,7 @@ from girder.constants import SettingKey, ROOT_DIR
 from .model_importer import ModelImporter
 
 
-def renderTemplate(name, params={}):
+def renderTemplate(name, params=None):
     """
     Renders one of the HTML mail templates located in girder/mail_templates.
 
@@ -37,6 +37,9 @@ def renderTemplate(name, params={}):
     :type params: dict
     :returns: The rendered template as a string of HTML.
     """
+    if not params:
+        params = {}
+
     host = '://'.join((cherrypy.request.scheme, cherrypy.request.local.name))
 
     if cherrypy.request.local.port != 80:

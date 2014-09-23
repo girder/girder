@@ -24,10 +24,10 @@ import re
 
 
 def _mergeConfig(filename):
-    '''
+    """
     Load `filename` into the cherrypy config.
     Also, handle global options by putting them in the root.
-    '''
+    """
     cherrypy._cpconfig.merge(cherrypy.config, filename)
     global_config = cherrypy.config.pop('global', {})
 

@@ -116,7 +116,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(1, len(resp.json))
         assetstore = self.model('assetstore').load(resp.json[0]['_id'])
 
-        # Anonymous user should not be able to delete assestores
+        # Anonymous user should not be able to delete assetstores
         resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
                             method='DELETE')
         self.assertStatus(resp, 401)

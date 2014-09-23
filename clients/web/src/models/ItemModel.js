@@ -19,7 +19,7 @@ girder.models.ItemModel = girder.Model.extend({
     },
 
     /**
-     * Get the path to the root of the hierarcy
+     * Get the path to the root of the hierarchy
      */
     getRootPath: function (callback) {
         girder.restRequest({

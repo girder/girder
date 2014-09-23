@@ -9,7 +9,7 @@ before_install:
     - "sudo apt-get install mongodb-org-server"
     - mongod --version
 install:
-    - sudo pip install -r requirements.txt -r requirements-dev.txt
+    - sudo pip install -r requirements.txt -r requirements-dev.txt -r plugins/metadata_extractor/requirements.txt
     - sudo pip install -U six
     - sudo python setup.py install
     - npm install -g grunt grunt-cli

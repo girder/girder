@@ -211,7 +211,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         token = self.model('token').createToken(user)
         return str(token['_id'])
 
-    def request(self, path='/', method='GET', params={}, user=None,
+    def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None):
         """
@@ -231,6 +231,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param cookie: A custom cookie value to set.
         :returns: The cherrypy response object from the request.
         """
+        if not params:
+            params = {}
+
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
         qs = fd = None
 

@@ -13,7 +13,7 @@ This guide assumes you have a Heroku account and have installed the Heroku
 toolbelt.
 
 Girder contains the requisite Procfile, buildpacks, and other configuration to
-be deployed on `Heroku <http://heroku.com>`_. To deploy girder to your Heroku
+be deployed on `Heroku <https://www.heroku.com>`_. To deploy Girder to your Heroku
 space, run the following commands. We recommend doing this on your own fork of
 Girder to keep any customization separate. ::
 
@@ -25,7 +25,7 @@ Girder to keep any customization separate. ::
     $ git push heroku
     $ heroku open
 
-You should now see your girder instance running on Heroku. Congratulations!
+You should now see your Girder instance running on Heroku. Congratulations!
 
 Apache Reverse Proxy
 --------------------
@@ -35,7 +35,9 @@ You can configure Apache's `mod_proxy <http://httpd.apache.org/docs/current/mod/
 to route traffic to these services using a reverse proxy.  For example, if you have an
 Apache server accepting requests at ``www.example.com``, and you want to forward requests
 to ``www.example.com/girder`` to a Girder instance listening on port ``9000``.  You can
-add the following section to your Apache config: ::
+add the following section to your Apache config:
+
+.. code-block:: apacheconf
 
     <VirtualHost *:80>
         ProxyPass /girder http://localhost:9000
@@ -45,7 +47,9 @@ add the following section to your Apache config: ::
 In such a scenario, Girder must be configured properly in order to serve content
 correctly.  Fortunately, this can be accomplished by setting a few parameters in
 your local configuration file at ``girder/conf/girder.local.cfg``.  In this example,
-we have the following: ::
+we have the following:
+
+.. code-block:: ini
 
     [global]
     server.socket_host: "0.0.0.0"

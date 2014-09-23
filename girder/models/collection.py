@@ -60,7 +60,7 @@ class Collection(AccessControlledModel):
         # Ensure unique name for the collection
         q = {
             'name': doc['name']
-            }
+        }
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
         duplicates = self.find(q, limit=1, fields=['_id'])
@@ -81,7 +81,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': collection['_id'],
             'parentCollection': 'collection'
-            }, limit=0)
+        }, limit=0)
         for folder in folders:
             self.model('folder').remove(folder)
 
@@ -124,7 +124,7 @@ class Collection(AccessControlledModel):
             'created': now,
             'updated': now,
             'size': 0
-            }
+        }
 
         self.setPublic(collection, public=public)
         self.setUserAccess(
