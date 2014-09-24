@@ -48,7 +48,7 @@ class Notification(Model):
     """
     def initialize(self):
         self.name = 'notification'
-        self.ensureIndices(('userId', 'time'))
+        self.ensureIndices(('userId', 'time', 'updated'))
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
 
     def validate(self, doc):
@@ -107,7 +107,7 @@ class Notification(Model):
 
         return self._createNotification('progress', data, user, expires)
 
-    def updateProgress(self, record, **kwargs):
+    def updateProgress(self, record, save=True, **kwargs):
         """
         Update an existing progress record.
 
@@ -125,22 +125,45 @@ class Notification(Model):
         :type current: int, long, or float
         :param message: Message corresponding to the current state of the task.
         :type message: str
+        :param expires: Set a custom (UTC) expiration time on the record.
+        Default is one hour from the current time.
+        :type expires: datetime
+        :param save: Whether to save the record to the database.
+        :type save: bool
         """
         for field, value in kwargs.iteritems():
-            if field in ('total', 'current', 'state', 'message'):
+            if field in ('total', 'current', 'state', 'message', 'expires'):
                 record['data'][field] = value
             else:
                 raise Exception('Invalid kwarg: ' + field)
 
         now = datetime.datetime.utcnow()
-        record['expires'] = now + datetime.timedelta(hours=1)
+
+        if 'expires' not in kwargs:
+            record['expires'] = now + datetime.timedelta(hours=1)
+
         record['updated'] = now
 
-        return self.save(record)
+        if save:
+            return self.save(record)
+        else:
+            return record
 
-    def get(self, user):
+    def get(self, user, since=None):
         """
         Get outstanding notifications for the given user.
+
+        :param user: The user requesting updates.
+        :param since: Limit results to entities that have been updated
+        since a certain timestamp.
+        :type since: datetime
         """
-        for result in self.find({'userId': user['_id']}):
+        q = {
+            'userId': user['_id']
+        }
+
+        if since is not None:
+            q['updated'] = {'$gt': since}
+
+        for result in self.find(q):
             yield result

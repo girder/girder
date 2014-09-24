@@ -55,10 +55,13 @@ class Notification(Resource):
         timeout = int(params.get('timeout', 30))
 
         def streamGen():
+            lastUpdate = None
             start = time.time()
             while time.time() - start < timeout:
                 wait = 2
-                for event in self.model('notification').get(user):
+                for event in self.model('notification').get(user, lastUpdate):
+                    if lastUpdate is None or event['updated'] > lastUpdate:
+                        lastUpdate = event['updated']
                     wait = 0.5
                     start = time.time()
                     yield sseMessage(event)
