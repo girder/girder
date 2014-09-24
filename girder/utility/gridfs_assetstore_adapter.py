@@ -107,6 +107,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             n = cursor[0]['n'] + 1
 
         size = 0
+        startingN = n
 
         while True:
             data = chunk.read(CHUNK_SIZE)
@@ -121,6 +122,13 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             size += len(data)
             checksum.update(data)
         chunk.close()
+
+        if upload['received']+size > upload['size']:
+            # The user tried to upload too much.  Delete everything we added
+            for chunkN in xrange(startingN, n):
+                self.chunkColl.remove({'uuid': upload['chunkUuid'],
+                                       'n': chunkN})
+            raise ValidationException('Received too many bytes.')
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)

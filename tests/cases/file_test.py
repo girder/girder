@@ -126,6 +126,26 @@ class FileTestCase(base.TestCase):
                             params={'uploadId': uploadId})
         self.assertStatusOk(resp)
 
+        # Tryng to send too many bytes should fail
+        currentOffset = resp.json['offset']
+        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
+        files = [('chunk', name, "extra_"+chunk2+"_bytes")]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Received too many bytes.'
+        })
+
+        # The offset should not have changed
+        resp = self.request(path='/file/offset', method='GET', user=self.user,
+                            params={'uploadId': uploadId})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['offset'], currentOffset)
+
+        files = [('chunk', name, chunk2)]
+
         # Now upload the second chunk
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
         resp = self.multipartRequest(

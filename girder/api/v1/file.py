@@ -168,7 +168,6 @@ class File(Resource):
             raise RestException(
                 'Server has received {} bytes, but client sent offset {}.'
                 .format(upload['received'], offset))
-
         if type(chunk) == cherrypy._cpreqbody.Part:
             return self.model('upload').handleChunk(upload, chunk.file)
         else:
@@ -184,6 +183,7 @@ class File(Resource):
                'handled by the assetstore adapter.',
                dataType='File', paramType='body')
         .errorResponse('ID was invalid.')
+        .errorResponse('Received too many bytes.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
     @loadmodel(map={'id': 'file'}, model='file')
