@@ -151,13 +151,22 @@ class Model(ModelImporter):
         """
         if not filters:
             filters = {}
+        if not fields:
+            fields = {}
 
-        filters['$text'] = {
-            '$search': query
-        }
+        fields['_textScore'] = {'$meta': 'textScore'}
+        filters['$text'] = {'$search': query}
 
-        return self.find(filters, offset=offset, limit=limit,
-                         sort=sort, fields=fields)
+        cursor = self.find(filters, offset=offset, limit=limit,
+                           sort=sort, fields=fields)
+
+        # Sort by meta text score, but only if result count is below a certain
+        # threshold. The text score is not a real index, so we cannot always
+        # sort by it if there is a high number of matching documents.
+        if cursor.count() < 200 and sort is None:
+            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+
+        return cursor
 
     def save(self, document, validate=True, triggerEvents=True):
         """
@@ -294,6 +303,9 @@ class Model(ModelImporter):
         for field in allow:
             if field in doc:
                 out[field] = doc[field]
+
+        if '_textScore' in doc:
+            out['_textScore'] = doc['_textScore']
 
         return out
 

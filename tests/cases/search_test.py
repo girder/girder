@@ -169,12 +169,23 @@ class SearchTestCase(base.TestCase):
         }, resp.json['collection'][0])
         self.assertEqual(0, len(resp.json['user']))
 
-        # Make sure the description text is indexed
+        # Ensure that weights are respected, e.g. description should be
+        # weighted less than name.
         resp = self.request(path='/resource/search', params={
             'q': 'magic',
             'types': '["collection"]'
         }, user=admin)
         self.assertEqual(2, len(resp.json['collection']))
+        self.assertDictContainsSubset({
+            '_id': str(coll2['_id']),
+            'name': coll2['name']
+        }, resp.json['collection'][0])
+        self.assertDictContainsSubset({
+            '_id': str(coll1['_id']),
+            'name': coll1['name']
+        }, resp.json['collection'][1])
+        self.assertTrue(resp.json['collection'][0]['_textScore'] >
+                        resp.json['collection'][1]['_textScore'])
 
         # Exercise user search by login
         resp = self.request(path='/resource/search', params={
