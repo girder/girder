@@ -109,7 +109,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         size = 0
         startingN = n
 
-        while True:
+        while not upload['received']+size > upload['size']:
             data = chunk.read(CHUNK_SIZE)
             if not data:
                 break

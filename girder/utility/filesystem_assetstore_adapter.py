@@ -126,7 +126,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
-            while True:
+            while not upload['received']+size > upload['size']:
                 data = chunk.read(BUF_SIZE)
                 if not data:
                     break
