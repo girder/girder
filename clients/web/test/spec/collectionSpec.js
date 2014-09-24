@@ -163,10 +163,18 @@ describe('Test collection actions', function () {
             return $('.g-collection-actions-button').length > 0;
         }, 'collection view to load');
 
-        waits(200);
+        waitsFor(function () {
+            return $('.g-loading-block').length == 0;
+        }, 'for all blocks to load');
 
         runs(function () {
             $('.g-collection-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-delete-collection:visible').length > 0;
+        }, 'delete button to appear');
+        runs(function () {
             $('.g-delete-collection').click();
         });
 
