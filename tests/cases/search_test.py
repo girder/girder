@@ -175,14 +175,6 @@ class SearchTestCase(base.TestCase):
             'types': '["collection"]'
         }, user=admin)
         self.assertEqual(2, len(resp.json['collection']))
-        self.assertDictContainsSubset({
-            '_id': str(coll2['_id']),
-            'name': coll2['name']
-        }, resp.json['collection'][1])
-        self.assertDictContainsSubset({
-            '_id': str(coll1['_id']),
-            'name': coll1['name']
-        }, resp.json['collection'][0])
 
         # Exercise user search by login
         resp = self.request(path='/resource/search', params={
