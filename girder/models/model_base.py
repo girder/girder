@@ -146,6 +146,8 @@ class Model(ModelImporter):
         :type query: str
         :param filters: Any additional query operators to apply.
         :type filters: dict
+        :returns: A pymongo cursor. It is left to the caller to build the
+        results from the cursor.
         """
         if not filters:
             filters = {}
@@ -154,15 +156,8 @@ class Model(ModelImporter):
             '$search': query
         }
 
-        if sort is None:
-            if fields is None:
-                fields = {'_textScore': {'$meta': 'textScore'}}
-            else:
-                fields['_textScore'] = {'$meta': 'textScore'}
-            sort = [('_textScore', {'$meta': 'textScore'})]
-
-        return [r for r in self.find(filters, offset=offset, limit=limit,
-                                     sort=sort, fields=fields)]
+        return self.find(filters, offset=offset, limit=limit,
+                         sort=sort, fields=fields)
 
     def save(self, document, validate=True, triggerEvents=True):
         """
@@ -669,11 +664,11 @@ class AccessControlledModel(Model):
         if not filters:
             filters = {}
 
-        results = Model.textSearch(
+        cursor = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)
         return [r for r in self.filterResultsByPermission(
-            results, user=user, level=AccessType.READ, limit=limit,
+            cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)]
 
 
