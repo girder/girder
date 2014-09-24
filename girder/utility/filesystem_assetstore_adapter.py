@@ -126,7 +126,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
-            while True:
+            while not upload['received']+size > upload['size']:
                 data = chunk.read(BUF_SIZE)
                 if not data:
                     break
@@ -134,6 +134,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 tempFile.write(data)
                 checksum.update(data)
         chunk.close()
+
+        if upload['received']+size > upload['size']:
+            with open(upload['tempFile'], 'a+b') as tempFile:
+                tempFile.truncate(upload['received'])
+            raise ValidationException('Received too many bytes.')
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)
