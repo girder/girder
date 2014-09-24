@@ -119,9 +119,16 @@ Windows
 .. warning:: **Windows is not supported or tested. This information is
    provided for developers. Use at your own risk.**
 
-Install `Setuptools <https://pypi.python.org/pypi/setuptools>`_ for Python.
-You may need to add ``python\scripts`` to your path for NPM to work as
-expected.
+Download, install, and configure MongoDB server following the
+`instructions <http://docs.mongodb.org/manual/tutorial/install-mongodb-on-windows/>`_
+on the MongoDB website, and download and run the Node.js
+`Windows Installer <http://nodejs.org/download/>`_ from the Node.js website.
+
+Download and install the `Windows MSI Installer <https://www.python.org/downloads/windows/>`_
+for the latest Python 2 release from the Python website, and then  download and
+run the `ez_setup.py <https://bootstrap.pypa.io/ez_setup.py>`_ bootstrap script
+to install `Setuptools <https://pypi.python.org/pypi/setuptools>`_ for Python.
+You may need to add ``python\scripts`` to your path for NPM to work as expected.
 
 From a command prompt, install pip: ::
 
