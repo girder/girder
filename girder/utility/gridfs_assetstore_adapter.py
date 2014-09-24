@@ -125,9 +125,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if upload['received']+size > upload['size']:
             # The user tried to upload too much.  Delete everything we added
-            for chunkN in xrange(startingN, n):
-                self.chunkColl.remove({'uuid': upload['chunkUuid'],
-                                       'n': chunkN})
+            self.chunkColl.remove({'uuid': upload['chunkUuid'],
+                                   'n': {'$gte': startingN}}, multi=True)
             raise ValidationException('Received too many bytes.')
 
         # Persist the internal state of the checksum
