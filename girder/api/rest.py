@@ -450,7 +450,7 @@ class Resource(ModelImporter):
         token = self.model('token').load(tokenStr, force=True,
                                          objectId=False)
 
-        if token is None or token['expires'] < datetime.datetime.now():
+        if token is None or token['expires'] < datetime.datetime.utcnow():
             return (None, token) if returnToken else None
         else:
             user = self.model('user').load(token['userId'], force=True)

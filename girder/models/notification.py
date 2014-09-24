@@ -59,11 +59,13 @@ class Notification(Model):
         """
         Helper method to create the notification record that gets saved.
         """
+        now = datetime.datetime.utcnow()
         doc = {
             'type': type,
             'userId': user['_id'],
             'data': data,
-            'time': datetime.datetime.now()
+            'time': now,
+            'updated': now
         }
 
         if expires is not None:
@@ -101,7 +103,7 @@ class Notification(Model):
             'state': state,
             'message': message
         }
-        expires = datetime.datetime.now() + datetime.timedelta(hours=1)
+        expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
         return self._createNotification('progress', data, user, expires)
 
@@ -130,8 +132,9 @@ class Notification(Model):
             else:
                 raise Exception('Invalid kwarg: ' + field)
 
-        record['expires'] = datetime.datetime.now() + datetime.timedelta(
-            hours=1)
+        now = datetime.datetime.utcnow()
+        record['expires'] = now + datetime.timedelta(hours=1)
+        record['updated'] = now
 
         return self.save(record)
 

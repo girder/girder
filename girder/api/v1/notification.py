@@ -18,11 +18,9 @@
 ###############################################################################
 
 import cherrypy
-import datetime
 import json
 import time
 
-from bson import json_util
 from ..describe import Description
 from ..rest import Resource
 from girder.models.model_base import AccessException
@@ -58,7 +56,7 @@ class Notification(Resource):
 
         def streamGen():
             start = time.time()
-            while time.time() - start < timeout
+            while time.time() - start < timeout:
                 wait = 2
                 for event in self.model('notification').get(user):
                     wait = 0.5
