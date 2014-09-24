@@ -115,7 +115,17 @@ class EventsTestCase(unittest.TestCase):
         # Now run the asynchronous event handler, which should eventually
         # cause our counter to be incremented.
         events.daemon.start()
-        time.sleep(0.1)
+        # Ensure that all of our events have been started within a reasonable
+        # amount of time.  Also check the results in the loop, since the qsize
+        # only indicates if all events were started, not finished.
+        startTime = time.time()
+        while True:
+            if events.daemon.eventQueue.qsize() == 0:
+                if self.ctr == 3:
+                    break
+            if time.time()-startTime > 15:
+                break
+            time.sleep(0.1)
         self.assertEqual(events.daemon.eventQueue.qsize(), 0)
         self.assertEqual(self.ctr, 3)
         self.assertEqual(self.responses, ['foo'])

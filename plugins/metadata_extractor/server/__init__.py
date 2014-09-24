@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -17,27 +17,18 @@
 #  limitations under the License.
 ###############################################################################
 
-from setuptools import setup, find_packages
+from girder import events
+from girder.constants import AssetstoreType
+
+from . metadata_extractor import ServerMetadataExtractor
 
 
-with open('README.rst') as f:
-    readme = f.read()
+def handler(event):
+    if event.info['assetstore']['type'] == AssetstoreType.FILESYSTEM:
+        metadataExtractor = ServerMetadataExtractor(event.info['assetstore'],
+                                                    event.info['file'])
+        metadataExtractor.extractMetadata()
 
-setup(
-    name='girder',
-    version='0.1',
-    description='High-performance data management platform',
-    long_description=readme,
-    author='Kitware, Inc.',
-    author_email='kitware@kitware.com',
-    url='https://girder.readthedocs.org',
-    license='Apache 2.0',
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2'
-    ],
-    packages=find_packages(exclude=('tests', 'docs'))
-)
+
+def load(info):
+    events.bind('data.process', 'metadata_extractor_handler', handler)

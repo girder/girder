@@ -35,6 +35,11 @@ class MockSmtpServer(smtpd.SMTPServer):
 
 
 class MockSmtpReceiver(object):
+    def __init__(self):
+        self.address = None
+        self.smtp = None
+        self.thread = None
+
     def start(self):
         """Start the mock SMTP server. Attempt to bind to any port
         within the range specified by _startPort and _maxTries"""

@@ -220,7 +220,7 @@ girderTest.goToUsersPage = function () {
 };
 
 // This assumes that you're logged into the system and on the groups page.
-girderTest.createGroup = function (groupName, groupDesc, public) {
+girderTest.createGroup = function (groupName, groupDesc, pub) {
 
     return function () {
 
@@ -243,7 +243,7 @@ girderTest.createGroup = function (groupName, groupDesc, public) {
                    $('.g-save-group:visible').length > 0;
         }, 'create group dialog to appear');
 
-        if (public) {
+        if (pub) {
             runs(function () {
                 $('#g-access-public').click();
             });

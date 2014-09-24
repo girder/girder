@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -17,27 +17,25 @@
 #  limitations under the License.
 ###############################################################################
 
-from setuptools import setup, find_packages
+import time
+
+from tests import base
+from . metadata_extractor_test import MetadataExtractorTestCase
 
 
-with open('README.rst') as f:
-    readme = f.read()
+def setUpModule():
+    base.enabledPlugins.append('metadata_extractor')
+    base.startServer()
 
-setup(
-    name='girder',
-    version='0.1',
-    description='High-performance data management platform',
-    long_description=readme,
-    author='Kitware, Inc.',
-    author_email='kitware@kitware.com',
-    url='https://girder.readthedocs.org',
-    license='Apache 2.0',
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2'
-    ],
-    packages=find_packages(exclude=('tests', 'docs'))
-)
+
+def tearDownModule():
+    base.stopServer()
+
+
+class ServerMetadataExtractorTestCase(MetadataExtractorTestCase):
+    def testServerMetadataExtractor(self):
+        time.sleep(0.2)
+        item = self.model('item').load(self.item['_id'], user=self.user)
+        self.assertEqual(item['name'], self.name)
+        self.assertHasKeys(item, ['meta'])
+        self.assertEqual(item['meta']['MIME type'], self.mimeType)

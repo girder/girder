@@ -57,4 +57,4 @@ def fileIndexFields():
         FilesystemAssetstoreAdapter.fileIndexFields() +
         GridFsAssetstoreAdapter.fileIndexFields() +
         S3AssetstoreAdapter.fileIndexFields()
-        ))
+    ))

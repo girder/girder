@@ -81,7 +81,7 @@ class Assetstore(Model):
         """
         files = self.model('file').find({
             'assetstoreId': assetstore['_id']
-            }, limit=1)
+        }, limit=1)
         if files.count(True) > 0:
             raise ValidationException('You may not delete an assetstore that '
                                       'contains files.')
