@@ -131,6 +131,8 @@ girder.models.FileModel = girder.Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
+        girder._uploadId = uploadId;
+
         girder.restRequest({
             path: 'file/chunk',
             type: 'POST',

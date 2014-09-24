@@ -317,8 +317,7 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     downloadFolder: function () {
-        window.location = girder.apiRoot + '/folder/' +
-                this.parentModel.get('_id') + '/download';
+        this.parentModel.download();
     },
 
     editFolderAccess: function () {

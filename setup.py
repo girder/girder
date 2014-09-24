@@ -20,20 +20,24 @@
 from setuptools import setup, find_packages
 
 
-with open('README.md') as f:
+with open('README.rst') as f:
     readme = f.read()
-
-with open('LICENSE') as f:
-    license = f.read()
 
 setup(
     name='girder',
     version='0.1',
-    description='A data management platform.',
+    description='High-performance data management platform',
     long_description=readme,
-    author='Kitware',
+    author='Kitware, Inc.',
     author_email='kitware@kitware.com',
-    url='https://github.com/girder/girder',
-    license=license,
+    url='https://girder.readthedocs.org',
+    license='Apache 2.0',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2'
+    ],
     packages=find_packages(exclude=('tests', 'docs'))
 )

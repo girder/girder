@@ -105,7 +105,7 @@ class SearchTestCase(base.TestCase):
             'creator': admin,
             'folder': folder2
         }
-        item2 = self.model('item').createItem(**item2)
+        self.model('item').createItem(**item2)
 
         # Grab the default user folders
         resp = self.request(

@@ -252,6 +252,16 @@ class FileTestCase(base.TestCase):
         self.assertTrue(os.path.isfile(abspath))
         self.assertEqual(os.stat(abspath).st_size, file['size'])
 
+        # Make sure access control is enforced on download
+        resp = self.request(
+            path='/file/{}/download'.format(file['_id']), method='GET')
+        self.assertStatus(resp, 401)
+
+        resp = self.request(
+            path='/folder/{}/download'.format(self.privateFolder['_id']),
+            method='GET')
+        self.assertStatus(resp, 401)
+
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
 

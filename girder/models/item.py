@@ -191,12 +191,15 @@ class Item(Model):
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to filter items by permissions
         of the parent folder.
         """
+        if not filters:
+            filters = {}
+
         # get the non-filtered search result from Model.textSearch
         results = Model.textSearch(self, query=query, limit=0, sort=sort,
                                    filters=filters)
@@ -274,7 +277,7 @@ class Item(Model):
 
         :param name: The name of the item.
         :type name: str
-        :param description: Description for the folder.
+        :param description: Description for the item.
         :type description: str
         :param folder: The parent folder of the item.
         :param creator: User document representing the creator of the group.
@@ -362,3 +365,35 @@ class Item(Model):
         filteredFolder = self.model('folder').filter(curFolder, user)
         folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
         return folderIdsToRoot
+
+    def copyItem(self, srcItem, creator, name=None, folder=None,
+                 description=None):
+        """
+        Copy an item, including duplicating files and metadata.
+
+        :param srcItem: the item to copy.
+        :type srcItem: dict
+        :param creator: the user who will own the copied item.
+        :param name: The name of the new item.  None to copy the original name.
+        :type name: str
+        :param folder: The parent folder of the new item.  None to store in the
+                same folder as the original item.
+        :param description: Description for the new item.  None to copy the
+                original description.
+        :type description: str
+        :returns: the new item.
+        """
+        if name is None:
+            name = srcItem['name']
+        if folder is None:
+            folder = self.model('folder').load(srcItem['folderId'], force=True)
+        if description is None:
+            description = srcItem['description']
+        newItem = self.model('item').createItem(
+            folder=folder, name=name, creator=creator, description=description)
+        # copy metadata
+        self.model('item').setMetadata(newItem, srcItem.get('meta', {}))
+        # copy files
+        for file in self.model('item').childFiles(item=srcItem, limit=0):
+            self.model('file').copyFile(file, creator=creator, item=newItem)
+        return self.model('item').filter(newItem)

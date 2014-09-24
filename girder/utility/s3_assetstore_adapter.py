@@ -29,6 +29,7 @@ import urllib
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
 from girder import logger, events
 
@@ -190,11 +191,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             info['partNumber'], info['s3UploadId'])
         sig = self._getSignature(
             ('PUT', '', '', expires, upload['s3']['relpath'] + queryStr))
-        url = (
-            'https://{}.s3.amazonaws.com/{}{}&Expires={}&AWSAccessKeyId={}'
-            '&Signature={}').format(
-            self.assetstore['bucket'], upload['s3']['key'], queryStr,
-            expires, self.assetstore['accessKeyId'], urllib.quote(sig))
+        url = ('https://{}.s3.amazonaws.com/{}{}&Expires={}&AWSAccessKeyId={}'
+               '&Signature={}').format(
+                   self.assetstore['bucket'], upload['s3']['key'], queryStr,
+                   expires, self.assetstore['accessKeyId'], urllib.quote(sig))
 
         upload['s3']['uploadId'] = info['s3UploadId']
         upload['s3']['partNumber'] = info['partNumber']
@@ -243,9 +243,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             url = (
                 'https://{}.s3.amazonaws.com/{}{}&Expires={}&AWSAccessKeyId={}'
                 '&Signature={}').format(
-                self.assetstore['bucket'], upload['s3']['key'], queryStr,
-                expires, self.assetstore['accessKeyId'],
-                urllib.quote(signature))
+                    self.assetstore['bucket'], upload['s3']['key'], queryStr,
+                    expires, self.assetstore['accessKeyId'],
+                    urllib.quote(signature))
 
             file['s3FinalizeRequest'] = {
                 'method': 'POST',
@@ -289,12 +289,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         want to wait on that.
         """
         if file['size'] > 0:
-            events.daemon.trigger('_s3_assetstore_delete_file', {
-                'accessKeyId': self.assetstore['accessKeyId'],
-                'secret': self.assetstore['secret'],
-                'bucket': self.assetstore['bucket'],
-                'key': file['s3Key']
-            })
+            q = {
+                'relpath': file['relpath'],
+                'assetstoreId': self.assetstore['_id']
+            }
+            matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+            if matching.count(True) == 1:
+                events.daemon.trigger('_s3_assetstore_delete_file', {
+                    'accessKeyId': self.assetstore['accessKeyId'],
+                    'secret': self.assetstore['secret'],
+                    'bucket': self.assetstore['bucket'],
+                    'key': file['s3Key']
+                })
 
 
 def _deleteFileImpl(event):

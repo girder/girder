@@ -19,6 +19,7 @@
 
 import cherrypy
 import json
+import pymongo
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -38,6 +39,7 @@ class Item(Resource):
         self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
+        self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     def find(self, params):
@@ -176,6 +178,9 @@ class Item(Resource):
 
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
+            if not len(k):
+                raise RestException('Key names must be at least one character '
+                                    'long.')
             if '.' in k or k[0] == '$':
                 raise RestException('The key name {} must not contain a period '
                                     'or begin with a dollar sign.'.format(k))
@@ -200,7 +205,8 @@ class Item(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
-            for file in self.model('item').childFiles(item=item, limit=0):
+            for file in self.model('item').childFiles(
+                    item=item, limit=0, sort=[('created', pymongo.ASCENDING)]):
                 for data in zip.addFile(self.model('file')
                                             .download(file, headers=False),
                                         file['name']):
@@ -272,3 +278,34 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
+
+    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    def copyItem(self, item, params):
+        """
+        Copy an existing item to a new item.
+
+        :param folderId: The _id of the parent folder for the new item.
+        :type folderId: str
+        :param name: The name of the item to create.
+        :param description: Item description.
+        """
+        user = self.getCurrentUser()
+        name = params.get('name', None)
+        folderId = params.get('folderId', item['folderId'])
+        folder = self.model('folder').load(id=folderId, user=user,
+                                           level=AccessType.WRITE, exc=True)
+        description = params.get('description', None)
+        return self.model('item').copyItem(item, creator=user, name=name,
+                                           folder=folder,
+                                           description=description)
+    copyItem.description = (
+        Description('Copy an item.')
+        .responseClass('Item')
+        .param('id', 'The ID of the original item.', paramType='path')
+        .param('folderId', 'The ID of the parent folder.', required=False)
+        .param('name', 'Name for the new item.', required=False)
+        .param('description', "Description for the new item.", required=False)
+        .errorResponse()
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the original item.', 403)
+        .errorResponse('Write access was denied on the parent folder.', 403))

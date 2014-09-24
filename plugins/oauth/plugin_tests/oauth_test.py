@@ -56,7 +56,7 @@ class OauthTest(base.TestCase):
         """
         expect = {
             'admin@google.com': None,  # duplicate of existing admin user
-            '234@mail.com': None, # violates regex even after coercion
+            '234@mail.com': None,  # violates regex even after coercion
             'hello.world.foo@mail.com': 'helloworldfoo',
             'first-last@mail.com': 'first-last'
         }
@@ -152,6 +152,7 @@ class OauthTest(base.TestCase):
         cookie = resp.cookie
 
         email = 'admin@mail.com'
+
         @httmock.all_requests
         def google_mock(url, request):
             if url.netloc == 'accounts.google.com':

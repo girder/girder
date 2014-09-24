@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
+
 from .. import base
 
 from girder.constants import AccessType
@@ -117,6 +119,14 @@ class CollectionTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_accessLevel'], AccessType.ADMIN)
 
+        # Test collection update
+        resp = self.request(path='/collection/{}'.format(newCollId),
+                            method='PUT', user=self.admin,
+                            params={'id': newCollId,
+                                    'name': 'New collection name'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'New collection name')
+
     def testDeleteCollection(self):
         # Requesting with no path should fail
         resp = self.request(path='/collection', method='DELETE',
@@ -135,3 +145,30 @@ class CollectionTestCase(base.TestCase):
 
         coll = self.model('collection').load(self.collection['_id'], force=True)
         self.assertEqual(coll, None)
+
+    def testCollectionAccess(self):
+        # Asking to change to  an invalid access list should fail
+        resp = self.request(path='/collection/%s/access' %
+                            self.collection['_id'], method='PUT', params={
+                                'access': 'not an access list',
+                                'public': False
+                            }, user=self.admin)
+        self.assertStatus(resp, 400)
+
+        # Change the access to allow just the user
+        obj = {'users': [{'id': str(self.user['_id']),
+                          'level': AccessType.WRITE}]}
+        resp = self.request(path='/collection/%s/access' %
+                            self.collection['_id'], method='PUT', params={
+                                'access': json.dumps(obj),
+                                'public': False
+                            }, user=self.admin)
+        self.assertStatusOk(resp)
+
+        # Request the collection access
+        resp = self.request(path='/collection/%s/access' %
+                            self.collection['_id'], user=self.admin)
+        self.assertStatusOk(resp)
+        access = resp.json
+        self.assertEqual(access['users'][0]['id'], str(self.user['_id']))
+        self.assertEqual(access['users'][0]['level'], AccessType.WRITE)

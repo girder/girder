@@ -120,7 +120,8 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(resp.json['parentId'], privateFolder['_id'])
         self.assertEqual(resp.json['name'], 'New name')
 
-        # Move should fail if we don't have write permission on the dest parent
+        # Move should fail if we don't have write permission on the
+        # destination parent
         publicFolder = self.model('folder').load(
             publicFolder['_id'], force=True)
         publicFolder = self.model('folder').setUserAccess(
@@ -130,7 +131,7 @@ class FolderTestCase(base.TestCase):
             user=self.user, params={
                 'parentId': self.admin['_id'],
                 'parentType': 'user'
-                })
+            })
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Write access denied for user.')
 

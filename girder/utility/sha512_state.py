@@ -19,7 +19,7 @@
 
 # Utility for saving and restoring the internal state of a sha512 object
 # so that checksums can be streamed without having to remain in memory.
-# Taken and adpated from http://code.activestate.com/recipes/
+# Taken and adapted from http://code.activestate.com/recipes/
 # 578479-save-and-restore-sha-512-internal-state/
 
 from hashlib import sha512

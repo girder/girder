@@ -106,7 +106,7 @@ class Group(AccessControlledModel):
 
         q = {
             'lowerName': doc['lowerName'],
-            }
+        }
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
         duplicates = self.find(q, limit=1, fields=['_id'])
@@ -283,7 +283,7 @@ class Group(AccessControlledModel):
             user['groupInvites'].append({
                 'groupId': group['_id'],
                 'level': level
-                })
+            })
 
         return self.model('user').save(user, validate=False)
 
@@ -353,7 +353,7 @@ class Group(AccessControlledModel):
             'created': now,
             'updated': now,
             'requests': []
-            }
+        }
 
         self.setPublic(group, public=public)
 

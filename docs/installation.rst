@@ -4,7 +4,12 @@ Installation
 Before you install, see the :doc:`prerequisites` guide to make sure you
 have all required system packages installed.
 
-To run the server, you must install some external python package
+Obtain the Girder source code by cloning the Git repository on
+`GitHub <https://github.com>`_: ::
+
+    git clone https://github.com/girder/girder.git
+
+To run the server, you must install some external Python package
 dependencies: ::
 
     pip install -r requirements.txt
@@ -17,20 +22,20 @@ dependencies: ::
 Before you can build the client-side code project, you must install the
 `Grunt <http://gruntjs.com>`_ command line utilities: ::
 
-    npm install -g grunt grunt-cli
+    npm install -g grunt-cli
 
 Then cd into the root of the repository and run: ::
 
     npm install
 
-Finally, when all node packages are installed, run: ::
+Finally, when all Node packages are installed, run: ::
 
     grunt init
 
 Build
 -----
 
-To build the client side code, run the following command from within the
+To build the client-side code, run the following command from within the
 repository: ::
 
     grunt
@@ -41,7 +46,7 @@ Run this command any time you change a JavaScript or CSS file under
 Run
 ---
 
-To run the server, first make sure the mongo daemon is running. To manually start it, run: ::
+To run the server, first make sure the Mongo daemon is running. To manually start it, run: ::
 
     mongod &
 
@@ -49,7 +54,7 @@ Then, just run: ::
 
     python -m girder
 
-Then open http://localhost:8080/ in your web browser, and you should see the application. ::
+Then open http://localhost:8080/ in your web browser, and you should see the application.
 
 Initial Setup
 -------------
@@ -62,8 +67,9 @@ appear in the navigation bar that says ``Admin console``.
 The next recommended action is to enable any plugins you want to run on your server.
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
-enabled, you must restart the cherrypy server in order for the change to take
-effect. For information about specific plugins, see the :ref:`Plugins <plugins>` section.
+enabled, you must restart the `CherryPy <http://www.cherrypy.org>`_ server for
+the change to take effect. For information about specific plugins, see the
+:ref:`Plugins <plugins>` section.
 
 After you have enabled any desired plugins and restarted the server, the next
 recommended action is to create an ``Assetstore`` for your system. No users

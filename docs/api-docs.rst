@@ -12,7 +12,7 @@ interchangeable clients using different technologies.
 
 When a Girder instance is deployed, it typically also serves a page
 that uses `Swagger <https://helloreverb.com/developers/swagger>`_ to document
-all available RESTful endpoints in the web API, and also provide an easy way
+all available RESTful endpoints in the web API and also provide an easy way
 for users to execute those endpoints with parameters of their choosing. In
 this way, the Swagger page is just the simplest and lightest client application
 for Girder. This page is served out of the path ``/api`` under the root path of
@@ -32,7 +32,7 @@ each time a document is about to be saved.
 Typically, there is a model class for each resource type in the system. These
 models are loaded as singletons for efficiency, and can be accessed in
 REST resources or other models by invoking ``self.model('foo')``, where ``foo``
-is the name of the model.  For example, ::
+is the name of the model.  For example: ::
 
     groups = self.model('group').list(user=self.getCurrentUser())
 
@@ -42,7 +42,7 @@ should extend the :ref:`Model` class.
 
 All model classes must have an ``initialize`` method in which they declare
 the name of their corresponding Mongo collection, as well as any collection
-indices they require. For example, ::
+indices they require. For example: ::
 
     from girder.models.model_base import Model
 
@@ -50,7 +50,7 @@ indices they require. For example, ::
         def initialize(self):
             self.name = 'cat_collection'
 
-The above model singleton could then be accessed via ::
+The above model singleton could then be accessed via: ::
 
     self.model('cat')
 
@@ -76,7 +76,7 @@ Events
     :members:
 
 User
-^^^^^
+^^^^
 .. automodule:: girder.models.user
    :members:
 
@@ -175,7 +175,7 @@ Clients
 jQuery Plugins
 ^^^^^^^^^^^^^^
 
-There are a set of jQuery plugins that interact with the girder API. These can
+There are a set of jQuery plugins that interact with the Girder API. These can
 be found in the ``clients/jquery`` directory of the source tree.
 
 

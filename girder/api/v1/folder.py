@@ -53,7 +53,7 @@ class Folder(Resource):
         To search with full text search, pass the "text" parameter. To search
         by parent, (i.e. list child folders) pass parentId and parentType,
         which must be one of ('folder' | 'collection' | 'user'). You can also
-        pass limit, offset, sort, and sortdir paramters.
+        pass limit, offset, sort, and sortdir parameters.
 
         :param limit: The result set size limit, default=50.
         :param offset: Offset into the results, default=0.
