@@ -22,21 +22,24 @@ import datetime
 import json
 import time
 
+from bson import json_util
+from ..describe import Description
 from ..rest import Resource
 from girder.models.model_base import AccessException
 
 
 def sseMessage(event):
     """
-    Serializes an event into the server-sent events protocol
+    Serializes an event into the server-sent events protocol.
     """
-    return 'data: {}\n'.format(json.dumps(event))
+    return 'data: {}\n\n'.format(json.dumps(event, default=str))
 
 
 class Notification(Resource):
     def __init__(self):
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
+        self.route('GET', ('test',), self.test)
 
     def stream(self, params):
         """
@@ -51,13 +54,26 @@ class Notification(Resource):
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
 
+        timeout = int(params.get('timeout', 30))
+
         def streamGen():
-            while True:
+            start = time.time()
+            while time.time() - start < timeout
                 wait = 2
                 for event in self.model('notification').get(user):
                     wait = 0.5
+                    start = time.time()
                     yield sseMessage(event)
 
                 time.sleep(wait)
         return streamGen
     stream.description = None
+
+    def test(self, params):
+        p = self.model('notification').initProgress(
+            self.getCurrentUser(), 'Test!', total=100)
+
+        for i in xrange(100):
+            self.model('notification').updateProgress(p, current=i)
+            time.sleep(1)
+    test.description = Description('Test')

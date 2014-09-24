@@ -8,6 +8,11 @@ window.alert = function (msg) {
     console.log(msg);
 };
 
+/**
+ * The EventSource staying open causes the page to hang, so we mock starting it.
+ */
+girder.EventStream.prototype.open = function () {};
+
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 

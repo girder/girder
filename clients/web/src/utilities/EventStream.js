@@ -19,7 +19,8 @@
                 girder.cookie.find('girderToken'));
 
             var stream = this;
-            this._eventSource.addEventListener('message', function (e) {
+
+            this._eventSource.onmessage = function (e) {
                 try {
                     var obj = window.JSON.parse(e.data);
                     stream.trigger('g:event.' + obj.type, obj);
@@ -27,7 +28,7 @@
                     console.error('Invalid JSON from SSE stream: ' + e.data + ',' + err);
                     stream.trigger('g:error', e);
                 }
-            }, false);
+            };
 
             this._eventSource.addEventListener('error', function (e) {
                 console.error('SSE stream error');
