@@ -167,6 +167,11 @@ describe('Test collection actions', function () {
 
         runs(function () {
             $('.g-collection-actions-button').click();
+        });
+
+        waits(200);
+
+        runs(function () {
             $('.g-delete-collection').click();
         });
 

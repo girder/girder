@@ -7,6 +7,10 @@ girder.App = Backbone.View.extend({
         }).done(_.bind(function (user) {
             girder.eventStream = new girder.EventStream();
 
+            girder.eventStream.on('g:event.progress', function (e) {
+                console.log(e);
+            });
+
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
                 girder.eventStream.open();
@@ -153,8 +157,7 @@ girder.App = Backbone.View.extend({
 
         if (girder.currentUser) {
             girder.eventStream.open();
-        }
-        else {
+        } else {
             girder.eventStream.close();
         }
     }

@@ -8,10 +8,8 @@ window.alert = function (msg) {
     console.log(msg);
 };
 
-/**
- * The EventSource staying open causes the page to hang, so we mock starting it.
- */
-girder.EventStream.prototype.open = function () {};
+// Not ideal, but it makes phantom env hang, so turning this off for now... TODO
+window.EventSource = undefined;
 
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
