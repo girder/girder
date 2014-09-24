@@ -38,11 +38,9 @@ def tearDownModule():
 
 class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
     def testClientMetadataExtractor(self):
-        time.sleep(0.2)
         item = self.model('item').load(self.item['_id'], user=self.user)
         self.assertEqual(item['name'], self.name)
         self.assertNotHasKeys(item, ['meta'])
-
         clientPath = os.path.join(ROOT_DIR, 'clients', 'python')
         sys.path.insert(0, clientPath)
 
@@ -53,18 +51,7 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
         extractor = ClientMetadataExtractor(client, self.path, self.item['_id'])
         extractor.extractMetadata()
         sys.path.remove(clientPath)
-
-        start = time.time()
-        while True:
-            if time.time() - start > 15:
-                break
-
-            item = self.model('item').load(self.item['_id'], user=self.user)
-            if 'meta' in item and item['meta']['MIME type'] == self.mimeType:
-                break
-
-            time.sleep(0.2)
-
+        item = self.model('item').load(self.item['_id'], user=self.user)
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
         self.assertEqual(item['meta']['MIME type'], self.mimeType)
