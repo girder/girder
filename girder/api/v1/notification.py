@@ -24,6 +24,7 @@ import time
 from ..describe import Description
 from ..rest import Resource
 from girder.models.model_base import AccessException
+from girder.utility import ProgressContext
 
 
 def sseMessage(event):
@@ -41,7 +42,13 @@ class Notification(Resource):
 
     def stream(self, params):
         """
-        Streams notifications using the server-sent events protocol.
+        Streams notifications using the server-sent events protocol. Closes
+        the connection if more than timeout seconds elapse without any new
+        notifications.
+
+        :params timeout: Timeout in seconds; if no notifications appear in
+        this window, the connection will be closed. (default=300)
+        :type timeout: int
         """
         user = self.getCurrentUser()
 
@@ -52,13 +59,15 @@ class Notification(Resource):
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
 
-        timeout = int(params.get('timeout', 30))
+        timeout = int(params.get('timeout', 300))
 
         def streamGen():
             lastUpdate = None
             start = time.time()
-            while time.time() - start < timeout:
-                wait = 2
+            wait = 0.5
+            while time.time() - start < timeout and\
+                    cherrypy.engine.state == cherrypy.engine.states.STARTED:
+                wait = min(wait + 0.5, 3)
                 for event in self.model('notification').get(user, lastUpdate):
                     if lastUpdate is None or event['updated'] > lastUpdate:
                         lastUpdate = event['updated']
@@ -71,10 +80,10 @@ class Notification(Resource):
     stream.description = None
 
     def test(self, params):
-        p = self.model('notification').initProgress(
-            self.getCurrentUser(), 'Test!', total=100)
+        with ProgressContext(True, user=self.getCurrentUser(), title='Test!',
+                             total=100) as p:
+            for i in xrange(100):
+                p.update(current=i+1)
+                time.sleep(1)
 
-        for i in xrange(100):
-            self.model('notification').updateProgress(p, current=i)
-            time.sleep(1)
     test.description = Description('Test')

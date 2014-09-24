@@ -73,7 +73,7 @@ class Notification(Model):
 
         return self.save(doc)
 
-    def initProgress(self, user, title, total, state=ProgressState.ACTIVE,
+    def initProgress(self, user, title, total=0, state=ProgressState.ACTIVE,
                      current=0, message=''):
         """
         Create a "progress" type notification that can be updated anytime there
