@@ -39,6 +39,8 @@ form.g-settings-form(role="form")
             |  you are doing.
           .form-group
             label(for="g-core-upload-minimum-chunk-size") Upload minimum chunk size (bytes)
+            br
+            | This applies to Filesystem and GridFS assetstores.
             input#g-core-upload-minimum-chunk-size.form-control.input-sm(
               type="text", value="#{settings['core.upload_minimum_chunk_size'] || ''}",
               placeholder="Default: #{defaults['core.upload_minimum_chunk_size'] || ''}",
