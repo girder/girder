@@ -129,7 +129,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl.remove({'uuid': upload['chunkUuid'],
                                    'n': {'$gte': startingN}}, multi=True)
             raise ValidationException('Received too many bytes.')
-        if upload['received'] != upload['size'] and size < ModelImporter().model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+        if upload['received'] != upload['size'] and \
+                size < ModelImporter().model('setting').get(
+                SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             self.chunkColl.remove({'uuid': upload['chunkUuid'],
                                    'n': {'$gte': startingN}}, multi=True)
             raise ValidationException('Chunk is smaller than the minimum size.')

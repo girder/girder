@@ -140,7 +140,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             with open(upload['tempFile'], 'a+b') as tempFile:
                 tempFile.truncate(upload['received'])
             raise ValidationException('Received too many bytes.')
-        if upload['received'] != upload['size'] and size < ModelImporter().model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+        if upload['received'] != upload['size'] and \
+                size < ModelImporter().model('setting').get(
+                SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             with open(upload['tempFile'], 'a+b') as tempFile:
                 tempFile.truncate(upload['received'])
             raise ValidationException('Chunk is smaller than the minimum size.')
