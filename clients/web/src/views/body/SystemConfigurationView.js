@@ -8,20 +8,14 @@ girder.views.SystemConfigurationView = girder.View.extend({
             this.$('.g-submit-settings').addClass('disabled');
             this.$('#g-settings-error-message').empty();
 
-            var settings = [{
-                key: 'core.cookie_lifetime',
-                value: $('#g-cookie-lifetime').val() || null
-            }, {
-                key: 'core.email_from_address',
-                value: $('#g-email-from-address').val() || null
-            }, {
-                key: 'core.registration_policy',
-                value: $('#g-registration-policy').val()
-            }, {
-                key: 'core.smtp_host',
-                value: $('#g-core-smtp-host').val() || null
-            }];
-
+            var settings = [];
+            for (var i = 0; i < this.settingsKeys.length; i += 1) {
+                settings.push({
+                    key: this.settingsKeys[i],
+                    value: $('#g-' + this.settingsKeys[i].
+                             replace(/[_.]/g, '-')).val() || null
+                });
+            }
             girder.restRequest({
                 type: 'PUT',
                 path: 'system/setting',
@@ -49,8 +43,10 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.cookie_lifetime',
             'core.email_from_address',
             'core.registration_policy',
-            'core.smtp_host'
+            'core.smtp_host',
+            'core.upload_minimum_chunk_size'
         ];
+        this.settingsKeys = keys;
         girder.restRequest({
             path: 'system/setting',
             type: 'GET',
@@ -87,7 +83,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
         });
 
         if (this.settings['core.registration_policy'] !== null) {
-            this.$('#g-registration-policy').val(
+            this.$('#g-core-registration-policy').val(
                 this.settings['core.registration_policy']
             );
         }
