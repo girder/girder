@@ -184,6 +184,7 @@ class File(Resource):
                dataType='File', paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('Received too many bytes.')
+        .errorResponse('Chunk is smaller than the minimum size.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
     @loadmodel(map={'id': 'file'}, model='file')

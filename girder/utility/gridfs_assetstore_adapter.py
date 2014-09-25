@@ -22,6 +22,7 @@ import cherrypy
 import pymongo
 import uuid
 
+from ..constants import SettingKey
 from .model_importer import ModelImporter
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
@@ -128,6 +129,10 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl.remove({'uuid': upload['chunkUuid'],
                                    'n': {'$gte': startingN}}, multi=True)
             raise ValidationException('Received too many bytes.')
+        if upload['received'] != upload['size'] and size < ModelImporter().model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+            self.chunkColl.remove({'uuid': upload['chunkUuid'],
+                                   'n': {'$gte': startingN}}, multi=True)
+            raise ValidationException('Chunk is smaller than the minimum size.')
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)

@@ -26,6 +26,7 @@ from StringIO import StringIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from ..constants import SettingKey
 from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
 
@@ -139,6 +140,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             with open(upload['tempFile'], 'a+b') as tempFile:
                 tempFile.truncate(upload['received'])
             raise ValidationException('Received too many bytes.')
+        if upload['received'] != upload['size'] and size < ModelImporter().model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+            with open(upload['tempFile'], 'a+b') as tempFile:
+                tempFile.truncate(upload['received'])
+            raise ValidationException('Chunk is smaller than the minimum size.')
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)
