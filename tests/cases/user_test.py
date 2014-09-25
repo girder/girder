@@ -40,8 +40,7 @@ class UserTestCase(base.TestCase):
         self.assertTrue('girderToken' in resp.cookie)
         cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not cookieVal)
-        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME,
-                                                 default=180))
+        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)

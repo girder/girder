@@ -98,3 +98,19 @@ class SettingKey:
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     REGISTRATION_POLICY = 'core.registration_policy'
     SMTP_HOST = 'core.smtp_host'
+    UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
+
+
+class SettingDefault:
+    """
+    Core settings that have a default should be enumerated here with the
+    SettingKey.
+    """
+    defaults = {
+        SettingKey.PLUGINS_ENABLED: (),
+        SettingKey.COOKIE_LIFETIME: 180,
+        SettingKey.EMAIL_FROM_ADDRESS: 'no-reply@girder.org',
+        SettingKey.REGISTRATION_POLICY: 'open',
+        SettingKey.SMTP_HOST: 'localhost:25',
+        SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
+    }

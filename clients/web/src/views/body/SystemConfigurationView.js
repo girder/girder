@@ -55,17 +55,29 @@ girder.views.SystemConfigurationView = girder.View.extend({
             path: 'system/setting',
             type: 'GET',
             data: {
-                list: JSON.stringify(keys)
+                list: JSON.stringify(keys),
+                default: 'none'
             }
         }).done(_.bind(function (resp) {
             this.settings = resp;
-            this.render();
+            girder.restRequest({
+                path: 'system/setting',
+                type: 'GET',
+                data: {
+                    list: JSON.stringify(keys),
+                    default: 'default'
+                }
+            }).done(_.bind(function (resp) {
+                this.defaults = resp;
+                this.render();
+            }, this));
         }, this));
     },
 
     render: function () {
         this.$el.html(jade.templates.systemConfiguration({
-            settings: this.settings
+            settings: this.settings,
+            defaults: this.defaults
         }));
 
         this.$('input[title]').tooltip({

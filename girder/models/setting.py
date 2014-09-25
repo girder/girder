@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.constants import SettingKey
+from ..constants import SettingDefault
 from .model_base import Model, ValidationException
 
 
@@ -38,37 +38,51 @@ class Setting(Model):
         """
         key = doc['key']
 
-        if key == SettingKey.PLUGINS_ENABLED:
-            if not type(doc['value']) is list:
-                raise ValidationException(
-                    'Plugins enabled setting must be a list.', 'value')
-        elif key == SettingKey.COOKIE_LIFETIME:
-            doc['value'] = int(doc['value'])
-            if doc['value'] <= 0:
-                raise ValidationException(
-                    'Cookie lifetime must be an integer > 0.', 'value')
-        elif key == SettingKey.EMAIL_FROM_ADDRESS:
-            if not doc['value']:
-                raise ValidationException(
-                    'Email from address must not be blank.', 'value')
-        elif key == SettingKey.REGISTRATION_POLICY:
-            doc['value'] = doc['value'].lower()
-
-            if doc['value'] not in ('open', 'closed'):
-                raise ValidationException(
-                    'Registration policy must be either "open" or "closed".',
-                    'value')
-        elif key == SettingKey.SMTP_HOST:
-            if not doc['value']:
-                raise ValidationException(
-                    'SMTP host must not be blank.', 'value')
+        funcName = 'validate_'+key.replace('.', '_')
+        if callable(getattr(self, funcName, None)):
+            getattr(self, funcName)(doc)
         else:
             raise ValidationException(
                 'Invalid setting key "{}".'.format(key), 'key')
 
         return doc
 
-    def get(self, key, default=None):
+    def validate_core_plugins_enabled(self, doc):
+        if not type(doc['value']) is list:
+            raise ValidationException(
+                'Plugins enabled setting must be a list.', 'value')
+
+    def validate_core_cookie_lifetime(self, doc):
+        doc['value'] = int(doc['value'])
+        if doc['value'] <= 0:
+            raise ValidationException(
+                'Cookie lifetime must be an integer > 0.', 'value')
+
+    def validate_core_email_from_address(self, doc):
+        if not doc['value']:
+            raise ValidationException(
+                'Email from address must not be blank.', 'value')
+
+    def validate_core_registration_policy(self, doc):
+        doc['value'] = doc['value'].lower()
+        if doc['value'] not in ('open', 'closed'):
+            raise ValidationException(
+                'Registration policy must be either "open" or "closed".',
+                'value')
+
+    def validate_core_smtp_host(self, doc):
+        if not doc['value']:
+            raise ValidationException(
+                'SMTP host must not be blank.', 'value')
+
+    def validate_core_upload_minimum_chunk_size(self, doc):
+        doc['value'] = int(doc['value'])
+        if doc['value'] < 0:
+            raise ValidationException(
+                'Upload minimum chunk size must be an integer >= 0.',
+                'value')
+
+    def get(self, key, default='__default__'):
         """
         Retrieve a setting by its key.
 
@@ -79,6 +93,8 @@ class Setting(Model):
         """
         cursor = self.find({'key': key}, limit=1)
         if cursor.count(True) == 0:
+            if default is '__default__':
+                default = self.getDefault(key)
             return default
         else:
             return cursor[0]['value']
@@ -115,3 +131,15 @@ class Setting(Model):
         """
         for setting in self.find({'key': key}):
             self.remove(setting)
+
+    def getDefault(self, key):
+        """
+        Retreive the system default for a value.
+
+        :param key: The key identifying the setting.
+        :type key: str
+        :returns: The default value if the key is present in both SettingKey
+                  and referenced in SettingDefault; otherwise None.
+        """
+        default = SettingDefault.defaults.get(key, None)
+        return default

@@ -84,6 +84,11 @@ class SystemTestCase(base.TestCase):
         }, user=users[0])
         self.assertStatusOk(resp)
 
-        # Setting should now be None
+        # Setting should now be ()
         setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED)
+        self.assertEqual(setting, ())
+
+        # We should be able to ask for a different default
+        setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED,
+                                            default=None)
         self.assertEqual(setting, None)
