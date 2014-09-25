@@ -48,10 +48,14 @@ girder.views.SearchFieldWidget = girder.View.extend({
         });
 
         this.$('.g-search-options-button').popover({
-            trigger: 'focus',
+            trigger: 'manual',
             placement: 'bottom',
             html: true,
             content: jade.templates.searchHelp()
+        }).blur(function () {
+            $(this).popover('hide');
+        }).click(function () {
+            $(this).popover('toggle');
         });
 
         return this;
