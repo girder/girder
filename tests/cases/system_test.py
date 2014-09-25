@@ -64,6 +64,12 @@ class SystemTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['field'], 'key')
 
+        # Only a valid JSON list is permitted
+        resp = self.request(path='/system/setting', method='PUT', params={
+            'list': json.dumps('not_a_list')
+        }, user=users[0])
+        self.assertStatus(resp, 400)
+
         # Set a valid setting key
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': SettingKey.PLUGINS_ENABLED,
@@ -92,6 +98,48 @@ class SystemTestCase(base.TestCase):
         setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED,
                                             default=None)
         self.assertEqual(setting, None)
+
+        # We should also be able to put several setting using a JSON list
+        resp = self.request(path='/system/setting', method='PUT', params={
+            'list': json.dumps([
+                {'key': SettingKey.PLUGINS_ENABLED, 'value': json.dumps(obj)},
+                {'key': SettingKey.COOKIE_LIFETIME, 'value': None},
+            ])
+        }, user=users[0])
+        self.assertStatusOk(resp)
+
+        # We can get a list as well
+        resp = self.request(path='/system/setting', method='GET', params={
+            'list': json.dumps([
+                SettingKey.PLUGINS_ENABLED,
+                SettingKey.COOKIE_LIFETIME,
+            ])
+        }, user=users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], obj)
+
+        # We can get the default values, or ask for no value if the current
+        # value is taken from the default
+        resp = self.request(path='/system/setting', method='GET', params={
+            'key': SettingKey.PLUGINS_ENABLED,
+            'default': 'default'
+        }, user=users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        resp = self.request(path='/system/setting', method='GET', params={
+            'key': SettingKey.COOKIE_LIFETIME,
+            'default': 'none'
+        }, user=users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, None)
+
+        # But we have to ask for a sensible value in teh default parameter
+        resp = self.request(path='/system/setting', method='GET', params={
+            'key': SettingKey.COOKIE_LIFETIME,
+            'default': 'bad_value'
+        }, user=users[0])
+        self.assertStatus(resp, 400)
 
         # Try to set each key in turn to test the validation.  First test with
         # am invalid value, then test with the default value.  If the value
