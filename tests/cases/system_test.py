@@ -22,7 +22,7 @@ import json
 from .. import base
 
 from girder.api.describe import API_VERSION
-from girder.constants import SettingKey
+from girder.constants import SettingKey, SettingDefault
 
 
 def setUpModule():
@@ -86,9 +86,29 @@ class SystemTestCase(base.TestCase):
 
         # Setting should now be ()
         setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED)
-        self.assertEqual(setting, ())
+        self.assertEqual(setting, [])
 
         # We should be able to ask for a different default
         setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED,
                                             default=None)
         self.assertEqual(setting, None)
+
+        # Try to set each key in turn to test the validation.  First test with
+        # am invalid value, then test with the default value.  If the value
+        # 'bad' won't trigger a validation error, the key should be present in
+        # the badValues table.
+        badValues = {
+            SettingKey.EMAIL_FROM_ADDRESS: '',
+            SettingKey.SMTP_HOST: '',
+        }
+        for key in SettingDefault.defaults:
+            resp = self.request(path='/system/setting', method='PUT', params={
+                'key': key,
+                'value': badValues.get(key, 'bad')
+            }, user=users[0])
+            self.assertStatus(resp, 400)
+            resp = self.request(path='/system/setting', method='PUT', params={
+                'key': key,
+                'value': SettingDefault.defaults[key]
+            }, user=users[0])
+            self.assertStatusOk(resp)

@@ -107,7 +107,7 @@ class SettingDefault:
     SettingKey.
     """
     defaults = {
-        SettingKey.PLUGINS_ENABLED: (),
+        SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'no-reply@girder.org',
         SettingKey.REGISTRATION_POLICY: 'open',

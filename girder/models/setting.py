@@ -53,10 +53,14 @@ class Setting(Model):
                 'Plugins enabled setting must be a list.', 'value')
 
     def validate_core_cookie_lifetime(self, doc):
-        doc['value'] = int(doc['value'])
-        if doc['value'] <= 0:
-            raise ValidationException(
-                'Cookie lifetime must be an integer > 0.', 'value')
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] > 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException(
+            'Cookie lifetime must be an integer > 0.', 'value')
 
     def validate_core_email_from_address(self, doc):
         if not doc['value']:
@@ -76,11 +80,15 @@ class Setting(Model):
                 'SMTP host must not be blank.', 'value')
 
     def validate_core_upload_minimum_chunk_size(self, doc):
-        doc['value'] = int(doc['value'])
-        if doc['value'] < 0:
-            raise ValidationException(
-                'Upload minimum chunk size must be an integer >= 0.',
-                'value')
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] >= 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException(
+            'Upload minimum chunk size must be an integer >= 0.',
+            'value')
 
     def get(self, key, default='__default__'):
         """
