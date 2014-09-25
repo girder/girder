@@ -26,8 +26,6 @@ from girder.utility.model_importer import ModelImporter
 from girder.models import getDbConfig, getDbConnection
 
 
-
-
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
