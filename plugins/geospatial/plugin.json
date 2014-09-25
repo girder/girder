@@ -1,0 +1,4 @@
+{
+    "name": "Geospatial",
+    "description": "Enables the storage and querying of GeoJSON formatted geospatial data"
+}

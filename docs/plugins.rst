@@ -28,6 +28,24 @@ secret values into the plugin's configuration page, and hit **Save**. Users shou
 then be able to log in with their Google account when they click the log in page
 and select the option to log in with Google.
 
+Geospatial
+----------
+
+The geospatial plugin enables the storage and querying of `GeoJSON <http://geojson.org>`_
+formatted geospatial data. It uses the underlying MongoDB support of geospatial
+indexes and query operators to create an API for the querying of items that
+either intersect a GeoJSON point, line, or polygon; are in proximity to a
+GeoJSON point; or are entirely within a GeoJSON polygon or circular region. In
+addition, new items may be created from GeoJSON features or feature collections.
+GeoJSON properties of the features are added to the created items as metadata.
+
+The plugin requires the `geojson <https://pypi.python.org/pypi/geojson/>`_
+Python package, which may be installed using **pip**: ::
+
+    pip install -r plugins/geospatial/requirements.txt
+
+Once the package is installed, the plugin may be enabled via the admin console.
+
 Google Analytics
 ----------------
 
