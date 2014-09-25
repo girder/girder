@@ -67,7 +67,7 @@ girder.views.GroupsView = girder.View.extend({
     _gotoGroup: function (result) {
         var group = new girder.models.GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('group/' + group._id, {trigger: true});
+            girder.router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).fetch();
     }
 
