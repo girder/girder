@@ -21,9 +21,11 @@ import pymongo
 
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType, TerminalColor
+from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
 from girder.utility.model_importer import ModelImporter
 from girder.models import getDbConfig, getDbConnection
+
+
 
 
 class Model(ModelImporter):
@@ -163,7 +165,7 @@ class Model(ModelImporter):
         # Sort by meta text score, but only if result count is below a certain
         # threshold. The text score is not a real index, so we cannot always
         # sort by it if there is a high number of matching documents.
-        if cursor.count() < 200 and sort is None:
+        if cursor.count() < TEXT_SCORE_SORT_MAX and sort is None:
             cursor.sort([('_textScore', {'$meta': 'textScore'})])
 
         return cursor
