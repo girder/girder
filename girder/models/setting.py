@@ -19,6 +19,7 @@
 
 from ..constants import SettingDefault
 from .model_base import Model, ValidationException
+from ..utility import camelcase
 
 
 class Setting(Model):
@@ -38,7 +39,7 @@ class Setting(Model):
         """
         key = doc['key']
 
-        funcName = 'validate_'+key.replace('.', '_')
+        funcName = 'validate'+camelcase(key)
         if callable(getattr(self, funcName, None)):
             getattr(self, funcName)(doc)
         else:
@@ -47,12 +48,12 @@ class Setting(Model):
 
         return doc
 
-    def validate_core_plugins_enabled(self, doc):
+    def validateCorePluginsEnabled(self, doc):
         if not type(doc['value']) is list:
             raise ValidationException(
                 'Plugins enabled setting must be a list.', 'value')
 
-    def validate_core_cookie_lifetime(self, doc):
+    def validateCoreCookieLifetime(self, doc):
         try:
             doc['value'] = int(doc['value'])
             if doc['value'] > 0:
@@ -62,24 +63,24 @@ class Setting(Model):
         raise ValidationException(
             'Cookie lifetime must be an integer > 0.', 'value')
 
-    def validate_core_email_from_address(self, doc):
+    def validateCoreEmailFromAddress(self, doc):
         if not doc['value']:
             raise ValidationException(
                 'Email from address must not be blank.', 'value')
 
-    def validate_core_registration_policy(self, doc):
+    def validateCoreRegistrationPolicy(self, doc):
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('open', 'closed'):
             raise ValidationException(
                 'Registration policy must be either "open" or "closed".',
                 'value')
 
-    def validate_core_smtp_host(self, doc):
+    def validateCoreSmtpHost(self, doc):
         if not doc['value']:
             raise ValidationException(
                 'SMTP host must not be blank.', 'value')
 
-    def validate_core_upload_minimum_chunk_size(self, doc):
+    def validateCoreUploadMinimumChunkSize(self, doc):
         try:
             doc['value'] = int(doc['value'])
             if doc['value'] >= 0:
