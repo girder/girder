@@ -14,6 +14,12 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
+from ..constants import SettingKey
+from .model_importer import ModelImporter
+from ..models.model_base import ValidationException
+
 
 class AbstractAssetstoreAdapter(object):
     """
@@ -136,3 +142,38 @@ class AbstractAssetstoreAdapter(object):
         :returns: A dict with the destination file.
         """
         return destFile
+
+    def getChunkSize(self, chunk):
+        """
+        Given a chunk that is either a file-like object or a string, attempt to
+        determine its length.  If it is a filelike object, then this relies on
+        being able to use fstat.
+        :param chunk: the chunk to get the size of
+        :type chunk: a file-like object or a string
+        :returns: the length of the chunk if known, or None.
+        """
+        chunkSize = None
+        if hasattr(chunk, "fileno"):
+            chunkSize = os.fstat(chunk.fileno()).st_size
+        elif isinstance(chunk, basestring):
+            chunkSize = len(chunk)
+        return chunkSize
+
+    def checkUploadSize(self, upload, chunkSize):
+        """Check if the upload is valid based on the chunk size.  If this
+        raises an exception, then the caller should clean up and reraise the
+        exception.
+        :param upload: the dictionary of upload information.  The received and
+                       size values are used.
+        :param chunkSize: the chunk size that needs to be validated.
+        :type chunkSize: a non-negative integer or None if unknown."""
+        if 'received' not in upload or 'size' not in upload:
+            return
+        if chunkSize is None:
+            return
+        if upload['received']+chunkSize > upload['size']:
+            raise ValidationException('Received too many bytes.')
+        if upload['received']+chunkSize != upload['size'] and \
+                chunkSize < ModelImporter().model('setting').get(
+                SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+            raise ValidationException('Chunk is smaller than the minimum size.')

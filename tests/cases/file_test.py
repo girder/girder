@@ -25,6 +25,7 @@ import zipfile
 from hashlib import sha512
 from .. import base
 
+from girder.constants import SettingKey
 from girder.models import getDbConnection
 
 
@@ -101,9 +102,21 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
-        # Send the first chunk
+        # Sending the first chunk should fail because the default minimum chunk
+        # size is larger than our chunk.
+        self.model('setting').unset(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
         fields = [('offset', 0), ('uploadId', uploadId)]
         files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Chunk is smaller than the minimum size.'
+        })
+
+        # Send the first chunk
+        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)

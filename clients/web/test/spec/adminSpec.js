@@ -59,14 +59,15 @@ describe('Test the settings page', function () {
         });
 
         waitsFor(function () {
-            return $('input#g-cookie-lifetime').length > 0;
+            return $('input#g-core-cookie-lifetime').length > 0;
         }, 'settings page to load');
     });
 
     it('Settings should display their expected values', function () {
-        expect($('#g-cookie-lifetime').val()).toBe('');
-        expect($('#g-smtp-host').val()).toMatch(/^localhost:500/);
-        expect($('#g-email-from-address').val()).toBe('');
-        expect($('#g-registration-policy').val()).toBe('open');
+        expect($('#g-core-cookie-lifetime').val()).toBe('');
+        expect($('#g-core-smtp-host').val()).toMatch(/^localhost:500/);
+        expect($('#g-core-email-from-address').val()).toBe('');
+        expect($('#g-core-registration-policy').val()).toBe('open');
+        expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
     });
 });

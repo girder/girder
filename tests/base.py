@@ -104,6 +104,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
+        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
 
     def assertStatusOk(self, response):
         """

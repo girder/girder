@@ -106,6 +106,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Appends the chunk into the temporary file.
         """
+        # If we know the chunk size is too large or small, fail early.
+        self.checkUploadSize(upload, self.getChunkSize(chunk))
+
         if isinstance(chunk, basestring):
             chunk = StringIO(chunk)
 
@@ -135,10 +138,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 checksum.update(data)
         chunk.close()
 
-        if upload['received']+size > upload['size']:
+        try:
+            self.checkUploadSize(upload, size)
+        except ValidationException:
             with open(upload['tempFile'], 'a+b') as tempFile:
                 tempFile.truncate(upload['received'])
-            raise ValidationException('Received too many bytes.')
+            raise
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)
