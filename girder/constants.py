@@ -27,6 +27,11 @@ ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
 
+# Threshold below which text search results will be sorted by their text score.
+# Setting this too high causes mongodb to use too many resources for searches
+# that yield lots of results.
+TEXT_SCORE_SORT_MAX = 200
+
 
 class TerminalColor(object):
     """

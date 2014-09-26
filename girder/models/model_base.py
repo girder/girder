@@ -21,7 +21,7 @@ import pymongo
 
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType, TerminalColor
+from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
 from girder.utility.model_importer import ModelImporter
 from girder.models import getDbConfig, getDbConnection
 
@@ -146,23 +146,27 @@ class Model(ModelImporter):
         :type query: str
         :param filters: Any additional query operators to apply.
         :type filters: dict
+        :returns: A pymongo cursor. It is left to the caller to build the
+        results from the cursor.
         """
         if not filters:
             filters = {}
+        if not fields:
+            fields = {}
 
-        filters['$text'] = {
-            '$search': query
-        }
+        fields['_textScore'] = {'$meta': 'textScore'}
+        filters['$text'] = {'$search': query}
 
-        if sort is None:
-            if fields is None:
-                fields = {'_textScore': {'$meta': 'textScore'}}
-            else:
-                fields['_textScore'] = {'$meta': 'textScore'}
-            sort = [('_textScore', {'$meta': 'textScore'})]
+        cursor = self.find(filters, offset=offset, limit=limit,
+                           sort=sort, fields=fields)
 
-        return [r for r in self.find(filters, offset=offset, limit=limit,
-                                     sort=sort, fields=fields)]
+        # Sort by meta text score, but only if result count is below a certain
+        # threshold. The text score is not a real index, so we cannot always
+        # sort by it if there is a high number of matching documents.
+        if cursor.count() < TEXT_SCORE_SORT_MAX and sort is None:
+            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+
+        return cursor
 
     def save(self, document, validate=True, triggerEvents=True):
         """
@@ -299,6 +303,9 @@ class Model(ModelImporter):
         for field in allow:
             if field in doc:
                 out[field] = doc[field]
+
+        if '_textScore' in doc:
+            out['_textScore'] = doc['_textScore']
 
         return out
 
@@ -669,11 +676,11 @@ class AccessControlledModel(Model):
         if not filters:
             filters = {}
 
-        results = Model.textSearch(
+        cursor = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)
         return [r for r in self.filterResultsByPermission(
-            results, user=user, level=AccessType.READ, limit=limit,
+            cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)]
 
 
