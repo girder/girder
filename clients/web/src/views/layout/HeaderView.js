@@ -17,7 +17,7 @@ girder.views.LayoutHeaderView = girder.View.extend({
 
         this.searchWidget = new girder.views.SearchFieldWidget({
             el: this.$('.g-quick-search-container'),
-            placeholder: 'Quick Search...',
+            placeholder: 'Quick search...',
             types: ['item', 'folder', 'group', 'collection', 'user']
         }).off().on('g:resultClicked', function (result) {
             this.searchWidget.resetState();

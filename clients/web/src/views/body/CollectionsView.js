@@ -69,7 +69,7 @@ girder.views.CollectionsView = girder.View.extend({
     _gotoCollection: function (result) {
         var collection = new girder.models.CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('/collection/' + this.id, {trigger: true});
+            girder.router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });

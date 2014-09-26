@@ -43,6 +43,21 @@ girder.views.SearchFieldWidget = girder.View.extend({
             placeholder: this.placeholder
         }));
 
+        this.$('[title]').tooltip({
+            placement: 'auto'
+        });
+
+        this.$('.g-search-options-button').popover({
+            trigger: 'manual',
+            placement: 'bottom',
+            html: true,
+            content: jade.templates.searchHelp()
+        }).blur(function () {
+            $(this).popover('hide');
+        }).click(function () {
+            $(this).popover('toggle');
+        });
+
         return this;
     },
 
