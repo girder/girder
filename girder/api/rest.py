@@ -386,7 +386,7 @@ class Resource(ModelImporter):
     def requireAdmin(self, user):
         """
         Calling this on a user will ensure that they have admin rights.
-        an AccessException.
+        If not, raises an AccessException.
 
         :param user: The user to check admin flag on.
         :type user: dict.
