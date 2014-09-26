@@ -22,7 +22,7 @@ import json
 import pymongo
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel
+from ..rest import Resource, RestException, loadmodel, user, anonymous
 from girder.utility import ziputil
 from girder.constants import AccessType
 
@@ -42,6 +42,7 @@ class Item(Resource):
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
+    @anonymous
     def find(self, params):
         """
         Get a list of items with given search parameters. Currently accepted
@@ -101,6 +102,7 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403))
 
+    @anonymous
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def getItem(self, item, params):
         return self.model('item').filter(item)
@@ -111,6 +113,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
+    @user
     def createItem(self, params):
         """
         Create a new item.
@@ -142,6 +145,7 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
 
+    @user
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def updateItem(self, item, params):
         user = self.getCurrentUser()
@@ -169,6 +173,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item or folder.', 403))
 
+    @user
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def setMetadata(self, item, params):
         try:
@@ -214,6 +219,7 @@ class Item(Resource):
             yield zip.footer()
         return stream
 
+    @anonymous
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def getFiles(self, item, params):
         """Get a page of files in an item."""
@@ -233,6 +239,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
+    @anonymous
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def download(self, item, params):
         """
@@ -254,6 +261,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
+    @user
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
     def deleteItem(self, item, params):
         """
@@ -267,6 +275,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item.', 403))
 
+    @anonymous
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def rootpath(self, item, params):
         """
@@ -279,6 +288,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
+    @user
     @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
     def copyItem(self, item, params):
         """

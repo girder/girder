@@ -21,7 +21,7 @@ import json
 
 from ...constants import AccessType
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel
+from ..rest import Resource, RestException, loadmodel, admin, user, anonymous
 
 
 class Collection(Resource):
@@ -36,6 +36,7 @@ class Collection(Resource):
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
 
+    @anonymous
     def find(self, params):
         user = self.getCurrentUser()
         limit, offset, sort = self.getPagingParameters(params, 'name')
@@ -62,12 +63,12 @@ class Collection(Resource):
         .param('sortdir', "1 for ascending, -1 for descending (default=1)",
                required=False, dataType='int'))
 
+    @admin
     def createCollection(self, params):
         """Create a new collection. Requires global admin."""
         self.requireParams('name', params)
 
         user = self.getCurrentUser()
-        self.requireAdmin(user)
 
         public = self.boolParam('public', params, default=False)
 
@@ -86,6 +87,7 @@ class Collection(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator', 403))
 
+    @anonymous
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
     def getCollection(self, coll, params):
         return self.model('collection').filter(coll, self.getCurrentUser())
@@ -96,6 +98,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403))
 
+    @admin
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def getCollectionAccess(self, coll, params):
         return self.model('collection').getFullAccessList(coll)
@@ -105,6 +108,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403))
 
+    @admin
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def updateCollectionAccess(self, coll, params):
         self.requireParams('access', params)
@@ -127,6 +131,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403))
 
+    @user
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.WRITE)
     def updateCollection(self, coll, params):
         coll['name'] = params.get('name', coll['name']).strip()
@@ -144,6 +149,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write permission denied on the collection.', 403))
 
+    @admin
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
     def deleteCollection(self, coll, params):
         self.model('collection').remove(coll)

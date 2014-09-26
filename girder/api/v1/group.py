@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description
-from ..rest import Resource, loadmodel
+from ..rest import Resource, loadmodel, user, anonymous
 from ...models.model_base import AccessException
 from ...constants import AccessType
 from girder.utility import mail_utils
@@ -44,6 +44,7 @@ class Group(Resource):
         self.route('POST', (':id', 'admin'), self.promoteToAdmin)
         self.route('PUT', (':id',), self.updateGroup)
 
+    @anonymous
     def find(self, params):
         """
         List or search for groups.
@@ -73,6 +74,7 @@ class Group(Resource):
                required=False, dataType='int')
         .errorResponse())
 
+    @user
     def createGroup(self, params):
         """
         Create a new group.
@@ -89,9 +91,6 @@ class Group(Resource):
 
         user = self.getCurrentUser()
 
-        if user is None:
-            raise AccessException('Must be logged in to create a group.')
-
         group = self.model('group').createGroup(
             name=name, creator=user, description=description, public=public)
 
@@ -107,6 +106,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
 
+    @anonymous
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroup(self, group, params):
         user = self.getCurrentUser()
@@ -118,6 +118,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroupAccess(self, group, params):
         user = self.getCurrentUser()
@@ -130,6 +131,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroupInvitations(self, group, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
@@ -149,6 +151,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
     def updateGroup(self, group, params):
         user = self.getCurrentUser()
@@ -172,6 +175,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def joinGroup(self, group, params):
         """
@@ -196,6 +200,7 @@ class Group(Resource):
         .errorResponse('You were not invited to this group, or do not have '
                        'read access to it.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def listMembers(self, group, params):
         """
@@ -221,6 +226,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
     def inviteToGroup(self, group, params):
         """Invite the user to join the group."""
@@ -261,6 +267,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def promoteToModerator(self, group, params):
         return self._promote(group, params, AccessType.WRITE)
@@ -272,6 +279,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse("You don't have permission to promote users.", 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def promoteToAdmin(self, group, params):
         return self._promote(group, params, AccessType.ADMIN)
@@ -305,6 +313,7 @@ class Group(Resource):
             group, userToPromote, level=level, save=True)
         return self.model('group').filter(group, user, accessList=True)
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def demote(self, group, params):
         """
@@ -330,6 +339,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse("You don't have permission to demote users.", 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def removeFromGroup(self, group, params):
         """
@@ -379,6 +389,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse("You don't have permission to remove that user.", 403))
 
+    @user
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
     def deleteGroup(self, group, params):
         self.model('group').remove(group)

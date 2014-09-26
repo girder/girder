@@ -163,7 +163,8 @@ class ItemTestCase(base.TestCase):
         Test Create, Read, Update, and Delete of items.
         """
         self.ensureRequiredParams(
-            path='/item', method='POST', required=('name', 'folderId'))
+            path='/item', method='POST', required=('name', 'folderId'),
+            user=self.users[1])
 
         # Attempt to create an item without write permission, should fail
         params = {

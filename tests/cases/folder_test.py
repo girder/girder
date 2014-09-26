@@ -137,7 +137,8 @@ class FolderTestCase(base.TestCase):
 
     def testCreateFolder(self):
         self.ensureRequiredParams(
-            path='/folder', method='POST', required=['name', 'parentId'])
+            path='/folder', method='POST', required=['name', 'parentId'],
+            user=self.admin)
 
         # Grab the default user folders
         resp = self.request(
@@ -158,7 +159,7 @@ class FolderTestCase(base.TestCase):
             'name': 'a folder',
             'parentId': publicFolder['_id']
         })
-        self.assertAccessDenied(resp, AccessType.WRITE, 'folder')
+        self.assertStatus(resp, 401)
 
         # Actually create subfolder under Public
         resp = self.request(

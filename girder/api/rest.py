@@ -20,6 +20,7 @@
 import cherrypy
 import collections
 import datetime
+import functools
 import json
 import pymongo
 import sys
@@ -65,6 +66,7 @@ def loadmodel(map, model, plugin='_core', level=None):
     _model = _importer.model(model, plugin)
 
     def meta(fun):
+        @functools.wraps(fun)
         def wrapper(self, *args, **kwargs):
             for raw, converted in map.iteritems():
                 if level is not None:
@@ -302,6 +304,7 @@ class Resource(ModelImporter):
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
+                    self.defaultAccess(handler)
                     val = handler(**kwargs)
 
                 # Fire the after-call event that has a chance to augment the
@@ -389,7 +392,6 @@ class Resource(ModelImporter):
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
-
         if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
@@ -490,3 +492,51 @@ class Resource(ModelImporter):
     @endpoint
     def PUT(self, path, params):
         return self.handleRoute('PUT', path, params)
+
+    def defaultAccess(self, fun):
+        """
+        If a function wasn't wrapped by one of the security decorators, check
+        the default access rights (admin required).
+        """
+        if not hasattr(fun, "accessLevel"):
+            self.requireAdmin(self.getCurrentUser())
+
+
+def admin(fun):
+    """
+    Functions that require administator access should be wrapped in this
+    decorator.
+    """
+    @functools.wraps(fun)
+    def accessDecorator(self, *args, **kwargs):
+        self.requireAdmin(self.getCurrentUser())
+        return fun(self, *args, **kwargs)
+    accessDecorator.accessLevel = 'admin'
+    return accessDecorator
+
+
+def user(fun):
+    """
+    Functions that allow any user (not just administrators) should be wrapped
+    in this decorator.
+    """
+    @functools.wraps(fun)
+    def accessDecorator(self, *args, **kwargs):
+        user = self.getCurrentUser()
+        if not user:
+            raise AccessException('You must be logged in.')
+        return fun(self, *args, **kwargs)
+    accessDecorator.accessLevel = 'user'
+    return accessDecorator
+
+
+def anonymous(fun):
+    """
+    Functions that allow any client access, including those that haven't logged
+    int should be wrapped in this decorator.
+    """
+    @functools.wraps(fun)
+    def accessDecorator(self, *args, **kwargs):
+        return fun(self, *args, **kwargs)
+    accessDecorator.accessLevel = 'anonymous'
+    return accessDecorator
