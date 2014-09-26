@@ -458,8 +458,7 @@ class Resource(ModelImporter):
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
-        days = int(self.model('setting').get(
-            SettingKey.COOKIE_LIFETIME, default=180))
+        days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         token = self.model('token').createToken(user, days=days)
 
         cookie = cherrypy.response.cookie
