@@ -22,7 +22,7 @@ import json
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
 from ..describe import API_VERSION, Description
-from ..rest import Resource, RestException, admin, anonymous
+from ..rest import Resource, RestException, admin, public
 
 
 class System(Resource):
@@ -136,7 +136,7 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 
-    @anonymous
+    @public
     def getVersion(self, params):
         return {'apiVersion': API_VERSION}
     getVersion.description = Description(

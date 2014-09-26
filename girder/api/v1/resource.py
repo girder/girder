@@ -20,7 +20,7 @@
 import json
 
 from ..describe import Description
-from ..rest import Resource as BaseResource, RestException, anonymous
+from ..rest import Resource as BaseResource, RestException, public
 
 
 class Resource(BaseResource):
@@ -31,7 +31,7 @@ class Resource(BaseResource):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
 
-    @anonymous
+    @public
     def search(self, params):
         """
         This endpoint can be used to text search against multiple different

@@ -21,7 +21,7 @@ import base64
 import cherrypy
 
 from ..rest import Resource, RestException, AccessException, loadmodel, \
-    admin, user, anonymous
+    admin, user, public
 from ..describe import Description
 from girder.constants import AccessType, SettingKey
 from girder.models.token import genToken
@@ -45,7 +45,7 @@ class User(Resource):
         self.route('PUT', ('password',), self.changePassword)
         self.route('DELETE', ('password',), self.resetPassword)
 
-    @anonymous
+    @public
     def find(self, params):
         """
         Get a list of users. You can pass a "text" parameter to filter the
@@ -78,7 +78,7 @@ class User(Resource):
         .param('sortdir', "1 for ascending, -1 for descending (default=1)",
                required=False, dataType='int'))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     def getUser(self, userToGet, params):
         currentUser = self.getCurrentUser()
@@ -90,7 +90,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to see this user.', 403))
 
-    @anonymous
+    @public
     def getMe(self, params):
         currentUser = self.getCurrentUser()
         return self.model('user').filter(currentUser, currentUser)
@@ -98,7 +98,7 @@ class User(Resource):
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User'))
 
-    @anonymous
+    @public
     def login(self, params):
         """
         Login endpoint. Sends an auth cookie in the response on success.
@@ -161,7 +161,7 @@ class User(Resource):
         .responseClass('Token')
         .notes('Attempts to delete your authentication cookie.'))
 
-    @anonymous
+    @public
     def createUser(self, params):
         self.requireParams(
             ('firstName', 'lastName', 'login', 'password', 'email'), params)
@@ -213,7 +213,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'user'}, model='user', level=AccessType.WRITE)
     def updateUser(self, user, params):
         self.requireParams(('firstName', 'lastName', 'email'), params)
@@ -265,7 +265,7 @@ class User(Resource):
         .errorResponse('Your old password is incorrect.', 403)
         .errorResponse('Your new password is invalid.'))
 
-    @anonymous
+    @public
     def resetPassword(self, params):
         self.requireParams('email', params)
         email = params['email'].lower().strip()

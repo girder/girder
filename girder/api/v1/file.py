@@ -20,7 +20,7 @@
 import cherrypy
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel, user, anonymous
+from ..rest import Resource, RestException, loadmodel, user, public
 from ...constants import AccessType
 from girder.models.model_base import AccessException
 
@@ -191,7 +191,7 @@ class File(Resource):
         .errorResponse('Chunk is smaller than the minimum size.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'file'}, model='file')
     def download(self, file, params, name=None):
         """

@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description
-from ..rest import Resource, loadmodel, user, anonymous
+from ..rest import Resource, loadmodel, user, public
 from ...models.model_base import AccessException
 from ...constants import AccessType
 from girder.utility import mail_utils
@@ -44,7 +44,7 @@ class Group(Resource):
         self.route('POST', (':id', 'admin'), self.promoteToAdmin)
         self.route('PUT', (':id',), self.updateGroup)
 
-    @anonymous
+    @public
     def find(self, params):
         """
         List or search for groups.
@@ -106,7 +106,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
     def getGroup(self, group, params):
         user = self.getCurrentUser()

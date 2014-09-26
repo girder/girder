@@ -21,7 +21,7 @@ import json
 
 from ...constants import AccessType
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel, admin, user, anonymous
+from ..rest import Resource, RestException, loadmodel, admin, user, public
 
 
 class Collection(Resource):
@@ -36,7 +36,7 @@ class Collection(Resource):
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
 
-    @anonymous
+    @public
     def find(self, params):
         user = self.getCurrentUser()
         limit, offset, sort = self.getPagingParameters(params, 'name')
@@ -87,7 +87,7 @@ class Collection(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
     def getCollection(self, coll, params):
         return self.model('collection').filter(coll, self.getCurrentUser())

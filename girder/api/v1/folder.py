@@ -22,7 +22,7 @@ import json
 import os
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel, user, anonymous
+from ..rest import Resource, RestException, loadmodel, user, public
 from ...constants import AccessType
 from ...utility import ziputil
 
@@ -42,7 +42,7 @@ class Folder(Resource):
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @anonymous
+    @public
     def find(self, params):
         """
         Get a list of folders with given search parameters. Currently accepted
@@ -109,7 +109,7 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):
         """
@@ -267,7 +267,7 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
 
-    @anonymous
+    @public
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def getFolder(self, folder, params):
         """Get a folder by ID."""

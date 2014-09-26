@@ -530,7 +530,7 @@ def user(fun):
     return accessDecorator
 
 
-def anonymous(fun):
+def public(fun):
     """
     Functions that allow any client access, including those that haven't logged
     int should be wrapped in this decorator.
@@ -538,5 +538,5 @@ def anonymous(fun):
     @functools.wraps(fun)
     def accessDecorator(self, *args, **kwargs):
         return fun(self, *args, **kwargs)
-    accessDecorator.accessLevel = 'anonymous'
+    accessDecorator.accessLevel = 'public'
     return accessDecorator
