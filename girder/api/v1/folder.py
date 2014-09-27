@@ -22,9 +22,10 @@ import json
 import os
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel, user, public
+from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
-from ...utility import ziputil
+from girder.utility import ziputil
+from girder.api import access
 
 
 class Folder(Resource):
@@ -42,7 +43,7 @@ class Folder(Resource):
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @public
+    @access.public
     def find(self, params):
         """
         Get a list of folders with given search parameters. Currently accepted
@@ -109,7 +110,7 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
-    @public
+    @access.public
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):
         """
@@ -153,7 +154,7 @@ class Folder(Resource):
                             path, file['name'])):
                     yield data
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
     def updateFolder(self, folder, params):
         user = self.getCurrentUser()
@@ -189,7 +190,7 @@ class Folder(Resource):
         .errorResponse('Write access was denied for the folder or its new '
                        'parent object.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
         self.requireParams('access', params)
@@ -212,7 +213,7 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 
-    @user
+    @access.user
     def createFolder(self, params):
         """
         Create a new folder.
@@ -267,7 +268,7 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
 
-    @public
+    @access.public
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
     def getFolder(self, folder, params):
         """Get a folder by ID."""
@@ -279,7 +280,7 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def getFolderAccess(self, folder, params):
         """
@@ -293,7 +294,7 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def deleteFolder(self, folder, params):
         """
@@ -307,7 +308,7 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
     def setMetadata(self, folder, params):
         try:

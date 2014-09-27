@@ -20,9 +20,10 @@
 import cherrypy
 
 from ..describe import Description
-from ..rest import Resource, RestException, loadmodel, user, public
+from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException
+from girder.api import access
 
 
 class File(Resource):
@@ -42,7 +43,7 @@ class File(Resource):
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
-    @user
+    @access.user
     def initUpload(self, params):
         """
         Before any bytes of the actual file are sent, a request should be made
@@ -90,7 +91,7 @@ class File(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403))
 
-    @user
+    @access.user
     def finalizeUpload(self, params):
         self.requireParams('uploadId', params)
         user = self.getCurrentUser()
@@ -120,7 +121,7 @@ class File(Resource):
         .errorResponse('Not enough bytes have been uploaded.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
-    @user
+    @access.user
     def requestOffset(self, params):
         """
         This should be called when resuming an interrupted upload. It will
@@ -145,7 +146,7 @@ class File(Resource):
         .errorResponse("The ID was invalid, or the offset did not match the "
                        "server's record."))
 
-    @user
+    @access.user
     def readChunk(self, params):
         """
         After the temporary upload record has been created (see initUpload),
@@ -191,7 +192,7 @@ class File(Resource):
         .errorResponse('Chunk is smaller than the minimum size.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
-    @public
+    @access.public
     @loadmodel(map={'id': 'file'}, model='file')
     def download(self, file, params, name=None):
         """
@@ -210,7 +211,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'file'}, model='file')
     def deleteFile(self, file, params):
         user = self.getCurrentUser()
@@ -223,7 +224,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'file'}, model='file')
     def updateFile(self, file, params):
         self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
@@ -239,7 +240,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403))
 
-    @user
+    @access.user
     @loadmodel(map={'id': 'file'}, model='file')
     def updateFileContents(self, file, params):
         self.requireParams('size', params)

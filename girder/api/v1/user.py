@@ -20,9 +20,9 @@
 import base64
 import cherrypy
 
-from ..rest import Resource, RestException, AccessException, loadmodel, \
-    admin, user, public
+from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description
+from girder.api import access
 from girder.constants import AccessType, SettingKey
 from girder.models.token import genToken
 from girder.utility import mail_utils
@@ -45,7 +45,7 @@ class User(Resource):
         self.route('PUT', ('password',), self.changePassword)
         self.route('DELETE', ('password',), self.resetPassword)
 
-    @public
+    @access.public
     def find(self, params):
         """
         Get a list of users. You can pass a "text" parameter to filter the
@@ -78,7 +78,7 @@ class User(Resource):
         .param('sortdir', "1 for ascending, -1 for descending (default=1)",
                required=False, dataType='int'))
 
-    @public
+    @access.public
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     def getUser(self, userToGet, params):
         currentUser = self.getCurrentUser()
@@ -90,7 +90,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to see this user.', 403))
 
-    @public
+    @access.public
     def getMe(self, params):
         currentUser = self.getCurrentUser()
         return self.model('user').filter(currentUser, currentUser)
@@ -98,7 +98,7 @@ class User(Resource):
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User'))
 
-    @public
+    @access.public
     def login(self, params):
         """
         Login endpoint. Sends an auth cookie in the response on success.
@@ -152,7 +152,7 @@ class User(Resource):
         .errorResponse('Missing Authorization header.', 401)
         .errorResponse('Invalid login or password.', 403))
 
-    @user
+    @access.user
     def logout(self, params):
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
@@ -161,7 +161,7 @@ class User(Resource):
         .responseClass('Token')
         .notes('Attempts to delete your authentication cookie.'))
 
-    @public
+    @access.public
     def createUser(self, params):
         self.requireParams(
             ('firstName', 'lastName', 'login', 'password', 'email'), params)
@@ -202,7 +202,7 @@ class User(Resource):
         .errorResponse('A parameter was invalid, or the specified login or'
                        ' email already exists in the system.'))
 
-    @admin
+    @access.user
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
     def deleteUser(self, userToDelete, params):
         self.model('user').remove(userToDelete)
@@ -213,7 +213,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403))
 
-    @public
+    @access.user
     @loadmodel(map={'id': 'user'}, model='user', level=AccessType.WRITE)
     def updateUser(self, user, params):
         self.requireParams(('firstName', 'lastName', 'email'), params)
@@ -247,7 +247,7 @@ class User(Resource):
         .errorResponse('You do not have write access for this user.', 403)
         .errorResponse('Must be an admin to create an admin.', 403))
 
-    @user
+    @access.user
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)
         user = self.getCurrentUser()
@@ -265,7 +265,7 @@ class User(Resource):
         .errorResponse('Your old password is incorrect.', 403)
         .errorResponse('Your new password is invalid.'))
 
-    @public
+    @access.public
     def resetPassword(self, params):
         self.requireParams('email', params)
         email = params['email'].lower().strip()

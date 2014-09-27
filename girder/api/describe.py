@@ -21,8 +21,8 @@ import cherrypy
 import os
 
 from girder.constants import ROOT_DIR
-from . import docs
-from .rest import Resource, RestException, public
+from . import docs, access
+from .rest import Resource, RestException
 
 """
 Whenever we add new return values or new options we should increment the
@@ -123,7 +123,7 @@ class Describe(Resource):
         self.route('GET', (), self.listResources, nodoc=True)
         self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
-    @public
+    @access.public
     def listResources(self, params):
         return {
             'apiVersion': API_VERSION,
@@ -133,7 +133,7 @@ class Describe(Resource):
                      for resource in sorted(docs.discovery)]
         }
 
-    @public
+    @access.public
     def describeResource(self, resource, params):
         if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))

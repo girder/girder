@@ -20,7 +20,8 @@
 import json
 
 from ..describe import Description
-from ..rest import Resource as BaseResource, RestException, public
+from ..rest import Resource as BaseResource, RestException
+from girder.api import access
 
 
 class Resource(BaseResource):
@@ -31,7 +32,7 @@ class Resource(BaseResource):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
 
-    @public
+    @access.public
     def search(self, params):
         """
         This endpoint can be used to text search against multiple different

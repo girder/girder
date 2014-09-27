@@ -122,6 +122,7 @@ def endpoint(fun):
     If you want a streamed response, simply return a generator function
     from the inner method.
     """
+    @functools.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
         try:
             val = fun(self, args, kwargs)
@@ -304,7 +305,7 @@ class Resource(ModelImporter):
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
-                    self.defaultAccess(handler)
+                    self._defaultAccess(handler)
                     val = handler(**kwargs)
 
                 # Fire the after-call event that has a chance to augment the
@@ -493,50 +494,10 @@ class Resource(ModelImporter):
     def PUT(self, path, params):
         return self.handleRoute('PUT', path, params)
 
-    def defaultAccess(self, fun):
+    def _defaultAccess(self, fun):
         """
         If a function wasn't wrapped by one of the security decorators, check
         the default access rights (admin required).
         """
         if not hasattr(fun, "accessLevel"):
             self.requireAdmin(self.getCurrentUser())
-
-
-def admin(fun):
-    """
-    Functions that require administator access should be wrapped in this
-    decorator.
-    """
-    @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        self.requireAdmin(self.getCurrentUser())
-        return fun(self, *args, **kwargs)
-    accessDecorator.accessLevel = 'admin'
-    return accessDecorator
-
-
-def user(fun):
-    """
-    Functions that allow any user (not just administrators) should be wrapped
-    in this decorator.
-    """
-    @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        user = self.getCurrentUser()
-        if not user:
-            raise AccessException('You must be logged in.')
-        return fun(self, *args, **kwargs)
-    accessDecorator.accessLevel = 'user'
-    return accessDecorator
-
-
-def public(fun):
-    """
-    Functions that allow any client access, including those that haven't logged
-    int should be wrapped in this decorator.
-    """
-    @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        return fun(self, *args, **kwargs)
-    accessDecorator.accessLevel = 'public'
-    return accessDecorator

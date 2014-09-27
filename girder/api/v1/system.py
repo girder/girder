@@ -19,10 +19,11 @@
 
 import json
 
+from girder.api import access
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
 from ..describe import API_VERSION, Description
-from ..rest import Resource, RestException, admin, public
+from ..rest import Resource, RestException
 
 
 class System(Resource):
@@ -38,7 +39,7 @@ class System(Resource):
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
 
-    @admin
+    @access.admin
     def setSetting(self, params):
         """
         Set a system-wide setting. Validation of the setting is performed in
@@ -84,7 +85,7 @@ class System(Resource):
                'a list of settings to set.', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
-    @admin
+    @access.admin
     def getSetting(self, params):
         getFuncName = 'get'
         funcParams = {}
@@ -121,7 +122,7 @@ class System(Resource):
                'default value of the setting(s).', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
-    @admin
+    @access.admin
     def getPlugins(self, params):
         """
         Return the plugin information for the system. This includes a list of
@@ -136,13 +137,13 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 
-    @public
+    @access.public
     def getVersion(self, params):
         return {'apiVersion': API_VERSION}
     getVersion.description = Description(
         'Get the version information for this server.')
 
-    @admin
+    @access.admin
     def enablePlugins(self, params):
         self.requireParams('plugins', params)
         try:
@@ -158,7 +159,7 @@ class System(Resource):
         .param('plugins', 'JSON array of plugins to enable.')
         .errorResponse('You are not a system administrator.', 403))
 
-    @admin
+    @access.admin
     def unsetSetting(self, params):
         self.requireParams('key', params)
         return self.model('setting').unset(params['key'])

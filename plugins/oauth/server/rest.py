@@ -25,7 +25,8 @@ import urllib
 
 from girder.constants import AccessType
 from girder.api.describe import Description
-from girder.api.rest import Resource, public
+from girder.api.rest import Resource
+from girder.api import access
 from . import constants, providers
 
 
@@ -36,7 +37,7 @@ class OAuth(Resource):
         self.route('GET', ('provider',), self.listProviders)
         self.route('GET', ('google', 'callback'), self.googleCallback)
 
-    @public
+    @access.public
     def listProviders(self, params):
         """
         TODO Once we have multiple providers, this list should be dynamically
@@ -77,7 +78,7 @@ class OAuth(Resource):
 
         return '{}?{}'.format(constants.GOOGLE_AUTH_URL, query)
 
-    @public
+    @access.public
     def googleCallback(self, params):
         self.requireParams(('state', 'code'), params)
 
