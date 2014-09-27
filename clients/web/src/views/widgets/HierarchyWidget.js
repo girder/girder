@@ -256,7 +256,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: function () {
-                view.parentModel.destroy().on('g:deleted', function () {
+                view.parentModel.destroy(true, true).on('g:deleted', function () {
                     this.breadcrumbs.pop();
                     this.parentModel = this.breadcrumbs.slice(-1)[0];
                     this.render();
