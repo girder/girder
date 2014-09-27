@@ -148,6 +148,9 @@ class User(Resource):
         .errorResponse('Invalid login or password.', 403))
 
     def logout(self, params):
+        _, token = self.getCurrentUser(True)
+        if token:
+            self.model('token').remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
     logout.description = (

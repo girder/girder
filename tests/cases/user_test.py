@@ -38,8 +38,8 @@ class UserTestCase(base.TestCase):
 
     def _verifyAuthCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
-        cookieVal = resp.cookie['girderToken'].value
-        self.assertFalse(not cookieVal)
+        self.cookieVal = resp.cookie['girderToken'].value
+        self.assertFalse(not self.cookieVal)
         lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
@@ -189,10 +189,18 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
+        token = self.model('token').load(
+            self.cookieVal, objectId=False, force=True)
+        self.assertEqual(str(token['userId']), resp.json['user']['_id'])
+
         # Hit the logout endpoint
         resp = self.request(path='/user/authentication', method='DELETE',
-                            user=user)
+                            token=token['_id'])
         self._verifyDeletedCookie(resp)
+
+        token = self.model('token').load(
+            token['_id'], objectId=False, force=True)
+        self.assertEqual(token, None)
 
     def testGetAndUpdateUser(self):
         """
