@@ -87,23 +87,28 @@ girder.Model = Backbone.Model.extend({
     /**
      * Delete the model on the server.
      * @param throwError Whether to throw an error (bool, default=true)
+     * @param progress Whether to record progress (bool, default=false)
      */
-    destroy: function (throwError) {
+    destroy: function (throwError, progress) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
         }
 
-        var params = {
+        var args = {
             path: this.resourceName + '/' + this.get('_id'),
             type: 'DELETE'
         };
 
-        if (throwError !== false) {
-            params.error = null;
+        if (progress === true) {
+            args.path += '?progress=true';
         }
 
-        girder.restRequest(params).done(_.bind(function () {
+        if (throwError !== false) {
+            args.error = null;
+        }
+
+        girder.restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }

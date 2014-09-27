@@ -21,6 +21,7 @@ import datetime
 import time
 
 from .model_importer import ModelImporter
+from girder.models.notification import ProgressState
 
 
 class ProgressContext(ModelImporter):
@@ -52,15 +53,22 @@ class ProgressContext(ModelImporter):
 
     def __exit__(self, excType, excValue, traceback):
         """
-        Once the context is existed, the progress is marked for deletion 30
+        Once the context is exited, the progress is marked for deletion 30
         seconds in the future, which should give all listeners time to poll and
         receive the final state of the progress record before it is deleted.
         """
         if not self.on:
             return
 
+        if excType is None and excValue is None:
+            state = ProgressState.SUCCESS
+            message = 'Done'
+        else:
+            state = ProgressState.ERROR
+            message = 'Error'
+
         self.model('notification').updateProgress(
-            self.progress,
+            self.progress, state=state, message=message,
             expires=datetime.datetime.now() + datetime.timedelta(seconds=30)
         )
 
@@ -84,3 +92,6 @@ class ProgressContext(ModelImporter):
 
         if save:
             self._lastSave = time.time()
+
+
+noProgress = ProgressContext(False)

@@ -25,6 +25,7 @@ from ..describe import Description
 from ..rest import Resource
 from girder.models.model_base import AccessException
 from girder.utility.progress import ProgressContext
+from girder.api import access
 
 
 def sseMessage(event):
@@ -40,6 +41,7 @@ class Notification(Resource):
         self.route('GET', ('stream',), self.stream)
         self.route('GET', ('test',), self.test)
 
+    @access.user
     def stream(self, params):
         """
         Streams notifications using the server-sent events protocol. Closes
@@ -51,10 +53,6 @@ class Notification(Resource):
         :type timeout: int
         """
         user = self.getCurrentUser()
-
-        if user is None:
-            raise AccessException('You must be logged in to receive '
-                                  'notifications.')
 
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'

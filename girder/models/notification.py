@@ -52,7 +52,6 @@ class Notification(Model):
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
 
     def validate(self, doc):
-        """ TODO """
         return doc
 
     def _createNotification(self, type, data, user, expires=None):
@@ -123,6 +122,9 @@ class Notification(Model):
         :param current: Some numeric value representing the current progress
         of the task (relative to total).
         :type current: int, long, or float
+        :param increment: Amount to increment the progress by. Don't pass both
+        current and increment together, as that behavior is undefined.
+        :type increment: int, long, or float
         :param message: Message corresponding to the current state of the task.
         :type message: str
         :param expires: Set a custom (UTC) expiration time on the record.
@@ -131,11 +133,12 @@ class Notification(Model):
         :param save: Whether to save the record to the database.
         :type save: bool
         """
+        if 'increment' in kwargs:
+            record['data']['current'] += kwargs['increment']
+
         for field, value in kwargs.iteritems():
             if field in ('total', 'current', 'state', 'message', 'expires'):
                 record['data'][field] = value
-            else:
-                raise Exception('Invalid kwarg: ' + field)
 
         now = datetime.datetime.utcnow()
 

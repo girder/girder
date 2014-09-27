@@ -29,11 +29,6 @@
                     stream.trigger('g:error', e);
                 }
             };
-
-            this._eventSource.addEventListener('error', function (e) {
-                console.error('SSE stream error');
-                stream.trigger('g:error', e);
-            }, false);
         } else {
             console.error('EventSource not supported on this platform.');
         }
