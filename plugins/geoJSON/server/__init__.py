@@ -26,6 +26,7 @@ from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
+from girder.api import access
 
 
 class GeoJSON(Resource):
@@ -35,6 +36,7 @@ class GeoJSON(Resource):
 
         self.route('GET', ('points',), self.points)
 
+    @access.public
     def points(self, params):
         self.requireParams(('q',), params)
         limit, offset, sort = self.getPagingParameters(params, 'name')

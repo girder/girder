@@ -21,7 +21,7 @@ import cherrypy
 import os
 
 from girder.constants import ROOT_DIR
-from . import docs
+from . import docs, access
 from .rest import Resource, RestException
 
 """
@@ -123,6 +123,7 @@ class Describe(Resource):
         self.route('GET', (), self.listResources, nodoc=True)
         self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
+    @access.public
     def listResources(self, params):
         return {
             'apiVersion': API_VERSION,
@@ -132,6 +133,7 @@ class Describe(Resource):
                      for resource in sorted(docs.discovery)]
         }
 
+    @access.public
     def describeResource(self, resource, params):
         if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))

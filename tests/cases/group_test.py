@@ -147,7 +147,7 @@ class GroupTestCase(base.TestCase):
         groups.
         """
         self.ensureRequiredParams(
-            path='/group', method='POST', required=['name'])
+            path='/group', method='POST', required=['name'], user=self.users[0])
 
         params = {
             'name': ' A group name ',
@@ -158,8 +158,7 @@ class GroupTestCase(base.TestCase):
         # Anonymous users can't make groups
         resp = self.request(path='/group', method='POST', params=params)
         self.assertStatus(resp, 401)
-        self.assertEqual('Must be logged in to create a group.',
-                         resp.json['message'])
+        self.assertEqual('You must be logged in.', resp.json['message'])
 
         # Have user 0 make a public group
         resp = self.request(path='/group', method='POST', params=params,

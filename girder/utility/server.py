@@ -90,7 +90,7 @@ def setup(test=False, plugins=None):
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED)
 
     root.updateHtmlVars({
         'apiRoot': cur_config['server']['api_root'],

@@ -20,6 +20,7 @@
 import cherrypy
 import collections
 import datetime
+import functools
 import json
 import pymongo
 import sys
@@ -65,6 +66,7 @@ def loadmodel(map, model, plugin='_core', level=None):
     _model = _importer.model(model, plugin)
 
     def meta(fun):
+        @functools.wraps(fun)
         def wrapper(self, *args, **kwargs):
             for raw, converted in map.iteritems():
                 if level is not None:
@@ -120,6 +122,7 @@ def endpoint(fun):
     If you want a streamed response, simply return a generator function
     from the inner method.
     """
+    @functools.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
         try:
             val = fun(self, args, kwargs)
@@ -302,6 +305,7 @@ class Resource(ModelImporter):
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
+                    self._defaultAccess(handler)
                     val = handler(**kwargs)
 
                 # Fire the after-call event that has a chance to augment the
@@ -383,13 +387,12 @@ class Resource(ModelImporter):
     def requireAdmin(self, user):
         """
         Calling this on a user will ensure that they have admin rights.
-        an AccessException.
+        If not, raises an AccessException.
 
         :param user: The user to check admin flag on.
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
-
         if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
@@ -458,8 +461,7 @@ class Resource(ModelImporter):
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
-        days = int(self.model('setting').get(
-            SettingKey.COOKIE_LIFETIME, default=180))
+        days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         token = self.model('token').createToken(user, days=days)
 
         cookie = cherrypy.response.cookie
@@ -491,3 +493,11 @@ class Resource(ModelImporter):
     @endpoint
     def PUT(self, path, params):
         return self.handleRoute('PUT', path, params)
+
+    def _defaultAccess(self, fun):
+        """
+        If a function wasn't wrapped by one of the security decorators, check
+        the default access rights (admin required).
+        """
+        if not hasattr(fun, "accessLevel"):
+            self.requireAdmin(self.getCurrentUser())

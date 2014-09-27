@@ -19,21 +19,16 @@
 
 import importlib
 
+from . import camelcase
+
 # We want the models to essentially be singletons, so we keep this centralized
 # cache of instantiated models that have been lazy-loaded.
 _modelInstances = {}
 
 
-def _camelcase(value):
-    """
-    Helper method to convert module name to class name.
-    """
-    return ''.join(str.capitalize(x) if x else '_' for x in value.split('_'))
-
-
 def _loadModel(model, module, plugin):
     global _modelInstances
-    className = _camelcase(model)
+    className = camelcase(model)
 
     try:
         imported = importlib.import_module(module)

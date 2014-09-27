@@ -201,8 +201,8 @@ class Item(Model):
             filters = {}
 
         # get the non-filtered search result from Model.textSearch
-        results = Model.textSearch(self, query=query, limit=0, sort=sort,
-                                   filters=filters)
+        cursor = Model.textSearch(self, query=query, limit=0, sort=sort,
+                                  filters=filters)
 
         # list where we will store the filtered results
         filtered = []
@@ -212,7 +212,7 @@ class Item(Model):
 
         # loop through all results in the non-filtered list
         i = 0
-        for result in results:
+        for result in cursor:
             # check if the folderId is cached
             folderId = result['folderId']
 
@@ -234,6 +234,7 @@ class Item(Model):
                 if len(filtered) >= limit:
                     break
 
+        cursor.close()
         return filtered
 
     def hasAccess(self, item, user=None, level=AccessType.READ):

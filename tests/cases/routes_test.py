@@ -20,6 +20,7 @@
 import unittest
 
 from girder.api.rest import Resource, RestException
+from girder.api import access
 
 
 class DummyResource(Resource):
@@ -32,6 +33,7 @@ class DummyResource(Resource):
         self.route('GET', ('literal1', 'literal2'), self.handler)
         self.route('GET', (':wc1', 'admin'), self.handler)
 
+    @access.public
     def handler(self, **kwargs):
         return kwargs
 
