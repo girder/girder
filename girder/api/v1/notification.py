@@ -24,7 +24,7 @@ import time
 from ..describe import Description
 from ..rest import Resource
 from girder.models.model_base import AccessException
-from girder.utility import ProgressContext
+from girder.utility.progress import ProgressContext
 
 
 def sseMessage(event):
