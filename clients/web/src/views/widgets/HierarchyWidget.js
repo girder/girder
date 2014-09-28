@@ -260,6 +260,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                     this.breadcrumbs.pop();
                     this.parentModel = this.breadcrumbs.slice(-1)[0];
                     this.render();
+                    this._setRoute();
                 }, view);
             }
         };
