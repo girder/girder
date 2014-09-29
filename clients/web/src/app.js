@@ -7,10 +7,6 @@ girder.App = Backbone.View.extend({
         }).done(_.bind(function (user) {
             girder.eventStream = new girder.EventStream();
 
-            girder.eventStream.on('g:event.progress', function (e) {
-                console.log(e);
-            });
-
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
                 girder.eventStream.open();
@@ -44,6 +40,11 @@ girder.App = Backbone.View.extend({
 
         new girder.views.LayoutFooterView({
             el: this.$('#g-app-footer-container')
+        }).render();
+
+        new girder.views.ProgressListView({
+            el: this.$('#g-app-progress-container'),
+            eventStream: girder.eventStream
         }).render();
 
         return this;

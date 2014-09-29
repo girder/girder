@@ -1,0 +1,22 @@
+$opacityDuration = 0.35s
+$containerBorder = 1px solid #d7d7d7
+
+.g-progress-list-container
+  padding 9px 11px
+  padding-top 0
+  box-shadow 0 0 4px 2px rgba(0, 0, 0, 0.07)
+  border-top $containerBorder
+  border-left $containerBorder
+  border-right $containerBorder
+  background-color rgba(255, 255, 255, 0.8)
+  -webkit-transition background-color $opacityDuration ease-in-out
+  -moz-transition background-color $opacityDuration ease-in-out
+  -ms-transition background-color $opacityDuration ease-in-out
+  -o-transition background-color $opacityDuration ease-in-out
+  transition background-color $opacityDuration ease-in-out
+
+  &:hover
+    background-color rgba(255, 255, 255, 1)
+
+  .g-progress-widget-container
+    padding-top 14px
