@@ -211,21 +211,9 @@ class Resource(ModelImporter):
                 lambda: collections.defaultdict(list))
 
         # Insertion sort to maintain routes in required order.
-        def shouldInsert(a, b):
-            """
-            Return bool representing whether route a should go before b. Checks
-            by comparing each token in order and making sure routes with
-            literals in forward positions come before routes with wildcards
-            in those positions.
-            """
-            for i in xrange(0, len(a)):
-                if a[i][0] != ':' and b[i][0] == ':':
-                    return True
-            return False
-
         nLengthRoutes = self._routes[method.lower()][len(route)]
         for i in xrange(0, len(nLengthRoutes)):
-            if shouldInsert(route, nLengthRoutes[i][0]):
+            if self._shouldInsertRoute(route, nLengthRoutes[i][0]):
                 nLengthRoutes.insert(i, (route, handler))
                 break
         else:
@@ -247,6 +235,24 @@ class Resource(ModelImporter):
             print TerminalColor.warning(
                 'WARNING: No description docs present for route {} {}'
                 .format(method, routePath))
+
+        # Warn if there is no access decorator on the handler function
+        if not hasattr(handler, 'accessLevel'):
+            routePath = '/'.join([resource] + list(route))
+            print TerminalColor.warning(
+                'WARNING: No access level specified for route {} {}'
+                .format(method, routePath))
+
+    def _shouldInsertRoute(self, a, b):
+        """
+        Return bool representing whether route a should go before b. Checks by
+        comparing each token in order and making sure routes with literals in
+        forward positions come before routes with wildcards in those positions.
+        """
+        for i in xrange(0, len(a)):
+            if a[i][0] != ':' and b[i][0] == ':':
+                return True
+        return False
 
     def handleRoute(self, method, path, params):
         """
@@ -499,5 +505,5 @@ class Resource(ModelImporter):
         If a function wasn't wrapped by one of the security decorators, check
         the default access rights (admin required).
         """
-        if not hasattr(fun, "accessLevel"):
+        if not hasattr(fun, 'accessLevel'):
             self.requireAdmin(self.getCurrentUser())
