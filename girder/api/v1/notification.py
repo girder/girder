@@ -23,7 +23,6 @@ import time
 
 from ..describe import Description
 from ..rest import Resource
-from girder.models.model_base import AccessException
 from girder.utility.progress import ProgressContext
 from girder.api import access
 
@@ -39,7 +38,6 @@ class Notification(Resource):
     def __init__(self):
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
-        self.route('GET', ('test',), self.test)
 
     @access.user
     def stream(self, params):
@@ -65,7 +63,7 @@ class Notification(Resource):
             wait = 0.5
             while time.time() - start < timeout and\
                     cherrypy.engine.state == cherrypy.engine.states.STARTED:
-                wait = min(wait + 0.5, 3)
+                wait = min(wait + 0.5, 2)
                 for event in self.model('notification').get(user, lastUpdate):
                     if lastUpdate is None or event['updated'] > lastUpdate:
                         lastUpdate = event['updated']
@@ -76,12 +74,3 @@ class Notification(Resource):
                 time.sleep(wait)
         return streamGen
     stream.description = None
-
-    def test(self, params):
-        with ProgressContext(True, user=self.getCurrentUser(), title='Test!',
-                             total=100) as p:
-            for i in xrange(100):
-                p.update(current=i+1)
-                time.sleep(1)
-
-    test.description = Description('Test')

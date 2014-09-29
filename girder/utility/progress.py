@@ -69,7 +69,7 @@ class ProgressContext(ModelImporter):
 
         self.model('notification').updateProgress(
             self.progress, state=state, message=message,
-            expires=datetime.datetime.now() + datetime.timedelta(seconds=30)
+            expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
         )
 
     def update(self, force=False, **kwargs):

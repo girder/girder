@@ -137,15 +137,18 @@ class Notification(Model):
             record['data']['current'] += kwargs['increment']
 
         for field, value in kwargs.iteritems():
-            if field in ('total', 'current', 'state', 'message', 'expires'):
+            if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 
         now = datetime.datetime.utcnow()
 
-        if 'expires' not in kwargs:
-            record['expires'] = now + datetime.timedelta(hours=1)
+        if 'expires' in kwargs:
+            expires = kwargs['expires']
+        else:
+            expires = now + datetime.timedelta(hours=1)
 
         record['updated'] = now
+        record['expires'] = expires
 
         if save:
             return self.save(record)
@@ -161,12 +164,13 @@ class Notification(Model):
         since a certain timestamp.
         :type since: datetime
         """
-        q = {
-            'userId': user['_id']
-        }
+        q = {'userId': user['_id']}
 
         if since is not None:
             q['updated'] = {'$gt': since}
 
-        for result in self.find(q):
+        cursor = self.find(q)
+        for result in cursor:
             yield result
+
+        cursor.close()
