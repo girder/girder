@@ -38,6 +38,8 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
+        self.route('GET', ('uploads',), self.getPartialUploads)
+        self.route('DELETE', ('uploads',), self.discardPartialUploads)
 
     @access.admin
     def setSetting(self, params):
@@ -168,4 +170,42 @@ class System(Resource):
         .notes("""Must be a system administrator to call this. This is used to
                explicitly restore a setting to its default value.""")
         .param('key', 'The key identifying the setting to unset.')
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def getPartialUploads(self, params):
+        uploadList = self.model('upload').list(filters=params, limit=0)
+        return [upload for upload in uploadList]
+    getPartialUploads.description = (
+        Description('Get a list of uploads that have not been finished.')
+        .notes("Must be a system administrator to call this.")
+        .param('uploadId', 'List only a specific upload.', required=False)
+        .param('userId', 'Restrict listing uploads to those started by a '
+               'specific user.', required=False)
+        .param('parentId', 'Restrict listing uploads to those within a '
+               'specific folder or item.', required=False)
+        .param('assetstoreId', 'Restrict listing uploads within a specific '
+               'assetstore.', required=False)
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def discardPartialUploads(self, params):
+        uploadList = self.model('upload').list(filters=params, limit=0)
+        cancelled = []
+        for upload in uploadList:
+            cancelled.append(upload)
+            self.model('upload').cancelUpload(upload)
+        return cancelled
+    discardPartialUploads.description = (
+        Description('Discard uploads that have not been finished.')
+        .notes("""Must be a system administrator to call this. This frees
+               resources that were allocated for the uploads and clears the
+               uploads from database.""")
+        .param('uploadId', 'Clear only a specific upload.', required=False)
+        .param('userId', 'Restrict clearing uploads to those started by a '
+               'specific user.', required=False)
+        .param('parentId', 'Restrict clearing uploads to those within a '
+               'specific folder or item.', required=False)
+        .param('assetstoreId', 'Restrict clearing uploads within a specific '
+               'assetstore.', required=False)
         .errorResponse('You are not a system administrator.', 403))

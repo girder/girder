@@ -177,3 +177,12 @@ class AbstractAssetstoreAdapter(object):
                 chunkSize < ModelImporter().model('setting').get(
                 SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             raise ValidationException('Chunk is smaller than the minimum size.')
+
+    def cancelUpload(self, upload):
+        """
+        This is called when an upload has been begun and it should be
+        abandoned.  It must clean up temporary files, chunks, or whatever other
+        information the assest store contains.
+        """
+        raise Exception('Must override cancelUpload in %s.'
+                        % self.__class__.__name__)  # pragma: no cover

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+from bson.objectid import ObjectId
 
 from girder import events
 from girder.utility import assetstore_utilities
@@ -199,3 +200,42 @@ class Upload(Model):
         }
         upload = adapter.initUpload(upload)
         return self.save(upload)
+
+    def list(self, limit=50, offset=0, sort=None, filters=None):
+        """
+        Search for uploads or simply list all visible uploads.
+
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort direction.
+        :param filters: if not None, a dictionary that can contain ids that
+                        must the uploads.
+        """
+        query = {}
+        for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
+            if key in filters:
+                id = filters[key]
+                if id and type(id) is not ObjectId:
+                    id = ObjectId(id)
+                if id:
+                    if key == 'uploadId':
+                        query['_id'] = id
+                    else:
+                        query[key] = id
+        # Perform the find; we'll do access-based filtering of the result
+        # set afterward.
+        cursor = self.find(query, limit=limit, sort=sort, offset=offset)
+        for r in cursor:
+            yield r
+
+    def cancelUpload(self, upload):
+        """
+        Discard an upload that is in progress.  This asks the assetstore to
+        discard the data, then removes the item from the upload database.
+        :param upload: The upload document to remove.
+        :type upload: dict
+        """
+        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        adapter.cancelUpload(upload)
+        self.model('upload').remove(upload)

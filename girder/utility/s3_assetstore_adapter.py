@@ -32,6 +32,22 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
 from girder import logger, events
+from girder.utility import config
+
+curconfig = config.getConfig()
+MockMode = curconfig['server'].get('s3mode', None)
+MockBuckets = {}
+if MockMode is not 'mock' and MockMode and not MockMode.startswith('http'):
+    MockMode = None
+
+def real_or_mock(fun):
+    global MockBuckets
+    if MockMode:
+        import functools
+        import moto
+        functools.wraps(fun)
+        return moto.mock_s3(fun)
+    return fun
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -64,10 +80,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return ['s3Verified']
 
     @staticmethod
+    @real_or_mock
     def validateInfo(doc):
         """
         Makes sure the root field is a valid absolute path and is writeable.
         """
+        import sys
+        sys.stderr.write("MOCK %s %s\n"%(str(doc), str(MockBuckets)))
         if 'prefix' not in doc:
             doc['prefix'] = ''
         while len(doc['prefix']) and doc['prefix'][0] == '/':
@@ -87,6 +106,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             conn = boto.connect_s3(aws_access_key_id=doc['accessKeyId'],
                                    aws_secret_access_key=doc['secret'])
+            if MockMode is not None:
+                if not doc['bucket'] in MockBuckets:
+                    MockBuckets[doc['bucket']] = True
+                    conn.create_bucket(doc['bucket'])
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
             testKey = boto.s3.key.Key(
                 bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
@@ -174,7 +197,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'url': url,
                 'headers': allHeaders
             }
-
+        self.adjustRequest(upload['s3']['request'])
+        ##DWM::
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -202,6 +226,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'method': 'PUT',
             'url': url
         }
+        self.adjustRequest(upload['s3']['request'])
+        ##DWM::
         return upload
 
     def requestOffset(self, upload):
@@ -254,6 +280,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Content-Type': 'text/plain;charset=UTF-8'
                 }
             }
+            self.adjustRequest(file['s3FinalizeRequest'])
+            ##DWM::
 
         return file
 
@@ -302,7 +330,30 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'key': file['s3Key']
                 })
 
+    def adjustRequest(self, request):
+        ##DWM::
+        if (not MockMode) or MockMode == 'mock':
+            return
+        if not 'url' in request:
+            return
+        if not 'headers' in request:
+            request['headers'] = {}
+        import urlparse
+        urlParts = urlparse.urlsplit(request['url'])
+        request['headers']['Host'] = urlParts.netloc
+        mockParts = urlparse.urlsplit(MockMode)
+        request['url'] = urlparse.urlunsplit(mockParts[:2]+urlParts[2:])
+        ##DWM::
 
+    def cancelUpload(self, upload):
+        """
+        Delete the temporary files associated with a given upload.
+        """
+        os.unlink(upload['tempFile'])
+        ##DWM::
+
+
+@real_or_mock
 def _deleteFileImpl(event):
     """
     Uses boto to delete the key.

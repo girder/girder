@@ -229,3 +229,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             path = os.path.join(self.assetstore['root'], file['path'])
             if os.path.isfile(path):
                 os.remove(path)
+
+    def cancelUpload(self, upload):
+        """
+        Delete the temporary files associated with a given upload.
+        """
+        os.unlink(upload['tempFile'])
