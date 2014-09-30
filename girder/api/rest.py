@@ -44,11 +44,11 @@ def _cacheAuthUser(fun):
     is only performed once per request, and is cached on the request for
     subsequent calls to getCurrentUser().
     """
-    def inner(self, *args, **kwargs):
-        if hasattr(cherrypy.request, 'girderUser'):
+    def inner(self, returnToken=False, *args, **kwargs):
+        if not returnToken and hasattr(cherrypy.request, 'girderUser'):
             return cherrypy.request.girderUser
 
-        user = fun(self, *args, **kwargs)
+        user = fun(self, returnToken, *args, **kwargs)
         if type(user) is tuple:
             setattr(cherrypy.request, 'girderUser', user[0])
         else:
