@@ -39,8 +39,7 @@ girder.views.ProgressListView = Backbone.View.extend({
     _onUpdate: function (event) {
         if (_.isEmpty(this._map)) {
             this.$el.hide();
-        }
-        else {
+        } else {
             this.$el.show();
         }
     }

@@ -21,9 +21,7 @@ import cherrypy
 import json
 import time
 
-from ..describe import Description
 from ..rest import Resource
-from girder.utility.progress import ProgressContext
 from girder.api import access
 
 

@@ -19,12 +19,10 @@ girder.views.TaskProgressWidget = Backbone.View.extend({
                 width = Math.round(
                   this.progress.data.current / this.progress.data.total) + '%';
             }
-        }
-        else if (this.progress.data.state === 'success') {
+        } else if (this.progress.data.state === 'success') {
             width = '100%';
             barClass.push('progress-bar-success');
-        }
-        else if (this.progress.data.state === 'error') {
+        } else if (this.progress.data.state === 'error') {
             width = '100%';
             barClass.push('progress-bar-danger');
         }
