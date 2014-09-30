@@ -154,6 +154,9 @@ class User(Resource):
 
     @access.user
     def logout(self, params):
+        _, token = self.getCurrentUser(True)
+        if token:
+            self.model('token').remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
     logout.description = (
