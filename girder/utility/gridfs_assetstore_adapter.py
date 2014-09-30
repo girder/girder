@@ -224,3 +224,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         matching = ModelImporter().model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
             self.chunkColl.remove({'uuid': file['chunkUuid']})
+
+    def cancelUpload(self, upload):
+        """
+        Delete all of the chunks associated with a given upload.
+        """
+        self.chunkColl.remove({'uuid': upload['chunkUuid']})
