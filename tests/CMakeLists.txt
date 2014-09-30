@@ -9,6 +9,7 @@ add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder"
 add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
 add_python_test(api_describe)
+add_python_test(access)
 add_python_test(assetstore)
 add_python_test(collection)
 add_python_test(events)

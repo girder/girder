@@ -19,11 +19,11 @@
 
 import importlib
 
+from . import camelcase
+
 # We want the models to essentially be singletons, so we keep this centralized
 # cache of instantiated models that have been lazy-loaded.
 _modelInstances = {}
-
-from . import camelcase
 
 
 def _loadModel(model, module, plugin):

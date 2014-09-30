@@ -19,6 +19,7 @@
 
 import json
 
+from girder.api import access
 from girder.utility import plugin_utilities
 from girder.constants import SettingKey
 from ..describe import API_VERSION, Description
@@ -38,6 +39,7 @@ class System(Resource):
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
 
+    @access.admin
     def setSetting(self, params):
         """
         Set a system-wide setting. Validation of the setting is performed in
@@ -45,8 +47,6 @@ class System(Resource):
         passed to the model as the corresponding dict, otherwise it is simply
         passed as a raw string.
         """
-        self.requireAdmin(self.getCurrentUser())
-
         if 'list' in params:
             try:
                 settings = json.loads(params['list'])
@@ -85,9 +85,8 @@ class System(Resource):
                'a list of settings to set.', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
+    @access.admin
     def getSetting(self, params):
-        self.requireAdmin(self.getCurrentUser())
-
         getFuncName = 'get'
         funcParams = {}
         if 'default' in params:
@@ -123,13 +122,12 @@ class System(Resource):
                'default value of the setting(s).', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
+    @access.admin
     def getPlugins(self, params):
         """
         Return the plugin information for the system. This includes a list of
         all of the currently enabled plugins, as well as
         """
-        self.requireAdmin(self.getCurrentUser())
-
         return {
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
@@ -139,14 +137,15 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 
+    @access.public
     def getVersion(self, params):
         return {'apiVersion': API_VERSION}
     getVersion.description = Description(
         'Get the version information for this server.')
 
+    @access.admin
     def enablePlugins(self, params):
         self.requireParams('plugins', params)
-        self.requireAdmin(self.getCurrentUser())
         try:
             plugins = json.loads(params['plugins'])
         except ValueError:
@@ -160,9 +159,9 @@ class System(Resource):
         .param('plugins', 'JSON array of plugins to enable.')
         .errorResponse('You are not a system administrator.', 403))
 
+    @access.admin
     def unsetSetting(self, params):
         self.requireParams('key', params)
-        self.requireAdmin(self.getCurrentUser())
         return self.model('setting').unset(params['key'])
     unsetSetting.description = (
         Description('Unset the value for a system setting.')

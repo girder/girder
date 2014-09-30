@@ -268,6 +268,9 @@ If you want to add a new route to an existing core resource type, just call the
 ``route()`` function on the existing resource type. For example, to add a
 route for ``GET /item/:id/cat`` to the system, ::
 
+    from girder.api import access
+
+    @access.public
     def myHandler(id, params):
         return {
            'itemId': id,
@@ -277,13 +280,25 @@ route for ``GET /item/:id/cat`` to the system, ::
     def load(info):
         info['apiRoot'].item.route('GET', (':id', 'cat'), myHandler)
 
+You should always add an access decorator to your handler function to indicate
+who can call the new route.  The decorator is one of ``@access.admin`` (only
+administrators can call this endpoint), ``@access.user`` (any user who is
+logged in can call the endpoint), or ``@access.public`` (any client can call
+the endpoint).
+
+If you do not add an access decorator, a warning message appears:
+``WARNING: No access level specified for route GET item/:id/cat``.  The access
+will default to being restricted to administrators.
+
 When you start the server, you may notice a warning message appears:
 ``WARNING: No description docs present for route GET item/:id/cat``. You
 can add self-describing API documentation to your route as in the following
 example: ::
 
     from girder.api.describe import Description
+    from girder.api import access
 
+    @access.public
     def myHandler(id, params):
         return {
            'itemId': id,
