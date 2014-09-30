@@ -212,9 +212,22 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         token = self.model('token').createToken(user)
         return str(token['_id'])
 
+    def _buildHeaders(self, headers, cookie, user, token, basicAuth):
+        if cookie is not None:
+            headers.append(('Cookie', cookie))
+
+        if user is not None:
+            headers.append(('Girder-Token', self._genToken(user)))
+        elif token is not None:
+            headers.append(('Girder-Token', token))
+
+        if basicAuth is not None:
+            auth = base64.b64encode(basicAuth)
+            headers.append(('Authorization', 'Basic {}'.format(auth)))
+
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None, exception=False, cookie=None):
+                type=None, exception=False, cookie=None, token=None):
         """
         Make an HTTP request.
 
@@ -230,6 +243,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                           of the form 'login:password'
         :param exception: Set this to True if a 500 is expected from this call.
         :param cookie: A custom cookie value to set.
+        :param token: If you want to use an existing token to login, pass
+        the token ID.
+        :type token: str
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -256,15 +272,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        if cookie is not None:
-            headers.append(('Cookie', cookie))
-
-        if user is not None:
-            headers.append(('Girder-Token', self._genToken(user)))
-
-        if basicAuth is not None:
-            auth = base64.b64encode(basicAuth)
-            headers.append(('Authorization', 'Basic {}'.format(auth)))
+        self._buildHeaders(headers, cookie, user, token, basicAuth)
 
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
