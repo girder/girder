@@ -26,6 +26,7 @@ import json
 import os
 import time
 import urllib
+import urlparse
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -34,20 +35,22 @@ from girder.models.model_base import ValidationException
 from girder import logger, events
 from girder.utility import config
 
-curconfig = config.getConfig()
-MockMode = curconfig['server'].get('s3mode', None)
-MockBuckets = {}
-if MockMode is not 'mock' and MockMode and not MockMode.startswith('http'):
-    MockMode = None
 
-def real_or_mock(fun):
-    global MockBuckets
-    if MockMode:
-        import functools
-        import moto
-        functools.wraps(fun)
-        return moto.mock_s3(fun)
-    return fun
+# This supports custom s3 servers to make testing easier
+_curconfig = config.getConfig()
+CustomS3Server = _curconfig['server'].get('s3server', None)
+BotoParams = {}
+if not CustomS3Server or not CustomS3Server.startswith('http'):
+    CustomS3Server = None
+else:
+    _urlParts = urlparse.urlsplit(CustomS3Server)
+    BotoParams['host'] = _urlParts.hostname
+    if _urlParts.port:
+        BotoParams['port'] = _urlParts.port
+    if _urlParts.scheme != 'https':
+        BotoParams['is_secure'] = False
+    # This uses the bucket path format rather than bucket subdomain
+    BotoParams['calling_format'] = 'boto.s3.connection.OrdinaryCallingFormat'
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -80,13 +83,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return ['s3Verified']
 
     @staticmethod
-    @real_or_mock
     def validateInfo(doc):
         """
         Makes sure the root field is a valid absolute path and is writeable.
         """
-        import sys
-        sys.stderr.write("MOCK %s %s\n"%(str(doc), str(MockBuckets)))
         if 'prefix' not in doc:
             doc['prefix'] = ''
         while len(doc['prefix']) and doc['prefix'][0] == '/':
@@ -104,12 +104,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         # Make sure we can write into the given bucket using boto
         try:
+            _checkForBucket(doc['accessKeyId'], doc['secret'], doc['bucket'])
             conn = boto.connect_s3(aws_access_key_id=doc['accessKeyId'],
-                                   aws_secret_access_key=doc['secret'])
-            if MockMode is not None:
-                if not doc['bucket'] in MockBuckets:
-                    MockBuckets[doc['bucket']] = True
-                    conn.create_bucket(doc['bucket'])
+                                   aws_secret_access_key=doc['secret'],
+                                   **BotoParams)
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
             testKey = boto.s3.key.Key(
                 bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
@@ -197,8 +195,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'url': url,
                 'headers': allHeaders
             }
-        self.adjustRequest(upload['s3']['request'])
-        ##DWM::
+        self._adjustRequest(upload['s3']['request'])
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -226,8 +223,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'method': 'PUT',
             'url': url
         }
-        self.adjustRequest(upload['s3']['request'])
-        ##DWM::
+        self._adjustRequest(upload['s3']['request'])
         return upload
 
     def requestOffset(self, upload):
@@ -280,8 +276,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Content-Type': 'text/plain;charset=UTF-8'
                 }
             }
-            self.adjustRequest(file['s3FinalizeRequest'])
-            ##DWM::
+            self._adjustRequest(file['s3FinalizeRequest'])
 
         return file
 
@@ -330,37 +325,70 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'key': file['s3Key']
                 })
 
-    def adjustRequest(self, request):
-        ##DWM::
-        if (not MockMode) or MockMode == 'mock':
-            return
-        if not 'url' in request:
-            return
-        if not 'headers' in request:
-            request['headers'] = {}
-        import urlparse
-        urlParts = urlparse.urlsplit(request['url'])
-        request['headers']['Host'] = urlParts.netloc
-        mockParts = urlparse.urlsplit(MockMode)
-        request['url'] = urlparse.urlunsplit(mockParts[:2]+urlParts[2:])
-        ##DWM::
-
     def cancelUpload(self, upload):
         """
         Delete the temporary files associated with a given upload.
         """
-        os.unlink(upload['tempFile'])
-        ##DWM::
+        if 's3' not in upload:
+            return
+        if 'key' not in upload['s3']:
+            return
+        conn = boto.connect_s3(
+            aws_access_key_id=self.assetstore['accessKeyId'],
+            aws_secret_access_key=self.assetstore['secret'], **BotoParams)
+        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
+                             validate=True)
+        if bucket:
+            key = boto.s3.key.Key(bucket=bucket, name=upload['s3']['key'])
+            bucket.delete_key(key)
+
+    def _adjustRequest(self, request):
+        """
+        If we are using a custom s3 server, adjust our request from using
+        bucket subdomains to using bucket paths.
+        :param request: the request which we might modify
+        """
+        if not CustomS3Server:
+            return
+        if 'url' not in request:
+            return
+        urlParts = urlparse.urlsplit(request['url'])
+        bucket = urlParts.netloc.split(".")[-4:-3]
+        path = urlParts.path
+        if len(bucket):
+            path = '/'+bucket[0]+urlParts.path
+            _checkForBucket(self.assetstore['accessKeyId'],
+                            self.assetstore['secret'], bucket[0])
+        mockParts = urlparse.urlsplit(CustomS3Server)
+        request['url'] = urlparse.urlunsplit(mockParts[:2]+(path,)+urlParts[3:])
 
 
-@real_or_mock
+def _checkForBucket(accessKeyId, secret, bucketName):
+    """
+    If we are using a custom S3 server, create any bucket we reference.
+    This makes testing easier.
+    :param accessKeyId: use this credential with the S3 server.
+    :param secret: use this credential with the S3 server.
+    :param bucketName: the name of the bucket which is checked for and
+                       optionally created on a custom s3 server."""
+    if not CustomS3Server or not bucketName:
+        return
+    conn = boto.connect_s3(aws_access_key_id=accessKeyId,
+                           aws_secret_access_key=secret, **BotoParams)
+    bucket = conn.lookup(bucket_name=bucketName, validate=True)
+    # if found, return
+    if bucket is not None:
+        return
+    conn.create_bucket(bucketName)
+
+
 def _deleteFileImpl(event):
     """
     Uses boto to delete the key.
     """
     info = event.info
     conn = boto.connect_s3(aws_access_key_id=info['accessKeyId'],
-                           aws_secret_access_key=info['secret'])
+                           aws_secret_access_key=info['secret'], **BotoParams)
     bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
     key = boto.s3.key.Key(bucket=bucket, name=info['key'])
     bucket.delete_key(key)
