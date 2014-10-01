@@ -18,11 +18,9 @@
 ###############################################################################
 
 import json
-import time
 
 from .. import base
 
-from girder.constants import AccessType
 from girder.utility.progress import ProgressContext
 
 
