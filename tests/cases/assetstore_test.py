@@ -25,10 +25,13 @@ import time
 
 from .. import base
 from girder.constants import AssetstoreType
+from girder.utility import s3_assetstore_adapter
 
 
 def setUpModule():
-    base.startServer()
+    # We want to test the paths to the actual amazon S3 server, so we use
+    # direct mocking rather than a local S3 server.
+    base.startServer(mockS3=False)
 
 
 def tearDownModule():
@@ -187,8 +190,11 @@ class AssetstoreTestCase(base.TestCase):
 
         # Create a bucket (mocked using moto), so that we can create an
         # assetstore in it
-        conn = boto.connect_s3(aws_access_key_id=params['accessKeyId'],
-                               aws_secret_access_key=params['secretKey'])
+        conn = boto.connect_s3(
+            aws_access_key_id=params['accessKeyId'],
+            aws_secret_access_key=params['secretKey'],
+            **s3_assetstore_adapter.S3ServerParams['botoConnect']
+            )
         bucket = conn.create_bucket("bucketname")
 
         # Create an assetstore

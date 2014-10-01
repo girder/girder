@@ -34,6 +34,7 @@ from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from . import mock_smtp
+from . import mock_s3
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -41,7 +42,7 @@ mockSmtp = mock_smtp.MockSmtpReceiver()
 enabledPlugins = []
 
 
-def startServer(mock=True):
+def startServer(mock=True, mockS3=True):
     """
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
@@ -57,6 +58,9 @@ def startServer(mock=True):
     cherrypy.engine.start()
 
     mockSmtp.start()
+    if mockS3:
+        mock_s3.startMockS3Server()
+
     return server
 
 
