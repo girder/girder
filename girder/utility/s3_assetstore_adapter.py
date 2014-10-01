@@ -36,21 +36,9 @@ from girder import logger, events
 from girder.utility import config
 
 
-# This supports custom s3 servers to make testing easier
-_curconfig = config.getConfig()
-CustomS3Server = _curconfig['server'].get('s3server', None)
-BotoParams = {}
-if not CustomS3Server or not CustomS3Server.startswith('http'):
-    CustomS3Server = None
-else:
-    _urlParts = urlparse.urlsplit(CustomS3Server)
-    BotoParams['host'] = _urlParts.hostname
-    if _urlParts.port:
-        BotoParams['port'] = _urlParts.port
-    if _urlParts.scheme != 'https':
-        BotoParams['is_secure'] = False
-    # This uses the bucket path format rather than bucket subdomain
-    BotoParams['calling_format'] = 'boto.s3.connection.OrdinaryCallingFormat'
+# Additional parameters to pass to all connection requests.  Used by custom S3
+# servers
+S3ServerParams = {'botoConnect': {}}
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -107,7 +95,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             _checkForBucket(doc['accessKeyId'], doc['secret'], doc['bucket'])
             conn = boto.connect_s3(aws_access_key_id=doc['accessKeyId'],
                                    aws_secret_access_key=doc['secret'],
-                                   **BotoParams)
+                                   **S3ServerParams['botoConnect'])
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
             testKey = boto.s3.key.Key(
                 bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
@@ -336,7 +324,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             conn = boto.connect_s3(
                 aws_access_key_id=self.assetstore['accessKeyId'],
-                aws_secret_access_key=self.assetstore['secret'], **BotoParams)
+                aws_secret_access_key=self.assetstore['secret'],
+                **S3ServerParams['botoConnect'])
         except Exception:
             logger.exception('S3 assetstore validation exception')
             raise ValidationException('Unable to connect to S3 assetstore')
@@ -352,7 +341,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         bucket subdomains to using bucket paths.
         :param request: the request which we might modify
         """
-        if not CustomS3Server:
+        s3server = _customS3Server()
+        if not s3server:
             return
         if 'url' not in request:
             return
@@ -363,22 +353,57 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             path = '/'+bucket[0]+urlParts.path
             _checkForBucket(self.assetstore['accessKeyId'],
                             self.assetstore['secret'], bucket[0])
-        mockParts = urlparse.urlsplit(CustomS3Server)
+        mockParts = urlparse.urlsplit(s3server)
         request['url'] = urlparse.urlunsplit(mockParts[:2]+(path,)+urlParts[3:])
+
+
+def _customS3Server():
+    """
+    Check if we are using a custom S3 server.  Update the S3ServerParams if
+    this has changed.
+    :returns: None if no custom server, otherwise its http(s) address.
+    """
+    curconfig = config.getConfig()
+    if 'server' not in curconfig:
+        return None
+    server = curconfig['server'].get('s3server', None)
+    if not server or not server.startswith('http'):
+        server = None
+    if server == S3ServerParams.get('server', False):
+        return server
+    S3ServerParams['server'] = server
+    if server is None:
+        S3ServerParams['botoConnect'].clear()
+        return server
+    _urlParts = urlparse.urlsplit(server)
+    S3ServerParams['botoConnect']['host'] = _urlParts.hostname
+    if _urlParts.port:
+        S3ServerParams['botoConnect']['port'] = _urlParts.port
+    if _urlParts.scheme != 'https':
+        S3ServerParams['botoConnect']['is_secure'] = False
+    # This uses the bucket path format rather than bucket subdomain
+    S3ServerParams['botoConnect']['calling_format'] = \
+        'boto.s3.connection.OrdinaryCallingFormat'
+    S3ServerParams['makeBuckets'] = curconfig['server'].get(
+        's3server_make_buckets', True)
+    return server
 
 
 def _checkForBucket(accessKeyId, secret, bucketName):
     """
-    If we are using a custom S3 server, create any bucket we reference.
-    This makes testing easier.
+    If we are using a custom S3 server, create any bucket we reference, unless
+    the makeBuckets setting has been overridden. This makes testing easier.
     :param accessKeyId: use this credential with the S3 server.
     :param secret: use this credential with the S3 server.
     :param bucketName: the name of the bucket which is checked for and
                        optionally created on a custom s3 server."""
-    if not CustomS3Server or not bucketName:
+    if not _customS3Server() or not bucketName:
+        return
+    if not S3ServerParams['makeBuckets']:
         return
     conn = boto.connect_s3(aws_access_key_id=accessKeyId,
-                           aws_secret_access_key=secret, **BotoParams)
+                           aws_secret_access_key=secret,
+                           **S3ServerParams['botoConnect'])
     bucket = conn.lookup(bucket_name=bucketName, validate=True)
     # if found, return
     if bucket is not None:
@@ -392,7 +417,8 @@ def _deleteFileImpl(event):
     """
     info = event.info
     conn = boto.connect_s3(aws_access_key_id=info['accessKeyId'],
-                           aws_secret_access_key=info['secret'], **BotoParams)
+                           aws_secret_access_key=info['secret'],
+                           **S3ServerParams['botoConnect'])
     bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
     key = boto.s3.key.Key(bucket=bucket, name=info['key'])
     bucket.delete_key(key)
