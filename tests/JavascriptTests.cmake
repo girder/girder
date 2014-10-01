@@ -31,7 +31,7 @@ function(add_javascript_style_test name input)
   )
 endfunction()
 
-function(add_web_client_test name specFile)
+function(add_web_client_test_with_assetstore name specFile assetstoreType)
   set(testname "web_client_${name}")
   add_test(
       NAME ${testname}
@@ -42,10 +42,15 @@ function(add_web_client_test name specFile)
   set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
     "SPEC_FILE=${specFile}"
+    "ASSETSTORE_TYPE=${assetstoreType}"
     "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${name}.cvg"
     "GIRDER_TEST_DB=girder_test_webclient"
     "GIRDER_TEST_ASSETSTORE=webclient"
   )
   set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
   set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
+endfunction()
+
+function(add_web_client_test name specFile)
+    add_web_client_test_with_assetstore(${name} ${specFile} filesystem)
 endfunction()

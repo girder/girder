@@ -37,7 +37,8 @@ class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
         self.coverageFile = os.environ['COVERAGE_FILE']
-        base.TestCase.setUp(self)
+        assetstoreType = os.environ['ASSETSTORE_TYPE']
+        base.TestCase.setUp(self, assetstoreType)
 
     def testWebClientSpec(self):
 
