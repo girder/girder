@@ -1,0 +1,206 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright 2014 Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import boto
+
+from .. import base
+from girder.utility import s3_assetstore_adapter
+
+
+def setUpModule():
+    base.startServer()
+
+
+def tearDownModule():
+    base.stopServer()
+
+chunk1, chunk2 = ('hello ', 'world')
+
+
+class UploadTestCase(base.TestCase):
+    def setUp(self):
+        base.TestCase.setUp(self)
+        admin = {
+            'email': 'admin@email.com',
+            'login': 'admin',
+            'firstName': 'Admin',
+            'lastName': 'Admin',
+            'password': 'adminpassword',
+            'admin': True
+        }
+        self.admin = self.model('user').createUser(**admin)
+        user = {
+            'email': 'good@email.com',
+            'login': 'goodlogin',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword',
+            'admin': False
+        }
+        self.user = self.model('user').createUser(**user)
+        folders = self.model('folder').childFolders(
+            parent=self.user, parentType='user', user=self.user)
+        for folder in folders:
+            if folder['public'] is True:
+                self.folder = folder
+
+    def _uploadFile(self, name, partial=2):
+        """Upload a file either completely or partially.
+        :param name: the name of the file to upload.
+        :param partial: the number of steps to complete in the uploads: 0
+                        initializes the upload, 1 uploads 1 chunk, 2 uploads
+                        and completes.
+        :returns upload: the upload record which includes the upload id."""
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.folder['_id'],
+                'name': name,
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        upload = resp.json
+        if partial == 0:
+            return upload
+        if 's3' not in upload:
+            fields = [('offset', 0), ('uploadId', upload['_id'])]
+            files = [('chunk', 'helloWorld.txt', chunk1)]
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
+            self.assertStatusOk(resp)
+            if partial == 1:
+                return resp.json
+            fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
+            files = [('chunk', 'helloWorld.txt', chunk2)]
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
+            self.assertStatusOk(resp)
+            return upload
+        # s3 uses a different method for uploading chunks
+        conn = boto.connect_s3(
+            aws_access_key_id=self.assetstore['accessKeyId'],
+            aws_secret_access_key=self.assetstore['secret'],
+            **s3_assetstore_adapter.S3ServerParams['botoConnect']
+            )
+        bucket = conn.lookup(bucket_name='bucketname', validate=True)
+        key = boto.s3.key.Key(bucket=bucket, name=upload['s3']['key'])
+        key.set_contents_from_string(chunk1+chunk2)
+        if partial == 1:
+            return upload
+        resp = self.request(path='/file/completion', method='POST',
+                            user=self.user, params={'uploadId': upload['_id']})
+        self.assertStatusOk(resp)
+        return upload
+
+    def _testUpload(self):
+        """Upload a file to the server and several partial files.  Test that we
+        can delete a partial upload but not a completed upload.  Test that was
+        can delete partial uploads that are older than a certain date."""
+        completeUpload = self._uploadFile('complete_upload')
+        partialUploads = []
+        for i in xrange(3):
+            partialUploads.append(self._uploadFile('partial_upload_%d' % i,
+                                                   i % 2))
+        # check that a user cannot list partial uploads
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.user)
+        self.assertStatus(resp, 403)
+        # The admin user should see all of the partial uploads, but not the
+        # complete upload
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        foundUploads = resp.json
+        self.assertEqual(len(foundUploads), len(partialUploads))
+        # The user shouldn't be able to delete an upload
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.user,
+                            params={'uploadId': partialUploads[0]['_id']})
+        self.assertStatus(resp, 403)
+        # We shouldn't be able to delete the completed upload
+        resp = self.request(path='/system/uploads', method='DELETE',
+                            user=self.admin,
+                            params={'uploadId': completeUpload['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertEqual(len(resp.json), len(partialUploads))
+        # The admin should be able to ask for a partial upload by id
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin,
+                            params={'uploadId': partialUploads[0]['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], partialUploads[0]['_id'])
+        # The admin should be able to ask for a partial upload by age.
+        # Everything should be more than 0 days old
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin,
+                            params={'minimumAge': 0})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), len(partialUploads))
+        # The admin should be able to delete an upload
+        resp = self.request(path='/system/uploads', method='DELETE',
+                            user=self.admin,
+                            params={'uploadId': partialUploads[0]['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], partialUploads[0]['_id'])
+        # We should now have one less partial upload
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertEqual(len(resp.json), len(partialUploads)-1)
+        # If we ask to delete everything more than one day old, nothing should
+        # be deleted.
+        resp = self.request(path='/system/uploads', method='DELETE',
+                            user=self.admin,
+                            params={'minimumAge': 1})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+        # Delete all partial uploads
+        resp = self.request(path='/system/uploads', method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertEqual(resp.json, [])
+
+    def testFilesystemAssetstoreUpload(self):
+        self._testUpload()
+
+    def testGridFSAssetstoreUpload(self):
+        # Clear the assetstore database and create a GridFS assetstore
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test', db='girder_assetstore_test')
+        self.assetstore = assetstore
+        self._testUpload()
+
+    def testS3AssetstoreUpload(self):
+        # Clear the assetstore database and create an S3 assetstore
+        self.model('assetstore').remove(self.assetstore)
+        params = {
+            'name': 'S3 Assetstore',
+            'bucket': 'bucketname',
+            'accessKeyId': 'someKey',
+            'secret': 'someSecret',
+        }
+        assetstore = self.model('assetstore').createS3Assetstore(**params)
+        self.assetstore = assetstore
+        self._testUpload()

@@ -152,7 +152,6 @@ class FileTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Ask for completion before sending second chunk should fail
-        fields = [('uploadId', uploadId)]
         resp = self.request(path='/file/completion', method='POST',
                             user=self.user, params={'uploadId': uploadId})
         self.assertStatus(resp, 400)
