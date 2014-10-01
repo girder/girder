@@ -209,7 +209,7 @@ class Upload(Model):
         :param offset: Offset into the results.
         :param sort: The sort direction.
         :param filters: if not None, a dictionary that can contain ids that
-                        must the uploads.
+                        must match the uploads, plus an minimumAge value.
         """
         query = {}
         for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
@@ -222,6 +222,11 @@ class Upload(Model):
                         query['_id'] = id
                     else:
                         query[key] = id
+        if 'minimumAge' in filters:
+            query['updated'] = {
+                '$lte': datetime.datetime.now() -
+                datetime.timedelta(days=float(filters['minimumAge']))
+                }
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.
         cursor = self.find(query, limit=limit, sort=sort, offset=offset)
@@ -236,6 +241,9 @@ class Upload(Model):
         :type upload: dict
         """
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        adapter.cancelUpload(upload)
+        # If the assetstore was deleted, the upload may still be in our
+        # database
+        if assetstore:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            adapter.cancelUpload(upload)
         self.model('upload').remove(upload)

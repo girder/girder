@@ -186,6 +186,8 @@ class System(Resource):
                'specific folder or item.', required=False)
         .param('assetstoreId', 'Restrict listing uploads within a specific '
                'assetstore.', required=False)
+        .param('minimumAge', 'Restrict listing uploads to those that are at '
+               'least this many days old.', required=False)
         .errorResponse('You are not a system administrator.', 403))
 
     @access.admin
@@ -208,4 +210,6 @@ class System(Resource):
                'specific folder or item.', required=False)
         .param('assetstoreId', 'Restrict clearing uploads within a specific '
                'assetstore.', required=False)
+        .param('minimumAge', 'Restrict clearing uploads to those that are at '
+               'least this many days old.', required=False)
         .errorResponse('You are not a system administrator.', 403))
