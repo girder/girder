@@ -112,7 +112,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             testKey = boto.s3.key.Key(
                 bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
             testKey.set_contents_from_string('')
-        except:
+        except Exception:
             logger.exception('S3 assetstore validation exception')
             raise ValidationException('Unable to write into bucket "{}".'
                                       .format(doc['bucket']), 'bucket')
@@ -333,9 +333,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return
         if 'key' not in upload['s3']:
             return
-        conn = boto.connect_s3(
-            aws_access_key_id=self.assetstore['accessKeyId'],
-            aws_secret_access_key=self.assetstore['secret'], **BotoParams)
+        try:
+            conn = boto.connect_s3(
+                aws_access_key_id=self.assetstore['accessKeyId'],
+                aws_secret_access_key=self.assetstore['secret'], **BotoParams)
+        except Exception:
+            logger.exception('S3 assetstore validation exception')
+            raise ValidationException('Unable to connect to S3 assetstore')
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
                              validate=True)
         if bucket:
