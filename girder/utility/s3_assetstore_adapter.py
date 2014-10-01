@@ -332,8 +332,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
                              validate=True)
         if bucket:
-            key = boto.s3.key.Key(bucket=bucket, name=upload['s3']['key'])
-            bucket.delete_key(key)
+            key = bucket.get_key(upload['s3']['key'], validate=True)
+            if key:
+                bucket.delete_key(key)
 
     def _adjustRequest(self, request):
         """
