@@ -27,7 +27,7 @@ import moto.server
 _defaultPort = 50003
 
 
-def startMockS3Server():
+def startMockS3Server(makeBuckets=True):
     """
     Start a server using the defaults and adding a configuration parameter to
     the system so that the s3 assetstore handler will know to use this
@@ -37,7 +37,7 @@ def startMockS3Server():
     logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
     cherrypy.config['server'].update({
         's3server': 'http://127.0.0.1:%d' % _defaultPort,
-        's3server_make_buckets': False,
+        's3server_make_buckets': makeBuckets,
         })
     server = MockS3Server()
     server.start()

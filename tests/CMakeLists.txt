@@ -26,7 +26,9 @@ add_python_test(user)
 add_python_test(webroot)
 
 
-add_web_client_test(data "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js")
+add_web_client_test_with_assetstore(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" filesystem)
+add_web_client_test_with_assetstore(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" gridfs)
+add_web_client_test_with_assetstore(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" s3)
 add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js")
 add_web_client_test(collection "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionSpec.js")
 add_web_client_test(group "${PROJECT_SOURCE_DIR}/clients/web/test/spec/groupSpec.js")

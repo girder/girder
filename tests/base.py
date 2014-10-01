@@ -94,18 +94,28 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
-    def setUp(self):
+    def setUp(self, assetstoreType=None):
         """
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
+        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
+                               any other value, use a filesystem assetstore.
         """
         dropTestDatabase()
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
-        self.assetstore = self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=assetstorePath)
+        if assetstoreType == 'gridfs':
+            self.assetstore = self.model('assetstore'). \
+                createGridFsAssetstore(name='Test', db='girder_assetstore_test')
+        elif assetstoreType == 's3':
+            self.assetstore = self.model('assetstore'). \
+                createS3Assetstore(name='Test', bucket='bucketname',
+                                   accessKeyId='test', secret='test')
+        else:
+            self.assetstore = self.model('assetstore'). \
+                createFilesystemAssetstore(name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
