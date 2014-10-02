@@ -19,12 +19,15 @@
 
 import argparse
 import cherrypy
+import errno
 import logging
+import socket
 import threading
 
 import moto.server
 
-_defaultPort = 50003
+_startPort = 50003
+_maxTries = 20
 
 
 def startMockS3Server(makeBuckets=True):
@@ -35,24 +38,39 @@ def startMockS3Server(makeBuckets=True):
     """
     # turn off logging from the S3 server
     logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+    selectedPort = None
+    for port in range(_startPort, _startPort + _maxTries):
+        test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        test_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            test_socket.bind(('0.0.0.0', port))
+            selectedPort = port
+        except socket.error, err:
+            # Alloe address in use errors to fail quietly
+            if err[0] != errno.EADDRINUSE:
+                raise
+        test_socket.close()
+        if selectedPort is not None:
+            break
     cherrypy.config['server'].update({
-        's3server': 'http://127.0.0.1:%d' % _defaultPort,
+        's3server': 'http://127.0.0.1:%d' % selectedPort,
         's3server_make_buckets': makeBuckets,
         })
-    server = MockS3Server()
+    server = MockS3Server(port)
     server.start()
 
 
 class MockS3Server(threading.Thread):
-    def __init__(self):
+    def __init__(self, port=_startPort):
         threading.Thread.__init__(self)
+        self.port = port
         self.daemon = True
 
     def run(self):
         """Start and run the mock S3 server."""
         app = moto.server.DomainDispatcherApplication(_create_app,
                                                       service='s3bucket_path')
-        moto.server.run_simple('0.0.0.0', _defaultPort, app, threaded=True)
+        moto.server.run_simple('0.0.0.0', self.port, app, threaded=True)
 
 
 def _create_app(service):
@@ -90,7 +108,7 @@ if __name__ == '__main__':
         description='Run a mock S3 server.  All data will be lost when then '
         'is stopped.')
     parser.add_argument('-p', '--port', type=int, help='The port to run on',
-                        default=_defaultPort)
+                        default=_startPort)
     args = parser.parse_args()
     app = moto.server.DomainDispatcherApplication(_create_app,
                                                   service='s3bucket_path')
