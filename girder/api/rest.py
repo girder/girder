@@ -35,9 +35,6 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility import config
 
 
-_importer = ModelImporter()
-
-
 def _cacheAuthUser(fun):
     """
     This decorator for getCurrentUser ensures that the authentication procedure
@@ -58,31 +55,44 @@ def _cacheAuthUser(fun):
     return inner
 
 
-def loadmodel(map, model, plugin='_core', level=None):
+class loadmodel(ModelImporter):
     """
-    This is a meta-decorator that can be used to convert parameters that are
-    ObjectID's into the actual documents.
-    """
-    _model = _importer.model(model, plugin)
+    This is a decorator that can be used to load a model based on an ID param.
+    For access controlled models, it will check authorization for the current
+    user. The underlying function is called with a modified set of keyword
+    arguments that is transformed by the "map" parameter of this decorator.
 
-    def meta(fun):
+    :param map: Map of incoming parameter name to corresponding model arg name.
+    :type map: dict
+    :param model: The model name, e.g. 'folder'
+    :type model: str
+    :param plugin: Plugin name, if loading a plugin model.
+    :type plugin: str
+    :param level: Access level, if this is an access controlled model.
+    :type level: AccessType
+    """
+    def __init__(self, map, model, plugin='_core', level=None):
+        self.map = map
+        self.model = self.model(model, plugin)
+        self.level = level
+
+    def __call__(self, fun):
         @functools.wraps(fun)
-        def wrapper(self, *args, **kwargs):
-            for raw, converted in map.iteritems():
-                if level is not None:
-                    user = self.getCurrentUser()
-                    kwargs[converted] = _model.load(
-                        id=kwargs[raw], level=level, user=user)
+        def wrapped(wrappedSelf, *args, **kwargs):
+            for raw, converted in self.map.iteritems():
+                if self.level is not None:
+                    user = wrappedSelf.getCurrentUser()
+                    kwargs[converted] = self.model.load(
+                        id=kwargs[raw], level=self.level, user=user)
                 else:
-                    kwargs[converted] = _model.load(kwargs[raw])
+                    kwargs[converted] = self.model.load(kwargs[raw])
 
                 if kwargs[converted] is None:
                     raise RestException('Invalid {} id ({}).'
-                                        .format(model, kwargs[raw]))
+                                        .format(self.model.name, kwargs[raw]))
                 del kwargs[raw]
-            return fun(self, *args, **kwargs)
-        return wrapper
-    return meta
+            return fun(wrappedSelf, *args, **kwargs)
+        return wrapped
 
 
 def _createResponse(val):
