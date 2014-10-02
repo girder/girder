@@ -335,6 +335,60 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             key = bucket.get_key(upload['s3']['key'], validate=True)
             if key:
                 bucket.delete_key(key)
+            # check if this is an abandoned multipart upload
+            if ('s3' in upload and 'uploadId' in upload['s3'] and
+                    'key' in upload['s3']):
+                for multipartUpload in bucket.get_all_multipart_uploads():
+                    if (multipartUpload.id == upload['s3']['uploadId'] and
+                            multipartUpload.key_name == upload['s3']['key']):
+                        multipartUpload.cancel_upload()
+
+    def untrackedUploads(self, knownUploads=[], delete=False):
+        """
+        List and optionally discard uploads that are in the assetstore but not
+        in the known list.
+        :param knownUploads: a list of upload dictionaries of all known
+                             incomplete uploads.
+        :type knownUploads: list
+        :param delete: if True, delete any unknown uploads.
+        :type delete: bool
+        :returns: a list of unknown uploads.
+        """
+        untrackedList = []
+        prefix = self.assetstore.get('prefix', '')
+        if prefix:
+            prefix += '/'
+        try:
+            conn = boto.connect_s3(
+                aws_access_key_id=self.assetstore['accessKeyId'],
+                aws_secret_access_key=self.assetstore['secret'],
+                **S3ServerParams['botoConnect'])
+        except Exception:
+            logger.exception('S3 assetstore validation exception')
+            raise ValidationException('Unable to connect to S3 assetstore')
+        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
+                             validate=True)
+        if bucket:
+            for multipartUpload in bucket.get_all_multipart_uploads():
+                for upload in knownUploads:
+                    if ('s3' in upload and 'uploadId' in upload['s3'] and
+                            'key' in upload['s3']):
+                        if (multipartUpload.id == upload['s3']['uploadId'] and
+                                multipartUpload.key_name ==
+                                upload['s3']['key']):
+                            continue
+                # don't include uploads with a different prefix; this allows
+                # a single bucket to handle multiple assetstores and us to only
+                # clean up the one we are in.  We could further validate that
+                # the key name was of the format /(prefix)/../../(id)
+                if not multipartUpload.key_name.startswith(prefix):
+                    continue
+                unknown = {'s3': {'uploadId': multipartUpload.id,
+                                  'key': multipartUpload.key_name}}
+                untrackedList.append(unknown)
+                if delete:
+                    multipartUpload.cancel_upload()
+        return untrackedList
 
     def _adjustRequest(self, request):
         """
@@ -356,6 +410,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                             self.assetstore['secret'], bucket[0])
         mockParts = urlparse.urlsplit(s3server)
         request['url'] = urlparse.urlunsplit(mockParts[:2]+(path,)+urlParts[3:])
+        # The moto server can't handle additional parameters in partial uploads
+        if '&uploads&' in request['url']:
+            request['url'] = request['url'].split('?')[0]+'?uploads'
 
 
 def _customS3Server():
@@ -421,8 +478,9 @@ def _deleteFileImpl(event):
                            aws_secret_access_key=info['secret'],
                            **S3ServerParams['botoConnect'])
     bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
-    key = boto.s3.key.Key(bucket=bucket, name=info['key'])
-    bucket.delete_key(key)
+    key = bucket.get_key(info['key'], validate=True)
+    if key:
+        bucket.delete_key(key)
 
 
 events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file',
