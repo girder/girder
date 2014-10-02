@@ -56,7 +56,7 @@ def startMockS3Server(makeBuckets=True):
         's3server': 'http://127.0.0.1:%d' % selectedPort,
         's3server_make_buckets': makeBuckets,
         })
-    server = MockS3Server(port)
+    server = MockS3Server(selectedPort)
     server.start()
 
 
