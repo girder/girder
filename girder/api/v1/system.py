@@ -175,7 +175,13 @@ class System(Resource):
     @access.admin
     def getPartialUploads(self, params):
         uploadList = self.model('upload').list(filters=params, limit=0)
-        return [upload for upload in uploadList]
+        resultList = [upload for upload in uploadList]
+        untracked = self.boolParam('includeUntracked', params, default=True)
+        if untracked:
+            assetstoreId = params.get('assetstoreId', None)
+            resultList += self.model('upload').untrackedUploads('list',
+                                                                assetstoreId)
+        return resultList
     getPartialUploads.description = (
         Description('Get a list of uploads that have not been finished.')
         .notes("Must be a system administrator to call this.")
@@ -188,6 +194,11 @@ class System(Resource):
                'assetstore.', required=False)
         .param('minimumAge', 'Restrict listing uploads to those that are at '
                'least this many days old.', required=False)
+        .param('includeUntracked', 'Some assetstores can have partial uploads '
+               'that are no longer in the girder database.  If this is True, '
+               'include all of them (only filtered by assetstoreId) in the '
+               'result list.  Default True.',
+               required=False, dataType='boolean')
         .errorResponse('You are not a system administrator.', 403))
 
     @access.admin
@@ -197,6 +208,11 @@ class System(Resource):
         for upload in uploadList:
             cancelled.append(upload)
             self.model('upload').cancelUpload(upload)
+        untracked = self.boolParam('includeUntracked', params, default=True)
+        if untracked:
+            assetstoreId = params.get('assetstoreId', None)
+            cancelled += self.model('upload').untrackedUploads('delete',
+                                                               assetstoreId)
         return cancelled
     discardPartialUploads.description = (
         Description('Discard uploads that have not been finished.')
@@ -212,4 +228,9 @@ class System(Resource):
                'assetstore.', required=False)
         .param('minimumAge', 'Restrict clearing uploads to those that are at '
                'least this many days old.', required=False)
+        .param('includeUntracked', 'Some assetstores can have partial uploads '
+               'that are no longer in the girder database.  If this is True, '
+               'remove all of them (only filtered by assetstoreId).  Default '
+               'True.',
+               required=False, dataType='boolean')
         .errorResponse('You are not a system administrator.', 403))

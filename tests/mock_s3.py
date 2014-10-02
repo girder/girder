@@ -71,9 +71,11 @@ def _create_app(service):
                              'HEAD, GET, PUT, POST, OPTIONS, DELETE')
         response.headers.add(
             'Access-Control-Allow-Headers',
-            'x-amz-meta-authorized-length,x-amz-acl,Content-Disposition,'
-            'x-amz-meta-uploader-ip,x-amz-meta-uploader-id'
+            'Content-Disposition,Content-Type,'
+            'x-amz-meta-authorized-length,x-amz-acl,x-amz-meta-uploader-ip,'
+            'x-amz-meta-uploader-id'
             )
+        response.headers.add('Access-Control-Expose-Headers', 'ETag')
         return response
 
     return app

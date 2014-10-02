@@ -212,21 +212,22 @@ class Upload(Model):
                         must match the uploads, plus an minimumAge value.
         """
         query = {}
-        for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
-            if key in filters:
-                id = filters[key]
-                if id and type(id) is not ObjectId:
-                    id = ObjectId(id)
-                if id:
-                    if key == 'uploadId':
-                        query['_id'] = id
-                    else:
-                        query[key] = id
-        if 'minimumAge' in filters:
-            query['updated'] = {
-                '$lte': datetime.datetime.now() -
-                datetime.timedelta(days=float(filters['minimumAge']))
-                }
+        if filters:
+            for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
+                if key in filters:
+                    id = filters[key]
+                    if id and type(id) is not ObjectId:
+                        id = ObjectId(id)
+                    if id:
+                        if key == 'uploadId':
+                            query['_id'] = id
+                        else:
+                            query[key] = id
+            if 'minimumAge' in filters:
+                query['updated'] = {
+                    '$lte': datetime.datetime.now() -
+                    datetime.timedelta(days=float(filters['minimumAge']))
+                    }
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.
         cursor = self.find(query, limit=limit, sort=sort, offset=offset)
@@ -247,3 +248,26 @@ class Upload(Model):
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             adapter.cancelUpload(upload)
         self.model('upload').remove(upload)
+
+    def untrackedUploads(self, action='list', assetstoreId=None):
+        """
+        List or discard any uploads that an assetstore knows about but that our
+        database doesn't have in it.
+        :param action: 'delete' to discard the untracked uploads, anything else
+                       to just return with a list of them.
+        :type action: str
+        :param assetstoreId: if present, only include untracked items from the
+                             specified assetstore.
+        :type assetstoreId: str
+        :returns: a list of items that were removed or could be removed.
+        """
+        results = []
+        knownUploads = [upload for upload in self.list(limit=0)]
+        # Iterate through all assetstores
+        for assetstore in self.model('assetstore').list(limit=0):
+            if assetstoreId and assetstoreId != assetstore['_id']:
+                continue
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            results = adapter.untrackedUploads(knownUploads,
+                                               delete=(action == 'delete'))
+        return results

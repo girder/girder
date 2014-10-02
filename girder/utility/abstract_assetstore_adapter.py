@@ -186,3 +186,16 @@ class AbstractAssetstoreAdapter(object):
         """
         raise Exception('Must override cancelUpload in %s.'
                         % self.__class__.__name__)  # pragma: no cover
+
+    def untrackedUploads(self, knownUploads=[], delete=False):
+        """
+        List and optionally discard uploads that are in the assetstore but not
+        in the known list.
+        :param knownUploads: a list of upload dictionaries of all known
+                             incomplete uploads.
+        :type knownUploads: list
+        :param delete: if True, delete any unknown uploads.
+        :type delete: bool
+        :returns: a list of unknown uploads.
+        """
+        return []
