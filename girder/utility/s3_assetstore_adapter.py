@@ -370,13 +370,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                              validate=True)
         if bucket:
             for multipartUpload in bucket.get_all_multipart_uploads():
+                known = False
                 for upload in knownUploads:
                     if ('s3' in upload and 'uploadId' in upload['s3'] and
                             'key' in upload['s3']):
                         if (multipartUpload.id == upload['s3']['uploadId'] and
                                 multipartUpload.key_name ==
                                 upload['s3']['key']):
-                            continue
+                            known = True
+                            break
+                if known:
+                    continue
                 # don't include uploads with a different prefix; this allows
                 # a single bucket to handle multiple assetstores and us to only
                 # clean up the one we are in.  We could further validate that
