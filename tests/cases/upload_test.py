@@ -18,9 +18,15 @@
 ###############################################################################
 
 import boto
+import json
+import re
+import requests
 
 from .. import base
 from girder.utility import s3_assetstore_adapter
+
+
+Chunk1, Chunk2 = ('hello ', 'world')
 
 
 def setUpModule():
@@ -30,7 +36,21 @@ def setUpModule():
 def tearDownModule():
     base.stopServer()
 
-chunk1, chunk2 = ('hello ', 'world')
+
+def _send_s3_request(request, data=None):
+    """
+    Send a request to an S3 server.
+    :param request: a dictionary of headers, method, and url.
+    :param data: data to include in the request.
+    :returns: the result of the request.
+    """
+    if request['method'] == 'PUT':
+        req = requests.put(url=request['url'], data=data,
+                           headers=request.get('headers', {}))
+    elif request['method'] == 'POST':
+        req = requests.post(url=request['url'], data=data,
+                            headers=request.get('headers', {}))
+    return req
 
 
 class UploadTestCase(base.TestCase):
@@ -60,13 +80,20 @@ class UploadTestCase(base.TestCase):
             if folder['public'] is True:
                 self.folder = folder
 
-    def _uploadFile(self, name, partial=2):
+    def _uploadFile(self, name, partial=False, largeFile=False):
         """Upload a file either completely or partially.
         :param name: the name of the file to upload.
         :param partial: the number of steps to complete in the uploads: 0
-                        initializes the upload, 1 uploads 1 chunk, 2 uploads
-                        and completes.
+                        initializes the upload, 1 uploads 1 chunk, etc.  False
+                        to complete the upload.
+        :param largeFile: if True, upload a file that is > 32Mb
         :returns upload: the upload record which includes the upload id."""
+        if not largeFile:
+            chunk1 = Chunk1
+            chunk2 = Chunk2
+        else:
+            chunk1 = '-' * (1024 * 1024 * 32)
+            chunk2 = '-' * (1024 * 1024 * 1)
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
                 'parentType': 'folder',
@@ -77,7 +104,7 @@ class UploadTestCase(base.TestCase):
             })
         self.assertStatusOk(resp)
         upload = resp.json
-        if partial == 0:
+        if partial is not False and partial == 0:
             return upload
         if 's3' not in upload:
             fields = [('offset', 0), ('uploadId', upload['_id'])]
@@ -85,7 +112,7 @@ class UploadTestCase(base.TestCase):
             resp = self.multipartRequest(
                 path='/file/chunk', user=self.user, fields=fields, files=files)
             self.assertStatusOk(resp)
-            if partial == 1:
+            if partial is not False:
                 return resp.json
             fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
             files = [('chunk', 'helloWorld.txt', chunk2)]
@@ -94,19 +121,44 @@ class UploadTestCase(base.TestCase):
             self.assertStatusOk(resp)
             return upload
         # s3 uses a different method for uploading chunks
-        conn = boto.connect_s3(
-            aws_access_key_id=self.assetstore['accessKeyId'],
-            aws_secret_access_key=self.assetstore['secret'],
-            **s3_assetstore_adapter.S3ServerParams['botoConnect']
-            )
-        bucket = conn.lookup(bucket_name='bucketname', validate=True)
-        key = boto.s3.key.Key(bucket=bucket, name=upload['s3']['key'])
-        key.set_contents_from_string(chunk1+chunk2)
-        if partial == 1:
-            return upload
+        # This has no error checking at all
+        if not upload['s3']['chunked']:
+            _send_s3_request(upload['s3']['request'], chunk1+chunk2)
+            if partial is not False:
+                return
+        else:
+            chunk1 = chunk1+chunk2
+            s3resp = _send_s3_request(upload['s3']['request'])
+            matches = re.search('<UploadId>(.*)</UploadId>', s3resp.text)
+            s3uploadId = matches.groups()[0]
+            offset = 0
+            chunkN = 1
+            while len(chunk1):
+                params = {'offset': offset, 'uploadId': upload['_id']}
+                params["chunk"] = json.dumps({'s3UploadId': s3uploadId,
+                                              'partNumber': chunkN})
+                resp = self.request(path='/file/chunk', method='POST',
+                                    user=self.user, params=params)
+                self.assertStatusOk(resp)
+                upload = resp.json
+                if len(chunk1) > upload['s3']['chunkLength']:
+                    chunk2 = chunk1[upload['s3']['chunkLength']:]
+                    chunk1 = chunk1[:upload['s3']['chunkLength']]
+                else:
+                    chunk2 = ""
+                _send_s3_request(upload['s3']['request'], chunk1)
+                chunk1 = chunk2
+                if partial is not False:
+                    partial -= 1
+                chunkN += 1
+                if partial is not False and not partial:
+                    return upload
         resp = self.request(path='/file/completion', method='POST',
-                            user=self.user, params={'uploadId': upload['_id']})
+                            user=self.user,
+                            params={'uploadId': upload['_id']})
         self.assertStatusOk(resp)
+        if 's3FinalizeRequest' in resp.json:
+            _send_s3_request(resp.json['s3FinalizeRequest'])
         return upload
 
     def _testUpload(self):
@@ -114,10 +166,14 @@ class UploadTestCase(base.TestCase):
         can delete a partial upload but not a completed upload.  Test that was
         can delete partial uploads that are older than a certain date."""
         completeUpload = self._uploadFile('complete_upload')
+        # test uploading large files
+        self._uploadFile('complete_upload', largeFile=True)
         partialUploads = []
-        for i in xrange(3):
-            partialUploads.append(self._uploadFile('partial_upload_%d' % i,
-                                                   i % 2))
+        for largeFile in (False, True):
+            for partial in xrange(3):
+                partialUploads.append(self._uploadFile(
+                    'partial_upload_%d_%s' % (partial, str(largeFile)),
+                    partial, largeFile))
         # check that a user cannot list partial uploads
         resp = self.request(path='/system/uploads', method='GET',
                             user=self.user)
@@ -149,6 +205,12 @@ class UploadTestCase(base.TestCase):
                             params={'uploadId': partialUploads[0]['_id']})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], partialUploads[0]['_id'])
+        # The admin should be able to ask for a partial upload by assetstore id
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin,
+                            params={'assetstoreId': self.assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), len(partialUploads))
         # The admin should be able to ask for a partial upload by age.
         # Everything should be more than 0 days old
         resp = self.request(path='/system/uploads', method='GET',
@@ -198,9 +260,31 @@ class UploadTestCase(base.TestCase):
         params = {
             'name': 'S3 Assetstore',
             'bucket': 'bucketname',
+            'prefix': 'testprefix',
             'accessKeyId': 'someKey',
             'secret': 'someSecret',
         }
         assetstore = self.model('assetstore').createS3Assetstore(**params)
         self.assetstore = assetstore
         self._testUpload()
+        # make an untracked upload to test that we can find and clear it
+        conn = boto.connect_s3(
+            aws_access_key_id=self.assetstore['accessKeyId'],
+            aws_secret_access_key=self.assetstore['secret'],
+            **s3_assetstore_adapter.S3ServerParams['botoConnect']
+            )
+        bucket = conn.lookup(bucket_name='bucketname', validate=True)
+        bucket.initiate_multipart_upload('testprefix/abandoned_upload')
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        # Ask to delete it
+        resp = self.request(path='/system/uploads', method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        # Check that it is gone
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
