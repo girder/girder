@@ -85,7 +85,10 @@ class Assetstore(Model):
         if files.count(True) > 0:
             raise ValidationException('You may not delete an assetstore that '
                                       'contains files.')
-
+        # delete partial uploads before we delete the store.
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        adapter.untrackedUploads([], 'delete')
+        # now remove the assetstore
         Model.remove(self, assetstore)
 
     def list(self, limit=50, offset=0, sort=None):
