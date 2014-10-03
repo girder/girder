@@ -189,9 +189,16 @@ module.exports = function (grunt) {
 
         'file-creator': {
             version: {
-                'version.json': function (fs, fd, done) {
-                    var versionObj = grunt.config.get('gitinfo');
-                    fs.writeSync(fd, JSON.stringify(versionObj, null, "  "));
+                'girder-version.json': function (fs, fd, done) {
+                    var gitVersion = grunt.config.get('gitinfo'),
+                        girderVersion = {
+                            git: !!gitVersion.local.branch.current.SHA,
+                            sha: gitVersion.local.branch.current.SHA,
+                            shortSHA: gitVersion.local.branch.current.shortSHA,
+                            date: grunt.template.date(new Date(), "isoDateTime", true)
+                        };
+
+                    fs.writeSync(fd, JSON.stringify(girderVersion, null, "  "));
                     done();
                 }
             }
