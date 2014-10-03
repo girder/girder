@@ -20,7 +20,7 @@
 import cherrypy
 import os
 
-from girder.constants import ROOT_DIR
+from girder.constants import ROOT_DIR, VERSION
 from . import docs, access
 from .rest import Resource, RestException
 
@@ -28,9 +28,10 @@ from .rest import Resource, RestException
 Whenever we add new return values or new options we should increment the
 maintenance value. Whenever we add new endpoints, we should increment the minor
 version. If we break backward compatibility in any way, we should increment the
-major version.
+major version.  This value is derived from the version number given in
+the top level package.json.
 """
-API_VERSION = "0.1.0"
+API_VERSION = '.'.join(VERSION['version'].split('.')[:2])
 
 SWAGGER_VERSION = "1.2"
 
