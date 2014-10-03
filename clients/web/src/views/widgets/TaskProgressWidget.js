@@ -22,9 +22,13 @@ girder.views.TaskProgressWidget = Backbone.View.extend({
         } else if (this.progress.data.state === 'success') {
             width = '100%';
             barClass.push('progress-bar-success');
+
+            this._scheduleHide(5000);
         } else if (this.progress.data.state === 'error') {
             width = '100%';
             barClass.push('progress-bar-danger');
+
+            this._scheduleHide(10000);
         }
 
         this.$el.html(jade.templates.taskProgress({
@@ -36,8 +40,24 @@ girder.views.TaskProgressWidget = Backbone.View.extend({
         return this;
     },
 
+    /**
+     * Renders an update of the progress object.
+     */
     update: function (progress) {
         this.progress = progress;
         this.render();
+    },
+
+    /**
+     * Schedule a hide event to be triggered in the future.
+     */
+    _scheduleHide: function (ms) {
+        var widget = this;
+        window.setTimeout(function () {
+            widget.$el.fadeOut(500, function () {
+                widget.remove();
+                widget.trigger('g:hide', widget.progress);
+            });
+        }, ms);
     }
 });

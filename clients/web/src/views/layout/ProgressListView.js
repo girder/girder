@@ -31,7 +31,10 @@ girder.views.ProgressListView = Backbone.View.extend({
             this._map[progress._id] = new girder.views.TaskProgressWidget({
                 el: el,
                 progress: progress
-            }).render();
+            }).on('g:hide', function (p) {
+                delete this._map[p._id];
+                this._onUpdate();
+            }, this).render();
         }
         this._onUpdate();
     },
