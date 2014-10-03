@@ -8,4 +8,4 @@ girder.egg-info
 .*.swp
 .*.swo
 .vagrant
-girder-version.json
+girder/girder-version.json

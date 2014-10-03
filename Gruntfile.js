@@ -22,7 +22,7 @@ module.exports = function (grunt) {
     var path = require('path');
     require('colors');
 
-    var defaultTasks = ['stylus', 'build-js'];
+    var defaultTasks = ['version-info', 'stylus', 'build-js'];
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';
@@ -189,13 +189,14 @@ module.exports = function (grunt) {
 
         'file-creator': {
             version: {
-                'girder-version.json': function (fs, fd, done) {
+                'girder/girder-version.json': function (fs, fd, done) {
                     var gitVersion = grunt.config.get('gitinfo'),
                         girderVersion = {
                             git: !!gitVersion.local.branch.current.SHA,
                             sha: gitVersion.local.branch.current.SHA,
                             shortSHA: gitVersion.local.branch.current.shortSHA,
-                            date: grunt.template.date(new Date(), "isoDateTime", true)
+                            date: grunt.template.date(new Date(), "isoDateTime", true),
+                            version: grunt.config.get('pkg').version
                         };
 
                     fs.writeSync(fd, JSON.stringify(girderVersion, null, "  "));
