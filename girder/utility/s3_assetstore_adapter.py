@@ -24,21 +24,15 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import time
 import urllib
-import urlparse
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
 from girder import logger, events
-from girder.utility import config
-
-
-# Additional parameters to pass to all connection requests.  Used by custom S3
-# servers
-S3ServerParams = {'botoConnect': {}}
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -77,10 +71,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         if 'prefix' not in doc:
             doc['prefix'] = ''
-        while len(doc['prefix']) and doc['prefix'][0] == '/':
-            doc['prefix'] = doc['prefix'][1:]
-        while len(doc['prefix']) and doc['prefix'][-1] == '/':
-            doc['prefix'] = doc['prefix'][:-1]
+        # remove slashes from front and back of the prefix
+        doc['prefix'] = doc['prefix'].strip('/')
         if not doc.get('bucket'):
             raise ValidationException('Bucket must not be empty.', 'bucket')
         if not doc.get('secret'):
@@ -89,13 +81,22 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if not doc.get('accessKeyId'):
             raise ValidationException(
                 'Access key ID must not be empty.', 'accessKeyId')
-
+        # construct a set of connection parameters based on the keys and the
+        # service
+        if 'service' not in doc:
+            doc['service'] = ''
+        if doc['service'] != '':
+            service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$",
+                               doc['service'])
+            if not service:
+                raise ValidationException(
+                    'The service must of the form [http[s]://](host domain)'
+                    '[:(port)].', 'service')
+        doc['botoConnect'] = makeBotoConnectParams(
+            doc['accessKeyId'], doc['secret'], doc['service'])
         # Make sure we can write into the given bucket using boto
+        conn = botoConnectS3(doc['botoConnect'])
         try:
-            _checkForBucket(doc['accessKeyId'], doc['secret'], doc['bucket'])
-            conn = boto.connect_s3(aws_access_key_id=doc['accessKeyId'],
-                                   aws_secret_access_key=doc['secret'],
-                                   **S3ServerParams['botoConnect'])
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
             testKey = boto.s3.key.Key(
                 bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
@@ -183,7 +184,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'url': url,
                 'headers': allHeaders
             }
-        self._adjustRequest(upload['s3']['request'])
+        import sys, pprint ##DWM::
+        sys.stderr.write('INIT manual:\n'+pprint.pformat(upload['s3']).strip()+"\n")
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -211,7 +213,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'method': 'PUT',
             'url': url
         }
-        self._adjustRequest(upload['s3']['request'])
         return upload
 
     def requestOffset(self, upload):
@@ -264,8 +265,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Content-Type': 'text/plain;charset=UTF-8'
                 }
             }
-            self._adjustRequest(file['s3FinalizeRequest'])
-
         return file
 
     def downloadFile(self, file, offset=0, headers=True):
@@ -307,8 +306,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             matching = ModelImporter().model('file').find(q, limit=2, fields=[])
             if matching.count(True) == 1:
                 events.daemon.trigger('_s3_assetstore_delete_file', {
-                    'accessKeyId': self.assetstore['accessKeyId'],
-                    'secret': self.assetstore['secret'],
+                    'botoConnect': self.assetstore['botoConnect'],
                     'bucket': self.assetstore['bucket'],
                     'key': file['s3Key']
                 })
@@ -321,14 +319,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return
         if 'key' not in upload['s3']:
             return
-        try:
-            conn = boto.connect_s3(
-                aws_access_key_id=self.assetstore['accessKeyId'],
-                aws_secret_access_key=self.assetstore['secret'],
-                **S3ServerParams['botoConnect'])
-        except Exception:
-            logger.exception('S3 assetstore validation exception')
-            raise ValidationException('Unable to connect to S3 assetstore')
+        conn = botoConnectS3(self.assetstore['botoConnect'])
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
                              validate=True)
         if bucket:
@@ -358,14 +349,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         prefix = self.assetstore.get('prefix', '')
         if prefix:
             prefix += '/'
-        try:
-            conn = boto.connect_s3(
-                aws_access_key_id=self.assetstore['accessKeyId'],
-                aws_secret_access_key=self.assetstore['secret'],
-                **S3ServerParams['botoConnect'])
-        except Exception:
-            logger.exception('S3 assetstore validation exception')
-            raise ValidationException('Unable to connect to S3 assetstore')
+        conn = botoConnectS3(self.assetstore['botoConnect'])
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
                              validate=True)
         if bucket:
@@ -394,83 +378,48 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     multipartUpload.cancel_upload()
         return untrackedList
 
-    def _adjustRequest(self, request):
-        """
-        If we are using a custom s3 server, adjust our request from using
-        bucket subdomains to using bucket paths.
-        :param request: the request which we might modify
-        """
-        s3server = _customS3Server()
-        if not s3server:
-            return
-        if 'url' not in request:
-            return
-        urlParts = urlparse.urlsplit(request['url'])
-        bucket = urlParts.netloc.split(".")[-4:-3]
-        path = urlParts.path
-        if len(bucket):
-            path = '/'+bucket[0]+urlParts.path
-            _checkForBucket(self.assetstore['accessKeyId'],
-                            self.assetstore['secret'], bucket[0])
-        mockParts = urlparse.urlsplit(s3server)
-        request['url'] = urlparse.urlunsplit(mockParts[:2]+(path,)+urlParts[3:])
-        # The moto server can't handle additional parameters in partial uploads
-        if '&uploads&' in request['url']:
-            request['url'] = request['url'].split('?')[0]+'?uploads'
 
-
-def _customS3Server():
+def botoConnectS3(connectParams):
     """
-    Check if we are using a custom S3 server.  Update the S3ServerParams if
-    this has changed.
-    :returns: None if no custom server, otherwise its http(s) address.
+    Connect to the S3 server, throwing an appropriate exception if we fail.
+    :param connectParams: a dictionary of paramters to use in the connection.
+    :returns: the boto connection object.
     """
-    curconfig = config.getConfig()
-    if 'server' not in curconfig:
-        return None
-    server = curconfig['server'].get('s3server', None)
-    if not server or not server.startswith('http'):
-        server = None
-    if server == S3ServerParams.get('server', False):
-        return server
-    S3ServerParams['server'] = server
-    if server is None:
-        S3ServerParams['botoConnect'].clear()
-        return server
-    _urlParts = urlparse.urlsplit(server)
-    S3ServerParams['botoConnect']['host'] = _urlParts.hostname
-    if _urlParts.port:
-        S3ServerParams['botoConnect']['port'] = _urlParts.port
-    if _urlParts.scheme != 'https':
-        S3ServerParams['botoConnect']['is_secure'] = False
-    # This uses the bucket path format rather than bucket subdomain
-    S3ServerParams['botoConnect']['calling_format'] = \
-        'boto.s3.connection.OrdinaryCallingFormat'
-    S3ServerParams['makeBuckets'] = curconfig['server'].get(
-        's3server_make_buckets', True)
-    return server
+    try:
+        conn = boto.connect_s3(**connectParams)
+    except Exception:
+        logger.exception('S3 assetstore validation exception')
+        raise ValidationException('Unable to connect to S3 assetstore')
+    return conn
 
 
-def _checkForBucket(accessKeyId, secret, bucketName):
+def makeBotoConnectParams(accessKeyId, secretKey, service=None):
     """
-    If we are using a custom S3 server, create any bucket we reference, unless
-    the makeBuckets setting has been overridden. This makes testing easier.
-    :param accessKeyId: use this credential with the S3 server.
-    :param secret: use this credential with the S3 server.
-    :param bucketName: the name of the bucket which is checked for and
-                       optionally created on a custom s3 server."""
-    if not _customS3Server() or not bucketName:
-        return
-    if not S3ServerParams['makeBuckets']:
-        return
-    conn = boto.connect_s3(aws_access_key_id=accessKeyId,
-                           aws_secret_access_key=secret,
-                           **S3ServerParams['botoConnect'])
-    bucket = conn.lookup(bucket_name=bucketName, validate=True)
-    # if found, return
-    if bucket is not None:
-        return
-    conn.create_bucket(bucketName)
+    Create a dictionary of values to pass to the boto connect_s3 function.
+    :param accessKeyId: the S3 access key ID
+    :param secretKey: the S3 secret key
+    :param service: the name of the service in the form
+                    [http[s]://](host domain)[:(port)].
+    :returns: boto connection parameter dictionary.
+    """
+    connect = {
+        'aws_access_key_id': accessKeyId,
+        'aws_secret_access_key': secretKey,
+        }
+    if service:
+        service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$", service)
+        # If we are using the default, let boto choose the calling format
+        # (currently using the bucket as a subdomain).  If the user has
+        # specified a service, then ask to use the bucket as part of the path,
+        # as that works more generally (with IP address-based hosts, for
+        # instance).
+        connect['calling_format'] = 'boto.s3.connection.OrdinaryCallingFormat'
+        if service.groups()[1] == 'http':
+            connect['is_secure'] = False
+        connect['host'] = service.groups()[2]
+        if service.groups()[4] is not None:
+            connect['port'] = int(service.groups()[4])
+    return connect
 
 
 def _deleteFileImpl(event):
@@ -478,9 +427,7 @@ def _deleteFileImpl(event):
     Uses boto to delete the key.
     """
     info = event.info
-    conn = boto.connect_s3(aws_access_key_id=info['accessKeyId'],
-                           aws_secret_access_key=info['secret'],
-                           **S3ServerParams['botoConnect'])
+    conn = botoConnectS3(info['botoConnect'])
     bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
     key = bucket.get_key(info['key'], validate=True)
     if key:

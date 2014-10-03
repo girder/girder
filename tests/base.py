@@ -39,6 +39,7 @@ from . import mock_s3
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
 mockSmtp = mock_smtp.MockSmtpReceiver()
+mockS3Server = None
 enabledPlugins = []
 
 
@@ -59,7 +60,8 @@ def startServer(mock=True, mockS3=True):
 
     mockSmtp.start()
     if mockS3:
-        mock_s3.startMockS3Server()
+        global mockS3Server
+        mockS3Server = mock_s3.startMockS3Server()
 
     return server
 

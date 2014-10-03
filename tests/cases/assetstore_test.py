@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import boto
 import json
 import moto
 import os
@@ -25,7 +24,8 @@ import time
 
 from .. import base
 from girder.constants import AssetstoreType
-from girder.utility import s3_assetstore_adapter
+from girder.utility.s3_assetstore_adapter import botoConnectS3, \
+    makeBotoConnectParams
 
 
 def setUpModule():
@@ -190,11 +190,8 @@ class AssetstoreTestCase(base.TestCase):
 
         # Create a bucket (mocked using moto), so that we can create an
         # assetstore in it
-        conn = boto.connect_s3(
-            aws_access_key_id=params['accessKeyId'],
-            aws_secret_access_key=params['secretKey'],
-            **s3_assetstore_adapter.S3ServerParams['botoConnect']
-            )
+        conn = botoConnectS3(makeBotoConnectParams(params['accessKeyId'],
+                                                   params['secretKey']))
         bucket = conn.create_bucket("bucketname")
 
         # Create an assetstore

@@ -23,7 +23,10 @@ import re
 import requests
 
 from .. import base
+from .. import mock_s3
 from girder.utility import s3_assetstore_adapter
+from girder.utility.s3_assetstore_adapter import botoConnectS3, \
+    makeBotoConnectParams
 
 
 Chunk1, Chunk2 = ('hello ', 'world')
@@ -257,22 +260,20 @@ class UploadTestCase(base.TestCase):
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
         self.model('assetstore').remove(self.assetstore)
+        mock_s3.createBucket(base.mockS3Server.botoConnect, 'bucketname')
         params = {
             'name': 'S3 Assetstore',
             'bucket': 'bucketname',
             'prefix': 'testprefix',
             'accessKeyId': 'someKey',
             'secret': 'someSecret',
+            'service': base.mockS3Server.service
         }
         assetstore = self.model('assetstore').createS3Assetstore(**params)
         self.assetstore = assetstore
         self._testUpload()
         # make an untracked upload to test that we can find and clear it
-        conn = boto.connect_s3(
-            aws_access_key_id=self.assetstore['accessKeyId'],
-            aws_secret_access_key=self.assetstore['secret'],
-            **s3_assetstore_adapter.S3ServerParams['botoConnect']
-            )
+        conn = botoConnectS3(base.mockS3Server.botoConnect)
         bucket = conn.lookup(bucket_name='bucketname', validate=True)
         bucket.initiate_multipart_upload('testprefix/abandoned_upload')
         resp = self.request(path='/system/uploads', method='GET',

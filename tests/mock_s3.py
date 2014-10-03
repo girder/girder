@@ -18,23 +18,67 @@
 ###############################################################################
 
 import argparse
-import cherrypy
+import boto
 import errno
 import logging
 import socket
 import threading
+import time
 
 import moto.server
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 
 _startPort = 50003
 _maxTries = 20
 
 
-def startMockS3Server(makeBuckets=True):
+def createBucket(botoConnect, bucketName):
+    """
+    Create a bucket if it doesn't already exist.
+    :param botoConnect: connection parameters to pass to use with boto.
+    :type botoConnect: dict
+    :param bucketName: the bucket name
+    :type bucket: str
+    :returns: a boto bucket.
+    """
+    conn = boto.connect_s3(**botoConnect)
+    bucket = conn.lookup(bucket_name=bucketName, validate=True)
+    # if found, return
+    if bucket is not None:
+        return
+    bucket = conn.create_bucket(bucketName)
+    # I would have preferred to set the CORS for the bucket we created, but
+    # moto doesn't support that.
+    # setBucketCors(bucket)
+    return bucket
+
+
+def setBucketCors(bucket):
+    """
+    Set the cors access values on a boto bucket to allow general access to that
+    bucket.
+    :param bucket: a boto bucket to set.
+    """
+    cors = boto.s3.cors.CORSConfiguration()
+    cors.add_rule(
+        id='girder_cors_rule',
+        allowed_method=['HEAD', 'GET', 'PUT', 'POST', 'DELETE'],
+        allowed_origin=['*'],
+        allowed_header=['Content-Disposition', 'Content-Type',
+                        'x-amz-meta-authorized-length', 'x-amz-acl',
+                        'x-amz-meta-uploader-ip', 'x-amz-meta-uploader-id'],
+        expose_header=['ETag'],
+        max_age_seconds=3000
+        )
+    bucket.set_cors(cors)
+
+
+def startMockS3Server():
     """
     Start a server using the defaults and adding a configuration parameter to
     the system so that the s3 assetstore handler will know to use this
     server.
+    :returns: the started server.
     """
     # turn off logging from the S3 server
     logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
@@ -46,18 +90,15 @@ def startMockS3Server(makeBuckets=True):
             test_socket.bind(('0.0.0.0', port))
             selectedPort = port
         except socket.error, err:
-            # Alloe address in use errors to fail quietly
+            # Allow address in use errors to fail quietly
             if err[0] != errno.EADDRINUSE:
                 raise
         test_socket.close()
         if selectedPort is not None:
             break
-    cherrypy.config['server'].update({
-        's3server': 'http://127.0.0.1:%d' % selectedPort,
-        's3server_make_buckets': makeBuckets,
-        })
     server = MockS3Server(selectedPort)
     server.start()
+    return server
 
 
 class MockS3Server(threading.Thread):
@@ -65,6 +106,8 @@ class MockS3Server(threading.Thread):
         threading.Thread.__init__(self)
         self.port = port
         self.daemon = True
+        self.service = 'http://127.0.0.1:%d' % port
+        self.botoConnect = makeBotoConnectParams('abc', '123', self.service)
 
     def run(self):
         """Start and run the mock S3 server."""
@@ -82,6 +125,8 @@ def _create_app(service):
     """
     app = moto.server.create_backend_app(service)
 
+    # I would have preferred to set the CORS for the bucket we have, but moto
+    # doesn't support that, so I have to add the values here.
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -105,11 +150,18 @@ if __name__ == '__main__':
     a modified conf file to simulate an S3 store.
     """
     parser = argparse.ArgumentParser(
-        description='Run a mock S3 server.  All data will be lost when then '
-        'is stopped.')
+        description='Run a mock S3 server.  All data will be lost when it is '
+        'stopped.')
     parser.add_argument('-p', '--port', type=int, help='The port to run on',
                         default=_startPort)
+    parser.add_argument('-b', '--bucket', type=str,
+                        help='The name of a bucket to create', default='')
+    parser.add_argument('-v', '--verbose', action='count',
+                        help='Increase verbosity.', default=0)
     args = parser.parse_args()
-    app = moto.server.DomainDispatcherApplication(_create_app,
-                                                  service='s3bucket_path')
-    moto.server.run_simple('0.0.0.0', args.port, app, threaded=True)
+    server = MockS3Server(args.port)
+    server.start()
+    if args.bucket:
+        createBucket(server.botoConnect, args.bucket)
+    while True:
+        time.sleep(10000)

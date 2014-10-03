@@ -81,7 +81,8 @@ class Assetstore(Resource):
             return self.model('assetstore').createS3Assetstore(
                 name=params['name'], bucket=params['bucket'],
                 prefix=params.get('prefix', ''), secret=params['secretKey'],
-                accessKeyId=params.get('accessKeyId'))
+                accessKeyId=params.get('accessKeyId'),
+                service=params.get('service', ''))
         else:
             raise RestException('Invalid type parameter')
     createAssetstore.description = (
@@ -101,6 +102,11 @@ class Assetstore(Resource):
                '(for S3 type).', required=False)
         .param('secretKey', 'The AWS secret key to use for authentication '
                '(for S3 type).', required=False)
+        .param('service', 'The S3 service host (for S3 type).  Default is '
+               's3.amazonaws.com.  This can be used to specify a protocol and '
+               'port as well using the form '
+               '[http[s]://](host domain)[:(port)].  Do not include the '
+               'bucket name here.', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
 
