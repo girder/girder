@@ -285,7 +285,7 @@ class Item(Model):
         :type creator: dict
         :returns: The item document that was created.
         """
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         if not type(creator) is dict or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
@@ -317,7 +317,7 @@ class Item(Model):
         :type item: dict
         :returns: The item document that was edited.
         """
-        item['updated'] = datetime.datetime.now()
+        item['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the item
         return self.save(item)
@@ -346,7 +346,7 @@ class Item(Model):
         for key in toDelete:
             del item['meta'][key]
 
-        item['updated'] = datetime.datetime.now()
+        item['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the item
         return self.save(item)

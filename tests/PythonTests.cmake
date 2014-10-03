@@ -64,7 +64,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_args PLUGIN)
-  set(_multival_args RESOURCE_LOCKS)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PLUGIN)
@@ -101,6 +101,9 @@ function(add_python_test case)
   set_property(TEST ${name} PROPERTY COST 50)
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
+  endif()
+  if(fn_TIMEOUT)
+    set_property(TEST ${name} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()
 
   if(PYTHON_COVERAGE)

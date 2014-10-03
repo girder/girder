@@ -119,7 +119,7 @@ class File(Model):
             item = parent
 
         file = {
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'itemId': item['_id'],
             'creatorId': creator['_id'],
             'assetstoreId': None,
@@ -182,7 +182,7 @@ class File(Model):
         :type mimeType: str
         """
         file = {
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'itemId': item['_id'],
             'creatorId': creator['_id'],
             'assetstoreId': assetstore['_id'],
@@ -210,7 +210,7 @@ class File(Model):
         file = srcFile.copy()
         # Immediately delete the original id so that we get a new one.
         del file['_id']
-        file['copied'] = datetime.datetime.now()
+        file['copied'] = datetime.datetime.utcnow()
         file['copierId'] = creator['_id']
         if item:
             file['itemId'] = item['_id']

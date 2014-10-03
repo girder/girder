@@ -115,7 +115,7 @@ class Collection(AccessControlledModel):
         """
         assert '_id' in creator
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         collection = {
             'name': name,
@@ -158,7 +158,7 @@ class Collection(AccessControlledModel):
         :type collection: dict
         :returns: The collection document that was edited.
         """
-        collection['updated'] = datetime.datetime.now()
+        collection['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the collection
         return self.save(collection)

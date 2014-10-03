@@ -345,7 +345,7 @@ class Group(AccessControlledModel):
         """
         assert type(public) is bool
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         group = {
             'name': name,
@@ -374,7 +374,7 @@ class Group(AccessControlledModel):
         :type group: dict
         :returns: The group document that was edited.
         """
-        group['updated'] = datetime.datetime.now()
+        group['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the group
         return self.save(group)

@@ -41,7 +41,7 @@ class Upload(Model):
             raise ValidationException('Received bytes must not be larger than '
                                       'the total size of the upload.')
 
-        doc['updated'] = datetime.datetime.now()
+        doc['updated'] = datetime.datetime.utcnow()
 
         return doc
 
@@ -97,7 +97,7 @@ class Upload(Model):
 
             # Update file info
             file['creatorId'] = upload['userId']
-            file['created'] = datetime.datetime.now()
+            file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
             self.model('file').save(file)
@@ -145,7 +145,7 @@ class Upload(Model):
         """
         assetstore = self.model('assetstore').getCurrent()
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         upload = {
             'created': now,
@@ -183,7 +183,7 @@ class Upload(Model):
         """
         assetstore = self.model('assetstore').getCurrent()
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         upload = {
             'created': now,

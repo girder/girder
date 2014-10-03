@@ -222,7 +222,7 @@ class User(AccessControlledModel):
             'email': email,
             'firstName': firstName,
             'lastName': lastName,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'emailVerified': False,
             'admin': admin,
             'size': 0,

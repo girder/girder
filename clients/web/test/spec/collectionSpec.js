@@ -174,6 +174,7 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-delete-collection:visible').length > 0;
         }, 'delete button to appear');
+
         runs(function () {
             $('.g-delete-collection').click();
         });

@@ -115,9 +115,10 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query=None, offset=0, limit=50, sort=None, fields=None):
+    def find(self, query=None, offset=0, limit=50, **kwargs):
         """
-        Search the collection by a set of parameters.
+        Search the collection by a set of parameters. Passes any kwargs
+        through to the underlying pymongo.collection.find function.
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
@@ -134,8 +135,8 @@ class Model(ModelImporter):
         if not query:
             query = {}
 
-        return self.collection.find(spec=query, fields=fields, skip=offset,
-                                    limit=limit, sort=sort)
+        return self.collection.find(
+            spec=query, skip=offset, limit=limit, **kwargs)
 
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
                    filters=None):
