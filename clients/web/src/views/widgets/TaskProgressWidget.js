@@ -16,7 +16,7 @@ girder.views.TaskProgressWidget = Backbone.View.extend({
                 barClass.push('progress-bar-warning');
                 progressClass.push('progress-striped', 'active');
             } else {
-                width = Math.round(
+                width = Math.round(100 *
                   this.progress.data.current / this.progress.data.total) + '%';
             }
         } else if (this.progress.data.state === 'success') {
