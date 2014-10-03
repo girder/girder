@@ -183,6 +183,18 @@ module.exports = function (grunt) {
                 files: ['docs/*.rst'],
                 tasks: ['docs']
             }
+        },
+
+        gitinfo: {},
+
+        'file-creator': {
+            version: {
+                'version.json': function (fs, fd, done) {
+                    var versionObj = grunt.config.get('gitinfo');
+                    fs.writeSync(fd, JSON.stringify(versionObj, null, "  "));
+                    done();
+                }
+            }
         }
     });
 
@@ -293,6 +305,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-file-creator');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
@@ -345,6 +359,11 @@ module.exports = function (grunt) {
             console.log('Created local config file.');
         }
     });
+
+    grunt.registerTask('version-info', [
+        'gitinfo',
+        'file-creator:version'
+    ]);
 
     grunt.registerTask('build-js', [
         'jade',
