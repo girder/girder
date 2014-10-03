@@ -24,6 +24,13 @@ import time
 from ..rest import Resource
 from girder.api import access
 
+# If no timeout param is passed to stream, we default to this value
+DEFAULT_STREAM_TIMEOUT = 300
+# When new events are seen, we will poll at the minimum interval
+MIN_POLL_INTERVAL = 0.5
+# The interval increases when no new events are seen, capping at this value
+MAX_POLL_INTERVAL = 2
+
 
 def sseMessage(event):
     """
@@ -53,19 +60,19 @@ class Notification(Resource):
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
 
-        timeout = int(params.get('timeout', 300))
+        timeout = int(params.get('timeout', DEFAULT_STREAM_TIMEOUT))
 
         def streamGen():
             lastUpdate = None
             start = time.time()
-            wait = 0.5
+            wait = MIN_POLL_INTERVAL
             while time.time() - start < timeout and\
                     cherrypy.engine.state == cherrypy.engine.states.STARTED:
-                wait = min(wait + 0.5, 2)
+                wait = min(wait + MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
                 for event in self.model('notification').get(user, lastUpdate):
                     if lastUpdate is None or event['updated'] > lastUpdate:
                         lastUpdate = event['updated']
-                    wait = 0.5
+                    wait = MIN_POLL_INTERVAL
                     start = time.time()
                     yield sseMessage(event)
 
