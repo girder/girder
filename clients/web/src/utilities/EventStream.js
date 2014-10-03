@@ -30,7 +30,7 @@
                 }
             };
         } else {
-            console.error('EventSource not supported on this platform.');
+            console.error('EventSource is not supported on this platform.');
         }
     };
 
