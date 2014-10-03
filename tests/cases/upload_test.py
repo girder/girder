@@ -17,16 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import boto
 import json
 import re
 import requests
 
 from .. import base
-from .. import mock_s3
-from girder.utility import s3_assetstore_adapter
-from girder.utility.s3_assetstore_adapter import botoConnectS3, \
-    makeBotoConnectParams
+from girder.utility.s3_assetstore_adapter import botoConnectS3
 
 
 Chunk1, Chunk2 = ('hello ', 'world')
@@ -260,7 +256,6 @@ class UploadTestCase(base.TestCase):
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
         self.model('assetstore').remove(self.assetstore)
-        mock_s3.createBucket(base.mockS3Server.botoConnect, 'bucketname')
         params = {
             'name': 'S3 Assetstore',
             'bucket': 'bucketname',

@@ -26,7 +26,8 @@ import threading
 import time
 
 import moto.server
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
+    botoConnectS3
 
 _startPort = 50003
 _maxTries = 20
@@ -41,7 +42,7 @@ def createBucket(botoConnect, bucketName):
     :type bucket: str
     :returns: a boto bucket.
     """
-    conn = boto.connect_s3(**botoConnect)
+    conn = botoConnectS3(botoConnect)
     bucket = conn.lookup(bucket_name=bucketName, validate=True)
     # if found, return
     if bucket is not None:
@@ -98,6 +99,8 @@ def startMockS3Server():
             break
     server = MockS3Server(selectedPort)
     server.start()
+    # add a bucket named 'bucketname' to simpliy testing
+    createBucket(server.botoConnect, 'bucketname')
     return server
 
 

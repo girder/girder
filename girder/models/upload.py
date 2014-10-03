@@ -246,7 +246,11 @@ class Upload(Model):
         # database
         if assetstore:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            adapter.cancelUpload(upload)
+            try:
+                adapter.cancelUpload(upload)
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
         self.model('upload').remove(upload)
 
     def untrackedUploads(self, action='list', assetstoreId=None):
@@ -268,6 +272,10 @@ class Upload(Model):
             if assetstoreId and assetstoreId != assetstore['_id']:
                 continue
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            results = adapter.untrackedUploads(knownUploads,
-                                               delete=(action == 'delete'))
+            try:
+                results += adapter.untrackedUploads(knownUploads,
+                                                    delete=(action == 'delete'))
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
         return results

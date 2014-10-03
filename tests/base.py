@@ -114,7 +114,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         elif assetstoreType == 's3':
             self.assetstore = self.model('assetstore'). \
                 createS3Assetstore(name='Test', bucket='bucketname',
-                                   accessKeyId='test', secret='test')
+                                   accessKeyId='test', secret='test',
+                                   service=mockS3Server.service)
         else:
             self.assetstore = self.model('assetstore'). \
                 createFilesystemAssetstore(name='Test', root=assetstorePath)

@@ -77,7 +77,9 @@
         p
           | This type of assetstore keeps files in an
           a(target="_blank", href="http://aws.amazon.com/s3/")  Amazon S3
-          |  bucket.
+          |  bucket.  The service defaults to s3.amazonaws.com.  You can
+          |  specify an alternate service, including an optional protocol and
+          |  post using the form [http[s]://](service domain)[:(port)].
         form#g-new-s3-form(role="form")
           .form-group
             label.control-label(for="g-new-s3-name") Assetstore name
@@ -99,6 +101,10 @@
             label.control-label(for="g-new-s3-secret") Secret access key
             input.input-sm.form-control#g-new-s3-secret(type="text",
                 placeholder="Secret access key")
+          .form-group
+            label.control-label(for="g-new-s3-service") Service
+            input.input-sm.form-control#g-new-s3-service(type="text",
+                placeholder="Service name")
           p#g-new-s3-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
             type="submit", value="Create")
