@@ -274,12 +274,16 @@ class Model(ModelImporter):
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
-            id = ObjectId(id)
+            try:
+                id = ObjectId(id)
+            except:
+                raise ValidationException('Invalid ObjectId: {}'.format(id),
+                                          field='id')
         doc = self.collection.find_one({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
             raise ValidationException('Invalid {} ID: {}'.format(
-                                      self.name, id), field='_id')
+                                      self.name, id), field='id')
 
         return doc
 

@@ -219,6 +219,11 @@ class UserTestCase(base.TestCase):
         params['login'] = 'notasgoodlogin'
         nonAdminUser = self.model('user').createUser(**params)
 
+        # Test that invalid objectID gives us a 400
+        resp = self.request(path='/user/bad_id')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid ObjectId: bad_id')
+
         resp = self.request(path='/user/{}'.format(user['_id']))
         self._verifyUserDocument(resp.json, admin=False)
 
