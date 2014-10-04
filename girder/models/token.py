@@ -56,7 +56,7 @@ class Token(AccessControlledModel):
         :type days: int
         :returns: The token document that was created.
         """
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         token = {
             '_id': genToken(),
             'created': now,

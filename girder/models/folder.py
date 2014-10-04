@@ -21,6 +21,7 @@ import datetime
 
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
+from girder.utility.progress import noProgress
 
 
 class Folder(AccessControlledModel):
@@ -165,7 +166,7 @@ class Folder(AccessControlledModel):
         for key in toDelete:
             del folder['meta'][key]
 
-        folder['updated'] = datetime.datetime.now()
+        folder['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the item
         return self.save(folder)
@@ -192,7 +193,7 @@ class Folder(AccessControlledModel):
             'parentId': folderId,
             'parentCollection': 'folder'
         }
-        for child in self.find(q, limit=0):
+        for child in self.find(q, limit=0, timeout=False):
             self._updateDescendants(
                 child['_id'], updateQuery)
 
@@ -264,27 +265,32 @@ class Folder(AccessControlledModel):
 
         return self.save(folder)
 
-    def remove(self, folder):
+    def remove(self, folder, progress=noProgress):
         """
         Delete a folder recursively.
 
         :param folder: The folder document to delete.
         :type folder: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext
         """
         # Delete all child items
         items = self.model('item').find({
             'folderId': folder['_id']
-        }, limit=0)
+        }, limit=0, timeout=False)
         for item in items:
             self.model('item').remove(item)
+            progress.update(increment=1, message='Deleted item ' + item['name'])
+        items.close()
 
         # Delete all child folders
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, limit=0)
+        }, limit=0, timeout=False)
         for subfolder in folders:
-            self.remove(subfolder)
+            self.remove(subfolder, progress)
+        folders.close()
 
         # Delete pending uploads into this folder
         uploads = self.model('upload').find({
@@ -293,9 +299,11 @@ class Folder(AccessControlledModel):
         }, limit=0)
         for upload in uploads:
             self.model('upload').remove(upload)
+        uploads.close()
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)
+        progress.update(increment=1, message='Deleted folder ' + folder['name'])
 
     def childItems(self, folder, limit=50, offset=0, sort=None, filters=None):
         """
@@ -399,7 +407,7 @@ class Folder(AccessControlledModel):
             parent['baseParentId'] = parent['_id']
             parent['baseParentType'] = parentType
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         if creator is None:
             creatorId = None
@@ -441,7 +449,7 @@ class Folder(AccessControlledModel):
         :type folder: dict
         :returns: The folder document that was edited.
         """
-        folder['updated'] = datetime.datetime.now()
+        folder['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the folder
         return self.save(folder)
@@ -474,3 +482,30 @@ class Folder(AccessControlledModel):
                         'object': self.filter(curParentObject, user)}] + curPath
             return self.parentsToRoot(curParentObject, curPath, user=user,
                                       force=force)
+
+    def subtreeCount(self, folder):
+        """
+        Return the size of the subtree rooted at the given folder. Includes
+        the root folder in the count. Counts folders and items. This returns the
+        absolute size of the subtree, it does not filter by permissions.
+
+        :param folder: The root of the subtree.
+        :type folder: dict
+        """
+        count = 1
+
+        items = self.model('item').find({
+            'folderId': folder['_id']
+        }, fields=(), limit=0)
+        count += items.count()
+        items.close()
+
+        folders = self.find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        }, fields=(), limit=0, timeout=False)
+        for subfolder in folders:
+            count += self.subtreeCount(subfolder)
+        folders.close()
+
+        return count
