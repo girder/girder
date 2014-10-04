@@ -282,7 +282,7 @@ class Model(ModelImporter):
         doc = self.collection.find_one({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('Invalid {} ID: {}'.format(
+            raise ValidationException('No such {}: {}'.format(
                                       self.name, id), field='id')
 
         return doc
