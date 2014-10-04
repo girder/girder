@@ -1,4 +1,5 @@
-$opacityDuration = 0.35s
+@import 'nib'
+
 $containerBorder = 1px solid #d7d7d7
 
 .g-progress-list-container
@@ -9,11 +10,7 @@ $containerBorder = 1px solid #d7d7d7
   border-left $containerBorder
   border-right $containerBorder
   background-color rgba(255, 255, 255, 0.8)
-  -webkit-transition background-color $opacityDuration ease-in-out
-  -moz-transition background-color $opacityDuration ease-in-out
-  -ms-transition background-color $opacityDuration ease-in-out
-  -o-transition background-color $opacityDuration ease-in-out
-  transition background-color $opacityDuration ease-in-out
+  transition background-color 0.35s ease-in-out
 
   &:hover
     background-color rgba(255, 255, 255, 1)
