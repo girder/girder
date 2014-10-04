@@ -4,7 +4,7 @@ html(lang="en")
     title Girder - REST API Documentation
     link(href='//fonts.googleapis.com/css?family=Droid+Sans:400,700', rel='stylesheet', type='text/css')
     link(href='#{staticRoot}/lib/fontello/css/fontello.css', rel='stylesheet')
-    link(href='#{staticRoot}/built/swagger/css/highlight.default.css', rel='stylesheet')
+    link(href='#{staticRoot}/built/swagger/css/reset.css', rel='stylesheet')
     link(href='#{staticRoot}/built/swagger/css/screen.css', rel='stylesheet')
     link(href='#{staticRoot}/built/swagger/docs.css', rel='stylesheet')
     link(href="#{staticRoot}/img/Girder_Favicon.png", rel="icon", type="image/png")
@@ -22,7 +22,7 @@ html(lang="en")
 
     script(type="text/javascript").
       $(function () {
-        var swaggerUi = new SwaggerUi({
+        window.swaggerUi = new SwaggerUi({
           url: window.location.origin + window.location.pathname + '/describe',
           dom_id: 'swagger-ui-container',
           supportHeaderParams: false,
@@ -75,4 +75,5 @@ html(lang="en")
         |  This is not a sandbox&mdash;calls that you make from this page are the same as calling
         | the API with any other client, so update or delete calls that you make will affect the
         | actual data on the server.
-    #swagger-ui-container.swagger-ui-wrap.docs-swagger-container
+    .swagger-section
+      #swagger-ui-container.swagger-ui-wrap.docs-swagger-container
