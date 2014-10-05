@@ -17,12 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+from subprocess import check_output, CalledProcessError
 import json
 
 from .. import base
 
 from girder.api.describe import API_VERSION
-from girder.constants import SettingKey, SettingDefault
+from girder.constants import SettingKey, SettingDefault, ROOT_DIR
 
 
 def setUpModule():
@@ -39,8 +40,24 @@ class SystemTestCase(base.TestCase):
     """
 
     def testGetVersion(self):
+        usingGit = True
         resp = self.request(path='/system/version', method='GET')
         self.assertEqual(resp.json['apiVersion'], API_VERSION)
+
+        try:
+            # Get the current git head
+            sha = check_output(
+                ['git', 'rev-parse', 'HEAD'],
+                cwd=ROOT_DIR
+            ).strip()
+        except CalledProcessError:
+            usingGit = False
+
+        # Ensure a valid response
+        self.assertEqual(usingGit, resp.json['git'])
+        if usingGit:
+            self.assertEqual(resp.json['SHA'], sha)
+            self.assertEqual(sha.find(resp.json['shortSHA']), 0)
 
     def testSettings(self):
         users = [self.model('user').createUser(
