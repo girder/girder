@@ -43,7 +43,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2'
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests.*', 'tests')),
     package_data={
         'girder': ['girder-version.json']
     }
