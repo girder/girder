@@ -22,7 +22,7 @@ module.exports = function (grunt) {
     var path = require('path');
     require('colors');
 
-    var defaultTasks = ['version-info', 'stylus', 'build-js'];
+    var defaultTasks = ['stylus', 'build-js'];
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';
@@ -42,6 +42,22 @@ module.exports = function (grunt) {
             grunt.warn('Invalid json from config_parse: ' + stdout);
         }
         callback();
+    };
+
+    // Returns a json string containing information from the current git repository.
+    var versionInfoObject = function () {
+        var gitVersion = grunt.config.get('gitinfo');
+        return JSON.stringify(
+            {
+                git: !!gitVersion.local.branch.current.SHA,
+                SHA: gitVersion.local.branch.current.SHA,
+                shortSHA: gitVersion.local.branch.current.shortSHA,
+                date: grunt.template.date(new Date(), "isoDateTime", true),
+                apiVersion: grunt.config.get('pkg').version
+            },
+            null,
+            "  "
+        );
     };
 
     // Project configuration.
@@ -124,6 +140,7 @@ module.exports = function (grunt) {
                     'clients/web/static/built/app.min.js': [
                         'clients/web/static/built/templates.js',
                         'clients/web/src/init.js',
+                        'clients/web/src/girder-version.js',
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
                         'clients/web/src/utilities/**/*.js',
@@ -188,18 +205,28 @@ module.exports = function (grunt) {
         gitinfo: {},
 
         'file-creator': {
-            version: {
+            'python-version': {
                 'girder/girder-version.json': function (fs, fd, done) {
-                    var gitVersion = grunt.config.get('gitinfo'),
-                        girderVersion = {
-                            git: !!gitVersion.local.branch.current.SHA,
-                            sha: gitVersion.local.branch.current.SHA,
-                            shortSHA: gitVersion.local.branch.current.shortSHA,
-                            date: grunt.template.date(new Date(), "isoDateTime", true),
-                            version: grunt.config.get('pkg').version
-                        };
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(fd, girderVersion);
+                    done();
+                }
+            },
 
-                    fs.writeSync(fd, JSON.stringify(girderVersion, null, "  "));
+            'javascript-version': {
+                'clients/web/src/girder-version.js': function (fs, fd, done) {
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(
+                        fd,
+                        [
+                            '/* global girder: true */',
+                            '/* BEGIN JSSTYLED */',
+                            'girder.versionInfo = ',
+                            girderVersion,
+                            ';',
+                            '/* END JSSTYLED */'
+                        ].join('\n')
+                    );
                     done();
                 }
             }
@@ -370,11 +397,12 @@ module.exports = function (grunt) {
 
     grunt.registerTask('version-info', [
         'gitinfo',
-        'file-creator:version'
+        'file-creator'
     ]);
 
     grunt.registerTask('build-js', [
         'jade',
+        'version-info',
         'uglify:app',
         'shell:readServerConfig',
         'test-env-html'

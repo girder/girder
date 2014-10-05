@@ -82,7 +82,7 @@ copyright = u'2014, Kitware'
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = constants.VERSION['version']
+release = constants.VERSION['apiVersion']
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
