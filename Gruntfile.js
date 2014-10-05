@@ -220,11 +220,13 @@ module.exports = function (grunt) {
                         fd,
                         [
                             '/* global girder: true */',
-                            '/* BEGIN JSSTYLED */',
+                            '/* jshint ignore: start */',
+                            '//jscs:disable',
                             'girder.versionInfo = ',
                             girderVersion,
                             ';',
-                            '/* END JSSTYLED */'
+                            '/* jshint ignore: end */',
+                            '//jscs:enable\n'
                         ].join('\n')
                     );
                     done();
