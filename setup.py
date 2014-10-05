@@ -25,7 +25,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 with open('package.json') as f:
-    version = json.load(f)['apiVersion']
+    version = json.load(f)['version']
 
 setup(
     name='girder',
