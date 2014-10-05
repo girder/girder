@@ -40,7 +40,7 @@
     if versionInfo.git
       p.g-frontpage-paragraph
         | This instance of girder was built from git version 
-        a(target="_blank", href="https://github.com/girder/girder/tree/#{versionInfo.SHA}")
+        a.g-git-sha(target="_blank", href="https://github.com/girder/girder/tree/#{versionInfo.SHA}")
           = versionInfo.shortSHA
         | .
     else
