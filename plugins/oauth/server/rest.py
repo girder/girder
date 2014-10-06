@@ -146,5 +146,5 @@ class OAuth(Resource):
 
         self.model('token').remove(token)
 
-        if token['expires'] < datetime.datetime.now():
+        if token['expires'] < datetime.datetime.utcnow():
             raise Exception('Expired CSRF token (state="{}").'.format(redirect))

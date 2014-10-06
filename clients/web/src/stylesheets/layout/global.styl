@@ -1,12 +1,13 @@
 /**
  * Place global styles in this file.
  */
+@import 'nib'
 
 *:not(i)
   font-family 'Droid Sans',sans-serif
 
 i
-  -webkit-font-smoothing antialiased
+  font-smoothing antialiased
 
 body
   padding 0
@@ -30,6 +31,7 @@ ul.dropdown-menu
     color white
   >li>a
     padding 3px 20px 3px 8px
+
     &:hover
       background-color #eee
     >i
@@ -69,7 +71,7 @@ ul.dropdown-menu
   &:hover
     border 1px solid #cdcdcd
     background-color #f0f0f0
-    background-image linear-gradient(to bottom, #f0f0f0 0%, #f7f7f7 100%)
+    background linear-gradient(top, #f0f0f0, #f7f7f7)
 
 /* Bug fix for tabs in bootstrap 3 */
 .nav-tabs

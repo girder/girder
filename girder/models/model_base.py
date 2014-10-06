@@ -115,9 +115,10 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query=None, offset=0, limit=50, sort=None, fields=None):
+    def find(self, query=None, offset=0, limit=50, **kwargs):
         """
-        Search the collection by a set of parameters.
+        Search the collection by a set of parameters. Passes any kwargs
+        through to the underlying pymongo.collection.find function.
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
@@ -134,8 +135,8 @@ class Model(ModelImporter):
         if not query:
             query = {}
 
-        return self.collection.find(spec=query, fields=fields, skip=offset,
-                                    limit=limit, sort=sort)
+        return self.collection.find(
+            spec=query, skip=offset, limit=limit, **kwargs)
 
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
                    filters=None):
@@ -274,12 +275,16 @@ class Model(ModelImporter):
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
-            id = ObjectId(id)
+            try:
+                id = ObjectId(id)
+            except:
+                raise ValidationException('Invalid ObjectId: {}'.format(id),
+                                          field='id')
         doc = self.collection.find_one({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('Invalid {} ID: {}'.format(
-                                      self.name, id), field='_id')
+            raise ValidationException('No such {}: {}'.format(
+                                      self.name, id), field='id')
 
         return doc
 

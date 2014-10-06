@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright 2013 Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import cherrypy
+import json
+import time
+
+from ..rest import Resource
+from girder.api import access
+
+# If no timeout param is passed to stream, we default to this value
+DEFAULT_STREAM_TIMEOUT = 300
+# When new events are seen, we will poll at the minimum interval
+MIN_POLL_INTERVAL = 0.5
+# The interval increases when no new events are seen, capping at this value
+MAX_POLL_INTERVAL = 2
+
+
+def sseMessage(event):
+    """
+    Serializes an event into the server-sent events protocol.
+    """
+    return 'data: {}\n\n'.format(json.dumps(event, default=str))
+
+
+class Notification(Resource):
+    def __init__(self):
+        self.resourceName = 'notification'
+        self.route('GET', ('stream',), self.stream)
+
+    @access.user
+    def stream(self, params):
+        """
+        Streams notifications using the server-sent events protocol. Closes
+        the connection if more than timeout seconds elapse without any new
+        notifications.
+
+        :params timeout: Timeout in seconds; if no notifications appear in
+        this window, the connection will be closed. (default=300)
+        :type timeout: int
+        """
+        user = self.getCurrentUser()
+
+        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
+        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+
+        timeout = int(params.get('timeout', DEFAULT_STREAM_TIMEOUT))
+
+        def streamGen():
+            lastUpdate = None
+            start = time.time()
+            wait = MIN_POLL_INTERVAL
+            while time.time() - start < timeout and\
+                    cherrypy.engine.state == cherrypy.engine.states.STARTED:
+                wait = min(wait + MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
+                for event in self.model('notification').get(user, lastUpdate):
+                    if lastUpdate is None or event['updated'] > lastUpdate:
+                        lastUpdate = event['updated']
+                    wait = MIN_POLL_INTERVAL
+                    start = time.time()
+                    yield sseMessage(event)
+
+                time.sleep(wait)
+        return streamGen
+    stream.description = None

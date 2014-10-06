@@ -25,6 +25,7 @@ from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.utility import ziputil
+from girder.utility.progress import ProgressContext
 from girder.api import access
 
 
@@ -297,14 +298,19 @@ class Folder(Resource):
     @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
     def deleteFolder(self, folder, params):
-        """
-        Delete a folder recursively.
-        """
-        self.model('folder').remove(folder)
-        return {'message': 'Deleted folder %s.' % folder['name']}
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(progress, user=self.getCurrentUser(),
+                             title='Deleting folder {}'.format(folder['name']),
+                             message='Calculating folder size...') as ctx:
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(folder))
+            self.model('folder').remove(folder, ctx)
+        return {'message': 'Deleted folder {}.'.format(folder['name'])}
     deleteFolder.description = (
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 

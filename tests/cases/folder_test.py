@@ -17,11 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import json
 
 from .. import base
 
 from girder.constants import AccessType
+from girder.models.notification import ProgressState
 
 
 def setUpModule():
@@ -289,7 +291,9 @@ class FolderTestCase(base.TestCase):
 
         # Delete the folder
         resp = self.request(path='/folder/%s' % folderResp['_id'],
-                            method='DELETE', user=self.admin)
+                            method='DELETE', user=self.admin, params={
+                                'progress': 'true'
+        })
         self.assertStatusOk(resp)
 
         # Make sure the folder, its subfolder, and its item were all deleted
@@ -300,6 +304,18 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder, None)
         self.assertEqual(subfolder, None)
         self.assertEqual(item, None)
+
+        # Make sure progress record exists and that it is set to expire soon
+        notifs = list(self.model('notification').get(self.admin))
+        self.assertEqual(len(notifs), 1)
+        self.assertEqual(notifs[0]['type'], 'progress')
+        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
+        self.assertEqual(notifs[0]['data']['title'], 'Deleting folder Public')
+        self.assertEqual(notifs[0]['data']['message'], 'Done')
+        self.assertEqual(notifs[0]['data']['total'], 3)
+        self.assertEqual(notifs[0]['data']['current'], 3)
+        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
+                        datetime.timedelta(minutes=1))
 
     def testLazyFieldComputation(self):
         """

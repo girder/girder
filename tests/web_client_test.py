@@ -52,10 +52,11 @@ class WebClientTestCase(base.TestCase):
         )
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT)
+                                   stderr=subprocess.PIPE)
 
         (stdoutdata, stderrdata) = process.communicate()
 
         print(stdoutdata)
+        print(stderrdata)
 
         self.assertEqual(process.returncode, 0)

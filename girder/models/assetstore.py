@@ -116,7 +116,7 @@ class Assetstore(Model):
     def createFilesystemAssetstore(self, name, root):
         return self.save({
             'type': AssetstoreType.FILESYSTEM,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
             'root': root
         })
@@ -124,7 +124,7 @@ class Assetstore(Model):
     def createGridFsAssetstore(self, name, db):
         return self.save({
             'type': AssetstoreType.GRIDFS,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
             'db': db
         })
@@ -133,7 +133,7 @@ class Assetstore(Model):
                            service=''):
         return self.save({
             'type': AssetstoreType.S3,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,
