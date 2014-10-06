@@ -188,6 +188,13 @@ class AssetstoreTestCase(base.TestCase):
             'message': 'Unable to write into bucket "bucketname".'
         })
 
+        # Validation should fail with a bogus service name
+        params['service'] = 'ftp://nowhere'
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatus(resp, 400)
+        del params['service']
+
         # Create a bucket (mocked using moto), so that we can create an
         # assetstore in it
         botoParams = makeBotoConnectParams(params['accessKeyId'],

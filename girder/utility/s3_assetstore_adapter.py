@@ -17,12 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import base64
 import boto
 import boto.s3.connection
 import cherrypy
-import hashlib
-import hmac
 import json
 import os
 import re
@@ -43,18 +40,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     CHUNK_LEN = 1024 * 1024 * 32  # Chunk size for uploading
     HMAC_TTL = 120  # Number of seconds each signed message is valid
-
-    def _getSignature(self, msg):
-        """
-        Provide a message to HMAC-sign in the form of a string or list of
-        lines.
-        """
-        if not isinstance(msg, basestring):
-            msg = '\n'.join(map(str, msg))
-
-        return base64.b64encode(hmac.new(
-            str(self.assetstore['secret']),
-            msg, hashlib.sha1).digest())
 
     @staticmethod
     def fileIndexFields():
@@ -306,21 +291,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
                              validate=True)
-        if bucket:
-            for multipartUpload in bucket.get_all_multipart_uploads():
-                known = False
-                for upload in knownUploads:
-                    if ('s3' in upload and 'uploadId' in upload['s3'] and
-                            'key' in upload['s3']):
-                        if (multipartUpload.id == upload['s3']['uploadId'] and
-                                multipartUpload.key_name ==
-                                upload['s3']['key']):
-                            known = True
-                            break
-                if known:
+        if not bucket:
+            return []
+        getParams = {}
+        while True:
+            multipartUploads = bucket.get_all_multipart_uploads(**getParams)
+            if not len(multipartUploads):
+                break
+            for multipartUpload in multipartUploads:
+                if self._uploadIsKnown(multipartUpload, knownUploads):
                     continue
-                # don't include uploads with a different prefix; this allows
-                # a single bucket to handle multiple assetstores and us to only
+                # don't include uploads with a different prefix; this allows a
+                # single bucket to handle multiple assetstores and us to only
                 # clean up the one we are in.  We could further validate that
                 # the key name was of the format /(prefix)/../../(id)
                 if not multipartUpload.key_name.startswith(prefix):
@@ -330,7 +312,29 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 untrackedList.append(unknown)
                 if delete:
                     multipartUpload.cancel_upload()
+            if not multipartUploads.is_truncated:
+                break
+            getParams['key_marker'] = multipartUploads.next_key_marker
+            getParams['upload_id_marker'] = \
+                multipartUploads.next_upload_id_marker
         return untrackedList
+
+    def _uploadIsKnown(self, multipartUpload, knownUploads):
+        """
+        Check if a multipartUpload as returned by boto is in our list of known
+        uploads.
+        :param multipartUpload: an upload entry from get_all_multipart_uploads.
+        :param knownUploads: a list of our known uploads.
+        :results: TRue if the upload is known.
+        """
+        for upload in knownUploads:
+            if ('s3' in upload and 'uploadId' in upload['s3'] and
+                    'key' in upload['s3']):
+                if (multipartUpload.id == upload['s3']['uploadId']
+                        and multipartUpload.key_name ==
+                        upload['s3']['key']):
+                    return True
+        return False
 
     def _botoGenerateUrl(self, key, method='GET', headers=None,
                          queryParams=None):
@@ -415,7 +419,7 @@ def makeBotoConnectParams(accessKeyId, secretKey, service=None):
     connect = {
         'aws_access_key_id': accessKeyId,
         'aws_secret_access_key': secretKey,
-    }
+        }
     if service:
         service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$", service)
         if service.groups()[1] == 'http':
