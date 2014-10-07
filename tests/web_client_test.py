@@ -38,6 +38,9 @@ class WebClientTestCase(base.TestCase):
         self.specFile = os.environ['SPEC_FILE']
         self.coverageFile = os.environ['COVERAGE_FILE']
         assetstoreType = os.environ['ASSETSTORE_TYPE']
+        self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
+        if self.webSecurity != 'false':
+            self.webSecurity = 'true'
         base.TestCase.setUp(self, assetstoreType)
 
     def testWebClientSpec(self):
@@ -45,6 +48,7 @@ class WebClientTestCase(base.TestCase):
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
+            '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:50001/static/built/testEnv.html',
             self.specFile,

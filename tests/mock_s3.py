@@ -99,7 +99,7 @@ def startMockS3Server():
             break
     server = MockS3Server(selectedPort)
     server.start()
-    # add a bucket named 'bucketname' to simpliy testing
+    # add a bucket named 'bucketname' to simplify testing
     createBucket(server.botoConnect, 'bucketname')
     return server
 
