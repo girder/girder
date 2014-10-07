@@ -237,7 +237,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         an external HTTP request per file in order to delete them, and we don't
         want to wait on that.
         """
-        if file['size'] > 0:
+        if file['size'] > 0 and 'relpath' in file:
             q = {
                 'relpath': file['relpath'],
                 'assetstoreId': self.assetstore['_id']

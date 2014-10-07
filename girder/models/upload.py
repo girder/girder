@@ -186,6 +186,8 @@ class Upload(Model):
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
+        if not mimeType:
+            mimeType = 'application/octet-stream'
         upload = {
             'created': now,
             'updated': now,
