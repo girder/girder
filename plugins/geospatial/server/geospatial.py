@@ -122,10 +122,10 @@ class GeospatialItem(Resource):
         Description('Create new items from a GeoJSON feature or feature'
                     ' collection.')
         .param('folderId', 'The ID of the parent folder.', required=True,
-               paramType='form')
+               paramType='query')
         .param('geoJSON', 'A GeoJSON object containing the features or feature'
                           ' collection to add.', required=True,
-               paramType='form')
+               paramType='query')
         .errorResponse()
         .errorResponse('Invalid GeoJSON was passed in request body.')
         .errorResponse('GeoJSON feature or feature collection was not passed in'
