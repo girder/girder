@@ -43,7 +43,7 @@ mockS3Server = None
 enabledPlugins = []
 
 
-def startServer(mock=True, mockS3=True):
+def startServer(mock=True, mockS3=False):
     """
     Test cases that communicate with the server should call this
     function in their setUpModule() function.

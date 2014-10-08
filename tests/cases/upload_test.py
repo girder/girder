@@ -29,7 +29,7 @@ Chunk1, Chunk2 = ('hello ', 'world')
 
 
 def setUpModule():
-    base.startServer()
+    base.startServer(mockS3=True)
 
 
 def tearDownModule():

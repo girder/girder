@@ -26,7 +26,10 @@ from . import base
 
 def setUpModule():
     os.environ['PORT'] = '50001'
-    base.startServer(False)
+    mockS3 = False
+    if 's3' in os.environ['ASSETSTORE_TYPE']:
+        mockS3 = True
+    base.startServer(False, mockS3=mockS3)
 
 
 def tearDownModule():
