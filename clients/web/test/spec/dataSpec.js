@@ -6,6 +6,8 @@
  */
 
 var uploadData;
+/* used for resume testing */
+var uploadDataExtra = 0;
 
 (function (impl) {
     XMLHttpRequest.prototype.send = function (data) {
@@ -15,25 +17,36 @@ var uploadData;
             data.append('uploadId', girder._uploadId);
             /* Note that this appears to fail if uploadData contains certain
              * characters, such as LF. */
-            if (uploadData.length)
+            if (uploadData.length && !uploadDataExtra)
                 data.append('chunk', uploadData);
             else
-                data.append('chunk', new Array(uploadData+1).join('-'));
+                data.append('chunk', new Array(
+                    uploadData+1+uploadDataExtra).join('-'));
         }
         else if (data && data instanceof Blob) {
-            if (uploadData.length && uploadData.length==data.size)
+            if (uploadDataExtra)
+            {
+                /* Our mock S3 server will take extra data, so break it by
+                 * adding a faulty copy header.  This will throw an error so we
+                 * can test resumes. */
+                this.setRequestHeader('x-amz-copy-source', 'bad_value');
+            }
+            if (uploadData.length && uploadData.length==data.size &&
+                    !uploadDataExtra)
                 data = uploadData;
             else
-                data = new Array(data.size+1).join('-');
+                data = new Array(data.size+1+uploadDataExtra).join('-');
         }
         impl.call(this, data);
     };
 } (XMLHttpRequest.prototype.send));
 
-function _testUpload(uploadItem)
+function _testUpload(uploadItem, needResume)
 /* Upload a file and make sure it lands properly.
  * :param uploadItem: either the path to the file to upload or an integer to
  *                    create and upload a temporary file of that size.
+ * :param needResume: if true, upload a partial file so that we are asked if we
+ *                    want to resume, then resume.
  */
 {
     var orig_len;
@@ -53,6 +66,11 @@ function _testUpload(uploadItem)
     }, 'the upload dialog to appear');
 
     runs(function () {
+        if (needResume)
+            uploadDataExtra = 1024 * 20;
+        else
+            uploadDataExtra = 0;
+
         // Incantation that causes the phantom environment to send us a File.
         $('#g-files').parent().removeClass('hide');
         var params = {action: 'uploadFile', selector: '#g-files'};
@@ -75,6 +93,18 @@ function _testUpload(uploadItem)
         $('#g-files').parent().addClass('hide');
         $('.g-start-upload').click();
     });
+
+    if (needResume)
+    {
+        waitsFor(function () {
+            return $('.g-resume-upload:visible').length > 0;
+        }, 'the resume link to appear');
+        runs(function () {
+            uploadDataExtra = 0;
+
+            $('.g-resume-upload').click();
+        });
+    }
 
     waitsFor(function () {
         return $('.modal-content:visible').length === 0 &&
@@ -255,11 +285,20 @@ describe('Create a data hierarchy', function () {
         _testUpload(11);
     });
 
+    it('upload requiring resume', function () {
+        _testUpload(1024 * 32, true);
+    });
+
     it('upload a large file', function () {
-        /* Use a file greater than 32Mb.  There is a bug in phantomjs that
-         * fails to parse the response headers from the multipart uploads.  As
-         * such, when this is run on the S3 assetstore, this test will fail
-         * unless phantomjs is run with --web-security=false */
+        /* Use a file greater than the S3 chunk size of 32Mb.  There is a bug
+         * in phantomjs that fails to parse the response headers from the
+         * multipart uploads.  As such, when this is run on the S3 assetstore,
+         * this test will fail unless phantomjs is run with
+         * --web-security=false */
         _testUpload(1024 * 1024 * 33);
+    });
+
+    it('upload a large file requiring resume', function () {
+        _testUpload(1024 * 1024 * 33, true);
     });
 });
