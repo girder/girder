@@ -62,8 +62,8 @@ class OAuth(Resource):
         if clientId is None:
             raise Exception('No Google client ID setting is present.')
 
-        callbackUrl = os.path.join(
-            os.path.dirname(cherrypy.url()), 'google', 'callback')
+        callbackUrl = '/'.join((
+            os.path.dirname(cherrypy.url()), 'google', 'callback'))
 
         query = urllib.urlencode({
             'response_type': 'code',
