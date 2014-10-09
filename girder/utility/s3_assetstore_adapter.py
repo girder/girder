@@ -23,7 +23,6 @@ import cherrypy
 import hashlib
 import hmac
 import json
-import os
 import time
 import urllib
 import uuid
@@ -89,7 +88,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                                    aws_secret_access_key=doc['secret'])
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=False)
             testKey = boto.s3.key.Key(
-                bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
+                bucket=bucket, name='/'.join(
+                    filter(None, (doc['prefix'], 'test'))))
             testKey.set_contents_from_string('')
         except:
             logger.exception('S3 assetstore validation exception')
@@ -133,8 +133,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         uid = uuid.uuid4().hex
         expires = int(time.time() + self.HMAC_TTL)
-        key = os.path.join(self.assetstore.get('prefix', ''),
-                           uid[0:2], uid[2:4], uid)
+        key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
+                       uid[0:2], uid[2:4], uid)))
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
         canonical, allHeaders = self._getRequestHeaders(upload)
 
