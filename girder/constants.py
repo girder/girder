@@ -35,9 +35,18 @@ LOG_BACKUP_COUNT = 5
 TEXT_SCORE_SORT_MAX = 200
 
 # Get the version information
-VERSION = {}
-with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
-    VERSION.update(json.load(f))
+VERSION = {  # Set defaults in case girder-version.json doesn't exist
+    'git': False,
+    'SHA': None,
+    'shortSHA': None,
+    'apiVersion': None,
+    'date': None
+}
+try:
+    with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
+        VERSION.update(json.load(f))
+except IOError:  # pragma: no cover
+    pass
 
 
 class TerminalColor(object):
