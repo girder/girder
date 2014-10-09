@@ -31,7 +31,7 @@ version. If we break backward compatibility in any way, we should increment the
 major version.  This value is derived from the version number given in
 the top level package.json.
 """
-API_VERSION = '.'.join(VERSION['apiVersion'].split('.')[:2])
+API_VERSION = VERSION['apiVersion']
 
 SWAGGER_VERSION = "1.2"
 
