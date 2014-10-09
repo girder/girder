@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import os
 
 from . import describe
 from v1 import assetstore, file, collection, folder, group, item, resource,\
@@ -31,7 +30,7 @@ class ApiDocs():
     def GET(self):
         # Since we only have v1 right now, just redirect to the v1 page.
         # If we get more versions, this should show an index of them.
-        raise cherrypy.HTTPRedirect(os.path.join(cherrypy.url(), 'v1'))
+        raise cherrypy.HTTPRedirect(cherrypy.url() + '/v1')
 
 
 def addApiToNode(node):

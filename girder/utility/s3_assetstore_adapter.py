@@ -21,7 +21,6 @@ import boto
 import boto.s3.connection
 import cherrypy
 import json
-import os
 import re
 import uuid
 
@@ -83,7 +82,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
             testKey = boto.s3.key.Key(
-                bucket=bucket, name=os.path.join(doc['prefix'], 'test'))
+                bucket=bucket, name='/'.join(
+                    filter(None, (doc['prefix'], 'test'))))
             testKey.set_contents_from_string('')
         except Exception:
             logger.exception('S3 assetstore validation exception')
@@ -123,8 +123,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return upload
 
         uid = uuid.uuid4().hex
-        key = os.path.join(self.assetstore.get('prefix', ''),
-                           uid[0:2], uid[2:4], uid)
+        key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
+                       uid[0:2], uid[2:4], uid)))
         path = '/{}/{}'.format(self.assetstore['bucket'], key)
         headers = self._getRequestHeaders(upload)
 

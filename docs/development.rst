@@ -175,11 +175,18 @@ add:
 Re-run CMake in the build directory, and then run CTest, and your test will be
 run.
 
-.. note:: By default, **add_python_test** will run each Python test serially
-   by using the RESOURCE_LOCK capability of CTest. However, if it is OK for
-   your test to be run in parallel with other Python tests (i.e., it does not
-   require a specific shared database state), then call **add_python_test** with
-   the **NO_LOCK** option: ``add_python_test(thing NO_LOCK)``
+.. note:: By default, **add_python_test** allows the test to be run in parallel
+   with other tests, which is normally fine since each python test has its own
+   assetstore space and its own mongo database, and the server is typically
+   mocked rather than actually binding to its port. However, some tests (such
+   as those that actually start the cherrypy server) should not be run concurrently
+   with other tests that use the same resource. If you have such a test, use the
+   ``RESOURCE_LOCKS`` argument to **add_python_test**. If your test requires the
+   cherrypy server to bind to its port, declare that it locks the ``cherrypy``
+   resource. If it also makes use of the database, declare that it locks the
+   ``mongo`` resource. For example: ::
+
+       add_python_test(my_test RESOURCE_LOCKS cherrypy mongo)
 
 Plugin Development
 ------------------
