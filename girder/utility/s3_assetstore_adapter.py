@@ -268,10 +268,25 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             # check if this is an abandoned multipart upload
             if ('s3' in upload and 'uploadId' in upload['s3'] and
                     'key' in upload['s3']):
-                for multipartUpload in bucket.get_all_multipart_uploads():
-                    if (multipartUpload.id == upload['s3']['uploadId'] and
-                            multipartUpload.key_name == upload['s3']['key']):
-                        multipartUpload.cancel_upload()
+                getParams = {}
+                while True:
+                    try:
+                        multipartUploads = bucket.get_all_multipart_uploads(
+                            **getParams)
+                    except boto.exception.S3ResponseError:
+                        break
+                    if not len(multipartUploads):
+                        break
+                    for multipartUpload in multipartUploads:
+                        if (multipartUpload.id == upload['s3']['uploadId'] and
+                                multipartUpload.key_name ==
+                                upload['s3']['key']):
+                            multipartUpload.cancel_upload()
+                    if not multipartUploads.is_truncated:
+                        break
+                    getParams['key_marker'] = multipartUploads.next_key_marker
+                    getParams['upload_id_marker'] = \
+                        multipartUploads.next_upload_id_marker
 
     def untrackedUploads(self, knownUploads=[], delete=False):
         """
@@ -295,7 +310,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return []
         getParams = {}
         while True:
-            multipartUploads = bucket.get_all_multipart_uploads(**getParams)
+            try:
+                multipartUploads = bucket.get_all_multipart_uploads(**getParams)
+            except boto.exception.S3ResponseError:
+                break
             if not len(multipartUploads):
                 break
             for multipartUpload in multipartUploads:
