@@ -69,15 +69,15 @@ class Item(Model):
             }
             if '_id' in doc:
                 q['_id'] = {'$ne': doc['_id']}
-            dupItems = self.find(q, limit=1, fields=['_id'])
+            dupItem = self.findOne(q, fields=['_id'])
 
             q = {
                 'parentId': doc['folderId'],
                 'name': name,
                 'parentCollection': 'folder'
             }
-            dupFolders = self.model('folder').find(q, limit=1, fields=['_id'])
-            if dupItems.count() + dupFolders.count() == 0:
+            dupFolder = self.model('folder').findOne(q, fields=['_id'])
+            if dupItem is None and dupFolder is None:
                 doc['name'] = name
                 break
             else:

@@ -125,11 +125,9 @@ class User(Resource):
             login = login.lower().strip()
             loginField = 'email' if '@' in login else 'login'
 
-            cursor = self.model('user').find({loginField: login}, limit=1)
-            if cursor.count() == 0:
+            user = self.model('user').findOne({loginField: login})
+            if user is None:
                 raise RestException('Login failed.', code=403)
-
-            user = cursor.next()
 
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
@@ -273,11 +271,10 @@ class User(Resource):
         self.requireParams('email', params)
         email = params['email'].lower().strip()
 
-        cursor = self.model('user').find({'email': email}, limit=1)
-        if cursor.count() == 0:
+        user = self.model('user').findOne({'email': email})
+        if user is None:
             raise RestException('That email is not registered.')
 
-        user = cursor.next()
         randomPass = genToken(length=12)
 
         html = mail_utils.renderTemplate('resetPassword.mako', {

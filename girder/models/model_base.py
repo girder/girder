@@ -138,6 +138,26 @@ class Model(ModelImporter):
         return self.collection.find(
             spec=query, skip=offset, limit=limit, **kwargs)
 
+    def findOne(self, query=None, **kwargs):
+        """
+        Search the collection by a set of parameters. Passes any kwargs
+        through to the underlying pymongo.collection.find function.
+
+        :param query: The search query (see general MongoDB docs for "find()")
+        :type query: dict
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key.
+        :type fields: List of strings
+        :returns: the first object that was found, or None if none found.
+        """
+        if not query:
+            query = {}
+        cursor = self.collection.find(spec=query, skip=0, limit=1, **kwargs)
+        if cursor.count() == 0:
+            return None
+        return cursor.next()
+
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
                    filters=None):
         """

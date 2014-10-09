@@ -100,13 +100,13 @@ class Setting(Model):
         :param default: If no such setting exists, returns this value instead.
         :returns: The value, or the default value if the key is not found.
         """
-        cursor = self.find({'key': key}, limit=1)
-        if cursor.count(True) == 0:
+        setting = self.findOne({'key': key})
+        if setting is None:
             if default is '__default__':
                 default = self.getDefault(key)
             return default
         else:
-            return cursor[0]['value']
+            return setting['value']
 
     def set(self, key, value):
         """
@@ -118,17 +118,16 @@ class Setting(Model):
         :param value: The object to store for this setting.
         :returns: The document representing the saved Setting.
         """
-        cursor = self.find({'key': key}, limit=1)
-        if cursor.count(True) == 0:
-            doc = {
+        setting = self.findOne({'key': key})
+        if setting is None:
+            setting = {
                 'key': key,
                 'value': value
             }
         else:
-            doc = cursor[0]
-            doc['value'] = value
+            setting['value'] = value
 
-        return self.save(doc)
+        return self.save(setting)
 
     def unset(self, key):
         """
