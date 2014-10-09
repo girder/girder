@@ -47,11 +47,14 @@ module.exports = function (grunt) {
     // Returns a json string containing information from the current git repository.
     var versionInfoObject = function () {
         var gitVersion = grunt.config.get('gitinfo');
+        var local = gitVersion.local || {};
+        var branch = local.branch || {};
+        var current = branch.current || {};
         return JSON.stringify(
             {
-                git: !!gitVersion.local.branch.current.SHA,
-                SHA: gitVersion.local.branch.current.SHA,
-                shortSHA: gitVersion.local.branch.current.shortSHA,
+                git: !!current.SHA,
+                SHA: current.SHA,
+                shortSHA: current.shortSHA,
                 date: grunt.template.date(new Date(), "isoDateTime", true),
                 apiVersion: grunt.config.get('pkg').version
             },
@@ -201,8 +204,6 @@ module.exports = function (grunt) {
                 tasks: ['docs']
             }
         },
-
-        gitinfo: {},
 
         'file-creator': {
             'python-version': {
