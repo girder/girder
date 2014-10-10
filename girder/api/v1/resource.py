@@ -17,11 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import json
 
 from ..describe import Description
 from ..rest import Resource as BaseResource, RestException
+from girder.constants import AccessType
 from girder.api import access
+from girder.utility import ziputil
 
 
 class Resource(BaseResource):
@@ -31,6 +34,7 @@ class Resource(BaseResource):
     def __init__(self):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
+        self.route('GET', ('download',), self.download)
 
     @access.public
     def search(self, params):
@@ -86,3 +90,76 @@ class Resource(BaseResource):
         .param('types', """A JSON list of resource types to search for, e.g.
                 'user', 'folder', 'item'.""")
         .errorResponse('Invalid type list format.'))
+
+    def _download(self, resources, user, metadata=False):
+        """
+        Returns a generator function that will be used to stream out a zip
+        file containing the listed resource's contents, filtered by
+        permissions.  This assumes that the parameters have been validated.
+        """
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="Resources.zip"'
+
+        def stream():
+            zip = ziputil.ZipGenerator('Resources')
+            for kind in resources:
+                model = self.model(kind)
+                if not model or not hasattr(model, 'fileList'):
+                    continue
+                for id in resources[kind]:
+                    doc = model.load(id=id, user=user, level=AccessType.READ)
+                    for (path, file) in model.fileList(
+                            doc=doc, user=user, includeMetadata=metadata,
+                            subpath=True):
+                        for data in zip.addFile(file, path):
+                            yield data
+            yield zip.footer()
+        return stream
+
+    @access.public
+    def download(self, params):
+        """
+        Returns a generator function that will be used to stream out a zip
+        file containing the listed resource's contents, filtered by
+        permissions.
+        """
+        self.requireParams(('resources', ), params)
+        user = self.getCurrentUser()
+        try:
+            resources = json.loads(params['resources'])
+        except ValueError:
+            raise RestException('The resources parameter must be JSON.')
+        if type(resources) is not dict:
+            raise RestException('Invalid resources format.')
+        # Check that all of the specified resources are valid and have access
+        # before we begin the download
+        count = 0
+        for kind in resources:
+            model = self.model(kind)
+            if not model or not hasattr(model, 'fileList'):
+                raise RestException('Invalid resources format.')
+            for id in resources[kind]:
+                if model.load(id=id, user=user, level=AccessType.READ):
+                    count += 1
+                else:
+                    raise RestException('Resource %s %s not found.' % (kind,
+                                                                       id))
+        if not count:
+            raise RestException('No resources specified.')
+        metadata = self.boolParam('includeMetadata', params, default=False)
+        # Have a helper function do the work now that we have validated
+        return self._download(resources, user, metadata)
+    download.description = (
+        Description('Download a set of items and folders as a zip archive.')
+        .param('resources', 'A JSON-encoded list of types to download.  Each '
+               'type is a list of ids.  For example: {"item": [(item id 1), '
+               '(item id2)], "folder": [(folder id 1)]}.')
+        .param('includeMetadata', 'Include any metadata in json files in the '
+               'archive.', required=False, dataType='boolean')
+        .errorResponse('An ID was invalid.')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('Read access was denied for an item.', 403))

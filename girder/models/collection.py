@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import os
 
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
@@ -162,3 +163,28 @@ class Collection(AccessControlledModel):
 
         # Validate and save the collection
         return self.save(collection)
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this collection's folders.
+        :param doc: the collection to list.
+        :param user: a user used to validate data that is returned.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True, add the collection's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['name'])
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'collection'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            for (filepath, file) in self.model('folder').fileList(
+                    folder, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)

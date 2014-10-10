@@ -19,7 +19,6 @@
 
 import cherrypy
 import json
-import os
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -126,9 +125,10 @@ class Folder(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
-            for data in self._downloadFolder(folder, zip, user):
-                yield data
-
+            for (path, file) in self.model('folder').fileList(
+                    folder, user=user, subpath=False):
+                for data in zip.addFile(file, path):
+                    yield data
             yield zip.footer()
         return stream
     downloadFolder.description = (
@@ -136,24 +136,6 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403))
-
-    def _downloadFolder(self, folder, zip, user, path=''):
-        """
-        Helper method to recurse through folders and download files in them.
-        """
-        for sub in self.model('folder').childFolders(parentType='folder',
-                                                     parent=folder, user=user,
-                                                     limit=0):
-            for data in self._downloadFolder(sub, zip, user, os.path.join(
-                                             path, sub['name'])):
-                yield data
-        for item in self.model('folder').childItems(folder=folder, limit=0):
-            for file in self.model('item').childFiles(item=item, limit=0):
-                for data in zip.addFile(
-                    self.model('file')
-                        .download(file, headers=False), os.path.join(
-                            path, file['name'])):
-                    yield data
 
     @access.user
     @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)

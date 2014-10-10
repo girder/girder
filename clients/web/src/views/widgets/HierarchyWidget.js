@@ -10,7 +10,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-folder-access-button': 'editFolderAccess',
-        'click .g-hierarchy-level-up': 'upOneLevel'
+        'click .g-hierarchy-level-up': 'upOneLevel',
+        'click a.g-download-checked': 'downloadChecked'
     },
 
     /**
@@ -322,6 +323,30 @@ girder.views.HierarchyWidget = girder.View.extend({
 
     downloadFolder: function () {
         this.parentModel.download();
+    },
+
+    downloadChecked: function () {
+        var url = girder.apiRoot + '/resource/download';
+        var resources = {folder:[], item:[]};
+        var folders = this.folderListView.checked;
+        _.each(folders, function (cid) {
+            var folder = this.folderListView.collection.get(cid);
+            resources.folder.push(folder.id);
+        }, this);
+        if (this.itemListView) {
+            var items = this.itemListView.checked;
+            _.each(items, function (cid) {
+                var item = this.itemListView.collection.get(cid);
+                resources.item.push(item.id);
+                return true;
+            }, this);
+        }
+        url += '?resources=' + encodeURIComponent(JSON.stringify(resources));
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            url += '&token=' + token;
+        }
+        window.location.assign(url);
     },
 
     editFolderAccess: function () {

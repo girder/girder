@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import os
 import re
 
 from .model_base import AccessControlledModel, ValidationException
@@ -174,11 +175,12 @@ class User(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         :returns: List of users.
         """
-        # TODO support full-text search
-
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find({}, limit=0, sort=sort)
+        if text is not None:
+            cursor = self.textSearch(text, limit=0, sort=sort)
+        else:
+            cursor = self.find({}, limit=0, sort=sort)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=user,
                                                 level=AccessType.READ,
@@ -248,3 +250,28 @@ class User(AccessControlledModel):
             privateFolder, user, AccessType.ADMIN, save=True)
 
         return user
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this user's folders.
+        :param doc: the user to list.
+        :param user: a user used to validate data that is returned.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True, add the user's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['login'])
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'user'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            for (filepath, file) in self.model('folder').fileList(
+                    folder, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)

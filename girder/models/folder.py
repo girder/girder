@@ -18,6 +18,8 @@
 ###############################################################################
 
 import datetime
+import json
+import os
 
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
@@ -305,9 +307,11 @@ class Folder(AccessControlledModel):
         AccessControlledModel.remove(self, folder)
         progress.update(increment=1, message='Deleted folder ' + folder['name'])
 
-    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None):
+    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None,
+                   **kwargs):
         """
-        Generator function that yields child items in a folder.
+        Generator function that yields child items in a folder.  Passes any
+        kwargs to the find function.
 
         :param folder: The parent folder.
         :param limit: Result limit.
@@ -324,15 +328,16 @@ class Folder(AccessControlledModel):
         q.update(filters)
 
         cursor = self.model('item').find(
-            q, limit=limit, offset=offset, sort=sort)
+            q, limit=limit, offset=offset, sort=sort, **kwargs)
         for item in cursor:
             yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
-                     sort=None, filters=None):
+                     sort=None, filters=None, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
-        folder, with access policy filtering.
+        folder, with access policy filtering.  Passes any kwargs to the find
+        function.
 
         :param parent: The parent object.
         :type parentType: Type of the parent object.
@@ -361,7 +366,7 @@ class Folder(AccessControlledModel):
 
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find(q, limit=0, sort=sort)
+        cursor = self.find(q, limit=0, sort=sort, **kwargs)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=user,
                                                 level=AccessType.READ,
@@ -509,3 +514,37 @@ class Folder(AccessControlledModel):
         folders.close()
 
         return count
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this folder.
+        :param doc: the folder to list.
+        :param user: the user used for access.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the folder.
+        :param subpath: if True, add the folder's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['name'])
+        metadataFile = {"format": "metadata#.json"}
+        for sub in self.childFolders(parentType='folder', parent=doc,
+                                     user=user, limit=0, timeout=False):
+            self.getDistinctName(metadataFile, sub['name'])
+            for (filepath, file) in self.fileList(
+                    sub, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)
+        for item in self.childItems(folder=doc, limit=0, timeout=False):
+            self.getDistinctName(metadataFile, item['name'])
+            for (filepath, file) in self.model('item').fileList(
+                    item, user, path, includeMetadata):
+                yield (filepath, file)
+        if includeMetadata and len(doc.get('meta', {})):
+            def stream():
+                yield json.dumps(doc['meta'])
+            yield (os.path.join(path, self.getDistinctName(
+                metadataFile, None)), stream)

@@ -18,6 +18,9 @@
 ###############################################################################
 
 import datetime
+import json
+import os
+import pymongo
 
 from .model_base import Model, ValidationException
 from girder.constants import AccessType
@@ -147,9 +150,10 @@ class Item(Model):
 
         return self.save(item)
 
-    def childFiles(self, item, limit=50, offset=0, sort=None):
+    def childFiles(self, item, limit=50, offset=0, sort=None, **kwargs):
         """
-        Generator function that yields child files in the item.
+        Generator function that yields child files in the item.  Passes any
+        kwargs to the find function.
 
         :param item: The parent item.
         :param limit: Result limit.
@@ -161,7 +165,7 @@ class Item(Model):
         }
 
         cursor = self.model('file').find(
-            q, limit=limit, offset=offset, sort=sort)
+            q, limit=limit, offset=offset, sort=sort, **kwargs)
         for file in cursor:
             yield file
 
@@ -390,11 +394,45 @@ class Item(Model):
             folder = self.model('folder').load(srcItem['folderId'], force=True)
         if description is None:
             description = srcItem['description']
-        newItem = self.model('item').createItem(
+        newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata
-        self.model('item').setMetadata(newItem, srcItem.get('meta', {}))
+        self.setMetadata(newItem, srcItem.get('meta', {}))
         # copy files
-        for file in self.model('item').childFiles(item=srcItem, limit=0):
+        for file in self.childFiles(item=srcItem, limit=0):
             self.model('file').copyFile(file, creator=creator, item=newItem)
-        return self.model('item').filter(newItem)
+        return self.filter(newItem)
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this item.
+        :param doc: the item to list.
+        :param user: a user used to validate data that is returned.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True and the item has more than one file, metadata,
+                        or the sole file is not named the same as the item,
+                        then the returned paths include the item name.
+        """
+        if subpath:
+            files = [file for file in self.childFiles(item=doc, limit=2)]
+            if (len(files) != 1 or files[0]['name'] != doc['name'] or
+                    (includeMetadata and len(doc.get('meta', {})))):
+                path = os.path.join(path, doc['name'])
+        metadataFile = {"format": "metadata#.json"}
+        for file in self.childFiles(
+                item=doc, limit=0, sort=[('created', pymongo.ASCENDING)],
+                timeout=False):
+            self.getDistinctName(metadataFile, file['name'])
+            yield (os.path.join(path, file['name']),
+                   self.model('file').download(file, headers=False))
+        if includeMetadata and len(doc.get('meta', {})):
+            def stream():
+                yield json.dumps(doc['meta'])
+            yield (os.path.join(path, self.getDistinctName(
+                metadataFile, None)), stream)
