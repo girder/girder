@@ -1,0 +1,4 @@
+recursive-exclude tests *
+include girder/girder-version.json
+include package.json
+include README.rst

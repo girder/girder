@@ -21,8 +21,10 @@
 Constants should be defined here.
 """
 import os
+import json
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
@@ -31,6 +33,20 @@ LOG_BACKUP_COUNT = 5
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
 TEXT_SCORE_SORT_MAX = 200
+
+# Get the version information
+VERSION = {  # Set defaults in case girder-version.json doesn't exist
+    'git': False,
+    'SHA': None,
+    'shortSHA': None,
+    'apiVersion': None,
+    'date': None
+}
+try:
+    with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
+        VERSION.update(json.load(f))
+except IOError:  # pragma: no cover
+    pass
 
 
 class TerminalColor(object):

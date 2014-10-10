@@ -44,6 +44,25 @@ module.exports = function (grunt) {
         callback();
     };
 
+    // Returns a json string containing information from the current git repository.
+    var versionInfoObject = function () {
+        var gitVersion = grunt.config.get('gitinfo');
+        var local = gitVersion.local || {};
+        var branch = local.branch || {};
+        var current = branch.current || {};
+        return JSON.stringify(
+            {
+                git: !!current.SHA,
+                SHA: current.SHA,
+                shortSHA: current.shortSHA,
+                date: grunt.template.date(new Date(), "isoDateTime", true),
+                apiVersion: grunt.config.get('pkg').version
+            },
+            null,
+            "  "
+        );
+    };
+
     // Project configuration.
     grunt.config.init({
         pkg: grunt.file.readJSON('package.json'),
@@ -124,6 +143,7 @@ module.exports = function (grunt) {
                     'clients/web/static/built/app.min.js': [
                         'clients/web/static/built/templates.js',
                         'clients/web/src/init.js',
+                        'clients/web/src/girder-version.js',
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
                         'clients/web/src/utilities/**/*.js',
@@ -182,6 +202,36 @@ module.exports = function (grunt) {
             sphinx: {
                 files: ['docs/*.rst'],
                 tasks: ['docs']
+            }
+        },
+
+        'file-creator': {
+            'python-version': {
+                'girder/girder-version.json': function (fs, fd, done) {
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(fd, girderVersion);
+                    done();
+                }
+            },
+
+            'javascript-version': {
+                'clients/web/src/girder-version.js': function (fs, fd, done) {
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(
+                        fd,
+                        [
+                            '/* global girder: true */',
+                            '/* jshint ignore: start */',
+                            '//jscs:disable',
+                            'girder.versionInfo = ',
+                            girderVersion,
+                            ';',
+                            '/* jshint ignore: end */',
+                            '//jscs:enable\n'
+                        ].join('\n')
+                    );
+                    done();
+                }
             }
         }
     });
@@ -293,6 +343,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-file-creator');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
@@ -346,8 +398,14 @@ module.exports = function (grunt) {
         }
     });
 
+    grunt.registerTask('version-info', [
+        'gitinfo',
+        'file-creator'
+    ]);
+
     grunt.registerTask('build-js', [
         'jade',
+        'version-info',
         'uglify:app',
         'shell:readServerConfig',
         'test-env-html'

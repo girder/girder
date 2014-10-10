@@ -21,7 +21,7 @@ import json
 
 from girder.api import access
 from girder.utility import plugin_utilities
-from girder.constants import SettingKey
+from girder.constants import SettingKey, VERSION
 from ..describe import API_VERSION, Description
 from ..rest import Resource, RestException
 
@@ -139,7 +139,9 @@ class System(Resource):
 
     @access.public
     def getVersion(self, params):
-        return {'apiVersion': API_VERSION}
+        version = dict(**VERSION)
+        version['apiVersion'] = API_VERSION
+        return version
     getVersion.description = Description(
         'Get the version information for this server.')
 
