@@ -94,8 +94,8 @@ class User(AccessControlledModel):
         q = {'login': doc['login']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        existing = self.find(q, limit=1)
-        if existing.count(True) > 0:
+        existing = self.findOne(q)
+        if existing is not None:
             raise ValidationException('That login is already registered.',
                                       'login')
 
@@ -103,14 +103,14 @@ class User(AccessControlledModel):
         q = {'email': doc['email']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        existing = self.find(q, limit=1)
-        if existing.count(True) > 0:
+        existing = self.findOne(q)
+        if existing is not None:
             raise ValidationException('That email is already registered.',
                                       'email')
 
         # If this is the first user being created, make it an admin
-        existing = self.find({}, limit=1)
-        if existing.count(True) == 0:
+        existing = self.findOne({})
+        if existing is None:
             doc['admin'] = True
 
         return doc

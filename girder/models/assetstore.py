@@ -40,8 +40,8 @@ class Assetstore(Model):
         q = {'name': doc['name']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        duplicates = self.find(q, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
+        duplicate = self.findOne(q, fields=['_id'])
+        if duplicate is not None:
             raise ValidationException('An assetstore with that name already '
                                       'exists.', 'name')
 
@@ -58,8 +58,8 @@ class Assetstore(Model):
             S3AssetstoreAdapter.validateInfo(doc)
 
         # If no current assetstore exists yet, set this one as the current.
-        current = self.find({'current': True}, limit=1, fields=['_id'])
-        if current.count() == 0:
+        current = self.findOne({'current': True}, fields=['_id'])
+        if current is None:
             doc['current'] = True
         if 'current' not in doc:
             doc['current'] = False
@@ -79,10 +79,8 @@ class Assetstore(Model):
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
         """
-        files = self.model('file').find({
-            'assetstoreId': assetstore['_id']
-        }, limit=1)
-        if files.count(True) > 0:
+        files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
+        if files is not None:
             raise ValidationException('You may not delete an assetstore that '
                                       'contains files.')
 
@@ -138,8 +136,8 @@ class Assetstore(Model):
         Returns the current assetstore. If none exists, this will raise a 500
         exception.
         """
-        cursor = self.find({'current': True}, limit=1)
-        if cursor.count() == 0:
+        current = self.findOne({'current': True})
+        if current is None:
             raise Exception('No current assetstore is set.')
 
-        return cursor.next()
+        return current
