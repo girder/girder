@@ -25,6 +25,7 @@ from ..rest import Resource as BaseResource, RestException
 from girder.constants import AccessType
 from girder.api import access
 from girder.utility import ziputil
+from girder.utility.progress import ProgressContext
 
 
 class Resource(BaseResource):
@@ -35,6 +36,7 @@ class Resource(BaseResource):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
         self.route('GET', ('download',), self.download)
+        self.route('DELETE', (), self.delete)
 
     @access.public
     def search(self, params):
@@ -91,12 +93,57 @@ class Resource(BaseResource):
                 'user', 'folder', 'item'.""")
         .errorResponse('Invalid type list format.'))
 
-    def _download(self, resources, user, metadata=False):
+    def _validateResourceSet(self, params, funcName, user=None, level=None):
+        """
+        Validate a JSON string listing resources.  The resources parameter is a
+        JSON encoded dictionary with each key a model name and each value a
+        list of ids that must be present in that model.
+        :param params: a dictionary of parameters that must include 'resources'
+        :param funcName: a function name to ensure that each model contains.
+        :param user: the user for access control.
+        :param level: required access level for the model item.  If None, the
+                      model does not need to have access control.
+        :returns: the json decoded resource dictionary.
+        """
+        self.requireParams(('resources', ), params)
+        try:
+            resources = json.loads(params['resources'])
+        except ValueError:
+            raise RestException('The resources parameter must be JSON.')
+        if type(resources) is not dict:
+            raise RestException('Invalid resources format.')
+        # Check that all of the specified resources are valid and have access
+        access = {}
+        if user is not None:
+            access['user'] = user
+        if level is not None:
+            access['level'] = level
+        count = 0
+        for kind in resources:
+            model = self.model(kind)
+            if not model or not hasattr(model, funcName):
+                raise RestException('Invalid resources format.')
+            for id in resources[kind]:
+                if model.load(id=id, **access):
+                    count += 1
+                else:
+                    raise RestException('Resource %s %s not found.' % (kind,
+                                                                       id))
+        if not count:
+            raise RestException('No resources specified.')
+        return resources
+
+    @access.public
+    def download(self, params):
         """
         Returns a generator function that will be used to stream out a zip
         file containing the listed resource's contents, filtered by
-        permissions.  This assumes that the parameters have been validated.
+        permissions.
         """
+        user = self.getCurrentUser()
+        resources = self._validateResourceSet(params, 'fileList', user,
+                                              AccessType.READ)
+        metadata = self.boolParam('includeMetadata', params, default=False)
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
             'attachment; filename="Resources.zip"'
@@ -105,8 +152,6 @@ class Resource(BaseResource):
             zip = ziputil.ZipGenerator('Resources')
             for kind in resources:
                 model = self.model(kind)
-                if not model or not hasattr(model, 'fileList'):
-                    continue
                 for id in resources[kind]:
                     doc = model.load(id=id, user=user, level=AccessType.READ)
                     for (path, file) in model.fileList(
@@ -116,50 +161,50 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
-
-    @access.public
-    def download(self, params):
-        """
-        Returns a generator function that will be used to stream out a zip
-        file containing the listed resource's contents, filtered by
-        permissions.
-        """
-        self.requireParams(('resources', ), params)
-        user = self.getCurrentUser()
-        try:
-            resources = json.loads(params['resources'])
-        except ValueError:
-            raise RestException('The resources parameter must be JSON.')
-        if type(resources) is not dict:
-            raise RestException('Invalid resources format.')
-        # Check that all of the specified resources are valid and have access
-        # before we begin the download
-        count = 0
-        for kind in resources:
-            model = self.model(kind)
-            if not model or not hasattr(model, 'fileList'):
-                raise RestException('Invalid resources format.')
-            for id in resources[kind]:
-                if model.load(id=id, user=user, level=AccessType.READ):
-                    count += 1
-                else:
-                    raise RestException('Resource %s %s not found.' % (kind,
-                                                                       id))
-        if not count:
-            raise RestException('No resources specified.')
-        metadata = self.boolParam('includeMetadata', params, default=False)
-        # Have a helper function do the work now that we have validated
-        return self._download(resources, user, metadata)
     download.description = (
-        Description('Download a set of items and folders as a zip archive.')
+        Description('Download a set of items, folders, collections, and users '
+                    'as a zip archive.')
         .param('resources', 'A JSON-encoded list of types to download.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id2)], "folder": [(folder id 1)]}.')
         .param('includeMetadata', 'Include any metadata in json files in the '
                'archive.', required=False, dataType='boolean')
-        .errorResponse('An ID was invalid.')
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('Read access was denied for an item.', 403))
+        .errorResponse('Read access was denied for a resource.', 403))
+
+    @access.user
+    def delete(self, params):
+        """
+        Delete a set of resources.
+        """
+        user = self.getCurrentUser()
+        resources = self._validateResourceSet(params, 'remove', user,
+                                              AccessType.ADMIN)
+        count = sum([len(resources[key]) for key in resources])
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(progress, user=user,
+                             title='Deleting resources',
+                             message='Calculating size...') as ctx:
+            if progress:
+                ctx.update(total=count)
+            for kind in resources:
+                model = self.model(kind)
+                for id in resources[kind]:
+                    doc = model.load(id=id, user=user, level=AccessType.ADMIN)
+                    model.remove(doc)
+                    ctx.update(increment=1, message='Deleted ' + kind)
+    delete.description = (
+        Description('Delete a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to delete.  Each '
+               'type is a list of ids.  For example: {"item": [(item id 1), '
+               '(item id2)], "folder": [(folder id 1)]}.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('Admin access was denied for a resource.', 403))

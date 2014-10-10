@@ -11,7 +11,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-folder-access-button': 'editFolderAccess',
         'click .g-hierarchy-level-up': 'upOneLevel',
-        'click a.g-download-checked': 'downloadChecked'
+        'click a.g-download-checked': 'downloadChecked',
+        'click a.g-delete-checked': 'deleteCheckedDialog'
     },
 
     /**
@@ -272,6 +273,45 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     /**
+     * Prompt the user to delete the currently checked items.
+     */
+    deleteCheckedDialog: function () {
+        var view = this;
+        var desc = '';
+        var folders = this.folderListView.checked;
+        if (folders.length == 1) {
+            desc += '1 folder';
+        } else if (folders.length > 1) {
+            desc += folders.length + ' folders';
+        }
+        if (this.itemListView && this.itemListView.checked.length) {
+            if (desc != '') {
+                desc += ' and ';
+            }
+            var items = this.itemListView.checked;
+            if (items.length == 1) {
+                desc += '1 item';
+            } else {
+                desc += items.length + ' items';
+            }
+        }
+        var params = {
+            text: 'Are you sure you want to delete the checked items (' +
+                  desc + ')?',
+            escapedHtml: true,
+            yesText: 'Delete',
+            confirmCallback: function () {
+                var url = 'resource?' + view._getCheckedResourceParam();
+                girder.restRequest({path: url, type: 'DELETE'}).done(
+                    function () {
+                        view.render();
+                    });
+            }
+        };
+        girder.confirm(params);
+    },
+
+    /**
      * Show and handle the upload dialog
      */
     uploadDialog: function () {
@@ -325,8 +365,10 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.parentModel.download();
     },
 
-    downloadChecked: function () {
-        var url = girder.apiRoot + '/resource/download';
+    /**
+     * Get a parameter that can be added to a url for the checked resources.
+     */
+    _getCheckedResourceParam: function () {
         var resources = {folder:[], item:[]};
         var folders = this.folderListView.checked;
         _.each(folders, function (cid) {
@@ -341,7 +383,12 @@ girder.views.HierarchyWidget = girder.View.extend({
                 return true;
             }, this);
         }
-        url += '?resources=' + encodeURIComponent(JSON.stringify(resources));
+        return 'resources=' + encodeURIComponent(JSON.stringify(resources));
+    },
+
+    downloadChecked: function () {
+        var url = girder.apiRoot + '/resource/download';
+        url += '?' + this._getCheckedResourceParam();
         var token = girder.cookie.find('girderToken');
         if (token) {
             url += '&token=' + token;
