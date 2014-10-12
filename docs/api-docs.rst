@@ -37,8 +37,8 @@ is the name of the model.  For example: ::
     groups = self.model('group').list(user=self.getCurrentUser())
 
 All models that require the standard access control semantics should extend the
-:ref:`AccessControlledModel` class. Otherwise, they
-should extend the :ref:`Model` class.
+`AccessControlledModel` class. Otherwise, they
+should extend the `Model` class.
 
 All model classes must have an ``initialize`` method in which they declare
 the name of their corresponding Mongo collection, as well as any collection
@@ -55,7 +55,7 @@ The above model singleton could then be accessed via: ::
     self.model('cat')
 
 If you wish to use models in something other than a REST Resource or Model,
-either mixin or instantiate the :ref:`ModelImporter` class.
+either mixin or instantiate the `ModelImporter` class.
 
 Model Helper Functions
 ^^^^^^^^^^^^^^^^^^^^^^

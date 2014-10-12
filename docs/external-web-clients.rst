@@ -21,7 +21,7 @@ REST interface.
 Tangelo
 ^^^^^^^
 
-`Tangelo <http://tangelo.kitware.com>`_ is a Cherry-Py based web server framework
+`Tangelo <http://tangelo.kitware.com>`_ is a CherryPy based web server framework
 for rapid data analytics and visualization application development.
 Tangelo has options for directly mounting the Girder API and static application
 files inside a Tangelo instance. See details in Tangelo's
