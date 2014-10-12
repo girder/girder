@@ -168,7 +168,7 @@ class Model(ModelImporter):
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :returns: A pymongo cursor. It is left to the caller to build the
-        results from the cursor.
+            results from the cursor.
         """
         if not filters:
             filters = {}
@@ -200,7 +200,7 @@ class Model(ModelImporter):
         :param validate: Whether to call the model's validate() before saving.
         :type validate: bool
         :param triggerEvents: Whether to trigger events for validate and
-        pre- and post-save hooks.
+            pre- and post-save hooks.
         """
         if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
