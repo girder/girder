@@ -21,6 +21,7 @@ import datetime
 import json
 import os
 
+from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 from girder.utility.progress import noProgress
@@ -425,7 +426,7 @@ class Folder(AccessControlledModel):
             'parentCollection': parentType,
             'baseParentId': parent['baseParentId'],
             'baseParentType': parent['baseParentType'],
-            'parentId': parent['_id'],
+            'parentId': ObjectId(parent['_id']),
             'creatorId': creatorId,
             'created': now,
             'updated': now,

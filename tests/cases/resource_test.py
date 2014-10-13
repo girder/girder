@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import io
 import json
 import os
@@ -24,7 +25,6 @@ import zipfile
 
 from .. import base
 
-from girder.constants import AccessType
 from girder.models.notification import ProgressState
 
 
@@ -77,8 +77,10 @@ class FolderTestCase(base.TestCase):
                 'sort': 'name',
                 'sortdir': 1
             })
-        self.adminPrivateFolder = resp.json[0]
-        self.adminPublicFolder = resp.json[1]
+        self.adminPrivateFolder = self.model('folder').load(
+            resp.json[0]['_id'], user=self.admin)
+        self.adminPublicFolder = self.model('folder').load(
+            resp.json[1]['_id'], user=self.admin)
         # Create a folder within the admin public forlder
         resp = self.request(
             path='/folder', method='POST', user=self.admin, params={
@@ -110,8 +112,8 @@ class FolderTestCase(base.TestCase):
         meta = {'key': 'value'}
         self.model('item').setMetadata(self.items[2], meta)
         parents = self.model('item').parentsToRoot(self.items[2], self.admin)
-        path = os.path.join(*([part['object'].get('name',
-            part['object'].get('login', '')) for part in parents] +
+        path = os.path.join(*([part['object'].get(
+            'name', part['object'].get('login', '')) for part in parents] +
             [self.items[2]['name'], 'metadata.json']))
         self.expectedZip[path] = json.dumps(meta)
 
@@ -119,8 +121,8 @@ class FolderTestCase(base.TestCase):
         self.model('folder').setMetadata(self.adminPublicFolder, meta)
         parents = self.model('folder').parentsToRoot(self.adminPublicFolder,
                                                      user=self.admin)
-        path = os.path.join(*([part['object'].get('name',
-            part['object'].get('login', '')) for part in parents] +
+        path = os.path.join(*([part['object'].get(
+            'name', part['object'].get('login', '')) for part in parents] +
             [self.adminPublicFolder['name'], 'metadata.json']))
         self.expectedZip[path] = json.dumps(meta)
 
@@ -151,8 +153,8 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(resp)
         file = resp.json
         parents = self.model('item').parentsToRoot(item, user=self.admin)
-        path = os.path.join(*([part['object'].get('name',
-            part['object'].get('login', '')) for part in parents] +
+        path = os.path.join(*([part['object'].get(
+            'name', part['object'].get('login', '')) for part in parents] +
             [item['name'], name]))
         return (file, path, contents)
 
@@ -170,13 +172,36 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
         zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
-        import sys ##DWM::
-        sys.stderr.write(repr(resp.collapse_body())+"\n") ##DWM::
         self.assertTrue(zip.testzip() is None)
-        import sys ##DWM::
-        sys.stderr.write(str(len([name for name in zip.namelist()]))+"\n") ##DWM::
-        for name in zip.namelist():
-            sys.stderr.write("NAME %s\n"%name) ##DWM::
         self.assertHasKeys(self.expectedZip, zip.namelist())
         self.assertHasKeys(zip.namelist(), self.expectedZip)
-        ##DWM::
+        for name in zip.namelist():
+            self.assertEqual(self.expectedZip[name], zip.read(name))
+        # Test deleting resources
+        resourceList = {
+            'collection': [str(self.collection['_id'])],
+            'folder': [str(self.adminSubFolder['_id'])],
+            'item': [str(self.items[0]['_id']), str(self.items[1]['_id'])]
+            }
+        resp = self.request(
+            path='/resource', method='DELETE', user=self.admin, params={
+                'resources': json.dumps(resourceList),
+                'progress': 'true'
+            }, isJson=False)
+        self.assertStatusOk(resp)
+        # Make sure progress record exists and that it is set to expire soon
+        notifs = list(self.model('notification').get(self.admin))
+        self.assertEqual(len(notifs), 1)
+        self.assertEqual(notifs[0]['type'], 'progress')
+        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
+        self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
+        self.assertEqual(notifs[0]['data']['message'], 'Done')
+        self.assertEqual(notifs[0]['data']['total'], 4)
+        self.assertEqual(notifs[0]['data']['current'], 4)
+        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
+                        datetime.timedelta(minutes=1))
+        # All of the items should be gone now
+        resp = self.request(path='/item', method='GET', user=self.admin,
+                            params={'text': 'Item'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 0)

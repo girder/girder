@@ -22,6 +22,7 @@ import json
 import os
 import pymongo
 
+from bson.objectid import ObjectId
 from .model_base import Model, ValidationException
 from girder.constants import AccessType
 
@@ -304,7 +305,7 @@ class Item(Model):
         return self.save({
             'name': name,
             'description': description,
-            'folderId': folder['_id'],
+            'folderId': ObjectId(folder['_id']),
             'creatorId': creator['_id'],
             'baseParentType': folder['baseParentType'],
             'baseParentId': folder['baseParentId'],

@@ -20,6 +20,7 @@
 import datetime
 import os
 
+from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
@@ -121,7 +122,7 @@ class Collection(AccessControlledModel):
         collection = {
             'name': name,
             'description': description,
-            'creatorId': creator['_id'],
+            'creatorId': ObjectId(creator['_id']),
             'created': now,
             'updated': now,
             'size': 0

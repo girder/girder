@@ -149,7 +149,7 @@ class Resource(BaseResource):
             'attachment; filename="Resources.zip"'
 
         def stream():
-            zip = ziputil.ZipGenerator('Resources')
+            zip = ziputil.ZipGenerator()
             for kind in resources:
                 model = self.model(kind)
                 for id in resources[kind]:
