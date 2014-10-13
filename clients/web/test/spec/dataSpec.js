@@ -301,4 +301,56 @@ describe('Create a data hierarchy', function () {
     it('upload a large file requiring resume', function () {
         _testUpload(1024 * 1024 * 33, true);
     });
+
+    it('download checked items', function () {
+        /* select a folder and the first item */
+        runs(function() {
+            $('.g-list-checkbox').slice(0,2).click();
+        });
+        waitsFor(function() {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-download-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function() {
+            girderTest._redirect = null;
+            $('a.g-download-checked').click();
+        });
+        waitsFor(function () {
+            return girderTest._redirect !== null;
+        }, 'redirect to the resource download URL');
+        runs(function () {
+            expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download\?resources=.*$/.test(
+                girderTest._redirect)).toBe(true);
+        });
+    });
+    it('delete checked items', function () {
+        runs(function() {
+            $('.g-select-all').click();
+        });
+        waitsFor(function() {
+            return $('.g-list-checkbox:not(:checked)').length == 0 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'all items to be checked');
+        runs(function() {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function() {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-delete-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function() {
+            $('a.g-delete-checked').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-confirm-button:visible').length > 0;
+        }, 'delete confirmation to appear');
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 0;
+        }, 'items to be deleted');
+    });
 });
