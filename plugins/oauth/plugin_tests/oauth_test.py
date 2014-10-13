@@ -73,8 +73,11 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', exception=True, params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatus(resp, 500)
-        self.assertEqual(resp.json['message'],
-                         'Exception: No Google client ID setting is present.')
+        self.assertTrue(
+            resp.json['message'].find(
+                'No Google client ID setting is present.'
+            ) >= 0
+        )
 
         params = {
             'list': json.dumps([{
@@ -129,9 +132,11 @@ class OauthTest(base.TestCase):
             'state': queryParams['state'][0]
         }, exception=True)
         self.assertStatus(resp, 500)
-        self.assertEqual(
-            resp.json['message'],
-            'Exception: No CSRF cookie (state="http://localhost/#foo/bar").')
+        self.assertTrue(
+            resp.json['message'].find(
+                'No CSRF cookie (state="http://localhost/#foo/bar").'
+            ) >= 0
+        )
 
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
