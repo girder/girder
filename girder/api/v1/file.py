@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import errno
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -70,9 +71,14 @@ class File(Resource):
                 parentType=parentType, creator=user)
         else:
             self.requireParams('size', params)
-            upload = self.model('upload').createUpload(
-                user=user, name=params['name'], parentType=parentType,
-                parent=parent, size=int(params['size']), mimeType=mimeType)
+            try:
+                upload = self.model('upload').createUpload(
+                    user=user, name=params['name'], parentType=parentType,
+                    parent=parent, size=int(params['size']), mimeType=mimeType)
+            except OSError as exc:
+                if exc[0] in (errno.EACCES,):
+                    raise RestException('Failed to create upload.', 500)
+                raise
             if upload['size'] > 0:
                 return upload
             else:
@@ -89,7 +95,8 @@ class File(Resource):
         .param('linkUrl', 'If this is a link file, pass its URL instead'
                'of size and mimeType using this parameter.', required=False)
         .errorResponse()
-        .errorResponse('Write access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403)
+        .errorResponse('Failed to create upload.', 500))
 
     @access.user
     def finalizeUpload(self, params):
@@ -173,10 +180,15 @@ class File(Resource):
             raise RestException(
                 'Server has received {} bytes, but client sent offset {}.'
                 .format(upload['received'], offset))
-        if type(chunk) == cherrypy._cpreqbody.Part:
-            return self.model('upload').handleChunk(upload, chunk.file)
-        else:
-            return self.model('upload').handleChunk(upload, chunk)
+        try:
+            if type(chunk) == cherrypy._cpreqbody.Part:
+                return self.model('upload').handleChunk(upload, chunk.file)
+            else:
+                return self.model('upload').handleChunk(upload, chunk)
+        except IOError as exc:
+            if exc[0] in (errno.EACCES,):
+                raise RestException('Failed to store upload.', 500)
+            raise
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
@@ -190,7 +202,8 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Received too many bytes.')
         .errorResponse('Chunk is smaller than the minimum size.')
-        .errorResponse('You are not the user who initiated the upload.', 403))
+        .errorResponse('You are not the user who initiated the upload.', 403)
+        .errorResponse('Failed to store upload.', 500))
 
     @access.public
     @loadmodel(map={'id': 'file'}, model='file')

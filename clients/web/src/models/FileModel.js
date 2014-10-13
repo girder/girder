@@ -61,6 +61,9 @@ girder.models.FileModel = girder.Model.extend({
                     'g:upload.error': function (params) {
                         this.trigger('g:upload.error', params);
                     },
+                    'g:upload.errorStarting': function (params) {
+                        this.trigger('g:upload.errorStarting', params);
+                    },
                     'g:upload.progress': function (params) {
                         this.trigger('g:upload.progress', {
                             startByte: params.startByte,
@@ -80,6 +83,17 @@ girder.models.FileModel = girder.Model.extend({
                 // Empty file, so we are done
                 this.trigger('g:upload.complete');
             }
+        }, this)).error(_.bind(function (resp) {
+            var text = 'Error: ';
+
+            if (resp.status === 0) {
+                text += 'Connection to the server interrupted.';
+            } else {
+                text += resp.responseJSON.message;
+            }
+            this.trigger('g:upload.errorStarting', {
+                message: text
+            });
         }, this));
     },
 
@@ -115,6 +129,21 @@ girder.models.FileModel = girder.Model.extend({
                 message: msg
             });
         }, this));
+    },
+
+    abortUpload: function () {
+        if (!this.resumeInfo || !this.resumeInfo.uploadId) {
+            return;
+        }
+        girder.restRequest({
+            path: 'system/uploads',
+            type: 'DELETE',
+            data: {
+                uploadId: this.resumeInfo.uploadId
+            },
+            error: null,
+            done: null
+        });
     },
 
     _uploadChunk: function (file, uploadId) {

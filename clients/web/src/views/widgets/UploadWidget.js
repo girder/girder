@@ -12,6 +12,10 @@ girder.views.UploadWidget = girder.View.extend({
             this.$('.g-upload-error-message').html('');
             this.currentFile.resumeUpload();
         },
+        'click .g-restart-upload': function () {
+            this.$('.g-upload-error-message').html('');
+            this._uploadNextFile();
+        },
         'change #g-files': function (e) {
             var files = this.$('#g-files')[0].files;
 
@@ -53,11 +57,18 @@ girder.views.UploadWidget = girder.View.extend({
     },
 
     render: function () {
+        var base = this;
         this.$el.html(jade.templates.uploadWidget({
             parent: this.parent,
             parentType: this.parentType,
             title: this.title
         })).girderModal(this).on('hidden.bs.modal', function () {
+            /* If we are showing the resume option, we have a partial upload
+             * that should be deleted, since the user has no way to get back to
+             * it. */
+            if ($('.g-resume-upload').length && base.currentFile) {
+                base.currentFile.abortUpload();
+            }
             girder.dialogs.handleClose('upload');
         });
 
@@ -156,6 +167,10 @@ girder.views.UploadWidget = girder.View.extend({
         }, this).on('g:upload.error', function (info) {
             var html = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
+            $('.g-upload-error-message').html(html);
+        }, this).on('g:upload.errorStarting', function (info) {
+            var html = info.message + ' <a class="g-restart-upload">' +
+                'Click to restart upload</a>';
             $('.g-upload-error-message').html(html);
         }, this);
 

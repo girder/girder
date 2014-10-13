@@ -43,6 +43,7 @@
             var folderId = this.model.get('folderId');
             var parentRoute = this.model.get('baseParentType') + '/' +
                 this.model.get('baseParentId') + '/folder/' + folderId;
+            var page = this;
             girder.confirm({
                 text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
                 yesText: 'Delete',
@@ -50,6 +51,14 @@
                 confirmCallback: _.bind(function () {
                     this.model.destroy().on('g:deleted', function () {
                         girder.router.navigate(parentRoute, {trigger: true});
+                    }).off('g:error').on('g:error', function () {
+                        page.render();
+                        girder.events.trigger('g:alert', {
+                            icon: 'info',
+                            text: 'Failed to delete item.',
+                            type: 'warning',
+                            timeout: 4000
+                        });
                     });
                 }, this)
             });
