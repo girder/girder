@@ -120,7 +120,13 @@ class Resource(BaseResource):
             access['level'] = level
         count = 0
         for kind in resources:
-            model = self.model(kind)
+            try:
+                model = self.model(kind)
+            except Exception as exc:
+                if exc.message.startswith('Could not load model '):
+                    model = None
+                else:
+                    raise
             if not model or not hasattr(model, funcName):
                 raise RestException('Invalid resources format.')
             for id in resources[kind]:

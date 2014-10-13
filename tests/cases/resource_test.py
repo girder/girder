@@ -164,6 +164,34 @@ class FolderTestCase(base.TestCase):
             'collection': [str(self.collection['_id'])],
             'user': [str(self.admin['_id'])]
             }
+        # We should fail with bad json, an empty list, an invalid item in the
+        # list, or a list that is an odd format.
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': 'this_is_not_json',
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': json.dumps('this_is_not_a_dict_of_resources')
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': json.dumps({'not_a_resource': ['not_an_id']})
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': json.dumps({'item': []})
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': json.dumps({'item': [str(self.admin['_id'])]})
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+        # Download the resources
         resp = self.request(
             path='/resource/download', method='GET', user=self.admin, params={
                 'resources': json.dumps(resourceList),
