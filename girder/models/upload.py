@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+from bson.objectid import ObjectId
 
 from girder import events
 from girder.utility import assetstore_utilities
@@ -185,6 +186,8 @@ class Upload(Model):
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
+        if not mimeType:
+            mimeType = 'application/octet-stream'
         upload = {
             'created': now,
             'updated': now,
@@ -199,3 +202,82 @@ class Upload(Model):
         }
         upload = adapter.initUpload(upload)
         return self.save(upload)
+
+    def list(self, limit=50, offset=0, sort=None, filters=None):
+        """
+        Search for uploads or simply list all visible uploads.
+
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort direction.
+        :param filters: if not None, a dictionary that can contain ids that
+                        must match the uploads, plus an minimumAge value.
+        """
+        query = {}
+        if filters:
+            for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
+                if key in filters:
+                    id = filters[key]
+                    if id and type(id) is not ObjectId:
+                        id = ObjectId(id)
+                    if id:
+                        if key == 'uploadId':
+                            query['_id'] = id
+                        else:
+                            query[key] = id
+            if 'minimumAge' in filters:
+                query['updated'] = {
+                    '$lte': datetime.datetime.now() -
+                    datetime.timedelta(days=float(filters['minimumAge']))
+                    }
+        # Perform the find; we'll do access-based filtering of the result
+        # set afterward.
+        cursor = self.find(query, limit=limit, sort=sort, offset=offset)
+        for r in cursor:
+            yield r
+
+    def cancelUpload(self, upload):
+        """
+        Discard an upload that is in progress.  This asks the assetstore to
+        discard the data, then removes the item from the upload database.
+        :param upload: The upload document to remove.
+        :type upload: dict
+        """
+        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        # If the assetstore was deleted, the upload may still be in our
+        # database
+        if assetstore:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                adapter.cancelUpload(upload)
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
+        self.model('upload').remove(upload)
+
+    def untrackedUploads(self, action='list', assetstoreId=None):
+        """
+        List or discard any uploads that an assetstore knows about but that our
+        database doesn't have in it.
+        :param action: 'delete' to discard the untracked uploads, anything else
+                       to just return with a list of them.
+        :type action: str
+        :param assetstoreId: if present, only include untracked items from the
+                             specified assetstore.
+        :type assetstoreId: str
+        :returns: a list of items that were removed or could be removed.
+        """
+        results = []
+        knownUploads = [upload for upload in self.list(limit=0)]
+        # Iterate through all assetstores
+        for assetstore in self.model('assetstore').list(limit=0):
+            if assetstoreId and assetstoreId != assetstore['_id']:
+                continue
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                results += adapter.untrackedUploads(knownUploads,
+                                                    delete=(action == 'delete'))
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
+        return results

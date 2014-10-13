@@ -34,14 +34,16 @@ from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from . import mock_smtp
+from . import mock_s3
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
 mockSmtp = mock_smtp.MockSmtpReceiver()
+mockS3Server = None
 enabledPlugins = []
 
 
-def startServer(mock=True):
+def startServer(mock=True, mockS3=False):
     """
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
@@ -57,6 +59,10 @@ def startServer(mock=True):
     cherrypy.engine.start()
 
     mockSmtp.start()
+    if mockS3:
+        global mockS3Server
+        mockS3Server = mock_s3.startMockS3Server()
+
     return server
 
 
@@ -90,18 +96,29 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
-    def setUp(self):
+    def setUp(self, assetstoreType=None):
         """
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
+        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
+                               any other value, use a filesystem assetstore.
         """
         dropTestDatabase()
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
-        self.assetstore = self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=assetstorePath)
+        if assetstoreType == 'gridfs':
+            self.assetstore = self.model('assetstore'). \
+                createGridFsAssetstore(name='Test', db='girder_assetstore_test')
+        elif assetstoreType == 's3':
+            self.assetstore = self.model('assetstore'). \
+                createS3Assetstore(name='Test', bucket='bucketname',
+                                   accessKeyId='test', secret='test',
+                                   service=mockS3Server.service)
+        else:
+            self.assetstore = self.model('assetstore'). \
+                createFilesystemAssetstore(name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)

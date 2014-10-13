@@ -83,7 +83,14 @@ class Assetstore(Model):
         if files is not None:
             raise ValidationException('You may not delete an assetstore that '
                                       'contains files.')
-
+        # delete partial uploads before we delete the store.
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        try:
+            adapter.untrackedUploads([], 'delete')
+        except ValidationException:
+            # this assetstore is currently unreachable, so skip this step
+            pass
+        # now remove the assetstore
         Model.remove(self, assetstore)
 
     def list(self, limit=50, offset=0, sort=None):
@@ -120,7 +127,8 @@ class Assetstore(Model):
             'db': db
         })
 
-    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix=''):
+    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',
+                           service=''):
         return self.save({
             'type': AssetstoreType.S3,
             'created': datetime.datetime.utcnow(),
@@ -128,7 +136,8 @@ class Assetstore(Model):
             'accessKeyId': accessKeyId,
             'secret': secret,
             'prefix': prefix,
-            'bucket': bucket
+            'bucket': bucket,
+            'service': service
         })
 
     def getCurrent(self):

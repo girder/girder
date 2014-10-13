@@ -38,6 +38,8 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
+        self.route('GET', ('uploads',), self.getPartialUploads)
+        self.route('DELETE', ('uploads',), self.discardPartialUploads)
 
     @access.admin
     def setSetting(self, params):
@@ -170,4 +172,82 @@ class System(Resource):
         .notes("""Must be a system administrator to call this. This is used to
                explicitly restore a setting to its default value.""")
         .param('key', 'The key identifying the setting to unset.')
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def getPartialUploads(self, params):
+        limit, offset, sort = self.getPagingParameters(params, 'updated')
+        uploadList = self.model('upload').list(filters=params, limit=limit,
+                                               offset=offset, sort=sort)
+        resultList = [upload for upload in uploadList]
+        untracked = self.boolParam('includeUntracked', params, default=True)
+        if untracked and (limit == 0 or len(resultList) < limit):
+            assetstoreId = params.get('assetstoreId', None)
+            untrackedList = self.model('upload').untrackedUploads('list',
+                                                                  assetstoreId)
+            if limit == 0:
+                resultList += untrackedList
+            elif len(resultList) < limit:
+                resultList += untrackedList[:limit-len(resultList)]
+        return resultList
+    getPartialUploads.description = (
+        Description('Get a list of uploads that have not been finished.')
+        .notes("Must be a system administrator to call this.")
+        .param('uploadId', 'List only a specific upload.', required=False)
+        .param('userId', 'Restrict listing uploads to those started by a '
+               'specific user.', required=False)
+        .param('parentId', 'Restrict listing uploads to those within a '
+               'specific folder or item.', required=False)
+        .param('assetstoreId', 'Restrict listing uploads within a specific '
+               'assetstore.', required=False)
+        .param('minimumAge', 'Restrict listing uploads to those that are at '
+               'least this many days old.', required=False)
+        .param('includeUntracked', 'Some assetstores can have partial uploads '
+               'that are no longer in the girder database.  If this is True, '
+               'include all of them (only filtered by assetstoreId) in the '
+               'result list.  Default True.',
+               required=False, dataType='boolean')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the upload list by (default=age)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+               required=False, dataType='int')
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def discardPartialUploads(self, params):
+        uploadList = self.model('upload').list(filters=params, limit=0)
+        # Move the results to list that isn't a cursor so we don't have to have
+        # the cursor sitting around while we work on the data.
+        resultList = [upload for upload in uploadList]
+        for upload in resultList:
+            self.model('upload').cancelUpload(upload)
+        untracked = self.boolParam('includeUntracked', params, default=True)
+        if untracked:
+            assetstoreId = params.get('assetstoreId', None)
+            resultList += self.model('upload').untrackedUploads('delete',
+                                                                assetstoreId)
+        return resultList
+    discardPartialUploads.description = (
+        Description('Discard uploads that have not been finished.')
+        .notes("""Must be a system administrator to call this. This frees
+               resources that were allocated for the uploads and clears the
+               uploads from database.""")
+        .param('uploadId', 'Clear only a specific upload.', required=False)
+        .param('userId', 'Restrict clearing uploads to those started by a '
+               'specific user.', required=False)
+        .param('parentId', 'Restrict clearing uploads to those within a '
+               'specific folder or item.', required=False)
+        .param('assetstoreId', 'Restrict clearing uploads within a specific '
+               'assetstore.', required=False)
+        .param('minimumAge', 'Restrict clearing uploads to those that are at '
+               'least this many days old.', required=False)
+        .param('includeUntracked', 'Some assetstores can have partial uploads '
+               'that are no longer in the girder database.  If this is True, '
+               'remove all of them (only filtered by assetstoreId).  Default '
+               'True.',
+               required=False, dataType='boolean')
         .errorResponse('You are not a system administrator.', 403))

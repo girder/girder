@@ -55,7 +55,7 @@ class File(Resource):
         self.requireParams(('name', 'parentId', 'parentType'), params)
         user = self.getCurrentUser()
 
-        mimeType = params.get('mimeType', None)
+        mimeType = params.get('mimeType', 'application/octet-stream')
         parentType = params['parentType'].lower()
 
         if parentType not in ('folder', 'item'):

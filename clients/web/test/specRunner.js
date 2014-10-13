@@ -59,7 +59,7 @@ page.onConsoleMessage = function (msg) {
         console.log('Created screenshot: ' + imageFile);
 
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
-            fs.workingDirectory + '/' + imageFile + '</DartMeasurementFile>');
+            fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
         return;
     }
 
@@ -70,16 +70,45 @@ page.onConsoleMessage = function (msg) {
             console.log('Exception writing coverage results: ', e);
         }
     }
-    else if (msg.indexOf('__ATTACH__') === 0) {
-        var parts = msg.substring('__ATTACH__'.length).split(' ');
-        page.uploadFile(parts[0], parts[1]);
-    }
     else {
         console.log(msg);
     }
     if (msg === 'ConsoleReporter finished') {
         accumCoverage = true;
         return terminate();
+    }
+};
+
+page.onCallback = function (data) {
+    /* Perform an action asked for in the web test and return a result.  An
+     * action must be specified in the data object for this to do anything.
+     * Available actions are:
+     *   uploadFile: upload the file in data.path to the element determined
+     * with the selector data.selector.  If no path or an invalid path is
+     * specified, and data.size is present, create a temporary file with
+     * data.size bytes and upload that.
+     *   uploadCleanup: delete any temporary file that was created for uploads.
+     * :param data: an object with an 'action', as listed above.
+     * :returns: depends on the action.
+     */
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload.tmp';
+    switch (data.action)
+    {
+        case 'uploadFile':
+            var path = data.path
+            if (!path && data.size!==undefined)
+            {
+                path = uploadTemp;
+                fs.write(path, new Array(data.size+1).join("-"), "wb");
+            }
+            page.uploadFile(data.selector, path);
+            if (fs.size(path) >= 1024 * 64)
+                return fs.size(path);
+            return fs.read(path);
+        case 'uploadCleanup':
+            if (fs.exists(uploadTemp))
+                fs.remove(uploadTemp);
+            break;
     }
 };
 

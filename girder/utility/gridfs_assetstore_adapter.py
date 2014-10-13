@@ -22,6 +22,7 @@ import cherrypy
 import pymongo
 import uuid
 
+from StringIO import StringIO
 from .model_importer import ModelImporter
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
@@ -84,6 +85,11 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
+
+        if isinstance(chunk, basestring):
+            if isinstance(chunk, unicode):
+                chunk = chunk.encode('utf8')
+            chunk = StringIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
@@ -224,3 +230,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         matching = ModelImporter().model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
             self.chunkColl.remove({'uuid': file['chunkUuid']})
+
+    def cancelUpload(self, upload):
+        """
+        Delete all of the chunks associated with a given upload.
+        """
+        self.chunkColl.remove({'uuid': upload['chunkUuid']})

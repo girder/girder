@@ -26,7 +26,10 @@ from . import base
 
 def setUpModule():
     os.environ['PORT'] = '50001'
-    base.startServer(False)
+    mockS3 = False
+    if 's3' in os.environ['ASSETSTORE_TYPE']:
+        mockS3 = True
+    base.startServer(False, mockS3=mockS3)
 
 
 def tearDownModule():
@@ -37,13 +40,18 @@ class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
         self.coverageFile = os.environ['COVERAGE_FILE']
-        base.TestCase.setUp(self)
+        assetstoreType = os.environ['ASSETSTORE_TYPE']
+        self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
+        if self.webSecurity != 'false':
+            self.webSecurity = 'true'
+        base.TestCase.setUp(self, assetstoreType)
 
     def testWebClientSpec(self):
 
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
+            '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:50001/static/built/testEnv.html',
             self.specFile,

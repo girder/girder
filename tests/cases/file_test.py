@@ -62,6 +62,14 @@ class FileTestCase(base.TestCase):
                 self.publicFolder = folder
             else:
                 self.privateFolder = folder
+        secondUser = {
+            'email': 'second@email.com',
+            'login': 'secondlogin',
+            'firstName': 'Second',
+            'lastName': 'User',
+            'password': 'secondpassword'
+        }
+        self.secondUser = self.model('user').createUser(**secondUser)
 
     def _testEmptyUpload(self, name):
         """
@@ -102,6 +110,21 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
+        # Uploading with no user should fail
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', fields=fields, files=files)
+        self.assertStatus(resp, 401)
+
+        # Uploading with the wrong user should fail
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.secondUser, fields=fields,
+            files=files)
+        self.assertStatus(resp, 403)
+
         # Sending the first chunk should fail because the default minimum chunk
         # size is larger than our chunk.
         self.model('setting').unset(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
@@ -129,7 +152,6 @@ class FileTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Ask for completion before sending second chunk should fail
-        fields = [('uploadId', uploadId)]
         resp = self.request(path='/file/completion', method='POST',
                             user=self.user, params={'uploadId': uploadId})
         self.assertStatus(resp, 400)
@@ -303,6 +325,7 @@ class FileTestCase(base.TestCase):
         resp = self.request(
             path='/file/{}/contents'.format(file['_id']), method='PUT',
             user=self.user, params={'size': len(newContents)})
+        self.assertStatusOk(resp)
 
         # Old contents should not be immediately destroyed
         self.assertTrue(os.path.isfile(abspath))
@@ -320,6 +343,12 @@ class FileTestCase(base.TestCase):
         abspath = os.path.join(root, file['path'])
         self.assertTrue(os.path.isfile(abspath))
         self._testDownloadFile(file, newContents)
+
+        # Test updating an empty file
+        resp = self.request(
+            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            user=self.user, params={'size': 1})
+        self.assertStatusOk(resp)
 
         self._testDeleteFile(file)
         self.assertFalse(os.path.isfile(abspath))

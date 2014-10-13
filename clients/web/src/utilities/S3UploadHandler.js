@@ -174,7 +174,8 @@
      * authorized request to send the chunk to S3.
      */
     prototype._sendNextChunk = function () {
-        var data = this.params.file.slice(this.startByte,
+        var sliceFn = this.params.file.webkitSlice ? 'webkitSlice' : 'slice';
+        var data = this.params.file[sliceFn](this.startByte,
             this.startByte + this.params.upload.s3.chunkLength);
         this.payloadLength = data.size;
 
