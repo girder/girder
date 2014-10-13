@@ -464,9 +464,10 @@ class Folder(AccessControlledModel):
         """
         Get the path to traverse to a root of the hierarchy.
 
-        :param item: The item whose root to find
-        :type item: dict
-        :returns: an ordered list of dictionaries from root to the current item
+        :param folder: The folder whose root to find
+        :type folder: dict
+        :returns: an ordered list of dictionaries from root to the current
+                  folder
         """
         if not curPath:
             curPath = []

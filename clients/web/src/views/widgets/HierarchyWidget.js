@@ -279,17 +279,17 @@ girder.views.HierarchyWidget = girder.View.extend({
         var view = this;
         var desc = '';
         var folders = this.folderListView.checked;
-        if (folders.length == 1) {
+        if (folders.length === 1) {
             desc += '1 folder';
         } else if (folders.length > 1) {
             desc += folders.length + ' folders';
         }
         if (this.itemListView && this.itemListView.checked.length) {
-            if (desc != '') {
+            if (desc !== '') {
                 desc += ' and ';
             }
             var items = this.itemListView.checked;
-            if (items.length == 1) {
+            if (items.length === 1) {
                 desc += '1 item';
             } else {
                 desc += items.length + ' items';
