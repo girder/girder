@@ -88,6 +88,51 @@ plugin should be prefixed by your plugin name, e.g.,
 
 .. note:: All emails are sent as rich text (``text/html`` MIME type).
 
+Client Development
+------------------
+
+If you are writing a custom client application that communicates with the Girder
+REST API, you should look at the Swagger page that describes all of the available
+API endpoints. The Swagger page can be accessed by navigating a web browser to
+``api/v1`` relative to the server root. If you wish to consume the Swagger-compliant
+API specification programmatically, the JSON listing is served out of ``api/v1/describe``.
+
+Authenticating to the web API
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Clients can make authenticated web API calls by passing a secure temporary token
+with their requests. Tokens are obtained via the login process; the standard
+login process requires the client to make an HTTP ``GET`` request to the
+``api/v1/user/authentication`` route, using HTTP Basic Auth to pass the user
+credentials. For example, for a user with login "john" and password "hello",
+first base-64 encode the string ``"john:hello"`` which yields ``"am9objpoZWxsbw=="``.
+Then take the base-64 encoded value and pass it via the ``Authorization`` header: ::
+
+    Authorization: Basic am9objpoZWxsbw==
+
+If the username and password are correct, you will receive a 200 status code and
+a JSON document from which you can extract the authentication token, e.g.: ::
+
+    {
+      "authToken": {
+        "token": "urXQSHO8aF6cLB5si0Ch0WCiblvW1m8YSFylMH9eqN1Mt9KvWUnghVDKQy545ZeA",
+        "expires": "2015-04-11 00:06:14.598570"
+      },
+      "message": "Login succeeded.",
+      "user": {
+        ...
+      }
+    }
+
+The ``authToken.token`` string is the token value you should pass in subsequent API
+calls, which should either be passed as the ``token`` parameter in the query or
+form parameters, or as the value of a custom HTTP header with the key ``Girder-Token``, e.g. ::
+
+    Girder-Token: urXQSHO8aF6cLB5si0Ch0WCiblvW1m8YSFylMH9eqN1Mt9KvWUnghVDKQy545ZeA
+
+.. note:: When logging in, the token is also sent to the client in a Cookie header so that web-based
+   clients can persist its value conveniently for its duration. However, for security
+   reasons, merely passing the cookie value back is not sufficient for authentication.
 
 Server Side Testing
 -------------------
