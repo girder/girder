@@ -43,6 +43,10 @@ class testEndpointDecoratorException(base.TestCase):
     def pointless_endpoint_unicode(self, path, params):
         raise Exception(u'\u0400 cannot be converted to ascii.')
 
+    @endpoint
+    def pointless_endpoint_bytes(self, path, params):
+        raise Exception('\x80\x80 cannot be converted to unicode or ascii.')
+
     def test_endpoint_exception_ascii(self):
         resp = self.pointless_endpoint_ascii('', {})
         obj = json.loads(resp)
@@ -50,5 +54,11 @@ class testEndpointDecoratorException(base.TestCase):
 
     def test_endpoint_exception_unicode(self):
         resp = self.pointless_endpoint_unicode('', {})
+        obj = json.loads(resp)
+        self.assertEquals(obj['type'], 'internal')
+
+    def test_endpoint_exception_bytes(self):
+        resp = self.pointless_endpoint_bytes('', {})
+        print resp
         obj = json.loads(resp)
         self.assertEquals(obj['type'], 'internal')

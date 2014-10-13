@@ -170,8 +170,7 @@ def endpoint(fun):
             logger.exception('500 Error')
             cherrypy.response.status = 500
             t, value, tb = sys.exc_info()
-            value = json.dumps(value, default=unicode)
-            val = {'message': '%s: %s' % (t.__name__, value.encode('utf-8')),
+            val = {'message': '%s: %s' % (t.__name__, repr(value)),
                    'type': 'internal'}
             curConfig = config.getConfig()
             if curConfig['server']['mode'] != 'production':
