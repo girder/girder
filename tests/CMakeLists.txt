@@ -26,6 +26,7 @@ add_python_test(system)
 add_python_test(upload RESOURCE_LOCKS uploadfile)
 add_python_test(user)
 add_python_test(webroot)
+add_python_test(rest_decorator)
 
 
 add_web_client_test_with_assetstore(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" filesystem)
