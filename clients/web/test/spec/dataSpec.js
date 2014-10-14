@@ -8,20 +8,35 @@
 var uploadData;
 /* used for resume testing */
 var uploadDataExtra = 0;
+/* used for adjusting minimum upload size */
+var minUploadSize;
+
+(function (impl) {
+    FormData.prototype.append = function (name, value, filename) {
+        this.vals = this.vals || {};
+        if (filename)
+            this.vals[name+'_filename'] = value;
+        this.vals[name] = value;
+        impl.call(this, name, value, filename);
+    };
+} (FormData.prototype.append));
 
 (function (impl) {
     XMLHttpRequest.prototype.send = function (data) {
         if (data && data instanceof FormData) {
-            data = new FormData();
-            data.append('offset', 0);
-            data.append('uploadId', girder._uploadId);
+            var newdata = new FormData();
+            newdata.append('offset', data.vals.offset);
+            newdata.append('uploadId', data.vals.uploadId);
+            var len = data.vals.chunk.size;
             /* Note that this appears to fail if uploadData contains certain
              * characters, such as LF. */
-            if (uploadData.length && !uploadDataExtra)
-                data.append('chunk', uploadData);
+            if (uploadData.length && uploadData.length==len &&
+                    !uploadDataExtra)
+                newdata.append('chunk', uploadData);
             else
-                data.append('chunk', new Array(
-                    uploadData+1+uploadDataExtra).join('-'));
+                newdata.append('chunk',
+                                new Array(len+1+uploadDataExtra).join('-'));
+            data = newdata;
         }
         else if (data && data instanceof Blob) {
             if (uploadDataExtra)
@@ -31,6 +46,7 @@ var uploadDataExtra = 0;
                  * can test resumes. */
                 this.setRequestHeader('x-amz-copy-source', 'bad_value');
             }
+            console.log("BLOB "+data.size); //DWM::
             if (uploadData.length && uploadData.length==data.size &&
                     !uploadDataExtra)
                 data = uploadData;
@@ -114,6 +130,43 @@ function _testUpload(uploadItem, needResume)
     waits(200);
 
     window.callPhantom({action: 'uploadCleanup'});
+}
+
+function _setMinimumChunkSize(minSize)
+/* Set the minimum chunk size in the server settings, the upload handler, and
+ *  the S3 asset store handler.
+ * :param minSize: the new minimum size.  If null, revert to the original
+ *                 minimums.
+ */
+{
+    if (!minUploadSize)
+    {
+        minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
+        var resp = girder.restRequest({
+            path: 'system/setting',
+            type: 'GET',
+            data: {key: 'core.upload_minimum_chunk_size'},
+            async: false
+        });
+        minUploadSize.setting = resp.responseText;
+    }
+    if (!minSize)
+    {
+        var uploadChunkSize = minUploadSize.UPLOAD_CHUNK_SIZE;
+        var settingSize = minUploadSize.setting;
+    }
+    else
+    {
+        var uploadChunkSize = minSize;
+        var settingSize = minSize;
+    }
+    girder.UPLOAD_CHUNK_SIZE = uploadChunkSize;
+    girder.restRequest({
+        path: 'system/setting',
+        type: 'PUT',
+        data: {key: 'core.upload_minimum_chunk_size', value: settingSize},
+        async: false
+    });
 }
 
 /**
@@ -290,15 +343,18 @@ describe('Create a data hierarchy', function () {
     });
 
     it('upload a large file', function () {
-        /* Use a file greater than the S3 chunk size of 32Mb.  There is a bug
+        /* Use a file greater than the twice the S3 chunk size and greater than
+         * twice the general upload chunk size.  We do this by artificially
+         * changing these chunk sizes to make the test faster.  There is a bug
          * in phantomjs that fails to parse the response headers from the
          * multipart uploads.  As such, when this is run on the S3 assetstore,
          * this test will fail unless phantomjs is run with
          * --web-security=false */
-        _testUpload(1024 * 1024 * 33);
+        _setMinimumChunkSize(1024 * 256);
+        _testUpload(1024 * 513);
     });
-
     it('upload a large file requiring resume', function () {
-        _testUpload(1024 * 1024 * 33, true);
+        _setMinimumChunkSize(1024 * 256);
+        _testUpload(1024 * 513, true);
     });
 });
