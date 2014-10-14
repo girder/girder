@@ -7,4 +7,3 @@ Administrator Documentation
    prerequisites
    installation
    deploy
-   plugins

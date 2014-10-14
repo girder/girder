@@ -10,6 +10,7 @@ https://github.com/girder/girder.
    admin-docs
    user-docs
    developer-docs
+   plugins
 
 Indices and tables
 ------------------
