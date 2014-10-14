@@ -112,4 +112,68 @@ describe('Create an admin and non-admin user', function () {
             expect($('.g-item-description').text()).toBe("Test Item Description");
         });
     });
+
+    it('Open edit dialog and check url state', function () {
+        waitsFor(function () {
+            return $('.g-item-actions-button:visible').length === 1;
+        }, 'the item actions button to appear');
+
+        runs(function () {
+            $('.g-item-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-edit-item:visible').length === 1;
+        }, 'the item edit action to appear');
+
+        runs(function () {
+            $('.g-edit-item').click();
+        });
+
+        waitsFor(function () {
+            return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
+        }, 'the url state to change');
+
+        waitsFor(function () {
+            return $('a.btn-default').text() === 'Cancel';
+        }, 'the cancel button to appear');
+
+        runs(function () {
+            $('a.btn-default').click();
+        });
+    });
+
+    it('Delete the item', function () {
+        waitsFor(function () {
+            return $('.g-item-actions-button:visible').length === 1;
+        }, 'the item actions button to appear');
+
+        runs(function () {
+            $('.g-item-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-delete-item:visible').length === 1;
+        }, 'the item delete action to appear');
+
+        runs(function () {
+            $('.g-delete-item').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-confirm-button:visible').length > 0;
+        }, 'delete confirmation to appear');
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-container').length > 0;
+        }, 'go back to the item list');
+
+        runs(function () {
+            expect($('.g-item-list-entry').text()).not.toContain('Test Item Name');
+        });
+    });
 });
