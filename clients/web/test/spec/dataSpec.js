@@ -46,7 +46,6 @@ var minUploadSize;
                  * can test resumes. */
                 this.setRequestHeader('x-amz-copy-source', 'bad_value');
             }
-            console.log("BLOB "+data.size); //DWM::
             if (uploadData.length && uploadData.length==data.size &&
                     !uploadDataExtra)
                 data = uploadData;
