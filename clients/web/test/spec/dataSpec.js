@@ -62,7 +62,8 @@ function _testUpload(uploadItem, needResume)
  * :param uploadItem: either the path to the file to upload or an integer to
  *                    create and upload a temporary file of that size.
  * :param needResume: if true, upload a partial file so that we are asked if we
- *                    want to resume, then resume.
+ *                    want to resume, then resume.  If 'abort', then abort the
+ *                    upload instead of resuming it.
  */
 {
     var orig_len;
@@ -118,7 +119,12 @@ function _testUpload(uploadItem, needResume)
         runs(function () {
             uploadDataExtra = 0;
 
-            $('.g-resume-upload').click();
+            if (needResume == 'abort') {
+                $('.btn-default').click();
+                orig_len -= 1;
+            } else {
+                $('.g-resume-upload').click();
+            }
         });
     }
 
@@ -340,6 +346,10 @@ describe('Create a data hierarchy', function () {
 
     it('upload requiring resume', function () {
         _testUpload(1024 * 32, true);
+    });
+
+    it('upload requiring resume that is aborted', function () {
+        _testUpload(1024 * 32, 'abort');
     });
 
     it('upload a large file', function () {
