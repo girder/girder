@@ -1,11 +1,13 @@
+prune clients
+prune tests
 include LICENSE
 include setup.py
 include requirements.txt
-recursive-include girder *
-graft clients
-recursive-include plugins *
-include girder/conf/girder.dist.cfg
-recursive-exclude tests *
 include girder/girder-version.json
 include package.json
 include README.rst
+include girder/conf/girder.dist.cfg
+graft plugins
+prune plugins/*/web_client
+prune plugins/*/plugin_tests
+global-exclude *.pyc *.pyo *.cmake

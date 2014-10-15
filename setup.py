@@ -20,18 +20,11 @@
 import json
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
-import sys
 import os
-
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
-    sys.exit()
+from glob import glob
 
 with open('README.rst') as f:
     readme = f.read()
-
-with open('LICENSE') as f:
-    license = f.read()
 
 with open('package.json') as f:
     version = json.load(f)['version']
@@ -41,6 +34,18 @@ install_reqs = parse_requirements('requirements.txt')
 
 # reqs is a list of requirement
 reqs = [str(ir.req) for ir in install_reqs]
+
+# search for server plugins
+plugins = glob(os.path.join('plugins', '*', 'server'))
+
+# include plugin requirements
+for plugin in plugins:
+    plugin_path = os.path.join(*os.path.split(plugin)[:-1])
+    plugin_reqs = os.path.join(plugin_path, 'requirements.txt')
+
+    if os.path.exists(plugin_reqs):
+        plugin_install_reqs = parse_requirements(plugin_reqs)
+        reqs += [str(ir.req) for ir in plugin_install_reqs]
 
 setup(
     name='girder',
@@ -60,6 +65,11 @@ setup(
     ],
     packages=find_packages(exclude=('tests.*', 'tests')),
     package_data={
-        'girder': ['girder-version.json']
-    }
+        'girder': [
+            'girder-version.json',
+            'conf/girder.dist.cfg'
+        ]
+    },
+    install_requires=reqs,
+    zip_safe=False
 )
