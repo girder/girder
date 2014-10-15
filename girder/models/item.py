@@ -20,7 +20,6 @@
 import datetime
 import json
 import os
-import pymongo
 
 from bson.objectid import ObjectId
 from .model_base import Model, ValidationException
@@ -409,7 +408,9 @@ class Item(Model):
         """
         Generate a list of files within this item.
         :param doc: the item to list.
-        :param user: a user used to validate data that is returned.
+        :param user: a user used to validate data that is returned.  This isn't
+                     used, but is present to be consistent across all model
+                     implementations of fileList.
         :param path: a path prefix to add to the results.
         :param includeMetadata: if True and there is any metadata, include a
                                 result which is the json string of the
@@ -425,15 +426,13 @@ class Item(Model):
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
                     (includeMetadata and len(doc.get('meta', {})))):
                 path = os.path.join(path, doc['name'])
-        metadataFile = {"format": "metadata#.json"}
-        for file in self.childFiles(
-                item=doc, limit=0, sort=[('created', pymongo.ASCENDING)],
-                timeout=False):
-            self.getDistinctName(metadataFile, file['name'])
+        metadataFile = "girder-item-metadata.json"
+        for file in self.childFiles(item=doc, limit=0, timeout=False):
+            if file['name'] == metadataFile:
+                metadataFile = None
             yield (os.path.join(path, file['name']),
                    self.model('file').download(file, headers=False))
-        if includeMetadata and len(doc.get('meta', {})):
+        if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
                 yield json.dumps(doc['meta'])
-            yield (os.path.join(path, self.getDistinctName(
-                metadataFile, None)), stream)
+            yield (os.path.join(path, metadataFile), stream)

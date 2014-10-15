@@ -114,7 +114,7 @@ class FolderTestCase(base.TestCase):
         parents = self.model('item').parentsToRoot(self.items[2], self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
-            [self.items[2]['name'], 'metadata.json']))
+            [self.items[2]['name'], 'girder-item-metadata.json']))
         self.expectedZip[path] = json.dumps(meta)
 
         meta = {'key2': 'value2'}
@@ -123,7 +123,7 @@ class FolderTestCase(base.TestCase):
                                                      user=self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
-            [self.adminPublicFolder['name'], 'metadata.json']))
+            [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
         self.expectedZip[path] = json.dumps(meta)
 
     def _uploadFile(self, name, item):

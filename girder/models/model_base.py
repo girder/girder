@@ -18,7 +18,6 @@
 ###############################################################################
 
 import pymongo
-import re
 
 from bson.objectid import ObjectId
 from girder import events
@@ -334,36 +333,6 @@ class Model(ModelImporter):
             out['_textScore'] = doc['_textScore']
 
         return out
-
-    def getDistinctName(self, nameSpec, usedName=None):
-        """
-        Get a distinct name.  This is intended to be called repeatedly with
-        names that have been used.
-        :param nameSpec: a dictionary used to track and return results.  It
-                         must have a key 'format' that contains a name with a
-                         single # within it that will be replaced with an empty
-                         string or -(number) to make the name distinct.
-        :param usedName: a name that is already in use, or None to return
-                         a name that is distinct so far.
-        :returns: a distinct name if usedName is None.
-        """
-        if 'compiled' not in nameSpec:
-            nameSpec['re'] = re.compile('^'+re.escape(
-                nameSpec['format']).replace('\\#', '(-[1-9][0-9]*|)')+'$')
-            nameSpec['number'] = 0
-        if usedName is not None:
-            match = nameSpec['re'].match(usedName)
-            if not match:
-                return
-            if match.groups()[0]:
-                nameSpec['number'] = max(int(match.groups()[0])+1,
-                                         nameSpec['number'])
-            else:
-                nameSpec['number'] = max(1, nameSpec['number'])
-            return
-        if nameSpec['number']:
-            return nameSpec['format'].replace('#', '-%d' % nameSpec['number'])
-        return nameSpec['format'].replace('#', '')
 
 
 class AccessControlledModel(Model):

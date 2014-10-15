@@ -533,20 +533,21 @@ class Folder(AccessControlledModel):
         """
         if subpath:
             path = os.path.join(path, doc['name'])
-        metadataFile = {"format": "metadata#.json"}
+        metadataFile = "girder-folder-metadata.json"
         for sub in self.childFolders(parentType='folder', parent=doc,
                                      user=user, limit=0, timeout=False):
-            self.getDistinctName(metadataFile, sub['name'])
+            if sub['name'] == metadataFile:
+                metadataFile = None
             for (filepath, file) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
         for item in self.childItems(folder=doc, limit=0, timeout=False):
-            self.getDistinctName(metadataFile, item['name'])
+            if item['name'] == metadataFile:
+                metadataFile = None
             for (filepath, file) in self.model('item').fileList(
                     item, user, path, includeMetadata):
                 yield (filepath, file)
-        if includeMetadata and len(doc.get('meta', {})):
+        if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
                 yield json.dumps(doc['meta'])
-            yield (os.path.join(path, self.getDistinctName(
-                metadataFile, None)), stream)
+            yield (os.path.join(path, metadataFile), stream)
