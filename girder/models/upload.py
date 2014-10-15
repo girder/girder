@@ -227,7 +227,7 @@ class Upload(Model):
                             query[key] = id
             if 'minimumAge' in filters:
                 query['updated'] = {
-                    '$lte': datetime.datetime.now() -
+                    '$lte': datetime.datetime.utcnow() -
                     datetime.timedelta(days=float(filters['minimumAge']))
                     }
         # Perform the find; we'll do access-based filtering of the result
