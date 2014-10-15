@@ -102,7 +102,8 @@ girder.views.AssetstoresView = girder.View.extend({
 
         girder.confirm({
             text: 'Are you sure you want to delete the assetstore <b>' +
-                  assetstore.escape('name') + '</b>?',
+                  assetstore.escape('name') + '</b>?  There are no files ' +
+                  'stored in it, and no data will be lost.',
             escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {

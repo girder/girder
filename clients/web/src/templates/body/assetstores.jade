@@ -60,9 +60,13 @@
         .g-assetstore-buttons
           button.g-edit-assetstore.btn.btn-sm.btn-default(
               cid="#{assetstore.cid}") Edit
-          button.g-delete-assetstore.btn.btn-sm.btn-danger(
-              cid="#{assetstore.cid}") Delete
-
+          if !assetstore.get('hasFiles')
+            button.g-delete-assetstore.btn.btn-sm.btn-danger(
+                cid="#{assetstore.cid}") Delete
+          else
+            div.g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
+              button.g-delete-assetstore.btn.btn-sm.btn-danger.disabled(
+                  cid="#{assetstore.cid}") Delete
           if !assetstore.get('current')
             button.g-set-current.btn.btn-sm.btn-primary(
               cid="#{assetstore.cid}") Set as current
