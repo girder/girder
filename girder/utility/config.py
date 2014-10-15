@@ -18,7 +18,7 @@
 ###############################################################################
 
 import cherrypy
-from girder import constants
+from girder.constants import TerminalColor, ROOT_DIR
 import os
 
 
@@ -36,20 +36,21 @@ def _mergeConfig(filename):
 
 def loadConfig():
     _mergeConfig(
-        os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
 
-    local = os.path.join(constants.ROOT_DIR, 'girder', 'conf',
+    local = os.path.join(ROOT_DIR, 'girder', 'conf',
                          'girder.local.cfg')
     if os.path.exists(local):
         _mergeConfig(local)
     else:
-        print constants.TerminalColor.warning(
-            'WARNING: "{}" does not exist.'.format(local))
+        print(TerminalColor.warning('WARNING: "{}" does not exist.'
+                                    .format(local)))
 
     # The PORT environment variable will override the config port
-    if 'PORT' in os.environ:
-        port = int(os.environ['PORT'])
-        print 'Using PORT env value ({})'.format(port)
+    if 'GIRDER_PORT' in os.environ:
+        port = int(os.environ['GIRDER_PORT'])
+        print(TerminalColor.info('Using GIRDER_PORT env value ({})'
+                                 .format(port)))
         cherrypy.config['server.socket_port'] = port
 
     if 'GIRDER_MONGO_URI' in os.environ:
