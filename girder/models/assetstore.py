@@ -116,7 +116,8 @@ class Assetstore(Model):
         for assetstore in cursor:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             assetstore['capacity'] = adapter.capacityInfo()
-            assetstore['hasFiles'] = (self.model('file').findOne({'assetstoreId': assetstore['_id']}) is not None)
+            assetstore['hasFiles'] = (self.model('file').findOne(
+                {'assetstoreId': assetstore['_id']}) is not None)
             assetstores.append(assetstore)
 
         return assetstores
