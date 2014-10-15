@@ -229,7 +229,7 @@ class System(Resource):
                 self.model('upload').cancelUpload(upload)
             except OSError as exc:
                 if exc[0] in (errno.EACCES,):
-                    raise RestException('Failed to delete upload.', 500)
+                    raise Exception('Failed to delete upload.')
                 raise
         untracked = self.boolParam('includeUntracked', params, default=True)
         if untracked:

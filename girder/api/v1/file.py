@@ -77,7 +77,7 @@ class File(Resource):
                     parent=parent, size=int(params['size']), mimeType=mimeType)
             except OSError as exc:
                 if exc[0] in (errno.EACCES,):
-                    raise RestException('Failed to create upload.', 500)
+                    raise Exception('Failed to create upload.')
                 raise
             if upload['size'] > 0:
                 return upload
@@ -187,7 +187,7 @@ class File(Resource):
                 return self.model('upload').handleChunk(upload, chunk)
         except IOError as exc:
             if exc[0] in (errno.EACCES,):
-                raise RestException('Failed to store upload.', 500)
+                raise Exception('Failed to store upload.')
             raise
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
