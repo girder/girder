@@ -93,16 +93,12 @@ class Resource(BaseResource):
                 'user', 'folder', 'item'.""")
         .errorResponse('Invalid type list format.'))
 
-    def _validateResourceSet(self, params, funcName, user=None, level=None):
+    def _validateResourceSet(self, params):
         """
         Validate a JSON string listing resources.  The resources parameter is a
         JSON encoded dictionary with each key a model name and each value a
         list of ids that must be present in that model.
         :param params: a dictionary of parameters that must include 'resources'
-        :param funcName: a function name to ensure that each model contains.
-        :param user: the user for access control.
-        :param level: required access level for the model item.  If None, the
-                      model does not need to have access control.
         :returns: the json decoded resource dictionary.
         """
         self.requireParams(('resources', ), params)
@@ -112,32 +108,28 @@ class Resource(BaseResource):
             raise RestException('The resources parameter must be JSON.')
         if type(resources) is not dict:
             raise RestException('Invalid resources format.')
-        # Check that all of the specified resources are valid and have access
-        access = {}
-        if user is not None:
-            access['user'] = user
-        if level is not None:
-            access['level'] = level
-        count = 0
-        for kind in resources:
-            try:
-                model = self.model(kind)
-            except Exception as exc:
-                if exc.message.startswith('Could not load model '):
-                    model = None
-                else:
-                    raise
-            if not model or not hasattr(model, funcName):
-                raise RestException('Invalid resources format.')
-            for id in resources[kind]:
-                if model.load(id=id, **access):
-                    count += 1
-                else:
-                    raise RestException('Resource %s %s not found.' % (kind,
-                                                                       id))
+        count = sum([len(resources[key]) for key in resources])
         if not count:
             raise RestException('No resources specified.')
         return resources
+
+    def _getResourceModel(self, kind, funcName):
+        """
+        Load and return a model with a specific function or throw an exception.
+        :param kind: the name of the model to load
+        :param funcName: a function name to ensure that each model contains.
+        :returns: the loaded model.
+        """
+        try:
+            model = self.model(kind)
+        except Exception as exc:
+            if exc.message.startswith('Could not load model '):
+                model = None
+            else:
+                raise
+        if not model or (funcName and not hasattr(model, funcName)):
+            raise RestException('Invalid resources format.')
+        return model
 
     @access.public
     def download(self, params):
@@ -147,8 +139,15 @@ class Resource(BaseResource):
         permissions.
         """
         user = self.getCurrentUser()
-        resources = self._validateResourceSet(params, 'fileList', user,
-                                              AccessType.READ)
+        resources = self._validateResourceSet(params)
+        # Check that all the resources are valid, so we don't download the zip
+        # file if it would throw an error.
+        for kind in resources:
+            model = self._getResourceModel(kind, 'fileList')
+            for id in resources[kind]:
+                if not model.load(id=id, user=user, level=AccessType.READ):
+                    raise RestException('Resource %s %s not found.' %
+                                        (kind, id))
         metadata = self.boolParam('includeMetadata', params, default=False)
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
@@ -187,21 +186,30 @@ class Resource(BaseResource):
         Delete a set of resources.
         """
         user = self.getCurrentUser()
-        resources = self._validateResourceSet(params, 'remove', user,
-                                              AccessType.ADMIN)
-        count = sum([len(resources[key]) for key in resources])
+        resources = self._validateResourceSet(params)
+        total = sum([len(resources[key]) for key in resources])
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=user,
                              title='Deleting resources',
                              message='Calculating size...') as ctx:
             if progress:
-                ctx.update(total=count)
+                ctx.update(total=total)
+                current = 0
             for kind in resources:
-                model = self.model(kind)
+                model = self._getResourceModel(kind, 'remove')
                 for id in resources[kind]:
                     doc = model.load(id=id, user=user, level=AccessType.ADMIN)
-                    model.remove(doc)
-                    ctx.update(increment=1, message='Deleted ' + kind)
+                    if progress:
+                        subtotal = model.subtreeCount(doc)
+                        if subtotal != 1:
+                            total += model.subtreeCount(doc)-1
+                            ctx.update(total=total)
+                    model.remove(doc, ctx)
+                    if progress:
+                        current += subtotal
+                        if ctx.progress['data']['current'] != current:
+                            ctx.update(current=current,
+                                       message='Deleted ' + kind)
     delete.description = (
         Description('Delete a set of items and folders.')
         .param('resources', 'A JSON-encoded list of types to delete.  Each '

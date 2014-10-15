@@ -259,9 +259,11 @@ class Model(ModelImporter):
             '$inc': {field: amount}
         }, **kwargs)
 
-    def remove(self, document):
+    def remove(self, document, progress=None):
         """
         Delete an object from the collection; must have its _id set.
+        :param doc: the item to remove.
+        :param process: a placeholder for subclasses that support progress.
         """
         assert '_id' in document
 
@@ -333,6 +335,19 @@ class Model(ModelImporter):
             out['_textScore'] = doc['_textScore']
 
         return out
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the subtree rooted at the given document.  In
+        general, if this contains items or folders, it will be the count of the
+        items and folders in all containers.  If it does not, it will be 1.
+        This returns the absolute size of the subtree, it does not filter by
+        permissions.
+
+        :param doc: The root of the subtree.
+        :type doc: dict
+        """
+        return 1
 
 
 class AccessControlledModel(Model):

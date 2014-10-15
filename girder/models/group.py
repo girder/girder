@@ -144,12 +144,13 @@ class Group(AccessControlledModel):
             'groups': group['_id']
         }, fields=fields, limit=limit, offset=offset, sort=sort)
 
-    def remove(self, group):
+    def remove(self, group, progress=None):
         """
         Delete a group, and all references to it in the database.
 
         :param group: The group document to delete.
         :type group: dict
+        :param process: ignored.
         """
 
         # Remove references to this group from user group membership lists

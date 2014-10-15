@@ -224,8 +224,8 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
         self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
         self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 4)
-        self.assertEqual(notifs[0]['data']['current'], 4)
+        self.assertEqual(notifs[0]['data']['total'], 7)
+        self.assertEqual(notifs[0]['data']['current'], 7)
         self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
                         datetime.timedelta(minutes=1))
         # All of the items should be gone now

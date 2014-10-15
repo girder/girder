@@ -169,12 +169,13 @@ class Item(Model):
         for file in cursor:
             yield file
 
-    def remove(self, item):
+    def remove(self, item, progress=None):
         """
         Delete an item, and all references to it in the database.
 
         :param item: The item document to delete.
         :type item: dict
+        :param process: ignored.
         """
 
         # Delete all files in this item

@@ -72,12 +72,14 @@ class Collection(AccessControlledModel):
 
         return doc
 
-    def remove(self, collection):
+    def remove(self, collection, progress=None):
         """
         Delete a collection recursively.
 
         :param collection: The collection document to delete.
         :type collection: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Delete all folders in the community recursively
         folders = self.model('folder').find({
@@ -85,10 +87,13 @@ class Collection(AccessControlledModel):
             'parentCollection': 'collection'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder)
+            self.model('folder').remove(folder, progress)
 
         # Delete this collection
         AccessControlledModel.remove(self, collection)
+        if progress:
+            progress.update(increment=1, message='Deleted collection ' +
+                            collection['name'])
 
     def list(self, user=None, limit=50, offset=0, sort=None):
         """
@@ -189,3 +194,19 @@ class Collection(AccessControlledModel):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the folders within the collection.  The collection
+        is counted as well.
+
+        :param doc: The collection.
+        """
+        count = 1
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'collection'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            count += self.model('folder').subtreeCount(folder)
+        return count

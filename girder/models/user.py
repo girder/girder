@@ -116,12 +116,14 @@ class User(AccessControlledModel):
 
         return doc
 
-    def remove(self, user):
+    def remove(self, user, progress=None):
         """
         Delete a user, and all references to it in the database.
 
         :param user: The user document to delete.
         :type user: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Remove creator references for this user.
         creatorQuery = {
@@ -157,10 +159,13 @@ class User(AccessControlledModel):
             'parentCollection': 'user'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder)
+            self.model('folder').remove(folder, progress)
 
         # Finally, delete the user document itself
         AccessControlledModel.remove(self, user)
+        if progress:
+            progress.update(increment=1, message='Deleted user ' +
+                            user['login'])
 
     def search(self, text=None, user=None, limit=50, offset=0, sort=None):
         """
@@ -275,3 +280,18 @@ class User(AccessControlledModel):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the user's folders.  The user is counted as well.
+
+        :param doc: The user.
+        """
+        count = 1
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'user'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            count += self.model('folder').subtreeCount(folder)
+        return count

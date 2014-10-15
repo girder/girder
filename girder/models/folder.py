@@ -24,7 +24,6 @@ import os
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
-from girder.utility.progress import noProgress
 
 
 class Folder(AccessControlledModel):
@@ -268,14 +267,14 @@ class Folder(AccessControlledModel):
 
         return self.save(folder)
 
-    def remove(self, folder, progress=noProgress):
+    def remove(self, folder, progress=None):
         """
         Delete a folder recursively.
 
         :param folder: The folder document to delete.
         :type folder: dict
         :param progress: A progress context to record progress on.
-        :type progress: girder.utility.progress.ProgressContext
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Delete all child items
         items = self.model('item').find({
@@ -283,7 +282,9 @@ class Folder(AccessControlledModel):
         }, limit=0, timeout=False)
         for item in items:
             self.model('item').remove(item)
-            progress.update(increment=1, message='Deleted item ' + item['name'])
+            if progress:
+                progress.update(increment=1, message='Deleted item ' +
+                                item['name'])
         items.close()
 
         # Delete all child folders
@@ -306,7 +307,9 @@ class Folder(AccessControlledModel):
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)
-        progress.update(increment=1, message='Deleted folder ' + folder['name'])
+        if progress:
+            progress.update(increment=1, message='Deleted folder ' +
+                            folder['name'])
 
     def childItems(self, folder, limit=50, offset=0, sort=None, filters=None,
                    **kwargs):
