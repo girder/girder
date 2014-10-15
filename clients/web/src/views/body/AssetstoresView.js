@@ -69,11 +69,13 @@ girder.views.AssetstoresView = girder.View.extend({
             legend: {
                 show: true,
                 location: 'e',
+                background: 'transparent',
                 border: 'none'
             },
             grid: {
-                background: '#fff',
-                borderColor: '#fff',
+                background: 'transparent',
+                border: 'none',
+                borderWidth: 0,
                 shadow: false
             }
         });
