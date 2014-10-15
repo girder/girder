@@ -28,7 +28,7 @@ from . metadata_extractor_test import MetadataExtractorTestCase
 
 
 def setUpModule():
-    os.environ['PORT'] = '50001'
+    os.environ['GIRDER_PORT'] = '50001'
     base.startServer(False)
 
 
