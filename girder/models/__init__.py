@@ -20,14 +20,18 @@
 import pymongo
 
 from girder.utility import config
+from girder.constants import TerminalColor
 
 _db_connection = None
 
 
 def getDbConfig():
-    """Get the database configuration object from the cherrypy config."""
+    """Get the database configuration uri from the cherrypy config."""
     cfg = config.getConfig()
-    return cfg['database']
+    if 'database' in cfg:
+        return cfg['database']['uri']
+    else:
+        return None
 
 
 def getDbConnection():
@@ -38,20 +42,19 @@ def getDbConnection():
     if _db_connection is not None:
         return _db_connection
 
-    db_cfg = getDbConfig()
-    if db_cfg['user'] == '':
-        _db_uri = 'mongodb://%s:%d' % (db_cfg['host'], db_cfg['port'])
-        _db_uri_redacted = _db_uri
+    _db_uri = getDbConfig()
+    if _db_uri is None:
+        _db_uri_redacted = 'mongodb://localhost:27017/girder'
+        print(TerminalColor.warning('WARNING: No MongoDB URI specified, using '
+                                    'the default value'))
+        _db_connection = pymongo.MongoClient(_db_uri_redacted)
     else:
-        _db_uri = 'mongodb://%s:%s@%s:%d/%s' % (db_cfg['user'],
-                                                db_cfg['password'],
-                                                db_cfg['host'],
-                                                db_cfg['port'],
-                                                db_cfg['database'])
-        _db_uri_redacted = 'mongodb://%s@%s:%d' % (db_cfg['user'],
-                                                   db_cfg['host'],
-                                                   db_cfg['port'])
-
-    _db_connection = pymongo.MongoClient(_db_uri)
-    print "Connected to MongoDB: %s" % _db_uri_redacted
+        parts = _db_uri.split('@')
+        if len(parts) == 2:
+            _db_uri_redacted = 'mongodb://' + parts[1]
+        else:
+            _db_uri_redacted = _db_uri
+        _db_connection = pymongo.MongoClient(_db_uri)
+    print(TerminalColor.info('Connected to MongoDB: {}'
+                             .format(_db_uri_redacted)))
     return _db_connection

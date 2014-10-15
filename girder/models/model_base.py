@@ -23,7 +23,7 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
 from girder.utility.model_importer import ModelImporter
-from girder.models import getDbConfig, getDbConnection
+from girder.models import getDbConnection
 
 
 class Model(ModelImporter):
@@ -42,10 +42,8 @@ class Model(ModelImporter):
 
         self.initialize()
 
-        db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        dbName = db_cfg['database']
-        self.database = db_connection[dbName]
+        self.database = db_connection.get_default_database()
         self.collection = self.database[self.name]
 
         for index in self._indices:

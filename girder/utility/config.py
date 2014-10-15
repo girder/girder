@@ -20,7 +20,6 @@
 import cherrypy
 from girder import constants
 import os
-import re
 
 
 def _mergeConfig(filename):
@@ -53,19 +52,13 @@ def loadConfig():
         print 'Using PORT env value ({})'.format(port)
         cherrypy.config['server.socket_port'] = port
 
-    # The MONGOLAB_URI should override the database config
-    if os.getenv('MONGOLAB_URI'):  # for Heroku
-        matcher = re.match(r"mongodb://(.+):(.+)@(.+):(.+)/(.+)",
-                           os.getenv('MONGOLAB_URI'))
-        res = {'user': matcher.group(1),
-               'password': matcher.group(2),
-               'host': matcher.group(3),
-               'port': int(matcher.group(4)),
-               'database': matcher.group(5)}
-        cherrypy.config['database'] = res
+    if 'GIRDER_MONGO_URI' in os.environ:
+        if 'database' not in cherrypy.config:
+            cherrypy.config['database'] = {}
+        cherrypy.config['database']['uri'] = os.getenv('GIRDER_MONGO_URI')
 
     if 'GIRDER_TEST_DB' in os.environ:
-        cherrypy.config['database']['database'] =\
+        cherrypy.config['database']['uri'] =\
             os.environ['GIRDER_TEST_DB'].replace('.', '_')
 
 
