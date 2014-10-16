@@ -1,0 +1,206 @@
+.modal-dialog
+  .modal-content
+    form#g-assetstore-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          | Edit assetstore
+      .modal-body
+        .form-group
+          label.control-label(for="g-edit-name") Assetstore Name
+          input.input-sm#g-edit-name.form-control(type="text", placeholder="Name")
+        if assetstore.get('type') == types.FILESYSTEM
+          .form-group
+            label.control-label(for="g-edit-fs-root") Root directory
+            input.input-sm#g-edit-fs-root.form-control(type="text", placeholder="Root directory")
+        if assetstore.get('type') == types.GRIDFS
+          .form-group
+            label.control-label(for="g-edit-gridfs-db") Database name
+            input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
+        if assetstore.get('type') == types.S3
+          .form-group
+            label.control-label(for="g-edit-s3-bucket") S3 bucket name
+            input.input-sm#g-edit-s3-bucket.form-control(type="text", placeholder="Bucket")
+          .form-group
+            label.control-label(for="g-edit-s3-prefix") Path prefix (optional)
+            input.input-sm#g-edit-s3-prefix.form-control(type="text", placeholder="Prefix")
+          .form-group
+            label.control-label(for="g-edit-s3-access-key-id") Access key ID
+            input.input-sm#g-edit-s3-access-key-id.form-control(type="text", placeholder="Access key ID")
+          .form-group
+            label.control-label(for="g-edit-s3-secret") Secret access key
+            input.input-sm#g-edit-s3-secret.form-control(type="text", placeholder="Secret access key")
+          .form-group
+            label.control-label(for="g-edit-s3-service") Service
+            input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="Service name")
+        // DWM::
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-assetstore.btn.btn-small.btn-primary(type="submit")
+          i.icon-edit
+          | Save
+// show warning if there are files //DWM::
+// make edit red if there are files //DWM::
+//            
+    .g-current-assetstores-container
+      .g-body-title Assetstores
+      if !assetstores.length
+        .g-bottom-message.
+          You must create an assetstore before you can upload files to the server.
+          Select from the options below to create one.
+      else
+        .g-bottom-message.
+          Below is a list of all of the assetstores available to the server. The
+          one set as "current" is the one that uploaded files will be written to.
+      each assetstore in assetstores
+        .g-assetstore-container.panel.panel-default(class=assetstore.get('current')? 'g-assetstore-current' : undefined)
+          .panel-body
+            div
+              b Name:
+              span.g-assetstore-name  #{assetstore.get('name')}
+              if assetstore.get('current')
+                span.g-assetstore-current-text
+                  |  (Current assetstore)
+            if assetstore.get('type') == types.FILESYSTEM
+              div
+                b Type:
+                span.g-assetstore-type  Filesystem
+              div
+                b Root path:
+                span.g-assetstore-root  #{assetstore.get('root')}
+            else if assetstore.get('type') == types.GRIDFS
+              div
+                b Type:
+                span.g-assetstore-type  GridFS
+              div
+                b Database name:
+                span.g-assetstore-root  #{assetstore.get('db')}
+            else if assetstore.get('type') == types.S3
+              div
+                b Type:
+                span.g-assetstore-type  S3
+              div
+                b Bucket:
+                span.g-assetstore-bucket  #{assetstore.get('bucket')}
+              if assetstore.get('prefix')
+                div
+                  b Path prefix:
+                  span.g-assetstore-prefix  #{assetstore.get('prefix')}
+              div
+                b Access key ID:
+                span.g-access-key-id  #{assetstore.get('accessKeyId')}
+              div
+                b Secret access key:
+                span.g-secret-key  #{assetstore.get('secret')}
+//                
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-fs-tab")
+          i.icon-hdd
+          |  Create new
+          b  Filesystem
+          |  assetstore
+    #g-create-fs-tab.panel-collapse.collapse
+      .panel-body
+        p.
+          This type of assetstore will store files in a directory on the
+          local filesystem, using content-addressed storage to ensure that
+          data is never duplicated on disk. Just specify the root directory
+          that files will be stored under.
+        p.
+          If the specified root directory does not already exist, the server
+          will attempt to create it.
+        form#g-new-fs-form(role="form")
+          .form-group
+            label.control-label(for="g-new-fs-name") Assetstore name
+            input.input-sm.form-control#g-new-fs-name(type="text",
+                                                      placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-fs-root") Root directory
+            input.input-sm.form-control#g-new-fs-root(
+              type="text", placeholder="Root directory")
+          p#g-new-fs-error.g-validation-failed-message
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
+            type="submit", value="Create")
+
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-gridfs-tab")
+          i.icon-leaf
+          |  Create new
+          b  GridFS
+          |  assetstore
+    #g-create-gridfs-tab.panel-collapse.collapse
+      .panel-body
+        p
+          | This type of assetstore uses mongoDB's
+          a(target="_blank",
+            href="http://docs.mongodb.org/manual/core/gridfs/")  GridFS
+          |  storage engine. The files should be stored in a separate database
+          |  from the rest of the server's information to avoid locking issues.
+        form#g-new-gridfs-form(role="form")
+          .form-group
+            label.control-label(for="g-new-gridfs-name") Assetstore name
+            input.input-sm.form-control#g-new-gridfs-name(type="text",
+                                                          placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-gridfs-db") Database name
+            input.input-sm.form-control#g-new-gridfs-db(
+              type="text", placeholder="Database name")
+          p#g-new-gridfs-error.g-validation-failed-message
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
+            type="submit", value="Create")
+
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title
+        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
+          href="#g-create-s3-tab")
+          i.icon-upload-cloud
+          |  Create new
+          b  Amazon S3
+          |  assetstore
+    #g-create-s3-tab.panel-collapse.collapse
+      .panel-body
+        p
+          | This type of assetstore keeps files in an
+          a(target="_blank", href="http://aws.amazon.com/s3/")  Amazon S3
+          |  bucket.  The service defaults to s3.amazonaws.com.  You can
+          |  specify an alternate service, including an optional protocol and
+          |  port using the form [http[s]://](service domain)[:(port)].
+        form#g-new-s3-form(role="form")
+          .form-group
+            label.control-label(for="g-new-s3-name") Assetstore name
+            input.input-sm.form-control#g-new-s3-name(type="text",
+                                                      placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-s3-bucket") S3 bucket name
+            input.input-sm.form-control#g-new-s3-bucket(type="text",
+                placeholder="Bucket")
+          .form-group
+            label.control-label(for="g-new-s3-prefix") Path prefix (optional)
+            input.input-sm.form-control#g-new-s3-prefix(type="text",
+                placeholder="Prefix")
+          .form-group
+            label.control-label(for="g-new-s3-access-key-id") Access key ID
+            input.input-sm.form-control#g-new-s3-access-key-id(type="text",
+                placeholder="Access key ID")
+          .form-group
+            label.control-label(for="g-new-s3-secret") Secret access key
+            input.input-sm.form-control#g-new-s3-secret(type="text",
+                placeholder="Secret access key")
+          .form-group
+            label.control-label(for="g-new-s3-service") Service
+            input.input-sm.form-control#g-new-s3-service(type="text",
+                placeholder="Service name")
+          p#g-new-s3-error.g-validation-failed-message
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
+            type="submit", value="Create")
+
