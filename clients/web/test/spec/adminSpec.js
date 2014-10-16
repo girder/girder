@@ -183,7 +183,7 @@ describe('Test the assetstore page', function () {
 
     _testAssetstore('gridfs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
-                     'g-new-gridfs-db': 'GridFSDB'});
+                     'g-new-gridfs-db': 'girder_webclient_gridfs'});
 
     _testAssetstore('s3', 'g-create-s3-tab',
                     {'g-new-s3-name': 'name',
