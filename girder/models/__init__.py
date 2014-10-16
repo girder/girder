@@ -19,42 +19,55 @@
 
 import pymongo
 
+from pymongo.read_preferences import ReadPreference
 from girder.utility import config
 from girder.constants import TerminalColor
 
-_db_connection = None
+_dbClient = None
 
 
 def getDbConfig():
-    """Get the database configuration uri from the cherrypy config."""
+    """Get the database configuration values from the cherrypy config."""
     cfg = config.getConfig()
     if 'database' in cfg:
-        return cfg['database']['uri']
+        return cfg['database']
     else:
-        return None
+        return {}
 
 
 def getDbConnection():
-    """Get a MongoClient object that is connected to the configured
-    database. Lazy getter so we only have one connection per instance."""
-    global _db_connection
+    """
+    Get a MongoClient object that is connected to the configured database.
+    We lazy-instantiate a module-level singleton, the MongoClient objects
+    manage their own connection pools internally.
+    """
+    global _dbClient
 
-    if _db_connection is not None:
-        return _db_connection
+    if _dbClient is not None:
+        return _dbClient
 
-    _db_uri = getDbConfig()
-    if _db_uri is None:
-        _db_uri_redacted = 'mongodb://localhost:27017/girder'
+    dbConf = getDbConfig()
+    if not dbConf.get('uri'):
+        dbUriRedacted = 'mongodb://localhost:27017/girder'
         print(TerminalColor.warning('WARNING: No MongoDB URI specified, using '
                                     'the default value'))
-        _db_connection = pymongo.MongoClient(_db_uri_redacted)
+
+        _dbClient = pymongo.MongoClient(dbUriRedacted)
     else:
-        parts = _db_uri.split('@')
+        parts = dbConf['uri'].split('@')
         if len(parts) == 2:
-            _db_uri_redacted = 'mongodb://' + parts[1]
+            dbUriRedacted = 'mongodb://' + parts[1]
         else:
-            _db_uri_redacted = _db_uri
-        _db_connection = pymongo.MongoClient(_db_uri)
+            dbUriRedacted = dbConf['uri']
+
+        replicaSet = dbConf.get('replica_set')
+
+        if replicaSet:
+            _dbClient = pymongo.MongoReplicaSetClient(
+                dbConf['uri'], replicaSet=replicaSet)
+            _dbClient.read_preference = ReadPreference.SECONDARY_PREFERRED
+        else:
+            _dbClient = pymongo.MongoClient(dbConf['uri'])
     print(TerminalColor.info('Connected to MongoDB: {}'
-                             .format(_db_uri_redacted)))
-    return _db_connection
+                             .format(dbUriRedacted)))
+    return _dbClient
