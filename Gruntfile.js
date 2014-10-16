@@ -126,6 +126,49 @@ module.exports = function (grunt) {
                     stdout: false,
                     callback: setServerConfig
                 }
+            },
+            // create girder-[version].tar.gz
+            'package-server': {
+                command: 'python setup.py sdist --dist-dir .',
+                options: {
+                    stdout: false,
+                    callback: function (err, stdout, stderr, callback) {
+                        var fname = 'girder-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                        var stat = fs.statSync(fname);
+                        if (!err && stat.isFile() && stat.size > 0) {
+                            grunt.verbose.write(stdout);
+                            grunt.log
+                                .write('Created ')
+                                .write(grunt.log.wordlist([fname]))
+                                .write(' (' + stat.size + ' bytes)\n');
+                        } else {
+                            grunt.verbose.write(stdout).write(stderr).write('\n');
+                            grunt.fail.warn('python setup.py sdist failed.');
+                        }
+                        callback();
+                    }
+                }
+            },
+        },
+
+        compress: {
+            // create girder-client-[version].tar.gz
+            'package-client': {
+                options: {
+                    mode: 'tgz',
+                    archive: function () {
+                        return 'girder-client-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                    },
+                    level: 9
+                },
+                expand: true,
+                cwd: 'clients/web',
+                src: ['lib/**', 'static/**'],
+                dest: 'web/'
             }
         },
 
@@ -345,6 +388,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-gitinfo');
     grunt.loadNpmTasks('grunt-file-creator');
+    grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
         var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
@@ -397,6 +441,12 @@ module.exports = function (grunt) {
             console.log('Created local config file.');
         }
     });
+
+    // Create tarballs for distribution through pip and github releases
+    grunt.registerTask('package', 'Generate a python package for distribution.', [
+        'compress:package-client',
+        'shell:package-server'
+    ]);
 
     grunt.registerTask('version-info', [
         'gitinfo',
