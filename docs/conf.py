@@ -20,8 +20,6 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-from girder import constants
-
 
 # Creating mock imports so that readthedocs works even though building
 # bcrypt fails
