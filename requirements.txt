@@ -1,6 +1,5 @@
 cffi==0.8.6
 CherryPy==3.3.0
-Sphinx==1.2.2
 pymongo==2.7.1
 bcrypt==1.0.2
 boto==2.29.1
