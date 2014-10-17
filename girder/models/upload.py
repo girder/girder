@@ -134,9 +134,9 @@ class Upload(Model):
 
     def createUploadToFile(self, file, user, size):
         """
-        Creates a new upload record into a file that already exists. This should
-        be used when updating the contents of a file. Deletes any previous
-        file content from the assetstore it was in. This will upload
+        Creates a new upload record into a file that already exists. This
+        should be used when updating the contents of a file. Deletes any
+        previous file content from the assetstore it was in. This will upload
         into the current assetstore rather than assetstore the file was
         previously contained in.
 

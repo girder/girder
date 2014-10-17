@@ -89,8 +89,8 @@ def dropTestDatabase():
     """
     from girder.models import getDbConnection
     db_connection = getDbConnection()
-    model_importer.clearModels()  # Must clear the models so indices are rebuilt
-    dbName = cherrypy.config['database']['database']
+    model_importer.clearModels()  # Must clear the models to rebuild indices
+    dbName = cherrypy.config['database']['uri'].split('/')[-1]
 
     if 'girder_test_' not in dbName:
         raise Exception('Expected a testing database name, but got {}'
@@ -126,8 +126,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
         if assetstoreType == 'gridfs':
-            gridfsDbName = cherrypy.config['database']['database'] + \
-                '_assetstore_test'
+            gridfsDbName = 'gridfs_assetstore_test'
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = self.model('assetstore'). \
                 createGridFsAssetstore(name='Test', db=gridfsDbName)

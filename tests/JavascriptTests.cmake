@@ -45,7 +45,7 @@ function(add_web_client_test_with_all_options name specFile assetstoreType webSe
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
     "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${name}.cvg"
-    "GIRDER_TEST_DB=girder_test_webclient"
+    "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_webclient"
     "GIRDER_TEST_ASSETSTORE=webclient"
   )
   set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)

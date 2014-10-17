@@ -80,8 +80,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def uploadChunk(self, upload, chunk):
         """
-        Stores the uploaded chunk in fixed-sized pieces in the chunks collection
-        of this assetstore's database.
+        Stores the uploaded chunk in fixed-sized pieces in the chunks
+        collection of this assetstore's database.
         """
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
