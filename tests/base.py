@@ -126,8 +126,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
         if assetstoreType == 'gridfs':
-            gridfsDbName = cherrypy.config['database']['database'] + \
-                '_assetstore_test'
+            gridfsDbName = 'gridfs_assetstore_test'
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = self.model('assetstore'). \
                 createGridFsAssetstore(name='Test', db=gridfsDbName)
