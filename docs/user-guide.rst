@@ -1,5 +1,5 @@
-Girder User's Guide
-*******************
+User Guide
+**********
 
 Girder is a Data Management Toolkit.  It is a complete back-end (server side)
 technology that can be used with other applications via its RESTful API, or it

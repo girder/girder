@@ -3,6 +3,12 @@
 Plugins
 =======
 
+One of the most useful aspects of the Girder platform is its ability to be extended in
+almost any way by custom plugins. Developers looking for information on writing
+their own plugins should see the :ref:`Plugin Development <plugindevelopment>` section. Below is
+a listing and brief documentation of some of Girder's standard plugins that come
+pre-packaged with the application.
+
 OAuth Login
 -----------
 

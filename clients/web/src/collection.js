@@ -78,7 +78,7 @@ girder.Collection = Backbone.Collection.extend({
         }
 
         if (reset) {
-            this.offset -= this.length;
+            this.offset = 0;
         }
 
         this.params = params || {};

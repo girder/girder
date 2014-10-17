@@ -24,7 +24,7 @@ import time
 
 from .. import base
 from .. import mock_s3
-from girder.constants import AssetstoreType
+from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 
 
@@ -119,6 +119,15 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(1, len(resp.json))
         assetstore = self.model('assetstore').load(resp.json[0]['_id'])
 
+        # Create a second assetstore so that when we delete the first one, the
+        # current assetstore will be switched to the second one.
+        secondStore = self.model('assetstore').createFilesystemAssetstore(
+            'Another Store',  os.path.join(ROOT_DIR, 'tests', 'assetstore',
+                                           'test2'))
+        # make sure our original asset store is the current one
+        current = self.model('assetstore').getCurrent()
+        self.assertEqual(current['_id'], assetstore['_id'])
+
         # Anonymous user should not be able to delete assetstores
         resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
                             method='DELETE')
@@ -139,7 +148,6 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'You may not delete an '
                          'assetstore that contains files.')
-
         # Delete the offending file, we can now delete the assetstore
         self.model('file').remove(file)
         resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
@@ -150,7 +158,12 @@ class AssetstoreTestCase(base.TestCase):
 
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
-        self.assertEqual(0, len(resp.json))
+        self.assertEqual(1, len(resp.json))
+
+        # Get the current assetstore.  It should now be the second store we
+        # created
+        current = self.model('assetstore').getCurrent()
+        self.assertEqual(current['_id'], secondStore['_id'])
 
     @moto.mock_s3bucket_path
     def testS3AssetstoreAdapter(self):

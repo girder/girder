@@ -376,6 +376,8 @@ class FileTestCase(base.TestCase):
         """
         Test usage of the GridFS assetstore type.
         """
+        # Clear any old DB data
+        base.dropGridFSDatabase('girder_assetstore_test')
         # Clear the assetstore database
         conn = getDbConnection()
         conn.drop_database('girder_assetstore_test')
