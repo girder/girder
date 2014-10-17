@@ -45,6 +45,9 @@ class WebClientTestCase(base.TestCase):
         if self.webSecurity != 'false':
             self.webSecurity = 'true'
         base.TestCase.setUp(self, assetstoreType)
+        # One of the web client tests uses this db, so make sure it is cleared
+        # ahead of time
+        base.dropGridFSDatabase('girder_webclient_gridfs')
 
     def testWebClientSpec(self):
 

@@ -22,6 +22,7 @@ import codecs
 import cherrypy
 import io
 import json
+import logging
 import os
 import signal
 import sys
@@ -52,6 +53,12 @@ def startServer(mock=True, mockS3=False):
 
     # Make server quiet (won't announce start/stop or requests)
     cherrypy.config.update({'environment': 'embedded'})
+    # Log all requests if we asked to do so
+    if 'cherrypy' in os.environ.get('EXTRADEBUG', '').split():
+        cherrypy.config.update({'log.screen': True})
+        logHandler = logging.StreamHandler(sys.stdout)
+        logHandler.setLevel(logging.DEBUG)
+        cherrypy.log.error_log.addHandler(logHandler)
 
     if mock:
         cherrypy.server.unsubscribe()
@@ -91,6 +98,16 @@ def dropTestDatabase():
     db_connection.drop_database(dbName)
 
 
+def dropGridFSDatabase(dbName):
+    """
+    Clear all contents from a gridFS database used as an assetstore.
+    :param dbName: the name of the database to drop.
+    """
+    from girder.models import getDbConnection
+    db_connection = getDbConnection()
+    db_connection.drop_database(dbName)
+
+
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
@@ -109,8 +126,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
         if assetstoreType == 'gridfs':
+            gridfsDbName = cherrypy.config['database']['database'] + \
+                '_assetstore_test'
+            dropGridFSDatabase(gridfsDbName)
             self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(name='Test', db='girder_assetstore_test')
+                createGridFsAssetstore(name='Test', db=gridfsDbName)
         elif assetstoreType == 's3':
             self.assetstore = self.model('assetstore'). \
                 createS3Assetstore(name='Test', bucket='bucketname',
