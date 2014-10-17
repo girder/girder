@@ -37,8 +37,6 @@ describe('Test group actions', function () {
             return $('.g-group-actions-button:visible').length === 1;
         }, 'the group actions button to appear');
 
-        waits(300);
-
         runs(function () {
             $('.g-group-actions-button').click();
         });
@@ -54,6 +52,7 @@ describe('Test group actions', function () {
         waitsFor(function () {
             return Backbone.history.fragment.slice(-18) === '/roles?dialog=edit';
         }, 'the url state to change');
+        girderTest.waitForDialog();
 
         waitsFor(function () {
             return $('a.btn-default').text() === 'Cancel';
@@ -62,6 +61,7 @@ describe('Test group actions', function () {
         runs(function () {
             $('a.btn-default').click();
         });
+        girderTest.waitForLoad();
     });
 
     it('go back to groups page', girderTest.goToGroupsPage());

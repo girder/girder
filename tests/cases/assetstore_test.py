@@ -179,8 +179,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(oldAssetstore['current'])
         self.assertEqual(oldAssetstore['name'], 'Test')
         # Clear any old DB data
-        # ##DWM:: enable once another PR is merged
-        # base.dropGridFSDatabase('girder_assetstore_create_test')
+        base.dropGridFSDatabase('girder_assetstore_create_test')
         params = {
             'name': 'New Name',
             'type': AssetstoreType.GRIDFS
