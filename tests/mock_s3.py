@@ -27,8 +27,9 @@ import threading
 import time
 
 import moto.server
+import moto.s3
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
-    botoConnectS3
+    botoConnectS3, S3AssetstoreAdapter
 
 _startPort = 50100
 _maxTries = 50
@@ -82,6 +83,9 @@ def startMockS3Server():
     server.
     :returns: the started server.
     """
+    # Reduce the chunk size to allow faster testing.
+    S3AssetstoreAdapter.CHUNK_LEN = 1024 * 256
+    moto.s3.models.UPLOAD_PART_MIN_SIZE = 1024 * 256
     # turn off logging from the S3 server unless we've asked to keep it
     if 'mocks3' not in os.environ.get('EXTRADEBUG', '').split():
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)

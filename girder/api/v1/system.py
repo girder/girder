@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import errno
 import json
 
 from girder.api import access
@@ -224,7 +225,12 @@ class System(Resource):
         # the cursor sitting around while we work on the data.
         resultList = [upload for upload in uploadList]
         for upload in resultList:
-            self.model('upload').cancelUpload(upload)
+            try:
+                self.model('upload').cancelUpload(upload)
+            except OSError as exc:
+                if exc[0] in (errno.EACCES,):
+                    raise Exception('Failed to delete upload.')
+                raise
         untracked = self.boolParam('includeUntracked', params, default=True)
         if untracked:
             assetstoreId = params.get('assetstoreId', None)
@@ -250,4 +256,5 @@ class System(Resource):
                'remove all of them (only filtered by assetstoreId).  Default '
                'True.',
                required=False, dataType='boolean')
-        .errorResponse('You are not a system administrator.', 403))
+        .errorResponse('You are not a system administrator.', 403)
+        .errorResponse('Failed to delete upload', 500))
