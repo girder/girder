@@ -1,2 +1,1 @@
-web: python -m girder
-
+web: python -m girder --port ${PORT}
