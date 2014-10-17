@@ -52,8 +52,8 @@ function(add_web_client_test_with_all_options name specFile assetstoreType webSe
   set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
 endfunction()
 
-function(add_web_client_test_with_assetstore name specFile filesystem)
-    add_web_client_test_with_all_options(${name} ${specFile} filesystem true)
+function(add_web_client_test_with_assetstore name specFile assetstoreType)
+    add_web_client_test_with_all_options(${name} ${specFile} ${assetstoreType} true)
 endfunction()
 
 function(add_web_client_test name specFile)

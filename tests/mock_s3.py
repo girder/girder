@@ -21,6 +21,7 @@ import argparse
 import boto
 import errno
 import logging
+import os
 import socket
 import threading
 import time
@@ -29,8 +30,8 @@ import moto.server
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
     botoConnectS3
 
-_startPort = 50003
-_maxTries = 20
+_startPort = 50100
+_maxTries = 50
 
 
 def createBucket(botoConnect, bucketName):
@@ -81,19 +82,20 @@ def startMockS3Server():
     server.
     :returns: the started server.
     """
-    # turn off logging from the S3 server
-    logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+    # turn off logging from the S3 server unless we've asked to keep it
+    if 'mocks3' not in os.environ.get('EXTRADEBUG', '').split():
+        logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
     selectedPort = None
     for port in range(_startPort, _startPort + _maxTries):
         test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        test_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             test_socket.bind(('0.0.0.0', port))
             selectedPort = port
-        except socket.error, err:
+        except socket.error as err:
             # Allow address in use errors to fail quietly
             if err[0] != errno.EADDRINUSE:
                 raise
+        test_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         test_socket.close()
         if selectedPort is not None:
             break

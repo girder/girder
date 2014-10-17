@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import pymongo
 
 from .model_base import Model, ValidationException
 from girder.utility import assetstore_utilities
@@ -92,6 +93,14 @@ class Assetstore(Model):
             pass
         # now remove the assetstore
         Model.remove(self, assetstore)
+        # If after removal there is no current assetstore, then pick a
+        # different assetstore to be the current one.
+        current = self.findOne({'current': True})
+        if current is None:
+            first = self.findOne(sort=[('created', pymongo.DESCENDING)])
+            if first is not None:
+                first['current'] = True
+                self.save(first)
 
     def list(self, limit=50, offset=0, sort=None):
         """

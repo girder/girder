@@ -29,6 +29,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
             $('.g-register').click();
         });
 
+        girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-email').length > 0;
         }, 'register dialog to appear');
@@ -45,6 +46,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
         waitsFor(function () {
             return $('.g-user-text a')[0].text === firstName + ' ' + lastName;
         }, 'user to be logged in');
+        girderTest.waitForLoad();
 
         runs(function () {
             expect(girder.currentUser).not.toBe(null);
@@ -57,6 +59,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
 girderTest.login = function (login, firstName, lastName, password) {
 
     return function () {
+
         runs(function () {
             expect(girder.currentUser).toBe(null);
         });
@@ -69,6 +72,7 @@ girderTest.login = function (login, firstName, lastName, password) {
             $('.g-login').click();
         });
 
+        girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-login').length > 0;
         }, 'register dialog to appear');
@@ -82,6 +86,7 @@ girderTest.login = function (login, firstName, lastName, password) {
         waitsFor(function () {
             return $('.g-user-text a')[0].text === firstName + ' ' + lastName;
         }, 'user to be logged in');
+        girderTest.waitForLoad();
 
         runs(function () {
             expect(girder.currentUser).not.toBe(null);
@@ -109,6 +114,7 @@ girderTest.logout = function () {
         waitsFor(function () {
             return $('.g-login').length > 0;
         }, 'login link to appear');
+        girderTest.waitForLoad();
     };
 };
 
@@ -130,6 +136,7 @@ girderTest.goToCurrentUserSettings = function () {
         waitsFor(function () {
             return $('input#g-email').length > 0;
         }, 'email input to appear');
+        girderTest.waitForLoad();
 
         runs(function () {
             expect($('input#g-email').val()).toBe(girder.currentUser.get('email'));
@@ -160,6 +167,7 @@ girderTest.createCollection = function (collName, collDesc) {
             return Backbone.history.fragment.slice(-14) === '?dialog=create';
         }, 'url state to change indicating a creation dialog');
 
+        girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-name').length > 0 &&
                    $('.g-save-collection:visible').is(':enabled');
@@ -175,6 +183,7 @@ girderTest.createCollection = function (collName, collDesc) {
             return $('.g-collection-name').text() === collName &&
                    $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
+        girderTest.waitForLoad();
     };
 };
 
@@ -196,6 +205,7 @@ girderTest.goToGroupsPage = function () {
         waitsFor(function () {
             return $(".g-group-search-form .g-search-field:visible").is(':enabled');
         }, 'navigate to groups page');
+        girderTest.waitForLoad();
     };
 
 };
@@ -218,6 +228,7 @@ girderTest.goToUsersPage = function () {
         waitsFor(function () {
             return $(".g-user-search-form .g-search-field:visible").is(':enabled');
         }, 'navigate to users page');
+        girderTest.waitForLoad();
     };
 
 };
@@ -238,6 +249,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
             $('.g-group-create-button').click();
         });
 
+        girderTest.waitForDialog();
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
                    $('#g-access-public:visible').length > 0 &&
@@ -267,5 +279,33 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
             return $('.g-group-name').text() === groupName &&
                    $('.g-group-description').text() === groupDesc;
         }, 'new group page to load');
+        girderTest.waitForLoad();
     };
+};
+
+/**
+ * Wait for all loading blocks to be fully loaded.  Also, remove the dialog
+ * backdrop, since it isn't properly removed on phantomJS.  This should not be
+ * called on dialogs.
+ */
+girderTest.waitForLoad = function () {
+    waitsFor(function() {
+        return $('#g-dialog-container:visible').length === 0;
+    });
+    runs(function () {
+        $('.modal-backdrop').remove();
+    });
+    waitsFor(function() {
+        return $('.g-loading-block').length == 0;
+    }, 'dialogs to close and all blocks to finish loading');
+};
+
+/**
+ * Wait for a dialog to be visible.
+ */
+girderTest.waitForDialog = function () {
+    waitsFor(function() {
+        return $('#g-dialog-container:visible').length > 0 &&
+               $('.modal-backdrop:visible').length > 0;
+    }, 'a dialog to fully render');
 };

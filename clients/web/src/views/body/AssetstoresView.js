@@ -69,11 +69,13 @@ girder.views.AssetstoresView = girder.View.extend({
             legend: {
                 show: true,
                 location: 'e',
+                background: 'transparent',
                 border: 'none'
             },
             grid: {
-                background: '#fff',
-                borderColor: '#fff',
+                background: 'transparent',
+                border: 'none',
+                borderWidth: 0,
                 shadow: false
             }
         });
@@ -111,9 +113,7 @@ girder.views.AssetstoresView = girder.View.extend({
                         type: 'success',
                         timeout: 4000
                     });
-
-                    this.collection.remove(assetstore);
-                    this.render();
+                    this.collection.fetch({}, true);
                 }, this).off('g:error').on('g:error', function (resp) {
                     girder.events.trigger('g:alert', {
                         icon: 'attention',
