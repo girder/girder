@@ -29,7 +29,7 @@ describe('Create an admin and non-admin user', function () {
     it('view the users on the user page and click on one', function () {
         runs(function () {
             expect($('.g-user-list-entry').length).toBe(2);
-            expect($('a.g-user-link').text()).toBe('Not AdminAdmin Admin');
+            expect($('a.g-user-link').text()).toBe('Admin AdminNot Admin');
         });
 
         runs(function () {
