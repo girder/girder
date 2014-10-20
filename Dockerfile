@@ -33,7 +33,7 @@ RUN pip install \
     -r plugins/geospatial/requirements.txt \
     -r plugins/metadata_extractor/requirements.txt
 RUN pip install -U six
-RUN npm install -g grunt grunt-cli
+RUN npm install -g grunt-cli
 RUN npm install
 RUN python setup.py install
 ENTRYPOINT ["python", "-m", "girder"]
