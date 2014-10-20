@@ -267,7 +267,7 @@ class Folder(AccessControlledModel):
 
         return self.save(folder)
 
-    def remove(self, folder, progress=None):
+    def remove(self, folder, progress=None, **kwargs):
         """
         Delete a folder recursively.
 
@@ -281,7 +281,7 @@ class Folder(AccessControlledModel):
             'folderId': folder['_id']
         }, limit=0, timeout=False)
         for item in items:
-            self.model('item').remove(item)
+            self.model('item').remove(item, progress=progress, **kwargs)
             if progress:
                 progress.update(increment=1, message='Deleted item ' +
                                 item['name'])
@@ -293,7 +293,7 @@ class Folder(AccessControlledModel):
             'parentCollection': 'folder'
         }, limit=0, timeout=False)
         for subfolder in folders:
-            self.remove(subfolder, progress)
+            self.remove(subfolder, progress=progress, **kwargs)
         folders.close()
 
         # Delete pending uploads into this folder
@@ -302,7 +302,7 @@ class Folder(AccessControlledModel):
             'parentType': 'folder'
         }, limit=0)
         for upload in uploads:
-            self.model('upload').remove(upload)
+            self.model('upload').remove(upload, progress=progress, **kwargs)
         uploads.close()
 
         # Delete this folder

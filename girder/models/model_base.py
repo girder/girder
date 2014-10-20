@@ -259,11 +259,10 @@ class Model(ModelImporter):
             '$inc': {field: amount}
         }, **kwargs)
 
-    def remove(self, document, progress=None):
+    def remove(self, document, **kwargs):
         """
         Delete an object from the collection; must have its _id set.
         :param doc: the item to remove.
-        :param process: a placeholder for subclasses that support progress.
         """
         assert '_id' in document
 

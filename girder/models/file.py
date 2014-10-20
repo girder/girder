@@ -35,14 +35,13 @@ class File(Model):
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
 
-    def remove(self, file, progress=None, updateItemSize=True):
+    def remove(self, file, updateItemSize=True, **kwargs):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call deleteFile on it, then delete the file
         record from the database.
 
         :param file: The file document to remove.
-        :param process: ignored.
         :param updateItemSize: Whether to update the item size. Only set this
         to False if you plan to delete the item and do not care about updating
         its size.

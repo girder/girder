@@ -204,7 +204,7 @@ class Resource(BaseResource):
                         if subtotal != 1:
                             total += model.subtreeCount(doc)-1
                             ctx.update(total=total)
-                    model.remove(doc, ctx)
+                    model.remove(doc, progress=ctx)
                     if progress:
                         current += subtotal
                         if ctx.progress['data']['current'] != current:

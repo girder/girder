@@ -116,7 +116,7 @@ class User(AccessControlledModel):
 
         return doc
 
-    def remove(self, user, progress=None):
+    def remove(self, user, progress=None, **kwargs):
         """
         Delete a user, and all references to it in the database.
 
@@ -159,7 +159,7 @@ class User(AccessControlledModel):
             'parentCollection': 'user'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder, progress)
+            self.model('folder').remove(folder, progress=progress, **kwargs)
 
         # Finally, delete the user document itself
         AccessControlledModel.remove(self, user)

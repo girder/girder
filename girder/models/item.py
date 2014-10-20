@@ -169,13 +169,12 @@ class Item(Model):
         for file in cursor:
             yield file
 
-    def remove(self, item, progress=None):
+    def remove(self, item, **kwargs):
         """
         Delete an item, and all references to it in the database.
 
         :param item: The item document to delete.
         :type item: dict
-        :param process: ignored.
         """
 
         # Delete all files in this item
@@ -183,7 +182,9 @@ class Item(Model):
             'itemId': item['_id']
         }, limit=0)
         for file in files:
-            self.model('file').remove(file, updateItemSize=False)
+            fileKwargs = kwargs.copy()
+            fileKwargs.pop('updateItemSize', None)
+            self.model('file').remove(file, updateItemSize=False, **fileKwargs)
 
         # Delete pending uploads into this item
         uploads = self.model('upload').find({
@@ -191,7 +192,7 @@ class Item(Model):
             'parentType': 'item'
         }, limit=0)
         for upload in uploads:
-            self.model('upload').remove(upload)
+            self.model('upload').remove(upload, **kwargs)
 
         # Delete the item itself
         Model.remove(self, item)

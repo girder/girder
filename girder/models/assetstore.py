@@ -71,14 +71,13 @@ class Assetstore(Model):
 
         return doc
 
-    def remove(self, assetstore, progress=None):
+    def remove(self, assetstore, **kwargs):
         """
         Delete an assetstore. If there are any files within this assetstore,
         a validation exception is raised.
 
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
-        :param process: ignored.
         """
         files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
         if files is not None:

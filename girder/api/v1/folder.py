@@ -286,7 +286,7 @@ class Folder(Resource):
                              message='Calculating folder size...') as ctx:
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
-            self.model('folder').remove(folder, ctx)
+            self.model('folder').remove(folder, progress=ctx)
         return {'message': 'Deleted folder {}.'.format(folder['name'])}
     deleteFolder.description = (
         Description('Delete a folder by ID.')

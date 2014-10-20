@@ -72,7 +72,7 @@ class Collection(AccessControlledModel):
 
         return doc
 
-    def remove(self, collection, progress=None):
+    def remove(self, collection, progress=None, **kwargs):
         """
         Delete a collection recursively.
 
@@ -87,7 +87,7 @@ class Collection(AccessControlledModel):
             'parentCollection': 'collection'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder, progress)
+            self.model('folder').remove(folder, progress=progress, **kwargs)
 
         # Delete this collection
         AccessControlledModel.remove(self, collection)

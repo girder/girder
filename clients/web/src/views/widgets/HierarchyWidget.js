@@ -298,7 +298,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         var params = {
             text: 'Are you sure you want to delete the checked items (' +
                   desc + ')?',
-            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: function () {
                 var url = 'resource?' + view._getCheckedResourceParam();
@@ -383,7 +382,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 return true;
             }, this);
         }
-        return 'resources=' + encodeURIComponent(JSON.stringify(resources));
+        return 'resources=' + window.encodeURIComponent(JSON.stringify(resources));
     },
 
     downloadChecked: function () {
