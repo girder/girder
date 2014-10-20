@@ -46,8 +46,20 @@ girder.views.MetadataWidget = girder.View.extend({
     },
 
     render: function () {
+        var metaDict = this.item.attributes.meta || {};
+        var metaKeys = Object.keys(metaDict);
+        metaKeys.sort(girder.localeSort);
+        var metaList = [];
+        for (var i = 0; i < metaKeys.length; i += 1) {
+            var value = metaDict[metaKeys[i]];
+            if (typeof value === 'object') {
+                value = JSON.stringify(value);
+            }
+            metaList.push({key: metaKeys[i], value: value});
+        }
         this.$el.html(jade.templates.metadataWidget({
             item: this.item,
+            meta: metaList,
             accessLevel: this.accessLevel,
             girder: girder
         }));

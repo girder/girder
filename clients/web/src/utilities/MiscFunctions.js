@@ -109,6 +109,31 @@ girder.caseInsensitiveComparator = function (model1, model2) {
 };
 
 /**
+ * This comparator can be used by collections that wish to support locale-based
+ * sorting.  The locale specifies how upper and lower case are compared.
+ */
+girder.localeComparator = function (model1, model2) {
+    var a1 = model1.get(this.sortField),
+        a2 = model2.get(this.sortField);
+
+    if (a1.localeCompare) {
+        return a1.localeCompare(a2) * this.sortDir;
+    }
+
+    return a1 > a2 ? this.sortDir : (a1 < a2 ? -this.sortDir : 0);
+};
+
+/**
+ * This comparator can be passed to the sort function on javascript arrays.
+ */
+girder.localeSort = function (a1, a2) {
+    if (a1.localeCompare) {
+        return a1.localeCompare(a2);
+    }
+    return a1 > a2 ? 1 : (a1 < a2 ? -1 : 0);
+};
+
+/**
  * Return the model class name given its collection name.
  * @param name Collection name, e.g. 'user'
  */

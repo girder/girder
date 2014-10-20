@@ -6,7 +6,6 @@ if (accessLevel >= girder.AccessType.WRITE)
   i.icon-tags
   |  Metadata
 .g-item-metadata-container
-  if (item.get('meta'))
-    each value, key in item.get('meta')
-      .g-item-metadata-row(g-key="#{key}", g-value="#{value}")
-        +metadatum(key, value, accessLevel, girder)
+  each keyValue in meta
+    .g-item-metadata-row(g-key="#{keyValue.key}", g-value="#{keyValue.value}")
+      +metadatum(keyValue.key, keyValue.value, accessLevel, girder)

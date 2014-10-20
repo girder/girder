@@ -54,9 +54,23 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             return;
         }
 
+        var displayValue = tempValue;
+        try {
+            var jsonValue = JSON.parse(tempValue);
+            /* This may succeed when we don't want it to (for instance with the
+             * value 'false' or '1234'), so check and only switch to JSON if we
+             * got an object back. */
+            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
+                tempValue = jsonValue;
+            }
+        }
+        catch (err) {
+            /* Do nothing -- keep our original value */
+        }
+
         var saveCallback = _.bind(function () {
             this.key = tempKey;
-            this.value = tempValue;
+            this.value = displayValue;
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
                 'g-value': this.value
