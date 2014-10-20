@@ -34,6 +34,7 @@ girder.views.AssetstoresView = girder.View.extend({
         });
         this.newAssetstoreWidget
             .off().on('g:created', this.addAssetstore, this).render();
+        this.$('.g-assetstore-button-container[title]').tooltip();
 
         _.each(this.$('.g-assetstore-capacity-chart'),
             this.capacityChart, this);
