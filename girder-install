@@ -29,6 +29,7 @@ import shutil
 import urllib2
 import argparse
 from glob import glob
+import pip
 
 try:
     from girder import constants
@@ -101,7 +102,7 @@ def install_web(source=None, force=False):
         result = handle_source(source, tmp)
         clients = os.path.join(tmp, 'clients')
         if result and os.path.isdir(clients):
-            shutil.copytree(clients, constants.PACKAGE_DIR)
+            shutil.copytree(clients, os.path.join(constants.PACKAGE_DIR, 'clients'))
             result = webRoot
 
     finally:
@@ -138,7 +139,14 @@ def install_plugin(source=None, force=False):
                         )
                     )
                 found.append(pluginName)
-                shutil.copytree(pluginSource, pluginDir)
+                shutil.copytree(pluginSource, pluginTarget)
+            requirements = os.path.join(pluginTarget, 'requirements.txt')
+            if os.path.exists(requirements):
+                print 'Attempting to install requirements for {}.'.format(pluginName)
+                try:
+                    assert pip.main(['install', '-U', '-r', requirements]) == 0
+                except Exception:
+                    print 'Failed to install requirements for {}.'.format(pluginName)
 
     finally:
         shutil.rmtree(tmp)

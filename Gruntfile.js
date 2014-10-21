@@ -169,6 +169,26 @@ module.exports = function (grunt) {
                 cwd: 'clients/web',
                 src: ['lib/**', 'static/**'],
                 dest: 'clients/web/'
+            },
+            // create girder-plugins-[version].tar.gz
+            'package-plugins': {
+                options: {
+                    mode: 'tgz',
+                    archive: function () {
+                        return 'girder-plugins-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                    },
+                    level: 9
+                },
+                expand: true,
+                src: ['plugins/**'],
+                dest: 'plugins/',
+                filter: function (fname) {
+                    return !fname.match(/\/plugin_tests/) &&
+                           !fname.match(/cmake$/) &&
+                           !fname.match(/py[co]$/);
+                }
             }
         },
 
@@ -445,6 +465,7 @@ module.exports = function (grunt) {
     // Create tarballs for distribution through pip and github releases
     grunt.registerTask('package', 'Generate a python package for distribution.', [
         'compress:package-client',
+        'compress:package-plugins',
         'shell:package-server'
     ]);
 
