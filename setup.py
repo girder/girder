@@ -57,5 +57,6 @@ setup(
         ]
     },
     install_requires=reqs,
-    zip_safe=False
+    zip_safe=False,
+    scripts=['girder-install']
 )

@@ -138,18 +138,32 @@ def loadPlugin(name, root, appconf):
                 fp.close()
 
 
-def findAllPlugins():
+def getPluginDir():
     """
-    Walks the plugins directory to find all of the plugins. If the plugin has
-    a plugin.json file, this reads that file to determine dependencies.
+    Returns the /path/to the currently configured plugin directory.
     """
-    allPlugins = {}
     cur_config = config.getConfig()
     if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
         pluginsDir = cur_config['plugins']['plugin_directory']
     else:
         pluginsDir = os.path.join(ROOT_DIR, 'plugins')
     if not os.path.exists(pluginsDir):
+        try:
+            os.makedirs(pluginsDir)
+        except OSError:
+            print(TerminalColor.warning('Could not create plugin directory.'))
+            pluginsDir = None
+    return pluginsDir
+
+
+def findAllPlugins():
+    """
+    Walks the plugins directory to find all of the plugins. If the plugin has
+    a plugin.json file, this reads that file to determine dependencies.
+    """
+    allPlugins = {}
+    pluginsDir = getPluginDir()
+    if not pluginsDir:
         print(TerminalColor.warning('Plugin directory not found. No plugins '
               'loaded.'))
         return allPlugins
