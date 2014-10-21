@@ -33,7 +33,7 @@ import os
 import sys
 import traceback
 
-from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
 from girder.utility import mail_utils, config
 
 
@@ -56,8 +56,11 @@ def loadPlugins(plugins, root, appconf):
     cur_config = config.getConfig()
     if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
         pluginDir = cur_config['plugins']['plugin_directory']
+    elif os.path.exists(os.path.join(PACKAGE_DIR, 'plugins')):
+        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
     else:
         pluginDir = os.path.join(ROOT_DIR, 'plugins')
+
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
             '__path__': pluginDir,

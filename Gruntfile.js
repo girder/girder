@@ -168,7 +168,7 @@ module.exports = function (grunt) {
                 expand: true,
                 cwd: 'clients/web',
                 src: ['lib/**', 'static/**'],
-                dest: 'web/'
+                dest: 'clients/web/'
             }
         },
 
