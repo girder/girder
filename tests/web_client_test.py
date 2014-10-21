@@ -20,12 +20,14 @@
 import os
 import subprocess
 
+# Need to set the environment variable before importing girder
+os.environ['GIRDER_PORT'] = '50001'
+
 from girder.constants import ROOT_DIR
 from . import base
 
 
 def setUpModule():
-    os.environ['GIRDER_PORT'] = '50001'
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True

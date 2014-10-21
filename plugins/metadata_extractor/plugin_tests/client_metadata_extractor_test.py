@@ -21,6 +21,9 @@ import os.path
 import sys
 import time
 
+# Need to set the environment variable before importing girder
+os.environ['GIRDER_PORT'] = '50001'
+
 from girder.constants import ROOT_DIR
 from server.metadata_extractor import ClientMetadataExtractor
 from tests import base
@@ -28,7 +31,6 @@ from . metadata_extractor_test import MetadataExtractorTestCase
 
 
 def setUpModule():
-    os.environ['GIRDER_PORT'] = '50001'
     base.startServer(False)
 
 
