@@ -72,7 +72,7 @@ class Assetstore(Model):
 
         return doc
 
-    def remove(self, assetstore):
+    def remove(self, assetstore, **kwargs):
         """
         Delete an assetstore. If there are any files within this assetstore,
         a validation exception is raised.

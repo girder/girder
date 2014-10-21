@@ -18,7 +18,9 @@
 ###############################################################################
 
 import datetime
+import os
 
+from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
 
@@ -70,12 +72,14 @@ class Collection(AccessControlledModel):
 
         return doc
 
-    def remove(self, collection):
+    def remove(self, collection, progress=None, **kwargs):
         """
         Delete a collection recursively.
 
         :param collection: The collection document to delete.
         :type collection: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Delete all folders in the community recursively
         folders = self.model('folder').find({
@@ -83,10 +87,13 @@ class Collection(AccessControlledModel):
             'parentCollection': 'collection'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder)
+            self.model('folder').remove(folder, progress=progress, **kwargs)
 
         # Delete this collection
         AccessControlledModel.remove(self, collection)
+        if progress:
+            progress.update(increment=1, message='Deleted collection ' +
+                            collection['name'])
 
     def list(self, user=None, limit=50, offset=0, sort=None):
         """
@@ -120,7 +127,7 @@ class Collection(AccessControlledModel):
         collection = {
             'name': name,
             'description': description,
-            'creatorId': creator['_id'],
+            'creatorId': ObjectId(creator['_id']),
             'created': now,
             'updated': now,
             'size': 0
@@ -162,3 +169,44 @@ class Collection(AccessControlledModel):
 
         # Validate and save the collection
         return self.save(collection)
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this collection's folders.
+        :param doc: the collection to list.
+        :param user: a user used to validate data that is returned.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True, add the collection's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['name'])
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'collection'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            for (filepath, file) in self.model('folder').fileList(
+                    folder, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the folders within the collection.  The collection
+        is counted as well.
+
+        :param doc: The collection.
+        """
+        count = 1
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'collection'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            count += self.model('folder').subtreeCount(folder)
+        return count
