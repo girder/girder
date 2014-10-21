@@ -119,16 +119,13 @@ def install_plugin(source=None, force=False):
     tmp = tempfile.mkdtemp()
     try:
         handle_source(source, tmp)
-        json = os.path.join(tmp, 'plugin.json')
-        if os.path.isfile(json):
-            json = [json]
-        else:
-            json = glob('*/plugin.json')
+        json = glob(os.path.join(tmp, '*', 'plugin.json'))
 
         for plugin in json:
             pluginSource = os.path.split(plugin)[0]
             pluginName = os.path.split(pluginSource)[1]
             pluginTarget = os.path.join(pluginDir, pluginName)
+
             if os.path.exists(pluginTarget):
                 if force:
                     shutil.rmtree(pluginTarget)
@@ -138,16 +135,18 @@ def install_plugin(source=None, force=False):
                             pluginTarget
                         )
                     )
-                found.append(pluginName)
-                shutil.copytree(pluginSource, pluginTarget)
+                    continue
+            found.append(pluginName)
+            shutil.copytree(pluginSource, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):
-                print 'Attempting to install requirements for {}.'.format(pluginName)
+                print '\nAttempting to install requirements for {}.\n'.format(pluginName)
                 try:
                     assert pip.main(['install', '-U', '-r', requirements]) == 0
                 except Exception:
-                    print 'Failed to install requirements for {}.'.format(pluginName)
+                    print '\nFailed to install requirements for {}.'.format(pluginName)
 
+        print ''
     finally:
         shutil.rmtree(tmp)
     return found
@@ -183,7 +182,7 @@ def handle_plugin(parser):
         sys.exit(1)
     else:
         print 'Installed {} plugins:'.format(len(result))
-        print '  ' + '  \n'.join(result)
+        print '  ' + '\n  '.join(result)
 
 
 def print_version(parser):

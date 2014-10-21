@@ -98,12 +98,7 @@ def loadPlugin(name, root, appconf):
     :param appconf: The cherrypy configuration for the server.
     :type appconf: dict
     """
-    cur_config = config.getConfig()
-    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
-        pluginDir = os.path.join(cur_config['plugins']['plugin_directory'],
-                                 name)
-    else:
-        pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
+    pluginDir = os.path.join(getPluginDir(), name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
@@ -145,6 +140,8 @@ def getPluginDir():
     cur_config = config.getConfig()
     if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
         pluginsDir = cur_config['plugins']['plugin_directory']
+    elif os.path.isdir(os.path.join(PACKAGE_DIR, 'plugins')):
+        pluginsDir = os.path.join(PACKAGE_DIR, 'plugins')
     else:
         pluginsDir = os.path.join(ROOT_DIR, 'plugins')
     if not os.path.exists(pluginsDir):
