@@ -33,7 +33,8 @@ import os
 import sys
 import traceback
 
-from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
+    TerminalColor
 from girder.utility import mail_utils, config
 
 
