@@ -40,9 +40,9 @@ def _loadConfigsByPrecedent():
     """
     configPaths = []
     configPaths.append(
-        os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
     configPaths.append(
-        os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.local.cfg'))
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.local.cfg'))
     configPaths.append(
         os.path.join('/etc', 'girder.cfg'))
     configPaths.append(
