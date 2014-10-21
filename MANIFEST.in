@@ -7,6 +7,4 @@ include girder/girder-version.json
 include package.json
 include README.rst
 include girder/conf/girder.dist.cfg
-graft plugins
-prune plugins/*/plugin_tests
 global-exclude *.pyc *.pyo *.cmake
