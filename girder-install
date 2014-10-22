@@ -30,14 +30,23 @@ import urllib2
 import argparse
 from glob import glob
 import pip
+from cStringIO import StringIO
+
+stdout = sys.stdout
+stderr = sys.stderr
 
 try:
+    sys.stdout = StringIO()
+    sys.stderr = StringIO()
     from girder import constants
     from girder.utility.plugin_utilities import getPluginDir
+    sys.stdout = stdout
+    sys.stderr = stderr
 except ImportError:
-    sys.stderr.write(
+    stderr.write(
         'Could not import girder.  Please ensure that your PYTHONPATH is correct.\n'
     )
+    sys.exit(1)
 
 version = constants.VERSION['apiVersion']
 pluginDir = getPluginDir()
