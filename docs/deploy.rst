@@ -66,3 +66,15 @@ After modifying the configuration, always remember to rebuild Girder by changing
 the main Girder directory and issuing the following command: ::
 
     $ grunt init && grunt
+
+Docker Container
+----------------
+
+Every time a new commit is pushed to master, Docker Hub is updated with a new
+image of a docker container running Girder. This container exposes girder at
+port 8080 and requires the database URL to be passed in as an option. For more
+information, see the
+`Docker Hub Page <https://registry.hub.docker.com/u/girder/girder/>`_. Since the
+container does not run a databse, you'll need to run a command in the form: ::
+
+   $ docker run -p 8080:8080 girder/girder -d mongodb://db-server-external-ip:27017/girder
