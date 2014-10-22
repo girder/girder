@@ -60,7 +60,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             raise ValidationException('Bucket must not be empty.', 'bucket')
         if not doc.get('secret'):
             raise ValidationException(
-                'Secret key must not be empty.', 'secretKey')
+                'Secret key must not be empty.', 'secret')
         if not doc.get('accessKeyId'):
             raise ValidationException(
                 'Access key ID must not be empty.', 'accessKeyId')
@@ -425,18 +425,18 @@ def botoConnectS3(connectParams):
     return conn
 
 
-def makeBotoConnectParams(accessKeyId, secretKey, service=None):
+def makeBotoConnectParams(accessKeyId, secret, service=None):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
     :param accessKeyId: the S3 access key ID
-    :param secretKey: the S3 secret key
+    :param secret: the S3 secret key
     :param service: the name of the service in the form
                     [http[s]://](host domain)[:(port)].
     :returns: boto connection parameter dictionary.
     """
     connect = {
         'aws_access_key_id': accessKeyId,
-        'aws_secret_access_key': secretKey,
+        'aws_secret_access_key': secret,
         }
     if service:
         service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$", service)

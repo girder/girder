@@ -70,11 +70,10 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
 
     updateAssetstore: function (fields) {
         var oldfields = {};
-        for (var key in fields) {
-            if (fields.hasOwnProperty(key)) {
-                oldfields[key] = this.model.get(key);
-            }
-        }
+        var model = this.model;
+        _.each(fields, function (value, key, obj) {
+            oldfields[key] = model.get(key);
+        });
         this.model.set(fields);
         this.model.on('g:saved', function () {
             this.$el.modal('hide');

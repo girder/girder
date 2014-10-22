@@ -29,21 +29,11 @@ girder.models.AssetstoreModel = girder.Model.extend({
             path = this.resourceName;
             type = 'POST';
         }
-        var data = {};
-        for (var key in this.attributes) {
-            if (this.attributes.hasOwnProperty(key)) {
-                if (key === 'secret') {
-                    data.secretKey = this.attributes[key];
-                } else {
-                    data[key] = this.attributes[key];
-                }
-            }
-        }
 
         girder.restRequest({
             path: path,
             type: type,
-            data: data,
+            data: this.attributes,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
             this.set(resp);

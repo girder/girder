@@ -222,7 +222,7 @@ class AssetstoreTestCase(base.TestCase):
             'type': AssetstoreType.S3,
             'bucket': '',
             'accessKeyId': 'someKey',
-            'secretKey': 'someSecret',
+            'secret': 'someSecret',
             'prefix': '/foo/bar/'
         }
 
@@ -257,7 +257,7 @@ class AssetstoreTestCase(base.TestCase):
         # Create a bucket (mocked using moto), so that we can create an
         # assetstore in it
         botoParams = makeBotoConnectParams(params['accessKeyId'],
-                                           params['secretKey'])
+                                           params['secret'])
         bucket = mock_s3.createBucket(botoParams, 'bucketname')
 
         # Create an assetstore
