@@ -3,7 +3,5 @@ girder.collections.FileCollection = girder.Collection.extend({
 
     model: girder.models.FileModel,
 
-    pageLimit: 100,
-
-    comparator: girder.caseInsensitiveComparator
+    pageLimit: 100
 });

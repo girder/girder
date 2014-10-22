@@ -29,19 +29,26 @@
   margin 3px
   margin-top 5px
   border-bottom 1px solid #f0f0f0
-  height 25px
+  min-height 25px
   font-size 14px
   color #777
 
 .editing
   background-color #C6DEFF
 
-.g-item-metadata-key, g-item-metadata-value
-  padding 5px
+.g-item-metadata-key, .g-item-metadata-value
+  margin 5px
+  display inline-block
+  vertical-align top
+  overflow hidden
+  text-overflow ellipsis
 
 .g-item-metadata-key
   font-weight bold
-  width 150px
+  width 30%
+
+.g-item-metadata-value
+  width 60%
 
 .g-item-metadata-add-button
   float right
@@ -67,11 +74,16 @@
   padding 2px
 
 .g-item-metadata-key-input, .g-item-metadata-value-input
-  width 200px
   height 22px
   margin-left 5px
   margin-right 5px
   display inline-block
+
+.g-item-metadata-key-input
+  width: 30%
+
+.g-item-metadata-value-input
+  width: 55%
 
 .g-file-list
   list-style-type none
