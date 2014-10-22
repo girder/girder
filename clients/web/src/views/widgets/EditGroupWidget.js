@@ -32,19 +32,21 @@ girder.views.EditGroupWidget = girder.View.extend({
     render: function () {
         var view = this;
         var pub = this.model ? this.model.get('public') : false;
-        this.$el.html(jade.templates.editGroupWidget({
+        var modal = this.$el.html(jade.templates.editGroupWidget({
             group: this.model,
             public: pub
         })).girderModal(this).on('shown.bs.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-            }
             view.$('#g-name').focus();
             girder.dialogs.handleOpen('edit');
         }).on('hidden.bs.modal', function () {
             girder.dialogs.handleClose('edit');
+        }).on('ready.girder.modal', function () {
+            if (view.model) {
+                view.$('#g-name').val(view.model.get('name'));
+                view.$('#g-description').val(view.model.get('description'));
+            }
         });
+        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.$('#g-name').focus();
 
         this.privacyChanged();
