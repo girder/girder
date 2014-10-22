@@ -29,56 +29,7 @@ girder.models.ItemModel = girder.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-    },
-
-    _sendMetadata: function (metadata, successCallback, errorCallback) {
-        girder.restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/metadata',
-            contentType: 'application/json',
-            data: JSON.stringify(metadata),
-            type: 'PUT',
-            error: null
-        }).done(_.bind(function (resp) {
-            this.set('meta', resp.meta);
-            successCallback();
-        }, this)).error(_.bind(function (err) {
-            err.message = err.responseJSON.message;
-            errorCallback(err);
-        }, this));
-    },
-
-    addMetadata: function (key, value, successCallback, errorCallback) {
-        var datum = {};
-        datum[key] = value;
-        var meta = this.get('meta');
-        if (meta && _.has(meta, key)) {
-            errorCallback({message: key + ' is already a metadata key'});
-            return;
-        }
-        this._sendMetadata(datum, successCallback, errorCallback);
-    },
-
-    removeMetadata: function (key, successCallback, errorCallback) {
-        var datum = {};
-        datum[key] = null;
-        this._sendMetadata(datum, successCallback, errorCallback);
-    },
-
-    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback) {
-        if (newKey === oldKey) {
-            var datum = {};
-            datum[newKey] = value;
-            this._sendMetadata(datum, successCallback, errorCallback);
-        } else {
-            if (_.has(this.get('meta'), newKey)) {
-                errorCallback({message: newKey + ' is already a metadata key'});
-                return;
-            }
-            var metas = {};
-            metas[oldKey] = null;
-            metas[newKey] = value;
-            this._sendMetadata(metas, successCallback, errorCallback);
-        }
     }
-
 });
+
+_.extend(girder.models.ItemModel.prototype, girder.models.MetadataMixin);

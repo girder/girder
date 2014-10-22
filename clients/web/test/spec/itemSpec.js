@@ -65,45 +65,45 @@ function _editMetadata(origKey, key, value, action, errorMessage)
     if (origKey === null)
     {
         waitsFor(function () {
-            return $('.g-item-metadata-add-button:visible').length === 1;
+            return $('.g-widget-metadata-add-button:visible').length === 1;
         }, 'the add metadata button to appear');
         runs(function () {
-            expectedNum = $(".g-item-metadata-row").length;
-            $('.g-item-metadata-add-button:visible').click();
+            expectedNum = $(".g-widget-metadata-row").length;
+            $('.g-widget-metadata-add-button:visible').click();
         });
     }
     else
     {
         runs(function () {
-            elem = $('.g-item-metadata-key:contains("'+origKey+':")').closest('.g-item-metadata-row');
+            elem = $('.g-widget-metadata-key:contains("'+origKey+'")').closest('.g-widget-metadata-row');
             expect(elem.length).toBe(1);
-            expect($('.g-item-metadata-edit-button', elem).length).toBe(1);
-            expectedNum = $(".g-item-metadata-row").length;
-            $('.g-item-metadata-edit-button', elem).click();
+            expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
+            expectedNum = $(".g-widget-metadata-row").length;
+            $('.g-widget-metadata-edit-button', elem).click();
         });
     }
     waitsFor(function () {
-        return $('input.g-item-metadata-key-input').length === 1 &&
-               $('textarea.g-item-metadata-value-input').length === 1;
+        return $('input.g-widget-metadata-key-input').length === 1 &&
+               $('textarea.g-widget-metadata-value-input').length === 1;
     }, 'the add metadata input fields to appear');
     runs(function () {
         if (!elem) {
-            elem = $('input.g-item-metadata-key-input').closest('.g-item-metadata-row');
+            elem = $('input.g-widget-metadata-key-input').closest('.g-widget-metadata-row');
         }
         if (key !== null) {
-            $('input.g-item-metadata-key-input', elem).val(key);
+            $('input.g-widget-metadata-key-input', elem).val(key);
         } else {
-            key = $('input.g-item-metadata-key-input', elem).val();
+            key = $('input.g-widget-metadata-key-input', elem).val();
         }
         if (value !== null) {
-            $('textarea.g-item-metadata-value-input', elem).val(value);
+            $('textarea.g-widget-metadata-value-input', elem).val(value);
         } else {
-            value = $('textarea.g-item-metadata-value-input', elem).val();
+            value = $('textarea.g-widget-metadata-value-input', elem).val();
         }
     });
     if (errorMessage) {
         runs(function () {
-            $('.g-item-metadata-save-button').click();
+            $('.g-widget-metadata-save-button').click();
         });
         waitsFor(function () {
             return $('.alert').text().match(errorMessage);
@@ -113,12 +113,12 @@ function _editMetadata(origKey, key, value, action, errorMessage)
     {
         case 'cancel':
             runs(function () {
-                $('.g-item-metadata-cancel-button').click();
+                $('.g-widget-metadata-cancel-button').click();
             });
             break;
         case 'delete':
             runs(function () {
-                $('.g-item-metadata-delete-button').click();
+                $('.g-widget-metadata-delete-button').click();
             });
             girderTest.waitForDialog();
             waitsFor(function () {
@@ -133,7 +133,7 @@ function _editMetadata(origKey, key, value, action, errorMessage)
         default:
             action = 'save';
             runs(function () {
-                $('.g-item-metadata-save-button').click();
+                $('.g-widget-metadata-save-button').click();
                 if (origKey === null) {
                     expectedNum += 1;
                 }
@@ -141,16 +141,16 @@ function _editMetadata(origKey, key, value, action, errorMessage)
             break;
     }
     waitsFor(function () {
-        return $('input.g-item-metadata-key-input').length === 0 &&
-               $('textarea.g-item-metadata-value-input').length === 0;
+        return $('input.g-widget-metadata-key-input').length === 0 &&
+               $('textarea.g-widget-metadata-value-input').length === 0;
     }, 'edit fields to disappear');
     waitsFor(function () {
-        return $(".g-item-metadata-row").length == expectedNum;
+        return $(".g-widget-metadata-row").length == expectedNum;
     }, 'the correct number of items to be listed');
     runs(function () {
-        expect($(".g-item-metadata-row").length).toBe(expectedNum);
+        expect($(".g-widget-metadata-row").length).toBe(expectedNum);
         if (action === 'save') {
-            expect(elem.text()).toBe(key+':'+value);
+            expect(elem.text()).toBe(key+value);
         }
     });
 }

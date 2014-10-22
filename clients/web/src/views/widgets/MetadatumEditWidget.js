@@ -3,9 +3,9 @@
  */
 girder.views.MetadatumEditWidget = girder.View.extend({
     events: {
-        'click .g-item-metadata-cancel-button': 'cancelEdit',
-        'click .g-item-metadata-save-button': 'save',
-        'click .g-item-metadata-delete-button': 'deleteMetadatum'
+        'click .g-widget-metadata-cancel-button': 'cancelEdit',
+        'click .g-widget-metadata-save-button': 'save',
+        'click .g-widget-metadata-delete-button': 'deleteMetadatum'
     },
 
     deleteMetadatum: function (event) {
@@ -43,8 +43,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     save: function (event) {
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
-            tempKey = curRow.find('.g-item-metadata-key-input').val(),
-            tempValue = curRow.find('.g-item-metadata-value-input').val();
+            tempKey = curRow.find('.g-widget-metadata-key-input').val(),
+            tempValue = curRow.find('.g-widget-metadata-value-input').val();
 
         if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
@@ -115,7 +115,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             newDatum: this.newDatum,
             girder: girder
         }));
-        this.$el.find('.g-item-metadata-key-input').focus();
+        this.$el.find('.g-widget-metadata-key-input').focus();
 
         this.$('[title]').tooltip({
             container: this.$el,

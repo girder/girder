@@ -150,6 +150,13 @@ girder.views.HierarchyWidget = girder.View.extend({
                         this.itemCount = this.itemListView.collection.length;
                         this._childCountCheck();
                     }, this);
+            // Show the metadata widget
+            this.metadataWidget = new girder.views.MetadataWidget({
+                el: this.$('.g-folder-metadata'),
+                item: this.parentModel,
+                accessLevel: this.parentModel.getAccessLevel(),
+                girder: girder
+            });
         } else {
             this.itemCount = 0;
         }
