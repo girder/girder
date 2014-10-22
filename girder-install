@@ -41,7 +41,7 @@ except ImportError:
 
 version = constants.VERSION['apiVersion']
 pluginDir = getPluginDir()
-defaultSource = 'https://github.com/girder/girder/releases/download/{}/'.format(version)
+defaultSource = 'https://github.com/girder/girder/releases/download/v{}/'.format(version)
 webRoot = os.path.join(constants.PACKAGE_DIR, 'clients', 'web')
 
 
@@ -157,7 +157,7 @@ def handle_web(parser):
     Handles the object returned by argparse for the `web` command.
     '''
     if parser.source is None:
-        parser.source = defaultSource + 'girder-client-' + version + '.tar.gz'
+        parser.source = defaultSource + 'girder-web-' + version + '.tar.gz'
     result = install_web(parser.source, parser.force)
     if not result:
         sys.stderr.write(
