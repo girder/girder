@@ -129,6 +129,7 @@ describe('Test item creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('a.btn-default:visible').text() === 'Cancel';
         }, 'the cancel button of the item create dialog to appear');
+        girderTest.waitForDialog();
 
         runs(function () {
             $('#g-name').val('Test Item Name');
@@ -139,6 +140,7 @@ describe('Test item creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('a.g-item-list-link:contains(Test Item Name)').length === 1;
         }, 'the new item to appear in the list');
+        girderTest.waitForLoad();
 
         runs(function () {
             $('a.g-item-list-link:contains(Test Item Name)').click();
