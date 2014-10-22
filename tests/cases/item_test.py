@@ -133,9 +133,14 @@ class ItemTestCase(base.TestCase):
             body.append(chunk)
         body = "".join(body)
         zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')
-        filesInItem = zipFile.namelist()
-        for index, content in enumerate(contents):
-            self.assertEqual(zipFile.read(filesInItem[index]), content)
+        prefix = os.path.split(zipFile.namelist()[0])[0]
+        expectedZip = {}
+        for name in contents:
+            expectedZip[os.path.join(prefix, name)] = contents[name]
+        self.assertHasKeys(expectedZip, zipFile.namelist())
+        self.assertHasKeys(zipFile.namelist(), expectedZip)
+        for name in zipFile.namelist():
+            self.assertEqual(expectedZip[name], zipFile.read(name))
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],
@@ -156,7 +161,7 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json[1]['size'], 5)
 
         self._testDownloadMultiFileItem(curItem, self.users[0],
-                                        ('foobar', 'foobz'))
+                                        {'file_1': 'foobar', 'file_2': 'foobz'})
 
     def testItemCrud(self):
         """
@@ -533,8 +538,8 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(newFiles[0]['size'], 6)
         self.assertEqual(newFiles[1]['size'], 5)
         self._testDownloadMultiFileItem(newItem, self.users[0],
-                                        ('foobar', 'foobz',
-                                         'http://www.google.com'))
+                                        {'file_1': 'foobar', 'file_2': 'foobz',
+                                         'link_file': 'http://www.google.com'})
         # Check to make sure the original item is still present
         resp = self.request(path='/item', method='GET', user=self.users[0],
                             params={'folderId': self.publicFolder['_id'],
@@ -554,8 +559,8 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         origFiles = resp.json
         self._testDownloadMultiFileItem(origItem, self.users[0],
-                                        ('foobar', 'foobz',
-                                         'http://www.google.com'))
+                                        {'file_1': 'foobar', 'file_2': 'foobz',
+                                         'link_file': 'http://www.google.com'})
         for index, file in enumerate(origFiles):
             self.assertNotEqual(origFiles[index]['_id'],
                                 newFiles[index]['_id'])

@@ -193,7 +193,7 @@ class Upload(Model):
             'updated': now,
             'userId': user['_id'],
             'parentType': parentType.lower(),
-            'parentId': parent['_id'],
+            'parentId': ObjectId(parent['_id']),
             'assetstoreId': assetstore['_id'],
             'size': size,
             'name': name,

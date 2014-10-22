@@ -18,10 +18,12 @@
 ###############################################################################
 
 import datetime
+import json
+import os
 
+from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
-from girder.utility.progress import noProgress
 
 
 class Folder(AccessControlledModel):
@@ -265,22 +267,24 @@ class Folder(AccessControlledModel):
 
         return self.save(folder)
 
-    def remove(self, folder, progress=noProgress):
+    def remove(self, folder, progress=None, **kwargs):
         """
         Delete a folder recursively.
 
         :param folder: The folder document to delete.
         :type folder: dict
         :param progress: A progress context to record progress on.
-        :type progress: girder.utility.progress.ProgressContext
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Delete all child items
         items = self.model('item').find({
             'folderId': folder['_id']
         }, limit=0, timeout=False)
         for item in items:
-            self.model('item').remove(item)
-            progress.update(increment=1, message='Deleted item ' + item['name'])
+            self.model('item').remove(item, progress=progress, **kwargs)
+            if progress:
+                progress.update(increment=1, message='Deleted item ' +
+                                item['name'])
         items.close()
 
         # Delete all child folders
@@ -289,7 +293,7 @@ class Folder(AccessControlledModel):
             'parentCollection': 'folder'
         }, limit=0, timeout=False)
         for subfolder in folders:
-            self.remove(subfolder, progress)
+            self.remove(subfolder, progress=progress, **kwargs)
         folders.close()
 
         # Delete pending uploads into this folder
@@ -298,16 +302,20 @@ class Folder(AccessControlledModel):
             'parentType': 'folder'
         }, limit=0)
         for upload in uploads:
-            self.model('upload').remove(upload)
+            self.model('upload').remove(upload, progress=progress, **kwargs)
         uploads.close()
 
         # Delete this folder
         AccessControlledModel.remove(self, folder)
-        progress.update(increment=1, message='Deleted folder ' + folder['name'])
+        if progress:
+            progress.update(increment=1, message='Deleted folder ' +
+                            folder['name'])
 
-    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None):
+    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None,
+                   **kwargs):
         """
-        Generator function that yields child items in a folder.
+        Generator function that yields child items in a folder.  Passes any
+        kwargs to the find function.
 
         :param folder: The parent folder.
         :param limit: Result limit.
@@ -324,15 +332,16 @@ class Folder(AccessControlledModel):
         q.update(filters)
 
         cursor = self.model('item').find(
-            q, limit=limit, offset=offset, sort=sort)
+            q, limit=limit, offset=offset, sort=sort, **kwargs)
         for item in cursor:
             yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
-                     sort=None, filters=None):
+                     sort=None, filters=None, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
-        folder, with access policy filtering.
+        folder, with access policy filtering.  Passes any kwargs to the find
+        function.
 
         :param parent: The parent object.
         :type parentType: Type of the parent object.
@@ -361,7 +370,7 @@ class Folder(AccessControlledModel):
 
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find(q, limit=0, sort=sort)
+        cursor = self.find(q, limit=0, sort=sort, **kwargs)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=user,
                                                 level=AccessType.READ,
@@ -420,7 +429,7 @@ class Folder(AccessControlledModel):
             'parentCollection': parentType,
             'baseParentId': parent['baseParentId'],
             'baseParentType': parent['baseParentType'],
-            'parentId': parent['_id'],
+            'parentId': ObjectId(parent['_id']),
             'creatorId': creatorId,
             'created': now,
             'updated': now,
@@ -459,9 +468,10 @@ class Folder(AccessControlledModel):
         """
         Get the path to traverse to a root of the hierarchy.
 
-        :param item: The item whose root to find
-        :type item: dict
-        :returns: an ordered list of dictionaries from root to the current item
+        :param folder: The folder whose root to find
+        :type folder: dict
+        :returns: an ordered list of dictionaries from root to the current
+                  folder
         """
         if not curPath:
             curPath = []
@@ -509,3 +519,38 @@ class Folder(AccessControlledModel):
         folders.close()
 
         return count
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this folder.
+        :param doc: the folder to list.
+        :param user: the user used for access.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the folder.
+        :param subpath: if True, add the folder's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['name'])
+        metadataFile = "girder-folder-metadata.json"
+        for sub in self.childFolders(parentType='folder', parent=doc,
+                                     user=user, limit=0, timeout=False):
+            if sub['name'] == metadataFile:
+                metadataFile = None
+            for (filepath, file) in self.fileList(
+                    sub, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)
+        for item in self.childItems(folder=doc, limit=0, timeout=False):
+            if item['name'] == metadataFile:
+                metadataFile = None
+            for (filepath, file) in self.model('item').fileList(
+                    item, user, path, includeMetadata):
+                yield (filepath, file)
+        if includeMetadata and metadataFile and len(doc.get('meta', {})):
+            def stream():
+                yield json.dumps(doc['meta'])
+            yield (os.path.join(path, metadataFile), stream)

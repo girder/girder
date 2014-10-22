@@ -72,7 +72,7 @@ class Assetstore(Model):
 
         return doc
 
-    def remove(self, assetstore):
+    def remove(self, assetstore, **kwargs):
         """
         Delete an assetstore. If there are any files within this assetstore,
         a validation exception is raised.
@@ -116,6 +116,8 @@ class Assetstore(Model):
         for assetstore in cursor:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             assetstore['capacity'] = adapter.capacityInfo()
+            assetstore['hasFiles'] = (self.model('file').findOne(
+                {'assetstoreId': assetstore['_id']}) is not None)
             assetstores.append(assetstore)
 
         return assetstores

@@ -4,6 +4,5 @@ girder.collections.UserCollection = girder.Collection.extend({
 
     // Override default sort field
     sortField: 'lastName',
-
-    comparator: girder.caseInsensitiveComparator
+    secondarySortField: 'firstName'
 });

@@ -35,7 +35,7 @@ class File(Model):
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
 
-    def remove(self, file, updateItemSize=True):
+    def remove(self, file, updateItemSize=True, **kwargs):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call deleteFile on it, then delete the file

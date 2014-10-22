@@ -7,6 +7,7 @@ girder.Collection = Backbone.Collection.extend({
 
     sortField: 'name',
     sortDir: girder.SORT_ASC,
+    comparator: girder.localeComparator,
 
     // Number of records to fetch per page
     pageLimit: 25,
