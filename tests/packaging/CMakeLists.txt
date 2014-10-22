@@ -1,0 +1,69 @@
+
+find_program(VIRTUALENV_EXECUTABLE virtualenv)
+find_program(CURL_EXECUTABLE curl)
+find_program(GREP_EXECUTABLE grep)
+
+set(virtualenv_dir "${PROJECT_BINARY_DIR}/env")
+set(virtualenv_python "${virtualenv_dir}/bin/python")
+set(virtualenv_pip "${virtualenv_dir}/bin/pip")
+set(virtualenv_activate "${virtualenv_dir}/bin/activate")
+set(girder_install "${virtualenv_dir}/bin/girder-install")
+
+add_custom_command(
+  OUTPUT "${virtualenv_python}"
+  COMMAND "${VIRTUALENV_EXECUTABLE}" env
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMENT "Creating virtualenv for packaging tests"
+)
+
+add_custom_target(
+  virtualenv
+  ALL
+  DEPENDS "${virtualenv_python}"
+)
+
+add_test(
+  NAME packaging_generate
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/node_modules/.bin/grunt" package
+)
+
+add_test(
+  NAME packaging_install
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/pip_install_girder.sh" "${virtualenv_pip}" "${PROJECT_SOURCE_DIR}"
+)
+
+set_property(TEST packaging_install
+  PROPERTY DEPENDS "packaging_generate"
+)
+
+add_test(
+  NAME packaging_rest_api
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_rest_api.sh" "${virtualenv_activate}" "${CURL_EXECUTABLE}"
+)
+
+set_property(TEST packaging_rest_api
+  PROPERTY DEPENDS "packaging_install"
+)
+
+add_test(
+  NAME packaging_web_install
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_web_content.sh" "${virtualenv_activate}" "${PROJECT_SOURCE_DIR}" "${CURL_EXECUTABLE}" "${GREP_EXECUTABLE}"
+)
+
+set_property(TEST packaging_web_install
+  PROPERTY DEPENDS "packaging_install"
+)
+
+add_test(
+  NAME packaging_plugin_install
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_plugin_install.sh" "${virtualenv_activate}" "${PROJECT_SOURCE_DIR}"
+)
+
+set_property(TEST packaging_plugin_install
+  PROPERTY DEPENDS "packaging_install"
+)
