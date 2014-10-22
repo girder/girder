@@ -31,11 +31,20 @@ girder.Model = Backbone.Model.extend({
             path = this.resourceName;
             type = 'POST';
         }
+        /* Don't save attributes which are objects using this call.  For
+         * instance, if the metadata of an item has keys that contain non-ascii
+         * values, they won't get handled the the rest call. */
+        var data = {};
+        _.each(this.attributes, function (value, key, obj) {
+            if (typeof value !== 'object') {
+                data[key] = value;
+            }
+        });
 
         girder.restRequest({
             path: path,
             type: type,
-            data: this.attributes,
+            data: data,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
             this.set(resp);

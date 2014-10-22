@@ -32,13 +32,24 @@ girder.views.EditFolderWidget = girder.View.extend({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
-            girder.dialogs.handleOpen('folderedit');
+            if (view.folder) {
+                girder.dialogs.handleOpen('folderedit');
+            } else {
+                girder.dialogs.handleOpen('foldercreate');
+            }
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('folderedit');
+            if (view.create) {
+                girder.dialogs.handleClose('foldercreate');
+            } else {
+                girder.dialogs.handleClose('folderedit');
+            }
         }).on('ready.girder.modal', function () {
             if (view.folder) {
                 view.$('#g-name').val(view.folder.get('name'));
                 view.$('#g-description').val(view.folder.get('description'));
+                view.create = false;
+            } else {
+                view.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
