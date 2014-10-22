@@ -42,7 +42,7 @@ def setup(test=False, plugins=None):
 
     curStaticRoot = constants.ROOT_DIR
     if not os.path.exists(os.path.join(curStaticRoot, 'clients')):
-        curStaticRoot = os.path.join(curStaticRoot, 'girder')
+        curStaticRoot = constants.PACKAGE_DIR
 
     appconf = {
         '/': {
