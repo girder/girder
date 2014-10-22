@@ -273,7 +273,7 @@ describe('Create an admin and non-admin user', function () {
         _editMetadata(null, 'long_key', 'long_value'+new Array(2048).join('-'));
         _editMetadata(null, 'json_key', JSON.stringify({'sample_json': 'value'}));
         _editMetadata('simple_key', null, 'new_value', 'cancel');
-        _editMetadata('long_key', null, 'new_value', 'cancel', /.*simple_key is already a metadata key/);
+        _editMetadata('long_key', 'simple_key', 'new_value', 'cancel', /.*simple_key is already a metadata key/);
         _editMetadata('simple_key', null, 'new_value');
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
