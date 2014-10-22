@@ -257,12 +257,15 @@ def main(args):
 
     plugin.add_argument(
         '-s', '--source',
-        help='A directory, tarball, or git repository containing a plugin'
+        help='A directory, tarball, or url to a tarball containing one or more ' +
+             'plugins.  Defaults to installing all plugins in the girder repository'
     )
 
     web.add_argument(
         '-s', '--source',
-        help='A directory, tarball, or git repository containing client side content.'
+        help='A directory, tarball, or url to a tarball containing client ' +
+             'side content.  Defaults to installing client libraries from the ' +
+             'currently installed girder release.'
     )
 
     parsed = parser.parse_args(args[1:])
