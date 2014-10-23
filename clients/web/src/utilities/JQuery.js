@@ -12,6 +12,16 @@
      */
     $.fn.girderModal = function (view) {
         var that = this;
+        /* If we have a modal dialog open, or one is in the process of closing,
+         * close that dialog before opening the new one.  This prevents
+         * layering modal dialogs, but also makes sure that we don't have a
+         * problem switching from one modal dialog to another. */
+        if ($(this).is('.modal')) {
+            if ($(this).hasClass('in')) {
+                $(this).modal('hide');
+            }
+            $(this).modal('removeBackdrop');
+        }
         this.off().modal().find('[data-dismiss="modal"]')
             .unbind('click').click(function () {
                 that.modal('hide');
