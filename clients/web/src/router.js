@@ -22,14 +22,9 @@ if (girder.handleRouting) {
 
     // When the back button is pressed, we want to close open modals.
     girder.router.on('route', function (route, params) {
-        /* We have to reach into the backbone modal object a little to see if
-         * we need to do anything. */
-        if ($('.modal').data('bs.modal') &&
-                $('.modal').data('bs.modal').isShown) {
-            $('.modal').modal('hide');
+        if (!params.slice(-1)[0].dialog) {
+            $('.modal').girderModal('close');
         }
-        /* This ensures that the modal is fully gone */
-        $('.modal').modal('removeBackdrop');
     });
 
 } else {

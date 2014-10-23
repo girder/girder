@@ -92,6 +92,11 @@ girder.App = Backbone.View.extend({
      * Show a dialog allowing a user to login or register.
      */
     loginDialog: function () {
+        /* Don't show this dialog if we are already logged in */
+        if (girder.currentUser) {
+            $('.modal').girderModal('close');
+            return;
+        }
         if (!this.loginView) {
             this.loginView = new girder.views.LoginView({
                 el: this.$('#g-dialog-container')
@@ -101,6 +106,11 @@ girder.App = Backbone.View.extend({
     },
 
     registerDialog: function () {
+        /* Don't show this dialog if we are already logged in */
+        if (girder.currentUser) {
+            $('.modal').girderModal('close');
+            return;
+        }
         if (!this.registerView) {
             this.registerView = new girder.views.RegisterView({
                 el: this.$('#g-dialog-container')
