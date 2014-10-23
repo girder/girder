@@ -12,7 +12,6 @@ girder.views.FolderView = girder.View.extend({
             parentModel: this.folder,
             el: this.$el
         });
-
         return this;
     }
 });

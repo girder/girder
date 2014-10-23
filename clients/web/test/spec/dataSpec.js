@@ -374,6 +374,28 @@ describe('Create a data hierarchy', function () {
         _testUpload(1024 * 513, true);
     });
 
+    it('download a folder', function () {
+        waitsFor(function () {
+            return $('.g-folder-actions-button:visible').length === 1;
+        }, 'the folder actions button to appear');
+        runs(function () {
+            $('.g-folder-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-download-folder:visible').length === 1;
+        }, 'the folder down action to appear');
+        runs(function () {
+            girderTest._redirect = null;
+            $('.g-download-folder').click();
+        });
+        waitsFor(function () {
+            return girderTest._redirect !== null;
+        }, 'redirect to the resource download URL');
+        runs(function () {
+            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download\?token=.*$/.test(
+                girderTest._redirect)).toBe(true);
+        });
+    });
     it('download checked items', function () {
         /* select a folder and the first item */
         runs(function() {

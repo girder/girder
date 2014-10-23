@@ -3,14 +3,14 @@
  */
 girder.views.MetadataWidget = girder.View.extend({
     events: {
-        'click .g-item-metadata-add-button': 'addMetadata',
-        'click .g-item-metadata-edit-button': 'editMetadata'
+        'click .g-widget-metadata-add-button': 'addMetadata',
+        'click .g-widget-metadata-edit-button': 'editMetadata'
     },
 
     addMetadata: function () {
         var newRow = $('<div>').attr({
-            class: 'g-item-metadata-row editing'
-        }).appendTo(this.$el.find('.g-item-metadata-container'));
+            class: 'g-widget-metadata-row editing'
+        }).appendTo(this.$el.find('.g-widget-metadata-container'));
         this.metadatumEditWidget = new girder.views.MetadatumEditWidget({
             el: newRow,
             item: this.item,
@@ -46,13 +46,25 @@ girder.views.MetadataWidget = girder.View.extend({
     },
 
     render: function () {
+        var metaDict = this.item.attributes.meta || {};
+        var metaKeys = Object.keys(metaDict);
+        metaKeys.sort(girder.localeSort);
+        var metaList = [];
+        for (var i = 0; i < metaKeys.length; i += 1) {
+            var value = metaDict[metaKeys[i]];
+            if (typeof value === 'object') {
+                value = JSON.stringify(value);
+            }
+            metaList.push({key: metaKeys[i], value: value});
+        }
         this.$el.html(jade.templates.metadataWidget({
             item: this.item,
+            meta: metaList,
             accessLevel: this.accessLevel,
             girder: girder
         }));
 
-        this.$('.g-item-metadata-add-button').tooltip({
+        this.$('.g-widget-metadata-add-button').tooltip({
             container: this.$el,
             placement: 'left',
             animation: false,

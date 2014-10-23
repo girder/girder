@@ -7,7 +7,48 @@ $(function () {
     girder.events.trigger('g:appload.after');
 });
 
-describe('Create an admin and non-admin user', function () {
+function _editItem(button, buttonText)
+/* Show the item edit dialog and click a button.
+ * :param button: the jquery selector for the button.
+ * :param buttonText: the expected text of the button.
+ */
+{
+    waitsFor(function () {
+        return $('.g-item-actions-button:visible').length === 1;
+    }, 'the item actions button to appear');
+
+    runs(function () {
+        $('.g-item-actions-button').click();
+    });
+
+    waitsFor(function () {
+        return $('.g-edit-item:visible').length === 1;
+    }, 'the item edit action to appear');
+
+    runs(function () {
+        $('.g-edit-item').click();
+    });
+
+    waitsFor(function () {
+        return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
+    }, 'the url state to change');
+    girderTest.waitForDialog();
+
+    waitsFor(function () {
+        return $('#g-name').val() !== '';
+    }, 'the dialog to be populated');
+
+    waitsFor(function () {
+        return $(button).text() === buttonText;
+    }, 'the button to appear');
+
+    runs(function () {
+        $(button).click();
+    });
+    girderTest.waitForLoad();
+}
+
+describe('Test item creation, editing, and deletion', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -88,6 +129,7 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('a.btn-default:visible').text() === 'Cancel';
         }, 'the cancel button of the item create dialog to appear');
+        girderTest.waitForDialog();
 
         runs(function () {
             $('#g-name').val('Test Item Name');
@@ -98,6 +140,7 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('a.g-item-list-link:contains(Test Item Name)').length === 1;
         }, 'the new item to appear in the list');
+        girderTest.waitForLoad();
 
         runs(function () {
             $('a.g-item-list-link:contains(Test Item Name)').click();
@@ -114,33 +157,13 @@ describe('Create an admin and non-admin user', function () {
     });
 
     it('Open edit dialog and check url state', function () {
-        waitsFor(function () {
-            return $('.g-item-actions-button:visible').length === 1;
-        }, 'the item actions button to appear');
+        _editItem('a.btn-default', 'Cancel');
+    });
 
-        runs(function () {
-            $('.g-item-actions-button').click();
-        });
+    it('Add, edit, and delete metadata for the item', girderTest.testMetadata());
 
-        waitsFor(function () {
-            return $('.g-edit-item:visible').length === 1;
-        }, 'the item edit action to appear');
-
-        runs(function () {
-            $('.g-edit-item').click();
-        });
-
-        waitsFor(function () {
-            return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
-        }, 'the url state to change');
-
-        waitsFor(function () {
-            return $('a.btn-default').text() === 'Cancel';
-        }, 'the cancel button to appear');
-
-        runs(function () {
-            $('a.btn-default').click();
-        });
+    it('Open edit dialog and save the item', function () {
+        _editItem('button.g-save-item', 'Save');
     });
 
     it('Delete the item', function () {
@@ -160,6 +183,8 @@ describe('Create an admin and non-admin user', function () {
             $('.g-delete-item').click();
         });
 
+        girderTest.waitForDialog();
+
         waitsFor(function () {
             return $('#g-confirm-button:visible').length > 0;
         }, 'delete confirmation to appear');
@@ -171,6 +196,8 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('.g-item-list-container').length > 0;
         }, 'go back to the item list');
+
+        girderTest.waitForLoad();
 
         runs(function () {
             expect($('.g-item-list-entry').text()).not.toContain('Test Item Name');
