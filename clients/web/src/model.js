@@ -31,11 +31,20 @@ girder.Model = Backbone.Model.extend({
             path = this.resourceName;
             type = 'POST';
         }
+        /* Don't save attributes which are objects using this call.  For
+         * instance, if the metadata of an item has keys that contain non-ascii
+         * values, they won't get handled the the rest call. */
+        var data = {};
+        _.each(this.attributes, function (value, key) {
+            if (typeof value !== 'object') {
+                data[key] = value;
+            }
+        });
 
         girder.restRequest({
             path: path,
             type: type,
-            data: this.attributes,
+            data: data,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
             this.set(resp);
@@ -202,3 +211,55 @@ girder.AccessControlledModel = girder.Model.extend({
         return this;
     }
 });
+
+girder.models.MetadataMixin = {
+    _sendMetadata: function (metadata, successCallback, errorCallback) {
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/metadata',
+            contentType: 'application/json',
+            data: JSON.stringify(metadata),
+            type: 'PUT',
+            error: null
+        }).done(_.bind(function (resp) {
+            this.set('meta', resp.meta);
+            successCallback();
+        }, this)).error(_.bind(function (err) {
+            err.message = err.responseJSON.message;
+            errorCallback(err);
+        }, this));
+    },
+
+    addMetadata: function (key, value, successCallback, errorCallback) {
+        var datum = {};
+        datum[key] = value;
+        var meta = this.get('meta');
+        if (meta && _.has(meta, key)) {
+            errorCallback({message: key + ' is already a metadata key'});
+            return;
+        }
+        this._sendMetadata(datum, successCallback, errorCallback);
+    },
+
+    removeMetadata: function (key, successCallback, errorCallback) {
+        var datum = {};
+        datum[key] = null;
+        this._sendMetadata(datum, successCallback, errorCallback);
+    },
+
+    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback) {
+        if (newKey === oldKey) {
+            var datum = {};
+            datum[newKey] = value;
+            this._sendMetadata(datum, successCallback, errorCallback);
+        } else {
+            if (_.has(this.get('meta'), newKey)) {
+                errorCallback({message: newKey + ' is already a metadata key'});
+                return;
+            }
+            var metas = {};
+            metas[oldKey] = null;
+            metas[newKey] = value;
+            this._sendMetadata(metas, successCallback, errorCallback);
+        }
+    }
+};

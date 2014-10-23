@@ -28,16 +28,9 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editCollectionWidget({
+        var modal = this.$el.html(jade.templates.editCollectionWidget({
             collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-                view.create = false;
-            } else {
-                view.create = true;
-            }
             view.$('#g-name').focus();
         }).on('hidden.bs.modal', function () {
             if (view.create) {
@@ -45,7 +38,16 @@ girder.views.EditCollectionWidget = girder.View.extend({
             } else {
                 girder.dialogs.handleClose('edit');
             }
+        }).on('ready.girder.modal', function () {
+            if (view.model) {
+                view.$('#g-name').val(view.model.get('name'));
+                view.$('#g-description').val(view.model.get('description'));
+                view.create = false;
+            } else {
+                view.create = true;
+            }
         });
+        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.$('#g-name').focus();
 
         if (view.model) {

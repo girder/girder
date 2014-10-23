@@ -3,14 +3,14 @@
  */
 girder.views.MetadataWidget = girder.View.extend({
     events: {
-        'click .g-item-metadata-add-button': 'addMetadata',
-        'click .g-item-metadata-edit-button': 'editMetadata'
+        'click .g-widget-metadata-add-button': 'addMetadata',
+        'click .g-widget-metadata-edit-button': 'editMetadata'
     },
 
     addMetadata: function () {
         var newRow = $('<div>').attr({
-            class: 'g-item-metadata-row editing'
-        }).appendTo(this.$el.find('.g-item-metadata-container'));
+            class: 'g-widget-metadata-row editing'
+        }).appendTo(this.$el.find('.g-widget-metadata-container'));
         this.metadatumEditWidget = new girder.views.MetadatumEditWidget({
             el: newRow,
             item: this.item,
@@ -64,7 +64,7 @@ girder.views.MetadataWidget = girder.View.extend({
             girder: girder
         }));
 
-        this.$('.g-item-metadata-add-button').tooltip({
+        this.$('.g-widget-metadata-add-button').tooltip({
             container: this.$el,
             placement: 'left',
             animation: false,

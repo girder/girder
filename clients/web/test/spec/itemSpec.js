@@ -48,114 +48,7 @@ function _editItem(button, buttonText)
     girderTest.waitForLoad();
 }
 
-function _editMetadata(origKey, key, value, action, errorMessage)
-/* Add metadata and check that the value is actually set for the item.
- * :param origKey: null to create a new metadata item.  Otherwise, edit the
- *                 metadata item with this key.
- * :param key: key text.
- * :param value: value text.  If this appears to be a JSON string, the metadata
- *               should be stored as a JSON object.
- * :param action: one of 'save', 'cance', or 'delete'.  'delete' can't be used
- *                with new items.  Default is 'save'.
- * :param errorMessage: if present, expect an information message with regex.
- */
-{
-    var expectedNum, elem;
-
-    if (origKey === null)
-    {
-        waitsFor(function () {
-            return $('.g-item-metadata-add-button:visible').length === 1;
-        }, 'the add metadata button to appear');
-        runs(function () {
-            expectedNum = $(".g-item-metadata-row").length;
-            $('.g-item-metadata-add-button:visible').click();
-        });
-    }
-    else
-    {
-        runs(function () {
-            elem = $('.g-item-metadata-key:contains("'+origKey+':")').closest('.g-item-metadata-row');
-            expect(elem.length).toBe(1);
-            expect($('.g-item-metadata-edit-button', elem).length).toBe(1);
-            expectedNum = $(".g-item-metadata-row").length;
-            $('.g-item-metadata-edit-button', elem).click();
-        });
-    }
-    waitsFor(function () {
-        return $('input.g-item-metadata-key-input').length === 1 &&
-               $('textarea.g-item-metadata-value-input').length === 1;
-    }, 'the add metadata input fields to appear');
-    runs(function () {
-        if (!elem) {
-            elem = $('input.g-item-metadata-key-input').closest('.g-item-metadata-row');
-        }
-        if (key !== null) {
-            $('input.g-item-metadata-key-input', elem).val(key);
-        } else {
-            key = $('input.g-item-metadata-key-input', elem).val();
-        }
-        if (value !== null) {
-            $('textarea.g-item-metadata-value-input', elem).val(value);
-        } else {
-            value = $('textarea.g-item-metadata-value-input', elem).val();
-        }
-    });
-    if (errorMessage) {
-        runs(function () {
-            $('.g-item-metadata-save-button').click();
-        });
-        waitsFor(function () {
-            return $('.alert').text().match(errorMessage);
-        }, 'alert with "'+errorMessage+'" to appear');
-    }
-    switch (action)
-    {
-        case 'cancel':
-            runs(function () {
-                $('.g-item-metadata-cancel-button').click();
-            });
-            break;
-        case 'delete':
-            runs(function () {
-                $('.g-item-metadata-delete-button').click();
-            });
-            girderTest.waitForDialog();
-            waitsFor(function () {
-                return $('#g-confirm-button:visible').length > 0;
-            }, 'delete confirmation to appear');
-            runs(function () {
-                $('#g-confirm-button').click();
-                expectedNum -= 1;
-            });
-            girderTest.waitForLoad();
-            break;
-        default:
-            action = 'save';
-            runs(function () {
-                $('.g-item-metadata-save-button').click();
-                if (origKey === null) {
-                    expectedNum += 1;
-                }
-            });
-            break;
-    }
-    waitsFor(function () {
-        return $('input.g-item-metadata-key-input').length === 0 &&
-               $('textarea.g-item-metadata-value-input').length === 0;
-    }, 'edit fields to disappear');
-    waitsFor(function () {
-        return $(".g-item-metadata-row").length == expectedNum;
-    }, 'the correct number of items to be listed');
-    runs(function () {
-        expect($(".g-item-metadata-row").length).toBe(expectedNum);
-        if (action === 'save') {
-            expect(elem.text()).toBe(key+':'+value);
-        }
-    });
-}
-
-describe('Create an admin and non-admin user', function () {
+describe('Test item creation, editing, and deletion', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -236,6 +129,7 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('a.btn-default:visible').text() === 'Cancel';
         }, 'the cancel button of the item create dialog to appear');
+        girderTest.waitForDialog();
 
         runs(function () {
             $('#g-name').val('Test Item Name');
@@ -246,6 +140,7 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('a.g-item-list-link:contains(Test Item Name)').length === 1;
         }, 'the new item to appear in the list');
+        girderTest.waitForLoad();
 
         runs(function () {
             $('a.g-item-list-link:contains(Test Item Name)').click();
@@ -265,19 +160,7 @@ describe('Create an admin and non-admin user', function () {
         _editItem('a.btn-default', 'Cancel');
     });
 
-    it('Add, edit, and delete metadata for the item', function () {
-        _editMetadata(null, 'simple_key', 'simple_value');
-        _editMetadata(null, 'simple_key', 'duplicate_key_should_fail', 'cancel', /.*simple_key is already a metadata key/);
-        _editMetadata(null, '', 'no_key', 'cancel', /.*A key is required for all metadata/);
-        _editMetadata(null, 'cancel_me', 'this will be cancelled', 'cancel');
-        _editMetadata(null, 'long_key', 'long_value'+new Array(2048).join('-'));
-        _editMetadata(null, 'json_key', JSON.stringify({'sample_json': 'value'}));
-        _editMetadata('simple_key', null, 'new_value', 'cancel');
-        _editMetadata('long_key', null, 'new_value', 'cancel', /.*simple_key is already a metadata key/);
-        _editMetadata('simple_key', null, 'new_value');
-        _editMetadata('simple_key', null, null, 'delete');
-        _editMetadata('json_key', 'json_rename', null);
-    });
+    it('Add, edit, and delete metadata for the item', girderTest.testMetadata());
 
     it('Open edit dialog and save the item', function () {
         _editItem('button.g-save-item', 'Save');
