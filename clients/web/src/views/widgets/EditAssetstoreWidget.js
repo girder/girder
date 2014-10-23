@@ -41,10 +41,15 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editAssetstoreWidget({
+        var modal = this.$el.html(jade.templates.editAssetstoreWidget({
             assetstore: view.model,
             types: girder.AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {
+            view.$('#g-edit-name').focus();
+            girder.dialogs.handleOpen('assetstoreedit');
+        }).on('hidden.bs.modal', function () {
+            girder.dialogs.handleClose('assetstoreedit');
+        }).on('ready.girder.modal', function () {
             view.$('#g-edit-name').val(view.model.get('name'));
             if (view.model.get('type') === girder.AssetstoreType.FILESYSTEM) {
                 view.$('#g-edit-fs-root').val(view.model.get('root'));
@@ -57,14 +62,8 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
                 view.$('#g-edit-s3-secret').val(view.model.get('secret'));
                 view.$('#g-edit-s3-service').val(view.model.get('service'));
             }
-            view.$('#g-edit-name').focus();
-        }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('edit');
         });
-        this.$('#g-name').focus();
-
-        girder.dialogs.handleOpen('edit');
-
+        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;
     },
 
