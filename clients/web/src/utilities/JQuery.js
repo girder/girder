@@ -17,7 +17,9 @@
          * layering modal dialogs, but also makes sure that we don't have a
          * problem switching from one modal dialog to another. */
         if ($(this).is('.modal')) {
-            if ($(this).hasClass('in')) {
+            /* We have to reach into the backbone modal object a little to see
+             * if we need to do anything. */
+            if ($(this).data('bs.modal') && $(this).data('bs.modal').isShown) {
                 $(this).modal('hide');
             }
             $(this).modal('removeBackdrop');
