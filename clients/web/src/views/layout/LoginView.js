@@ -22,6 +22,7 @@ girder.views.LoginView = girder.View.extend({
                 resp.user.token = resp.authToken.token;
 
                 girder.currentUser = new girder.models.UserModel(resp.user);
+                girder.dialogs.handleClose('login', {replace: true});
                 girder.events.trigger('g:login');
             }, this)).error(_.bind(function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
@@ -47,10 +48,10 @@ girder.views.LoginView = girder.View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('login');
+                girder.dialogs.handleClose('login', {replace: true});
             });
 
-        girder.dialogs.handleOpen('login');
+        girder.dialogs.handleOpen('login', {replace: true});
         this.$('#g-login').focus();
 
         return this;

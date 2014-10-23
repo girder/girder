@@ -29,6 +29,7 @@ girder.views.RegisterView = girder.View.extend({
                 this.$el.modal('hide');
 
                 girder.currentUser = new girder.models.UserModel(user);
+                girder.dialogs.handleClose('register', {replace: true});
                 girder.events.trigger('g:login');
             }, this)).error(_.bind(function (err) {
                 var resp = err.responseJSON;
@@ -55,11 +56,11 @@ girder.views.RegisterView = girder.View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('register');
+                girder.dialogs.handleClose('register', {replace: true});
             });
         this.$('#g-login').focus();
 
-        girder.dialogs.handleOpen('register');
+        girder.dialogs.handleOpen('register', {replace: true});
 
         return this;
     }
