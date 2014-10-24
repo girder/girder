@@ -69,15 +69,20 @@ class AssetstoreTestCase(base.TestCase):
 
         params = {
             'name': 'Test',
-            'type': AssetstoreType.GRIDFS
+            'type': -1
         }
-
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
-        self.assertMissingParameter(resp, 'db')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'rest',
+            'message': 'Invalid type parameter'
+        })
 
-        params['type'] = AssetstoreType.FILESYSTEM
-
+        params = {
+            'name': 'Test',
+            'type': AssetstoreType.FILESYSTEM
+        }
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
         self.assertMissingParameter(resp, 'root')
@@ -165,6 +170,48 @@ class AssetstoreTestCase(base.TestCase):
         current = self.model('assetstore').getCurrent()
         self.assertEqual(current['_id'], secondStore['_id'])
 
+    def testGridFSAssetstoreAdapter(self):
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(1, len(resp.json))
+        oldAssetstore = resp.json[0]
+
+        self.assertTrue(oldAssetstore['current'])
+        self.assertEqual(oldAssetstore['name'], 'Test')
+        # Clear any old DB data
+        base.dropGridFSDatabase('girder_assetstore_create_test')
+        params = {
+            'name': 'New Name',
+            'type': AssetstoreType.GRIDFS
+        }
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertMissingParameter(resp, 'db')
+
+        params['db'] = 'girder_assetstore_create_test'
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        assetstore = resp.json
+        self.assertEqual(assetstore['name'], 'New Name')
+        self.assertFalse(assetstore['current'])
+
+        # Set the new assetstore as current
+        params = {
+            'name': assetstore['name'],
+            'db': assetstore['db'],
+            'current': True
+        }
+        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        assetstore = self.model('assetstore').load(resp.json['_id'])
+        self.assertTrue(assetstore['current'])
+
+        # The old assetstore should no longer be current
+        oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
+        self.assertFalse(oldAssetstore['current'])
+
     @moto.mock_s3bucket_path
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore
@@ -175,9 +222,8 @@ class AssetstoreTestCase(base.TestCase):
             'type': AssetstoreType.S3,
             'bucket': '',
             'accessKeyId': 'someKey',
-            'secretKey': 'someSecret',
-            'prefix': '/foo/bar/',
-            'current': True
+            'secret': 'someSecret',
+            'prefix': '/foo/bar/'
         }
 
         # Validation should fail with empty bucket name
@@ -211,7 +257,7 @@ class AssetstoreTestCase(base.TestCase):
         # Create a bucket (mocked using moto), so that we can create an
         # assetstore in it
         botoParams = makeBotoConnectParams(params['accessKeyId'],
-                                           params['secretKey'])
+                                           params['secret'])
         bucket = mock_s3.createBucket(botoParams, 'bucketname')
 
         # Create an assetstore
@@ -219,6 +265,13 @@ class AssetstoreTestCase(base.TestCase):
                             params=params)
         self.assertStatusOk(resp)
         assetstore = self.model('assetstore').load(resp.json['_id'])
+
+        # Set the assetstore to current.  This is really to test the edit
+        # assetstore code.
+        params['current'] = True
+        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatusOk(resp)
 
         # Test init for a single-chunk upload
         folders = self.model('folder').childFolders(

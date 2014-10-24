@@ -157,7 +157,7 @@ girderTest.createCollection = function (collName, collDesc) {
                    $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
-        waits(500);
+        girderTest.waitForLoad();
 
         runs(function () {
             $('.g-collection-create-button').click();
@@ -192,7 +192,7 @@ girderTest.goToGroupsPage = function () {
 
     return function () {
 
-        waits(1000);
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $("a.g-nav-link[g-target='groups']:visible").length > 0;
@@ -215,7 +215,7 @@ girderTest.goToUsersPage = function () {
 
     return function () {
 
-        waits(1000);
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $("a.g-nav-link[g-target='users']:visible").length > 0;
@@ -238,7 +238,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
     return function () {
 
-        waits(1000);
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
@@ -419,12 +419,15 @@ girderTest.testMetadata = function () {
 girderTest.waitForLoad = function () {
     waitsFor(function() {
         return $('#g-dialog-container:visible').length === 0;
-    });
-    runs(function () {
-        $('.modal-backdrop').remove();
-    });
+    }, 'for the dialog container to be hidden');
+    /* A previous comment claimed that the backdrop wasn't properly removed on
+     * dialogs.  Rather, it looks like it just takes time.  Therefore, instead
+     * of manually removing it, we wait for it. */
+    waitsFor(function () {
+        return $('.modal-backdrop').length === 0;
+    }, 'for the modal backdrop to go away');
     waitsFor(function() {
-        return $('.g-loading-block').length == 0;
+        return $('.g-loading-block').length === 0;
     }, 'dialogs to close and all blocks to finish loading');
 };
 

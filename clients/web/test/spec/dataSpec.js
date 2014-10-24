@@ -131,8 +131,7 @@ function _testUpload(uploadItem, needResume)
         return $('.modal-content:visible').length === 0 &&
                $('.g-item-list-entry').length === orig_len+1;
     }, 'the upload to finish');
-    /* css animations need to process, so this wait seems fairly certain */
-    waits(200);
+    girderTest.waitForLoad();
 
     window.callPhantom({action: 'uploadCleanup'});
 }
@@ -205,9 +204,13 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();
+        });
+        girderTest.waitForLoad();
+        runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(1);
             $('a.g-my-folders').click();
         });
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $('li.g-folder-list-entry').length > 0;
@@ -218,6 +221,7 @@ describe('Create a data hierarchy', function () {
             expect($('.g-folder-privacy:first').text()).toBe('Private');
             $('a.g-folder-list-link:first').click();
         });
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $('ol.breadcrumb>li.active').text() === 'Private' &&
@@ -232,6 +236,7 @@ describe('Create a data hierarchy', function () {
         waitsFor(function () {
             return $('input#g-name').length > 0;
         }, 'create folder dialog to appear');
+        girderTest.waitForDialog();
 
         runs(function () {
             $('input#g-name').val("John's subfolder");
@@ -239,6 +244,7 @@ describe('Create a data hierarchy', function () {
 
             $('.g-save-folder').click();
         });
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $('li.g-folder-list-entry').length > 0;
@@ -249,6 +255,7 @@ describe('Create a data hierarchy', function () {
             expect($('.g-folder-privacy:first').text()).toBe('Private');
             $('a.g-folder-list-link:first').click();
         });
+        girderTest.waitForLoad();
 
         runs(function () {
             $('a.g-edit-folder').click();
@@ -257,6 +264,7 @@ describe('Create a data hierarchy', function () {
         waitsFor(function () {
             return $('textarea#g-description').val() === 'Some description';
         }, 'the edit folder dialog to appear');
+        girderTest.waitForDialog();
 
         waitsFor(function () {
             return $('.g-save-folder').length > 0;
@@ -265,6 +273,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             $('button.g-save-folder').click();
         });
+        girderTest.waitForLoad();
     });
 
     it('upload a file into the current folder', function () {
@@ -273,8 +282,6 @@ describe('Create a data hierarchy', function () {
 
     it('download the file', function () {
         runs(function () {
-            // The backdrops don't get properly removed on phantomJS so we do it manually
-            $('.modal-backdrop').remove();
             $('.g-item-list-link').click();
         });
 

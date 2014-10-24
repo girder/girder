@@ -4,7 +4,8 @@
 girder.views.AssetstoresView = girder.View.extend({
     events: {
         'click .g-set-current': 'setCurrentAssetstore',
-        'click .g-delete-assetstore': 'deleteAssetstore'
+        'click .g-delete-assetstore': 'deleteAssetstore',
+        'click .g-edit-assetstore': 'editAssetstore'
     },
 
     initialize: function () {
@@ -126,6 +127,20 @@ girder.views.AssetstoresView = girder.View.extend({
                 }, this).destroy();
             }, this)
         });
+    },
+
+    editAssetstore: function (evt) {
+        var el = $(evt.currentTarget);
+        var assetstore = this.collection.get(el.attr('cid'));
+        var container = $('#g-dialog-container');
+
+        var editAssetstoreWidget = new girder.views.EditAssetstoreWidget({
+            el: container,
+            model: assetstore
+        }).off('g:saved').on('g:saved', function (group) {
+            this.render();
+        }, this);
+        editAssetstoreWidget.render();
     }
 });
 

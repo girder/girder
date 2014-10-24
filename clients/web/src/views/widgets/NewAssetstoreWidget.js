@@ -27,7 +27,7 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
                 bucket: this.$('#g-new-s3-bucket').val(),
                 prefix: this.$('#g-new-s3-prefix').val(),
                 accessKeyId: this.$('#g-new-s3-access-key-id').val(),
-                secretKey: this.$('#g-new-s3-secret').val(),
+                secret: this.$('#g-new-s3-secret').val(),
                 service: this.$('#g-new-s3-service').val()
             });
         }

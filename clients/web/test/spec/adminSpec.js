@@ -91,6 +91,7 @@ describe('Test the assetstore page', function () {
         var storeName = 'Test ' + assetstore + ' Assetstore';
 
         it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
+            /* create the assetstore */
             runs(function () {
                 $("[href='#"+tab+"']").click();
             });
@@ -119,6 +120,8 @@ describe('Test the assetstore page', function () {
             waitsFor(function () {
                 return _getAssetstoreContainer(name) !== null;
             }, 'assetstore to be listed');
+
+            /* make this the current assetstore */
             runs(function () {
                 $('.g-set-current', _getAssetstoreContainer(name)).click();
             });
@@ -129,6 +132,50 @@ describe('Test the assetstore page', function () {
             waitsFor(function () {
                 return $('#g-dialog-container:visible').length === 0;
             }, 'all elements to be visible');
+
+            /* edit the assetstore's name */
+            runs(function () {
+                $('.g-edit-assetstore', _getAssetstoreContainer(name)).click();
+            });
+            girderTest.waitForDialog();
+            waitsFor(function () {
+                return $('.g-save-assetstore.btn:visible').length > 0 &&
+                       $('#g-edit-name').val() === name;
+            }, 'edit confirmation to appear and name field to be present');
+            runs(function() {
+                name += ' Edit'
+                $('input#g-edit-name').val('');
+                $('.g-save-assetstore.btn').click();
+            });
+            waitsFor(function () {
+                return $('#g-dialog-container .g-validation-failed-message').text() === 'Name must not be empty.';
+            }, 'name empty error to appear');
+
+            runs(function() {
+                name += ' Edit'
+                $('input#g-edit-name').val(name);
+                $('.g-save-assetstore.btn').click();
+            });
+            waitsFor(function () {
+                return _getAssetstoreContainer(name) !== null;
+            }, 'assetstore to be changed');
+            girderTest.waitForLoad();
+
+            /* edit and dismiss */
+            runs(function () {
+                $('.g-edit-assetstore', _getAssetstoreContainer(name)).click();
+            });
+            girderTest.waitForDialog();
+            waitsFor(function () {
+                return $('.g-save-assetstore.btn:visible').length > 0 &&
+                       $('#g-edit-name').val() === name;
+            }, 'edit confirmation to appear and name field to be present');
+            runs(function() {
+                $('a[data-dismiss="modal"]').click();
+            });
+            girderTest.waitForLoad();
+
+            /* delete the assetstore */
             runs(function () {
                 $('.g-delete-assetstore', _getAssetstoreContainer(name)).click();
             });
@@ -192,4 +239,12 @@ describe('Test the assetstore page', function () {
                      'g-new-s3-access-key-id': 'test',
                      'g-new-s3-secret': 'test',
                      'g-new-s3-service': 'service'});
+
+    /* Logout to make sure we don't see the assetstores any more */
+    it('logout from admin account', girderTest.logout());
+    it('check logged out state', function() {
+        runs(function () {
+            expect($('#g-app-body-container').text()).toEqual('Must be logged in as admin to view this page.');
+        });
+    });
 });

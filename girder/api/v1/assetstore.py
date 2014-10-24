@@ -77,10 +77,10 @@ class Assetstore(Resource):
             return self.model('assetstore').createGridFsAssetstore(
                 name=params['name'], db=params['db'])
         elif assetstoreType == AssetstoreType.S3:
-            self.requireParams(('bucket', 'accessKeyId', 'secretKey'), params)
+            self.requireParams(('bucket', 'accessKeyId', 'secret'), params)
             return self.model('assetstore').createS3Assetstore(
                 name=params['name'], bucket=params['bucket'],
-                prefix=params.get('prefix', ''), secret=params['secretKey'],
+                prefix=params.get('prefix', ''), secret=params['secret'],
                 accessKeyId=params.get('accessKeyId'),
                 service=params.get('service', ''))
         else:
@@ -100,8 +100,8 @@ class Assetstore(Resource):
                'files will be stored (for S3 type).', required=False)
         .param('accessKeyId', 'The AWS access key ID to use for authentication '
                '(for S3 type).', required=False)
-        .param('secretKey', 'The AWS secret key to use for authentication '
-               '(for S3 type).', required=False)
+        .param('secret', 'The AWS secret key to use for authentication (for '
+               'S3 type).', required=False)
         .param('service', 'The S3 service host (for S3 type).  Default is '
                's3.amazonaws.com.  This can be used to specify a protocol and '
                'port as well using the form '
@@ -124,7 +124,13 @@ class Assetstore(Resource):
         elif assetstore['type'] == AssetstoreType.GRIDFS:
             self.requireParams('db', params)
             assetstore['db'] = params['db']
-
+        elif assetstore['type'] == AssetstoreType.S3:
+            self.requireParams(('bucket', 'accessKeyId', 'secret'), params)
+            assetstore['bucket'] = params['bucket']
+            assetstore['prefix'] = params.get('prefix', '')
+            assetstore['accessKeyId'] = params['accessKeyId']
+            assetstore['secret'] = params['secret']
+            assetstore['service'] = params.get('service', '')
         return self.model('assetstore').save(assetstore)
     updateAssetstore.description = (
         Description('Update an existing assetstore.')
@@ -134,6 +140,19 @@ class Assetstore(Resource):
         .param('root', 'Root path on disk (for Filesystem type)',
                required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
+        .param('bucket', 'The S3 bucket to store data in (for S3 type).',
+               required=False)
+        .param('prefix', 'Optional path prefix within the bucket under which '
+               'files will be stored (for S3 type).', required=False)
+        .param('accessKeyId', 'The AWS access key ID to use for authentication '
+               '(for S3 type).', required=False)
+        .param('secret', 'The AWS secret key to use for authentication (for '
+               'S3 type).', required=False)
+        .param('service', 'The S3 service host (for S3 type).  Default is '
+               's3.amazonaws.com.  This can be used to specify a protocol and '
+               'port as well using the form '
+               '[http[s]://](host domain)[:(port)].  Do not include the '
+               'bucket name here.', required=False)
         .param('current', 'Whether this is the current assetstore',
                dataType='boolean')
         .errorResponse()

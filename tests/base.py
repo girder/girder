@@ -24,6 +24,7 @@ import io
 import json
 import logging
 import os
+import shutil
 import signal
 import sys
 import unittest
@@ -34,6 +35,7 @@ from StringIO import StringIO
 from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
+from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 
@@ -87,7 +89,6 @@ def dropTestDatabase():
     Call this to clear all contents from the test database. Also forces models
     to reload.
     """
-    from girder.models import getDbConnection
     db_connection = getDbConnection()
     model_importer.clearModels()  # Must clear the models to rebuild indices
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
@@ -103,9 +104,18 @@ def dropGridFSDatabase(dbName):
     Clear all contents from a gridFS database used as an assetstore.
     :param dbName: the name of the database to drop.
     """
-    from girder.models import getDbConnection
     db_connection = getDbConnection()
     db_connection.drop_database(dbName)
+
+
+def dropFsAssetstore(path):
+    """
+    Delete all of the files in a filesystem assetstore.  This unlinks the path,
+    which is potentially dangerous.
+    :param path: the path to remove.
+    """
+    if os.path.isdir(path):
+        shutil.rmtree(path)
 
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
@@ -136,6 +146,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                                    accessKeyId='test', secret='test',
                                    service=mockS3Server.service)
         else:
+            dropFsAssetstore(assetstorePath)
             self.assetstore = self.model('assetstore'). \
                 createFilesystemAssetstore(name='Test', root=assetstorePath)
 
