@@ -234,7 +234,7 @@ run.
        add_python_test(my_test RESOURCE_LOCKS cherrypy mongo)
 
 Creating a new release
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 Girder releases are uploaded to `PyPI <https://pypi.python.org/pypi/girder>`_
 for easy installation via ``pip``.  In addition, the python source package and
