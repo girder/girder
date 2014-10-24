@@ -15,6 +15,8 @@
         initialize: function (settings) {
 
             this.edit = settings.edit || false;
+            this.fileEdit = settings.fileEdit || false;
+            this.upload = settings.upload || false;
 
             // If collection model is already passed, there is no need to fetch.
             if (settings.item) {
@@ -33,7 +35,6 @@
                     el: container,
                     item: this.model
                 }).off('g:saved').on('g:saved', function (item) {
-                    this.edit = false;
                     this.render();
                 }, this);
             }
@@ -87,8 +88,12 @@
 
                 this.fileListWidget = new girder.views.FileListWidget({
                     el: this.$('.g-item-files-container'),
-                    itemId: this.model.get('_id')
+                    itemId: this.model.get('_id'),
+                    fileEdit: this.fileEdit,
+                    upload: this.upload
                 });
+                this.fileEdit = false;
+                this.upload = false;
 
                 this.metadataWidget = new girder.views.MetadataWidget({
                     el: this.$('.g-item-metadata'),
@@ -106,6 +111,7 @@
 
                 if (this.edit) {
                     this.editItem();
+                    this.edit = false;
                 }
 
             }, this));
@@ -133,7 +139,9 @@
 
     girder.router.route('item/:id', 'item', function (itemId, params) {
         _fetchAndInit(itemId, {
-            edit: params.dialog === 'itemedit'
+            edit: params.dialog === 'itemedit',
+            fileEdit: params.dialog === 'fileedit' ? params.dialogid : false,
+            upload: params.dialog === 'upload' ? params.dialogid : false
         });
     });
 

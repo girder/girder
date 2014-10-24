@@ -14,37 +14,46 @@ girder.views.FileListWidget = girder.View.extend({
 
         'click a.g-update-contents': function (e) {
             var cid = $(e.currentTarget).parent().attr('file-cid');
-            new girder.views.UploadWidget({
-                el: $('#g-dialog-container'),
-                title: 'Replace file contents',
-                parent: this.collection.get(cid),
-                parentType: 'file'
-            }).on('g:uploadFinished', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'File contents updated.',
-                    type: 'success',
-                    timeout: 4000
-                });
-            }, this).render();
+            this.uploadDialog(cid);
         },
 
         'click a.g-update-info': function (e) {
             var cid = $(e.currentTarget).parent().attr('file-cid');
-
-            if (!this.editFileWidget) {
-                this.editFileWidget = new girder.views.EditFileWidget({
-                    el: $('#g-dialog-container'),
-                    file: this.collection.get(cid)
-                }).off('g:saved', null, this).on('g:saved', function (file) {
-                    this.render();
-                }, this);
-            }
-            this.editFileWidget.render();
+            this.editFileDialog(cid);
         }
     },
 
+    editFileDialog: function (cid) {
+        if (!this.editFileWidget) {
+            this.editFileWidget = new girder.views.EditFileWidget({
+                el: $('#g-dialog-container'),
+                file: this.collection.get(cid)
+            }).off('g:saved', null, this).on('g:saved', function (file) {
+                this.render();
+            }, this);
+        }
+        this.editFileWidget.render();
+    },
+
+    uploadDialog: function (cid) {
+        new girder.views.UploadWidget({
+            el: $('#g-dialog-container'),
+            title: 'Replace file contents',
+            parent: this.collection.get(cid),
+            parentType: 'file'
+        }).on('g:uploadFinished', function () {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'File contents updated.',
+                type: 'success',
+                timeout: 4000
+            });
+        }, this).render();
+    },
+
     initialize: function (settings) {
+        this.upload = settings.upload;
+        this.fileEdit = settings.fileEdit;
         this.checked = [];
         this.collection = new girder.collections.FileCollection();
         this.collection.resourceName = 'item/' + settings.itemId + '/files';
@@ -68,6 +77,12 @@ girder.views.FileListWidget = girder.View.extend({
             placement: 'auto',
             delay: 100
         });
+
+        if (this.fileEdit) {
+            this.editFileDialog(this.fileEdit);
+        } else if (this.upload) {
+            this.uploadDialog(this.upload);
+        }
 
         return this;
     },
