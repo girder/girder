@@ -31,9 +31,11 @@
 
             this.upload = settings.upload || false;
             this.access = settings.access || false;
-            this.folderAccess = settings.folderAccess || false;
-            this.folderEdit = settings.folderEdit || false;
             this.edit = settings.edit || false;
+            this.folderAccess = settings.folderAccess || false;
+            this.folderCreate = settings.folderCreate || false;
+            this.folderEdit = settings.folderEdit || false;
+            this.itemCreate = settings.itemCreate || false;
 
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
@@ -86,10 +88,17 @@
             this.hierarchyWidget = new girder.views.HierarchyWidget({
                 parentModel: this.folder || this.model,
                 upload: this.upload,
-                access: this.folderAccess,
-                edit: this.folderEdit,
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate,
                 el: this.$('.g-collection-hierarchy-container')
             });
+            this.upload = false;
+            this.folderAccess = false;
+            this.folderEdit = false;
+            this.folderCreate = false;
+            this.itemCreate = false;
 
             this.$('.g-collection-actions-button').tooltip({
                 container: 'body',
@@ -149,9 +158,11 @@
                 folderId: folderId,
                 upload: params.dialog === 'upload',
                 access: params.dialog === 'access',
-                folderAccess: params.dialog === 'folderaccess',
                 edit: params.dialog === 'edit',
-                folderEdit: params.dialog === 'folderedit'
+                folderAccess: params.dialog === 'folderaccess',
+                folderCreate: params.dialog === 'foldercreate',
+                folderEdit: params.dialog === 'folderedit',
+                itemCreate: params.dialog === 'itemcreate'
             });
         });
 

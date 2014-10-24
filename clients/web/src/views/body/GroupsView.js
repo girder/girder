@@ -20,6 +20,8 @@ girder.views.GroupsView = girder.View.extend({
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.create = settings.dialog === 'create';
     },
 
     render: function () {
@@ -38,6 +40,11 @@ girder.views.GroupsView = girder.View.extend({
             placeholder: 'Search groups...',
             types: ['group']
         }).off().on('g:resultClicked', this._gotoGroup, this).render();
+
+        if (this.create) {
+            this.createGroupDialog();
+            this.create = false;
+        }
 
         return this;
     },
@@ -73,7 +80,7 @@ girder.views.GroupsView = girder.View.extend({
 
 });
 
-girder.router.route('groups', 'groups', function () {
-    girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+girder.router.route('groups', 'groups', function (params) {
+    girder.events.trigger('g:navigateTo', girder.views.GroupsView, params || {});
     girder.events.trigger('g:highlightItem', 'GroupsView');
 });

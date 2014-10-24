@@ -22,7 +22,7 @@ girder.dialogs = {
         return {name: dialogName, base: baseRoute};
     },
 
-    handleClose: function (name) {
+    handleClose: function (name, options) {
         if (!girder.handleRouting) {
             return;
         }
@@ -36,11 +36,11 @@ girder.dialogs = {
             unparsedQueryString = '?' + unparsedQueryString;
         }
         if (dialogName === name) {
-            girder.router.navigate(routeParts.base + unparsedQueryString);
+            girder.router.navigate(routeParts.base + unparsedQueryString, options);
         }
     },
 
-    handleOpen: function (name) {
+    handleOpen: function (name, options) {
         if (!girder.handleRouting) {
             return;
         }
@@ -55,7 +55,7 @@ girder.dialogs = {
             if (unparsedQueryString.length > 0) {
                 unparsedQueryString = '?' + unparsedQueryString;
             }
-            girder.router.navigate(routeParts.base + unparsedQueryString);
+            girder.router.navigate(routeParts.base + unparsedQueryString, options);
         }
     }
 

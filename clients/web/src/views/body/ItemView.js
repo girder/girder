@@ -33,6 +33,7 @@
                     el: container,
                     item: this.model
                 }).off('g:saved').on('g:saved', function (item) {
+                    this.edit = false;
                     this.render();
                 }, this);
             }

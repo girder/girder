@@ -160,6 +160,7 @@
 
             if (this.edit) {
                 this.editGroup();
+                this.edit = false;
             }
 
             _.each($('.g-group-tabs>li>a'), function (el) {

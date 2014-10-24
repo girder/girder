@@ -29,7 +29,9 @@
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
             this.folderAccess = settings.folderAccess || false;
+            this.folderCreate = settings.folderCreate || false;
             this.folderEdit = settings.folderEdit || false;
+            this.itemCreate = settings.itemCreate || false;
 
             if (settings.user) {
                 this.model = settings.user;
@@ -67,9 +69,16 @@
                 parentModel: this.folder || this.model,
                 el: this.$('.g-user-hierarchy-container'),
                 upload: this.upload,
-                edit: this.folderEdit,
-                access: this.folderAccess
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate
             });
+            this.upload = false;
+            this.folderAccess = false;
+            this.folderEdit = false;
+            this.folderCreate = false;
+            this.itemCreate = false;
 
             return this;
         }
@@ -92,8 +101,10 @@
         }, this).fetch();
     };
 
-    girder.router.route('user/:id', 'user', function (userId) {
-        _fetchAndInit(userId);
+    girder.router.route('user/:id', 'user', function (userId, params) {
+        _fetchAndInit(userId, {
+            folderCreate: params.dialog === 'foldercreate'
+        });
     });
 
     girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
@@ -101,7 +112,9 @@
             folderId: folderId,
             upload: params.dialog === 'upload',
             folderAccess: params.dialog === 'folderaccess',
-            folderEdit: params.dialog === 'folderedit'
+            folderCreate: params.dialog === 'foldercreate',
+            folderEdit: params.dialog === 'folderedit',
+            itemCreate: params.dialog === 'itemcreate'
         });
     });
 

@@ -22,8 +22,8 @@ if (girder.handleRouting) {
 
     // When the back button is pressed, we want to close open modals.
     girder.router.on('route', function (route, params) {
-        if ($('.modal').hasClass('in')) {
-            $('.modal').modal('hide');
+        if (!params.slice(-1)[0].dialog) {
+            $('.modal').girderModal('close');
         }
     });
 
