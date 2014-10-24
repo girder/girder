@@ -37,13 +37,24 @@ girder.views.EditGroupWidget = girder.View.extend({
             public: pub
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
-            girder.dialogs.handleOpen('edit');
+            if (view.model) {
+                girder.dialogs.handleOpen('edit');
+            } else {
+                girder.dialogs.handleOpen('create');
+            }
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('edit');
+            if (view.create) {
+                girder.dialogs.handleClose('create');
+            } else {
+                girder.dialogs.handleClose('edit');
+            }
         }).on('ready.girder.modal', function () {
             if (view.model) {
                 view.$('#g-name').val(view.model.get('name'));
                 view.$('#g-description').val(view.model.get('description'));
+                view.create = false;
+            } else {
+                view.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));

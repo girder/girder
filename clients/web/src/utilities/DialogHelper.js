@@ -55,7 +55,6 @@ girder.dialogs = {
             if (unparsedQueryString.length > 0) {
                 unparsedQueryString = '?' + unparsedQueryString;
             }
-            console.log(options); //DWM::
             girder.router.navigate(routeParts.base + unparsedQueryString, options);
         }
     }
