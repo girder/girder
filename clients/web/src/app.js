@@ -89,12 +89,22 @@ girder.App = Backbone.View.extend({
     },
 
     /**
+     * Close any open dialog if we are already logged in.
+     * :returns loggedIn: true if we have a current user.
+     */
+    closeDialogIfUser: function () {
+        if (girder.currentUser) {
+            $('.modal').girderModal('close');
+            return true;
+        }
+        return false;
+    },
+
+    /**
      * Show a dialog allowing a user to login or register.
      */
     loginDialog: function () {
-        /* Don't show this dialog if we are already logged in */
-        if (girder.currentUser) {
-            $('.modal').girderModal('close');
+        if (this.closeDialogIfUser()) {
             return;
         }
         if (!this.loginView) {
@@ -106,9 +116,7 @@ girder.App = Backbone.View.extend({
     },
 
     registerDialog: function () {
-        /* Don't show this dialog if we are already logged in */
-        if (girder.currentUser) {
-            $('.modal').girderModal('close');
+        if (this.closeDialogIfUser()) {
             return;
         }
         if (!this.registerView) {
