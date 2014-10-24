@@ -148,7 +148,8 @@
     girder.router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
         _fetchAndInit(collectionId, {
             access: params.dialog === 'access',
-            edit: params.dialog === 'edit'
+            edit: params.dialog === 'edit',
+            folderCreate: params.dialog === 'foldercreate'
         });
     });
 

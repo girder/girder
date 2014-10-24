@@ -39,6 +39,7 @@ add_web_client_test(group "${PROJECT_SOURCE_DIR}/clients/web/test/spec/groupSpec
 add_web_client_test(user "${PROJECT_SOURCE_DIR}/clients/web/test/spec/userSpec.js")
 add_web_client_test(item "${PROJECT_SOURCE_DIR}/clients/web/test/spec/itemSpec.js")
 add_web_client_test(folder "${PROJECT_SOURCE_DIR}/clients/web/test/spec/folderSpec.js")
+add_web_client_test(routing "${PROJECT_SOURCE_DIR}/clients/web/test/spec/routingSpec.js")
 add_web_client_test(version "${PROJECT_SOURCE_DIR}/clients/web/test/spec/versionSpec.js")
 
 add_subdirectory(clients)

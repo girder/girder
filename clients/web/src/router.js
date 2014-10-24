@@ -25,6 +25,8 @@ if (girder.handleRouting) {
         if (!params.slice(-1)[0].dialog) {
             $('.modal').girderModal('close');
         }
+        // get rid of tooltips
+        $('.tooltip').remove();
     });
 
 } else {
