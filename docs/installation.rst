@@ -4,7 +4,7 @@ Installation
 Before you install, see the :doc:`prerequisites` guide to make sure you
 have all required system packages installed.
 
-Install with PIP
+Install with pip
 ----------------
 
 To install the Girder distribution from the python package index, simply run ::
@@ -63,9 +63,6 @@ Then cd into the root of the repository and run: ::
 Finally, when all Node packages are installed, run: ::
 
     grunt init
-
-Build
------
 
 To build the client-side code, run the following command from within the
 repository: ::
