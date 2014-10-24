@@ -34,17 +34,30 @@ def _mergeConfig(filename):
         cherrypy.config[option] = value
 
 
-def loadConfig():
-    _mergeConfig(
+def _loadConfigsByPrecedent():
+    """
+    Load configuration in reverse order of precedent.
+    """
+    configPaths = []
+    configPaths.append(
         os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
+    configPaths.append(
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.local.cfg'))
+    configPaths.append(
+        os.path.join('/etc', 'girder.cfg'))
+    configPaths.append(
+        os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg'))
+    if 'GIRDER_CONFIG' in os.environ:
+        configPaths.append(os.environ['GIRDER_CONFIG'])
 
-    local = os.path.join(ROOT_DIR, 'girder', 'conf',
-                         'girder.local.cfg')
-    if os.path.exists(local):
-        _mergeConfig(local)
-    else:
-        print(TerminalColor.warning('WARNING: "{}" does not exist.'
-                                    .format(local)))
+    for curConfigPath in configPaths:
+        if os.path.exists(curConfigPath):
+            _mergeConfig(curConfigPath)
+
+
+def loadConfig():
+
+    _loadConfigsByPrecedent()
 
     # The GIRDER_PORT environment variable will override the config port
     if 'GIRDER_PORT' in os.environ:

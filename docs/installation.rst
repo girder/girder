@@ -4,6 +4,38 @@ Installation
 Before you install, see the :doc:`prerequisites` guide to make sure you
 have all required system packages installed.
 
+Install with PIP
+----------------
+
+To install the Girder distribution from the python package index, simply run ::
+
+    pip install girder
+
+This will install the core girder REST API as a site package in your system
+or virtual environment.  At this point, you might want to check the
+:ref:`configuration <configuration>` to change your plugin and logging
+paths.  In order to use the web
+interface, you must also install the web client libraries.  Girder installs
+a python script that will automatically download and install these libraries
+for you.  Just run the following command: ::
+
+   girder-install web
+
+If you installed girder into your system ``site-packages``, you may need to
+run this command as root.
+
+Optionally, you can also install a set of :ref:`plugins <plugins>` that are
+distributed with Girder.  The ``girder-install`` script can do this for you
+as well by running: ::
+
+   girder-install plugin
+
+Once this is done, you are ready to start using Girder as described in this
+section: :ref:`run-girder`.
+
+Install from Git Checkout
+-------------------------
+
 Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
 
@@ -42,6 +74,8 @@ repository: ::
 
 Run this command any time you change a JavaScript or CSS file under
 `__clients/web__.`
+
+.. _run-girder:
 
 Run
 ---

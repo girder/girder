@@ -14,7 +14,6 @@ install:
     - sudo pip install -U six
     - npm install -g grunt grunt-cli
     - npm install
-    - sudo python setup.py install
 script:
     - mkdir _build
     - cd _build

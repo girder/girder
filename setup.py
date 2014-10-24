@@ -19,13 +19,19 @@
 
 import json
 from setuptools import setup, find_packages
-
+from pip.req import parse_requirements
 
 with open('README.rst') as f:
     readme = f.read()
 
 with open('package.json') as f:
     version = json.load(f)['version']
+
+# parse_requirements() returns generator of pip.req.InstallRequirement objects
+install_reqs = parse_requirements('requirements.txt')
+
+# reqs is a list of requirement
+reqs = [str(ir.req) for ir in install_reqs]
 
 setup(
     name='girder',
@@ -45,6 +51,12 @@ setup(
     ],
     packages=find_packages(exclude=('tests.*', 'tests')),
     package_data={
-        'girder': ['girder-version.json']
-    }
+        'girder': [
+            'girder-version.json',
+            'conf/girder.dist.cfg'
+        ]
+    },
+    install_requires=reqs,
+    zip_safe=False,
+    scripts=['girder-install']
 )

@@ -1,0 +1,285 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+'''
+This script provides a simple interface for installing optional components
+for girder.  Try `girder-install --help` for more information.
+'''
+
+import sys
+import os
+import tarfile
+import tempfile
+import shutil
+import urllib2
+import argparse
+from glob import glob
+import pip
+from cStringIO import StringIO
+
+stdout = sys.stdout
+stderr = sys.stderr
+
+try:
+    sys.stdout = StringIO()
+    sys.stderr = StringIO()
+    from girder import constants
+    from girder.utility.plugin_utilities import getPluginDir
+    sys.stdout = stdout
+    sys.stderr = stderr
+except ImportError:
+    stderr.write(
+        'Could not import girder.  Please ensure that your PYTHONPATH is correct.\n'
+    )
+    sys.exit(1)
+
+version = constants.VERSION['apiVersion']
+pluginDir = getPluginDir()
+defaultSource = 'https://github.com/girder/girder/releases/download/v{}/'.format(version)
+webRoot = os.path.join(constants.PACKAGE_DIR, 'clients', 'web')
+
+
+def handle_source(src, dest):
+    '''
+    Stage a source specification into a temporary directory for processing.
+    Returns False if unsuccessful.
+    '''
+
+    try:
+        # Try to open as a url
+        request = urllib2.urlopen(src)
+        download = tempfile.NamedTemporaryFile(suffix='.tgz')
+        download.file.write(request.read())
+        download.file.flush()
+        download.file.seek(0)
+        src = download.name
+    except:
+        pass
+
+    if os.path.isdir(src):
+        # This is already a directory, so copy it.
+        shutil.copytree(src, dest)
+        return True
+
+    if os.path.exists(src):
+        # Try to open as a tarball.
+        try:
+            tgz = tarfile.open(src)
+        except Exception:
+            pass
+        tgz.extractall(dest)
+        return True
+
+    # Nothing else to try
+    return False
+
+
+def install_web(source=None, force=False):
+    '''
+    Install the web client from the given source.  Returns boolean indicating success.
+    '''
+    clients = os.path.join(constants.PACKAGE_DIR, 'clients')
+    result = None
+    if os.path.isdir(clients):
+        if force:
+            shutil.rmtree(clients)
+        else:
+            sys.stderr.write(
+                'Client files already exist at {}, use -f to overwrite.\n'.format(
+                    constants.PACKAGE_DIR
+                )
+            )
+            sys.exit(1)
+
+    tmp = tempfile.mkdtemp()
+    try:
+        result = handle_source(source, tmp)
+        clients = os.path.join(tmp, 'clients')
+        if result and os.path.isdir(clients):
+            shutil.copytree(clients, os.path.join(constants.PACKAGE_DIR, 'clients'))
+            result = webRoot
+
+    finally:
+        shutil.rmtree(tmp)
+
+    return result
+
+
+def install_plugin(source=None, force=False):
+    '''
+    Install one or more plugins from the given source.  Returns a list of installed plugins.
+    '''
+    found = []
+    tmp = tempfile.mkdtemp()
+    try:
+        handle_source(source, tmp)
+        json = glob(os.path.join(tmp, '*', 'plugin.json'))
+
+        for plugin in json:
+            pluginSource = os.path.split(plugin)[0]
+            pluginName = os.path.split(pluginSource)[1]
+            pluginTarget = os.path.join(pluginDir, pluginName)
+
+            if os.path.exists(pluginTarget):
+                if force:
+                    shutil.rmtree(pluginTarget)
+                else:
+                    sys.stderr.write(
+                        'A plugin already exsts at {}, use -f to overwrite.\n'.format(
+                            pluginTarget
+                        )
+                    )
+                    continue
+            found.append(pluginName)
+            shutil.copytree(pluginSource, pluginTarget)
+            requirements = os.path.join(pluginTarget, 'requirements.txt')
+            if os.path.exists(requirements):
+                print '\nAttempting to install requirements for {}.\n'.format(pluginName)
+                try:
+                    assert pip.main(['install', '-U', '-r', requirements]) == 0
+                except Exception:
+                    print '\nFailed to install requirements for {}.'.format(pluginName)
+
+        print ''
+    finally:
+        shutil.rmtree(tmp)
+    return found
+
+
+def handle_web(parser):
+    '''
+    Handles the object returned by argparse for the `web` command.
+    '''
+    if parser.source is None:
+        parser.source = defaultSource + 'girder-web-' + version + '.tar.gz'
+    result = install_web(parser.source, parser.force)
+    if not result:
+        sys.stderr.write(
+            'Could not install client libraries from "{}".\n'.format(parser.source)
+        )
+        sys.exit(1)
+    else:
+        print 'Installed client libraries to "{}"'.format(result)
+
+
+def handle_plugin(parser):
+    '''
+    Handles the object returned by argparse for the `plugin` command.
+    '''
+    if parser.source is None:
+        parser.source = defaultSource + 'girder-plugins-' + version + '.tar.gz'
+    result = install_plugin(parser.source, parser.force)
+    if not len(result):
+        sys.stderr.write(
+            'Could not install plugins from "{}".\n'.format(parser.source)
+        )
+        sys.exit(1)
+    else:
+        print 'Installed {} plugins:'.format(len(result))
+        print '  ' + '\n  '.join(result)
+
+
+def print_version(parser):
+    '''
+    Prints the girder version number.
+    '''
+    print version
+
+
+def print_plugin_path(parser):
+    '''
+    Prints the configured plugin path.
+    '''
+    print pluginDir
+
+
+def print_web_root(parser):
+    '''
+    Prints the static web root.
+    '''
+    print webRoot
+
+
+def main(args):
+    '''
+    Main function that parses the argument list and delagates to the correct function
+    using the argparse package.
+    '''
+    parser = argparse.ArgumentParser(
+        description='Install optional girder components.  To get, help from a subcommand, ' +
+                    'try "{} <command> -h"'.format(args[0]),
+        epilog='This script supports installing from a url, a tarball, ' +
+               'or a local path.  When installing with no sources specified, it will install ' +
+               'from the main girder repository corresponding to the girder release ' +
+               'currently installed.'
+    )
+
+    parser.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help='Overwrite existing files'
+    )
+
+    sub = parser.add_subparsers()
+
+    plugin = sub.add_parser(
+        'plugin',
+        help='Install plugins.'
+    )
+    plugin.set_defaults(func=handle_plugin)
+
+    web = sub.add_parser(
+        'web',
+        help='Install web client libraries.'
+    )
+    web.set_defaults(func=handle_web)
+
+    sub.add_parser(
+        'version',
+        help='Print the currently installed version of girder.'
+    ).set_defaults(func=print_version)
+
+    sub.add_parser(
+        'plugin-path',
+        help='Print the currently configured plugin path.'
+    ).set_defaults(func=print_plugin_path)
+
+    sub.add_parser(
+        'web-root',
+        help='Print the currently web root for static files.'
+    ).set_defaults(func=print_web_root)
+
+    plugin.add_argument(
+        '-s', '--source',
+        help='A directory, tarball, or url to a tarball containing one or more ' +
+             'plugins.  Defaults to installing all plugins in the girder repository'
+    )
+
+    web.add_argument(
+        '-s', '--source',
+        help='A directory, tarball, or url to a tarball containing client ' +
+             'side content.  Defaults to installing client libraries from the ' +
+             'currently installed girder release.'
+    )
+
+    parsed = parser.parse_args(args[1:])
+    parsed.func(parsed)
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv)

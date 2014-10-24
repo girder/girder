@@ -33,8 +33,9 @@ import os
 import sys
 import traceback
 
-from girder.constants import ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
-from girder.utility import mail_utils
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
+    TerminalColor
+from girder.utility import mail_utils, config
 
 
 def loadPlugins(plugins, root, appconf):
@@ -53,9 +54,17 @@ def loadPlugins(plugins, root, appconf):
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
+    cur_config = config.getConfig()
+    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
+        pluginDir = cur_config['plugins']['plugin_directory']
+    elif os.path.exists(os.path.join(PACKAGE_DIR, 'plugins')):
+        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
+    else:
+        pluginDir = os.path.join(ROOT_DIR, 'plugins')
+
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
-            '__path__': os.path.join(ROOT_DIR, 'plugins'),
+            '__path__': pluginDir,
             '__package__': ROOT_PLUGINS_PACKAGE,
             '__name__': ROOT_PLUGINS_PACKAGE
         })()
@@ -70,7 +79,8 @@ def loadPlugins(plugins, root, appconf):
         for plugin in pset:
             try:
                 loadPlugin(plugin, root, appconf)
-                print TerminalColor.success('Loaded plugin "{}"'.format(plugin))
+                print TerminalColor.success('Loaded plugin "{}"'
+                                            .format(plugin))
             except:
                 print TerminalColor.error(
                     'ERROR: Failed to load plugin "{}":'.format(plugin))
@@ -89,7 +99,7 @@ def loadPlugin(name, root, appconf):
     :param appconf: The cherrypy configuration for the server.
     :type appconf: dict
     """
-    pluginDir = os.path.join(ROOT_DIR, 'plugins', name)
+    pluginDir = os.path.join(getPluginDir(), name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
@@ -124,13 +134,37 @@ def loadPlugin(name, root, appconf):
                 fp.close()
 
 
+def getPluginDir():
+    """
+    Returns the /path/to the currently configured plugin directory.
+    """
+    cur_config = config.getConfig()
+    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
+        pluginsDir = cur_config['plugins']['plugin_directory']
+    elif os.path.isdir(os.path.join(PACKAGE_DIR, 'plugins')):
+        pluginsDir = os.path.join(PACKAGE_DIR, 'plugins')
+    else:
+        pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    if not os.path.exists(pluginsDir):
+        try:
+            os.makedirs(pluginsDir)
+        except OSError:
+            print(TerminalColor.warning('Could not create plugin directory.'))
+            pluginsDir = None
+    return pluginsDir
+
+
 def findAllPlugins():
     """
     Walks the plugins directory to find all of the plugins. If the plugin has
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
-    pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    pluginsDir = getPluginDir()
+    if not pluginsDir:
+        print(TerminalColor.warning('Plugin directory not found. No plugins '
+              'loaded.'))
+        return allPlugins
     dirs = [dir for dir in os.listdir(pluginsDir) if os.path.isdir(
             os.path.join(pluginsDir, dir))]
 

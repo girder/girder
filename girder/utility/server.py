@@ -18,12 +18,13 @@
 ###############################################################################
 
 import cherrypy
-import girder.events
+import os
 
+import girder.events
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
-from . import dev_endpoints, webroot
+from . import webroot
 
 
 def setup(test=False, plugins=None):
@@ -39,10 +40,14 @@ def setup(test=False, plugins=None):
     """
     cur_config = config.getConfig()
 
+    curStaticRoot = constants.ROOT_DIR
+    if not os.path.exists(os.path.join(curStaticRoot, 'clients')):
+        curStaticRoot = constants.PACKAGE_DIR
+
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root': constants.ROOT_DIR,
+            'tools.staticdir.root': curStaticRoot,
             'request.show_tracebacks': test
         },
         '/static': {
@@ -82,15 +87,13 @@ def setup(test=False, plugins=None):
     root = webroot.Webroot()
     api_main.addApiToNode(root)
 
-    if cur_config['server']['mode'] is 'development':
-        dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
-
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED)
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
+                               default=())
 
     root.updateHtmlVars({
         'apiRoot': cur_config['server']['api_root'],

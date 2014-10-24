@@ -42,6 +42,7 @@ add_web_client_test(folder "${PROJECT_SOURCE_DIR}/clients/web/test/spec/folderSp
 add_web_client_test(version "${PROJECT_SOURCE_DIR}/clients/web/test/spec/versionSpec.js")
 
 add_subdirectory(clients)
+add_subdirectory(packaging)
 
 # Look for CMakeLists.txt in plugin dirs, include if they exist
 file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
