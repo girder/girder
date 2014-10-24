@@ -35,5 +35,4 @@ RUN pip install \
 RUN pip install -U six
 RUN npm install -g grunt-cli
 RUN npm install
-RUN python setup.py install
 ENTRYPOINT ["python", "-m", "girder"]
