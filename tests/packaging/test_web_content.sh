@@ -7,7 +7,7 @@ GREP="${4}"
 
 source "${virtualenv_activate}"
 
-girder-install web -s "${source_path}"/girder-web-*.tar.gz
+girder-install -f web -s "${source_path}"/girder-web-*.tar.gz
 
 export GIRDER_PORT=50012
 python -m girder &> /dev/null &
