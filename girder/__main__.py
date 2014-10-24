@@ -19,7 +19,6 @@
 
 import cherrypy  # pragma: no cover
 import argparse  # pragma: no cover
-import os  # pragma: no cover
 
 from girder.utility import server  # pragma: no cover
 
@@ -35,9 +34,9 @@ if __name__ == '__main__':  # pragma: no cover
                         help="on what port should grider serve")
     args = parser.parse_args()
     if args.database:
-        os.environ['GIRDER_MONGO_URI'] = args.database
+        cherrypy.config['database']['uri'] = args.database
     if args.port:
-        os.environ['GIRDER_PORT'] = args.port
+        cherrypy.config['server.socket_port'] = int(args.port)
     server.setup(args.testing)
 
     cherrypy.engine.start()

@@ -18,7 +18,7 @@
 ###############################################################################
 
 import cherrypy
-from girder.constants import TerminalColor, ROOT_DIR
+from girder.constants import ROOT_DIR
 import os
 
 
@@ -59,11 +59,8 @@ def loadConfig():
 
     _loadConfigsByPrecedent()
 
-    # The GIRDER_PORT environment variable will override the config port
     if 'GIRDER_PORT' in os.environ:
         port = int(os.environ['GIRDER_PORT'])
-        print(TerminalColor.info('Using GIRDER_PORT env value ({})'
-                                 .format(port)))
         cherrypy.config['server.socket_port'] = port
 
     if 'GIRDER_MONGO_URI' in os.environ:
