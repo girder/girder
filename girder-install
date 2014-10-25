@@ -68,11 +68,13 @@ def handle_source(src, dest):
         download.file.flush()
         download.file.seek(0)
         src = download.name
-    except:
+    except Exception:
         pass
 
     if os.path.isdir(src):
         # This is already a directory, so copy it.
+        pluginName = os.path.split(src)[1]
+        dest = os.path.join(dest, pluginName)
         shutil.copytree(src, dest)
         return True
 
