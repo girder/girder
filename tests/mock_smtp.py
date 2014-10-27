@@ -54,7 +54,7 @@ class MockSmtpReceiver(object):
             raise Exception('Could not bind to any port for Mock SMTP server')
 
         self.thread = threading.Thread(target=asyncore.loop,
-                                       kwargs={'timeout': 0})
+                                       kwargs={'timeout': 0, 'use_poll': True})
         self.thread.start()
 
     def stop(self):

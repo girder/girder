@@ -344,11 +344,14 @@ describe('Test routing paths', function () {
 
         var groupPath = 'group/'+ids.group;
         _testRoute(groupPath+'/roles', false, function () {
-            return $('.g-member-name:visible').length > 0;
+            return $('.g-member-name:visible').length === 2 && 
+                   $('#g-group-tab-roles .g-member-list-empty:visible')
+                   .length === 1;
         });
         _testRoute(groupPath+'/pending', false, function () {
             return $('.g-group-requests-container:visible').length === 1 &&
-                   $('.g-member-list-empty').length === 2;
+                   $('#g-group-tab-pending .g-member-list-empty:visible')
+                   .length === 2;
         });
         _testRoute(groupPath+'?dialog=edit', true, function () {
             return $('.modal-title').text() === 'Edit group';
