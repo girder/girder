@@ -139,12 +139,21 @@ def getPluginDir():
     Returns the /path/to the currently configured plugin directory.
     """
     cur_config = config.getConfig()
+
+    # This uses the plugin directory specified in the config first.
     if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
         pluginsDir = cur_config['plugins']['plugin_directory']
-    elif os.path.isdir(os.path.join(PACKAGE_DIR, 'plugins')):
-        pluginsDir = os.path.join(PACKAGE_DIR, 'plugins')
-    else:
+
+    # If none is specified, it looks if there is a plugin directory next
+    # to the girder python package.  This is the case when running from the
+    # git repository.
+    elif os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
         pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+
+    # As a last resort, use plugins inside the girder python package.
+    # This is intended to occur when girder is pip installed.
+    else:
+        pluginsDir = os.path.join(PACKAGE_DIR, 'plugins')
     if not os.path.exists(pluginsDir):
         try:
             os.makedirs(pluginsDir)
