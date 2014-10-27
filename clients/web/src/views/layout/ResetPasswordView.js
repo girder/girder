@@ -13,6 +13,7 @@ girder.views.ResetPasswordView = girder.View.extend({
             }).done(_.bind(function (resp) {
                 this.$el.modal('hide');
 
+                girder.dialogs.handleClose('resetpassword', {replace: true});
                 girder.events.trigger('g:alert', {
                     icon: 'mail-alt',
                     text: 'Password reset email sent.',
@@ -43,6 +44,8 @@ girder.views.ResetPasswordView = girder.View.extend({
                 view.$('#g-email').focus();
             });
         this.$('#g-email').focus();
+
+        girder.dialogs.handleOpen('resetpassword', {replace: true});
 
         return this;
     }
