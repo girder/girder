@@ -19,6 +19,7 @@
 
 import os
 import subprocess
+import sys
 
 # Need to set the environment variable before importing girder
 os.environ['GIRDER_PORT'] = '50001'
@@ -63,12 +64,6 @@ class WebClientTestCase(base.TestCase):
             self.coverageFile
         )
 
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-
-        (stdoutdata, stderrdata) = process.communicate()
-
-        print(stdoutdata)
-        print(stderrdata)
-
-        self.assertEqual(process.returncode, 0)
+        returncode = subprocess.call(cmd, stdout=sys.stdout.fileno(),
+                                     stderr=sys.stdout.fileno())
+        self.assertEqual(returncode, 0)
