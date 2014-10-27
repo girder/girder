@@ -73,6 +73,8 @@
             this.isMember = false;
             this.isInvited = false;
             this.isRequested = false;
+            this.isModerator = false;
+            this.isAdmin = false;
 
             if (girder.currentUser) {
                 _.every(girder.currentUser.get('groups'), function (groupId) {
@@ -100,12 +102,27 @@
                 }, this);
             }
 
+            if (this.isMember) {
+                _.every(this.model.get('access').users || [], function (access) {
+                    if (access.id === girder.currentUser.get('_id')) {
+                        if (access.level === girder.AccessType.WRITE) {
+                            this.isModerator = true;
+                        } else if (access.level === girder.AccessType.ADMIN) {
+                            this.isAdmin = true;
+                        }
+                        return false; // 'break';
+                    }
+                    return true;
+                }, this);
+            }
             this.$el.html(jade.templates.groupPage({
                 group: this.model,
                 girder: girder,
                 isInvited: this.isInvited,
                 isRequested: this.isRequested,
-                isMember: this.isMember
+                isMember: this.isMember,
+                isModerator: this.isModerator,
+                isAdmin: this.isAdmin
             }));
 
             if (this.invitees) {
@@ -140,11 +157,8 @@
                     alert(err.responseJSON.message);
                 }, this).sendInvitation(params.user.id, params.level);
             }, this).on('g:removeMember', this.removeMember, this)
-                    .on('g:moderatorAdded', function () {
-                        this._updateRolesLists();
-                    }, this).on('g:adminAdded', function () {
-                        this._updateRolesLists();
-                    }, this);
+                    .on('g:moderatorAdded', this.render, this)
+                    .on('g:adminAdded', this.render, this);
 
             this._updateRolesLists();
 
