@@ -25,7 +25,9 @@ import os
 from bson.objectid import ObjectId
 from .model_base import Model, ValidationException
 from girder import events
+from girder import logger
 from girder.constants import AccessType
+from girder.utility.progress import setResponseTimeLimit
 
 
 class Item(Model):
@@ -147,24 +149,46 @@ class Item(Model):
         :param folder: The folder to move the item into.
         :type folder: dict.
         """
-        def propagateSizeChange(item, inc):
-            self.model('folder').increment(query={
-                '_id': item['folderId']
-            }, field='size', amount=inc, multi=False)
-
-            self.model(item['baseParentType']).increment(query={
-                '_id': item['baseParentId']
-            }, field='size', amount=inc, multi=False)
-
-        propagateSizeChange(item, -item['size'])
+        self.propagateSizeChange(item, -item['size'])
 
         item['folderId'] = folder['_id']
         item['baseParentType'] = folder['baseParentType']
         item['baseParentId'] = folder['baseParentId']
 
-        propagateSizeChange(item, item['size'])
+        self.propagateSizeChange(item, item['size'])
 
         return self.save(item)
+
+    def propagateSizeChange(self, item, inc):
+        self.model('folder').increment(query={
+            '_id': item['folderId']
+        }, field='size', amount=inc, multi=False)
+
+        self.model(item['baseParentType']).increment(query={
+            '_id': item['baseParentId']
+        }, field='size', amount=inc, multi=False)
+
+    def recalculateSize(self, item):
+        """
+        Recalculate the item size based on the files that are in it.  If this
+        is different than the recorded size, propagate the changes.
+        :param item: The item to recalculate the size of.
+        :returns size: the recalculated size in bytes
+        """
+        size = 0
+        for file in self.childFiles(item, limit=0, timeout=False):
+            # We could add a recalcuateSize to the file model, in which case
+            # this would be:
+            # size += self.model('file').recalculateSize(file)
+            size += file.get('size', 0)
+        delta = size-item.get('size', 0)
+        if delta:
+            logger.info('Item %s was wrong size: was %d, is %d' % (
+                item['_id'], item['size'], size))
+            item['size'] = size
+            self.update({'_id': item['_id']}, update={'$set': {'size': size}})
+            self.propagateSizeChange(item, delta)
+        return size
 
     def childFiles(self, item, limit=50, offset=0, sort=None, **kwargs):
         """
@@ -465,3 +489,59 @@ class Item(Model):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
+
+    def checkConsistency(self, stage, progress=None):
+        """
+        Check all of the items and make sure they are valid.  This operates in
+        stages, since some actions should be done before other models that rely
+        on items and some need to be done after.  The stages are:
+            count - count how many items need to be checked.
+            remove - remove lost items
+            verify - verify and fix existing items
+        :param stage: which stage of the check to run.  See above.
+        :param progress: an option progress context to update.
+        :returns: numItems: number of items to check or processed,
+                  numChanged: number of items changed.
+        """
+        if stage == 'count':
+            numItems = self.find(limit=1, timeout=False).count()
+            return numItems, 0
+        elif stage == 'remove':
+            # Check that all items are in existing folders.  Any that are not
+            # can be deleted.  Perhaps we should put them in a lost+found
+            # instead
+            folderIds = self.model('folder').collection.distinct('_id')
+            lostItems = self.find(
+                limit=0, timeout=False,
+                query={'$or': [{'folderId': {'$nin': folderIds}},
+                               {'folderId': {'$exists': False}}]})
+            numItems = itemsLeft = lostItems.count()
+            if numItems:
+                if progress is not None:
+                    progress.update(message='Removing orphaned items')
+                for item in lostItems:
+                    setResponseTimeLimit()
+                    self.collection.remove({'_id': item['_id']})
+                    if progress is not None:
+                        itemsLeft -= 1
+                        progress.update(increment=1, message='Removing '
+                                        'orphaned items (%d left)' % itemsLeft)
+            return numItems, numItems
+        elif stage == 'verify':
+            # Check items sizes
+            items = self.find(limit=0, timeout=False)
+            numItems = itemsLeft = items.count()
+            itemsCorrected = 0
+            if progress is not None:
+                progress.update(message='Checking items')
+            for item in items:
+                setResponseTimeLimit()
+                oldsize = item.get('size', 0)
+                newsize = self.recalculateSize(item)
+                if newsize != oldsize:
+                    itemsCorrected += 1
+                if progress is not None:
+                    itemsLeft -= 1
+                    progress.update(increment=1, message='Checking items (%d '
+                                    'left)' % itemsLeft)
+            return numItems, itemsCorrected

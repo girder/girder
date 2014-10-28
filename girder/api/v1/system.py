@@ -23,8 +23,10 @@ import errno
 import json
 
 from girder.api import access
-from girder.utility import plugin_utilities
 from girder.constants import SettingKey, VERSION
+from girder.utility import plugin_utilities
+from girder.utility import system
+from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description
 from ..rest import Resource, RestException
 
@@ -46,6 +48,8 @@ class System(Resource):
         self.route('PUT', ('restart',), self.restartServer)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
+        self.route('GET', ('check',), self.systemStatus)
+        self.route('PUT', ('check',), self.systemConsistencyCheck)
 
     @access.admin
     def setSetting(self, params):
@@ -293,4 +297,68 @@ class System(Resource):
     restartServer.description = (
         Description('Restart the girder REST server.')
         .notes('Must be a system administrator to call this.')
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def systemStatus(self, params):
+        mode = params.get('mode', 'quick')
+        status = system.getStatus(mode)
+        status["requestBase"] = cherrypy.request.base.rstrip('/')
+        return status
+    systemStatus.description = (
+        Description('Report the current system status.')
+        .notes("""Must be a system administrator to call this.""")
+        .param('mode', 'Select details to return.  "quick" are the details '
+               'that can be answered without much load on the system.  "slow" '
+               'also includes some resource-intensive queries.',
+               required=False, enum=['quick', 'slow'])
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def systemConsistencyCheck(self, params):
+        results = {}
+        progress = self.boolParam('progress', params, default=False)
+        models = ('item', )
+        steps = 0
+        if progress:
+            for model in models:
+                count, changed = self.model(model).checkConsistency(
+                    stage='count')
+                steps += count
+        with ProgressContext(progress, user=self.getCurrentUser(),
+                             title='Checking system', total=steps,
+                             message='Checking system...') as ctx:
+            for model in models:
+                count, removed = self.model(model).checkConsistency(
+                    stage='remove', progress=ctx)
+                if removed:
+                    results[model+'Removed'] = removed
+            revmodels = list(models)
+            revmodels.reverse()
+            for model in revmodels:
+                count, corrected = self.model(model).checkConsistency(
+                    stage='verify', progress=ctx)
+                if count:
+                    results[model+'Count'] = count
+                if corrected:
+                    results[model+'Corrected'] = corrected
+            # TODO:
+            # * check that all files are associated with an existing item
+            # * check that all files exist within their assetstore and are the
+            #   expected size
+            # * check that all folders have a valid ancestor tree leading to a
+            #   user or collection
+            # * check that all groups contain valid users
+            # * check that all resources validate
+            # * for filesystem assetstores, find files that are not tracked.
+            # * for gridfs assetstores, find chunks that are not tracked.
+            # * for s3 assetstores, find elements that are not tracked.
+        return results
+    systemConsistencyCheck.description = (
+        Description('Perform a variety of system checks to verify that all is '
+                    'well.')
+        .notes("""Must be a system administrator to call this.  This verifies
+               and corrects some issues, such as incorrect folder sizes.""")
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
         .errorResponse('You are not a system administrator.', 403))

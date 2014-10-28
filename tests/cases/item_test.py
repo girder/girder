@@ -23,6 +23,8 @@ import json
 import shutil
 import zipfile
 
+from bson.objectid import ObjectId
+
 from .. import base
 
 from girder.constants import AccessType
@@ -240,6 +242,19 @@ class ItemTestCase(base.TestCase):
                             params=params)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        # A limit should work
+        params['limit'] = 1
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+        # An offset should give us nothing
+        params['offset'] = 1
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 0)
 
         # Finding should fail with no parameters
         resp = self.request(path='/item', method='GET', user=self.users[0],
@@ -590,3 +605,35 @@ class ItemTestCase(base.TestCase):
         for index, file in enumerate(origFiles):
             self.assertNotEqual(origFiles[index]['_id'],
                                 newFiles[index]['_id'])
+
+    def testSystemCheck(self):
+        # Create an item in a non existent folder and then use the check to
+        # remove it.  Also, create an item and set that the size is some value
+        # other than what it is; this should be corrected.
+        item1 = self._createItem(self.publicFolder['_id'],
+                                 'test_for_no_folder', 'description',
+                                 self.users[0])
+        item2 = self._createItem(self.publicFolder['_id'],
+                                 'test_for_bad_size', 'description',
+                                 self.users[0])
+        self._testUploadFileToItem(item2, 'file_1', self.users[0], 'foobar')
+        # break the folder for item1
+        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
+        item['folderId'] = 'not_a_folder'
+        self.model('item').save(item, validate=False)
+        # break the size for item2
+        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
+        item['size'] += 1
+        self.model('item').save(item, validate=False)
+        # Use the system check to repair this.  item1 should vanish, item2's
+        # size should be fized.
+        resp = self.request(path='/system/check', method='PUT',
+                            user=self.users[0], params={'progress': True})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['itemCorrected'], 1)
+        self.assertEqual(resp.json['itemCount'], 1)
+        self.assertEqual(resp.json['itemRemoved'], 1)
+        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
+        self.assertIsNone(item)
+        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
+        self.assertEqual(item['size'], len('foobar'))

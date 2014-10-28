@@ -222,7 +222,7 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, default=str)
+    return json.dumps(val, sort_keys=True, default=str)
 
 
 def endpoint(fun):
