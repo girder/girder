@@ -462,6 +462,9 @@ describe('Create a data hierarchy', function () {
             $('a.g-copy-picked').click();
         });
         waitsFor(function () {
+            return $('.g-task-progress-title').text() == 'Copying resources';
+        }, 'progress to be shown');
+        waitsFor(function () {
             return $('.g-list-checkbox').length == 12;
         }, 'items to be copied');
     });

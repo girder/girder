@@ -23,6 +23,7 @@ var page = new WebPage();
 var accumCoverage = false;
 
 var fs = require('fs');
+window.EventSource = require('eventsource');
 
 if (coverageOutput) {
     fs.write(coverageOutput, '', 'w');

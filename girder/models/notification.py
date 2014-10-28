@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import time
 
 from .model_base import Model
 
@@ -59,11 +60,14 @@ class Notification(Model):
         Helper method to create the notification record that gets saved.
         """
         now = datetime.datetime.utcnow()
+        currentTime = time.time()
         doc = {
             'type': type,
             'data': data,
             'time': now,
-            'updated': now
+            'updated': now,
+            'startTime': currentTime,
+            'updatedTime': currentTime
         }
         if user:
             doc['userId'] = user['_id']
@@ -157,8 +161,21 @@ class Notification(Model):
 
         record['updated'] = now
         record['expires'] = expires
-
+        record['updatedTime'] = time.time()
         if save:
+            # Only update the time estimate if we are also saving
+            if record['updatedTime'] > record['startTime']:
+                if 'estimatedTotalTime' in record:
+                    del record['estimatedTotalTime']
+                try:
+                    total = float(record['data']['total'])
+                    current = float(record['data']['current'])
+                    if total >= current and total > 0 and current > 0:
+                        record['estimatedTotalTime'] = (total * (
+                            record['updatedTime'] - record['startTime']) /
+                            current)
+                except ValueError:
+                    pass
             return self.save(record)
         else:
             return record

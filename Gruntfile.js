@@ -235,7 +235,8 @@ module.exports = function (grunt) {
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
                         'clients/web/lib/js/jquery.jqplot.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.js'
+                        'clients/web/lib/js/jqplot.pieRenderer.js',
+                        'clients/web/lib/js/sprintf.js'
                     ],
                     'clients/web/static/built/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
