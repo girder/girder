@@ -34,8 +34,15 @@ def tearDownModule():
 
 class ServerMetadataExtractorTestCase(MetadataExtractorTestCase):
     def testServerMetadataExtractor(self):
-        time.sleep(0.2)
-        item = self.model('item').load(self.item['_id'], user=self.user)
+        startTime = time.time()
+        while True:
+            item = self.model('item').load(self.item['_id'], user=self.user)
+            if 'meta' in item:
+                if 'MIME type' in item['meta']:
+                    break
+            if time.time()-startTime > 15:
+                break
+            time.sleep(0.1)
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
         self.assertEqual(item['meta']['MIME type'], self.mimeType)
