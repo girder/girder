@@ -144,4 +144,5 @@ class TokenScope:
     spaces, since many services accept scope lists as a space-separated list
     of strings.
     """
+    ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'

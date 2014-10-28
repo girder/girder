@@ -56,6 +56,11 @@ class CustomRootTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertTrue('Girder REST API Documentation' in resp.collapse_body())
 
+        # /api should redirect to /api/v1
+        resp = self.request('/api', prefix='', isJson=False)
+        self.assertStatus(resp, 303)
+        self.assertTrue('/api/v1' in resp.collapse_body())
+
         # Our custom API augmentations should still work
         resp = self.request('/describe')
         self.assertStatusOk(resp)

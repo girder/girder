@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright 2013, 2014 Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -41,3 +41,37 @@ class TokensTestCase(base.TestCase):
         token2 = genToken()
 
         self.assertNotEqual(token1, token2)
+
+    def testGetAndDeleteSessiona(self):
+        resp = self.request(path='/token/session', method='GET')
+        self.assertStatusOk(resp)
+        token = resp.json['token']
+        # If we ask for another token, we should get a differnt one
+        resp = self.request(path='/token/session', method='GET')
+        self.assertStatusOk(resp)
+        token2 = resp.json['token']
+        self.assertNotEqual(token, token2)
+        # If we ask for another token, passing in the first one, we should get
+        # the first one back
+        resp = self.request(path='/token/session', method='GET', token=token)
+        self.assertStatusOk(resp)
+        token2 = resp.json['token']
+        self.assertEqual(token, token2)
+        # If we ask about the current token without passing one, we should get
+        # null
+        resp = self.request(path='/token/current', method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, None)
+        # With a token, we get the token document in the response
+        resp = self.request(path='/token/current', method='GET', token=token)
+        self.assertStatusOk(resp)
+        self.assertEqual(token, resp.json['_id'])
+        # Trying to delete a token without specifying one results in an error
+        resp = self.request(path='/token/session', method='DELETE')
+        self.assertStatus(resp, 401)
+        # With the token should succeed
+        resp = self.request(path='/token/session', method='DELETE', token=token)
+        self.assertStatusOk(resp)
+        # Now the token is gone, so it should fail
+        resp = self.request(path='/token/session', method='DELETE', token=token)
+        self.assertStatus(resp, 401)

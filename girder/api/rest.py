@@ -116,7 +116,8 @@ def getCurrentUser(returnToken=False):
         else:
             return user
 
-    if token is None or token['expires'] < datetime.datetime.utcnow():
+    if (token is None or token['expires'] < datetime.datetime.utcnow() or
+            'userId' not in token):
         return retVal(None, token)
     else:
         try:
@@ -632,10 +633,10 @@ class Resource(ModelImporter):
         """
         return getCurrentUser(returnToken)
 
-    def sendAuthTokenCookie(self, user):
+    def sendAuthTokenCookie(self, user, scope=None):
         """ Helper method to send the authentication cookie """
         days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
-        token = self.model('token').createToken(user, days=days)
+        token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
