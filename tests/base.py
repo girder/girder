@@ -271,7 +271,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if user is not None:
             headers.append(('Girder-Token', self._genToken(user)))
         elif token is not None:
-            headers.append(('Girder-Token', token))
+            if isinstance(token, dict):
+                headers.append(('Girder-Token', token['_id']))
+            else:
+                headers.append(('Girder-Token', token))
 
         if basicAuth is not None:
             auth = base64.b64encode(basicAuth)
@@ -297,7 +300,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param exception: Set this to True if a 500 is expected from this call.
         :param cookie: A custom cookie value to set.
         :param token: If you want to use an existing token to login, pass
-        the token ID.
+            the token ID.
         :type token: str
         :param additionalHeaders: a list of headers to add to the
                                   request.  Each item is a tuple of the form
