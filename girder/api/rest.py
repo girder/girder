@@ -113,6 +113,13 @@ def _createResponse(val):
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
             return resp
+        elif accept.value == 'text/plain':
+            cherrypy.response.headers['Content-Type'] = 'text/plain'
+            return val
+
+    # If the Content-Type is already set then don't override it
+    if 'Content-Type' in cherrypy.response.headers:
+        return val
 
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
