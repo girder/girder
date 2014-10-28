@@ -46,9 +46,9 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             types: girder.AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-edit-name').focus();
-            girder.dialogs.handleOpen('assetstoreedit');
+            girder.dialogs.handleOpen('assetstoreedit', undefined, view.model.get('id'));
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('assetstoreedit');
+            girder.dialogs.handleClose('assetstoreedit', undefined, view.model.get('id'));
         }).on('ready.girder.modal', function () {
             view.$('#g-edit-name').val(view.model.get('name'));
             if (view.model.get('type') === girder.AssetstoreType.FILESYSTEM) {

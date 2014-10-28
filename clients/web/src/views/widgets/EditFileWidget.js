@@ -35,8 +35,11 @@ girder.views.EditFileWidget = girder.View.extend({
         this.$el.html(jade.templates.editFileWidget({file: this.file}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').select().focus();
+            }).on('hidden.bs.modal', function () {
+                girder.dialogs.handleClose('fileedit', undefined,
+                                           view.file.get('_id'));
             });
-
+        girder.dialogs.handleOpen('fileedit', undefined, this.file.get('_id'));
         return this;
     }
 });

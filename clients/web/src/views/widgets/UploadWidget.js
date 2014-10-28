@@ -58,6 +58,10 @@ girder.views.UploadWidget = girder.View.extend({
 
     render: function () {
         var base = this;
+        var dialogid;
+        if (this.parentType === 'file') {
+            dialogid = this.parent.get('_id');
+        }
         this.$el.html(jade.templates.uploadWidget({
             parent: this.parent,
             parentType: this.parentType,
@@ -69,10 +73,10 @@ girder.views.UploadWidget = girder.View.extend({
             if ($('.g-resume-upload').length && base.currentFile) {
                 base.currentFile.abortUpload();
             }
-            girder.dialogs.handleClose('upload');
+            girder.dialogs.handleClose('upload', undefined, dialogid);
         });
 
-        girder.dialogs.handleOpen('upload');
+        girder.dialogs.handleOpen('upload', undefined, dialogid);
         return this;
     },
 

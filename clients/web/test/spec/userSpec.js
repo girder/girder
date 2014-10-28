@@ -61,6 +61,9 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return Backbone.history.fragment === 'users';
         }, 'redirect to users');
+        waitsFor(function () {
+            return $('.g-user-list-entry:visible').length > 0;
+        }, 'user list to be present');
     });
 
     it('login as admin',

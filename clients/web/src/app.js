@@ -128,6 +128,9 @@ girder.App = Backbone.View.extend({
     },
 
     resetPasswordDialog: function () {
+        if (this.closeDialogIfUser()) {
+            return;
+        }
         if (!this.resetPasswordView) {
             this.resetPasswordView = new girder.views.ResetPasswordView({
                 el: this.$('#g-dialog-container')

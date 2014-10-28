@@ -68,6 +68,8 @@ girderTest.login = function (login, firstName, lastName, password) {
             return $('.g-login').length > 0;
         }, 'girder app to render');
 
+        girderTest.waitForLoad();
+
         runs(function () {
             $('.g-login').click();
         });
@@ -110,6 +112,10 @@ girderTest.logout = function () {
         runs(function () {
             $('.g-logout').click();
         });
+
+        waitsFor(function () {
+            return girder.currentUser === null;
+        }, 'user to be cleared');
 
         waitsFor(function () {
             return $('.g-login').length > 0;
@@ -416,27 +422,42 @@ girderTest.testMetadata = function () {
  * backdrop, since it isn't properly removed on phantomJS.  This should not be
  * called on dialogs.
  */
-girderTest.waitForLoad = function () {
+girderTest.waitForLoad = function (desc) {
+    desc = desc?' ('+desc+')':'';
     waitsFor(function() {
         return $('#g-dialog-container:visible').length === 0;
-    }, 'for the dialog container to be hidden');
-    /* A previous comment claimed that the backdrop wasn't properly removed on
-     * dialogs.  Rather, it looks like it just takes time.  Therefore, instead
-     * of manually removing it, we wait for it. */
+    }, 'for the dialog container to be hidden'+desc);
+    /* It is faster to wait to make sure a dialog is being hidden than to wait
+     * for it to be fullt gone.  It is probably more reliable, too.  This had
+     * been:
     waitsFor(function () {
         return $('.modal-backdrop').length === 0;
     }, 'for the modal backdrop to go away');
+     */
+    waitsFor(function () {
+        return $('.modal').data('bs.modal') === undefined ||
+               $('.modal').data('bs.modal').isShown === false;
+    }, 'for any modal dialog to be hidden'+desc);
     waitsFor(function() {
         return $('.g-loading-block').length === 0;
-    }, 'dialogs to close and all blocks to finish loading');
+    }, 'dialogs to close and all blocks to finish loading'+desc);
 };
 
 /**
  * Wait for a dialog to be visible.
  */
-girderTest.waitForDialog = function () {
+girderTest.waitForDialog = function (desc) {
+    desc = desc?' ('+desc+')':'';
+    /* If is faster to wait until the diable is officially shown than to wait
+     * for the backdrop.  This had been:
     waitsFor(function() {
         return $('#g-dialog-container:visible').length > 0 &&
                $('.modal-backdrop:visible').length > 0;
     }, 'a dialog to fully render');
+     */
+    waitsFor(function() {
+        return $('.modal').data('bs.modal') &&
+               $('.modal').data('bs.modal').isShown === true &&
+               $('#g-dialog-container:visible').length > 0;
+    }, 'a dialog to fully render'+desc);
 };

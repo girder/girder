@@ -8,7 +8,8 @@ girder.views.AssetstoresView = girder.View.extend({
         'click .g-edit-assetstore': 'editAssetstore'
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+        this.assetstoreEdit = settings.assetstoreEdit || false;
 
         // Fetch all of the current assetstores
         if (girder.currentUser && girder.currentUser.get('admin')) {
@@ -39,6 +40,11 @@ girder.views.AssetstoresView = girder.View.extend({
 
         _.each(this.$('.g-assetstore-capacity-chart'),
             this.capacityChart, this);
+
+        if (this.assetstoreEdit) {
+            this.editAssetstoreDialog(this.assetstoreEdit);
+            this.assetstoreEdit = false;
+        }
 
         return this;
     },
@@ -130,8 +136,12 @@ girder.views.AssetstoresView = girder.View.extend({
     },
 
     editAssetstore: function (evt) {
-        var el = $(evt.currentTarget);
-        var assetstore = this.collection.get(el.attr('cid'));
+        var cid = $(evt.currentTarget).attr('cid');
+        this.editAssetstoreDialog(cid);
+    },
+
+    editAssetstoreDialog: function (cid) {
+        var assetstore = this.collection.get(cid);
         var container = $('#g-dialog-container');
 
         var editAssetstoreWidget = new girder.views.EditAssetstoreWidget({
@@ -144,6 +154,9 @@ girder.views.AssetstoresView = girder.View.extend({
     }
 });
 
-girder.router.route('assetstores', 'assetstores', function () {
-    girder.events.trigger('g:navigateTo', girder.views.AssetstoresView);
+girder.router.route('assetstores', 'assetstores', function (params) {
+    girder.events.trigger('g:navigateTo', girder.views.AssetstoresView, {
+        assetstoreEdit: params.dialog === 'assetstoreedit' ?
+                        params.dialogid : false
+    });
 });
