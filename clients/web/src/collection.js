@@ -83,7 +83,7 @@ girder.Collection = Backbone.Collection.extend({
         }
 
         this.params = params || {};
-        girder.restRequest({
+        var xhr = girder.restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
                 limit: this.pageLimit + 1,
@@ -117,5 +117,6 @@ girder.Collection = Backbone.Collection.extend({
 
             this.trigger('g:changed');
         }, this));
+        xhr.girder = {fetch: true};
     }
 });

@@ -26,6 +26,7 @@
         },
 
         initialize: function (settings) {
+            girder.cancelRestRequests('fetch');
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
             this.folderAccess = settings.folderAccess || false;

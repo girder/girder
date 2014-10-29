@@ -16,6 +16,7 @@ girder.views.CollectionsView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();

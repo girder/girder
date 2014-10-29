@@ -80,6 +80,7 @@ girder.views.UserAccountView = girder.View.extend({
             return;
         }
 
+        girder.cancelRestRequests('fetch');
         this.render();
 
         // This page should be re-rendered if the user logs in or out

@@ -10,6 +10,7 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;

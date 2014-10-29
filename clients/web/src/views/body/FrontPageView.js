@@ -25,6 +25,7 @@ girder.views.FrontPageView = girder.View.extend({
     },
 
     initialize: function () {
+        girder.cancelRestRequests('fetch');
         this.render();
     },
 

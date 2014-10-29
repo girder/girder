@@ -346,12 +346,14 @@ describe('Test routing paths', function () {
         _testRoute(groupPath+'/roles', false, function () {
             return $('.g-member-name:visible').length === 2 && 
                    $('#g-group-tab-roles .g-member-list-empty:visible')
-                   .length === 1;
+                   .length === 1 &&
+                   $('.g-member-list-empty:hidden').length === 2;
         });
         _testRoute(groupPath+'/pending', false, function () {
             return $('.g-group-requests-container:visible').length === 1 &&
                    $('#g-group-tab-pending .g-member-list-empty:visible')
-                   .length === 2;
+                   .length === 2 &&
+                   $('.g-member-list-empty:hidden').length === 1;
         });
         _testRoute(groupPath+'?dialog=edit', true, function () {
             return $('.modal-title').text() === 'Edit group';

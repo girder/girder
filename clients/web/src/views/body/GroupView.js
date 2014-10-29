@@ -20,6 +20,7 @@
         },
 
         initialize: function (settings) {
+            girder.cancelRestRequests('fetch');
             this.tab = settings.tab || 'roles';
             this.edit = settings.edit || false;
 

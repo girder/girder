@@ -438,6 +438,9 @@ girderTest.waitForLoad = function (desc) {
         return $('.modal').data('bs.modal') === undefined ||
                $('.modal').data('bs.modal').isShown === false;
     }, 'for any modal dialog to be hidden'+desc);
+    waitsFor(function () {
+        return girder.numberOutstandingRestRequests() === 0;
+    }, 'rest requests to finish');
     waitsFor(function() {
         return $('.g-loading-block').length === 0;
     }, 'dialogs to close and all blocks to finish loading'+desc);
@@ -455,9 +458,12 @@ girderTest.waitForDialog = function (desc) {
                $('.modal-backdrop:visible').length > 0;
     }, 'a dialog to fully render');
      */
-    waitsFor(function() {
+    waitsFor(function () {
         return $('.modal').data('bs.modal') &&
                $('.modal').data('bs.modal').isShown === true &&
                $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render'+desc);
+    waitsFor(function () {
+        return girder.numberOutstandingRestRequests() === 0;
+    }, 'dialog rest requests to finish');
 };
