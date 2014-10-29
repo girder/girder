@@ -6,6 +6,9 @@
                             checked=(plugin.enabled ? "checked" : undefined))
       .g-plugin-name
         | #{plugin.name}
+        if (plugin.version)
+          span.g-plugin-version
+            | Version #{plugin.version)
         if(plugin.configRoute)
           a.g-plugin-config-link(g-route="#{plugin.configRoute}",
                                  title="Configure Plugin")
