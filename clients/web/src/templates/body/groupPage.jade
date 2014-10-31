@@ -42,12 +42,12 @@ if (girder.currentUser)
     if (isMember)
       .g-group-status-container.g-member
         i.icon-ok
-        if (group.get('_accessLevel') < girder.AccessType.WRITE)
-          |  You are a <b>member</b> of this group.
-        else if (group.get('_accessLevel') < girder.AccessType.ADMIN)
+        if (isAdmin)
+          |  You are an <b>administrator</b> of this group.
+        else if (isModerator)
           |  You are a <b>moderator</b> of this group.
         else
-          |  You are an <b>administrator</b> of this group.
+          |  You are a <b>member</b> of this group.
     else if (isInvited)
       .g-group-status-container.g-invited
         i.icon-mail-alt
@@ -62,6 +62,10 @@ if (girder.currentUser)
         i.icon-minus-circled
         |  You are not a member of this group.
         a.g-group-request-invite  Request membership
+    if (group.get('_accessLevel') >= girder.AccessType.ADMIN && !isAdmin)
+      .g-group-status-container.g-admin
+        i.icon-star
+        |  You have <b>adminstrator</b> privileges.
 
 ul.g-group-tabs.nav.nav-tabs
   li.active
