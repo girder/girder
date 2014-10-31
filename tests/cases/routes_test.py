@@ -32,6 +32,7 @@ class DummyResource(Resource):
         self.route('GET', (':wc1', 'literal1'), self.handler)
         self.route('GET', ('literal1', 'literal2'), self.handler)
         self.route('GET', (':wc1', 'admin'), self.handler)
+        self.route('PATCH', (':id', 'patchy'), self.handler)
 
     @access.public
     def handler(self, **kwargs):
@@ -59,3 +60,6 @@ class RoutesTestCase(unittest.TestCase):
 
         r = dummy.handleRoute('GET', ('literal1', 'literal2'), {})
         self.assertEqual(r, {'params': {}})
+
+        r = dummy.handleRoute('PATCH', ('guid', 'patchy'), {})
+        self.assertEqual(r, {'id': 'guid', 'params': {}})
