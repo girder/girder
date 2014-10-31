@@ -32,7 +32,7 @@ from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
     botoConnectS3, S3AssetstoreAdapter
 
 _startPort = 50100
-_maxTries = 50
+_maxTries = 100
 
 
 def createBucket(botoConnect, bucketName):

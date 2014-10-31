@@ -6,15 +6,22 @@ GREP="${3}"
 
 source "${virtualenv_activate}"
 
-export GIRDER_PORT=50011
+export GIRDER_PORT=50201
 python -m girder &> /dev/null &
-
-sleep 5
 
 version="$(girder-install version)"
 echo "Detected api version ${version}"
 
-json=$("${CURL}" -s http://localhost:${GIRDER_PORT}/api/v1/system/version)
+TIMEOUT=0
+until [ $TIMEOUT -eq 15 ]; do
+    json=$("${CURL}" -s http://localhost:${GIRDER_PORT}/api/v1/system/version)
+    if [ -n "$json" ]; then
+        break
+    fi
+    TIMEOUT=$((TIMEOUT+1))
+    sleep 1
+done
+
 echo "Girder responded with ${json}"
 
 python <<EOF
