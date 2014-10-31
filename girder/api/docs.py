@@ -62,3 +62,15 @@ def addRouteDocs(resource, route, method, info, handler):
 
     routes[resource][path].append(info)
     discovery.add(resource)
+
+
+def addModel(name, model):
+    """
+    This is called to add a model to the swagger documentation.
+
+    :param name: The name of the model.
+    :type name: str
+    :param model: The model to add.
+    :type model: dict
+    """
+    models[name] = model

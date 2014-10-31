@@ -160,6 +160,7 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
+            'models': docs.models,
             'apis': [{'path': route, 'operations': ops}
                      for route, ops in docs.routes[resource].iteritems()]
         }
