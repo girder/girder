@@ -202,7 +202,7 @@ class Resource(ModelImporter):
         """
         Define a route for your REST resource.
 
-        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT', 'PATCH'
         :type method: str
         :param route: The route, as a list of path params relative to the
         resource root. Elements of this list starting with ':' are assumed to
@@ -509,6 +509,10 @@ class Resource(ModelImporter):
     @endpoint
     def PUT(self, path, params):
         return self.handleRoute('PUT', path, params)
+
+    @endpoint
+    def PATCH(self, path, params):
+        return self.handleRoute('PATCH', path, params)
 
     def _defaultAccess(self, fun):
         """
