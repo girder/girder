@@ -63,4 +63,3 @@ class RoutesTestCase(unittest.TestCase):
 
         r = dummy.handleRoute('PATCH', ('guid', 'patchy'), {})
         self.assertEqual(r, {'id': 'guid', 'params': {}})
-
