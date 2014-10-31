@@ -48,7 +48,8 @@ def setup(test=False, plugins=None):
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'tools.staticdir.root': curStaticRoot,
-            'request.show_tracebacks': test
+            'request.show_tracebacks': test,
+            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH')
         },
         '/static': {
             'tools.staticdir.on': 'True',
