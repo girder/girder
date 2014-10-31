@@ -302,7 +302,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
         qs = fd = None
 
-        if method in ['POST', 'PUT']:
+        if method in ['POST', 'PUT', 'DELETE']:
             qs = urllib.urlencode(params)
             if type is None:
                 headers.append(('Content-Type',
