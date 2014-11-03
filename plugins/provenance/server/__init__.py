@@ -87,6 +87,20 @@ class ResourceExt(Resource):
                                    'token'):
             if disallowedResource in resources:
                 del resources[disallowedResource]
+        self.unbindModels(resources)
+        for resource in resources:
+            if resource not in self.boundResources:
+                events.bind('model.{}.save'.format(resource), 'provenance',
+                            self.resourceSaveHandler)
+                if hasattr(self.loadInfo['apiRoot'], resource):
+                    getattr(self.loadInfo['apiRoot'], resource).route(
+                        'GET', (':id', 'provenance'),
+                        self.getGetHandler(resource))
+                self.boundResources[resource] = True
+
+    def unbindModels(self, resources={}):
+        """Unbind any models there were bound and aren't listed as needed.
+        :param resources: resources that shouldn't be unbound."""
         # iterate on keys() so that we can change the dictionary as we use it
         for oldresource in self.boundResources.keys():
             if oldresource not in resources:
@@ -97,15 +111,6 @@ class ResourceExt(Resource):
                         'GET', (':id', 'provenance'),
                         self.getGetHandler(oldresource))
                 del self.boundResources[oldresource]
-        for resource in resources:
-            if resource not in self.boundResources:
-                events.bind('model.{}.save'.format(resource), 'provenance',
-                            self.resourceSaveHandler)
-                if hasattr(self.loadInfo['apiRoot'], resource):
-                    getattr(self.loadInfo['apiRoot'], resource).route(
-                        'GET', (':id', 'provenance'),
-                        self.getGetHandler(resource))
-                self.boundResources[resource] = True
 
     def getGetHandler(self, resource):
         """
@@ -178,7 +183,8 @@ class ResourceExt(Resource):
         resource = event.name.split('.')[1]
         obj = event.info
         if ('_id' not in obj or ('provenance' not in obj and
-                obj.get('updated', None) == obj.get('created', 'unknown'))):
+                                 obj.get('updated', None) ==
+                                 obj.get('created', 'unknown'))):
             self.createNewProvenance(obj, resource)
         else:
             if 'provenance' not in obj:

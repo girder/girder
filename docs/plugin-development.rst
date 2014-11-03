@@ -235,6 +235,14 @@ perform logic each time a folder is saved to the database. You can use
 ``preventDefault`` on the passed event if you wish for the normal saving logic
 not to be performed.
 
+* **After model creation**
+
+You can receive an event `after` a resource of a specific type is created and
+saved to the database. This is sent immediately before the after-save event,
+but only occurs upon creation of a new document. You cannot prevent any default
+actions with this hook. The format of the event name is, e.g.
+``model.folder.save.created``.
+
 * **After model save**
 
 You can also receive an event `after` a resource of a specific type is saved
