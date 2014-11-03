@@ -57,9 +57,9 @@ class ProvenanceTestCase(base.TestCase):
         }
         self.user = self.model('user').createUser(**user)
 
-        # Track folder and item provenance initially
+        # Track folder, item, and setting provenance initially
         self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder')
+            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
 
         coll1 = {
             'name': 'Test Collection',
@@ -291,7 +291,7 @@ class ProvenanceTestCase(base.TestCase):
 
         # Turn off folder provenance and make sure asking for it fails
         self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, '')
+            constants.PluginSettings.PROVENANCE_RESOURCES, 'setting')
         resp = self._getProvenance(folder1, user, resource='folder',
                                    checkOk=False)
         self.assertStatus(resp, 400)
@@ -313,7 +313,7 @@ class ProvenanceTestCase(base.TestCase):
         # Turn back on folder provenance and check that it didn't record the
         # changes we made.
         self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder')
+            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
         self._checkProvenance(None, folder1, 2, user, 'update',
                               {'new': params1}, resource='folder')
         # Changing folder1 again should now show this change, and the old value

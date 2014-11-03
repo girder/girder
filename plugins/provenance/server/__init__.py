@@ -83,7 +83,8 @@ class ResourceExt(Resource):
         # Always include item
         resources['item'] = None
         # Exclude resources that should never have provenance
-        for disallowedResource in ('model_base', ):
+        for disallowedResource in ('model_base', 'notification', 'password',
+                                   'token'):
             if disallowedResource in resources:
                 del resources[disallowedResource]
         # iterate on keys() so that we can change the dictionary as we use it
@@ -91,19 +92,20 @@ class ResourceExt(Resource):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
                 events.unbind('model.{}.save'.format(oldresource), 'provenance')
-                getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(
-                    'GET', (':id', 'provenance'),
-                    self.getGetHandler(oldresource))
+                if hasattr(self.loadInfo['apiRoot'], oldresource):
+                    getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(
+                        'GET', (':id', 'provenance'),
+                        self.getGetHandler(oldresource))
                 del self.boundResources[oldresource]
         for resource in resources:
-            if (resource not in self.boundResources and
-                    hasattr(self.loadInfo['apiRoot'], resource)):
+            if resource not in self.boundResources:
                 events.bind('model.{}.save'.format(resource), 'provenance',
                             self.resourceSaveHandler)
-                getattr(self.loadInfo['apiRoot'], resource).route(
-                    'GET', (':id', 'provenance'), self.getGetHandler(resource))
+                if hasattr(self.loadInfo['apiRoot'], resource):
+                    getattr(self.loadInfo['apiRoot'], resource).route(
+                        'GET', (':id', 'provenance'),
+                        self.getGetHandler(resource))
                 self.boundResources[resource] = True
-        # ##DWM:: We may want to always add a resource route
 
     def getGetHandler(self, resource):
         """
@@ -175,11 +177,8 @@ class ResourceExt(Resource):
         # get the resource name from the event
         resource = event.name.split('.')[1]
         obj = event.info
-        # We can only track objects that have a creation date
-        if 'created' not in obj:
-            return
         if ('_id' not in obj or ('provenance' not in obj and
-                                 obj.get('updated', None) == obj['created'])):
+                obj.get('updated', None) == obj.get('created', 'unknown'))):
             self.createNewProvenance(obj, resource)
         else:
             if 'provenance' not in obj:
@@ -190,11 +189,17 @@ class ResourceExt(Resource):
 
     def createNewProvenance(self, obj, resource):
         provenance = []
+        created = obj.get('created', datetime.datetime.utcnow())
+        creatorId = obj.get('creatorId', None)
+        if creatorId is None:
+            user = self.getCurrentUser()
+            if user is not None:
+                creatorId = user['_id']
         creationEvent = {
             'eventType': 'creation',
-            'eventUser': obj['creatorId'],
-            'eventTime': obj.get('updated', obj['created']),
-            'created': obj['created']
+            'eventUser': creatorId,
+            'eventTime': obj.get('updated', created),
+            'created': created
         }
         obj['provenance'] = provenance
         self.addProvenanceEvent(obj, creationEvent)
