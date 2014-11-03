@@ -35,8 +35,7 @@ def validateSettings(event):
         if val:
             if not isinstance(val, basestring):
                 raise ValidationException(
-                    'Provenance Resources list must be empty or a valid JSON '
-                    'list of strings.', 'value')
+                    'Provenance Resources must be a string.', 'value')
             # accept comma or space separated lists
             resources = val.replace(",", " ").strip().split()
             # reformat to a comma-separated list
@@ -185,23 +184,24 @@ class ResourceExt(Resource):
         else:
             if 'provenance' not in obj:
                 self.createExistingProvenance(obj, resource)
-            elif obj.get('updated', None) != obj['provenance'][-1]['updated']:
+            elif (obj.get('updated', None) !=
+                    obj['provenance'][-1].get('eventTime', False)):
                 self.updateProvenance(obj, resource)
 
     def createNewProvenance(self, obj, resource):
         provenance = []
         creationEvent = {
             'eventType': 'creation',
-            'createdBy': obj['creatorId'],
-            'created': obj['created'],
-            'updated': obj.get('updated', obj['created']),
+            'eventUser': obj['creatorId'],
+            'eventTime': obj.get('updated', obj['created']),
+            'created': obj['created']
         }
         obj['provenance'] = provenance
         self.addProvenanceEvent(obj, creationEvent)
 
     def createExistingProvenance(self, obj, resource):
         self.createNewProvenance(obj, resource)
-        # we don't know what happenened between creation and now
+        # we don't know what happened between creation and now
         provenance = obj['provenance']
         provenance[0]['eventType'] = 'unknownHistory'
         # but we can track starting now
@@ -229,7 +229,7 @@ class ResourceExt(Resource):
         """
         user = self.getCurrentUser()
         model = self.model(resource)
-        if isinstance(model, AccessControlledModel):
+        if resource == 'item' or isinstance(model, AccessControlledModel):
             prevObj = model.load(curObj['_id'], level=AccessType.READ,
                                  user=user)
         else:
@@ -241,12 +241,12 @@ class ResourceExt(Resource):
             return False
         updateEvent = {
             'eventType': 'update',
-            'updated': curObj.get('updated', datetime.datetime.utcnow()),
+            'eventTime': curObj.get('updated', datetime.datetime.utcnow()),
             'new': newData,
             'old': oldData
         }
         if user is not None:
-            updateEvent['updatedBy'] = user['_id']
+            updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(curObj, updateEvent)
         return True
 
@@ -310,7 +310,7 @@ class ResourceExt(Resource):
             return
         updateEvent = {
             'eventType': 'fileUpdate',
-            'updated': curFile.get('updated', datetime.datetime.utcnow()),
+            'eventTime': curFile.get('updated', datetime.datetime.utcnow()),
             'file': [{
                 'fileId': curFile['_id'],
                 'new': newData
@@ -319,7 +319,7 @@ class ResourceExt(Resource):
         if oldData is not None:
             updateEvent['file'][0]['old'] = oldData
         if user is not None:
-            updateEvent['updatedBy'] = user['_id']
+            updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent)
         self.model('item').save(item, triggerEvents=False)
 
@@ -337,14 +337,14 @@ class ResourceExt(Resource):
             return
         updateEvent = {
             'eventType': 'fileAdded',
-            'updated': file.get('created', datetime.datetime.utcnow()),
+            'eventTime': file.get('created', datetime.datetime.utcnow()),
             'file': [{
                 'fileId': file['_id'],
                 'new': self.snapshotResource(file)
             }]
         }
         if user is not None:
-            updateEvent['updatedBy'] = user['_id']
+            updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent)
         self.model('item').save(item, triggerEvents=False)
 
@@ -361,14 +361,14 @@ class ResourceExt(Resource):
             return
         updateEvent = {
             'eventType': 'fileRemoved',
-            'updated': datetime.datetime.utcnow(),
+            'eventTime': datetime.datetime.utcnow(),
             'file': [{
                 'fileId': file['_id'],
                 'old': self.snapshotResource(file)
             }]
         }
         if user is not None:
-            updateEvent['updatedBy'] = user['_id']
+            updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent)
         self.model('item').save(item, triggerEvents=False)
 

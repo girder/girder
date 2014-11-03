@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright 2013, 2014 Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import json
 
 from tests import base
 from girder.constants import AccessType
+from server import constants
 
 
 def setUpModule():
@@ -33,44 +34,8 @@ def tearDownModule():
 
 
 class ProvenanceTestCase(base.TestCase):
-
-
-    def ensureProvenanceResponse(self, resp, itemId, version, userId, eventType, meta):
-        self.assertStatusOk(resp)
-        itemProvenance = resp.json
-        self.assertEqual(itemProvenance['itemId'], str(itemId))
-        self.assertEqual(itemProvenance['provenance'][-1]['eventType'], eventType)
-        self.assertEqual(str(itemProvenance['provenance'][-1]['version']), str(version))
-        if eventType == 'creation':
-            self.assertEqual(itemProvenance['provenance'][-1]['createdBy'], str(userId))
-        else:
-            self.assertEqual(itemProvenance['provenance'][-1]['updatedBy'], str(userId))
-        provMetaEmpty = 'meta' not in itemProvenance['provenance'][-1] or len(itemProvenance['provenance'][-1]['meta']) == 0
-        self.assertEqual(provMetaEmpty, len(meta) == 0)
-        if not provMetaEmpty:
-            # ensure keys and values are the same
-            provMeta = itemProvenance['provenance'][-1]['meta']
-            for key in provMeta.keys():
-                self.assertEqual(provMeta[key], meta[key])
-            for key in meta.keys():
-                self.assertEqual(provMeta[key], meta[key])
-    
-    def getProvenanceRespAfterItemMetadataUpdate(self, item, meta, user):
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
-                            method='PUT', user=user, body=json.dumps(meta),
-                            type='application/json')
-        
-        resp = self.request(path='/item/{}/provenance'.format(item['_id']),
-                            method='GET', user=user,
-                            type='application/json')
-        return resp
-
-
-
-    def testProvenance(self):
-        """
-        Test provenance endpoint
-        """
+    def setUp(self):
+        base.TestCase.setUp(self)
         # Create some test documents with an item
         admin = {
             'email': 'admin@email.com',
@@ -80,7 +45,7 @@ class ProvenanceTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        admin = self.model('user').createUser(**admin)
+        self.admin = self.model('user').createUser(**admin)
 
         user = {
             'email': 'good@email.com',
@@ -90,97 +55,304 @@ class ProvenanceTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        user = self.model('user').createUser(**user)
+        self.user = self.model('user').createUser(**user)
+
+        # Track folder and item provenance initially
+        self.model('setting').set(
+            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder')
 
         coll1 = {
             'name': 'Test Collection',
             'description': 'test coll',
             'public': True,
-            'creator': admin
+            'creator': self.admin
         }
-        coll1 = self.model('collection').createCollection(**coll1)
+        self.coll1 = self.model('collection').createCollection(**coll1)
 
         folder1 = {
-            'parent': coll1,
+            'parent': self.coll1,
             'parentType': 'collection',
-            'name': 'Public test folder'
-        }
-        folder1 = self.model('folder').createFolder(**folder1)
-        self.model('folder').setUserAccess(
-            folder1, user, level=AccessType.WRITE, save=False)
-        self.model('folder').setPublic(folder1, True, save=True)
+            'name': 'Public test folder',
+            'creator': self.admin
 
-        folder2 = {
-            'parent': coll1,
-            'parentType': 'collection',
-            'name': 'Private test folder'
         }
-        folder2 = self.model('folder').createFolder(**folder2)
+        self.folder1 = self.model('folder').createFolder(**folder1)
         self.model('folder').setUserAccess(
-            folder2, user, level=AccessType.NONE, save=True)
+            self.folder1, self.user, level=AccessType.WRITE, save=False)
+        self.model('folder').setPublic(self.folder1, True, save=True)
 
         item1 = {
             'name': 'Public object',
-            'creator': admin,
-            'folder': folder1
+            'creator': self.admin,
+            'folder': self.folder1
         }
-        item1 = self.model('item').createItem(**item1)
+        self.item1 = self.model('item').createItem(**item1)
 
-        # check that the first version of the item exists         
-        resp = self.request(path='/item/{}/provenance'.format(item1['_id']),
-                            method='GET', user=admin,
+    def _checkProvenance(self, resp, item, version, user, eventType,
+                         matches=None, fileInfo=None, resource='item'):
+        if resp is None:
+            resp = self._getProvenance(item, user, resource=resource)
+        self.assertStatusOk(resp)
+        itemProvenance = resp.json
+        self.assertEqual(itemProvenance['resourceId'], str(item['_id']))
+        provenance = itemProvenance['provenance']
+        self.assertEqual(provenance['eventType'], eventType)
+        self.assertEqual(provenance['version'], version)
+        self.assertEqual(provenance['eventUser'], str(user['_id']))
+        if matches:
+            for key in matches:
+                self.assertEqual(provenance[key], matches[key])
+        if fileInfo:
+            for key in fileInfo:
+                if isinstance(fileInfo[key], dict):
+                    for subkey in fileInfo[key]:
+                        self.assertEqual(provenance['file'][0][key][subkey],
+                                         fileInfo[key][subkey])
+                else:
+                    self.assertEqual(provenance['file'][0][key], fileInfo[key])
+
+    def _getProvenance(self, item, user, version=None, resource='item',
+                       checkOk=True):
+        params = {}
+        if version is not None:
+            params = {'version': version}
+        resp = self.request(
+            path='/{}/{}/provenance'.format(resource, item['_id']),
+            method='GET', user=user, type='application/json', params=params)
+        if checkOk:
+            self.assertStatusOk(resp)
+        return resp
+
+    def _getProvenanceAfterMetadata(self, item, meta, user):
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=user, body=json.dumps(meta),
                             type='application/json')
+        self.assertStatusOk(resp)
+        return self._getProvenance(item, user)
 
+    def testProvenanceItemMetadata(self):
+        """
+        Test item provenance endpoint with metadata and basic changes
+        """
+        item = self.item1
+        user = self.user
+        admin = self.admin
+
+        # check that the first version of the item exists
         # ensure version 1, created by admin user, with creation event
-        self.ensureProvenanceResponse(resp, item1['_id'], 1, admin['_id'], 'creation', {})
+        self._checkProvenance(None, item, 1, admin, 'creation')
 
         # update meta to {x:y}
-        metadata = {'x': 'y'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, admin)
-        # ensure version 2, updated by admin user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 2, admin['_id'], 'update', metadata)
-        
-        # update meta to {} by regular user, we have to send in the key to remove it
-        # but check the saved metadata against {}
-        metadata = {'x': None}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 3, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 3, user['_id'], 'update', {})
+        metadata1 = {'x': 'y'}
+        resp = self._getProvenanceAfterMetadata(item, metadata1, admin)
+        # ensure version 2, updated by admin user, with update event, and meta
+        # in provenance matches
+        self._checkProvenance(resp, item, 2, admin, 'update',
+                              {'new': {'meta': metadata1}})
+
+        # update meta to {} by regular user, we have to send in the key to
+        # remove it but check the saved metadata against {}
+        metadata2 = {'x': None}
+        resp = self._getProvenanceAfterMetadata(item, metadata2, user)
+        # ensure version 3, updated by regular user, with update event, and
+        # meta in provenance matches
+        self._checkProvenance(resp, item, 3, user, 'update',
+                              {'old': {'meta': metadata1},
+                               'new': {'meta': {}}})
 
         # update meta to {x:y} by regular user
-        metadata = {'x': 'y'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 4, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 4, user['_id'], 'update', metadata)
+        metadata3 = {'x': 'y'}
+        resp = self._getProvenanceAfterMetadata(item, metadata3, user)
+        # ensure version 4, updated by regular user, with update event, and
+        # meta in provenance matches
+        self._checkProvenance(resp, item, 4, user, 'update',
+                              {'old': {'meta': {}},
+                               'new': {'meta': metadata3}})
 
         # update meta to {x:z} by regular user
-        metadata = {'x': 'z'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 5, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 5, user['_id'], 'update', metadata)
+        metadata4 = {'x': 'z'}
+        resp = self._getProvenanceAfterMetadata(item, metadata4, user)
+        # ensure version 5, updated by regular user, with update event, and
+        # meta in provenance matches
+        self._checkProvenance(resp, item, 5, user, 'update',
+                              {'old': {'meta': metadata3},
+                               'new': {'meta': metadata4}})
 
         # update meta to {x:z, q:u} by regular user
-        metadata = {'x': 'z', 'q': 'u'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 6, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 6, user['_id'], 'update', metadata)
+        metadata5 = {'x': 'z', 'q': 'u'}
+        resp = self._getProvenanceAfterMetadata(item, metadata5, user)
+        # ensure version 6, updated by regular user, with update event, and
+        # meta in provenance matches
+        self._checkProvenance(resp, item, 6, user, 'update',
+                              {'old': {'meta': metadata4},
+                               'new': {'meta': metadata5}})
 
         # update meta to {q:a} by regular user
-        metadata = {'x': None, 'q': 'a'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 7, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 7, user['_id'], 'update', {'q':'a'})
+        metadata6 = {'x': None, 'q': 'a'}
+        resp = self._getProvenanceAfterMetadata(item, metadata6, user)
+        # ensure version 7, updated by regular user, with update event, and
+        # meta in provenance matches
+        self._checkProvenance(resp, item, 7, user, 'update',
+                              {'old': {'meta': metadata5},
+                               'new': {'meta': {'q': 'a'}}})
 
-        # update meta to {q:w} by regular user
-        metadata = {'q': 'w'}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 8, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 8, user['_id'], 'update', metadata)
+        # Change the item name and description
+        params = {'name': 'Renamed object', 'description': 'New description'}
+        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+                            user=admin, params=params)
+        self.assertStatusOk(resp)
+        params['lowerName'] = params['name'].lower()
+        self._checkProvenance(None, item, 8, admin, 'update', {'new': params})
 
-        # update meta to {a:b} by regular user
-        metadata = {'a': 'b', 'q': None}
-        resp = self.getProvenanceRespAfterItemMetadataUpdate(item1, metadata, user)
-        # ensure version 9, updated by regular user, with update event, and meta in provenance matches
-        self.ensureProvenanceResponse(resp, item1['_id'], 9, user['_id'], 'update', {'a': 'b'})
+    def testProvenanceItemFiles(self):
+        """
+        Test item provenance when adding, modifying, and deleting files.
+        """
+        item = self.item1
+        admin = self.admin
 
+        # Test adding a new file to an existing item
+        fileData1 = 'Hello world'
+        fileData2 = 'Hello world, again'
+        fileName1 = 'helloWorld.txt'
+        fileName2 = 'helloWorldEdit.txt'
+        resp = self.request(
+            path='/file', method='POST', user=admin, params={
+                'parentType': 'item',
+                'parentId': item['_id'],
+                'name': fileName1,
+                'size': len(fileData1),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        uploadId = resp.json['_id']
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', fileName1, fileData1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=admin, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        file1 = resp.json
+        self._checkProvenance(None, item, 2, admin, 'fileAdded',
+                              fileInfo={'fileId': str(file1['_id']),
+                                        'new': {'mimeType': 'text/plain',
+                                                'size': len(fileData1),
+                                                'name': fileName1}})
+        # Edit the file name
+        resp = self.request(path='/file/{}'.format(file1['_id']), method='PUT',
+                            user=admin, params={'name': fileName2})
+        self.assertStatusOk(resp)
+        self._checkProvenance(None, item, 3, admin, 'fileUpdate',
+                              fileInfo={'fileId': str(file1['_id']),
+                                        'old': {'name': fileName1},
+                                        'new': {'name': fileName2}})
+        # Reupload the file
+        resp = self.request(path='/file/{}/contents'.format(file1['_id']),
+                            method='PUT', user=admin,
+                            params={'size': len(fileData2)})
+        self.assertStatusOk(resp)
+        uploadId = resp.json['_id']
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', fileName1, fileData2)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=admin, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(file1['_id'], resp.json['_id'])
+        self._checkProvenance(None, item, 4, admin, 'fileUpdate',
+                              fileInfo={'fileId': str(file1['_id']),
+                                        'old': {'size': len(fileData1)},
+                                        'new': {'size': len(fileData2)}})
+        # Delete the file
+        resp = self.request(path='/file/{}'.format(file1['_id']),
+                            method='DELETE', user=admin)
+        self.assertStatusOk(resp)
+        self._checkProvenance(None, item, 5, admin, 'fileRemoved',
+                              fileInfo={'fileId': str(file1['_id']),
+                                        'old': {'size': len(fileData2),
+                                                'name': fileName2}})
+    def testProvenanceFolder(self):
+        """
+        Test folder provenance, including turning off and on the provenance
+        handling of folders.
+        """
+        folder1 = self.folder1
+        user = self.admin
 
+        # check that the first version of the folder provenance exists
+        self._checkProvenance(None, folder1, 1, user, 'creation',
+                              resource='folder')
+        # Edit the folder and check again
+        params1 = {'name': 'Renamed folder', 'description': 'New description'}
+        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+                            method='PUT', user=user, params=params1)
+        self.assertStatusOk(resp)
+        params1['lowerName'] = params1['name'].lower()
+        self._checkProvenance(None, folder1, 2, user, 'update',
+                              {'new': params1}, resource='folder')
+
+        # Turn off folder provenance and make sure asking for it fails
+        self.model('setting').set(
+            constants.PluginSettings.PROVENANCE_RESOURCES, '')
+        resp = self._getProvenance(folder1, user, resource='folder',
+                                   checkOk=False)
+        self.assertStatus(resp, 400)
+        # While folder provenance is off, create a second folder and edit the
+        # first folder
+        params2 = {'name': 'Renamed Again', 'description': 'Description 2'}
+        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+                            method='PUT', user=user, params=params2)
+        self.assertStatusOk(resp)
+        params2['lowerName'] = params2['name'].lower()
+
+        folder2 = {
+            'parent': self.coll1,
+            'parentType': 'collection',
+            'name': 'Private test folder',
+            'creator': self.admin
+        }
+        folder2 = self.model('folder').createFolder(**folder2)
+        # Turn back on folder provenance and check that it didn't record the
+        # changes we made.
+        self.model('setting').set(
+            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder')
+        self._checkProvenance(None, folder1, 2, user, 'update',
+                              {'new': params1}, resource='folder')
+        # Changing folder1 again should now show this change, and the old value
+        # should show the gap in the data
+        params3 = {'name': 'Renamed C', 'description': 'Description 3'}
+        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+                            method='PUT', user=user, params=params3)
+        self.assertStatusOk(resp)
+        params3['lowerName'] = params3['name'].lower()
+        self._checkProvenance(None, folder1, 3, user, 'update',
+                              {'old': params2, 'new': params3},
+                              resource='folder')
+        # The new folder should have no provenance
+        resp = self._getProvenance(folder2, user, resource='folder')
+        self.assertEqual(resp.json['resourceId'], str(folder2['_id']))
+        self.assertIsNone(resp.json['provenance'])
+        # Edit the new folder; it should show the unknown history followed by
+        # the edit
+        params4 = {'description': 'Folder 2 Description'}
+        resp = self.request(path='/folder/{}'.format(folder2['_id']),
+                            method='PUT', user=user, params=params4)
+        self.assertStatusOk(resp)
+        resp = self._getProvenance(folder2, user, 1, resource='folder')
+        self._checkProvenance(resp, folder2, 1, user, 'unknownHistory',
+                              resource='folder')
+        self._checkProvenance(None, folder2, 2, user, 'update',
+                              {'new': params4}, resource='folder')
+        # We should also see the initial history using negative indexing
+        resp = self._getProvenance(folder2, user, -2, resource='folder')
+        self._checkProvenance(resp, folder2, 1, user, 'unknownHistory',
+                              resource='folder')
+        # We should be able to get the entire history using 'all'
+        resp = self._getProvenance(folder2, user, 'all', resource='folder')
+        self.assertEqual(resp.json['resourceId'], str(folder2['_id']))
+        self.assertEqual(len(resp.json['provenance']), 2)
+        self.assertEqual(resp.json['provenance'][0]['eventType'],
+                         'unknownHistory')
+        self.assertEqual(resp.json['provenance'][1]['eventType'], 'update')
+        # We should get an error if we ask for a nonsense version
+        resp = self._getProvenance(folder2, user, 'not_a_version',
+                                   resource='folder', checkOk=False)
+        self.assertStatus(resp, 400)
