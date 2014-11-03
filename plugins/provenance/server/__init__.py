@@ -17,13 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
+
 from . import constants
 from girder import events
 from girder.api.describe import Description
-from girder.api.rest import Resource
+from girder.api.rest import Resource, RestException
 from girder.api import access
 from girder.constants import AccessType
-from girder.models.model_base import ValidationException
+from girder.models.model_base import ValidationException, AccessControlledModel
 
 
 def validateSettings(event):
@@ -128,34 +130,62 @@ class ResourceExt(Resource):
     @access.public
     def provenanceGetHandler(self, id, params, resource=None):
         user = self.getCurrentUser()
-        obj = self.model(resource).load(id, level=AccessType.READ, user=user)
-        # Handle provenance level ##DWM::
+        model = self.model(resource)
+        if resource == 'item' or isinstance(model, AccessControlledModel):
+            obj = model.load(id, level=AccessType.READ, user=user)
+        else:
+            obj = model.load(id)
+        version = -1
+        if 'version' in params:
+            if params['version'] == 'all':
+                version = None
+            else:
+                try:
+                    version = int(params['version'])
+                except ValueError:
+                    raise RestException('Invalid version.')
+        provenance = obj.get('provenance', [])
+        result = None
+        if version is None or version == 0:
+            result = provenance
+        elif version < 0:
+            if len(provenance) >= -version:
+                result = provenance[version]
+        else:
+            for prov in provenance:
+                if prov.get('version', None) == version:
+                    result = prov
+                    break
         return {
             'resourceId': id,
-            'provenance': obj.get('provenance', [])[-1:]
+            'provenance': result
         }
     provenanceGetHandler.description = (
         Description('Get the provenance for a given resource.')
         .param('id', 'The resource ID', paramType='path')
-        .param('provenance', 'The provenance version for the resource.  If '
-               'not specified, the latest provenance data is returned.  If '
-               '"all" is specified, a list of all provenance data is '
-               'returned.', required=False)
+        .param('version', 'The provenance version for the resource.  If not '
+               'specified, the latest provenance data is returned.  If "all" '
+               'is specified, a list of all provenance data is returned.  '
+               'Negative indices can also be used (-1 is the latest '
+               'provenance, -2 second latest, etc.).', required=False)
         .errorResponse())
 
     # These methods maintain the provenance
 
     def resourceSaveHandler(self, event):
+        # get the resource name from the event
         resource = event.name.split('.')[1]
-        # event has our model in it
         obj = event.info
+        # We can only track objects that have a creation date
+        if 'created' not in obj:
+            return
         if ('_id' not in obj or ('provenance' not in obj and
-                                 obj['updated'] == obj['created'])):
+                                 obj.get('updated', None) == obj['created'])):
             self.createNewProvenance(obj, resource)
         else:
             if 'provenance' not in obj:
                 self.createExistingProvenance(obj, resource)
-            elif obj['updated'] != obj['provenance'][-1]['updated']:
+            elif obj.get('updated', None) != obj['provenance'][-1]['updated']:
                 self.updateProvenance(obj, resource)
 
     def createNewProvenance(self, obj, resource):
@@ -164,7 +194,7 @@ class ResourceExt(Resource):
             'eventType': 'creation',
             'createdBy': obj['creatorId'],
             'created': obj['created'],
-            'updated': obj['updated'],
+            'updated': obj.get('updated', obj['created']),
         }
         obj['provenance'] = provenance
         self.addProvenanceEvent(obj, creationEvent)
@@ -190,13 +220,49 @@ class ResourceExt(Resource):
             provenanceEvent['version'] = int(provenance[-1]['version']) + 1
 
     def updateProvenance(self, curObj, resource):
+        """
+        Update the provenance record of an object.
+        :param curObj: the object to potentially update.
+        :param resource: the type of resource (model name).
+        :returns: True if the provenance was updated, False if it stayed the
+                  same.
+        """
         user = self.getCurrentUser()
-        prevObj = self.model(resource).load(curObj['_id'],
-                                            level=AccessType.READ, user=user)
+        model = self.model(resource)
+        if isinstance(model, AccessControlledModel):
+            prevObj = model.load(curObj['_id'], level=AccessType.READ,
+                                 user=user)
+        else:
+            prevObj = model.load(curObj['_id'])
         if prevObj is None:
-            return
-        curSnapshot = self.snapshotResource(curObj, resource)
-        prevSnapshot = self.snapshotResource(prevObj, resource)
+            return False
+        oldData, newData = self.resourceDifference(prevObj, curObj)
+        if not len(newData) and not len(oldData):
+            return False
+        updateEvent = {
+            'eventType': 'update',
+            'updated': curObj.get('updated', datetime.datetime.utcnow()),
+            'new': newData,
+            'old': oldData
+        }
+        if user is not None:
+            updateEvent['updatedBy'] = user['_id']
+        self.addProvenanceEvent(curObj, updateEvent)
+        return True
+
+    def resourceDifference(self, prevObj, curObj):
+        """
+        Generate dictionaries with values that have changed between two
+        objects.
+        :param prevObj: the initial state of the object.
+        :param curObj: the current state of the object.
+        :returns: oldData: a dictionary of values that are no longer the same
+                           or present in the object.
+        :returns: newData: a dictionary of values that are different or new in
+                           the object.
+        """
+        curSnapshot = self.snapshotResource(curObj)
+        prevSnapshot = self.snapshotResource(prevObj)
         oldData = {}
         newData = {}
         for key in curSnapshot:
@@ -208,34 +274,103 @@ class ResourceExt(Resource):
         for key in prevSnapshot:
             if key not in curSnapshot:
                 oldData[key] = prevSnapshot[key]
-        if not len(newData) and not len(oldData):
-            return
-        updateEvent = {
-            'eventType': 'update',
-            'updated': curObj['updated'],
-            'new': newData,
-            'old': oldData
-        }
-        if user is not None:
-            updateEvent['updatedBy'] = user['_id']
-        self.addProvenanceEvent(curObj, updateEvent)
+        return oldData, newData
 
-    def snapshotResource(self, obj, resource):
+    def snapshotResource(self, obj):
         """
         Generate a dictionary that represents an arbitrary resource.  All
         fields are included except provenance and values starting with _.
         :param obj: the object for which to generate a snapshop dictionary.
-        :param resource: the resource (model) type.  'item' objects are
-                         treated specially to include file information.
+        :param includeItemFiles: if True and this is an item, include files.
         :returns: a snapshot dictionary.
         """
         ignoredKeys = ('provenance', 'updated')
         snap = {key: obj[key] for key in obj
                 if not key.startswith('_') and key not in ignoredKeys}
-        if resource == 'item':
-            pass
-            # ##DWM:: get file info
         return snap
+
+    def fileSaveHandler(self, event):
+        """When a file is saved, update the provenance of the parent item.
+        :param event: the event with the file information."""
+        curFile = event.info
+        if 'itemId' not in curFile or '_id' not in curFile:
+            return
+        user = self.getCurrentUser()
+        item = self.model('item').load(id=curFile['itemId'], user=user,
+                                       level=AccessType.READ)
+        if not item:
+            return
+        prevFile = self.model('file').load(curFile['_id'])
+        if prevFile is None:
+            oldData = None
+            newData = self.snapshotResource(curFile)
+        else:
+            oldData, newData = self.resourceDifference(prevFile, curFile)
+        if not len(newData) and not len(oldData):
+            return
+        updateEvent = {
+            'eventType': 'fileUpdate',
+            'updated': curFile.get('updated', datetime.datetime.utcnow()),
+            'file': [{
+                'fileId': curFile['_id'],
+                'new': newData
+            }]
+        }
+        if oldData is not None:
+            updateEvent['file'][0]['old'] = oldData
+        if user is not None:
+            updateEvent['updatedBy'] = user['_id']
+        self.addProvenanceEvent(item, updateEvent)
+        self.model('item').save(item, triggerEvents=False)
+
+    def fileSaveCreatedHandler(self, event):
+        """When a file is created, we don't record it in the save handler
+        beacuse we want to know its id.  We record it here, instead.
+        :param event: the event with the file information."""
+        file = event.info
+        if 'itemId' not in file or '_id' not in file:
+            return
+        user = self.getCurrentUser()
+        item = self.model('item').load(id=file['itemId'], user=user,
+                                       level=AccessType.READ)
+        if not item:
+            return
+        updateEvent = {
+            'eventType': 'fileAdded',
+            'updated': file.get('created', datetime.datetime.utcnow()),
+            'file': [{
+                'fileId': file['_id'],
+                'new': self.snapshotResource(file)
+            }]
+        }
+        if user is not None:
+            updateEvent['updatedBy'] = user['_id']
+        self.addProvenanceEvent(item, updateEvent)
+        self.model('item').save(item, triggerEvents=False)
+
+    def fileRemoveHandler(self, event):
+        """When a file is removed, update the provenance of the parent item.
+        :param event: the event with the file information."""
+        file = event.info
+        if 'itemId' not in file:
+            return
+        user = self.getCurrentUser()
+        item = self.model('item').load(id=file['itemId'], user=user,
+                                       level=AccessType.READ)
+        if not item:
+            return
+        updateEvent = {
+            'eventType': 'fileRemoved',
+            'updated': datetime.datetime.utcnow(),
+            'file': [{
+                'fileId': file['_id'],
+                'old': self.snapshotResource(file)
+            }]
+        }
+        if user is not None:
+            updateEvent['updatedBy'] = user['_id']
+        self.addProvenanceEvent(item, updateEvent)
+        self.model('item').save(item, triggerEvents=False)
 
 
 def load(info):
@@ -244,3 +379,7 @@ def load(info):
     events.bind('model.setting.save.after', 'provenance', ext.bindModels)
     events.bind('provenance.initialize', 'provenance', ext.bindModels)
     events.trigger('provenance.initialize', info={})
+    events.bind('model.file.save', 'provenance', ext.fileSaveHandler)
+    events.bind('model.file.save.created', 'provenance',
+                ext.fileSaveCreatedHandler)
+    events.bind('model.file.remove', 'provenance', ext.fileRemoveHandler)

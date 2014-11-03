@@ -101,7 +101,6 @@ class Upload(Model):
             file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
-            self.model('file').save(file)
         else:  # Creating a new file record
             if upload['parentType'] == 'folder':
                 # Create a new item with the name of the file.
