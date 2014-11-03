@@ -1,0 +1,13 @@
+.g-config-breadcrumb-container
+p.g-provenance-description
+  | All additions and edits to tracked resources will be recorded with information about who changed the resource, when they changed it, and how it was changed.
+form#g-provenance-form(role="form")
+  .form-group
+    label.control-label(for="provenance.resources") Tracked Provenance Resources
+    input.input-sm.form-control#provenance.resources(
+      type="text", placeholder="Resource List")
+    | Items are always tracked.  To track other resources, list them in a
+    | comma-separated list.  For example, to track items, folders, and
+    | collections, set this to "folder, collection".
+  p#g-provenance-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

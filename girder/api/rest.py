@@ -215,6 +215,7 @@ class Resource(ModelImporter):
         :param nodoc: If your route intentionally provides no documentation,
                       set this to True to disable the warning on startup.
         :type nodoc: bool
+        :param resource: the name of the resource at the root of this route.
         """
         if not hasattr(self, '_routes'):
             self._routes = collections.defaultdict(
@@ -252,6 +253,38 @@ class Resource(ModelImporter):
             print TerminalColor.warning(
                 'WARNING: No access level specified for route {} {}'
                 .format(method, routePath))
+
+    def removeRoute(self, method, route, handler=None, resource=None):
+        """
+        Remove a route from the handler and documentation.
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :type method: str
+        :param route: The route, as a list of path params relative to the
+                      resource root. Elements of this list starting with ':'
+                      are assumed to be wildcards.
+        :type route: list
+        :param handler: The method called for the route; this is necessary to
+                        remove the documentation.
+        :type handler: function
+        :param resource: the name of the resource at the root of this route.
+        """
+        if not hasattr(self, '_routes'):
+            return
+        nLengthRoutes = self._routes[method.lower()][len(route)]
+        for i in xrange(0, len(nLengthRoutes)):
+            if nLengthRoutes[i][0] == route:
+                del nLengthRoutes[i]
+                break
+        # Remove the api doc
+        if resource is None and hasattr(self, 'resourceName'):
+            resource = self.resourceName
+        elif resource is None:
+            resource = handler.__module__.rsplit('.', 1)[-1]
+        if handler and hasattr(handler, 'description'):
+            if handler.description is not None:
+                docs.removeRouteDocs(
+                    resource=resource, route=route, method=method,
+                    info=handler.description.asDict(), handler=handler)
 
     def _shouldInsertRoute(self, a, b):
         """
