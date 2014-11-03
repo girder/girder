@@ -463,8 +463,20 @@ module.exports = function (grunt) {
         }
     });
 
+    // Remove all old packaging files
+    grunt.registerTask('remove-packaging', function () {
+        // match things that look like girder packages
+        grunt.file.expand('girder-*.tar.gz').forEach(function (f) {
+            // use regex's to further filter
+            if (f.match(/girder(-web-|-plugins-|-)[0-9]+\.[0-9]+.[0-9]+.*\.tar\.gz/)) {
+                grunt.file.delete(f);
+            }
+        });
+    });
+
     // Create tarballs for distribution through pip and github releases
     grunt.registerTask('package', 'Generate a python package for distribution.', [
+        'remove-packaging',
         'compress:package-web',
         'compress:package-plugins',
         'shell:package-server'
