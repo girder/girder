@@ -34,7 +34,8 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(('folderId', 'name', 'lowerName'))
+        self.ensureIndices(('folderId', 'name', 'lowerName',
+                            ([('folderId', 1), ('name', 1)], {})))
         self.ensureTextIndex({
             'name': 10,
             'description': 1
