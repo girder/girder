@@ -24,7 +24,7 @@ import sys
 # Need to set the environment variable before importing girder
 os.environ['GIRDER_PORT'] = '50001'
 
-from girder.constants import ROOT_DIR
+from girder.constants import ROOT_DIR, SettingKey
 from . import base
 
 
@@ -32,6 +32,9 @@ def setUpModule():
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
+    plugins = os.environ.get('ENABLED_PLUGINS', '')
+    if plugins:
+        base.enabledPlugins.extend(plugins.split())
     base.startServer(False, mockS3=mockS3)
 
 
@@ -51,6 +54,10 @@ class WebClientTestCase(base.TestCase):
         # One of the web client tests uses this db, so make sure it is cleared
         # ahead of time
         base.dropGridFSDatabase('girder_webclient_gridfs')
+        plugins = os.environ.get('ENABLED_PLUGINS', '')
+        if plugins:
+            self.model('setting').set(SettingKey.PLUGINS_ENABLED,
+                                      plugins.split())
 
     def testWebClientSpec(self):
 
