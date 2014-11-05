@@ -1,3 +1,4 @@
+cffi==0.8.6
 CherryPy==3.3.0
 pymongo==2.7.1
 bcrypt==1.0.2
