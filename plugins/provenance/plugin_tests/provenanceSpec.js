@@ -1,7 +1,9 @@
 $(function () {
-    /* Include the built version of the our scripts.  This means that grunt
-     * must be run to generate this before the test can be run. */
-    $.getScript('/static/built/plugins/provenance/plugin.min.js');
+    /* Include the built version of the our templates.  This means that grunt
+     * must be run to generate these before the test. */
+    $.getScript('/static/built/plugins/provenance/templates.js');
+    girderTest.addCoveredScript(
+        '/plugins/provenance/web_client/js/ConfigView.js');
     $('<link/>', {rel: 'stylesheet', type: 'text/css',
                   href: '/static/built/plugins/provenance/plugin.min.css'
     }).appendTo('head');

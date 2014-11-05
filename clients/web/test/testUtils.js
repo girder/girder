@@ -467,3 +467,20 @@ girderTest.waitForDialog = function (desc) {
         return girder.numberOutstandingRestRequests() === 0;
     }, 'dialog rest requests to finish');
 };
+
+/**
+ * Import a javascript file and ask register it with the blanket coverage
+ * tests.
+ */
+girderTest.addCoveredScript = function (url) {
+    $('<script/>', {src: url}).appendTo('head');
+    blanket.utils.cache[url] = {};
+    blanket.utils.attachScript({url:url}, function (content) {
+        blanket.instrument({inputFile: content, inputFileName: url},
+                           function (instrumented) {
+            blanket.utils.cache[url].loaded = true;
+            blanket.utils.blanketEval(instrumented);
+            blanket.requiringFile(url, true);
+        });
+   });
+}

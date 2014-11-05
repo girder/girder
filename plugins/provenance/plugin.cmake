@@ -17,4 +17,9 @@
 add_python_test(provenance PLUGIN provenance)
 add_python_style_test(pep8_style_provenance
                       "${PROJECT_SOURCE_DIR}/plugins/provenance/server")
-add_web_client_test_with_all_options(provenance "${PROJECT_SOURCE_DIR}/plugins/provenance/plugin_tests/provenanceSpec.js" filesystem true provenance)
+add_web_client_test(
+    provenance
+    "${PROJECT_SOURCE_DIR}/plugins/provenance/plugin_tests/provenanceSpec.js"
+    PLUGIN provenance)
+add_javascript_style_test(
+    provenance "${PROJECT_SOURCE_DIR}/plugins/provenance/web_client/js")
