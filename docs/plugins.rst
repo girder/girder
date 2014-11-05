@@ -106,3 +106,63 @@ located at ``path`` on the remote filesystem that has been uploaded to
 
 The user authenticating with ``login`` and ``password`` must have ``WRITE``
 access to the file located at ``itemId`` on the server.
+
+Provenance Tracker
+------------------
+
+The provenance tracker plugin logs changes to items and to any other resources
+that have been configured in the plugin settings.  Each change record include a
+version number, the old and new values of any changed information, the ID of
+the user that made the change, the current date and time, and the type of
+change that occurred.
+
+API
+***
+
+Each resource that has provenance tracking has a rest endpoint of the form
+``(resource)/{id}/provenance``.  For instance, item metadata is accessible at
+``item/{id}/provenance``.  Without any other parameter, the most recent change
+is reported.
+
+The ``version`` parameter can be used to get any or all provenance information
+for a resource.  Every provenance record has a version number.  For each
+resource, these versions start at 1.  If a positive number is specified for
+``version``, the provenance record with the matching version is returned.  If a
+negative number is specified, the index is relative to the end of the list of
+provenance records.  That is, -1 is the most recent change, -2 the second most
+recent, etc.  A ``version`` of ``all`` returns a list of all provenance records
+for the resource.
+
+All provenance records include ``version``, ``eventType`` (see below), and
+``eventTime``.  If the user who authorized the action is known, their ID is
+stored in ``eventUser``.
+
+Provenance event types include:
+
+- ``creation``: the resource was created.
+
+- ``unknownHistory``: the resource was created when the provenance plugin was
+  disabled.  Prior to this time, there is no provenance information.
+
+- ``update``: data, metadata, or plugin-related data has changed for the
+  resource.  The old values and new values of the data are recorded.  The
+  ``old``  parameter contains any value that was changed (the value prior to
+  the change) or has been deleted.  The ``new`` parameter contains any value
+  that was changed or has been added.
+
+For item records, when a file belonging to that item is added, removed, or
+upadted, the provenance is updated with that change.  This provenance includes
+a ``file`` list with the changed file(s).  Each entry in this list includes a
+``fileId`` for the associated file and one of these event types:
+
+- ``fileAdded``: a file was added to the item.  The ``new`` parameter has a
+  summary of the file information, including its assetstore ID and value used
+  to reference it within that assetstore.
+
+- ``fileUpdate``: a file's name or other data has changed, or the contents of
+  the file were replaced.  The ``new`` and ``old`` parameters contains the data
+  values that were modified, deleted, or added.
+
+- ``fileRemoved``: a file was removed from the item.  The ``old`` parameter has
+  a summary of the file information.  If this was the only item using this file
+  data, the file is removed from the assetstore.

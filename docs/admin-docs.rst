@@ -7,3 +7,4 @@ Administrator Documentation
    prerequisites
    installation
    deploy
+   configuration
