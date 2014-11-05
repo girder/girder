@@ -111,8 +111,8 @@ Provenance Tracker
 ------------------
 
 The provenance tracker plugin logs changes to items and to any other resources
-that have been configured in the plugin settings.  Each change record include a
-version number, the old and new values of any changed information, the ID of
+that have been configured in the plugin settings.  Each change record includes
+a version number, the old and new values of any changed information, the ID of
 the user that made the change, the current date and time, and the type of
 change that occurred.
 
@@ -151,7 +151,7 @@ Provenance event types include:
   that was changed or has been added.
 
 For item records, when a file belonging to that item is added, removed, or
-upadted, the provenance is updated with that change.  This provenance includes
+updated, the provenance is updated with that change.  This provenance includes
 a ``file`` list with the changed file(s).  Each entry in this list includes a
 ``fileId`` for the associated file and one of these event types:
 
@@ -160,7 +160,7 @@ a ``file`` list with the changed file(s).  Each entry in this list includes a
   to reference it within that assetstore.
 
 - ``fileUpdate``: a file's name or other data has changed, or the contents of
-  the file were replaced.  The ``new`` and ``old`` parameters contains the data
+  the file were replaced.  The ``new`` and ``old`` parameters contain the data
   values that were modified, deleted, or added.
 
 - ``fileRemoved``: a file was removed from the item.  The ``old`` parameter has
