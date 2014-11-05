@@ -3,6 +3,7 @@
  */
 girder.views.FolderView = girder.View.extend({
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.folder = settings.folder;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;

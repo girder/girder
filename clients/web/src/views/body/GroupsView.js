@@ -16,6 +16,7 @@ girder.views.GroupsView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();

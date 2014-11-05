@@ -234,4 +234,5 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Delete the temporary files associated with a given upload.
         """
-        os.unlink(upload['tempFile'])
+        if os.path.exists(upload['tempFile']):
+            os.unlink(upload['tempFile'])

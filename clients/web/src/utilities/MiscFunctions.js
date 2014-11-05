@@ -205,3 +205,48 @@ girder.cookie = {
         return _pluginConfigRoutes[pluginName];
     };
 }());
+
+/* Pending rest requests are listed in this pool so that they can be aborted or
+ * checked if still processing. */
+(function () {
+    var restXhrPool = {};
+    var restXhrCount = 0;
+    $(document).ajaxSend(function (event, xhr, opts) {
+        restXhrCount += 1;
+        xhr.girderXhrNumber = restXhrCount;
+        restXhrPool[restXhrCount] = xhr;
+    });
+    $(document).ajaxComplete(function (event, xhr, opts) {
+        var num = xhr.girderXhrNumber;
+        if (num && restXhrPool[num]) {
+            delete restXhrPool[num];
+        }
+    });
+    /* Get the number of outstanding rest requests.
+     * :param category: if specified, only count those requests that have
+     *                  xhr.girder.(category) set to a truthy value.
+     * :returns: the number of outstanding requests.
+     */
+    girder.numberOutstandingRestRequests = function (category) {
+        if (category) {
+            return _.filter(restXhrPool, function (xhr) {
+                return xhr.girder && xhr.girder[category];
+            });
+        }
+        return _.size(restXhrPool);
+    };
+    /* Cancel outstanding rest requests.
+     * :param category: if specified, only abort those requests that have
+     *                  xhr.girder.(category) set to a truthy value.
+     */
+    girder.cancelRestRequests = function (category) {
+        _.each(restXhrPool, function (xhr, num, pool) {
+            if (category && (!xhr.girder || !xhr.girder[category])) {
+                return;
+            }
+            if (xhr.abort) {
+                xhr.abort();
+            }
+        });
+    };
+}());

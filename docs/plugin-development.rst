@@ -38,12 +38,13 @@ example will be:
     {
     "name": "My Cats Plugin",
     "description": "Allows users to manage their cats.",
+    "version": "1.0.0",
     "dependencies": ["other_plugin"]
     }
 
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
-are enabled or disabled, a server restart will be required in order for the
+are enabled or disabled, a server restart is required in order for the
 change to take effect.
 
 Extending the Server-Side Application
@@ -233,6 +234,14 @@ saved. For example, you can bind to ``model.folder.save`` if you wish to
 perform logic each time a folder is saved to the database. You can use
 ``preventDefault`` on the passed event if you wish for the normal saving logic
 not to be performed.
+
+* **After model creation**
+
+You can receive an event `after` a resource of a specific type is created and
+saved to the database. This is sent immediately before the after-save event,
+but only occurs upon creation of a new document. You cannot prevent any default
+actions with this hook. The format of the event name is, e.g.
+``model.folder.save.created``.
 
 * **After model save**
 

@@ -11,7 +11,11 @@ window.coverageHandler = (function () {
      * to the root of the repository for portability.
      */
     var _transformFilename = function (filename) {
-        return filename.substring(filename.indexOf('clients/web/'));
+        if (filename.indexOf('clients/web/')>=0)
+            return filename.substring(filename.indexOf('clients/web/'));
+        if (filename.indexOf('plugins/')>=0)
+            return filename.substring(filename.indexOf('plugins/'));
+        return filename;
     };
 
     var publicApi = {

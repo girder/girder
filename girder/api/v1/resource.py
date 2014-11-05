@@ -24,6 +24,7 @@ from ..describe import Description
 from ..rest import Resource as BaseResource, RestException
 from girder.constants import AccessType
 from girder.api import access
+from girder.models.model_base import AccessControlledModel
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -35,6 +36,7 @@ class Resource(BaseResource):
     def __init__(self):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
+        self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
         self.route('DELETE', (), self.delete)
 
@@ -113,7 +115,7 @@ class Resource(BaseResource):
             raise RestException('No resources specified.')
         return resources
 
-    def _getResourceModel(self, kind, funcName):
+    def _getResourceModel(self, kind, funcName=None):
         """
         Load and return a model with a specific function or throw an exception.
         :param kind: the name of the model to load
@@ -222,3 +224,18 @@ class Resource(BaseResource):
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
         .errorResponse('Admin access was denied for a resource.', 403))
+
+    @access.admin
+    def getResource(self, id, params):
+        model = self._getResourceModel(params['type'])
+        if (params['type'] == 'item' or
+                isinstance(model, AccessControlledModel)):
+            user = self.getCurrentUser()
+            return model.load(id=id, user=user, level=AccessType.READ)
+        return model.load(id=id)
+    getResource.description = (
+        Description('Get any resource by ID.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the resource.', 403))

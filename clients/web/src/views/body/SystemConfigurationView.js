@@ -39,6 +39,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
     },
 
     initialize: function () {
+        girder.cancelRestRequests('fetch');
         var keys = [
             'core.cookie_lifetime',
             'core.email_from_address',

@@ -14,6 +14,7 @@
 
         initialize: function (settings) {
 
+            girder.cancelRestRequests('fetch');
             this.edit = settings.edit || false;
             this.fileEdit = settings.fileEdit || false;
             this.upload = settings.upload || false;

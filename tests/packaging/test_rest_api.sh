@@ -15,7 +15,7 @@ echo "Detected api version ${version}"
 TIMEOUT=0
 until [ $TIMEOUT -eq 15 ]; do
     json=$("${CURL}" -s http://localhost:${GIRDER_PORT}/api/v1/system/version)
-    if [ -n "$json" ]; then
+    if [ -n "$json" ] && [[ $json == *shortSHA* ]]; then
         break
     fi
     TIMEOUT=$((TIMEOUT+1))

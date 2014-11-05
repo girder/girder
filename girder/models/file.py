@@ -167,7 +167,8 @@ class File(Model):
             '_id': item['baseParentId']
         }, field='size', amount=sizeIncrement, multi=False)
 
-    def createFile(self, creator, item, name, size, assetstore, mimeType):
+    def createFile(self, creator, item, name, size, assetstore, mimeType,
+                   saveFile=True):
         """
         Create a new file record in the database.
 
@@ -180,6 +181,8 @@ class File(Model):
         :type size: int
         :param mimeType: The mimeType of the file.
         :type mimeType: str
+        :param saveFile: if False, don't save the file, just return it.
+        :type saveFile: bool
         """
         file = {
             'created': datetime.datetime.utcnow(),
@@ -193,7 +196,9 @@ class File(Model):
 
         self.propagateSizeChange(item, size)
 
-        return self.save(file)
+        if saveFile:
+            return self.save(file)
+        return file
 
     def copyFile(self, srcFile, creator, item=None):
         """

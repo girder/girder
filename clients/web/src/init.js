@@ -87,6 +87,9 @@ var girder = {
                         timeout: 5000,
                         icon: 'attention'
                     };
+                } else if (error.status === 0 && error.statusText === 'abort') {
+                    /* We expected this abort, so do nothing. */
+                    return;
                 } else {
                     info = {
                         text: 'An error occurred while communicating with the ' +

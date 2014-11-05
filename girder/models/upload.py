@@ -101,7 +101,6 @@ class Upload(Model):
             file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
-            self.model('file').save(file)
         else:  # Creating a new file record
             if upload['parentType'] == 'folder':
                 # Create a new item with the name of the file.
@@ -109,15 +108,16 @@ class Upload(Model):
                     name=upload['name'], creator={'_id': upload['userId']},
                     folder={'_id': upload['parentId']})
             else:
+                uploadUser = self.model('user').load(
+                    id=upload['userId'], objectId=True, level=AccessType.READ)
                 item = self.model('item').load(id=upload['parentId'],
-                                               objectId=True,
-                                               user={'_id': upload['userId']},
+                                               objectId=True, user=uploadUser,
                                                level=AccessType.WRITE)
 
             file = self.model('file').createFile(
                 item=item, name=upload['name'], size=upload['size'],
                 creator={'_id': upload['userId']}, assetstore=assetstore,
-                mimeType=upload['mimeType'])
+                mimeType=upload['mimeType'], saveFile=False)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         file = adapter.finalizeUpload(upload, file)

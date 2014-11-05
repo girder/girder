@@ -16,6 +16,7 @@ girder.views.UsersView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();

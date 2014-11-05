@@ -214,9 +214,13 @@ class Model(ModelImporter):
             if event.defaultPrevented:
                 return document
 
+        sendCreateEvent = ('_id' not in document)
         document['_id'] = self.collection.save(document)
 
         if triggerEvents:
+            if sendCreateEvent:
+                events.trigger('model.{}.save.created'.format(self.name),
+                               document)
             events.trigger('model.{}.save.after'.format(self.name), document)
 
         return document

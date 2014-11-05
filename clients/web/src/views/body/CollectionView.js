@@ -28,6 +28,7 @@
         },
 
         initialize: function (settings) {
+            girder.cancelRestRequests('fetch');
 
             this.upload = settings.upload || false;
             this.access = settings.access || false;

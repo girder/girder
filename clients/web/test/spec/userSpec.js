@@ -40,6 +40,7 @@ describe('Create an admin and non-admin user', function () {
             return $('.g-user-name').text() === 'Admin Admin';
         }, 'user page to appear');
 
+        girderTest.waitForLoad();
         // check for actions menu
         runs(function () {
             expect($("button:contains('Actions')").length).toBe(0);

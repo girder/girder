@@ -233,3 +233,11 @@ class FolderTestCase(base.TestCase):
                             params={'text': 'Item'})
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
+
+    def testGetResourceById(self):
+        resp = self.request(path='/resource/{}'.format(self.admin['_id']),
+                            method='GET', user=self.admin,
+                            params={'type': 'user'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
+        self.assertEqual(resp.json['email'], 'good@email.com')

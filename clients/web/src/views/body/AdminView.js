@@ -15,6 +15,7 @@ girder.views.AdminView = girder.View.extend({
     },
 
     initialize: function () {
+        girder.cancelRestRequests('fetch');
         this.render();
     },
 

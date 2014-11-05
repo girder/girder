@@ -70,6 +70,10 @@ def setup(test=False, plugins=None):
             'tools.staticdir.on': 'True',
             'tools.staticdir.dir': 'clients'
         }
+        appconf['/plugins'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'plugins',
+        }
 
     cur_config.update(appconf)
 

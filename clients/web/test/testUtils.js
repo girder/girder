@@ -438,6 +438,9 @@ girderTest.waitForLoad = function (desc) {
         return $('.modal').data('bs.modal') === undefined ||
                $('.modal').data('bs.modal').isShown === false;
     }, 'for any modal dialog to be hidden'+desc);
+    waitsFor(function () {
+        return girder.numberOutstandingRestRequests() === 0;
+    }, 'rest requests to finish');
     waitsFor(function() {
         return $('.g-loading-block').length === 0;
     }, 'dialogs to close and all blocks to finish loading'+desc);
@@ -455,9 +458,29 @@ girderTest.waitForDialog = function (desc) {
                $('.modal-backdrop:visible').length > 0;
     }, 'a dialog to fully render');
      */
-    waitsFor(function() {
+    waitsFor(function () {
         return $('.modal').data('bs.modal') &&
                $('.modal').data('bs.modal').isShown === true &&
                $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render'+desc);
+    waitsFor(function () {
+        return girder.numberOutstandingRestRequests() === 0;
+    }, 'dialog rest requests to finish');
 };
+
+/**
+ * Import a javascript file and ask register it with the blanket coverage
+ * tests.
+ */
+girderTest.addCoveredScript = function (url) {
+    $('<script/>', {src: url}).appendTo('head');
+    blanket.utils.cache[url] = {};
+    blanket.utils.attachScript({url:url}, function (content) {
+        blanket.instrument({inputFile: content, inputFileName: url},
+                           function (instrumented) {
+            blanket.utils.cache[url].loaded = true;
+            blanket.utils.blanketEval(instrumented);
+            blanket.requiringFile(url, true);
+        });
+   });
+}

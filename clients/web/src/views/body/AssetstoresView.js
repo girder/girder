@@ -9,6 +9,7 @@ girder.views.AssetstoresView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
 
         // Fetch all of the current assetstores
