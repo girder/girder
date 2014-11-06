@@ -98,7 +98,7 @@ class ProvenanceTestCase(base.TestCase):
         provenance = itemProvenance['provenance']
         self.assertEqual(provenance['eventType'], eventType)
         self.assertEqual(provenance['version'], version)
-        self.assertEqual(provenance['eventUser'], str(user['_id']))
+        self.assertEqual(str(provenance['eventUser']), str(user['_id']))
         if matches:
             for key in matches:
                 self.assertEqual(provenance[key], matches[key])

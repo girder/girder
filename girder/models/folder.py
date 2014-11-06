@@ -122,9 +122,9 @@ class Folder(AccessControlledModel):
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
-            self.save(doc)
+            self.save(doc, triggerEvents=False)
         if doc is not None and 'lowerName' not in doc:
-            self.save(doc)
+            self.save(doc, triggerEvents=False)
 
         return doc
 

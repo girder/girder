@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+from bson.objectid import ObjectId
 import datetime
 
 import constants
@@ -183,7 +184,7 @@ class ResourceExt(Resource):
         created = obj.get('created', datetime.datetime.utcnow())
         creatorId = obj.get('creatorId', None)
         if creatorId is None:
-            user = self.getCurrentUser()
+            user = self.getProvenanceUser(obj)
             if user is not None:
                 creatorId = user['_id']
         creationEvent = {
@@ -194,6 +195,22 @@ class ResourceExt(Resource):
         }
         obj['provenance'] = provenance
         self.addProvenanceEvent(obj, creationEvent)
+
+    def getProvenanceUser(self, obj):
+        """
+        Get the user that is associated with the object.  If it has no user,
+        get the user of the current session.
+        :param obj: a model object.
+        :returns: user for the object or None.
+        """
+        user = self.getCurrentUser()
+        if obj and not user:
+            user = obj.get('userId', None)
+            if not user:
+                user = obj.get('creatorId', None)
+        if isinstance(user, (ObjectId, basestring)):
+            user = self.model('user').load(user, force=True)
+        return user
 
     def createExistingProvenance(self, obj, resource):
         self.createNewProvenance(obj, resource)
@@ -223,11 +240,11 @@ class ResourceExt(Resource):
         :returns: True if the provenance was updated, False if it stayed the
                   same.
         """
-        user = self.getCurrentUser()
+        user = self.getProvenanceUser(curObj)
         model = self.model(resource)
         if resource == 'item' or isinstance(model, AccessControlledModel):
             prevObj = model.load(curObj['_id'], level=AccessType.READ,
-                                 user=user)
+                                 user=user, force=True)
         else:
             prevObj = model.load(curObj['_id'])
         if prevObj is None:
@@ -264,9 +281,17 @@ class ResourceExt(Resource):
         for key in curSnapshot:
             if key not in prevSnapshot:
                 newData[key] = curSnapshot[key]
-            elif curSnapshot[key] != prevSnapshot[key]:
-                newData[key] = curSnapshot[key]
-                oldData[key] = prevSnapshot[key]
+            else:
+                try:
+                    if curSnapshot[key] != prevSnapshot[key]:
+                        newData[key] = curSnapshot[key]
+                        oldData[key] = prevSnapshot[key]
+                except TypeError:
+                    # If the data types of the old and new keys are not
+                    # comparable, an error is thrown.  In this case, always
+                    # treat them as different.
+                    newData[key] = curSnapshot[key]
+                    oldData[key] = prevSnapshot[key]
         for key in prevSnapshot:
             if key not in curSnapshot:
                 oldData[key] = prevSnapshot[key]
@@ -291,9 +316,9 @@ class ResourceExt(Resource):
         curFile = event.info
         if 'itemId' not in curFile or '_id' not in curFile:
             return
-        user = self.getCurrentUser()
+        user = self.getProvenanceUser(curFile)
         item = self.model('item').load(id=curFile['itemId'], user=user,
-                                       level=AccessType.READ)
+                                       level=AccessType.READ, force=True)
         if not item:
             return
         prevFile = self.model('file').load(curFile['_id'])
@@ -326,9 +351,9 @@ class ResourceExt(Resource):
         file = event.info
         if 'itemId' not in file or '_id' not in file:
             return
-        user = self.getCurrentUser()
+        user = self.getProvenanceUser(file)
         item = self.model('item').load(id=file['itemId'], user=user,
-                                       level=AccessType.READ)
+                                       level=AccessType.READ, force=True)
         if not item:
             return
         updateEvent = {
@@ -350,9 +375,9 @@ class ResourceExt(Resource):
         file = event.info
         if 'itemId' not in file:
             return
-        user = self.getCurrentUser()
+        user = self.getProvenanceUser(file)
         item = self.model('item').load(id=file['itemId'], user=user,
-                                       level=AccessType.READ)
+                                       level=AccessType.READ, force=True)
         if not item:
             return
         updateEvent = {
