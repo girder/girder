@@ -279,9 +279,7 @@ class ResourceExt(Resource):
         oldData = {}
         newData = {}
         for key in curSnapshot:
-            if key not in prevSnapshot:
-                newData[key] = curSnapshot[key]
-            else:
+            if key in prevSnapshot:
                 try:
                     if curSnapshot[key] != prevSnapshot[key]:
                         newData[key] = curSnapshot[key]
@@ -292,6 +290,8 @@ class ResourceExt(Resource):
                     # treat them as different.
                     newData[key] = curSnapshot[key]
                     oldData[key] = prevSnapshot[key]
+            else:
+                newData[key] = curSnapshot[key]
         for key in prevSnapshot:
             if key not in curSnapshot:
                 oldData[key] = prevSnapshot[key]
