@@ -631,8 +631,13 @@ class AccessControlledModel(Model):
                 perm = 'Write'
             else:
                 perm = 'Admin'
-            raise AccessException("%s access denied for %s." %
-                                  (perm, self.name))
+            if user:
+                userid = str(user.get('_id', ''))
+            else:
+                userid = None
+            raise AccessException("%s access denied for %s %s (user %s)." %
+                                  (perm, self.name, doc.get('_id', 'unknown'),
+                                   userid))
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):

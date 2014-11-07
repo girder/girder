@@ -327,14 +327,16 @@ class GroupTestCase(base.TestCase):
             path='/group/%s/member' % privateGroup['_id'], user=self.users[1],
             method='DELETE', params=params)
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Admin access denied for group.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Admin access denied for group'))
 
         # User 1 should not be able to delete the group
         resp = self.request(
             path='/group/%s' % privateGroup['_id'], user=self.users[1],
             method='DELETE')
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Admin access denied for group.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Admin access denied for group'))
 
         # We promote user 1 to admin
         resp = self.request(

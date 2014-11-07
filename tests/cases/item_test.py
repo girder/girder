@@ -270,8 +270,8 @@ class ItemTestCase(base.TestCase):
                             user=self.users[1], params={
                                 'folderId': self.privateFolder['_id']})
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'],
-                         'Write access denied for folder.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Write access denied for folder'))
 
         # Try to update/PUT without an id
         resp = self.request(path='/item/', method='PUT',

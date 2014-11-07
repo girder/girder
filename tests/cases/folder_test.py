@@ -135,7 +135,8 @@ class FolderTestCase(base.TestCase):
                 'parentType': 'user'
             })
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Write access denied for user.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Write access denied for user'))
 
     def testCreateFolder(self):
         self.ensureRequiredParams(
