@@ -55,7 +55,6 @@ class Item(Model):
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
-        doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
         if not doc['name']:
@@ -88,6 +87,7 @@ class Item(Model):
                 n += 1
                 name = '%s (%d)' % (doc['name'], n)
 
+        doc['lowerName'] = doc['name'].lower()
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
@@ -304,9 +304,12 @@ class Item(Model):
             folder['baseParentType'] = pathFromRoot[0]['type']
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
+        if description is None:
+            description = ''
+
         return self.save({
-            'name': name,
-            'description': description,
+            'name': name.strip(),
+            'description': description.strip(),
             'folderId': ObjectId(folder['_id']),
             'creatorId': creator['_id'],
             'baseParentType': folder['baseParentType'],

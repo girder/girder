@@ -486,6 +486,14 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
+        # Also test that this works for a duplicate item, such that the
+        # automatically renamed item still has the correct lowerName, and a
+        # None description is changed to an empty string.
+        item = self.model('item').createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder,
+            description=None)
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '')
 
     def testItemCopy(self):
         origItem = self._createItem(self.publicFolder['_id'],
