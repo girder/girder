@@ -7,5 +7,6 @@ Developer Documentation
    api-docs
    development
    plugin-development
+   developer-cookbook
    external-web-clients
    build-docs
