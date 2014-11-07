@@ -494,6 +494,18 @@ class ItemTestCase(base.TestCase):
             description=None)
         self.assertEqual(item['lowerName'], 'my item name (1)')
         self.assertEqual(item['description'], '')
+        # test if non-strings are coerced and if just missing lowerName is
+        # corrected.
+        item['description'] = 1
+        del item['lowerName']
+        self.model('item').save(item, validate=False)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertNotHasKeys(item, ('lowerName', ))
+        self.model('item').load(item['_id'], force=True)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertHasKeys(item, ('lowerName', ))
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '1')
 
     def testItemCopy(self):
         origItem = self._createItem(self.publicFolder['_id'],
