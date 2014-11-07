@@ -47,7 +47,36 @@ form parameters, or as the value of a custom HTTP header with the key ``Girder-T
    clients can persist its value conveniently for its duration. However, for security
    reasons, merely passing the cookie value back is not sufficient for authentication.
 
+Upload a file
+^^^^^^^^^^^^^
 
+If you are using the Girder javascript client library, you can simply call the ``upload``
+method of the ``girder.models.FileModel``. The first argument is the parent model
+object (an ``ItemModel`` or ``FolderModel`` instance) to upload into, and the second
+is a browser ``File`` object that was selected via a file input element. You can
+bind to several events of that model, as in the example below.
+
+.. code-block:: javascript
+
+    var fileModel = new girder.models.FileModel();
+    fileModel.on('g:upload.complete', function () {
+        // Called when the upload finishes
+    }).on('g:upload.chunkSent', function (info) {
+        // Called on each chunk being sent
+    }).on('g:upload.progress', function (info) {
+        // Called regularly with progress updates
+    }).on('g:upload.error', function (info) {
+        // Called if an upload fails partway through sending the data
+    }).on('g:upload.errorStarting', function (info) {
+        // Called if an upload fails to start
+    });
+    fileModel.upload(parentFolder, fileObject);
+
+If you don't feel like making your own upload interface, you can simply use
+the ``girder.views.UploadWidget`` to provide a nice GUI interface for uploading.
+It will prompt the user to drag and drop or browse for files, and then shows
+a current and overall progress bar and also provides controls for resuming a
+failed upload.
 
 Server cookbook
 ---------------
