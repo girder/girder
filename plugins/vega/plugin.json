@@ -1,4 +1,5 @@
 {
     "name": "Vega file visualizer",
-    "description": "Render Vega visualizations in the file info page."
+    "description": "Render Vega visualizations in the file info page.",
+    "version": "1.0.0"
 }

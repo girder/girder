@@ -1,4 +1,5 @@
 {
     "name": "Metadata extractor",
-    "description": "Enables the extraction of metadata from uploaded files"
+    "description": "Enables the extraction of metadata from uploaded files",
+    "version": "0.1.0"
 }
