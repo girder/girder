@@ -1,4 +1,4 @@
-Girder |build-status| |docs-status|
+Girder |build-status| |docs-status| |license-badge|
 ===================================
 
 *High-Performance Data Management Platform*
@@ -13,3 +13,7 @@ https://girder.readthedocs.org.
 .. |docs-status| image:: https://readthedocs.org/projects/girder/badge?version=latest
     :target: https://girder.readthedocs.org
     :alt: Documentation Status
+
+.. |license-badge| image:: https://pypip.in/license/pydas/badge.png
+    :target: https://pypi.python.org/pypi/pydas/
+    :alt: License
