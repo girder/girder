@@ -151,12 +151,15 @@
                 group: this.model,
                 parent: this
             }).off().on('g:sendInvite', function (params) {
+                var opts = {
+                    force: params.force || false
+                };
                 this.model.off('g:invited').on('g:invited', function () {
                     this.invitees.fetch(null, true);
                 }, this).off('g:error').on('g:error', function (err) {
                     // TODO don't alert, show something useful
                     alert(err.responseJSON.message);
-                }, this).sendInvitation(params.user.id, params.level);
+                }, this).sendInvitation(params.user.id, params.level, false, opts);
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:moderatorAdded', this.render, this)
                     .on('g:adminAdded', this.render, this);

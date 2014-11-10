@@ -234,23 +234,28 @@ class Group(Resource):
         self.requireParams('userId', params)
         user = self.getCurrentUser()
         level = int(params.get('level', AccessType.READ))
+        force = self.boolParam('force', params, default=False)
 
         userToInvite = self.model('user').load(
             id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
-        # Can only invite into access levels that you yourself have
-        self.model('group').requireAccess(group, user, level)
-        self.model('group').inviteUser(group, userToInvite, level)
+        if force:
+            self.requireAdmin(user)
+            self.model('group').addUser(group, userToInvite, level=level)
+        else:
+            # Can only invite into access levels that you yourself have
+            self.model('group').requireAccess(group, user, level)
+            self.model('group').inviteUser(group, userToInvite, level)
 
-        if params.get('quiet', '').lower() != 'true':
-            html = mail_utils.renderTemplate('groupInvite.mako', {
-                'userToInvite': userToInvite,
-                'user': user,
-                'group': group
-            })
-            mail_utils.sendEmail(
-                to=userToInvite['email'], text=html,
-                subject="Girder: You've been invited to a group")
+            if not self.boolParam('quiet', params, default=False):
+                html = mail_utils.renderTemplate('groupInvite.mako', {
+                    'userToInvite': userToInvite,
+                    'user': user,
+                    'group': group
+                })
+                mail_utils.sendEmail(
+                    to=userToInvite['email'], text=html,
+                    subject="Girder: You've been invited to a group")
 
         return self.model('group').filter(group, user, accessList=True,
                                           requests=True)
@@ -258,13 +263,19 @@ class Group(Resource):
         Description("Invite a user to join a group, or accept a user's request "
                     " to join.")
         .responseClass('Group')
+        .notes('The "force" option to this endpoint is only available to '
+               'administrators and can be used to bypass the invitation process'
+               ' and instead add the user directly to the group.')
         .param('id', 'The ID of the group.', paramType='path')
         .param('userId', 'The ID of the user to invite or accept.')
         .param('level', 'The access level the user will be given when they '
                'accept the invitation. Defaults to read access (0).',
                required=False, dataType='int')
-        .param('quiet', 'If you do not wish this action to send an email, '
-               'set this parameter to "true".', required=False)
+        .param('quiet', 'If you do not want this action to send an email to '
+               'the target user, set this to true.', dataType='boolean',
+               required=False)
+        .param('force', 'Add user directly rather than sending an invitation '
+               '(admin-only option).', dataType='boolean', required=False)
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 
