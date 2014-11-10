@@ -118,6 +118,21 @@ class AssetstoreTestCase(base.TestCase):
         oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
         self.assertFalse(oldAssetstore['current'])
 
+        # List the assetstores
+        assetstoresBefore = self.model('assetstore').list()
+        # Now break the root of the new assetstore and make sure we can still
+        # list it
+        oldroot = assetstore['root']
+        assetstore['root'] = '///invalidpath'
+        self.model('assetstore').save(assetstore, validate=False)
+        assetstoresAfter = self.model('assetstore').list()
+        self.assertEqual(len(assetstoresBefore), len(assetstoresAfter))
+        self.assertIsNone([store for store in assetstoresAfter if store['_id']
+                           == assetstore['_id']][0]['capacity']['free'])
+        # restore the original root
+        assetstore['root'] = oldroot
+        self.model('assetstore').save(assetstore, validate=False)
+
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
