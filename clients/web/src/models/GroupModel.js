@@ -7,14 +7,15 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @param userId The ID of the user to invite.
      * @param accessType The access level to invite them as.
      * @param request Set to true if this is accepting a user's request to join.
+     * @param [params] Additional parameters to pass with the request.
      */
-    sendInvitation: function (userId, accessType, request) {
+    sendInvitation: function (userId, accessType, request, params) {
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
-            data: {
+            data: _.extend({
                 userId: userId,
                 level: accessType
-            },
+            }, params),
             type: 'POST',
             error: null
         }).done(_.bind(function (resp) {

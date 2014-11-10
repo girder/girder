@@ -104,30 +104,27 @@ girder.views.GroupMembersWidget = girder.View.extend({
 girder.views.InviteUserDialog = girder.View.extend({
     events: {
         'click .g-invite-as-member': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.READ
-            });
+            this._sendInvitation(girder.AccessType.READ);
         },
 
         'click .g-invite-as-moderator': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.WRITE
-            });
+            this._sendInvitation(girder.AccessType.WRITE);
         },
 
         'click .g-invite-as-admin': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.ADMIN
-            });
+            this._sendInvitation(girder.AccessType.ADMIN);
+        },
+
+        'click .g-add-as-member': function () {
+            this._sendInvitation(girder.AccessType.READ, true);
+        },
+
+        'click .g-add-as-moderator': function () {
+            this._sendInvitation(girder.AccessType.WRITE, true);
+        },
+
+        'click .g-add-as-admin': function () {
+            this._sendInvitation(girder.AccessType.ADMIN, true);
         }
     },
 
@@ -141,9 +138,20 @@ girder.views.InviteUserDialog = girder.View.extend({
             group: this.group,
             user: this.user,
             level: this.group.get('_accessLevel'),
-            accessType: girder.AccessType
+            accessType: girder.AccessType,
+            isAdmin: girder.currentUser.get('admin')
         })).girderModal(this);
 
         return this;
+    },
+
+    _sendInvitation: function (level, force) {
+        this.$el.modal('hide');
+        this.trigger('g:sendInvite', {
+            user: this.user,
+            group: this.group,
+            level: level,
+            force: force
+        });
     }
 });

@@ -22,6 +22,10 @@
               .g-invite-as-member.btn.btn-primary
                 i.icon-mail
                 |  Invite as member
+              if isAdmin
+                .g-add-as-member.btn.btn-warning.g-add-user-button
+                  i.icon-plus
+                  | Add as member
 
         .panel.panel-default
           .panel-heading: .panel-title
@@ -36,6 +40,10 @@
               .g-invite-as-moderator.btn.btn-primary
                 i.icon-mail
                 |  Invite as moderator
+              if isAdmin
+                .g-add-as-moderator.btn.btn-warning.g-add-user-button
+                  i.icon-plus
+                  | Add as moderator
 
         if (level > accessType.WRITE)
           .panel.panel-default
@@ -52,6 +60,10 @@
                 .g-invite-as-admin.btn.btn-primary
                   i.icon-mail
                   |  Invite as administrator
+                if isAdmin
+                  .g-add-as-admin.btn.btn-warning.g-add-user-button
+                    i.icon-plus
+                    | Add as administrator
 
       .g-validation-failed-message
     .modal-footer
