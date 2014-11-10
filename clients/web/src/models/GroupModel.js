@@ -10,6 +10,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @param [params] Additional parameters to pass with the request.
      */
     sendInvitation: function (userId, accessType, request, params) {
+        params = params || {};
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
@@ -22,7 +23,11 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
             this.set(resp);
 
             if (!request && userId === girder.currentUser.get('_id')) {
-                girder.currentUser.addInvitation(this.get('_id'), accessType);
+                if (params.force) {
+                    girder.currentUser.addToGroup(this.get('_id'));
+                } else {
+                    girder.currentUser.addInvitation(this.get('_id'), accessType);
+                }
             }
             this.trigger('g:invited');
         }, this)).error(_.bind(function (err) {
