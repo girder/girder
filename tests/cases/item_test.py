@@ -486,6 +486,26 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
+        # Also test that this works for a duplicate item, such that the
+        # automatically renamed item still has the correct lowerName, and a
+        # None description is changed to an empty string.
+        item = self.model('item').createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder,
+            description=None)
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '')
+        # test if non-strings are coerced and if just missing lowerName is
+        # corrected.
+        item['description'] = 1
+        del item['lowerName']
+        self.model('item').save(item, validate=False)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertNotHasKeys(item, ('lowerName', ))
+        self.model('item').load(item['_id'], force=True)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertHasKeys(item, ('lowerName', ))
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '1')
 
     def testItemCopy(self):
         origItem = self._createItem(self.publicFolder['_id'],

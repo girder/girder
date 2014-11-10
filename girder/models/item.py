@@ -53,10 +53,22 @@ class Item(Model):
 
         return filtered
 
+    def _validateString(self, value):
+        """
+        Make sure a value is an instance of basestring and is stripped of
+        whitespace.
+        :param value: the value to coerce into a string if it isn't already.
+        :return stringValue: the string version of the value.
+        """
+        if value is None:
+            value = ''
+        if not isinstance(value, basestring):
+            value = str(value)
+        return value.strip()
+
     def validate(self, doc):
-        doc['name'] = doc['name'].strip()
-        doc['lowerName'] = doc['name'].lower()
-        doc['description'] = doc['description'].strip()
+        doc['name'] = self._validateString(doc.get('name', ''))
+        doc['description'] = self._validateString(doc.get('description', ''))
 
         if not doc['name']:
             raise ValidationException('Item name must not be empty.', 'name')
@@ -88,6 +100,7 @@ class Item(Model):
                 n += 1
                 name = '%s (%d)' % (doc['name'], n)
 
+        doc['lowerName'] = doc['name'].lower()
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
@@ -305,8 +318,8 @@ class Item(Model):
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
         return self.save({
-            'name': name,
-            'description': description,
+            'name': self._validateString(name),
+            'description': self._validateString(description),
             'folderId': ObjectId(folder['_id']),
             'creatorId': creator['_id'],
             'baseParentType': folder['baseParentType'],
