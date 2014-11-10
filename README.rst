@@ -14,6 +14,6 @@ https://girder.readthedocs.org.
     :target: https://girder.readthedocs.org
     :alt: Documentation Status
 
-.. |license-badge| image:: https://pypip.in/license/pydas/badge.png
-    :target: https://pypi.python.org/pypi/pydas/
+.. |license-badge| image:: https://pypip.in/license/girder/badge.png
+    :target: https://pypi.python.org/pypi/girder
     :alt: License
