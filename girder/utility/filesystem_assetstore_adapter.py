@@ -28,6 +28,7 @@ from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
+from girder import logger
 
 BUF_SIZE = 65536
 
@@ -69,9 +70,18 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param assetstore: The assetstore to act on.
         """
         self.assetstore = assetstore
+        # If we can't create the temp directory, the assetstore still needs to
+        # be initialized so that it can be deleted or modified.  The validation
+        # prevents invalid new assetstores from being created, so this only
+        # happens to existing assetstores that no longer can access their temp
+        # directories.
         self.tempDir = os.path.join(assetstore['root'], 'temp')
         if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+            try:
+                os.makedirs(self.tempDir)
+            except OSError:
+                logger.exception('Failed to create filesystem assetstore '
+                                 'directories {}'.format(self.tempDir))
 
     def capacityInfo(self):
         """
@@ -79,17 +89,21 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         space on the filesystem where the assetstore lives.
         """
         if hasattr(os, 'statvfs'):
-            stat = os.statvfs(self.assetstore['root'])
-            return {
-                'free': stat.f_bavail * stat.f_frsize,
-                'total': stat.f_blocks * stat.f_frsize
-            }
-        # If we don't have statvfs, just report nothing regarding disk capacity
-        else:  # pragma: no cover
-            return {
-                'free': None,
-                'total': None
-            }
+            try:
+                stat = os.statvfs(self.assetstore['root'])
+                return {
+                    'free': stat.f_bavail * stat.f_frsize,
+                    'total': stat.f_blocks * stat.f_frsize
+                }
+            except OSError:
+                logger.exception(
+                    'Failed to statvfs {}'.format(self.assetstore['root']))
+        # If we don't have statvfs or we can't query the assetstore's root
+        # directory, just report nothing regarding disk capacity
+        return {  # pragma: no cover
+            'free': None,
+            'total': None
+        }
 
     def initUpload(self, upload):
         """
