@@ -20,6 +20,7 @@
 import importlib
 
 from . import camelcase
+from girder import logger
 
 # We want the models to essentially be singletons, so we keep this centralized
 # cache of instantiated models that have been lazy-loaded.
@@ -32,8 +33,9 @@ def _loadModel(model, module, plugin):
 
     try:
         imported = importlib.import_module(module)
-    except ImportError:  # pragma: no cover
-        raise Exception('Could not load model "{}".'.format(module))
+    except ImportError:
+        logger.exception('Could not load model "{}".'.format(module))
+        raise
 
     try:
         constructor = getattr(imported, className)

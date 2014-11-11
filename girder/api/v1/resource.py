@@ -124,11 +124,8 @@ class Resource(BaseResource):
         """
         try:
             model = self.model(kind)
-        except Exception as exc:
-            if exc.message.startswith('Could not load model '):
-                model = None
-            else:
-                raise
+        except ImportError:
+            model = None
         if not model or (funcName and not hasattr(model, funcName)):
             raise RestException('Invalid resources format.')
         return model
