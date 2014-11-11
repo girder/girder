@@ -251,7 +251,8 @@ describe('Create a data hierarchy', function () {
         }, 'the new folder to display in the list');
 
         runs(function () {
-            expect($('a.g-folder-list-link:first').text()).toBe("John's subfolder");
+            expect($('a.g-folder-list-link:first').text()).toBe(
+                "John's subfolder");
             expect($('.g-folder-privacy:first').text()).toBe('Private');
             $('a.g-folder-list-link:first').click();
         });
@@ -311,7 +312,8 @@ describe('Create a data hierarchy', function () {
         });
 
         waitsFor(function () {
-            return $('.g-quick-search-container .g-search-results').hasClass('open');
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
         }, 'search to return');
 
         runs(function () {
@@ -397,6 +399,7 @@ describe('Create a data hierarchy', function () {
         });
     });
     it('download checked items', function () {
+        var redirect, widget;
         /* select a folder and the first item */
         runs(function() {
             $('.g-list-checkbox').slice(0,2).click();
@@ -406,15 +409,25 @@ describe('Create a data hierarchy', function () {
                    $('a.g-download-checked').length > 0;
         }, 'checked actions menu');
         runs(function() {
-            girderTest._redirect = null;
+            widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.
+                     hierarchyWidget;
+            /* We don't expose the hierarchy view directly, so we have to reach
+             * through some internal objects to get to it */
+            spyOn(widget, 'redirectViaForm').
+                  andCallFake(function (method, url, data) {
+                redirect = {method: method, url: url, data: data};
+                widget.redirectViaForm.originalValue(
+                    method, 'javascript: void(0)', data);
+            });
             $('a.g-download-checked').click();
         });
-        waitsFor(function () {
-            return girderTest._redirect !== null;
-        }, 'redirect to the resource download URL');
-        runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download\?resources=.*$/.test(
-                girderTest._redirect)).toBe(true);
+        runs(function() {
+            expect(widget.redirectViaForm).toHaveBeenCalled();
+            expect(redirect.method).toBe('GET');
+            expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/.
+                   test(redirect.url)).toBe(true);
+            expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources)).
+                   toBe(true);
         });
     });
     it('delete checked items', function () {
