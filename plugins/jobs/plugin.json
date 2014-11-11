@@ -1,0 +1,5 @@
+{
+    "name": "Jobs",
+    "description": "A general purpose plugin for managing offline jobs.",
+    "version": "0.1.0"
+}
