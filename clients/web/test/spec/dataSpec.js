@@ -399,7 +399,7 @@ describe('Create a data hierarchy', function () {
         });
     });
     it('download checked items', function () {
-        var redirect;
+        var redirect, widget;
         /* select a folder and the first item */
         runs(function() {
             $('.g-list-checkbox').slice(0,2).click();
@@ -409,18 +409,20 @@ describe('Create a data hierarchy', function () {
                    $('a.g-download-checked').length > 0;
         }, 'checked actions menu');
         runs(function() {
+            widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.
+                     hierarchyWidget;
             /* We don't expose the hierarchy view directly, so we have to reach
              * through some internal objects to get to it */
-            spyOn(girder.events._events['g:navigateTo'][0].ctx.bodyView.
-                  hierarchyWidget, 'redirectViaForm').
+            spyOn(widget, 'redirectViaForm').
                   andCallFake(function (method, url, data) {
                 redirect = {method: method, url: url, data: data};
+                widget.redirectViaForm.originalValue(
+                    method, 'javascript: void(0)', data);
             });
             $('a.g-download-checked').click();
         });
         runs(function() {
-            expect(girder.events._events['g:navigateTo'][0].ctx.bodyView.
-                   hierarchyWidget.redirectViaForm).toHaveBeenCalled();
+            expect(widget.redirectViaForm).toHaveBeenCalled();
             expect(redirect.method).toBe('GET');
             expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/.
                    test(redirect.url)).toBe(true);
