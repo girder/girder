@@ -33,7 +33,7 @@ def _loadModel(model, module, plugin):
 
     try:
         imported = importlib.import_module(module)
-    except ImportError:  # pragma: no cover
+    except ImportError:
         logger.exception('Could not load model "{}".'.format(module))
         raise
 
