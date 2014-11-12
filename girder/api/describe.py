@@ -135,6 +135,18 @@ class ApiDocs(object):
             content_type='text/html'
         )
 
+    def DELETE(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def PATCH(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def POST(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def PUT(self, **params):
+        raise cherrypy.HTTPError(405)
+
 
 class Describe(Resource):
     def __init__(self):

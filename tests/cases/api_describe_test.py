@@ -35,6 +35,16 @@ class ApiDescribeTestCase(base.TestCase):
     Makes sure our swagger auto API docs are working.
     """
 
+    def testInvalidResource(self):
+        resp = self.request(path='', method='DELETE', isJson=False)
+        self.assertStatus(resp, 405)
+
+        resp = self.request(path='/not_valid', method='DELETE', isJson=False)
+        self.assertStatus(resp, 404)
+
+        resp = self.request(path='/not_valid', method='GET', isJson=False)
+        self.assertStatus(resp, 404)
+
     def testApiDescribe(self):
         # Get coverage for serving the static swagger page
         resp = self.request(path='', method='GET', isJson=False)
