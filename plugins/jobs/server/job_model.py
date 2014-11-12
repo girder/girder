@@ -65,7 +65,9 @@ class Job(AccessControlledModel):
             'created': datetime.datetime.utcnow(),
             'when': when,
             'interval': interval,
-            'status': JobStatus.INACTIVE
+            'status': JobStatus.INACTIVE,
+            'progress': None,
+            'log': None
         }
 
         self.setPublic(job, public=public)
