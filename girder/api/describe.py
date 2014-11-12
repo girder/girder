@@ -167,12 +167,30 @@ class Describe(Resource):
     def describeResource(self, resource, params):
         if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))
+        methodOrder = ['GET', 'PUT', 'POST', 'PATCH', 'DELETE']
+        sortkeys = {}
+        for route, op in docs.routes[resource].iteritems():
+            # order operations in our preferred method order.  methods not in
+            # this list are put afterwards and sorted alphabetically
+            oplist = {}
+            for i in xrange(len(op)):
+                method = op[i].get('httpMethod', '')
+                if method in methodOrder:
+                    index = methodOrder.index(method)
+                else:
+                    index = len(methodOrder)
+                oplist[(index, method)] = op[i]
+            reorderedOp = [oplist[opkey] for opkey in sorted(oplist)]
+            # We want routes with path parameters before routes with fixed
+            # parameters.  This is a simple way to let sort do the right thing.
+            sortkeys[route.replace('{', ' ')] = (route, reorderedOp)
 
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
             'models': docs.models,
-            'apis': [{'path': route, 'operations': ops}
-                     for route, ops in docs.routes[resource].iteritems()]
+            'apis': [{'path': sortkeys[sortkey][0],
+                      'operations': sortkeys[sortkey][1]}
+                     for sortkey in sorted(sortkeys)]
         }
