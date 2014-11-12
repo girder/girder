@@ -56,10 +56,19 @@ class Group(Resource):
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
         user = self.getCurrentUser()
-
-        groupList = self.model('group').list(user=user, offset=offset,
-                                             limit=limit, sort=sort)
-
+        if 'text' in params:
+            exact = self.boolParam('exact', params, default=False)
+            if not exact:
+                groupList = self.model('group').textSearch(
+                    params['text'], user=user, offset=offset, limit=limit,
+                    sort=sort)
+            else:
+                groupList = self.model('group').find(
+                    {'name': params['text']}, offset=offset, limit=limit,
+                    sort=sort)
+        else:
+            groupList = self.model('group').list(user=user, offset=offset,
+                                                 limit=limit, sort=sort)
         return [self.model('group').filter(group, user) for group in groupList]
     find.description = (
         Description('Search for groups or list all groups.')
@@ -73,6 +82,8 @@ class Group(Resource):
                required=False)
         .param('sortdir', "1 for ascending, -1 for descending (default=1)",
                required=False, dataType='int')
+        .param('exact', 'If true, only return exact name matches.  This is '
+               'case senstive.', required=False, dataType='boolean')
         .errorResponse())
 
     @access.user
