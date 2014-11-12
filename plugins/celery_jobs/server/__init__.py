@@ -47,7 +47,7 @@ def validateSettings(event):
 def schedule(event):
     global celeryapp
     if celeryapp is None:
-        settingModel = ModelImpoter.model('setting')
+        settingModel = ModelImporter.model('setting')
         broker = settingModel.get(PluginSettings.BROKER_URL)
         appMain = settingModel.get(PluginSettings.APP_MAIN, 'girder_celery')
         celeryapp = celery.Celery(main=appMain, broker=broker)
