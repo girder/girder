@@ -37,7 +37,7 @@ class File(Resource):
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('GET', ('offset',), self.requestOffset)
         self.route('GET', (':id', 'download'), self.download)
-        self.route('GET', (':id', 'download', ':name'), self.download)
+        self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
         self.route('POST', ('completion',), self.finalizeUpload)
@@ -207,20 +207,37 @@ class File(Resource):
 
     @access.public
     @loadmodel(map={'id': 'file'}, model='file')
-    def download(self, file, params, name=None):
+    def download(self, file, params):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
         offset = int(params.get('offset', 0))
         user = self.getCurrentUser()
-
         self.model('item').load(id=file['itemId'], user=user,
                                 level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
     download.description = (
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within '
+               'the file.', dataType='integer', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the parent folder.', 403))
+
+    @access.public
+    def downloadWithName(self, id, name, params):
+        return self.download(id=id, params=params)
+    downloadWithName.description = (
+        Description('Download a file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('name', 'The name of the file.  This is ignored.',
+               paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within '
+               'the file.', dataType='integer', required=False)
+        .notes('The name parameter doesn\'t alter the download.  Some '
+               'download clients save files based on the last part of a path, '
+               'and specifying the name satisfies those clients.')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 
