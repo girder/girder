@@ -22,7 +22,7 @@ import datetime
 from girder import events
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
-from .constants import JobStatus
+from girder.plugins.jobs.constants import JobStatus
 
 
 class Job(AccessControlledModel):
@@ -31,6 +31,23 @@ class Job(AccessControlledModel):
         self.ensureIndices([([('userId', 1), ('created', 1)], {})])
 
     def validate(self, job):
+        return job
+
+    def cancelJob(self, job):
+        """
+        Revoke/cancel a job. This simply triggers the jobs.cancel event and
+        sets the job status  to CANCELED. If one of the event handlers
+        calls preventDefault() on the event, this job will *not* be put into
+        the CANCELED state.
+
+        :param job: The job to cancel.
+        """
+        event = events.trigger('jobs.cancel', info=job)
+
+        if not event.defaultPrevented:
+            job['status'] = JobStatus.CANCELED
+            self.save(job)
+
         return job
 
     def createJob(self, title, type, payload, user=None, when=None, interval=0,
@@ -67,7 +84,8 @@ class Job(AccessControlledModel):
             'interval': interval,
             'status': JobStatus.INACTIVE,
             'progress': None,
-            'log': None
+            'log': None,
+            'extra': {}
         }
 
         self.setPublic(job, public=public)
@@ -80,3 +98,9 @@ class Job(AccessControlledModel):
         events.trigger('jobs.create', info=job)
 
         return job
+
+    def filter(self, job, user):
+        # TODO refine?
+        keys = ('title', 'type', 'payload', 'created', 'when', 'interval',
+                'status', 'progress', 'log', 'extra')
+        return self.filterDocument(job, allow=keys)

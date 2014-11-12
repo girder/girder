@@ -29,7 +29,7 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import SettingKey, TerminalColor
+from girder.constants import SettingKey, TerminalColor, TokenScope
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
@@ -72,7 +72,7 @@ def _cacheAuthToken(fun):
     return inner
 
 
-class loadmodel(ModelImporter):
+class loadmodel(object):
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -88,15 +88,18 @@ class loadmodel(ModelImporter):
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
     """
-    def __init__(self, map, model, plugin='_core', level=None):
+    def __init__(self, map, model, plugin='_core', level=None, force=False):
         self.map = map
-        self.model = self.model(model, plugin)
+        self.model = ModelImporter.model(model, plugin)
         self.level = level
+        self.force = force
 
     def __call__(self, fun):
         @functools.wraps(fun)
         def wrapped(wrappedSelf, *args, **kwargs):
             for raw, converted in self.map.iteritems():
+                if self.force:
+                    kwargs[converted] = self.model.load(kwargs[raw], force=True)
                 if self.level is not None:
                     user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
@@ -511,8 +514,15 @@ class Resource(ModelImporter):
 
         return limit, offset, sort
 
-    def ensureTokenScopes(self, token, scope):
-        ensureTokenScopes(token, scope)
+    def ensureTokenScopes(self, scope):
+        """
+        Ensure that the token passed to this request is authorized for the
+        designated scope or set of scopes. Raises an AccessException if not.
+
+        :param scope: A scope or set of scopes that is required.
+        :type scope: str or list of str
+        """
+        ensureTokenScopes(self.getCurrentToken(), scope)
 
     @_cacheAuthToken
     def getCurrentToken(self):
@@ -553,6 +563,7 @@ class Resource(ModelImporter):
         if token is None or token['expires'] < datetime.datetime.utcnow():
             return (None, token) if returnToken else None
         else:
+            ensureTokenScopes(token, TokenScope.USER_AUTH)
             user = self.model('user').load(token['userId'], force=True)
             return (user, token) if returnToken else user
 
