@@ -50,6 +50,18 @@ class Job(AccessControlledModel):
 
         return job
 
+    def createExternalJobToken(self, job, days=7):
+        """
+        Create a token that will be used by the job executor to write info
+        about the job back to Girder.
+
+        :param job: The job to grant write access on.
+        :param days: Number of days token will be valid.
+        :type days: int or float
+        """
+        scope = 'jobs.write_' + job['_id']
+        return self.model('token').createToken(days=days, scope=scope)
+
     def createJob(self, title, type, payload, user=None, when=None, interval=0,
                   public=False):
         """
