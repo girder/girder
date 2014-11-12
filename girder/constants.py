@@ -136,3 +136,12 @@ class SettingDefault:
         SettingKey.SMTP_HOST: 'localhost:25',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
     }
+
+
+class TokenScope:
+    """
+    Constants for core token scope strings. Token scopes must not contain
+    spaces, since many services accept scope lists as a space-separated list
+    of strings.
+    """
+    USER_AUTH = 'core.user_auth'

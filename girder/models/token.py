@@ -21,7 +21,7 @@ import datetime
 import random
 import string
 
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from .model_base import AccessControlledModel
 
 
@@ -45,28 +45,59 @@ class Token(AccessControlledModel):
     def validate(self, doc):
         return doc
 
-    def createToken(self, user=None, days=180):
+    def createToken(self, user=None, days=180, scope=None):
         """
-        Creates a new token for the user. You can create an anonymous token
+        Creates a new token. You can create an anonymous token
         (such as for CSRF mitigation) by passing "None" for the user argument.
 
         :param user: The user to create the session for.
         :type user: dict
         :param days: The lifespan of the session in days.
         :type days: int
+        :param scope: Scope or list of scopes this token applies to. By default,
+        will create a user authentication token.
+        :type scope: str or list of str
         :returns: The token document that was created.
         """
         now = datetime.datetime.utcnow()
+
+        if scope is None:
+            scope = (TokenScope.USER_AUTH,)
+        elif isinstance(scope, basestring):
+            scope = (scope,)
+
         token = {
             '_id': genToken(),
             'created': now,
-            'expires': now + datetime.timedelta(days=days)
+            'expires': now + datetime.timedelta(days=days),
+            'scope': tuple(set(scope))
         }
 
         if user is None:
+            # Since these tokens don't correspond to a user, we want to be
+            # able to load them by their value without passing a user or
+            # force=True, so we set it to public access. This is OK since tokens
+            # are not exposed externally for listing, and the _id is the secure
+            # token value.
             self.setPublic(token, True)
         else:
             token['userId'] = user['_id']
             self.setUserAccess(token, user=user, level=AccessType.ADMIN)
 
         return self.save(token)
+
+    def hasScope(self, token, scope):
+        """
+        Test whether the given token has the given set of scopes. Use this
+        rather than comparing manually, since this method is backward
+        compatible with tokens that do not contain a scope field.
+
+        :param token: The token object.
+        :type token: dict
+        :param scope: A scope or set of scopes that will be tested as a subset
+        of the given token's allowed scopes.
+        :type scopes: str or list of str
+        """
+        if isinstance(scope, basestring):
+            scope = (scope,)
+        return set(scope).issubset(set(token.get('scope', ())))
