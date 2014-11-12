@@ -20,3 +20,4 @@
 
 class PluginSettings:
     BROKER_URL = 'celery_jobs.broker_url'
+    APP_MAIN = 'celery_jobs.app_main'

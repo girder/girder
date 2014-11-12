@@ -10,6 +10,9 @@ girder.views.celery_jobs_ConfigView = girder.View.extend({
             this._saveSettings([{
                 key: 'celery_jobs.broker_url',
                 value: this.$('#celery_jobs_broker').val().trim()
+            }, {
+                key: 'celery_jobs.app_main',
+                value: this.$('#celery_jobs_app_main').val().trim()
             }]);
         }
     },
@@ -18,11 +21,15 @@ girder.views.celery_jobs_ConfigView = girder.View.extend({
             type: 'GET',
             path: 'system/setting',
             data: {
-                list: JSON.stringify(['celery_jobs.broker_url'])
+                list: JSON.stringify([
+                    'celery_jobs.broker_url',
+                    'celery_jobs.app_main'
+                ])
             }
         }).done(_.bind(function (resp) {
             this.render();
             this.$('#celery_jobs_broker').val(resp['celery_jobs.broker_url']);
+            this.$('#celery_jobs_app_main').val(resp['celery_jobs.app_main']);
         }, this));
     },
 

@@ -4,6 +4,10 @@ form#g-celery-jobs-config-form(role="form")
     label.control-label(for="celery_jobs_broker") Broker URL
     input.input-sm.form-control#celery_jobs_broker(
       type="text", placeholder="Celery broker URL")
+  .form-group
+    label.control-label(for="celery_jobs_app_main") Celery app main name
+    input.input-sm.form-control#celery_jobs_app_main(
+      type="text", placeholder="Celery app main name")
 
   p#g-celery-jobs-error-message.g-validation-failed-message
   input.btn.btn-sm.btn-primary(type="submit", value="Save")

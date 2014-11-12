@@ -27,6 +27,7 @@ from .constants import PluginSettings
 
 celeryapp = None
 
+
 def validateSettings(event):
     global celeryapp
     if event.info['key'] == PluginSettings.BROKER_URL:
@@ -35,13 +36,21 @@ def validateSettings(event):
                 'Celery broker URL must not be empty.', 'value')
         celeryapp = None
         event.preventDefault().stopPropagation()
+    if event.info['key'] == PluginSettings.APP_MAIN:
+        if not event.info['value']:
+            raise ValidationException(
+                'Celery app main name must not be empty.', 'value')
+        celeryapp = None
+        event.preventDefault().stopPropagation()
 
 
 def schedule(event):
     global celeryapp
     if celeryapp is None:
-        broker = ModelImporter.model('setting').get(PluginSettings.BROKER_URL)
-        celeryapp = celery.Celery(main='girder_celery', broker=broker)
+        settingModel = ModelImpoter.model('setting')
+        broker = settingModel.get(PluginSettings.BROKER_URL)
+        appMain = settingModel.get(PluginSettings.APP_MAIN, 'girder_celery')
+        celeryapp = celery.Celery(main=appMain, broker=broker)
 
     job = event.info
     if job['handler'] == 'celery':
@@ -50,6 +59,7 @@ def schedule(event):
         event.stopPropagation()
         celeryapp.send_task(
             'girder_celery.' + job['type'], job['args'], job['kwargs'])
+
 
 def load(info):
     events.bind('model.setting.validate', 'oauth', validateSettings)
