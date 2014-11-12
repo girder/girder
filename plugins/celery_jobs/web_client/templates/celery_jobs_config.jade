@@ -1,0 +1,9 @@
+.g-config-breadcrumb-container
+form#g-celery-jobs-config-form(role="form")
+  .form-group
+    label.control-label(for="celery_jobs_broker") Broker URL
+    input.input-sm.form-control#celery_jobs_broker(
+      type="text", placeholder="Celery broker URL")
+
+  p#g-celery-jobs-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

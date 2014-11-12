@@ -62,8 +62,8 @@ class Job(AccessControlledModel):
         scope = 'jobs.write_' + job['_id']
         return self.model('token').createToken(days=days, scope=scope)
 
-    def createJob(self, title, type, payload, user=None, when=None, interval=0,
-                  public=False):
+    def createJob(self, title, type, args=(), kwargs={}, user=None, when=None,
+                  interval=0, public=False, handler=None):
         """
         Create a new job record. This method triggers a jobs.create event that
         job schedulers should listen to in order to schedule the job.
@@ -72,7 +72,10 @@ class Job(AccessControlledModel):
         :type title: str
         :param type: The type of the job.
         :type type: str
-        :param payload: The object that will be passed to the job executor.
+        :param args: Positional args of the job payload.
+        :type args: list or tuple
+        :param kwargs: Keyword arguments of the job payload.
+        :type kwargs: dict
         :param user: The user creating the job.
         :type user: dict or None
         :param when: Minimum start time for the job (UTC).
@@ -83,6 +86,8 @@ class Job(AccessControlledModel):
         :type interval: int
         :param public: Public read access flag.
         :type public: bool
+        :param handler: If this job should be handled by a specific handler,
+        use this field to store that information.
         """
         if when is None:
             when = datetime.datetime.utcnow()
@@ -90,14 +95,16 @@ class Job(AccessControlledModel):
         job = {
             'title': title,
             'type': type,
-            'payload': payload,
+            'args': args,
+            'kwargs': kwargs,
             'created': datetime.datetime.utcnow(),
             'when': when,
             'interval': interval,
             'status': JobStatus.INACTIVE,
             'progress': None,
             'log': None,
-            'extra': {}
+            'extra': {},
+            'handler': handler
         }
 
         self.setPublic(job, public=public)
@@ -113,6 +120,6 @@ class Job(AccessControlledModel):
 
     def filter(self, job, user):
         # TODO refine?
-        keys = ('title', 'type', 'payload', 'created', 'when', 'interval',
-                'status', 'progress', 'log', 'extra')
+        keys = ('title', 'type', 'args', 'kwargs', 'created', 'interval',
+                'when', 'status', 'progress', 'log', 'extra')
         return self.filterDocument(job, allow=keys)
