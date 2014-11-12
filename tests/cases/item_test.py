@@ -118,9 +118,13 @@ class ItemTestCase(base.TestCase):
 
         self.assertEqual(contents[1:], resp.collapse_body())
 
-    def _testDownloadMultiFileItem(self, item, user, contents):
+    def _testDownloadMultiFileItem(self, item, user, contents, format=None):
+        params = None
+        if format:
+            params = {'format': format}
         resp = self.request(path='/item/{}/download'.format(item['_id']),
-                            method='GET', user=user, isJson=False)
+                            method='GET', user=user, isJson=False,
+                            params=params)
         self.assertStatusOk(resp)
         # cherrypy doesn't collapse the body properly when unicode is mixed
         # with binary data.  Instead of using
@@ -149,6 +153,8 @@ class ItemTestCase(base.TestCase):
         self._testUploadFileToItem(curItem, 'file_1', self.users[0], 'foobar')
 
         self._testDownloadSingleFileItem(curItem, self.users[0], 'foobar')
+        self._testDownloadMultiFileItem(curItem, self.users[0],
+                                        {'file_1': 'foobar'}, format='zip')
 
         self._testUploadFileToItem(curItem, 'file_2', self.users[0], 'foobz')
 
