@@ -59,7 +59,8 @@ class ModelImporter(object):
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
-    def model(self, model, plugin='_core'):
+    @staticmethod
+    def model(model, plugin='_core'):
         """
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.
