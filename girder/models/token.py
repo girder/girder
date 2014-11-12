@@ -86,6 +86,12 @@ class Token(AccessControlledModel):
 
         return self.save(token)
 
+    def getAllowedScopes(self, token):
+        """
+        Return the list of allowed scopes for a given token.
+        """
+        return token.get('scope', (TokenScope.USER_AUTH,))
+
     def hasScope(self, token, scope):
         """
         Test whether the given token has the given set of scopes. Use this
@@ -100,4 +106,4 @@ class Token(AccessControlledModel):
         """
         if isinstance(scope, basestring):
             scope = (scope,)
-        return set(scope).issubset(set(token.get('scope', ())))
+        return set(scope).issubset(set(self.getAllowedScopes(token)))

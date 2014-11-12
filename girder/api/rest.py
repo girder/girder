@@ -55,6 +55,23 @@ def _cacheAuthUser(fun):
     return inner
 
 
+def _cacheAuthToken(fun):
+    """
+    This decorator for getCurrentToken ensures that the token lookup
+    is only performed once per request, and is cached on the request for
+    subsequent calls to getCurrentToken().
+    """
+    def inner(self, *args, **kwargs):
+        if hasattr(cherrypy.request, 'girderToken'):
+            return cherrypy.request.girderToken
+
+        token = fun(self, *args, **kwargs)
+        setattr(cherrypy.request, 'girderToken', token)
+
+        return token
+    return inner
+
+
 class loadmodel(ModelImporter):
     """
     This is a decorator that can be used to load a model based on an ID param.
@@ -179,6 +196,26 @@ def endpoint(fun):
 
         return _createResponse(val)
     return endpointDecorator
+
+
+def ensureTokenScopes(token, scope):
+    """
+    Call this to validate a token scope for endpoints that require tokens
+    other than a user authentication token. Raises an AccessException if the
+    required scopes are not allowed by the given token.
+
+    :param token: The token object used in the request.
+    :type token: dict
+    :param scope: The required scope or set of scopes.
+    :type scope: str or list of str
+    """
+    tokenModel = ModelImporter.model('token')
+    if not tokenModel.hasScope(token, scope):
+        setattr(cherrypy.request, 'girderUser', None)
+        raise AccessException(
+            'Invalid token scope.\nRequired: {}.\nAllowed: {}'
+            .format(' '.join(scope),
+                    ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 class RestException(Exception):
@@ -474,22 +511,15 @@ class Resource(ModelImporter):
 
         return limit, offset, sort
 
-    @_cacheAuthUser
-    def getCurrentUser(self, returnToken=False):
-        """
-        Returns the current user from the long-term cookie token.
+    def ensureTokenScopes(self, token, scope):
+        ensureTokenScopes(token, scope)
 
-        :param returnToken: Whether we should return a tuple that also contains
-                            the token.
-        :type returnToken: bool
-        :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired.
-                  If returnToken=True, returns a tuple of (user, token).
+    @_cacheAuthToken
+    def getCurrentToken(self):
         """
-        event = events.trigger('auth.user.get')
-        if event.defaultPrevented and len(event.responses) > 0:
-            return event.responses[0]
-
+        Returns the current valid token object that was passed via the token
+        header or parameter, or None if no valid token was passed.
+        """
         tokenStr = None
         if 'token' in cherrypy.request.params:  # Token as a parameter
             tokenStr = cherrypy.request.params.get('token')
@@ -497,10 +527,28 @@ class Resource(ModelImporter):
             tokenStr = cherrypy.request.headers['Girder-Token']
 
         if not tokenStr:
-            return (None, None) if returnToken else None
+            return None
 
-        token = self.model('token').load(tokenStr, force=True,
-                                         objectId=False)
+        return self.model('token').load(tokenStr, force=True, objectId=False)
+
+    @_cacheAuthUser
+    def getCurrentUser(self, returnToken=False):
+        """
+        Returns the currently authenticated user based on the token header or
+        parameter.
+
+        :param returnToken: Whether we should return a tuple that also contains
+                            the token.
+        :type returnToken: bool
+        :returns: The user document from the database, or None if the user
+                  is not logged in or the token is invalid or expired.
+                  If returnToken=True, returns a tuple of (user, token).
+        """
+        event = events.trigger('auth.user.get')
+        if event.defaultPrevented and len(event.responses) > 0:
+            return event.responses[0]
+
+        token = self.getCurrentToken()
 
         if token is None or token['expires'] < datetime.datetime.utcnow():
             return (None, token) if returnToken else None
