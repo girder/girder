@@ -20,6 +20,7 @@
 import io
 import os
 import shutil
+import urllib
 import zipfile
 
 from hashlib import sha512
@@ -220,6 +221,17 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         self.assertEqual(contents[1:], resp.collapse_body())
+
+        # Test downloading with a name
+        resp = self.request(
+            path='/file/%s/download/%s' % (
+                str(file['_id']), urllib.quote(file['name']).encode('utf8')),
+            method='GET', user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        if contents:
+            self.assertEqual(resp.headers['Content-Type'],
+                             'text/plain;charset=utf-8')
+        self.assertEqual(contents, resp.collapse_body())
 
     def _testDownloadFolder(self):
         """
