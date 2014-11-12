@@ -313,11 +313,17 @@ girder.views.HierarchyWidget = girder.View.extend({
                   desc + ')?',
             yesText: 'Delete',
             confirmCallback: function () {
-                var url = 'resource?' + view._getCheckedResourceParam();
-                girder.restRequest({path: url, type: 'DELETE'}).done(
-                    function () {
-                        view.render();
-                    });
+                var url = 'resource';
+                var resources = view._getCheckedResourceParam();
+                /* Content on DELETE requests is somewhat oddly supported (I
+                 * can't get it to work under jasmine/phantom), so override the
+                 * method. */
+                girder.restRequest({path: url, type: 'POST',
+                    data: {resources: resources},
+                    headers: {'X-HTTP-Method-Override': 'DELETE'}
+                }).done(function () {
+                    view.render();
+                });
             }
         };
         girder.confirm(params);
@@ -395,17 +401,27 @@ girder.views.HierarchyWidget = girder.View.extend({
                 return true;
             }, this);
         }
-        return 'resources=' + window.encodeURIComponent(JSON.stringify(resources));
+        return JSON.stringify(resources);
     },
 
     downloadChecked: function () {
         var url = girder.apiRoot + '/resource/download';
-        url += '?' + this._getCheckedResourceParam();
+        var resources = this._getCheckedResourceParam();
+        var data = {resources: resources};
         var token = girder.cookie.find('girderToken');
         if (token) {
-            url += '&token=' + token;
+            data.token = token;
         }
-        window.location.assign(url);
+        this.redirectViaForm('GET', url, data);
+    },
+
+    redirectViaForm: function (method, url, data) {
+        var form = $('<form action="' + url + '" method="' + method + '"/>');
+        _.each(data, function (value, key) {
+            form.append($('<input/>').attr(
+                {type: 'text', name: key, value: value}));
+        });
+        $(form).submit();
     },
 
     editFolderAccess: function () {

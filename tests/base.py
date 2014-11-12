@@ -275,7 +275,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None, exception=False, cookie=None, token=None):
+                type=None, exception=False, cookie=None, token=None,
+                additionalHeaders=None):
         """
         Make an HTTP request.
 
@@ -294,6 +295,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param token: If you want to use an existing token to login, pass
         the token ID.
         :type token: str
+        :param additionalHeaders: a list of headers to add to the
+                                  request.  Each item is a tuple of the form
+                                  (header-name, header-value).
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -302,7 +306,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
         qs = fd = None
 
-        if method in ['POST', 'PUT']:
+        if additionalHeaders:
+            headers.extend(additionalHeaders)
+        if method in ['POST', 'PUT'] or body:
             qs = urllib.urlencode(params)
             if type is None:
                 headers.append(('Content-Type',

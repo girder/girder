@@ -529,6 +529,11 @@ class Resource(ModelImporter):
 
     @endpoint
     def DELETE(self, path, params):
+        # DELETE bodies are optional.  Assume if we have a content-length, then
+        # there is a body that should be processed.
+        if 'Content-Length' in cherrypy.request.headers:
+            cherrypy.request.body.process()
+            params.update(cherrypy.request.params)
         return self.handleRoute('DELETE', path, params)
 
     @endpoint
@@ -537,7 +542,17 @@ class Resource(ModelImporter):
 
     @endpoint
     def POST(self, path, params):
-        return self.handleRoute('POST', path, params)
+        method = 'POST'
+        # When using a POST request, the method can be overridden and really be
+        # something else.  There seem to be three different 'standards' on how
+        # to do this (see http://fandry.blogspot.com/2012/03/
+        # x-http-header-method-override-and-rest.html).  We might as well
+        # support all three.
+        for key in ('X-HTTP-Method-Override', 'X-HTTP-Method',
+                    'X-Method-Override'):
+            if key in cherrypy.request.headers:
+                method = cherrypy.request.headers[key]
+        return self.handleRoute(method, path, params)
 
     @endpoint
     def PUT(self, path, params):

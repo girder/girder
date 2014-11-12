@@ -21,6 +21,7 @@ import datetime
 import io
 import json
 import os
+import urllib
 import zipfile
 
 from .. import base
@@ -209,7 +210,6 @@ class FolderTestCase(base.TestCase):
         resourceList = {
             'collection': [str(self.collection['_id'])],
             'folder': [str(self.adminSubFolder['_id'])],
-            'item': [str(self.items[0]['_id']), str(self.items[1]['_id'])]
             }
         resp = self.request(
             path='/resource', method='DELETE', user=self.admin, params={
@@ -224,10 +224,29 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
         self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
         self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 7)
-        self.assertEqual(notifs[0]['data']['current'], 7)
+        self.assertEqual(notifs[0]['data']['total'], 5)
+        self.assertEqual(notifs[0]['data']['current'], 5)
         self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
                         datetime.timedelta(minutes=1))
+        # Test deletes using a body on the request
+        resourceList = {
+            'item': [str(self.items[1]['_id'])]
+            }
+        resp = self.request(
+            path='/resource', method='DELETE', user=self.admin,
+            body=urllib.urlencode({'resources': json.dumps(resourceList)}),
+            type='application/x-www-form-urlencoded', isJson=False)
+        self.assertStatusOk(resp)
+        # Test deletes using POST and override method
+        resourceList = {
+            'item': [str(self.items[0]['_id'])]
+            }
+        resp = self.request(
+            path='/resource', method='POST', user=self.admin, params={
+                'resources': json.dumps(resourceList)
+            }, isJson=False,
+            additionalHeaders=[('X-HTTP-Method-Override', 'DELETE')])
+        self.assertStatusOk(resp)
         # All of the items should be gone now
         resp = self.request(path='/item', method='GET', user=self.admin,
                             params={'text': 'Item'})
