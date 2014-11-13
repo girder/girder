@@ -308,7 +308,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if additionalHeaders:
             headers.extend(additionalHeaders)
-        if method in ['POST', 'PUT'] or body:
+        if method in ['POST', 'PUT', 'PATCH'] or body:
             qs = urllib.urlencode(params)
             if type is None:
                 headers.append(('Content-Type',
