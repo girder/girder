@@ -36,14 +36,16 @@ class ApiDescribeTestCase(base.TestCase):
     """
 
     def testInvalidResource(self):
-        resp = self.request(path='', method='DELETE', isJson=False)
-        self.assertStatus(resp, 405)
+        methods = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
 
-        resp = self.request(path='/not_valid', method='DELETE', isJson=False)
-        self.assertStatus(resp, 404)
+        for m in methods:
+            resp = self.request(path='/not_valid', method=m, isJson=False)
+            self.assertStatus(resp, 404)
 
-        resp = self.request(path='/not_valid', method='GET', isJson=False)
-        self.assertStatus(resp, 404)
+        methods.remove('GET')
+        for m in methods:
+            resp = self.request(path='', method=m, isJson=False)
+            self.assertStatus(resp, 405)
 
     def testApiDescribe(self):
         # Get coverage for serving the static swagger page
