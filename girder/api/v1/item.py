@@ -248,14 +248,20 @@ class Item(Resource):
         user = self.getCurrentUser()
         files = [file for file in self.model('item').childFiles(
                  item=item, limit=2)]
-
-        if len(files) == 1:
+        format = params.get('format', '')
+        if format not in (None, '', 'zip'):
+            raise RestException('Unsupported format.')
+        if len(files) == 1 and format != 'zip':
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
     download.description = (
         Description('Download the contents of an item.')
         .param('id', 'The ID of the item.', paramType='path')
+        .param('format', 'If unspecified, items with one file are downloaded '
+               'as that file, and other items are downloaded as a zip '
+               'archive.  If \'zip\', a zip archive is always sent',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
