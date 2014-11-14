@@ -94,30 +94,32 @@ class loadmodel(object):
         self.level = level
         self.force = force
 
+    def _getIdValue(self, kwargs, idParam):
+        if idParam in kwargs:
+            return kwargs.pop(idParam)
+        elif idParam in kwargs['params']:
+            return kwargs['params'].pop(idParam)
+        else:
+            raise Exception('No ID parameter passed: ' + idParam)
+
     def __call__(self, fun):
         @functools.wraps(fun)
         def wrapped(wrappedSelf, *args, **kwargs):
             for raw, converted in self.map.iteritems():
-                if raw in kwargs:
-                    rawVal = kwargs[raw]
-                    del kwargs[raw]
-                elif raw in kwargs['params']:
-                    rawVal = kwargs['params'][raw]
-                else:
-                    raise Exception('No such parameter: ' + raw)
+                id = self._getIdValue(kwargs, raw)
 
                 if self.force:
-                    kwargs[converted] = self.model.load(rawVal, force=True)
+                    kwargs[converted] = self.model.load(id, force=True)
                 if self.level is not None:
                     user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
-                        id=rawVal, level=self.level, user=user)
+                        id=id, level=self.level, user=user)
                 else:
-                    kwargs[converted] = self.model.load(rawVal)
+                    kwargs[converted] = self.model.load(id)
 
                 if kwargs[converted] is None:
                     raise RestException('Invalid {} id ({}).'
-                                        .format(self.model.name, kwargs[raw]))
+                                        .format(self.model.name, id))
 
             return fun(wrappedSelf, *args, **kwargs)
         return wrapped
