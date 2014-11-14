@@ -98,19 +98,27 @@ class loadmodel(object):
         @functools.wraps(fun)
         def wrapped(wrappedSelf, *args, **kwargs):
             for raw, converted in self.map.iteritems():
+                if raw in kwargs:
+                    rawVal = kwargs[raw]
+                    del kwargs[raw]
+                elif raw in kwargs['params']:
+                    rawVal = kwargs['params'][raw]
+                else:
+                    raise Exception('No such parameter: ' + raw)
+
                 if self.force:
-                    kwargs[converted] = self.model.load(kwargs[raw], force=True)
+                    kwargs[converted] = self.model.load(rawVal, force=True)
                 if self.level is not None:
                     user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
-                        id=kwargs[raw], level=self.level, user=user)
+                        id=rawVal, level=self.level, user=user)
                 else:
-                    kwargs[converted] = self.model.load(kwargs[raw])
+                    kwargs[converted] = self.model.load(rawVal)
 
                 if kwargs[converted] is None:
                     raise RestException('Invalid {} id ({}).'
                                         .format(self.model.name, kwargs[raw]))
-                del kwargs[raw]
+
             return fun(wrappedSelf, *args, **kwargs)
         return wrapped
 
