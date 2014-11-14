@@ -163,16 +163,47 @@ class Describe(Resource):
                      for resource in sorted(docs.discovery)]
         }
 
+    def _compareRoutes(self, routeOp1, routeOp2):
+        """
+        Order routes based on path.  Alphabetize this, treating parameters as
+        before fixed paths.
+        :param routeOp1: tuple of (route, op) to compare
+        :param routeOp2: tuple of (route, op) to compare
+        :returns: negative if routeOp1<routeOp2, positive if routeOp1>routeOp2.
+        """
+        # replacing { with ' ' is a simple way to make ASCII sort do what we
+        # want for routes.  We would have to do more work if we allow - in
+        # routes
+        return cmp(routeOp1[0].replace('{', ' '), routeOp2[0].replace('{', ' '))
+
+    def _compareOperations(self, op1, op2):
+        """
+        Order operations in our preferred method order.  methods not in our
+        list are put afterwards and sorted alphabetically.
+        :param op1: first operation dictionary to compare.
+        :param op2: second operation dictionary to compare.
+        :returns: negative if op1<op2, positive if op1>op2.
+        """
+        methodOrder = ['GET', 'PUT', 'POST', 'PATCH', 'DELETE']
+        method1 = op1.get('httpMethod', '')
+        method2 = op2.get('httpMethod', '')
+        if method1 in methodOrder and method2 in methodOrder:
+            return cmp(methodOrder.index(method1), methodOrder.index(method2))
+        if method1 in methodOrder or method2 in methodOrder:
+            return cmp(method1 not in methodOrder, method2 not in methodOrder)
+        return cmp(method1, method2)
+
     @access.public
     def describeResource(self, resource, params):
         if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))
-
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
             'models': docs.models,
-            'apis': [{'path': route, 'operations': ops}
-                     for route, ops in docs.routes[resource].iteritems()]
+            'apis': [{'path': route,
+                      'operations': sorted(op, self._compareOperations)}
+                     for route, op in sorted(docs.routes[resource].iteritems(),
+                                             self._compareRoutes)]
         }
