@@ -319,7 +319,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
                 girder.restRequest({path: url, type: 'POST',
-                    data: {resources: resources},
+                    data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(function () {
                     view.render();

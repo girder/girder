@@ -32,6 +32,9 @@ girder.views.EditFileWidget = girder.View.extend({
 
     render: function () {
         var view = this;
+        if (this.file.get('mimeType') === undefined) {
+            this.file.set('mimeType', '');
+        }
         this.$el.html(jade.templates.editFileWidget({file: this.file}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').select().focus();

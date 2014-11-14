@@ -24,14 +24,12 @@ girder.views.FileListWidget = girder.View.extend({
     },
 
     editFileDialog: function (cid) {
-        if (!this.editFileWidget) {
-            this.editFileWidget = new girder.views.EditFileWidget({
-                el: $('#g-dialog-container'),
-                file: this.collection.get(cid)
-            }).off('g:saved', null, this).on('g:saved', function (file) {
-                this.render();
-            }, this);
-        }
+        this.editFileWidget = new girder.views.EditFileWidget({
+            el: $('#g-dialog-container'),
+            file: this.collection.get(cid)
+        }).off('g:saved', null, this).on('g:saved', function (file) {
+            this.render();
+        }, this);
         this.editFileWidget.render();
     },
 
@@ -80,8 +78,10 @@ girder.views.FileListWidget = girder.View.extend({
 
         if (this.fileEdit) {
             this.editFileDialog(this.fileEdit);
+            this.fileEdit = false;
         } else if (this.upload) {
             this.uploadDialog(this.upload);
+            this.upload = false;
         }
 
         return this;
