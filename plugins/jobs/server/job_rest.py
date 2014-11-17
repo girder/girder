@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-
+from girder import events
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, loadmodel
@@ -47,11 +47,15 @@ class Job(Resource):
     def updateJob(self, job, params):
         user = self.getCurrentUser()
         if user is None:
-            self.ensureTokenScopes('jobs.write_' + job['_id'])
+            self.ensureTokenScopes('jobs.job_' + job['_id'])
         else:
             self.model('job').requireAccess(job, user, level=AccessType.WRITE)
 
         # TODO actually modify the job based on the params
+        events.trigger('jobs.job.update', {
+            'job': job,
+            'params': params
+        })
 
         return job
     updateJob.description = (
@@ -60,7 +64,7 @@ class Job(Resource):
                'will typically be used by a batch processing system to send '
                'updates regarding the execution of the job. If using a non-'
                'user-associated token for authorization, the token must be '
-               'granted the "jobs.write_<id>" scope, where <id> is the ID of '
+               'granted the "jobs.job_<id>" scope, where <id> is the ID of '
                'the job being updated.')
         .param('id', 'The ID of the job.')
         .errorResponse('ID was invalid.')

@@ -70,7 +70,7 @@ class Token(AccessControlledModel):
             '_id': genToken(),
             'created': now,
             'expires': now + datetime.timedelta(days=days),
-            'scope': tuple(set(scope))
+            'scope': list(set(scope))
         }
 
         if user is None:
@@ -85,6 +85,20 @@ class Token(AccessControlledModel):
             self.setUserAccess(token, user=user, level=AccessType.ADMIN)
 
         return self.save(token)
+
+    def addScope(self, token, scope):
+        """
+        Add a scope to this token. If the token already has the scope, this is
+        a no-op.
+        """
+        if not 'scope' in token:
+            token['scope'] = []
+
+        if not scope in token['scope']:
+            token['scope'].append(scope)
+            token = self.save(token)
+
+        return token
 
     def getAllowedScopes(self, token):
         """

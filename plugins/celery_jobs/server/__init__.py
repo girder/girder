@@ -25,37 +25,30 @@ from girder.utility.model_importer import ModelImporter
 from girder.plugins.jobs.constants import JobStatus
 from .constants import PluginSettings
 
-celeryapp = None
-
 
 def validateSettings(event):
-    global celeryapp
     if event.info['key'] == PluginSettings.BROKER_URL:
         if not event.info['value']:
             raise ValidationException(
                 'Celery broker URL must not be empty.', 'value')
-        celeryapp = None
         event.preventDefault().stopPropagation()
     if event.info['key'] == PluginSettings.APP_MAIN:
         if not event.info['value']:
             raise ValidationException(
                 'Celery app main name must not be empty.', 'value')
-        celeryapp = None
         event.preventDefault().stopPropagation()
 
 
 def schedule(event):
-    global celeryapp
-    if celeryapp is None:
-        settingModel = ModelImporter.model('setting')
-        broker = settingModel.get(PluginSettings.BROKER_URL)
-        appMain = settingModel.get(PluginSettings.APP_MAIN, 'girder_celery')
-        celeryapp = celery.Celery(main=appMain, broker=broker)
+    settingModel = ModelImporter.model('setting')
+    broker = settingModel.get(PluginSettings.BROKER_URL)
+    appMain = settingModel.get(PluginSettings.APP_MAIN, 'girder_celery')
+    celeryapp = celery.Celery(main=appMain, broker=broker)
 
     job = event.info
     if job['handler'] == 'celery':
         job['status'] = JobStatus.QUEUED
-        ModelImporter.model('job').save(job)
+        ModelImporter.model('job', 'jobs').save(job)
         event.stopPropagation()
         celeryapp.send_task(
             'girder_celery.' + job['type'], job['args'], job['kwargs'])

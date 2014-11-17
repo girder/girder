@@ -50,20 +50,8 @@ class Job(AccessControlledModel):
 
         return job
 
-    def createExternalJobToken(self, job, days=7):
-        """
-        Create a token that will be used by the job executor to write info
-        about the job back to Girder.
-
-        :param job: The job to grant write access on.
-        :param days: Number of days token will be valid.
-        :type days: int or float
-        """
-        scope = 'jobs.write_' + job['_id']
-        return self.model('token').createToken(days=days, scope=scope)
-
     def createJob(self, title, type, args=(), kwargs={}, user=None, when=None,
-                  interval=0, public=False, handler=None):
+                  interval=0, public=False, handler=None, externalToken=None):
         """
         Create a new job record. This method triggers a jobs.create event that
         job schedulers should listen to in order to schedule the job.
@@ -88,6 +76,9 @@ class Job(AccessControlledModel):
         :type public: bool
         :param handler: If this job should be handled by a specific handler,
         use this field to store that information.
+        :param externalToken: If an external token was created for updating this
+        job, pass it in and it will have the job-specific scope set.
+        :type externalToken: token (dict) or None.
         """
         if when is None:
             when = datetime.datetime.utcnow()
@@ -114,6 +105,10 @@ class Job(AccessControlledModel):
             self.setUserAccess(job, user=user, level=AccessType.ADMIN)
 
         job = self.save(job)
+
+        if externalToken is not None:
+            self.model('token').addScope(
+                externalToken, 'jobs.job_' + job['_id'])
         events.trigger('jobs.create', info=job)
 
         return job
