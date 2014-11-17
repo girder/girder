@@ -51,7 +51,7 @@ def schedule(event):
         ModelImporter.model('job', 'jobs').save(job)
         event.stopPropagation()
         celeryapp.send_task(
-            'girder_celery.' + job['type'], job['args'], job['kwargs'])
+            job['type'], job['args'], job['kwargs'])
 
 
 def load(info):

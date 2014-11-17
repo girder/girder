@@ -91,10 +91,10 @@ class Token(AccessControlledModel):
         Add a scope to this token. If the token already has the scope, this is
         a no-op.
         """
-        if not 'scope' in token:
+        if 'scope' not in token:
             token['scope'] = []
 
-        if not scope in token['scope']:
+        if scope not in token['scope']:
             token['scope'].append(scope)
             token = self.save(token)
 
