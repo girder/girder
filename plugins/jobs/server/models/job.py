@@ -51,10 +51,9 @@ class Job(AccessControlledModel):
         return job
 
     def createJob(self, title, type, args=(), kwargs={}, user=None, when=None,
-                  interval=0, public=False, handler=None, externalToken=None):
+                  interval=0, public=False, handler=None):
         """
-        Create a new job record. This method triggers a jobs.create event that
-        job schedulers should listen to in order to schedule the job.
+        Create a new job record.
 
         :param title: The title of the job.
         :type title: str
@@ -106,12 +105,22 @@ class Job(AccessControlledModel):
 
         job = self.save(job)
 
-        if externalToken is not None:
-            self.model('token').addScope(
-                externalToken, 'jobs.job_' + job['_id'])
-        events.trigger('jobs.create', info=job)
-
         return job
+
+    def scheduleJob(self, job):
+        """
+        Trigger the event to schedule this job. Other plugins are in charge of
+        actually scheduling and/or executing the job.
+        """
+        events.trigger('jobs.schedule', info=job)
+
+    def createJobToken(self, job, days=7):
+        """
+        Create a token that can be used just for the management of an individual
+        job, e.g. updating job info, progress, logs, status.
+        """
+        return self.model('token').createToken(
+            days=days, scope='jobs.job_' + str(job['_id']))
 
     def filter(self, job, user):
         # TODO refine?
