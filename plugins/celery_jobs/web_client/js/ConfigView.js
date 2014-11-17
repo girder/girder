@@ -15,7 +15,7 @@ girder.views.celery_jobs_ConfigView = girder.View.extend({
                 value: this.$('#celery_jobs_app_main').val().trim()
             }, {
                 key: 'celery_jobs.celery_user_id',
-                value: this.$('#celery_jobs_user_id').val()
+                value: this.$('#celery_jobs_user_id').val().trim()
             }]);
         }
     },

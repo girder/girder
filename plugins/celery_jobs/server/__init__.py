@@ -41,7 +41,25 @@ def validateSettings(event):
         if not event.info['value']:
             raise ValidationException(
                 'Celery user ID must not be empty.', 'value')
+        ModelImporter.model('user').load(
+            event.info['value'], force=True, exc=True)
         event.preventDefault().stopPropagation()
+
+
+def getCeleryUser():
+    """
+    Return the celery user specified as a system setting.
+    """
+    userId = ModelImporter.model('setting').get(PluginSettings.CELERY_USER_ID)
+
+    if not userId:
+        raise Exception('No celery user ID setting present.')
+    user = ModelImporter.model('user').load(userId, force=True)
+
+    if not user:
+        raise Exception('Celery user does not exist ({}).'.format(userId))
+
+    return user
 
 
 def schedule(event):
