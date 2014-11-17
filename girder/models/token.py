@@ -18,11 +18,18 @@
 ###############################################################################
 
 import datetime
-import random
 import string
 
-from girder.constants import AccessType
+from girder.constants import AccessType, TerminalColor
 from .model_base import AccessControlledModel
+
+try:
+    from random import SystemRandom
+    random = SystemRandom()
+except ImportError:  # pragma: no cover
+    print(TerminalColor.warning(
+        'WARNING: using non-cryptographically secure PRNG.'))
+    import random
 
 
 def genToken(length=64):
