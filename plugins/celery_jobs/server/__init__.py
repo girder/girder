@@ -37,6 +37,11 @@ def validateSettings(event):
             raise ValidationException(
                 'Celery app main name must not be empty.', 'value')
         event.preventDefault().stopPropagation()
+    if event.info['key'] == PluginSettings.CELERY_USER_ID:
+        if not event.info['value']:
+            raise ValidationException(
+                'Celery user ID must not be empty.', 'value')
+        event.preventDefault().stopPropagation()
 
 
 def schedule(event):
@@ -56,4 +61,4 @@ def schedule(event):
 
 def load(info):
     events.bind('model.setting.validate', 'oauth', validateSettings)
-    events.bind('jobs.create', 'celery_jobs', schedule)
+    events.bind('jobs.schedule', 'celery_jobs', schedule)

@@ -8,6 +8,10 @@ form#g-celery-jobs-config-form(role="form")
     label.control-label(for="celery_jobs_app_main") Celery app main name
     input.input-sm.form-control#celery_jobs_app_main(
       type="text", placeholder="Celery app main name")
+  .form-group
+    label.control-label Celery user ID
+    input.input-sm.form-control#celery_jobs_user_id(type="text")
+    .g-celery-user-select-container
 
   p#g-celery-jobs-error-message.g-validation-failed-message
   input.btn.btn-sm.btn-primary(type="submit", value="Save")
