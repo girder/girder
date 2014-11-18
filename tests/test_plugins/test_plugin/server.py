@@ -45,7 +45,8 @@ class Other(Resource):
 
 
 def load(info):
-    info['serverRoot'], info['serverRoot'].girder = CustomAppRoot(), info['serverRoot']
+    info['serverRoot'], info['serverRoot'].girder = (
+        CustomAppRoot(), info['serverRoot'])
     info['serverRoot'].api = info['serverRoot'].girder.api
     del info['serverRoot'].girder.api
 
