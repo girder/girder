@@ -265,7 +265,7 @@ do that, just add the following line below the previous line:
 
 .. code-block:: python
 
-    setattr(info['serverRoot'], 'api', info['serverRoot'].girder.api)
+    info['serverRoot'].api = info['serverRoot'].girder.api
 
 This will now serve the api out of *both* ``/api`` and ``/girder/api``, which
 may be desirable. If you only want it to be served out of ``/api`` and not
