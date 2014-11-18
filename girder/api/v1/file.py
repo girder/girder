@@ -260,7 +260,8 @@ class File(Resource):
         self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
                                 level=AccessType.WRITE, exc=True)
         file['name'] = params.get('name', file['name']).strip()
-        file['mimeType'] = params.get('mimeType', file['mimeType']).strip()
+        file['mimeType'] = params.get('mimeType',
+                                      file.get('mimeType', '')).strip()
         return self.model('file').save(file)
     updateFile.description = (
         Description('Change file metadata such as name or MIME type.')

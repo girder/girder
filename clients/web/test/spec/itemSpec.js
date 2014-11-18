@@ -166,6 +166,86 @@ describe('Test item creation, editing, and deletion', function () {
         _editItem('button.g-save-item', 'Save');
     });
 
+    it('Edit files', function () {
+        var fileId1;
+        /* If we add the ability to the UI to upload files to the item, this
+         * should be changed */
+        runs(function() {
+            var id = window.location.hash.split('/')[1].split('?')[0];
+            /* Create two files */
+            girder.restRequest({
+                path: 'file', type: 'POST',
+                data: {parentType: 'item', parentId: id, name: 'File 1',
+                       linkUrl: 'http://nowhere.com/file1'
+                },
+                async: false
+            });
+            girder.restRequest({
+                path: 'file', type: 'POST',
+                data: {parentType: 'item', parentId: id, name: 'File 2',
+                       linkUrl: 'http://nowhere.com/file2'
+                },
+                async: false
+            });
+        });
+        /* Easy way to reload the item page */
+        _editItem('button.g-save-item', 'Save');
+        /* Try to edit each file in turn.  They must have different ids */
+        waitsFor(function () {
+            return $('.g-file-list-entry .g-update-info').length == 2;
+        }, 'the files to be listed');
+        runs(function() {
+            $('.g-file-list-entry .g-update-info').eq(0).click();
+        });
+        waitsFor(function () {
+            return window.location.hash.split('?dialog=fileedit&').length == 2;
+        }, 'the url state to change');
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('#g-name').val() !== '';
+        }, 'the dialog to be populated');
+        waitsFor(function () {
+            return $(document.activeElement).attr('id') == 'g-name';
+        }, 'the name to have focus');
+        waitsFor(function () {
+            return $('a.btn-default').text() === 'Cancel';
+        }, 'the cancel button to appear');
+        runs(function () {
+            $('#g-name').val('');
+            $('button.g-save-file').click();
+        });
+        waitsFor(function () {
+            return $('.modal-dialog .g-validation-failed-message').text() == 'File name must not be empty.';
+        }, 'error message to appear');
+        runs(function () {
+            fileId1 = window.location.hash.split('dialogid=')[1];
+            $('a.btn-default').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-file-list-entry .g-update-info').length == 2;
+        }, 'the files to be listed');
+        runs(function() {
+            $('.g-file-list-entry .g-update-info').eq(1).click();
+        });
+        waitsFor(function () {
+            return window.location.hash.split('?dialog=fileedit&').length == 2;
+        }, 'the url state to change');
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('#g-name').val() !== '';
+        }, 'the dialog to be populated');
+        waitsFor(function () {
+            return $('button.g-save-file').text() === 'Save';
+        }, 'the save button to appear');
+        runs(function () {
+            expect(window.location.hash.split('dialogid=')[1] == fileId1)
+                .toBe(false);
+            $('button.g-save-file').click();
+        });
+        girderTest.waitForLoad();
+    });
+
     it('Delete the item', function () {
         waitsFor(function () {
             return $('.g-item-actions-button:visible').length === 1;

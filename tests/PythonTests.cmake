@@ -16,6 +16,12 @@ configure_file(
   @ONLY
 )
 
+if(WIN32)
+  set(_separator "\\;")
+else()
+  set(_separator ":")
+endif()
+
 function(python_tests_init)
   if(PYTHON_COVERAGE)
     add_test(
@@ -94,7 +100,7 @@ function(add_python_test case)
   endif()
 
   set_property(TEST ${name} PROPERTY ENVIRONMENT
-    "PYTHONPATH=${pythonpath}"
+    "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${name}"
     "GIRDER_TEST_ASSETSTORE=${name}"
   )
