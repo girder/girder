@@ -38,7 +38,7 @@ from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
 from girder.utility import mail_utils, config
 
 
-def loadPlugins(plugins, root, appconf):
+def loadPlugins(plugins, root, appconf, apiRoot=None):
     """
     Loads a set of plugins into the application. The list passed in should not
     already contain dependency information; dependent plugins will be loaded
@@ -78,7 +78,8 @@ def loadPlugins(plugins, root, appconf):
     for pset in toposort(filteredDepGraph):
         for plugin in pset:
             try:
-                loadPlugin(plugin, root, appconf)
+                root, appconf, apiRoot = loadPlugin(
+                    plugin, root, appconf, apiRoot)
                 print TerminalColor.success('Loaded plugin "{}"'
                                             .format(plugin))
             except:
@@ -86,8 +87,10 @@ def loadPlugins(plugins, root, appconf):
                     'ERROR: Failed to load plugin "{}":'.format(plugin))
                 traceback.print_exc()
 
+    return root, appconf, apiRoot
 
-def loadPlugin(name, root, appconf):
+
+def loadPlugin(name, root, appconf, apiRoot=None):
     """
     Loads a plugin into the application. This means allowing it to create
     endpoints within its own web API namespace, and to register its event
@@ -99,6 +102,9 @@ def loadPlugin(name, root, appconf):
     :param appconf: The cherrypy configuration for the server.
     :type appconf: dict
     """
+    if apiRoot is None:
+        apiRoot = root.api.v1
+
     pluginDir = os.path.join(getPluginDir(), name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
@@ -123,15 +129,21 @@ def loadPlugin(name, root, appconf):
             setattr(module, 'PLUGIN_ROOT_DIR', pluginDir)
 
             if hasattr(module, 'load'):
-                module.load({
+                info = {
                     'name': name,
                     'config': appconf,
                     'serverRoot': root,
-                    'apiRoot': root.api.v1
-                })
+                    'apiRoot': apiRoot
+                }
+                module.load(info)
+
+                root, appconf, apiRoot = (
+                    info['serverRoot'], info['config'], info['apiRoot'])
         finally:
             if fp:
                 fp.close()
+
+        return root, appconf, apiRoot
 
 
 def getPluginDir():
