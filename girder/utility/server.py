@@ -106,7 +106,8 @@ def setup(test=False, plugins=None):
         'plugins': plugins
     })
 
-    plugin_utilities.loadPlugins(plugins, root, appconf)
+    root, appconf, _ = plugin_utilities.loadPlugins(
+        plugins, root, appconf, root.api.v1)
 
     application = cherrypy.tree.mount(root, '/', appconf)
 
