@@ -17,13 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
-from subprocess import check_output, CalledProcessError
 import json
+import os
+
+from subprocess import check_output, CalledProcessError
 
 from .. import base
-
 from girder.api.describe import API_VERSION
 from girder.constants import SettingKey, SettingDefault, ROOT_DIR
+from girder.utility import config
 
 
 def setUpModule():
@@ -38,6 +40,19 @@ class SystemTestCase(base.TestCase):
     """
     Contains tests of the /system API endpoints.
     """
+
+    def setUp(self):
+        base.TestCase.setUp(self)
+
+        self.users = [self.model('user').createUser(
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            for num in [0, 1]]
+
+    def tearDown(self):
+        # Restore the state of the plugins configuration
+        conf = config.getConfig()
+        if 'plugins' in conf:
+            del conf['plugins']
 
     def testGetVersion(self):
         usingGit = True
@@ -60,9 +75,7 @@ class SystemTestCase(base.TestCase):
             self.assertEqual(sha.find(resp.json['shortSHA']), 0)
 
     def testSettings(self):
-        users = [self.model('user').createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
-            for num in [0, 1]]
+        users = self.users
 
         # Only admins should be able to get or set settings
         for method in ('GET', 'PUT', 'DELETE'):
@@ -177,3 +190,17 @@ class SystemTestCase(base.TestCase):
                 'value': SettingDefault.defaults[key]
             }, user=users[0])
             self.assertStatusOk(resp)
+
+    def testPlugins(self):
+        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                  'test_plugins')
+        conf = config.getConfig()
+        conf['plugins'] = {'plugin_directory': pluginRoot}
+
+        resp = self.request(
+            path='/system/plugins', method='PUT', user=self.users[0],
+            params={'plugins': '["has_deps"]'})
+        self.assertStatusOk(resp)
+        enabled = resp.json['value']
+        self.assertEqual(len(enabled), 2)
+        self.assertTrue('test_plugin' in enabled)
