@@ -15,6 +15,9 @@ set(CTEST_SITE "Aiur.kitware")
 set(CTEST_BUILD_NAME "Linux-master-nightly-js-cov")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
+# Copy compile plugin template files
+file(COPY "${CTEST_SOURCE_DIRECTORY}/clients/web/static/built/plugins/provenance/templates.js" DESTINATION "${CTEST_SOURCE_DIRECTORY}/plugins/provenance")
+
 ctest_start("Nightly")
 ctest_configure()
 file(RENAME "${CTEST_BINARY_DIRECTORY}/../coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
