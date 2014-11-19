@@ -19,7 +19,7 @@
 
 from ..constants import SettingDefault
 from .model_base import Model, ValidationException
-from ..utility import camelcase
+from girder.utility import camelcase, plugin_utilities
 
 
 class Setting(Model):
@@ -49,9 +49,31 @@ class Setting(Model):
         return doc
 
     def validateCorePluginsEnabled(self, doc):
+        """
+        Ensures that the set of plugins passed in is a list of valid plugin
+        names. Removes any invalid plugin names, removes duplicates, and adds
+        all transitive dependencies to the enabled list.
+        """
         if not type(doc['value']) is list:
             raise ValidationException(
                 'Plugins enabled setting must be a list.', 'value')
+
+        allPlugins = plugin_utilities.findAllPlugins()
+        doc['value'] = set(doc['value'])
+
+        def addDeps(plugin):
+            for dep in allPlugins[plugin]['dependencies']:
+                if dep not in doc['value']:
+                    doc['value'].add(dep)
+                addDeps(dep)
+
+        for enabled in list(doc['value']):
+            if enabled in allPlugins:
+                addDeps(enabled)
+            else:
+                doc['value'].remove(enabled)
+
+        doc['value'] = list(doc['value'])
 
     def validateCoreCookieLifetime(self, doc):
         try:
