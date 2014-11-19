@@ -73,7 +73,7 @@ class SystemTestCase(base.TestCase):
             self.assertStatus(resp, 403)
 
         # Only valid setting keys should be allowed
-        obj = ['foo', 'bar', 'baz']
+        obj = ['oauth', 'geospatial', '_invalid_']
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': 'foo',
             'value': json.dumps(obj)
@@ -99,7 +99,7 @@ class SystemTestCase(base.TestCase):
             'key': SettingKey.PLUGINS_ENABLED
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, obj)
+        self.assertEqual(resp.json, obj[:-1])
 
         # We should now clear the setting
         resp = self.request(path='/system/setting', method='DELETE', params={
@@ -133,7 +133,7 @@ class SystemTestCase(base.TestCase):
             ])
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], obj)
+        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], obj[:-1])
 
         # We can get the default values, or ask for no value if the current
         # value is taken from the default

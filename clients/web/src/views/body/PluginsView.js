@@ -73,7 +73,12 @@ girder.views.PluginsView = girder.View.extend({
                 plugins: JSON.stringify(this.enabled)
             }
         }).done(_.bind(function (resp) {
-            // TODO acknowledge?
+            this.enabled = resp.value;
+
+            _.each(this.enabled, function (plugin) {
+                this.$('.g-plugin-switch[key="' + plugin + '"]')
+                    .attr('checked', 'checked').bootstrapSwitch('state', true, true);
+            }, this);
         }, this)).error(_.bind(function () {
             // TODO acknowledge?
         }, this));
