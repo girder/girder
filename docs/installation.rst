@@ -13,7 +13,7 @@ To install the Girder distribution from the python package index, simply run ::
 
 This will install the core girder REST API as a site package in your system
 or virtual environment.  At this point, you might want to check the
-:ref:`configuration <configuration>` to change your plugin and logging
+:doc:`configuration <configuration>` to change your plugin and logging
 paths.  In order to use the web
 interface, you must also install the web client libraries.  Girder installs
 a python script that will automatically download and install these libraries

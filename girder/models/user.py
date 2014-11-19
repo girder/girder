@@ -260,6 +260,7 @@ class User(AccessControlledModel):
                  subpath=True):
         """
         Generate a list of files within this user's folders.
+
         :param doc: the user to list.
         :param user: a user used to validate data that is returned.
         :param path: a path prefix to add to the results.

@@ -237,6 +237,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                          response.json.get('message', ''))
         self.assertStatus(response, 400)
 
+    def getSseMessages(self, resp):
+        messages = resp.collapse_body().strip().split('\n\n')
+        return map(lambda m: json.loads(m.replace('data: ', '')), messages)
+
     def ensureRequiredParams(self, path='/', method='GET', required=(),
                              user=None):
         """

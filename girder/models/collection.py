@@ -174,6 +174,7 @@ class Collection(AccessControlledModel):
                  subpath=True):
         """
         Generate a list of files within this collection's folders.
+
         :param doc: the collection to list.
         :param user: a user used to validate data that is returned.
         :param path: a path prefix to add to the results.

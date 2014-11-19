@@ -89,20 +89,23 @@ class Description(object):
         return self
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True):
+              required=True, enum=None):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
         when declaring the APIs.
         """
-        self._params.append({
+        param = {
             'name': name,
             'description': description,
             'paramType': paramType,
             'type': dataType,
             'allowMultiple': False,
             'required': required
-        })
+        }
+        if enum:
+            param['enum'] = enum
+        self._params.append(param)
         return self
 
     def consumes(self, value):

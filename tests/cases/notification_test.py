@@ -18,9 +18,11 @@
 ###############################################################################
 
 import json
+import time
 
 from .. import base
 
+from girder.models.model_base import ValidationException
 from girder.utility.progress import ProgressContext
 
 
@@ -40,7 +42,7 @@ class NotificationTestCase(base.TestCase):
             email='admin@email.com', login='admin', firstName='first',
             lastName='last', password='mypasswd')
 
-    def _getSseMessages(self, resp):
+    def getSseMessages(self, resp):
         messages = resp.collapse_body().strip().split('\n\n')
         return map(lambda m: json.loads(m.replace('data: ', '')), messages)
 
@@ -56,8 +58,11 @@ class NotificationTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body(), '')
 
+        # Use a very high rate-limit interval so that we don't fail on slow
+        # build boxes
         with ProgressContext(
-                True, user=self.admin, title='Test', total=100) as progress:
+                True, user=self.admin, title='Test', total=100,
+                interval=100) as progress:
             progress.update(current=1)
 
             # Rate limiting should make it so we didn't write the immediate
@@ -65,16 +70,44 @@ class NotificationTestCase(base.TestCase):
             resp = self.request(path='/notification/stream', method='GET',
                                 user=self.admin, isJson=False,
                                 params={'timeout': 1})
-            messages = self._getSseMessages(resp)
+            messages = self.getSseMessages(resp)
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]['type'], 'progress')
             self.assertEqual(messages[0]['data']['total'], 100)
             self.assertEqual(messages[0]['data']['current'], 0)
 
+            # Now use a very short interval to test that we do save changes
+            progress.interval = 0.01
+            time.sleep(0.02)
+            progress.update(current=2)
+            resp = self.request(path='/notification/stream', method='GET',
+                                user=self.admin, isJson=False,
+                                params={'timeout': 1})
+            messages = self.getSseMessages(resp)
+            self.assertEqual(len(messages), 1)
+            self.assertEqual(messages[0]['data']['current'], 2)
+
         # Exiting the context manager should flush the most recent update.
         resp = self.request(path='/notification/stream', method='GET',
                             user=self.admin, isJson=False,
                             params={'timeout': 1})
-        messages = self._getSseMessages(resp)
+        messages = self.getSseMessages(resp)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0]['data']['current'], 1)
+        self.assertEqual(messages[0]['data']['current'], 2)
+
+        # Test a ValidationException within the progress context
+        try:
+            with ProgressContext(
+                    True, user=self.admin, title='Test',
+                    total=100) as progress:
+                raise ValidationException('Test Message')
+        except ValidationException:
+            pass
+
+        # Exiting the context manager should flush the most recent update.
+        resp = self.request(path='/notification/stream', method='GET',
+                            user=self.admin, isJson=False,
+                            params={'timeout': 1})
+        messages = self.getSseMessages(resp)
+        self.assertEqual(messages[-1]['data']['message'],
+                         'Error: Test Message')
