@@ -26,7 +26,8 @@ from .model_base import AccessControlledModel
 try:
     from random import SystemRandom
     random = SystemRandom()
-except ImportError:  # pragma: no cover
+    random.random()  # potentially raises NotImplementedError
+except NotImplementedError:  # pragma: no cover
     print(TerminalColor.warning(
         'WARNING: using non-cryptographically secure PRNG.'))
     import random
