@@ -204,3 +204,19 @@ class SystemTestCase(base.TestCase):
         enabled = resp.json['value']
         self.assertEqual(len(enabled), 2)
         self.assertTrue('test_plugin' in enabled)
+
+    def testBadPlugin(self):
+        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                  'test_plugins')
+        conf = config.getConfig()
+        conf['plugins'] = {'plugin_directory': pluginRoot}
+        # Try to enable a good plugin and a bad plugin.  Only the good plugin
+        # should be enabled.
+        resp = self.request(
+            path='/system/plugins', method='PUT', user=self.users[0],
+            params={'plugins': '["test_plugin","bad_json"]'})
+        self.assertStatusOk(resp)
+        enabled = resp.json['value']
+        self.assertEqual(len(enabled), 1)
+        self.assertTrue('test_plugin' in enabled)
+        self.assertTrue('bad_json' not in enabled)
