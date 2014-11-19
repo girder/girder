@@ -194,7 +194,13 @@ def findAllPlugins():
         configFile = os.path.join(pluginsDir, plugin, 'plugin.json')
         if os.path.isfile(configFile):
             with open(configFile) as conf:
-                data = json.load(conf)
+                try:
+                    data = json.load(conf)
+                except ValueError:
+                    print TerminalColor.error(
+                        'ERROR: Failed to load plugin "{}": plugin.json is '
+                        'not valid JSON'.format(plugin))
+                    continue
 
         allPlugins[plugin] = {
             'name': data.get('name', plugin),
