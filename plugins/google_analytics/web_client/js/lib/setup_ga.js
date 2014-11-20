@@ -6,11 +6,8 @@ girder.events.on('g:appload.after', function () {
 
     girder.restRequest({
         type: 'GET',
-        path: 'system/setting',
-        data: {
-            list: JSON.stringify(['google_analytics.tracking_id'])
-        }
+        path: 'google_analytics/id'
     }).done(_.bind(function (resp) {
-        ga('create', resp['google_analytics.tracking_id'], 'none');
+        ga('create', resp.google_analytics_id, 'none');
     }, this));
 });
