@@ -76,6 +76,6 @@ def token(fun):
         token = self.getCurrentToken()
         if not token:
             raise RestException('Invalid or missing token.')
-        return fun
+        return fun(self, *args, **kwargs)
     accessDecorator.accessLevel = 'token'
     return accessDecorator

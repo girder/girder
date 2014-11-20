@@ -21,7 +21,7 @@ import datetime
 
 from girder import events
 from girder.constants import AccessType
-from girder.models.model_base import AccessControlledModel
+from girder.models.model_base import AccessControlledModel, ValidationException
 from girder.plugins.jobs.constants import JobStatus
 
 
@@ -31,6 +31,12 @@ class Job(AccessControlledModel):
         self.ensureIndices([([('userId', 1), ('created', 1)], {})])
 
     def validate(self, job):
+        job['status'] = int(job['status'])
+
+        if not JobStatus.isValid(job['status']):
+            raise ValidationException('Invalid job status {}.'.format(
+                                      job.get['status']), field='status')
+
         return job
 
     def cancelJob(self, job):
@@ -92,7 +98,7 @@ class Job(AccessControlledModel):
             'interval': interval,
             'status': JobStatus.INACTIVE,
             'progress': None,
-            'log': None,
+            'log': '',
             'extra': {},
             'handler': handler
         }
@@ -121,6 +127,27 @@ class Job(AccessControlledModel):
         """
         return self.model('token').createToken(
             days=days, scope='jobs.job_' + str(job['_id']))
+
+    def updateJob(self, job, log=None, overwrite=False, status=None):
+        """
+        Update an existing job.
+        """
+        changed = False
+
+        if log is not None:
+            changed = True
+            if overwrite:
+                job['log'] = log
+            else:
+                job['log'] += log
+        if status is not None:
+            changed = True
+            job['status'] = status
+
+        if changed:
+            job = self.save(job)
+
+        return job
 
     def filter(self, job, user):
         # TODO refine?

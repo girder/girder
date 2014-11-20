@@ -26,3 +26,9 @@ class JobStatus(object):
     SUCCESS = 3
     ERROR = 4
     CANCELED = 5
+
+    @staticmethod
+    def isValid(status):
+        return status in (JobStatus.INACTIVE, JobStatus.QUEUED,
+                          JobStatus.RUNNING, JobStatus.SUCCESS, JobStatus.ERROR,
+                          JobStatus.CANCELED)

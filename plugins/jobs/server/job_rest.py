@@ -30,6 +30,7 @@ class Job(Resource):
 
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
+        self.route('DELETE', (':id',), self.deleteJob)
 
     @access.public
     @loadmodel(map={'id': 'job'}, model='job', plugin='jobs',
@@ -47,15 +48,20 @@ class Job(Resource):
     def updateJob(self, job, params):
         user = self.getCurrentUser()
         if user is None:
-            self.ensureTokenScopes('jobs.job_' + job['_id'])
+            self.ensureTokenScopes('jobs.job_' + str(job['_id']))
         else:
-            self.model('job').requireAccess(job, user, level=AccessType.WRITE)
+            self.model('job', 'jobs').requireAccess(
+                job, user, level=AccessType.WRITE)
 
-        # TODO actually modify the job based on the params
-        events.trigger('jobs.job.update', {
+        event = events.trigger('jobs.job.update', {
             'job': job,
             'params': params
         })
+
+        if not event.defaultPrevented:
+            job = self.model('job', 'jobs').updateJob(
+                job, log=params.get('log'), status=params.get('status'),
+                overwrite=self.boolParam('overwrite', params, False))
 
         return job
     updateJob.description = (
@@ -66,6 +72,28 @@ class Job(Resource):
                'user-associated token for authorization, the token must be '
                'granted the "jobs.job_<id>" scope, where <id> is the ID of '
                'the job being updated.')
-        .param('id', 'The ID of the job.')
+        .param('id', 'The ID of the job.', paramType='path')
+        .param('log', 'A message to add to the job\'s log field. If you want '
+               'to overwrite any existing log content, pass another parameter '
+               '"overwrite=true".', required=False)
+        .param('overwrite', 'If passing a log parameter, you may set this to '
+               '"true" if you wish to overwrite the log field rather than '
+               'append to it. The default behavior is to append',
+               dataType='boolean', required=False)
+        .param('status', 'Update the status of the job. See the JobStatus '
+               'enumeration in the constants module in this plugin for the '
+               'numerical values of each status.', dataType='integer',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the job.', 403))
+
+    @access.user
+    @loadmodel(map={'id': 'job'}, model='job', plugin='jobs',
+               level=AccessType.ADMIN)
+    def deleteJob(self, job, params):
+        self.model('job', 'jobs').remove(job)
+    deleteJob.description = (
+        Description('Delete an existing job.')
+        .param('id', 'The ID of the job.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the job.', 403))

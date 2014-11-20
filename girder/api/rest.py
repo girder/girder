@@ -110,7 +110,7 @@ class loadmodel(object):
 
                 if self.force:
                     kwargs[converted] = self.model.load(id, force=True)
-                if self.level is not None:
+                elif self.level is not None:
                     user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
                         id=id, level=self.level, user=user)
@@ -225,6 +225,8 @@ def ensureTokenScopes(token, scope):
     tokenModel = ModelImporter.model('token')
     if not tokenModel.hasScope(token, scope):
         setattr(cherrypy.request, 'girderUser', None)
+        if isinstance(scope, basestring):
+            scope = (scope,)
         raise AccessException(
             'Invalid token scope.\nRequired: {}.\nAllowed: {}'
             .format(' '.join(scope),
@@ -573,7 +575,11 @@ class Resource(ModelImporter):
         if token is None or token['expires'] < datetime.datetime.utcnow():
             return (None, token) if returnToken else None
         else:
-            ensureTokenScopes(token, TokenScope.USER_AUTH)
+            try:
+                ensureTokenScopes(token, TokenScope.USER_AUTH)
+            except:
+                return (None, token) if returnToken else None
+
             user = self.model('user').load(token['userId'], force=True)
             return (user, token) if returnToken else user
 
