@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import pymongo
+
 from girder import events
 from girder.api import access
 from girder.api.describe import Description
@@ -28,9 +30,43 @@ class Job(Resource):
     def __init__(self):
         self.resourceName = 'job'
 
+        self.route('GET', (), self.listJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
         self.route('DELETE', (':id',), self.deleteJob)
+
+    @access.public
+    def listJobs(self, params):
+        limit, offset, sort = self.getPagingParameters(
+            params, 'created', pymongo.DESCENDING)
+        currentUser = self.getCurrentUser()
+        userId = params.get('userId')
+        if not userId:
+            user = currentUser
+        elif userId.lower() == 'none':
+            user = None
+        else:
+            user = self.model('user').load(
+                params['userId'], user=currentUser, level=AccessType.READ)
+
+        jobs = self.model('job', 'jobs').list(
+            user=user, offset=offset, limit=limit, sort=sort,
+            currentUser=currentUser)
+        return [self.model('job', 'jobs').filter(job, user) for job in jobs]
+    listJobs.description = (
+        Description('List jobs for a given user.')
+        .param('userId', 'The ID of the user whose jobs will be listed. If '
+               'not passed or empty, will use the currently logged in user. If '
+               'set to "None", will list all jobs that do not have an owning '
+               'user.', required=False)
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .param('sort', "Field to sort the result list by (default=created)",
+               required=False)
+        .param('sortdir', "1 for ascending, -1 for descending (default=-1)",
+               required=False, dataType='int'))
 
     @access.public
     @loadmodel(map={'id': 'job'}, model='job', plugin='jobs',

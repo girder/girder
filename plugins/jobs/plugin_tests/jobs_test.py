@@ -51,6 +51,7 @@ class JobsTestCase(base.TestCase):
             self.model('job', 'jobs').save(self.job)
             self.assertEqual(self.job['args'], ('hello', 'world'))
             self.assertEqual(self.job['kwargs'], {'a': 'b'})
+
         events.bind('jobs.schedule', 'test', schedule)
 
         # Create a job

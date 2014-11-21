@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import pymongo
 
 from girder import events
 from girder.constants import AccessType
@@ -28,7 +29,11 @@ from girder.plugins.jobs.constants import JobStatus
 class Job(AccessControlledModel):
     def initialize(self):
         self.name = 'job'
-        self.ensureIndices([([('userId', 1), ('created', 1)], {})])
+        compoundSearchIndex = (
+            ('userId', pymongo.ASCENDING),
+            ('created', pymongo.DESCENDING)
+        )
+        self.ensureIndices([(compoundSearchIndex, {})])
 
     def validate(self, job):
         job['status'] = int(job['status'])
@@ -38,6 +43,25 @@ class Job(AccessControlledModel):
                                       job.get['status']), field='status')
 
         return job
+
+    def list(self, user=None, limit=50, offset=0, sort=None, currentUser=None):
+        """
+        List a page of jobs for a given user.
+
+        :param user: The user who owns the job.
+        :type user: dict or None
+        :param limit: The page limit.
+        :param offset: The page offset
+        :param sort: The sort field.
+        :param currentUser: User for access filtering.
+        """
+        userId = user['_id'] if user else None
+        cursor = self.find({'userId': userId}, limit=0, sort=sort)
+
+        for r in self.filterResultsByPermission(
+            cursor=cursor, user=currentUser, level=AccessType.READ, limit=limit,
+            offset=offset):
+                yield r
 
     def cancelJob(self, job):
         """
@@ -152,5 +176,5 @@ class Job(AccessControlledModel):
     def filter(self, job, user):
         # TODO refine?
         keys = ('title', 'type', 'args', 'kwargs', 'created', 'interval',
-                'when', 'status', 'progress', 'log', 'extra')
+                'when', 'status', 'progress', 'log', 'extra', '_id', 'public')
         return self.filterDocument(job, allow=keys)

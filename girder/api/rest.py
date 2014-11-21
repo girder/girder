@@ -497,7 +497,8 @@ class Resource(ModelImporter):
         if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
-    def getPagingParameters(self, params, defaultSortField=None):
+    def getPagingParameters(self, params, defaultSortField=None,
+                            defaultSortDir=pymongo.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of
@@ -515,7 +516,7 @@ class Resource(ModelImporter):
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))
-        sortdir = int(params.get('sortdir', pymongo.ASCENDING))
+        sortdir = int(params.get('sortdir', defaultSortDir))
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
