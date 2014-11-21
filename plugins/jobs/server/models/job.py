@@ -58,10 +58,10 @@ class Job(AccessControlledModel):
         userId = user['_id'] if user else None
         cursor = self.find({'userId': userId}, limit=0, sort=sort)
 
-        for r in self.filterResultsByPermission(
-            cursor=cursor, user=currentUser, level=AccessType.READ, limit=limit,
-            offset=offset):
-                yield r
+        for r in self.filterResultsByPermission(cursor=cursor, user=currentUser,
+                                                level=AccessType.READ,
+                                                limit=limit, offset=offset):
+            yield r
 
     def cancelJob(self, job):
         """
