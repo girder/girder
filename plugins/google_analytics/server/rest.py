@@ -17,21 +17,22 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder import events
-from girder.models.model_base import ValidationException
-from . import constants, rest
+from . import constants
+from girder.api import access
+from girder.api.describe import Description
+from girder.api.rest import Resource
 
 
-def validateSettings(event):
-    key, val = event.info['key'], event.info['value']
+class GoogleAnalytics(Resource):
+    def __init__(self):
+        self.resourceName = 'google_analytics'
+        self.route('GET', ('id',), self.getId)
 
-    if key == constants.PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID:
-        if not val:
-            raise ValidationException(
-                'Google Analytics Tracking ID must not be empty.', 'value')
-        event.preventDefault().stopPropagation()
-
-
-def load(info):
-    events.bind('model.setting.validate', 'google_analytics', validateSettings)
-    info['apiRoot'].google_analytics = rest.GoogleAnalytics()
+    @access.public
+    def getId(self, params):
+        trackingId = self.model('setting').get(
+            constants.PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID)
+        return {'google_analytics_id': trackingId}
+    getId.description = (
+        Description('Public url for getting the Google Analytics tracking id.')
+    )
