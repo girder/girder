@@ -120,7 +120,7 @@ to our worker: ::
     $ gcloud compute disks create mongodb --size 100GB --zone $ZONE
     $ gcloud compute instances attach-disk k8s-hello-girder-node-1 --disk mongodb --zone $ZONE
 
-Now we need to ssh into our worker node, which you can do from the Decelopers Console,
+Now we need to ssh into our worker node, which you can do from the Developers Console,
 and mount the disk to ``/data``. First we find the name of the device, here ``sdb``. ::
 
     user_name@k8s-hello-girder-node-1:~$ ls -l /dev/disk/by-id/google-*
