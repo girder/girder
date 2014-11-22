@@ -17,9 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
+import errno
 import logging.handlers
 import os
+
+import cherrypy
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
 from girder.utility import config
@@ -71,12 +73,15 @@ def _setupLogger():
                                    os.path.join(log_root, 'info.log'))
 
     # Ensure log paths are valid
-    if not os.path.exists(log_root):
-        os.makedirs(log_root)
-    if not os.path.exists(os.path.dirname(info_log_file)):
-        os.makedirs(os.path.dirname(info_log_file))
-    if not os.path.exists(os.path.dirname(error_log_file)):
-        os.makedirs(os.path.dirname(error_log_file))
+    log_directories = [log_root,
+                       os.path.dirname(info_log_file),
+                       os.path.dirname(error_log_file)]
+    for log_dir in log_directories:
+        try:
+            os.makedirs(log_dir)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
 
     eh = logging.handlers.RotatingFileHandler(
         error_log_file, maxBytes=MAX_LOG_SIZE,
