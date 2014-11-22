@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import time
+
 from tests import base
 from girder import events
 
@@ -111,3 +113,49 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertIsNone(job)
+
+    def testListJobs(self):
+        job = self.model('job', 'jobs').createJob(
+            title='A job', type='t', user=self.users[1], public=False)
+
+        anonJob = self.model('job', 'jobs').createJob(
+            title='Anon job', type='t')
+        # Ensure timestamp for public job is strictly higher (ms resolution)
+        time.sleep(0.1) 
+        publicJob = self.model('job', 'jobs').createJob(
+            title='Anon job', type='t', public=True)
+
+        # User 1 should be able to see their own jobs
+        resp = self.request('/job', user=self.users[1], params={
+            'userId': self.users[1]['_id']
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(job['_id']))
+
+        # User 2 should not see user 1's jobs in the list
+        resp = self.request('/job', user=self.users[2], params={
+            'userId': self.users[1]['_id']
+        })
+        self.assertEqual(resp.json, [])
+
+        # Omitting a userId should assume current user
+        resp = self.request('/job', user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(job['_id']))
+
+        # Explicitly passing "None" should show anonymous jobs
+        resp = self.request('/job', user=self.users[0], params={
+            'userId': 'none'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['_id'], str(publicJob['_id']))
+        self.assertEqual(resp.json[1]['_id'], str(anonJob['_id']))
+
+        # Non-admins should only see public anon jobs
+        resp = self.request('/job', params={'userId': 'none'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(publicJob['_id']))
