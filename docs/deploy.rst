@@ -95,8 +95,13 @@ the following environment variables set: ::
     $ export CLUSTER_NAME=hello-girder
     
 Start a new project in Google Developers Console
-(here we assume it is ``hello-girder``), click the Container Engine menu item
-on the left to initialize the container service, then create a new cluster with: ::
+(here we assume it's identifier is ``my-girder``).
+Set this as your active project with ::
+
+    $ gcloud config set project my-girder
+
+Now click the Container Engine menu item on the left of the console
+to initialize the container service, then create a new cluster with: ::
 
     $ gcloud preview container clusters create $CLUSTER_NAME --num-nodes 1 --machine-type n1-standard-2 --zone $ZONE
 
