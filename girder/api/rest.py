@@ -573,16 +573,22 @@ class Resource(ModelImporter):
 
         token = self.getCurrentToken()
 
+        def retVal(user, token):
+            if returnToken:
+                return (user, token)
+            else:
+                return user
+
         if token is None or token['expires'] < datetime.datetime.utcnow():
-            return (None, token) if returnToken else None
+            return retVal(None, token)
         else:
             try:
                 ensureTokenScopes(token, TokenScope.USER_AUTH)
             except:
-                return (None, token) if returnToken else None
+                return retVal(None, token)
 
             user = self.model('user').load(token['userId'], force=True)
-            return (user, token) if returnToken else user
+            return retVal(user, token)
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
