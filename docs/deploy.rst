@@ -130,7 +130,7 @@ and mount the disk to ``/data``. First we find the name of the device, here ``sd
 
 Then we create the directory and mount the drive: ::
 
-    user_name@k8s-hello-girder-node-1:~$ sudo mkdir data
+    user_name@k8s-hello-girder-node-1:~$ sudo mkdir /data
     user_name@k8s-hello-girder-node-1:~$ sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" /dev/sdb /data
 
 Now we are ready to install our pod, which is a collection of containers that
