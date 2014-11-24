@@ -542,8 +542,10 @@ girder.views.HierarchyWidget = girder.View.extend({
             }
         }
         var resources = this._getCheckedResourceParam(true);
+        var pickDesc = this._describeResources(resources);
         /* Merge these resources with any that are already picked */
         var existing = girder.pickedResources.resources;
+        var oldDesc = this._describeResources(existing);
         _.each(existing, function (list, resource) {
             if (!resources[resource]) {
                 resources[resource] = list;
@@ -553,6 +555,17 @@ girder.views.HierarchyWidget = girder.View.extend({
         });
         girder.pickedResources.resources = resources;
         this.updateChecked();
+        var totalPickDesc = this.getPickedDescription();
+        var desc = totalPickDesc + ' picked.';
+        if (pickDesc !== totalPickDesc) {
+            desc = pickDesc + ' added to picked resources.  Now ' + desc;
+        }
+        girder.events.trigger('g:alert', {
+            icon: 'ok',
+            text: desc,
+            type: 'success',
+            timeout: 4000
+        });
     },
 
     movePickedResources: function () {
@@ -595,9 +608,17 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.clearPickedResources();
     },
 
-    clearPickedResources: function () {
+    clearPickedResources: function (event) {
         girder.resetPickedResources();
         this.updateChecked();
+        if (event) {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Cleared picked resources',
+                type: 'success',
+                timeout: 4000
+            });
+        }
     },
 
     redirectViaForm: function (method, url, data) {

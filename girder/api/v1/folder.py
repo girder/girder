@@ -120,7 +120,7 @@ class Folder(Resource):
         """
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="{}{}"'.format(folder['name'], '.zip')
+            u'attachment; filename="{}{}"'.format(folder['name'], '.zip')
 
         user = self.getCurrentUser()
 
@@ -283,12 +283,13 @@ class Folder(Resource):
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Deleting folder {}'.format(folder['name']),
+                             title=u'Deleting folder {}'.format(folder['name']),
                              message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             self.model('folder').remove(folder, progress=ctx)
-        return {'message': 'Deleted folder {}.'.format(folder['name'])}
+        return {'message': u'Deleted folder {}.'.format(folder['name'])}
     deleteFolder.description = (
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
@@ -308,7 +309,7 @@ class Folder(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException('The key name {} must not contain a '
+                raise RestException(u'The key name {} must not contain a '
                                     'period or begin with a dollar sign.'
                                     .format(k))
 
@@ -344,8 +345,9 @@ class Folder(Resource):
         public = params.get('public', None)
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Copying folder {}'.format(folder['name']),
+                             title=u'Copying folder {}'.format(folder['name']),
                              message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             newFolder = self.model('folder').copyFolder(

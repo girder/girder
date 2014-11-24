@@ -199,9 +199,8 @@ class Resource(BaseResource):
         with ProgressContext(progress, user=user,
                              title='Deleting resources',
                              message='Calculating size...') as ctx:
-            if progress:
-                ctx.update(total=total)
-                current = 0
+            ctx.update(total=total)
+            current = 0
             for kind in resources:
                 model = self._getResourceModel(kind, 'remove')
                 for id in resources[kind]:
@@ -214,6 +213,7 @@ class Resource(BaseResource):
                     if not doc:
                         raise RestException('Resource %s %s not found.' %
                                             (kind, id))
+                    # Don't do a subtree count if we weren't asked for progress
                     if progress:
                         subtotal = model.subtreeCount(doc)
                         if subtotal != 1:
@@ -287,9 +287,8 @@ class Resource(BaseResource):
                     if not doc:
                         raise RestException('Resource %s %s not found.' %
                                             (kind, id))
-                    if progress:
-                        ctx.update(message='Moving {} {}'.format(
-                            kind, doc.get('name', '')))
+                    ctx.update(message=u'Moving {} {}'.format(
+                        kind, doc.get('name', '')))
                     if kind == 'item':
                         if parent['_id'] != doc['folderId']:
                             model.move(doc, parent)
@@ -297,8 +296,7 @@ class Resource(BaseResource):
                         if ((parentType, parent['_id']) !=
                                 (doc['parentCollection'], doc['parentId'])):
                             model.move(doc, parent, parentType)
-                    if progress:
-                        ctx.update(increment=1)
+                    ctx.update(increment=1)
     moveResources.description = (
         Description('Move a set of items and folders.')
         .param('resources', 'A JSON-encoded list of types to move.  Each type '
@@ -344,13 +342,11 @@ class Resource(BaseResource):
                     if not doc:
                         raise RestException('Resource not found.  No {} with '
                                             'id {}'.format(kind, id))
-                    if progress:
-                        ctx.update(message='Copying {} {}'.format(
-                            kind, doc.get('name', '')))
+                    ctx.update(message=u'Copying {} {}'.format(
+                        kind, doc.get('name', '')))
                     if kind == 'item':
                         model.copyItem(doc, folder=parent, creator=user)
-                        if progress:
-                            ctx.update(increment=1)
+                        ctx.update(increment=1)
                     elif kind == 'folder':
                         model.copyFolder(
                             doc, parent=parent, parentType=parentType,

@@ -257,12 +257,12 @@ e.g., ``model.folder.remove`` and optionally ``preventDefault`` on the event.
 
 * **During model copy**
 
-Some models have a custome copy method (folder uses copyFolder, item uses
+Some models have a custom copy method (folder uses copyFolder, item uses
 copyItem).  When a model is copied, after the initial record is created, but
 before associated models are copied, a copy.prepare event is sent, e.g.
 ``model.folder.copy.prepare``.  The event handler is passed a tuple of
-((original model document), (copied model document)).  If the copied model is
-altered, the handler should save it without triggering events.
+``((original model document), (copied model document))``.  If the copied model
+is altered, the handler should save it without triggering events.
 
 When the copy is fully complete, and copy.after event is sent, e.g.
 ``model.folder.copy.after``.
