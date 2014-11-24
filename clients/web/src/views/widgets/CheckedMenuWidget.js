@@ -5,17 +5,14 @@
 girder.views.CheckedMenuWidget = girder.View.extend({
 
     initialize: function (params) {
-        this.folderCount = params.folderCount || 0;
-        this.itemCount = params.itemCount || 0;
-        this.minFolderLevel = girder.AccessType.READ;
-        this.minItemLevel = girder.AccessType.READ;
-
+        this._fetchAndInit(params);
         this.dropdownToggle = params.dropdownToggle;
+        this.render();
     },
 
     render: function () {
         // If nothing is checked, disable the parent element and return
-        if (this.folderCount + this.itemCount === 0) {
+        if (this.folderCount + this.itemCount + this.pickedCount === 0) {
             this.dropdownToggle.attr('disabled', 'disabled');
             return;
         }
@@ -26,7 +23,12 @@ girder.views.CheckedMenuWidget = girder.View.extend({
             minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,
             itemCount: this.itemCount,
-            AccessType: girder.AccessType
+            AccessType: girder.AccessType,
+            pickedCount: this.pickedCount,
+            pickedCopyAllowed: this.pickedCopyAllowed,
+            pickedMoveAllowed: this.pickedMoveAllowed,
+            pickedDesc: this.pickedDesc,
+            girder: girder
         }));
     },
 
@@ -38,11 +40,18 @@ girder.views.CheckedMenuWidget = girder.View.extend({
      * @param itemCount The number of checked items.
      */
     update: function (params) {
-        this.minFolderLevel = params.minFolderLevel;
-        this.minItemLevel = params.minItemLevel;
+        this._fetchAndInit(params);
+        this.render();
+    },
+
+    _fetchAndInit: function (params) {
+        this.minFolderLevel = params.minFolderLevel || girder.AccessType.READ;
+        this.minItemLevel = params.minItemLevel || girder.AccessType.READ;
         this.folderCount = params.folderCount || 0;
         this.itemCount = params.itemCount || 0;
-
-        this.render();
+        this.pickedCount = params.pickedCount || 0;
+        this.pickedCopyAllowed = params.pickedCopyAllowed || false;
+        this.pickedMoveAllowed = params.pickedMoveAllowed || false;
+        this.pickedDesc = params.pickedDesc || '';
     }
 });

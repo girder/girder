@@ -187,8 +187,9 @@ class Item(Resource):
                 raise RestException('Key names must be at least one character '
                                     'long.')
             if '.' in k or k[0] == '$':
-                raise RestException('The key name {} must not contain a period '
-                                    'or begin with a dollar sign.'.format(k))
+                raise RestException(u'The key name {} must not contain a '
+                                    'period or begin with a dollar sign.'
+                                    .format(k))
 
         return self.model('item').setMetadata(item, metadata)
     setMetadata.description = (
@@ -206,7 +207,7 @@ class Item(Resource):
     def _downloadMultifileItem(self, item, user):
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] =\
-            'attachment; filename="{}{}"'.format(item['name'], '.zip')
+            u'attachment; filename="{}{}"'.format(item['name'], '.zip')
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
@@ -272,7 +273,7 @@ class Item(Resource):
         Delete an item and its contents.
         """
         self.model('item').remove(item)
-        return {'message': 'Deleted item {}.'.format(item['name'])}
+        return {'message': u'Deleted item {}.'.format(item['name'])}
     deleteItem.description = (
         Description('Delete an item by ID.')
         .param('id', 'The ID of the item.', paramType='path')

@@ -17,12 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
+import copy
 import datetime
 import json
 import os
 
 from bson.objectid import ObjectId
 from .model_base import Model, ValidationException
+from girder import events
 from girder.constants import AccessType
 
 
@@ -412,17 +414,28 @@ class Item(Model):
             description = srcItem['description']
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
-        # copy metadata
-        self.setMetadata(newItem, srcItem.get('meta', {}))
+        # copy metadata and other extension values
+        filteredItem = self.filter(newItem)
+        updated = False
+        for key in srcItem:
+            if key not in filteredItem and key not in newItem:
+                newItem[key] = copy.deepcopy(srcItem[key])
+                updated = True
+        if updated:
+            self.save(newItem, triggerEvents=False)
+        # Give listeners a chance to change things
+        events.trigger('model.item.copy.prepare', (srcItem, newItem))
         # copy files
         for file in self.childFiles(item=srcItem, limit=0):
             self.model('file').copyFile(file, creator=creator, item=newItem)
+        events.trigger('model.item.copy.after', newItem)
         return self.filter(newItem)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):
         """
         Generate a list of files within this item.
+
         :param doc: the item to list.
         :param user: a user used to validate data that is returned.  This isn't
                      used, but is present to be consistent across all model

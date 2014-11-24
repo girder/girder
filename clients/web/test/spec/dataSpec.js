@@ -401,14 +401,14 @@ describe('Create a data hierarchy', function () {
     it('download checked items', function () {
         var redirect, widget;
         /* select a folder and the first item */
-        runs(function() {
+        runs(function () {
             $('.g-list-checkbox').slice(0,2).click();
         });
-        waitsFor(function() {
+        waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-download-checked').length > 0;
         }, 'checked actions menu');
-        runs(function() {
+        runs(function () {
             widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.
                      hierarchyWidget;
             /* We don't expose the hierarchy view directly, so we have to reach
@@ -421,7 +421,7 @@ describe('Create a data hierarchy', function () {
             });
             $('a.g-download-checked').click();
         });
-        runs(function() {
+        runs(function () {
             expect(widget.redirectViaForm).toHaveBeenCalled();
             expect(redirect.method).toBe('GET');
             expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/.
@@ -430,22 +430,188 @@ describe('Create a data hierarchy', function () {
                    toBe(true);
         });
     });
-    it('delete checked items', function () {
-        runs(function() {
+    it('copy picked items', function () {
+        runs(function () {
             $('.g-select-all').click();
         });
-        waitsFor(function() {
+        waitsFor(function () {
             return $('.g-list-checkbox:not(:checked)').length == 0 &&
                    $('.g-checked-actions-button:disabled').length == 0;
         }, 'all items to be checked');
-        runs(function() {
+        runs(function () {
             $('.g-checked-actions-button').click();
         });
-        waitsFor(function() {
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-copy-picked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-copy-picked').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 12;
+        }, 'items to be copied');
+    });
+    it('move picked items', function () {
+        runs(function () {
+            $('.g-list-checkbox:last').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:checked').length == 1 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'one item to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        /* select a second item and add it to our picked list */
+        runs(function () {
+            $('.g-select-all').click();
+            $('.g-select-all').click();
+            $('.g-list-checkbox').slice(-2,-1).click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:checked').length == 1 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'one item to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        /* add the first folder to our picked list */
+        runs(function () {
+            $('.g-select-all').click();
+            $('.g-select-all').click();
+            $('.g-list-checkbox:first').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:checked').length == 1 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'one item to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        /* Navigate to the user page and make sure move and copy are no longer
+         * offered, since we can't move items to a user. */
+        runs(function () {
+            $('.g-breadcrumb-link:first').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 2 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'just two folders to be visible');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            expect($('a.g-copy-picked').length).toBe(0);
+            expect($('a.g-move-picked').length).toBe(0);
+            expect($('a.g-clear-picked').length).toBe(1);
+            $('a.g-folder-list-link:last').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 0 &&
+                   $('.g-empty-parent-message').length == 1;
+        }, 'Public folder to be visible');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-copy-picked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-move-picked').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 3;
+        }, 'items to be copied');
+        /* Change the permission of the moved folder, then navigate back to the
+         * private folder, to save the public data for permissions tests. */
+        runs(function () {
+            $('a.g-folder-list-link:first').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 1;
+        }, 'subfolder to be shown');
+        girderTest.folderAccessControl('private', 'public');
+        runs(function () {
+            $('.g-breadcrumb-link:first').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 2 &&
+                   $('.g-checked-actions-button:disabled').length == 1;
+        }, 'just two folders to be visible and no picked items');
+        runs(function () {
+            $('a.g-folder-list-link:first').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 9;
+        }, 'private list should be down to nine items');
+    });
+    it('delete checked items', function () {
+        runs(function () {
+            $('.g-select-all').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:not(:checked)').length == 0 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'all items to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-delete-checked').length > 0;
         }, 'checked actions menu');
-        runs(function() {
+        runs(function () {
             $('a.g-delete-checked').click();
         });
 
@@ -459,5 +625,144 @@ describe('Create a data hierarchy', function () {
         waitsFor(function () {
             return $('.g-list-checkbox').length == 0;
         }, 'items to be deleted');
+    });
+    /* Create a second user so that we can test move/copy permissions */
+    it('logout from first account', girderTest.logout());
+    it('register a second user',
+        girderTest.createUser('janedoe',
+                              'jane.doe@email.com',
+                              'Jane',
+                              'Doe',
+                              'password!'));
+    it('test copy permissions', function () {
+        var oldPicked;
+        runs(function () {
+            $('a.g-folder-list-link:first').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 3;
+        }, 'public folder to be shown');
+        /* Select one item and make sure we can't copy or move */
+        runs(function () {
+            $('.g-list-checkbox:last').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:checked').length == 1 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'one item to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-clear-picked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            expect($('a.g-move-picked').length).toBe(0);
+            expect($('a.g-copy-picked').length).toBe(0);
+            oldPicked = girder.pickedResources;
+            $('.g-clear-picked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        /* Select one folder and make sure we can't move or copy. */
+        runs(function () {
+            $('.g-select-all').click();
+            $('.g-select-all').click();
+            $('.g-list-checkbox:first').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox:checked').length == 1 &&
+                   $('.g-checked-actions-button:disabled').length == 0;
+        }, 'one folder to be checked');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            $('a.g-pick-checked').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-clear-picked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            expect($('a.g-move-picked').length).toBe(0);
+            expect($('a.g-copy-picked').length).toBe(0);
+            $('#g-app-body-container').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        girderTest.goToUsersPage()();
+        runs(function () {
+            $('.g-user-link:first').click();
+        });
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 2;
+        }, 'user folders to be shown');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-clear-picked').length > 0;
+        }, 'checked actions menu');
+        /* We should be able to copy but not move */
+        runs(function () {
+            expect($('a.g-move-picked').length).toBe(0);
+            expect($('a.g-copy-picked').length).toBe(1);
+            $('#g-app-body-container').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu:visible').length == 0;
+        }, 'checked actions menu to hide');
+        runs(function () {
+            /* Skip a bunch of UI actiosn to more quickly get back to have one
+             * item selected. */
+            girder.pickedResources = oldPicked;
+            $('a.g-folder-list-link:first').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-empty-parent-message:visible').length === 1;
+        }, 'empty folder to be shown');
+        runs(function () {
+            $('.g-checked-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-clear-picked').length > 0;
+        }, 'checked actions menu');
+        /* We should be able to copy but not move */
+        runs(function () {
+            expect($('a.g-move-picked').length).toBe(0);
+            expect($('a.g-copy-picked').length).toBe(1);
+            $('#g-app-body-container').click();
+        });
     });
 });

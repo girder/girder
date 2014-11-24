@@ -41,6 +41,7 @@ class Folder(Resource):
         self.route('POST', (), self.createFolder)
         self.route('PUT', (':id',), self.updateFolder)
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
+        self.route('POST', (':id', 'copy'), self.copyFolder)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     @access.public
@@ -95,8 +96,8 @@ class Folder(Resource):
     find.description = (
         Description('Search for folders by certain properties.')
         .responseClass('Folder')
-        .param('parentType', """Type of the folder's parent: either user,
-               folder, or collection (default='folder').""", required=False)
+        .param('parentType', "Type of the folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
         .param('text', 'Pass to perform a text search.', required=False)
         .param('limit', "Result set size limit (default=50).", required=False,
@@ -119,7 +120,7 @@ class Folder(Resource):
         """
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="{}{}"'.format(folder['name'], '.zip')
+            u'attachment; filename="{}{}"'.format(folder['name'], '.zip')
 
         user = self.getCurrentUser()
 
@@ -165,8 +166,8 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('name', 'Name of the folder.', required=False)
         .param('description', 'Description for the folder.', required=False)
-        .param('parentType', 'Parent type for the new parent of this folder.',
-               required=False)
+        .param('parentType', "Type of the folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
         .param('parentId', 'Parent ID for the new parent of this folder.',
                required=False)
         .errorResponse('ID was invalid.')
@@ -239,8 +240,8 @@ class Folder(Resource):
     createFolder.description = (
         Description('Create a new folder.')
         .responseClass('Folder')
-        .param('parentType', """Type of the folder's parent: either user,
-               folder', or collection (default='folder').""", required=False)
+        .param('parentType', "Type of the folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.")
         .param('name', "Name of the folder.")
         .param('description', "Description for the folder.", required=False)
@@ -282,12 +283,13 @@ class Folder(Resource):
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Deleting folder {}'.format(folder['name']),
+                             title=u'Deleting folder {}'.format(folder['name']),
                              message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             self.model('folder').remove(folder, progress=ctx)
-        return {'message': 'Deleted folder {}.'.format(folder['name'])}
+        return {'message': u'Deleted folder {}.'.format(folder['name'])}
     deleteFolder.description = (
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
@@ -307,7 +309,7 @@ class Folder(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException('The key name {} must not contain a '
+                raise RestException(u'The key name {} must not contain a '
                                     'period or begin with a dollar sign.'
                                     .format(k))
 
@@ -323,3 +325,53 @@ class Folder(Resource):
         .errorResponse('Invalid JSON passed in request body.')
         .errorResponse('Metadata key name was invalid.')
         .errorResponse('Write access was denied for the folder.', 403))
+
+    @access.user
+    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    def copyFolder(self, folder, params):
+        """
+        Copy an existing folder to a new folder.
+        """
+        user = self.getCurrentUser()
+        parentType = params.get('parentType', folder['parentCollection'])
+        if 'parentId' in params:
+            parentId = params.get('parentId', folder['parentId'])
+            parent = self.model(parentType).load(
+                id=parentId, user=user, level=AccessType.WRITE, exc=True)
+        else:
+            parent = None
+        name = params.get('name', None)
+        description = params.get('description', None)
+        public = params.get('public', None)
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(progress, user=self.getCurrentUser(),
+                             title=u'Copying folder {}'.format(folder['name']),
+                             message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(folder))
+            newFolder = self.model('folder').copyFolder(
+                folder, creator=user, name=name, parentType=parentType,
+                parent=parent, description=description, public=public,
+                progress=ctx)
+        return newFolder
+    copyFolder.description = (
+        Description('Copy a folder.')
+        .responseClass('Folder')
+        .param('id', 'The ID of the original folder.', paramType='path')
+        .param('parentType', "Type of the new folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
+        .param('parentId', 'The ID of the parent docuemnt.', required=False)
+        .param('name', 'Name for the new folder.', required=False)
+        .param('description', "Description for the new folder.", required=False)
+        .param('public', """Whether the folder should be publicly visible.  By
+               default, inherits the value from parent folder, or in the case
+               of user or collection parentType, defaults to False.  If
+               'original', use the value of the original folder.""",
+               required=False, enum=[True, False, 'original'])
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse()
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the original folder.', 403)
+        .errorResponse('Write access was denied on the parent.', 403))

@@ -38,6 +38,8 @@ class Resource(BaseResource):
         self.route('GET', ('search',), self.search)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
+        self.route('PUT', ('move',), self.moveResources)
+        self.route('POST', ('copy',), self.copyResources)
         self.route('DELETE', (), self.delete)
 
     @access.public
@@ -95,12 +97,14 @@ class Resource(BaseResource):
                 'user', 'folder', 'item'.""")
         .errorResponse('Invalid type list format.'))
 
-    def _validateResourceSet(self, params):
+    def _validateResourceSet(self, params, allowedModels=None):
         """
         Validate a JSON string listing resources.  The resources parameter is a
         JSON encoded dictionary with each key a model name and each value a
         list of ids that must be present in that model.
         :param params: a dictionary of parameters that must include 'resources'
+        :param allowedModels: if present, an iterable of models that may be
+                              included in the resources.
         :returns: the json decoded resource dictionary.
         """
         self.requireParams(('resources', ), params)
@@ -110,6 +114,10 @@ class Resource(BaseResource):
             raise RestException('The resources parameter must be JSON.')
         if type(resources) is not dict:
             raise RestException('Invalid resources format.')
+        if allowedModels:
+            for key in resources:
+                if key not in allowedModels:
+                    raise RestException('Resource type not supported.')
         count = sum([len(resources[key]) for key in resources])
         if not count:
             raise RestException('No resources specified.')
@@ -191,13 +199,21 @@ class Resource(BaseResource):
         with ProgressContext(progress, user=user,
                              title='Deleting resources',
                              message='Calculating size...') as ctx:
-            if progress:
-                ctx.update(total=total)
-                current = 0
+            ctx.update(total=total)
+            current = 0
             for kind in resources:
                 model = self._getResourceModel(kind, 'remove')
                 for id in resources[kind]:
-                    doc = model.load(id=id, user=user, level=AccessType.ADMIN)
+                    if (kind == 'item' or
+                            isinstance(model, AccessControlledModel)):
+                        doc = model.load(id=id, user=user,
+                                         level=AccessType.ADMIN)
+                    else:
+                        doc = model.load(id=id)
+                    if not doc:
+                        raise RestException('Resource %s %s not found.' %
+                                            (kind, id))
+                    # Don't do a subtree count if we weren't asked for progress
                     if progress:
                         subtotal = model.subtreeCount(doc)
                         if subtotal != 1:
@@ -210,7 +226,7 @@ class Resource(BaseResource):
                             ctx.update(current=current,
                                        message='Deleted ' + kind)
     delete.description = (
-        Description('Delete a set of items and folders.')
+        Description('Delete a set of items, folders, or other resources.')
         .param('resources', 'A JSON-encoded list of types to delete.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id2)], "folder": [(folder id 1)]}.')
@@ -236,3 +252,119 @@ class Resource(BaseResource):
         .param('type', 'The type of the resource (item, file, etc.).')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the resource.', 403))
+
+    def _prepareMoveOrCopy(self, params):
+        user = self.getCurrentUser()
+        resources = self._validateResourceSet(params, ('folder', 'item'))
+        parentType = params['parentType'].lower()
+        if parentType not in ('user', 'collection', 'folder'):
+            raise RestException('Invalid parentType.')
+        if ('item' in resources and len(resources['item']) > 0 and
+                parentType != 'folder'):
+            raise RestException('Invalid parentType.')
+        parent = self.model(parentType).load(
+            params['parentId'], level=AccessType.WRITE, user=user, exc=True)
+        progress = self.boolParam('progress', params, default=False)
+        return user, resources, parent, parentType, progress
+
+    @access.user
+    def moveResources(self, params):
+        """
+        Move the specified resources to a new parent folder, user, or
+        collection.  Only folder and item resources can be moved with this
+        function.
+        """
+        user, resources, parent, parentType, progress = \
+            self._prepareMoveOrCopy(params)
+        total = sum([len(resources[key]) for key in resources])
+        with ProgressContext(progress, user=user, title='Moving resources',
+                             message='Calculating requirements...',
+                             total=total) as ctx:
+            for kind in resources:
+                model = self._getResourceModel(kind, 'move')
+                for id in resources[kind]:
+                    doc = model.load(id=id, user=user, level=AccessType.WRITE)
+                    if not doc:
+                        raise RestException('Resource %s %s not found.' %
+                                            (kind, id))
+                    ctx.update(message=u'Moving {} {}'.format(
+                        kind, doc.get('name', '')))
+                    if kind == 'item':
+                        if parent['_id'] != doc['folderId']:
+                            model.move(doc, parent)
+                    elif kind == 'folder':
+                        if ((parentType, parent['_id']) !=
+                                (doc['parentCollection'], doc['parentId'])):
+                            model.move(doc, parent, parentType)
+                    ctx.update(increment=1)
+    moveResources.description = (
+        Description('Move a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to move.  Each type '
+               'is a list of ids.  Only folders and items may be specified.  '
+               'For example: {"item": [(item id 1), (item id2)], "folder": '
+               '[(folder id 1)]}.')
+        .param('parentType', 'Parent type for the new parent of these '
+               'resources.')
+        .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('Resource type not supported.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('ID was invalid.'))
+
+    @access.user
+    def copyResources(self, params):
+        """
+        Copy the specified resources to a new parent folder, user, or
+        collection.  Only folder and item resources can be copied with this
+        function.
+        """
+        user, resources, parent, parentType, progress = \
+            self._prepareMoveOrCopy(params)
+        total = len(resources.get('item', []))
+        if 'folder' in resources:
+            model = self._getResourceModel('folder')
+            for id in resources['folder']:
+                folder = model.load(id=id, user=user,
+                                    level=AccessType.READ)
+                if folder:
+                    total += model.subtreeCount(folder)
+        with ProgressContext(progress, user=user, title='Copying resources',
+                             message='Calculating requirements...',
+                             total=total) as ctx:
+            for kind in resources:
+                model = self._getResourceModel(kind)
+                for id in resources[kind]:
+                    doc = model.load(id=id, user=user, level=AccessType.READ)
+                    if not doc:
+                        raise RestException('Resource not found.  No {} with '
+                                            'id {}'.format(kind, id))
+                    ctx.update(message=u'Copying {} {}'.format(
+                        kind, doc.get('name', '')))
+                    if kind == 'item':
+                        model.copyItem(doc, folder=parent, creator=user)
+                        ctx.update(increment=1)
+                    elif kind == 'folder':
+                        model.copyFolder(
+                            doc, parent=parent, parentType=parentType,
+                            creator=user, progress=ctx)
+    copyResources.description = (
+        Description('Copy a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to copy.  Each type '
+               'is a list of ids.  Only folders and items may be specified.  '
+               'For example: {"item": [(item id 1), (item id2)], "folder": '
+               '[(folder id 1)]}.')
+        .param('parentType', 'Parent type for the new parent of these '
+               'resources.')
+        .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('Resource type not supported.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('ID was invalid.'))

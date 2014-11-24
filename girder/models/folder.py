@@ -17,12 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
+import copy
 import datetime
 import json
 import os
 
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
+from girder import events
 from girder.constants import AccessType
 
 
@@ -38,7 +40,7 @@ class Folder(AccessControlledModel):
     def initialize(self):
         self.name = 'folder'
         self.ensureIndices(('parentId', 'name', 'lowerName',
-                            ([('folderId', 1), ('name', 1)], {})))
+                            ([('parentId', 1), ('name', 1)], {})))
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -59,7 +61,16 @@ class Folder(AccessControlledModel):
 
         return filtered
 
-    def validate(self, doc):
+    def validate(self, doc, allowRename=False):
+        """
+        Validate the name and description of the folder, ensure that it is
+        associated with a valid parent and that it has a unique name.
+
+        :param doc: the folder document to validate.
+        :param allowRename: if True and a folder or item exists with the same
+                            name, rename the folder so that it is unique.
+        :return doc: the validated folder document.
+        """
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
@@ -71,30 +82,36 @@ class Folder(AccessControlledModel):
             # Internal error; this shouldn't happen
             raise Exception('Invalid folder parent type: %s.' %
                             doc['parentCollection'])
-
-        # Ensure unique name among sibling folders
-        q = {
-            'parentId': doc['parentId'],
-            'name': doc['name'],
-            'parentCollection': doc['parentCollection']
-        }
-        if '_id' in doc:
-            q['_id'] = {'$ne': doc['_id']}
-        duplicate = self.findOne(q, fields=['_id'])
-        if duplicate is not None:
-            raise ValidationException('A folder with that name already '
-                                      'exists here.', 'name')
-
-        # Ensure unique name among sibling items
-        q = {
-            'folderId': doc['parentId'],
-            'name': doc['name']
-        }
-        duplicate = self.model('item').findOne(q, fields=['_id'])
-        if duplicate is not None:
-            raise ValidationException('An item with that name already '
-                                      'exists here.', 'name')
-
+        name = doc['name']
+        n = 0
+        while True:
+            q = {
+                'parentId': doc['parentId'],
+                'name': name,
+                'parentCollection': doc['parentCollection']
+            }
+            if '_id' in doc:
+                q['_id'] = {'$ne': doc['_id']}
+            dupFolder = self.model('folder').findOne(q, fields=['_id'])
+            if doc['parentCollection'] == 'folder':
+                q = {
+                    'folderId': doc['parentId'],
+                    'name': name
+                }
+                dupItem = self.model('item').findOne(q, fields=['_id'])
+            else:
+                dupItem = None
+            if dupItem is None and dupFolder is None:
+                doc['name'] = name
+                break
+            if not allowRename:
+                if dupFolder:
+                    raise ValidationException('A folder with that name '
+                                              'already exists here.', 'name')
+                raise ValidationException('An item with that name already '
+                                          'exists here.', 'name')
+            n += 1
+            name = '%s (%d)' % (doc['name'], n)
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
@@ -235,7 +252,8 @@ class Folder(AccessControlledModel):
                            or folder).
         :type parentType: str
         """
-        if parentType == 'folder' and self._isAncestor(folder, parent):
+        if (parentType == 'folder' and (self._isAncestor(folder, parent) or
+                                        folder['_id'] == parent['_id'])):
             raise ValidationException(
                 'You may not move a folder underneath itself.')
 
@@ -379,7 +397,7 @@ class Folder(AccessControlledModel):
             yield r
 
     def createFolder(self, parent, name, description='', parentType='folder',
-                     public=None, creator=None):
+                     public=None, creator=None, allowRename=False):
         """
         Create a new folder under the given parent.
 
@@ -397,6 +415,8 @@ class Folder(AccessControlledModel):
         :type public: bool or None to inherit from parent
         :param creator: User document representing the creator of this folder.
         :type creator: dict
+        :param allowRename: if True and a folder or item of this name exists,
+                            automatically rename the folder.
         :returns: The folder document that was created.
         """
         assert '_id' in parent
@@ -447,6 +467,9 @@ class Folder(AccessControlledModel):
         # Allow explicit public flag override if it's set.
         if public is not None and type(public) is bool:
             self.setPublic(folder, public=public)
+
+        if allowRename:
+            self.validate(folder, allowRename=True)
 
         # Now validate and save the folder.
         return self.save(folder)
@@ -525,6 +548,7 @@ class Folder(AccessControlledModel):
                  subpath=True):
         """
         Generate a list of files within this folder.
+
         :param doc: the folder to list.
         :param user: the user used for access.
         :param path: a path prefix to add to the results.
@@ -555,3 +579,97 @@ class Folder(AccessControlledModel):
             def stream():
                 yield json.dumps(doc['meta'])
             yield (os.path.join(path, metadataFile), stream)
+
+    def copyFolder(self, srcFolder, parent=None, name=None, description=None,
+                   parentType=None, public=None, creator=None, progress=None):
+        """
+        Copy a folder, including all child items and child folders.
+
+        :param srcFolder: the folder to copy.
+        :type srcFolder: dict
+        :param parent: The parent document.  Must be a folder, user, or
+                       collection.
+        :type parent: dict
+        :param name: The name of the new folder.  None to copy the original
+                     name.
+        :type name: str
+        :param description: Description for the new folder.  None to copy the
+                            original description.
+        :type description: str
+        :param parentType: What type the parent is:
+                           ('folder' | 'user' | 'collection')
+        :type parentType: str
+        :param public: Public read access flag.  None to inherit from parent,
+                       'original' to inherit from original folder.
+        :type public: bool, None, or 'original'.
+        :param creator: user representing the creator of the new folder.
+        :type creator: dict
+        :param progress: a progress context to record process on.
+        :type progress: girder.utility.progress.ProgressContext or None.
+        :returns: the new folder document.
+        """
+        if parentType is None:
+            parentType = srcFolder['parentCollection']
+        parentType = parentType.lower()
+        if parentType not in ('folder', 'user', 'collection'):
+            raise ValidationException('The parentType must be folder, '
+                                      'collection, or user.')
+        if parent is None:
+            parent = self.model(parentType).load(srcFolder['parentId'],
+                                                 force=True)
+        if name is None:
+            name = srcFolder['name']
+        if description is None:
+            description = srcFolder['description']
+        if public == 'original':
+            public = srcFolder.get('public', None)
+        newFolder = self.createFolder(
+            parentType=parentType, parent=parent, name=name,
+            description=description, public=public, creator=creator,
+            allowRename=True)
+        newFolder = self.copyFolderComponents(
+            srcFolder, newFolder, creator, progress)
+        return self.filter(newFolder, creator)
+
+    def copyFolderComponents(self, srcFolder, newFolder, creator, progress):
+        """
+        Copy the items, subfolders, and extended data of a folder that was just
+        copied.
+
+        :param srcFolder: the original folder.
+        :type srcFolder: dict
+        :param newFolder: the new folder.
+        :type parent: dict
+        :param creator: user representing the creator of the new folder.
+        :type creator: dict
+        :param progress: a progress context to record process on.
+        :type progress: girder.utility.progress.ProgressContext or None.
+        :returns: the new folder document.
+        """
+        # copy metadata and other extension values
+        filteredFolder = self.filter(newFolder, creator)
+        updated = False
+        for key in srcFolder:
+            if key not in filteredFolder and key not in newFolder:
+                newFolder[key] = copy.deepcopy(srcFolder[key])
+                updated = True
+        if updated:
+            self.save(newFolder, triggerEvents=False)
+        # Give listeners a chance to change things
+        events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
+        # copy items
+        for item in self.childItems(folder=srcFolder, limit=0, timeout=False):
+            self.model('item').copyItem(item, creator, folder=newFolder)
+            if progress:
+                progress.update(increment=1, message='Copied item ' +
+                                item['name'])
+        # copy subfolders
+        for sub in self.childFolders(parentType='folder', parent=srcFolder,
+                                     user=creator, limit=0, timeout=False):
+            self.copyFolder(sub, parent=newFolder, parentType='folder',
+                            creator=creator, progress=progress)
+        events.trigger('model.folder.copy.after', newFolder)
+        if progress:
+            progress.update(increment=1, message='Copied folder ' +
+                            newFolder['name'])
+        return newFolder

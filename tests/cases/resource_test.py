@@ -37,7 +37,7 @@ def tearDownModule():
     base.stopServer()
 
 
-class FolderTestCase(base.TestCase):
+class ResourceTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
         admin = {
@@ -48,43 +48,55 @@ class FolderTestCase(base.TestCase):
             'password': 'goodpassword'
         }
         self.admin = self.model('user').createUser(**admin)
+        user = {
+            'email': 'user@email.com',
+            'login': 'userlogin',
+            'firstName': 'Normal',
+            'lastName': 'User',
+            'password': 'goodpassword'
+        }
+        self.user = self.model('user').createUser(**user)
 
-    def _createFiles(self):
+    def _createFiles(self, user=None):
         """
         Create a set of items, folders, files, metadata, and collections for
         testing.
+
+        :param user: the user who should own these items.
         """
+        if user is None:
+            user = self.admin
         self.expectedZip = {}
         # Create a collection
         coll = {
             'name': 'Test Collection',
             'description': 'The description',
             'public': True,
-            'creator': self.admin
+            'creator': user
         }
         self.collection = self.model('collection').createCollection(**coll)
         # Get the collection's folder
         resp = self.request(
-            path='/folder', method='GET', user=self.admin, params={
+            path='/folder', method='GET', user=user, params={
                 'parentType': 'collection',
                 'parentId': self.collection['_id'],
             })
         self.collectionPrivateFolder = resp.json[0]
         # Get the admin user's folders
         resp = self.request(
-            path='/folder', method='GET', user=self.admin, params={
+            path='/folder', method='GET', user=user, params={
                 'parentType': 'user',
-                'parentId': self.admin['_id'],
+                'parentId': user['_id'],
                 'sort': 'name',
                 'sortdir': 1
             })
         self.adminPrivateFolder = self.model('folder').load(
-            resp.json[0]['_id'], user=self.admin)
+            resp.json[0]['_id'], user=user)
         self.adminPublicFolder = self.model('folder').load(
-            resp.json[1]['_id'], user=self.admin)
+            resp.json[1]['_id'], user=user)
         # Create a folder within the admin public forlder
         resp = self.request(
-            path='/folder', method='POST', user=self.admin, params={
+            path='/folder', method='POST', user=user, params={
                 'name': 'Folder 1', 'parentId': self.adminPublicFolder['_id']
             })
         self.adminSubFolder = resp.json
@@ -100,6 +112,7 @@ class FolderTestCase(base.TestCase):
             'Item 4', self.admin, self.collectionPrivateFolder))
         # Upload a series of files
         file, path, contents = self._uploadFile('File 1', self.items[0])
+        self.file1 = file
         self.expectedZip[path] = contents
         file, path, contents = self._uploadFile('File 2', self.items[0])
         self.expectedZip[path] = contents
@@ -121,7 +134,7 @@ class FolderTestCase(base.TestCase):
         meta = {'key2': 'value2'}
         self.model('folder').setMetadata(self.adminPublicFolder, meta)
         parents = self.model('folder').parentsToRoot(self.adminPublicFolder,
-                                                     user=self.admin)
+                                                     user=user)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
@@ -214,7 +227,7 @@ class FolderTestCase(base.TestCase):
         resp = self.request(
             path='/resource', method='DELETE', user=self.admin, params={
                 'resources': json.dumps(resourceList),
-                'progress': 'true'
+                'progress': True
             }, isJson=False)
         self.assertStatusOk(resp)
         # Make sure progress record exists and that it is set to expire soon
@@ -253,10 +266,227 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
 
+    def testDeleteResources(self):
+        # Some of the deletes were tested with the downloads.
+        self._createFiles(user=self.user)
+        # Test delete of a file
+        resp = self.request(
+            path='/resource', method='DELETE', user=self.admin, params={
+                'resources': json.dumps({'file': [str(self.file1['_id'])]}),
+                'progress': True
+            }, isJson=False)
+        self.assertStatusOk(resp)
+        # Test delete of a user who owns a folder
+        resp = self.request(
+            path='/resource', method='DELETE', user=self.admin, params={
+                'resources': json.dumps({'user': [str(self.user['_id'])]}),
+                'progress': True
+            }, isJson=False)
+        self.assertStatusOk(resp)
+        resp = self.request(path='/user', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        # Deleting a non-existant object should give an error
+        resp = self.request(
+            path='/resource', method='DELETE', user=self.admin, params={
+                'resources': json.dumps({'item': [str(self.admin['_id'])]})
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+
     def testGetResourceById(self):
+        self._createFiles()
         resp = self.request(path='/resource/{}'.format(self.admin['_id']),
                             method='GET', user=self.admin,
                             params={'type': 'user'})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
         self.assertEqual(resp.json['email'], 'good@email.com')
+        # Get a file via this method
+        resp = self.request(path='/resource/{}'.format(self.file1['_id']),
+                            method='GET', user=self.admin,
+                            params={'type': 'file'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.file1['_id']))
+
+    def testMove(self):
+        self._createFiles()
+        # Move item1 from the public to the private folder
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({'item': [str(self.items[0]['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPrivateFolder['_id']),
+                'progress': True
+            })
+        self.assertStatusOk(resp)
+        resp = self.request(path='/item/{}'.format(self.items[0]['_id']),
+                            method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['folderId'],
+                         str(self.adminPrivateFolder['_id']))
+        # We shouldn't be able to move the item into the user
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({'item': [str(self.items[0]['_id'])]}),
+                'parentType': 'user',
+                'parentId': str(self.admin['_id'])
+            })
+        self.assertStatus(resp, 400)
+        # Asking to move into a file is also an error
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({'item': [str(self.items[0]['_id'])]}),
+                'parentType': 'file',
+                'parentId': str(self.file1['_id'])
+            })
+        self.assertStatus(resp, 400)
+        # Move item1 and subFolder from the public to the private folder (item1
+        # is already there).
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({
+                    'folder': [str(self.adminSubFolder['_id'])],
+                    'item': [str(self.items[0]['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPrivateFolder['_id']),
+                'progress': True
+            })
+        self.assertStatusOk(resp)
+        resp = self.request(path='/item/{}'.format(self.items[0]['_id']),
+                            method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['folderId'],
+                         str(self.adminPrivateFolder['_id']))
+        resp = self.request(
+            path='/folder/{}'.format(self.adminSubFolder['_id']), method='GET',
+            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['parentId'],
+                         str(self.adminPrivateFolder['_id']))
+        # You can't move a folder into itself
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({
+                    'folder': [str(self.adminSubFolder['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminSubFolder['_id']),
+                'progress': True
+            })
+        self.assertStatus(resp, 400)
+        # You can move a folder into a user
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({
+                    'folder': [str(self.adminSubFolder['_id'])]}),
+                'parentType': 'user',
+                'parentId': str(self.admin['_id'])
+            })
+        self.assertStatusOk(resp)
+        resp = self.request(
+            path='/folder/{}'.format(self.adminSubFolder['_id']), method='GET',
+            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['parentCollection'], 'user')
+        self.assertEqual(resp.json['parentId'], str(self.admin['_id']))
+        # The non-admin user can't move other people's stuff
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.user,
+            params={
+                'resources': json.dumps({'item': [str(self.items[2]['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPublicFolder['_id'])
+            })
+        self.assertStatus(resp, 403)
+        # You can't move files
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin,
+            params={
+                'resources': json.dumps({
+                    'file': [str(self.file1['_id'])]}),
+                'parentType': 'item',
+                'parentId': str(self.items[1]['_id'])
+            })
+        self.assertStatus(resp, 400)
+        # Moving a non-existant object should give an error
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin, params={
+                'resources': json.dumps({'item': [str(self.admin['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPublicFolder['_id'])
+            }, isJson=False)
+        self.assertStatus(resp, 400)
+
+    def testCopy(self):
+        self._createFiles()
+        # The non-admin user should be able to copy public documents
+        resp = self.request(
+            path='/resource/copy', method='POST', user=self.user,
+            params={
+                'resources': json.dumps({
+                    'folder': [str(self.adminSubFolder['_id'])]}),
+                'parentType': 'user',
+                'parentId': str(self.user['_id']),
+                'progress': True
+            })
+        self.assertStatusOk(resp)
+        resp = self.request(
+            path='/folder', method='GET', user=self.user,
+            params={
+                'parentType': 'user',
+                'parentId': str(self.user['_id']),
+                'text': 'Folder 1'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        copiedFolder = resp.json[0]
+        self.assertNotEqual(str(copiedFolder['_id']),
+                            str(self.adminSubFolder['_id']))
+        # We should have reported 2 things copied in the progress (1 folder and
+        # 1 item)
+        resp = self.request(
+            path='/notification/stream', method='GET', user=self.user,
+            isJson=False, params={'timeout': 1})
+        messages = self.getSseMessages(resp)
+        self.assertTrue(len(messages) >= 1)
+        self.assertEqual(messages[-1]['data']['current'], 2)
+        # The non-admin user should not be able to copy private documents
+        resp = self.request(
+            path='/resource/copy', method='POST', user=self.user,
+            params={
+                'resources': json.dumps({
+                    'folder': [str(self.adminPrivateFolder['_id'])]}),
+                'parentType': 'user',
+                'parentId': str(self.user['_id'])
+            })
+        self.assertStatus(resp, 403)
+        # Copy a group of items from different spots.  Do this as admin
+        resp = self.request(
+            path='/resource/copy', method='POST', user=self.admin,
+            params={
+                'resources': json.dumps({
+                    'item': [str(item['_id']) for item in self.items]}),
+                'parentType': 'folder',
+                'parentId': str(copiedFolder['_id']),
+                'progress': True
+            })
+        self.assertStatusOk(resp)
+        # We already had one item in that folder, so now we should have one
+        # more than in the self.items list.  The user should be able to see
+        # these items.
+        resp = self.request(path='/item', method='GET', user=self.user,
+                            params={'folderId': str(copiedFolder['_id'])})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), len(self.items)+1)
+        # Copying a non-existant object should give an error
+        resp = self.request(
+            path='/resource/copy', method='POST', user=self.admin, params={
+                'resources': json.dumps({'item': [str(self.admin['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPublicFolder['_id'])
+            }, isJson=False)
+        self.assertStatus(resp, 400)

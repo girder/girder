@@ -20,6 +20,7 @@
 import json
 
 from tests import base
+from girder import events
 from girder.constants import AccessType
 from server import constants
 
@@ -204,6 +205,15 @@ class ProvenanceTestCase(base.TestCase):
         params['lowerName'] = params['name'].lower()
         self._checkProvenance(None, item, 8, admin, 'update', {'new': params})
 
+        # Copy the item and check that we marked it as copied
+        params = {'name': 'Copied object'}
+        resp = self.request(path='/item/{}/copy'.format(item['_id']),
+                            method='POST', user=admin, params=params)
+        self.assertStatusOk(resp)
+        newItem = resp.json
+        self._checkProvenance(None, newItem, 9, admin, 'copy',
+                              {'originalId': str(item['_id'])})
+
     def testProvenanceItemFiles(self):
         """
         Test item provenance when adding, modifying, and deleting files.
@@ -356,3 +366,26 @@ class ProvenanceTestCase(base.TestCase):
         resp = self._getProvenance(folder2, user, 'not_a_version',
                                    resource='folder', checkOk=False)
         self.assertStatus(resp, 400)
+
+    def testProvenanceSetting(self):
+        # After trying to set this set, only some of them should have events
+        self.model('setting').set(
+            constants.PluginSettings.PROVENANCE_RESOURCES,
+            'file,notification,unknown')
+        checkList = {
+            'item': True,
+            'file': True,
+            'notification': False,
+            'unknown': True}
+        for key in checkList:
+            eventName = 'model.{}.save'.format(key)
+            self.assertTrue((eventName in events._mapping and 'provenance' in
+                            events._mapping[eventName]) is checkList[key])
+        # Setting a blank should be okay.  It should also remove all but item
+        # event mappings
+        self.model('setting').set(
+            constants.PluginSettings.PROVENANCE_RESOURCES, '')
+        for key in checkList:
+            eventName = 'model.{}.save'.format(key)
+            self.assertTrue((eventName in events._mapping and 'provenance' in
+                            events._mapping[eventName]) is (key == 'item'))

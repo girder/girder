@@ -18,6 +18,7 @@
 ###############################################################################
 
 from bson.objectid import ObjectId
+import copy
 import datetime
 
 import constants
@@ -78,6 +79,8 @@ class ResourceExt(Resource):
             if resource not in self.boundResources:
                 events.bind('model.{}.save'.format(resource), 'provenance',
                             self.resourceSaveHandler)
+                events.bind('model.{}.copy.prepare'.format(resource),
+                            'provenance', self.resourceCopyHandler)
                 if hasattr(self.loadInfo['apiRoot'], resource):
                     getattr(self.loadInfo['apiRoot'], resource).route(
                         'GET', (':id', 'provenance'),
@@ -92,6 +95,8 @@ class ResourceExt(Resource):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
                 events.unbind('model.{}.save'.format(oldresource), 'provenance')
+                events.unbind('model.{}.copy.prepare'.format(oldresource),
+                              'provenance')
                 if hasattr(self.loadInfo['apiRoot'], oldresource):
                     getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(
                         'GET', (':id', 'provenance'),
@@ -194,7 +199,7 @@ class ResourceExt(Resource):
             'created': created
         }
         obj['provenance'] = provenance
-        self.addProvenanceEvent(obj, creationEvent)
+        self.addProvenanceEvent(obj, creationEvent, resource)
 
     def getProvenanceUser(self, obj):
         """
@@ -220,7 +225,9 @@ class ResourceExt(Resource):
         # but we can track starting now
         self.updateProvenance(obj, resource)
 
-    def addProvenanceEvent(self, obj, provenanceEvent):
+    def addProvenanceEvent(self, obj, provenanceEvent, resource):
+        if 'provenance' not in obj:
+            self.createExistingProvenance(obj, resource)
         provenance = obj['provenance']
         self.incrementVersion(provenance, provenanceEvent)
         provenance.append(provenanceEvent)
@@ -260,7 +267,7 @@ class ResourceExt(Resource):
         }
         if user is not None:
             updateEvent['eventUser'] = user['_id']
-        self.addProvenanceEvent(curObj, updateEvent)
+        self.addProvenanceEvent(curObj, updateEvent, resource)
         return True
 
     def resourceDifference(self, prevObj, curObj):
@@ -341,7 +348,7 @@ class ResourceExt(Resource):
             updateEvent['file'][0]['old'] = oldData
         if user is not None:
             updateEvent['eventUser'] = user['_id']
-        self.addProvenanceEvent(item, updateEvent)
+        self.addProvenanceEvent(item, updateEvent, 'item')
         self.model('item').save(item, triggerEvents=False)
 
     def fileSaveCreatedHandler(self, event):
@@ -366,7 +373,7 @@ class ResourceExt(Resource):
         }
         if user is not None:
             updateEvent['eventUser'] = user['_id']
-        self.addProvenanceEvent(item, updateEvent)
+        self.addProvenanceEvent(item, updateEvent, 'item')
         self.model('item').save(item, triggerEvents=False)
 
     def fileRemoveHandler(self, event):
@@ -390,5 +397,24 @@ class ResourceExt(Resource):
         }
         if user is not None:
             updateEvent['eventUser'] = user['_id']
-        self.addProvenanceEvent(item, updateEvent)
+        self.addProvenanceEvent(item, updateEvent, 'item')
         self.model('item').save(item, triggerEvents=False)
+
+    def resourceCopyHandler(self, event):
+        # Use the old item's provenance, but add a copy record.
+        resource = event.name.split('.')[1]
+        srcObj, newObj = event.info
+        # We should have marked the new object already when it was first
+        # created.  If not, exit
+        if 'provenance' not in newObj:
+            pass  # pragma: no cover
+        if 'provenance' in srcObj:
+            newProv = newObj['provenance'][-1]
+            newObj['provenance'] = copy.deepcopy(srcObj['provenance'])
+            newProv['version'] = newObj['provenance'][-1]['version'] + 1
+            newObj['provenance'].append(newProv)
+        # Convert the creation record to a copied record
+        newObj['provenance'][-1]['eventType'] = 'copy'
+        if '_id' in srcObj:
+            newObj['provenance'][-1]['originalId'] = srcObj['_id']
+        self.model(resource).save(newObj, triggerEvents=False)

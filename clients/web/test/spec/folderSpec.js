@@ -261,39 +261,7 @@ describe('Test folder creation, editing, and deletion', function () {
     });
 
     it('Test folder access control', function () {
-        waitsFor(function () {
-            return $('.g-folder-access-button:visible').length === 1;
-        }, 'folder access button to be available');
-
-        runs(function () {
-            $('.g-folder-access-button').click();
-        });
-        girderTest.waitForDialog();
-
-        waitsFor(function () {
-            return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-private:visible').is(':enabled');
-        }, 'dialog and private access radio button to appear');
-
-        runs(function () {
-            $('#g-access-private').click();
-        });
-
-        waitsFor(function () {
-            return $('.g-save-access-list:visible').is(':enabled') &&
-                   $('.radio.g-selected').text().match("Private").length > 0;
-        }, 'access save button to appear');
-
-        runs(function () {
-            $('.g-save-access-list').click();
-        });
-
-        girderTest.waitForLoad();
-
-        waitsFor(function () {
-            return !$('#g-dialog-container').hasClass('in');
-        }, 'access dialog to be hidden');
-
+        girderTest.folderAccessControl('public', 'private');
     });
 
     it('Delete the folder', function () {

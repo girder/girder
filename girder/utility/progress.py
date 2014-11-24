@@ -22,6 +22,8 @@ import time
 
 from .model_importer import ModelImporter
 from girder.models.notification import ProgressState
+from girder.models.model_base import ValidationException
+from girder.api.rest import RestException
 
 
 class ProgressContext(ModelImporter):
@@ -66,6 +68,8 @@ class ProgressContext(ModelImporter):
         else:
             state = ProgressState.ERROR
             message = 'Error'
+            if isinstance(excValue, (ValidationException, RestException)):
+                message = 'Error: '+excValue.message
 
         self.model('notification').updateProgress(
             self.progress, state=state, message=message,

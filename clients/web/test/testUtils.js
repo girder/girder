@@ -484,3 +484,67 @@ girderTest.addCoveredScript = function (url) {
         });
    });
 }
+
+/**
+ * For the current folder, check if it is public or private and take an action.
+ * :param current: either 'public' or 'private': expect this value to match.
+ * :param action: if 'public' or 'private', switch to that setting.
+  */
+girderTest.folderAccessControl = function (current, action) {
+    waitsFor(function () {
+        return $('.g-folder-access-button:visible').length === 1;
+    }, 'folder access button to be available');
+
+    runs(function () {
+        $('.g-folder-access-button').click();
+    });
+    girderTest.waitForDialog();
+
+    waitsFor(function () {
+        return $('#g-dialog-container').hasClass('in') &&
+               $('#g-access-private:visible').is(':enabled');
+    }, 'dialog and private access radio button to appear');
+
+    runs(function () {
+        switch (current) {
+            case 'private':
+                expect($('#g-access-private:checked').length).toBe(1);
+                break;
+            case 'public':
+                expect($('#g-access-public:checked').length).toBe(1);
+                break;
+        }
+        switch (action) {
+            case 'private':
+                $('#g-access-private').click();
+                break;
+            case 'public':
+                $('#g-access-public').click();
+                break;
+        }
+    });
+
+    waitsFor(function () {
+        switch (action) {
+            case 'private':
+                if (!$('.radio.g-selected').text().match("Private").length)
+                    return false;
+                break;
+            case 'public':
+                if (!$('.radio.g-selected').text().match("Public").length)
+                    return false;
+                break;
+        }
+        return $('.g-save-access-list:visible').is(':enabled');
+    }, 'access save button to appear');
+
+    runs(function () {
+        $('.g-save-access-list').click();
+    });
+
+    girderTest.waitForLoad();
+
+    waitsFor(function () {
+        return !$('#g-dialog-container').hasClass('in');
+    }, 'access dialog to be hidden');
+}

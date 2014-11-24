@@ -12,6 +12,10 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click .g-folder-access-button': 'editFolderAccess',
         'click .g-hierarchy-level-up': 'upOneLevel',
         'click a.g-download-checked': 'downloadChecked',
+        'click a.g-pick-checked': 'pickChecked',
+        'click a.g-move-picked': 'movePickedResources',
+        'click a.g-copy-picked': 'copyPickedResources',
+        'click a.g-clear-picked': 'clearPickedResources',
         'click a.g-delete-checked': 'deleteCheckedDialog'
     },
 
@@ -47,6 +51,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         } else {
             this.render();
         }
+        girder.events.on('g:login', girder.resetPickedResources);
     },
 
     _setRoute: function () {
@@ -116,7 +121,11 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         this.checkedMenuWidget = new girder.views.CheckedMenuWidget({
             el: this.$('.g-checked-actions-menu'),
-            dropdownToggle: this.$('.g-checked-actions-button')
+            dropdownToggle: this.$('.g-checked-actions-button'),
+            pickedCount: this.getPickedCount(),
+            pickedCopyAllowed: this.getPickedCopyAllowed(),
+            pickedMoveAllowed: this.getPickedMoveAllowed(),
+            pickedDesc: this.getPickedDescription()
         });
 
         // Setup the child folder list view
@@ -286,31 +295,55 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     /**
+     * Based on a resource collection with either has model references or
+     * checkbox references, return a string that describes the collection.
+     * :param resources: a hash with different resources.
+     * :returns: description of the resources.
+     */
+    _describeResources: function (resources) {
+        /* If the resources aren't English words or don't have simple plurals,
+         * this will need to be refactored. */
+        var kinds = ['folder', 'item'];
+
+        var desc = [];
+        for (var i = 0; i < kinds.length; i += 1) {
+            var kind = kinds[i];
+            if (resources[kind] && resources[kind].length) {
+                desc.push(resources[kind].length + ' ' + kind +
+                          (resources[kind].length !== 1 ? 's' : ''));
+            }
+        }
+        switch (desc.length) {
+            case 0:
+                return 'nothing';
+            case 1:
+                return desc[0];
+            case 2:
+                return desc[0] + ' and ' + desc [1];
+            /* If we add a third model type, enable this:
+            default:
+                desc[desc.length-1] = 'and ' + desc[desc.length-1];
+                return ', '.join(desc);
+             */
+        }
+    },
+
+    /**
      * Prompt the user to delete the currently checked items.
      */
     deleteCheckedDialog: function () {
         var view = this;
-        var desc = '';
         var folders = this.folderListView.checked;
-        if (folders.length === 1) {
-            desc += '1 folder';
-        } else if (folders.length > 1) {
-            desc += folders.length + ' folders';
-        }
+        var items;
         if (this.itemListView && this.itemListView.checked.length) {
-            if (desc !== '') {
-                desc += ' and ';
-            }
-            var items = this.itemListView.checked;
-            if (items.length === 1) {
-                desc += '1 item';
-            } else {
-                desc += items.length + ' items';
-            }
+            items = this.itemListView.checked;
         }
+        var desc = this._describeResources({folder:folders, item:items});
+
         var params = {
-            text: 'Are you sure you want to delete the checked items (' +
+            text: 'Are you sure you want to delete the checked resources (' +
                   desc + ')?',
+
             yesText: 'Delete',
             confirmCallback: function () {
                 var url = 'resource';
@@ -370,13 +403,71 @@ girder.views.HierarchyWidget = girder.View.extend({
                 minItemLevel = Math.min(minItemLevel, this.parentModel.getAccessLevel());
             }
         }
-
         this.checkedMenuWidget.update({
             minFolderLevel: minFolderLevel,
             minItemLevel: minItemLevel,
             folderCount: folders.length,
-            itemCount: items.length
+            itemCount: items.length,
+            pickedCount: this.getPickedCount(),
+            pickedCopyAllowed: this.getPickedCopyAllowed(),
+            pickedMoveAllowed: this.getPickedMoveAllowed(),
+            pickedDesc: this.getPickedDescription()
         });
+    },
+
+    getPickedCount: function () {
+        var pickedCount = 0;
+        if (girder.pickedResources && girder.pickedResources.resources) {
+            _.each(girder.pickedResources.resources, function (list) {
+                pickedCount += list.length;
+            });
+        }
+        return pickedCount;
+    },
+
+    getPickedCopyAllowed: function () {
+        /* We must have something picked */
+        if (!girder.pickedResources) {
+            return false;
+        }
+        /* If we have an item picked but this page isn't a folder's list, then
+         * you can't move or copy them here. */
+        if (this.parentModel.resourceName !== 'folder') {
+            if (girder.pickedResources.resources.item &&
+                    girder.pickedResources.resources.item.length) {
+                return false;
+            }
+        }
+        /* We must have permission to write to this folder to be allowed to
+         * copy. */
+        if (this.parentModel.getAccessLevel() < girder.AccessType.WRITE) {
+            return false;
+        }
+        return true;
+    },
+
+    getPickedMoveAllowed: function () {
+        /* All of the restrictions for copy are the same */
+        if (!this.getPickedCopyAllowed()) {
+            return false;
+        }
+        /* We also can't move an item or folder if we don't have permission to
+         * delete that item or folder (since a move deletes it from the
+         * original spot). */
+        if (girder.pickedResources.minFolderLevel < girder.AccessType.ADMIN) {
+            return false;
+        }
+        if (girder.pickedResources.minItemLevel < girder.AccessType.WRITE) {
+            return false;
+        }
+        return true;
+    },
+
+    getPickedDescription: function () {
+        if (!girder.pickedResources || !girder.pickedResources.resources) {
+            return '';
+        }
+        return this._describeResources(girder.pickedResources.resources);
     },
 
     downloadFolder: function () {
@@ -386,7 +477,7 @@ girder.views.HierarchyWidget = girder.View.extend({
     /**
      * Get a parameter that can be added to a url for the checked resources.
      */
-    _getCheckedResourceParam: function () {
+    _getCheckedResourceParam: function (asObject) {
         var resources = {folder:[], item:[]};
         var folders = this.folderListView.checked;
         _.each(folders, function (cid) {
@@ -401,6 +492,14 @@ girder.views.HierarchyWidget = girder.View.extend({
                 return true;
             }, this);
         }
+        _.each(resources, function (list, key) {
+            if (!list.length) {
+                delete resources[key];
+            }
+        });
+        if (asObject) {
+            return resources;
+        }
         return JSON.stringify(resources);
     },
 
@@ -413,6 +512,113 @@ girder.views.HierarchyWidget = girder.View.extend({
             data.token = token;
         }
         this.redirectViaForm('GET', url, data);
+    },
+
+    pickChecked: function () {
+        if (!girder.pickedResources) {
+            girder.pickedResources = {
+                resources: {},
+                minItemLevel: girder.AccessType.ADMIN,
+                minFolderLevel: girder.AccessType.ADMIN
+            };
+        }
+        /* Maintain our minimum permissions.  It is expensive to compute them
+         * arbitrarily later. */
+        var folders = this.folderListView.checked;
+        _.every(folders, function (cid) {
+            var folder = this.folderListView.collection.get(cid);
+            girder.pickedResources.minFolderLevel = Math.min(
+                girder.pickedResources.minFolderLevel,
+                folder.getAccessLevel());
+            return (girder.pickedResources.minFolderLevel >
+                    girder.AccessType.READ); // acts as 'break'
+        }, this);
+        if (this.itemListView) {
+            var items = this.itemListView.checked;
+            if (items.length) {
+                girder.pickedResources.minItemLevel = Math.min(
+                    girder.pickedResources.minItemLevel,
+                    this.parentModel.getAccessLevel());
+            }
+        }
+        var resources = this._getCheckedResourceParam(true);
+        var pickDesc = this._describeResources(resources);
+        /* Merge these resources with any that are already picked */
+        var existing = girder.pickedResources.resources;
+        var oldDesc = this._describeResources(existing);
+        _.each(existing, function (list, resource) {
+            if (!resources[resource]) {
+                resources[resource] = list;
+            } else {
+                resources[resource] = _.union(list, resources[resource]);
+            }
+        });
+        girder.pickedResources.resources = resources;
+        this.updateChecked();
+        var totalPickDesc = this.getPickedDescription();
+        var desc = totalPickDesc + ' picked.';
+        if (pickDesc !== totalPickDesc) {
+            desc = pickDesc + ' added to picked resources.  Now ' + desc;
+        }
+        girder.events.trigger('g:alert', {
+            icon: 'ok',
+            text: desc,
+            type: 'info',
+            timeout: 4000
+        });
+    },
+
+    movePickedResources: function () {
+        if (!this.getPickedMoveAllowed()) {
+            return;
+        }
+        var view = this;
+        var url = 'resource/move';
+        var resources = JSON.stringify(girder.pickedResources.resources);
+        girder.restRequest({path: url, type: 'PUT',
+            data: {
+                resources: resources,
+                parentType: this.parentModel.resourceName,
+                parentId: this.parentModel.get('_id'),
+                progress: true
+            }
+        }).done(function () {
+            view.render();
+        });
+        this.clearPickedResources();
+    },
+
+    copyPickedResources: function () {
+        if (!this.getPickedCopyAllowed()) {
+            return;
+        }
+        var view = this;
+        var url = 'resource/copy';
+        var resources = JSON.stringify(girder.pickedResources.resources);
+        girder.restRequest({path: url, type: 'POST',
+            data: {
+                resources: resources,
+                parentType: this.parentModel.resourceName,
+                parentId: this.parentModel.get('_id'),
+                progress: true
+            }
+        }).done(function () {
+            view.render();
+        });
+        this.clearPickedResources();
+    },
+
+    clearPickedResources: function (event) {
+        girder.resetPickedResources();
+        this.updateChecked();
+        if (event) {
+            girder.events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Cleared picked resources',
+                type: 'info',
+                timeout: 4000
+            });
+        }
     },
 
     redirectViaForm: function (method, url, data) {
@@ -434,6 +640,12 @@ girder.views.HierarchyWidget = girder.View.extend({
         }, this);
     }
 });
+
+/* Because we need to be able to clear picked resources when the current user
+ * changes, this function is placed in the girder namespace. */
+girder.resetPickedResources = function () {
+    girder.pickedResources = null;
+};
 
 /**
  * Renders the breadcrumb list in the hierarchy widget.

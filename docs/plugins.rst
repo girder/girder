@@ -150,6 +150,10 @@ Provenance event types include:
   the change) or has been deleted.  The ``new`` parameter contains any value
   that was changed or has been added.
 
+- ``copy``: the resource was copied.  The original resource's provenance is
+  copied to the new record, and the ``originalId`` indicates which record was
+  used.
+
 For item records, when a file belonging to that item is added, removed, or
 updated, the provenance is updated with that change.  This provenance includes
 a ``file`` list with the changed file(s).  Each entry in this list includes a

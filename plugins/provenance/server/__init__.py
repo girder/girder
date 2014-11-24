@@ -39,12 +39,12 @@ def validateSettings(event):
 
 
 def load(info):
-    events.bind('model.setting.validate', 'provenance', validateSettings)
+    events.bind('model.setting.validate', 'provenanceMain', validateSettings)
     ext = ResourceExt(info)
-    events.bind('model.setting.save.after', 'provenance', ext.bindModels)
-    events.bind('provenance.initialize', 'provenance', ext.bindModels)
+    events.bind('model.setting.save.after', 'provenanceMain', ext.bindModels)
+    events.bind('provenance.initialize', 'provenanceMain', ext.bindModels)
     events.trigger('provenance.initialize', info={})
-    events.bind('model.file.save', 'provenance', ext.fileSaveHandler)
-    events.bind('model.file.save.created', 'provenance',
+    events.bind('model.file.save', 'provenanceMain', ext.fileSaveHandler)
+    events.bind('model.file.save.created', 'provenanceMain',
                 ext.fileSaveCreatedHandler)
     events.bind('model.file.remove', 'provenance', ext.fileRemoveHandler)

@@ -89,20 +89,39 @@ class Description(object):
         return self
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True):
+              required=True, enum=None):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
         when declaring the APIs.
+
+        Note that we could expose more parameters: allowMultiple, format,
+        defaultValue, minimum, maximum, uniqueItems, $ref, type (return type).
+        We also haven't exposed the complex data types.
+
+        :param name: name of the parameter used in the REST query.
+        :param description: explanation of the parameter.
+        :param paramType: how is the parameter sent.  One of 'query', 'path',
+                          'body', 'header', or 'form'.
+        :param dataType: the data type expected in the parameter.  This is one
+                         of 'integer', 'long', 'float', 'double', 'string',
+                         'byte', 'boolean', 'date', 'dateType', 'array', or
+                         'File'.
+        :param required: True if the request will fail if this parameter is not
+                         present, False if the parameter is optional.
+        :param enum: a fixed list of possible values for the field.
         """
-        self._params.append({
+        param = {
             'name': name,
             'description': description,
             'paramType': paramType,
             'type': dataType,
             'allowMultiple': False,
             'required': required
-        })
+        }
+        if enum:
+            param['enum'] = enum
+        self._params.append(param)
         return self
 
     def consumes(self, value):
