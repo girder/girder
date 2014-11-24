@@ -123,7 +123,7 @@ class Job(AccessControlledModel):
             'status': JobStatus.INACTIVE,
             'progress': None,
             'log': '',
-            'extra': {},
+            'meta': {},
             'handler': handler
         }
 
@@ -176,5 +176,5 @@ class Job(AccessControlledModel):
     def filter(self, job, user):
         # TODO refine?
         keys = ('title', 'type', 'args', 'kwargs', 'created', 'interval',
-                'when', 'status', 'progress', 'log', 'extra', '_id', 'public')
+                'when', 'status', 'progress', 'log', 'meta', '_id', 'public')
         return self.filterDocument(job, allow=keys)
