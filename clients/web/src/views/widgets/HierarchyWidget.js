@@ -563,7 +563,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         girder.events.trigger('g:alert', {
             icon: 'ok',
             text: desc,
-            type: 'success',
+            type: 'info',
             timeout: 4000
         });
     },
@@ -615,7 +615,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             girder.events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Cleared picked resources',
-                type: 'success',
+                type: 'info',
                 timeout: 4000
             });
         }
