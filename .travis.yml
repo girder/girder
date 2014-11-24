@@ -10,6 +10,7 @@ before_install:
     - mongod --version
 install:
     - sudo pip install -r requirements.txt -r requirements-dev.txt -r plugins/geospatial/requirements.txt -r plugins/metadata_extractor/requirements.txt
+    - sudo pip install -r plugins/celery_jobs/requirements.txt
     # We have to upgrade six or requiring moto can cause other modules to fail
     - sudo pip install -U six
     - sudo python -c "import bcrypt"

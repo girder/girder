@@ -20,6 +20,7 @@
 import functools
 
 from girder.models.model_base import AccessException
+from girder.api.rest import RestException
 
 
 def admin(fun):
@@ -38,7 +39,8 @@ def admin(fun):
 def user(fun):
     """
     Functions that allow any user (not just administrators) should be wrapped
-    in this decorator.
+    in this decorator. That is, a token must be passed that has the
+    "core.user_auth" scope and a valid user ID.
     """
     @functools.wraps(fun)
     def accessDecorator(self, *args, **kwargs):
@@ -59,4 +61,21 @@ def public(fun):
     def accessDecorator(self, *args, **kwargs):
         return fun(self, *args, **kwargs)
     accessDecorator.accessLevel = 'public'
+    return accessDecorator
+
+
+def token(fun):
+    """
+    Functions that require a token, but not necessarily a user authentication
+    token, should use this access decorator. This will ensure a valid token
+    was passed, but checking of the scopes is left to the handler and is not
+    part of this decorator.
+    """
+    @functools.wraps(fun)
+    def accessDecorator(self, *args, **kwargs):
+        token = self.getCurrentToken()
+        if not token:
+            raise RestException('Invalid or missing token.')
+        return fun(self, *args, **kwargs)
+    accessDecorator.accessLevel = 'token'
     return accessDecorator

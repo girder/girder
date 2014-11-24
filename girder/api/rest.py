@@ -29,7 +29,7 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import SettingKey, TerminalColor
+from girder.constants import SettingKey, TerminalColor, TokenScope
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
@@ -55,7 +55,24 @@ def _cacheAuthUser(fun):
     return inner
 
 
-class loadmodel(ModelImporter):
+def _cacheAuthToken(fun):
+    """
+    This decorator for getCurrentToken ensures that the token lookup
+    is only performed once per request, and is cached on the request for
+    subsequent calls to getCurrentToken().
+    """
+    def inner(self, *args, **kwargs):
+        if hasattr(cherrypy.request, 'girderToken'):
+            return cherrypy.request.girderToken
+
+        token = fun(self, *args, **kwargs)
+        setattr(cherrypy.request, 'girderToken', token)
+
+        return token
+    return inner
+
+
+class loadmodel(object):
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -71,26 +88,39 @@ class loadmodel(ModelImporter):
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
     """
-    def __init__(self, map, model, plugin='_core', level=None):
+    def __init__(self, map, model, plugin='_core', level=None, force=False):
         self.map = map
-        self.model = self.model(model, plugin)
+        self.model = ModelImporter.model(model, plugin)
         self.level = level
+        self.force = force
+
+    def _getIdValue(self, kwargs, idParam):
+        if idParam in kwargs:
+            return kwargs.pop(idParam)
+        elif idParam in kwargs['params']:
+            return kwargs['params'].pop(idParam)
+        else:
+            raise Exception('No ID parameter passed: ' + idParam)
 
     def __call__(self, fun):
         @functools.wraps(fun)
         def wrapped(wrappedSelf, *args, **kwargs):
             for raw, converted in self.map.iteritems():
-                if self.level is not None:
+                id = self._getIdValue(kwargs, raw)
+
+                if self.force:
+                    kwargs[converted] = self.model.load(id, force=True)
+                elif self.level is not None:
                     user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
-                        id=kwargs[raw], level=self.level, user=user)
+                        id=id, level=self.level, user=user)
                 else:
-                    kwargs[converted] = self.model.load(kwargs[raw])
+                    kwargs[converted] = self.model.load(id)
 
                 if kwargs[converted] is None:
                     raise RestException('Invalid {} id ({}).'
-                                        .format(self.model.name, kwargs[raw]))
-                del kwargs[raw]
+                                        .format(self.model.name, id))
+
             return fun(wrappedSelf, *args, **kwargs)
         return wrapped
 
@@ -179,6 +209,28 @@ def endpoint(fun):
 
         return _createResponse(val)
     return endpointDecorator
+
+
+def ensureTokenScopes(token, scope):
+    """
+    Call this to validate a token scope for endpoints that require tokens
+    other than a user authentication token. Raises an AccessException if the
+    required scopes are not allowed by the given token.
+
+    :param token: The token object used in the request.
+    :type token: dict
+    :param scope: The required scope or set of scopes.
+    :type scope: str or list of str
+    """
+    tokenModel = ModelImporter.model('token')
+    if not tokenModel.hasScope(token, scope):
+        setattr(cherrypy.request, 'girderUser', None)
+        if isinstance(scope, basestring):
+            scope = (scope,)
+        raise AccessException(
+            'Invalid token scope.\nRequired: {}.\nAllowed: {}'
+            .format(' '.join(scope),
+                    ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 class RestException(Exception):
@@ -445,7 +497,8 @@ class Resource(ModelImporter):
         if user is None or user.get('admin', False) is not True:
             raise AccessException('Administrator access required.')
 
-    def getPagingParameters(self, params, defaultSortField=None):
+    def getPagingParameters(self, params, defaultSortField=None,
+                            defaultSortDir=pymongo.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of
@@ -463,7 +516,7 @@ class Resource(ModelImporter):
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))
-        sortdir = int(params.get('sortdir', pymongo.ASCENDING))
+        sortdir = int(params.get('sortdir', defaultSortDir))
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
@@ -474,22 +527,22 @@ class Resource(ModelImporter):
 
         return limit, offset, sort
 
-    @_cacheAuthUser
-    def getCurrentUser(self, returnToken=False):
+    def ensureTokenScopes(self, scope):
         """
-        Returns the current user from the long-term cookie token.
+        Ensure that the token passed to this request is authorized for the
+        designated scope or set of scopes. Raises an AccessException if not.
 
-        :param returnToken: Whether we should return a tuple that also contains
-                            the token.
-        :type returnToken: bool
-        :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired.
-                  If returnToken=True, returns a tuple of (user, token).
+        :param scope: A scope or set of scopes that is required.
+        :type scope: str or list of str
         """
-        event = events.trigger('auth.user.get')
-        if event.defaultPrevented and len(event.responses) > 0:
-            return event.responses[0]
+        ensureTokenScopes(self.getCurrentToken(), scope)
 
+    @_cacheAuthToken
+    def getCurrentToken(self):
+        """
+        Returns the current valid token object that was passed via the token
+        header or parameter, or None if no valid token was passed.
+        """
         tokenStr = None
         if 'token' in cherrypy.request.params:  # Token as a parameter
             tokenStr = cherrypy.request.params.get('token')
@@ -497,16 +550,45 @@ class Resource(ModelImporter):
             tokenStr = cherrypy.request.headers['Girder-Token']
 
         if not tokenStr:
-            return (None, None) if returnToken else None
+            return None
 
-        token = self.model('token').load(tokenStr, force=True,
-                                         objectId=False)
+        return self.model('token').load(tokenStr, force=True, objectId=False)
+
+    @_cacheAuthUser
+    def getCurrentUser(self, returnToken=False):
+        """
+        Returns the currently authenticated user based on the token header or
+        parameter.
+
+        :param returnToken: Whether we should return a tuple that also contains
+                            the token.
+        :type returnToken: bool
+        :returns: The user document from the database, or None if the user
+                  is not logged in or the token is invalid or expired.
+                  If returnToken=True, returns a tuple of (user, token).
+        """
+        event = events.trigger('auth.user.get')
+        if event.defaultPrevented and len(event.responses) > 0:
+            return event.responses[0]
+
+        token = self.getCurrentToken()
+
+        def retVal(user, token):
+            if returnToken:
+                return (user, token)
+            else:
+                return user
 
         if token is None or token['expires'] < datetime.datetime.utcnow():
-            return (None, token) if returnToken else None
+            return retVal(None, token)
         else:
+            try:
+                ensureTokenScopes(token, TokenScope.USER_AUTH)
+            except:
+                return retVal(None, token)
+
             user = self.model('user').load(token['userId'], force=True)
-            return (user, token) if returnToken else user
+            return retVal(user, token)
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """
