@@ -106,6 +106,10 @@ def setup(test=False, plugins=None):
         'plugins': plugins
     })
 
+    root.api.v1.updateHtmlVars({
+        'staticRoot': cur_config['server']['static_root']
+    })
+
     root, appconf, _ = plugin_utilities.loadPlugins(
         plugins, root, appconf, root.api.v1)
 
