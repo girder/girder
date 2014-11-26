@@ -36,22 +36,6 @@ API_VERSION = VERSION['apiVersion']
 
 SWAGGER_VERSION = '1.2'
 
-# Save the path to the swagger-ui on load
-_swagger_path = os.path.join(ROOT_DIR, 'clients')
-
-if not os.path.exists(_swagger_path):
-    # fallback to a web root served inside the girder package
-    _swagger_path = os.path.join(PACKAGE_DIR, 'clients')
-
-_swagger_path = os.path.join(
-    _swagger_path,
-    'web',
-    'static',
-    'built',
-    'swagger',
-    'swagger.html'
-)
-
 
 class Description(object):
     """
