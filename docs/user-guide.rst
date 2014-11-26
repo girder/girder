@@ -38,8 +38,8 @@ Groups
 
 ``Groups`` group together ``Users``. ``Users`` can belong to any number of ``Groups``,
 and usually join by being invited and accepting the invitation. One of the main
-purposes of ``Groups`` is for access control; resources can grant access to ``Groups``
-rather than just individual users, such that changing access to sets of resources
+purposes of ``Groups`` is to allow role-based access control; resources can grant access to
+``Groups`` rather than just individual users, such that changing access to sets of resources
 can be managed simply by changing ``Group`` membership. See the :ref:`permissions`
 section for more information about group-based access control.
 
@@ -158,9 +158,9 @@ Permissions
 Permission Levels
 ^^^^^^^^^^^^^^^^^
 
-There are four levels of permission a ``User`` can have on a resource, these
+There are four levels of permission a ``User`` can have on a resource. These
 levels are in a strict hierarchy with a higher permission level including all of
-the permissions below it.
+the permissions below it. The levels are:
 
 1) No permission (cannot view, edit, or delete a resource)
 2) ``READ`` permission (can view and download resources)
