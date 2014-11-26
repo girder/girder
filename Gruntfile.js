@@ -259,10 +259,6 @@ module.exports = function (grunt) {
                 files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js']
             },
-            swagger: {
-                files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
-                tasks: ['swagger-ui']
-            },
             sphinx: {
                 files: ['docs/*.rst'],
                 tasks: ['docs']
@@ -411,17 +407,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
-    grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
-
-        var fn = jade.compile(buffer, {
-            client: false
-        });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({
-            staticRoot: staticRoot
-        }));
-    });
-
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
@@ -498,8 +483,7 @@ module.exports = function (grunt) {
         'setup',
         'uglify:libs',
         'copy:swagger',
-        'shell:readServerConfig',
-        'swagger-ui'
+        'shell:readServerConfig'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);
