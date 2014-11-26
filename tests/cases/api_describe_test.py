@@ -35,7 +35,7 @@ OrderedRoutes = [
     ('NEWMETHOD', ('action',), '/action'),
     ('UNKNOWN', ('action',), '/action'),
     ('GET', ('action', ':id'), '/action/{id}'),
-    ('GET', ('noaction',), '/noaction'),
+    ('GET', ('noaction',), '/noaction')
     ]
 
 

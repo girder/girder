@@ -5,8 +5,7 @@ Girder is a Data Management Toolkit.  It is a complete back-end (server side)
 technology that can be used with other applications via its RESTful API, or it
 can be used via its own front-end (client side web pages and JavaScript).
 
-Our aims for Girder is for it to be robust, performant, extensible, and
-grokable.
+Girder is designed to be robust, fast, scalable, extensible, and easy to understand.
 
 Girder is built in Python.
 
@@ -15,9 +14,9 @@ Girder is open source, licensed under the `Apache License, Version 2.0 <http://w
 Document Conventions
 ====================
 
-This document is written for end-users of Girder, rather than developers.  Since
-it was written by developers, sometimes we fail at making this distinction,
-please remind (and forgive) us.
+This User Guide is written for end-users of Girder, rather than developers. If you
+have suggestions or questions about this documentation, feel free to contact us
+`on Github <https://github.com/girder/girder>`_ or `email us <mailto:kitware@kitware.com>`_.
 
 Girder specific entities will be ``formatted like this``.
 
@@ -27,16 +26,41 @@ Concepts
 Users
 -----
 
-This is a common software concept, isn't it nice that we didn't change its
-established meaning!  Each user of Girder should have a ``User`` created within
-Girder.  Their Girder ``User`` will determine their permissions and can store
-and share their data.
+Like in many systems, ``Users`` in Girder correspond to the identity of a user
+of the system. It is possible to use many features of Girder anonymously (that is,
+without being logged in as a registered user), but typically in order to make
+changes to the system, a user must be logged in as their corresponding ``User``
+account. ``Users`` can be granted permissions on resources in the system directly,
+and can belong to ``Groups``.
 
 Groups
 ------
 
-``Groups`` group together ``Users``; the most common usage example would be to
-give access to specific resources to any member of a ``Group``.
+``Groups`` group together ``Users``. ``Users`` can belong to any number of ``Groups``,
+and usually join by being invited and accepting the invitation. One of the main
+purposes of ``Groups`` is to allow role-based access control; resources can grant access to
+``Groups`` rather than just individual users, such that changing access to sets of resources
+can be managed simply by changing ``Group`` membership. See the :ref:`permissions`
+section for more information about group-based access control.
+
+Collections
+-----------
+
+``Collections`` are the top level objects in the data organization hierarchy.
+Within each ``Collection``, there can be many ``Folders``, and the ``Collection``
+itself is also an access controlled resource. Typically ``Collections`` are used
+to group data that share something in common, such as what project the data are
+used for, or what institution they belong to.
+
+Folders
+-------
+
+A Girder ``Folder`` is the common software concept of a folder, namely a
+hierarchically nested organizational structure.  Girder ``Folders`` can contain
+nothing (although this may not be particularly useful), other ``Folders``,
+``Items``, or a combination of ``Folders`` and ``Items``. ``Folders`` in Girder
+have permissions set on them, and the ``Items`` within them inherit permissions
+from their containing ``Folders``.
 
 Items
 -----
@@ -67,7 +91,7 @@ must be contained within an ``Assetstore``.
 Assetstores
 -----------
 
-``Assetstores`` are an abstraction representing a repository where the bytes of
+``Assetstores`` are an abstraction representing a repository where the raw bytes of
 ``Files`` are actually stored. The ``Assetstores`` known to a Girder instance
 may only be set up and managed by administrator ``Users``.
 
@@ -126,23 +150,7 @@ The below CORS configuration is sufficient for Girder's needs:
         </CORSRule>
     </CORSConfiguration>
 
-
-Folders
--------
-
-A Girder ``Folder`` is the common software concept of a folder, namely a
-hierarchically nested organizational structure.  Girder ``Folders`` can contain
-nothing (although this may not be particularly useful), other ``Folders``,
-``Items``, or a combination of ``Folders`` and ``Items``. ``Folders`` in Girder
-have permissions set on them, and the ``Items`` within them inherit permissions
-from their containing ``Folders``.
-
-Collections
------------
-
-A Girder ``Collection`` is functional top level grouping of ``Folders``.  A
-``Collection`` collects resources (``Folders``, ``Items``, and ``Users``) that
-should have some common usage, e.g., for a particular project.
+.. _permissions:
 
 Permissions
 -----------
@@ -150,18 +158,17 @@ Permissions
 Permission Levels
 ^^^^^^^^^^^^^^^^^
 
-There are four levels of permission a ``User`` can have on a resource, these
+There are four levels of permission a ``User`` can have on a resource. These
 levels are in a strict hierarchy with a higher permission level including all of
-the permissions below it.
+the permissions below it. The levels are:
 
 1) No permission (cannot view, edit, or delete a resource)
 2) ``READ`` permission (can view and download resources)
-3) ``WRITE`` permission (includes ``READ`` permission, can edit metadata about
-   the resource)
+3) ``WRITE`` permission (includes ``READ`` permission, can edit the properties of a resource)
 4) ``ADMIN`` permission (includes ``READ`` and ``WRITE`` permission, can delete
-   the resource)
+   the resource and also control access on it)
 
-A site admin always has permission to take any action.
+A site administrator always has permission to take any action.
 
 Permission Model
 ^^^^^^^^^^^^^^^^
