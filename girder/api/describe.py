@@ -21,7 +21,7 @@ import cherrypy
 import mako
 import os
 
-from girder.constants import ROOT_DIR, VERSION, PACKAGE_DIR
+from girder.constants import VERSION
 from . import docs, access
 from .rest import Resource, RestException
 
