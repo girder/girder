@@ -248,6 +248,10 @@ class RestException(Exception):
 
 
 class Resource(ModelImporter):
+    """
+    All REST resources should inherit from this class, which provides utilities
+    for adding resources/routes to the REST API.
+    """
     exposed = True
 
     def route(self, method, route, handler, nodoc=False, resource=None):
@@ -467,10 +471,10 @@ class Resource(ModelImporter):
         Coerce a parameter value from a str to a bool. This function is case
         insensitive. The following string values will be interpreted as True:
 
-          'true'
-          'on'
-          '1'
-          'yes'
+          - ``'true'``
+          - ``'on'``
+          - ``'1'``
+          - ``'yes'``
 
         All other strings will be interpreted as False. If the given param
         is not passed at all, returns the value specified by the default arg.
