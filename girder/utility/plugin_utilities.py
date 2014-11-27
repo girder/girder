@@ -170,8 +170,10 @@ def getPluginDir():
         try:
             os.makedirs(pluginsDir)
         except OSError:
-            print(TerminalColor.warning('Could not create plugin directory.'))
-            pluginsDir = None
+            if not os.path.exists(pluginsDir):
+                print(TerminalColor.warning(
+                    'Could not create plugin directory.'))
+                pluginsDir = None
     return pluginsDir
 
 
