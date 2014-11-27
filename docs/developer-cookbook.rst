@@ -24,7 +24,9 @@ Then take the base-64 encoded value and pass it via the ``Authorization`` header
     Authorization: Basic am9objpoZWxsbw==
 
 If the username and password are correct, you will receive a 200 status code and
-a JSON document from which you can extract the authentication token, e.g.: ::
+a JSON document from which you can extract the authentication token, e.g.:
+
+.. code-block:: javascript
 
     {
       "authToken": {
@@ -83,6 +85,60 @@ Server cookbook
 
 The following examples refer to tasks that are executed by the Girder application
 server.
+
+Creating a REST route
+^^^^^^^^^^^^^^^^^^^^^
+
+The process of creating new REST resources and routes is documented
+:ref:`here <extending-the-api>`.
+
+The API docs of the ``route`` method can be found
+`here <api-docs.html#girder.api.rest.Resource.route>`__.
+
+Loading a resource by its ID
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a fundamental element of many REST operations; they receive a parameter
+representing a resource's unique ID, and want to load the corresponding resource
+from that ID. This behavior is known as model loading. As a brief example, if
+we had the ID of a folder within our REST route handler, and wanted to load its
+corresponding document from the database, it would look like:
+
+.. code-block:: python
+
+    self.model('folder').load(theFolderId, user=self.getCurrentUser(), level=AccessType.READ)
+
+The `load <api-docs.html#girder.models.model_base.AccessControlledModel.load>`__
+method of each model class takes the resource's unique ID as its
+first argument (this is the ``_id`` field in the documents). For access controlled
+models like the above example, it also requires the developer to specify
+which user is requesting the loading of the resource, and what access level is required
+on the resource. If the ID passed in does not correspond to a record in the database,
+``None`` is returned.
+
+Sometimes models need to be loaded outside the context of being
+requested by a specific user, and in those cases the ``force`` flag should be used:
+
+.. code-block:: python
+
+    self.model('folder').load(theFolderId, force=True)
+
+If you need to load a model that is in a plugin rather than a core model, pass
+the plugin name as the second argument to the ``model`` method:
+
+.. code-block:: python
+
+    self.model('cat', 'cats').load(...)
+
+The `ModelImporter <api-docs.html#girder.utility.model_importer.ModelImporter>`__ class
+conveniently exposes a method for retrieving instances of models that are statically
+cached for efficient reuse. You can mix this class into any of your classes to
+enable ``self.model`` semantics. The ``ModelImporter.model`` method is
+static, so you can also just do the following anywhere:
+
+.. code-block:: python
+
+    ModelImporter.model('folder')...
 
 Send a raw/streaming HTTP response body
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

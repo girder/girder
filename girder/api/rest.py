@@ -248,6 +248,10 @@ class RestException(Exception):
 
 
 class Resource(ModelImporter):
+    """
+    All REST resources should inherit from this class, which provides utilities
+    for adding resources/routes to the REST API.
+    """
     exposed = True
 
     def route(self, method, route, handler, nodoc=False, resource=None):
@@ -257,17 +261,17 @@ class Resource(ModelImporter):
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT', 'PATCH'
         :type method: str
         :param route: The route, as a list of path params relative to the
-        resource root. Elements of this list starting with ':' are assumed to
-        be wildcards.
+            resource root. Elements of this list starting with ':' are assumed
+            to be wildcards.
         :type route: list
         :param handler: The method to be called if the route and method are
-        matched by a request. Wildcards in the route will be expanded and
-        passed as kwargs with the same name as the wildcard identifier.
+            matched by a request. Wildcards in the route will be expanded and
+            passed as kwargs with the same name as the wildcard identifier.
         :type handler: function
         :param nodoc: If your route intentionally provides no documentation,
-                      set this to True to disable the warning on startup.
+            set this to True to disable the warning on startup.
         :type nodoc: bool
-        :param resource: the name of the resource at the root of this route.
+        :param resource: The name of the resource at the root of this route.
         """
         if not hasattr(self, '_routes'):
             self._routes = collections.defaultdict(
@@ -309,6 +313,7 @@ class Resource(ModelImporter):
     def removeRoute(self, method, route, handler=None, resource=None):
         """
         Remove a route from the handler and documentation.
+
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
         :type method: str
         :param route: The route, as a list of path params relative to the
@@ -360,11 +365,11 @@ class Resource(ModelImporter):
         the request. As an example, if the user calls GET /api/v1/item/123,
         the following two events would be fired:
 
-            rest.get.item/:id.before
+            ``rest.get.item/:id.before``
 
         would be fired prior to calling the default API function, and
 
-            rest.get.item/:id.after
+            ``rest.get.item/:id.after``
 
         would be fired after the route handler returns. The query params are
         passed in the info of the before and after event handlers as
@@ -373,7 +378,10 @@ class Resource(ModelImporter):
         also contain an 'id' key with the value of 123. For endpoints with empty
         sub-routes, the trailing slash is omitted from the event name, e.g.:
 
-            rest.post.group.before
+            ``rest.post.group.before``
+
+        Note: You will normally not need to call this method directly, as it
+        is called by the internals of this class during the routing process.
 
         :param method: The HTTP method of the current request.
         :type method: str
@@ -450,7 +458,7 @@ class Resource(ModelImporter):
         is not found in the provided parameter set.
 
         :param required: An iterable of required params, or if just one is
-        required, you can simply pass it as a string.
+            required, you can simply pass it as a string.
         :type required: list, tuple, or str
         :param provided: The list of provided parameters.
         :type provided: dict
@@ -467,10 +475,10 @@ class Resource(ModelImporter):
         Coerce a parameter value from a str to a bool. This function is case
         insensitive. The following string values will be interpreted as True:
 
-          'true'
-          'on'
-          '1'
-          'yes'
+          - ``'true'``
+          - ``'on'``
+          - ``'1'``
+          - ``'yes'``
 
         All other strings will be interpreted as False. If the given param
         is not passed at all, returns the value specified by the default arg.
