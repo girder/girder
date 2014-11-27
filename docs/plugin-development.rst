@@ -81,6 +81,8 @@ modules using the ``girder`` package as usual. Example: ::
     from girder.plugins.cats import some_module
     from girder import events
 
+.. _extending-the-api:
+
 Adding a new route to the web API
 *********************************
 

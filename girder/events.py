@@ -24,16 +24,16 @@ events identified by a name.
 
 Listeners should bind to events by calling:
 
-    girder.events.bind('event.name', 'my.handler', handlerFunction)
+    ``girder.events.bind('event.name', 'my.handler', handlerFunction)``
 
 And events should be fired in one of two ways; if the event should be handled
 synchronously, fire it with:
 
-    girder.events.trigger('event.name', info)
+    ``girder.events.trigger('event.name', info)``
 
 And if the event should be handled asynchronously, use:
 
-    girder.events.daemon.trigger('event.name', info, callback)
+    ``girder.events.daemon.trigger('event.name', info, callback)``
 
 For obvious reasons, the asynchronous method does not return a value to the
 caller. Instead, the caller may optionally pass the callback argument as a

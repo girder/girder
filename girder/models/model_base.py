@@ -67,6 +67,7 @@ class Model(ModelImporter):
         Call this during initialize() of the subclass if you want your
         model to have a full-text searchable index. Each collection may
         have zero or one full-text index.
+
         :param language: The default_language value for the text index,
         which is used for stemming and stop words. If the text index
         should not use stemming and stop words, set this param to 'none'.
@@ -264,6 +265,7 @@ class Model(ModelImporter):
     def remove(self, document, **kwargs):
         """
         Delete an object from the collection; must have its _id set.
+
         :param doc: the item to remove.
         """
         assert '_id' in document
@@ -642,10 +644,10 @@ class AccessControlledModel(Model):
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
         """
-        We override Model.load to also do permission checking.
+        Override of Model.load to also do permission checking.
 
         :param id: The id of the resource.
-        :type id: string or ObjectId
+        :type id: str or ObjectId
         :param user: The user to check access against.
         :type user: dict or None
         :param level: The required access type for the object.
@@ -653,6 +655,15 @@ class AccessControlledModel(Model):
         :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
+        :param objectId: Whether the _id field is an ObjectId.
+        :type objectId: bool
+        :param fields: The subset of fields to load from the returned document,
+            or None to return the full document.
+        :param exc: If not found, throw a ValidationException instead of
+            returning None.
+        :type exc: bool
+        :raises ValidationException: If an invalid ObjectId is passed.
+        :returns: The matching document, or None if no match exists.
         """
         doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
