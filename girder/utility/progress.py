@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import datetime
 import time
 
@@ -87,10 +88,11 @@ class ProgressContext(ModelImporter):
         Use only in cases where progress may be indeterminate for a long time.
         :type force: bool
         """
+        # Extend the response timeout, even if we aren't reporting the progress
+        setResponseTimeLimit()
         if not self.on:
             return
-
-        save = time.time() - self._lastSave > self.interval
+        save = (time.time() - self._lastSave > self.interval) or force
         self.progress = self.model('notification').updateProgress(
             self.progress, save, **kwargs)
 
@@ -99,3 +101,24 @@ class ProgressContext(ModelImporter):
 
 
 noProgress = ProgressContext(False)
+
+
+def setResponseTimeLimit(duration=600, onlyExtend=True):
+    """
+    If we are currently within a cherrypy response, extend the time limit.  By
+    default, cherrypy responses will timeout after 300 seconds, so any activity
+    which can take longer should call this function.
+
+    Note that for cherrypy responses that include streaming generator
+    functions,such as downloads, the timeout is only relevant until the first
+    `yield` is reached.  As such, long running generator responses do not
+    generally need to call this function.
+
+    :param duration: additional duration in seconds to allow for the response.
+    :param onlyExtend: if True, only ever increase the timeout.  If False, the
+                       new duration always replaces the old one.
+    """
+    if cherrypy.response and getattr(cherrypy.response, 'time'):
+        newTimeout = time.time() - cherrypy.response.time + duration
+        if not onlyExtend or newTimeout > cherrypy.response.timeout:
+            cherrypy.response.timeout = newTimeout
