@@ -248,3 +248,97 @@ describe('Test the assetstore page', function () {
         });
     });
 });
+
+describe('Test the plugins page', function () {
+    beforeEach(function () {
+        spyOn(girder.restartServer, '_callSystemRestart').
+              andCallFake(function () {
+            window.setTimeout(function() {
+                girder.restartServer._lastStartDate = 0;
+            }, 100);
+        });
+        spyOn(girder.restartServer, '_reloadWindow');
+    });
+    it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
+    it('Go to plugins page', function () {
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+        waitsFor(function () {
+            return $('.g-plugins-config').length > 0;
+        }, 'admin page to load');
+        girderTest.waitForLoad();
+
+        runs(function () {
+            $('.g-plugins-config').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-plugin-list-item').length > 0;
+        }, 'plugins page to load');
+        girderTest.waitForLoad();
+    });
+    it('Enable a plugin', function () {
+        runs(function () {
+            expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
+            expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            $('.g-plugin-list-item .bootstrap-switch-label').eq(0).click();
+        });
+        waitsFor(function () {
+            return $('.g-plugin-restart').css('visibility') !== 'hidden';
+        }, 'restart option to be shown');
+        runs(function () {
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
+            $('.g-plugin-restart-button').click();
+        });
+        waitsFor(function () {
+            return $('#g-confirm-button:visible').length > 0;
+        }, 'restart confirmation to appear');
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+        waitsFor(function () {
+            return girder.restartServer._callSystemRestart.wasCalled &&
+                   girder.restartServer._reloadWindow.wasCalled;
+        }, 'restart to be called');
+    });
+    it('Go away and back to plugins page', function () {
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+        waitsFor(function () {
+            return $('.g-plugins-config').length > 0;
+        }, 'admin page to load');
+        girderTest.waitForLoad();
+
+        runs(function () {
+            $('.g-plugins-config').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-plugin-list-item').length > 0;
+        }, 'plugins page to load');
+        girderTest.waitForLoad();
+    });
+    it('Disable a plugin', function () {
+        runs(function () {
+            $('.g-plugin-list-item .bootstrap-switch-label').eq(0).click();
+        });
+        runs(function () {
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+        });
+    });
+    /* Logout to make sure we don't see the plugins any more */
+    it('logout from admin account', girderTest.logout());
+    it('check logged out state', function() {
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('input#g-login').length > 0;
+        }, 'register dialog to appear');
+        runs(function () {
+            $('#g-dialog-container').click();
+        });
+        girderTest.waitForLoad();
+    });
+});

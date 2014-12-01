@@ -220,3 +220,8 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(len(enabled), 1)
         self.assertTrue('test_plugin' in enabled)
         self.assertTrue('bad_json' not in enabled)
+
+    def testRestart(self):
+        resp = self.request(path='/system/restart', method='PUT',
+                            user=self.users[0])
+        self.assertStatusOk(resp)

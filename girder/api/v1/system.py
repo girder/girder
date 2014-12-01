@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy.process.plugins
+import datetime
 import errno
 import json
 
@@ -25,6 +27,8 @@ from girder.utility import plugin_utilities
 from girder.constants import SettingKey, VERSION
 from ..describe import API_VERSION, Description
 from ..rest import Resource, RestException
+
+ModuleStartTime = datetime.datetime.utcnow()
 
 
 class System(Resource):
@@ -39,6 +43,7 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
+        self.route('PUT', ('restart',), self.restartServer)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
 
@@ -144,6 +149,7 @@ class System(Resource):
     def getVersion(self, params):
         version = dict(**VERSION)
         version['apiVersion'] = API_VERSION
+        version['serverStartDate'] = ModuleStartTime
         return version
     getVersion.description = Description(
         'Get the version information for this server.')
@@ -258,3 +264,33 @@ class System(Resource):
                required=False, dataType='boolean')
         .errorResponse('You are not a system administrator.', 403)
         .errorResponse('Failed to delete upload', 500))
+
+    @access.admin
+    def restartServer(self, params):
+        """
+        Restart the girder rest server.  This relaods everything, which is
+        currently necessary to enable or disable a plugin.
+        """
+        class Restart(cherrypy.process.plugins.Monitor):
+            def __init__(self, bus, frequency=1):
+                cherrypy.process.plugins.Monitor.__init__(
+                    self, bus, self.run, frequency)
+
+            def start(self):
+                cherrypy.process.plugins.Monitor.start(self)
+
+            def run(self):
+                self.bus.log('Restarting.')
+                self.thread.cancel()
+                self.bus.restart()
+
+        restart = Restart(cherrypy.engine)
+        restart.subscribe()
+        restart.start()
+        return {
+            'restarted': datetime.datetime.utcnow()
+        }
+    restartServer.description = (
+        Description('Restart the girder REST server.')
+        .notes('Must be a system administrator to call this.')
+        .errorResponse('You are not a system administrator.', 403))
