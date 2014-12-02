@@ -178,7 +178,7 @@ class Resource(BaseResource):
                     'as a zip archive.')
         .param('resources', 'A JSON-encoded list of types to download.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
-               '(item id2)], "folder": [(folder id 1)]}.')
+               '(item id 2)], "folder": [(folder id 1)]}.')
         .param('includeMetadata', 'Include any metadata in json files in the '
                'archive.', required=False, dataType='boolean')
         .errorResponse('Unsupport or unknown resource type.')

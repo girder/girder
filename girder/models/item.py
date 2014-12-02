@@ -463,5 +463,5 @@ class Item(Model):
                    self.model('file').download(file, headers=False))
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
-                yield json.dumps(doc['meta'])
+                yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
