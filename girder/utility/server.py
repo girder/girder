@@ -27,7 +27,7 @@ from girder.utility import config
 from . import webroot
 
 
-def setup(test=False, plugins=None):
+def setup_helper(test=False, plugins=None, cur_config=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
@@ -38,7 +38,8 @@ def setup(test=False, plugins=None):
                     plugins, pass this as a list of plugins to load. Otherwise,
                     will use the PLUGINS_ENABLED setting value from the db.
     """
-    cur_config = config.getConfig()
+    if cur_config is None:
+        cur_config = config.getConfig()
 
     curStaticRoot = constants.ROOT_DIR
     if not os.path.exists(os.path.join(curStaticRoot, 'clients')):
@@ -111,7 +112,12 @@ def setup(test=False, plugins=None):
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1)
+        plugins, root, appconf, root.api.v1, cur_config=cur_config)
+
+    return (root, appconf)
+
+def setup(test=False, plugins=None, cur_config=None):
+    root, appconf = setup_helper(test, plugins, cur_config)
 
     application = cherrypy.tree.mount(root, '/', appconf)
 
