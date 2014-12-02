@@ -1,3 +1,5 @@
+@import 'nib'
+
 .g-plugin-list-container
   border 1px solid #e2e2e2
   border-radius 3px
@@ -34,6 +36,23 @@
 
   .bootstrap-switch
     float right
+
+.g-plugin-restart
+  visibility hidden
+  button.g-plugin-restart-button
+    float right
+  .g-plugin-restart-text
+    padding-top 7px
+    font-size 14px
+  .g-plugin-clear
+    clear right
+  max-height 0px
+  transition max-height 0.35s ease-in-out
+  overflow hidden
+  &.g-plugin-restart-show
+    visibility visible
+    max-height 40px
+
 
 .g-plugin-config-breadcrumbs > ol.breadcrumb
   padding 6px 10px

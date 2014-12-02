@@ -189,6 +189,50 @@ girder.cookie = {
     }
 };
 
+/**
+ * Restart the server, wait until it has restarted, then reload the current
+ * page.
+ */
+girder.restartServer = function () {
+    function waitForServer() {
+        girder.restRequest({
+            type: 'GET',
+            path: 'system/version',
+            error: null
+        }).done(_.bind(function (resp) {
+            if (resp.serverStartDate !== girder.restartServer._lastStartDate) {
+                girder.restartServer._reloadWindow();
+            } else {
+                window.setTimeout(waitForServer, 1000);
+            }
+        })).error(_.bind(function () {
+            window.setTimeout(waitForServer, 1000);
+        }));
+    }
+
+    girder.restRequest({
+        type: 'GET',
+        path: 'system/version'
+    }).done(_.bind(function (resp) {
+        girder.restartServer._lastStartDate = resp.serverStartDate;
+        girder.restartServer._callSystemRestart();
+        girder.events.trigger('g:alert', {
+            icon: 'cw',
+            text: 'Restarting server',
+            type: 'warning',
+            timeout: 60000
+        });
+        waitForServer();
+    }));
+};
+/* Having these as object properties facilitates testing */
+girder.restartServer._callSystemRestart = function () {
+    girder.restRequest({type: 'PUT', path: 'system/restart'});
+};
+girder.restartServer._reloadWindow = function () {
+    window.location.reload();
+};
+
 (function () {
     var _pluginConfigRoutes = {};
 
@@ -231,7 +275,7 @@ girder.cookie = {
         if (category) {
             return _.filter(restXhrPool, function (xhr) {
                 return xhr.girder && xhr.girder[category];
-            });
+            }).length;
         }
         return _.size(restXhrPool);
     };

@@ -6,6 +6,15 @@ girder.views.PluginsView = girder.View.extend({
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
             girder.router.navigate(route, {trigger: true});
+        },
+        'click .g-plugin-restart-button': function (evt) {
+            var params = {
+                text: 'Are you sure you want to restart the server?  This ' +
+                      'will interrupt all running tasks for all users.',
+                yesText: 'Restart',
+                confirmCallback: girder.restartServer
+            };
+            girder.confirm(params);
         }
     },
 
@@ -53,6 +62,8 @@ girder.views.PluginsView = girder.View.extend({
                         view.enabled.splice(idx, 1);
                     }
                 }
+                girder.pluginsChanged = true;
+                $('.g-plugin-restart').addClass('g-plugin-restart-show');
                 view._updatePlugins();
             });
         this.$('.g-plugin-config-link').tooltip({
@@ -61,6 +72,9 @@ girder.views.PluginsView = girder.View.extend({
             placement: 'bottom',
             delay: {show: 100}
         });
+        if (girder.pluginsChanged) {
+            $('.g-plugin-restart').addClass('g-plugin-restart-show');
+        }
 
         return this;
     },
