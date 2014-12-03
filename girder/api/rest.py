@@ -41,11 +41,11 @@ def _cacheAuthUser(fun):
     is only performed once per request, and is cached on the request for
     subsequent calls to getCurrentUser().
     """
-    def inner(self, returnToken=False, *args, **kwargs):
+    def inner(returnToken=False, *args, **kwargs):
         if not returnToken and hasattr(cherrypy.request, 'girderUser'):
             return cherrypy.request.girderUser
 
-        user = fun(self, returnToken, *args, **kwargs)
+        user = fun(returnToken, *args, **kwargs)
         if type(user) is tuple:
             setattr(cherrypy.request, 'girderUser', user[0])
         else:
@@ -61,15 +61,83 @@ def _cacheAuthToken(fun):
     is only performed once per request, and is cached on the request for
     subsequent calls to getCurrentToken().
     """
-    def inner(self, *args, **kwargs):
+    def inner(*args, **kwargs):
         if hasattr(cherrypy.request, 'girderToken'):
             return cherrypy.request.girderToken
 
-        token = fun(self, *args, **kwargs)
+        token = fun(*args, **kwargs)
         setattr(cherrypy.request, 'girderToken', token)
 
         return token
     return inner
+
+
+@_cacheAuthToken
+def getCurrentToken():
+    """
+    Returns the current valid token object that was passed via the token header
+    or parameter, or None if no valid token was passed.
+    """
+    tokenStr = None
+    if 'token' in cherrypy.request.params:  # Token as a parameter
+        tokenStr = cherrypy.request.params.get('token')
+    elif 'Girder-Token' in cherrypy.request.headers:
+        tokenStr = cherrypy.request.headers['Girder-Token']
+
+    if not tokenStr:
+        return None
+
+    return ModelImporter.model('token').load(tokenStr, force=True,
+                                             objectId=False)
+
+
+@_cacheAuthUser
+def getCurrentUser(returnToken=False):
+    """
+    Returns the currently authenticated user based on the token header or
+    parameter.
+
+    :param returnToken: Whether we should return a tuple that also contains the
+                        token.
+    :type returnToken: bool
+    :returns: the user document from the database, or None if the user is not
+              logged in or the token is invalid or expired.  If
+              returnToken=True, returns a tuple of (user, token).
+    """
+    event = events.trigger('auth.user.get')
+    if event.defaultPrevented and len(event.responses) > 0:
+        return event.responses[0]
+
+    token = getCurrentToken()
+
+    def retVal(user, token):
+        if returnToken:
+            return (user, token)
+        else:
+            return user
+
+    if token is None or token['expires'] < datetime.datetime.utcnow():
+        return retVal(None, token)
+    else:
+        try:
+            ensureTokenScopes(token, TokenScope.USER_AUTH)
+        except:
+            return retVal(None, token)
+        user = ModelImporter.model('user').load(token['userId'], force=True)
+        return retVal(user, token)
+
+
+def requireAdmin(user):
+    """
+    Calling this on a user will ensure that they have admin rights.  If not,
+    raises an AccessException.
+
+    :param user: The user to check admin flag on.
+    :type user: dict.
+    :raises AccessException: If the user is not an administrator.
+    """
+    if user is None or user.get('admin', False) is not True:
+        raise AccessException('Administrator access required.')
 
 
 class loadmodel(object):
@@ -502,8 +570,7 @@ class Resource(ModelImporter):
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
-        if user is None or user.get('admin', False) is not True:
-            raise AccessException('Administrator access required.')
+        return requireAdmin(user)
 
     def getPagingParameters(self, params, defaultSortField=None,
                             defaultSortDir=pymongo.ASCENDING):
@@ -543,26 +610,15 @@ class Resource(ModelImporter):
         :param scope: A scope or set of scopes that is required.
         :type scope: str or list of str
         """
-        ensureTokenScopes(self.getCurrentToken(), scope)
+        ensureTokenScopes(getCurrentToken(), scope)
 
-    @_cacheAuthToken
     def getCurrentToken(self):
         """
         Returns the current valid token object that was passed via the token
         header or parameter, or None if no valid token was passed.
         """
-        tokenStr = None
-        if 'token' in cherrypy.request.params:  # Token as a parameter
-            tokenStr = cherrypy.request.params.get('token')
-        elif 'Girder-Token' in cherrypy.request.headers:
-            tokenStr = cherrypy.request.headers['Girder-Token']
+        return getCurrentToken()
 
-        if not tokenStr:
-            return None
-
-        return self.model('token').load(tokenStr, force=True, objectId=False)
-
-    @_cacheAuthUser
     def getCurrentUser(self, returnToken=False):
         """
         Returns the currently authenticated user based on the token header or
@@ -575,28 +631,7 @@ class Resource(ModelImporter):
                   is not logged in or the token is invalid or expired.
                   If returnToken=True, returns a tuple of (user, token).
         """
-        event = events.trigger('auth.user.get')
-        if event.defaultPrevented and len(event.responses) > 0:
-            return event.responses[0]
-
-        token = self.getCurrentToken()
-
-        def retVal(user, token):
-            if returnToken:
-                return (user, token)
-            else:
-                return user
-
-        if token is None or token['expires'] < datetime.datetime.utcnow():
-            return retVal(None, token)
-        else:
-            try:
-                ensureTokenScopes(token, TokenScope.USER_AUTH)
-            except:
-                return retVal(None, token)
-
-            user = self.model('user').load(token['userId'], force=True)
-            return retVal(user, token)
+        return getCurrentUser(returnToken)
 
     def sendAuthTokenCookie(self, user):
         """ Helper method to send the authentication cookie """

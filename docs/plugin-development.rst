@@ -112,27 +112,6 @@ If you do not add an access decorator, a warning message appears:
 ``WARNING: No access level specified for route GET item/:id/cat``.  The access
 will default to being restricted to administrators.
 
-If the endpoint has anything other than ``@access.public``, it needs to be a
-method of a subclass of ``Resource``: ::
-
-    from girder.api import access
-    from girder.api.rest import Resource
-
-    class PluginItem(Resource):
-        @access.admin
-        def myHandler(id, params):
-            return {
-               'itemId': id,
-               'cat': params.get('cat', 'No cat param passed')
-            }
-
-    def load(info):
-        myItem = PluginItem()
-        info['apiRoot'].item.route('GET', (':id', 'cat'), myItem.myHandler)
-
-Handlers that have ``@access.public`` can be methods of a subclass of
-``Resource`` or regular functions.
-
 When you start the server, you may notice a warning message appears:
 ``WARNING: No description docs present for route GET item/:id/cat``. You
 can add self-describing API documentation to your route as in the following

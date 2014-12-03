@@ -20,7 +20,7 @@
 import functools
 
 from girder.models.model_base import AccessException
-from girder.api.rest import RestException
+from girder.api import rest
 
 
 def admin(fun):
@@ -29,9 +29,9 @@ def admin(fun):
     decorator.
     """
     @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        self.requireAdmin(self.getCurrentUser())
-        return fun(self, *args, **kwargs)
+    def accessDecorator(*args, **kwargs):
+        rest.requireAdmin(rest.getCurrentUser())
+        return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'admin'
     return accessDecorator
 
@@ -43,11 +43,11 @@ def user(fun):
     "core.user_auth" scope and a valid user ID.
     """
     @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        user = self.getCurrentUser()
+    def accessDecorator(*args, **kwargs):
+        user = rest.getCurrentUser()
         if not user:
             raise AccessException('You must be logged in.')
-        return fun(self, *args, **kwargs)
+        return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'user'
     return accessDecorator
 
@@ -72,10 +72,10 @@ def token(fun):
     part of this decorator.
     """
     @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        token = self.getCurrentToken()
+    def accessDecorator(*args, **kwargs):
+        token = rest.getCurrentToken()
         if not token:
-            raise RestException('Invalid or missing token.')
-        return fun(self, *args, **kwargs)
+            raise rest.RestException('Invalid or missing token.')
+        return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'token'
     return accessDecorator
