@@ -115,7 +115,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         raise Exception('Plugin directory does not exist: {}'.format(pluginDir))
     if not isPluginDir and not isPluginFile:
         # This plugin does not have any server-side python code.
-        return
+        return root, appconf, apiRoot
 
     mailTemplatesDir = os.path.join(pluginDir, 'server', 'mail_templates')
     if os.path.isdir(mailTemplatesDir):
