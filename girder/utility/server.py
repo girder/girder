@@ -120,7 +120,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
 def setup(test=False, plugins=None, curConfig=None):
     """
-    Configure and start the server.
+    Configure and mount the Girder server under '/'.
 
     :param test: Whether to start in test mode.
     :param plugins: List of plugins to enable.
