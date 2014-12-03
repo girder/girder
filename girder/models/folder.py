@@ -26,6 +26,7 @@ from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
 from girder.constants import AccessType
+from girder.utility.progress import setResponseTimeLimit
 
 
 class Folder(AccessControlledModel):
@@ -295,11 +296,13 @@ class Folder(AccessControlledModel):
         :param progress: A progress context to record progress on.
         :type progress: girder.utility.progress.ProgressContext or None.
         """
+        setResponseTimeLimit()
         # Delete all child items
         items = self.model('item').find({
             'folderId': folder['_id']
         }, limit=0, timeout=False)
         for item in items:
+            setResponseTimeLimit()
             self.model('item').remove(item, progress=progress, **kwargs)
             if progress:
                 progress.update(increment=1, message='Deleted item ' +
@@ -608,6 +611,7 @@ class Folder(AccessControlledModel):
         :type progress: girder.utility.progress.ProgressContext or None.
         :returns: the new folder document.
         """
+        setResponseTimeLimit()
         if parentType is None:
             parentType = srcFolder['parentCollection']
         parentType = parentType.lower()
@@ -659,6 +663,7 @@ class Folder(AccessControlledModel):
         events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
         # copy items
         for item in self.childItems(folder=srcFolder, limit=0, timeout=False):
+            setResponseTimeLimit()
             self.model('item').copyItem(item, creator, folder=newFolder)
             if progress:
                 progress.update(increment=1, message='Copied item ' +
