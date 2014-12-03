@@ -26,6 +26,7 @@ import zipfile
 
 from .. import base
 
+import girder.utility.ziputil
 from girder.models.notification import ProgressState
 
 
@@ -110,6 +111,8 @@ class ResourceTestCase(base.TestCase):
             'Item 3', self.admin, self.adminSubFolder))
         self.items.append(self.model('item').createItem(
             'Item 4', self.admin, self.collectionPrivateFolder))
+        self.items.append(self.model('item').createItem(
+            'Item 5', self.admin, self.collectionPrivateFolder))
         # Upload a series of files
         file, path, contents = self._uploadFile('File 1', self.items[0])
         self.file1 = file
@@ -122,7 +125,7 @@ class ResourceTestCase(base.TestCase):
         self.expectedZip[path] = contents
         file, path, contents = self._uploadFile('File 5', self.items[3])
         self.expectedZip[path] = contents
-        # place some metadata on one of the items and one of the folders
+        # place some metadata on two of the items and one of the folders
         meta = {'key': 'value'}
         self.model('item').setMetadata(self.items[2], meta)
         parents = self.model('item').parentsToRoot(self.items[2], self.admin)
@@ -131,14 +134,25 @@ class ResourceTestCase(base.TestCase):
             [self.items[2]['name'], 'girder-item-metadata.json']))
         self.expectedZip[path] = json.dumps(meta)
 
-        meta = {'key2': 'value2'}
+        meta = {'x': 'y'}
+        self.model('item').setMetadata(self.items[4], meta)
+        parents = self.model('item').parentsToRoot(self.items[4], self.admin)
+        path = os.path.join(*([part['object'].get(
+            'name', part['object'].get('login', '')) for part in parents] +
+            [self.items[4]['name'], 'girder-item-metadata.json']))
+        self.expectedZip[path] = json.dumps(meta)
+
+        meta = {'key2': 'value2', 'date': datetime.datetime.utcnow()}
+        # mongo rounds to millisecond, so adjust our expectations
+        meta['date'] -= datetime.timedelta(
+            microseconds=meta['date'].microsecond % 1000)
         self.model('folder').setMetadata(self.adminPublicFolder, meta)
         parents = self.model('folder').parentsToRoot(self.adminPublicFolder,
                                                      user=user)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
-        self.expectedZip[path] = json.dumps(meta)
+        self.expectedZip[path] = json.dumps(meta, default=str)
 
     def _uploadFile(self, name, item):
         """
@@ -219,6 +233,24 @@ class ResourceTestCase(base.TestCase):
         self.assertHasKeys(zip.namelist(), self.expectedZip)
         for name in zip.namelist():
             self.assertEqual(self.expectedZip[name], zip.read(name))
+        # Download the same resources again, this time triggering the large zip
+        # file creation (artifically forced).  We could do this naturally by
+        # downloading >65536 files, but that would make the test take several
+        # minutes.
+        girder.utility.ziputil.Z_FILECOUNT_LIMIT = 5
+        resourceList = {
+            'item': [str(item['_id']) for item in self.items]
+            }
+        resp = self.request(
+            path='/resource/download', method='POST', user=self.admin, params={
+                'resources': json.dumps(resourceList),
+                'includeMetadata': True
+            }, isJson=False,
+            additionalHeaders=[('X-HTTP-Method-Override', 'GET')])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        self.assertTrue(zip.testzip() is None)
         # Test deleting resources
         resourceList = {
             'collection': [str(self.collection['_id'])],
@@ -237,8 +269,8 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
         self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
         self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 5)
-        self.assertEqual(notifs[0]['data']['current'], 5)
+        self.assertEqual(notifs[0]['data']['total'], 6)
+        self.assertEqual(notifs[0]['data']['current'], 6)
         self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
                         datetime.timedelta(minutes=1))
         # Test deletes using a body on the request

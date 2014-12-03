@@ -580,7 +580,7 @@ class Folder(AccessControlledModel):
                 yield (filepath, file)
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
-                yield json.dumps(doc['meta'])
+                yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
 
     def copyFolder(self, srcFolder, parent=None, name=None, description=None,
