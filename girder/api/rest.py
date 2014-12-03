@@ -172,16 +172,15 @@ class loadmodel(object):
 
     def __call__(self, fun):
         @functools.wraps(fun)
-        def wrapped(wrappedSelf, *args, **kwargs):
+        def wrapped(*args, **kwargs):
             for raw, converted in self.map.iteritems():
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
                     kwargs[converted] = self.model.load(id, force=True)
                 elif self.level is not None:
-                    user = wrappedSelf.getCurrentUser()
                     kwargs[converted] = self.model.load(
-                        id=id, level=self.level, user=user)
+                        id=id, level=self.level, user=getCurrentUser())
                 else:
                     kwargs[converted] = self.model.load(id)
 
@@ -189,7 +188,7 @@ class loadmodel(object):
                     raise RestException('Invalid {} id ({}).'
                                         .format(self.model.name, id))
 
-            return fun(wrappedSelf, *args, **kwargs)
+            return fun(*args, **kwargs)
         return wrapped
 
 
