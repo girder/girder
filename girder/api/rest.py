@@ -518,8 +518,8 @@ class Resource(ModelImporter):
         :param params: The URL query parameters.
         :type params: dict
         :param defaultSortField: If the client did not pass a 'sort' parameter,
-        set this to choose a default sort field. If None, the results will
-        be returned unsorted.
+            set this to choose a default sort field. If None, the results will
+            be returned unsorted.
         :type defaultSortField: str or None
         """
         offset = int(params.get('offset', 0))

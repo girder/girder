@@ -58,8 +58,8 @@ def public(fun):
     in should be wrapped in this decorator.
     """
     @functools.wraps(fun)
-    def accessDecorator(self, *args, **kwargs):
-        return fun(self, *args, **kwargs)
+    def accessDecorator(*args, **kwargs):
+        return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'public'
     return accessDecorator
 

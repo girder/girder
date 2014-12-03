@@ -23,6 +23,11 @@ from girder.api.rest import Resource
 from girder.api import access
 
 
+@access.public
+def publicFunctionHandler(**kwargs):
+    return
+
+
 class AccessTestResource(Resource):
     def __init__(self):
         self.resourceName = 'accesstest'
@@ -51,6 +56,10 @@ class AccessTestResource(Resource):
 def setUpModule():
     server = base.startServer()
     server.root.api.v1.accesstest = AccessTestResource()
+    # Public access endpoints do not need to be a Resource subclass method,
+    # they can be a regular function
+    server.root.api.v1.accesstest.route('GET', ('public_function_access', ),
+                                        publicFunctionHandler)
 
 
 def tearDownModule():
@@ -86,7 +95,8 @@ class AccessTestCase(base.TestCase):
             ("/accesstest/default_access", "admin"),
             ("/accesstest/admin_access", "admin"),
             ("/accesstest/user_access", "user"),
-            ("/accesstest/public_access", "public")
+            ("/accesstest/public_access", "public"),
+            ("/accesstest/public_function_access", "public")
         ]
         for endpoint in endpoints:
             resp = self.request(path=endpoint[0], method='GET', user=None)
