@@ -44,6 +44,7 @@ def userFunctionHandler(**kwargs):
 def publicFunctionHandler(**kwargs):
     return
 
+
 @access.public
 @loadmodel(map={'id': 'user'}, model='user', level=AccessType.READ)
 def plainFn(user, params):
