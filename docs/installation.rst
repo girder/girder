@@ -60,17 +60,8 @@ Then cd into the root of the repository and run: ::
 
     npm install
 
-Finally, when all Node packages are installed, run: ::
-
-    grunt init
-
-To build the client-side code, run the following command from within the
-repository: ::
-
-    grunt
-
-Run this command any time you change a JavaScript or CSS file under
-`__clients/web__.`
+This should run ``grunt init`` and ``grunt`` to build all of the javascript and
+CSS files needed to run the web client application.
 
 .. _run-girder:
 
