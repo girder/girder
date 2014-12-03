@@ -38,7 +38,7 @@ from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
 from girder.utility import mail_utils, config
 
 
-def loadPlugins(plugins, root, appconf, apiRoot=None, cur_config=None):
+def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
     """
     Loads a set of plugins into the application. The list passed in should not
     already contain dependency information; dependent plugins will be loaded
@@ -54,10 +54,10 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, cur_config=None):
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
-    if cur_config is None:
-        cur_config = config.getConfig()
-    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
-        pluginDir = cur_config['plugins']['plugin_directory']
+    if curConfig is None:
+        curConfig = config.getConfig()
+    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
+        pluginDir = curConfig['plugins']['plugin_directory']
     elif os.path.exists(os.path.join(PACKAGE_DIR, 'plugins')):
         pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
     else:
@@ -72,15 +72,17 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, cur_config=None):
 
     print TerminalColor.info('Resolving plugin dependencies...')
 
-    filteredDepGraph = {pluginName: info['dependencies']
-                        for pluginName, info in findAllPlugins(cur_config).iteritems()
-                        if pluginName in plugins}
+    filteredDepGraph = {
+        pluginName: info['dependencies']
+        for pluginName, info in findAllPlugins(curConfig).iteritems()
+        if pluginName in plugins
+    }
 
     for pset in toposort(filteredDepGraph):
         for plugin in pset:
             try:
                 root, appconf, apiRoot = loadPlugin(
-                    plugin, root, appconf, apiRoot, cur_config=cur_config)
+                    plugin, root, appconf, apiRoot, curConfig=curConfig)
                 print TerminalColor.success('Loaded plugin "{}"'
                                             .format(plugin))
             except:
@@ -91,7 +93,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, cur_config=None):
     return root, appconf, apiRoot
 
 
-def loadPlugin(name, root, appconf, apiRoot=None, cur_config=None):
+def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     """
     Loads a plugin into the application. This means allowing it to create
     endpoints within its own web API namespace, and to register its event
@@ -106,7 +108,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, cur_config=None):
     if apiRoot is None:
         apiRoot = root.api.v1
 
-    pluginDir = os.path.join(getPluginDir(cur_config), name)
+    pluginDir = os.path.join(getPluginDir(curConfig), name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
@@ -147,16 +149,16 @@ def loadPlugin(name, root, appconf, apiRoot=None, cur_config=None):
         return root, appconf, apiRoot
 
 
-def getPluginDir(cur_config=None):
+def getPluginDir(curConfig=None):
     """
     Returns the /path/to the currently configured plugin directory.
     """
-    if cur_config is None:
-        cur_config = config.getConfig()
+    if curConfig is None:
+        curConfig = config.getConfig()
 
     # This uses the plugin directory specified in the config first.
-    if 'plugins' in cur_config and 'plugin_directory' in cur_config['plugins']:
-        pluginsDir = cur_config['plugins']['plugin_directory']
+    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
+        pluginsDir = curConfig['plugins']['plugin_directory']
 
     # If none is specified, it looks if there is a plugin directory next
     # to the girder python package.  This is the case when running from the
@@ -179,13 +181,13 @@ def getPluginDir(cur_config=None):
     return pluginsDir
 
 
-def findAllPlugins(cur_config=None):
+def findAllPlugins(curConfig=None):
     """
     Walks the plugins directory to find all of the plugins. If the plugin has
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
-    pluginsDir = getPluginDir(cur_config)
+    pluginsDir = getPluginDir(curConfig)
     if not pluginsDir:
         print(TerminalColor.warning('Plugin directory not found. No plugins '
               'loaded.'))
