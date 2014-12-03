@@ -69,8 +69,8 @@ class Model(ModelImporter):
         have zero or one full-text index.
 
         :param language: The default_language value for the text index,
-        which is used for stemming and stop words. If the text index
-        should not use stemming and stop words, set this param to 'none'.
+            which is used for stemming and stop words. If the text index
+            should not use stemming and stop words, set this param to 'none'.
         :type language: str
         """
         self._textIndex = index

@@ -23,6 +23,26 @@ from girder.api.rest import Resource
 from girder.api import access
 
 
+# We deliberately don't have an access decorator
+def defaultFunctionHandler(**kwargs):
+    return
+
+
+@access.admin
+def adminFunctionHandler(**kwargs):
+    return
+
+
+@access.user
+def userFunctionHandler(**kwargs):
+    return
+
+
+@access.public
+def publicFunctionHandler(**kwargs):
+    return
+
+
 class AccessTestResource(Resource):
     def __init__(self):
         self.resourceName = 'accesstest'
@@ -51,6 +71,15 @@ class AccessTestResource(Resource):
 def setUpModule():
     server = base.startServer()
     server.root.api.v1.accesstest = AccessTestResource()
+    # Public access endpoints do not need to be a Resource subclass method,
+    # they can be a regular function
+    accesstest = server.root.api.v1.accesstest
+    accesstest.route('GET', ('default_function_access', ),
+                     defaultFunctionHandler)
+    accesstest.route('GET', ('admin_function_access', ), adminFunctionHandler)
+    accesstest.route('GET', ('user_function_access', ), userFunctionHandler)
+    accesstest.route('GET', ('public_function_access', ),
+                     publicFunctionHandler)
 
 
 def tearDownModule():
@@ -86,7 +115,11 @@ class AccessTestCase(base.TestCase):
             ("/accesstest/default_access", "admin"),
             ("/accesstest/admin_access", "admin"),
             ("/accesstest/user_access", "user"),
-            ("/accesstest/public_access", "public")
+            ("/accesstest/public_access", "public"),
+            ("/accesstest/default_function_access", "admin"),
+            ("/accesstest/admin_function_access", "admin"),
+            ("/accesstest/user_function_access", "user"),
+            ("/accesstest/public_function_access", "public"),
         ]
         for endpoint in endpoints:
             resp = self.request(path=endpoint[0], method='GET', user=None)

@@ -63,7 +63,7 @@ class Token(AccessControlledModel):
         :param days: The lifespan of the session in days.
         :type days: int
         :param scope: Scope or list of scopes this token applies to. By default,
-        will create a user authentication token.
+            will create a user authentication token.
         :type scope: str or list of str
         :returns: The token document that was created.
         """
@@ -123,7 +123,7 @@ class Token(AccessControlledModel):
         :param token: The token object.
         :type token: dict
         :param scope: A scope or set of scopes that will be tested as a subset
-        of the given token's allowed scopes.
+            of the given token's allowed scopes.
         :type scopes: str or list of str
         """
         if isinstance(scope, basestring):

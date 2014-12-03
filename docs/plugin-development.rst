@@ -102,9 +102,9 @@ route for ``GET /item/:id/cat`` to the system, ::
     def load(info):
         info['apiRoot'].item.route('GET', (':id', 'cat'), myHandler)
 
-You should always add an access decorator to your handler function to indicate
-who can call the new route.  The decorator is one of ``@access.admin`` (only
-administrators can call this endpoint), ``@access.user`` (any user who is
+You should always add an access decorator to your handler function or method to
+indicate who can call the new route.  The decorator is one of ``@access.admin``
+(only administrators can call this endpoint), ``@access.user`` (any user who is
 logged in can call the endpoint), or ``@access.public`` (any client can call
 the endpoint).
 
