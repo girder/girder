@@ -24,7 +24,6 @@ from girder.api import access
 from girder.constants import AccessType
 
 
-
 # We deliberately don't have an access decorator
 def defaultFunctionHandler(**kwargs):
     return
