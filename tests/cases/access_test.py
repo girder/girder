@@ -19,8 +19,10 @@
 
 from .. import base
 
-from girder.api.rest import Resource
+from girder.api.rest import loadmodel, Resource
 from girder.api import access
+from girder.constants import AccessType
+
 
 
 # We deliberately don't have an access decorator
@@ -41,6 +43,11 @@ def userFunctionHandler(**kwargs):
 @access.public
 def publicFunctionHandler(**kwargs):
     return
+
+@access.public
+@loadmodel(map={'id': 'user'}, model='user', level=AccessType.READ)
+def plainFn(user, params):
+    return user
 
 
 class AccessTestResource(Resource):
@@ -80,6 +87,7 @@ def setUpModule():
     accesstest.route('GET', ('user_function_access', ), userFunctionHandler)
     accesstest.route('GET', ('public_function_access', ),
                      publicFunctionHandler)
+    accesstest.route('GET', ('test_loadmodel_plain', ':id'), plainFn)
 
 
 def tearDownModule():
@@ -137,3 +145,9 @@ class AccessTestCase(base.TestCase):
                 self.assertStatusOk(resp)
             else:
                 self.assertStatus(resp, 403)
+
+    def testLoadModelPlainFn(self):
+        resp = self.request(path='/accesstest/test_loadmodel_plain/{}'.format(
+                            self.user['_id']), method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_id'], str(self.user['_id']))
