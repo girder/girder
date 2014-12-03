@@ -17,7 +17,10 @@ whenever a Python file is modified.
 
 To get the same auto-building behavior for JavaScript, we use ``grunt-watch``.
 Thus, running ``grunt watch`` in the root of the repository will watch for
-JavaScript, Stylus, and Jade changes in order to rebuild them on-the-fly.
+JavaScript, Stylus, and Jade changes in order to rebuild them on-the-fly. If you
+do not run ``grunt watch`` while making code changes, you will need to run the
+``grunt`` command to manually rebuild the web client in order to see your changes
+reflected.
 
 Vagrant
 ^^^^^^^
