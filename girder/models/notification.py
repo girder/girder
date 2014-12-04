@@ -48,24 +48,27 @@ class Notification(Model):
     """
     def initialize(self):
         self.name = 'notification'
-        self.ensureIndices(('userId', 'time', 'updated'))
+        self.ensureIndices(('userId', 'time', 'updated', 'tokenId'))
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
 
     def validate(self, doc):
         return doc
 
-    def _createNotification(self, type, data, user, expires=None):
+    def _createNotification(self, type, data, user, expires=None, token=None):
         """
         Helper method to create the notification record that gets saved.
         """
         now = datetime.datetime.utcnow()
         doc = {
             'type': type,
-            'userId': user['_id'],
             'data': data,
             'time': now,
             'updated': now
         }
+        if user:
+            doc['userId'] = user['_id']
+        else:
+            doc['tokenId'] = token['_id']
 
         if expires is not None:
             doc['expires'] = expires
@@ -73,27 +76,31 @@ class Notification(Model):
         return self.save(doc)
 
     def initProgress(self, user, title, total=0, state=ProgressState.ACTIVE,
-                     current=0, message=''):
+                     current=0, message='', token=None):
         """
         Create a "progress" type notification that can be updated anytime there
         is progress on some task. Progress records that are not updated for more
         than one hour will be deleted. The "time" field of a progress record
         indicates the time the task was started.
 
+        :param user: the user associated with this notification.  If this is
+            None, a session token must be specified.
         :param title: The title of the task. This should not change over the
-        course of the task. (e.g. 'Deleting folder "foo"')
+            course of the task. (e.g. 'Deleting folder "foo"')
         :type title: str
         :param total: Some numeric value representing the total task length. By
-        convention, setting this <= 0 means progress on this task is
-        indeterminate.
+            convention, setting this <= 0 means progress on this task is
+            indeterminate.
         :type total: int, long, or float
         :param state: Represents the state of the underlying task execution.
         :type state: ProgressState enum value.
-        :param current: Some numeric value representing the current progress
-        of the task (relative to total).
+        :param current: Some numeric value representing the current progress of
+            the task (relative to total).
         :type current: int, long, or float
         :param message: Message corresponding to the current state of the task.
         :type message: str
+        :param token: if the user is None, associate this notification with the
+            specified session token.
         """
         data = {
             'title': title,
@@ -104,7 +111,8 @@ class Notification(Model):
         }
         expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
-        return self._createNotification('progress', data, user, expires)
+        return self._createNotification('progress', data, user, expires,
+                                        token=token)
 
     def updateProgress(self, record, save=True, **kwargs):
         """
@@ -155,16 +163,22 @@ class Notification(Model):
         else:
             return record
 
-    def get(self, user, since=None):
+    def get(self, user, since=None, token=None):
         """
         Get outstanding notifications for the given user.
 
-        :param user: The user requesting updates.
+        :param user: The user requesting updates.  None to use the token
+            instead.
         :param since: Limit results to entities that have been updated
-        since a certain timestamp.
+            since a certain timestamp.
         :type since: datetime
+        :param token: if the user is None, the token requesting updated.
         """
-        q = {'userId': user['_id']}
+        q = {}
+        if user:
+            q['userId'] = user['_id']
+        else:
+            q['tokenId'] = token['_id']
 
         if since is not None:
             q['updated'] = {'$gt': since}

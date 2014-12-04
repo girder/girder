@@ -75,7 +75,8 @@ def token(fun):
     def accessDecorator(*args, **kwargs):
         token = rest.getCurrentToken()
         if not token:
-            raise rest.RestException('Invalid or missing token.')
+            raise AccessException('You must be logged in or supply a valid '
+                                  'session token.')
         return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'token'
     return accessDecorator

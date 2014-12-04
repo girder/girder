@@ -21,6 +21,7 @@ import cherrypy
 import json
 import time
 
+from ..describe import Description
 from ..rest import Resource
 from girder.api import access
 
@@ -44,7 +45,7 @@ class Notification(Resource):
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
 
-    @access.user
+    @access.token
     def stream(self, params):
         """
         Streams notifications using the server-sent events protocol. Closes
@@ -52,10 +53,11 @@ class Notification(Resource):
         notifications.
 
         :params timeout: Timeout in seconds; if no notifications appear in
-        this window, the connection will be closed. (default=300)
+            this duration, the connection will be closed. (default=300)
         :type timeout: int
         """
         user = self.getCurrentUser()
+        token = self.getCurrentToken()
 
         cherrypy.response.headers['Content-Type'] = 'text/event-stream'
         cherrypy.response.headers['Cache-Control'] = 'no-cache'
@@ -69,7 +71,8 @@ class Notification(Resource):
             while time.time() - start < timeout and\
                     cherrypy.engine.state == cherrypy.engine.states.STARTED:
                 wait = min(wait + MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
-                for event in self.model('notification').get(user, lastUpdate):
+                for event in self.model('notification').get(
+                        user, lastUpdate, token=token):
                     if lastUpdate is None or event['updated'] > lastUpdate:
                         lastUpdate = event['updated']
                     wait = MIN_POLL_INTERVAL
@@ -78,4 +81,17 @@ class Notification(Resource):
 
                 time.sleep(wait)
         return streamGen
-    stream.description = None
+    stream.description = (
+        Description('Stream notifications for a given user via the SSE '
+                    'protocol.')
+        .notes('This uses long-polling to keep the connection open for '
+               'several minutes at a time (or longer) and should be requested '
+               'with an EventSource object or other SSE-capable client. '
+               '<p>Notifications are returned within a few seconds of when '
+               'they occur.  When no notication occurs for the timeout '
+               'duration, the stream is closed. '
+               '<p>This connection can stay open indefinitely long.')
+        .param('timeout', 'The duration without a notification before the '
+               'stream is closed.', dataType='integer', required=False)
+        .errorResponse()
+        .errorResponse('You are not logged in.', 403))
