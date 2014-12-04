@@ -584,7 +584,8 @@ class Folder(AccessControlledModel):
             yield (os.path.join(path, metadataFile), stream)
 
     def copyFolder(self, srcFolder, parent=None, name=None, description=None,
-                   parentType=None, public=None, creator=None, progress=None):
+                   parentType=None, public=None, creator=None, progress=None,
+                   firstFolder=None):
         """
         Copy a folder, including all child items and child folders.
 
@@ -609,6 +610,8 @@ class Folder(AccessControlledModel):
         :type creator: dict
         :param progress: a progress context to record process on.
         :type progress: girder.utility.progress.ProgressContext or None.
+        :param firstFolder: if not None, the first folder copied in a tree of
+                            folders.
         :returns: the new folder document.
         """
         setResponseTimeLimit()
@@ -631,11 +634,14 @@ class Folder(AccessControlledModel):
             parentType=parentType, parent=parent, name=name,
             description=description, public=public, creator=creator,
             allowRename=True)
+        if firstFolder is None:
+            firstFolder = newFolder
         newFolder = self.copyFolderComponents(
-            srcFolder, newFolder, creator, progress)
+            srcFolder, newFolder, creator, progress, firstFolder)
         return self.filter(newFolder, creator)
 
-    def copyFolderComponents(self, srcFolder, newFolder, creator, progress):
+    def copyFolderComponents(self, srcFolder, newFolder, creator, progress,
+                             firstFolder=None):
         """
         Copy the items, subfolders, and extended data of a folder that was just
         copied.
@@ -648,6 +654,8 @@ class Folder(AccessControlledModel):
         :type creator: dict
         :param progress: a progress context to record process on.
         :type progress: girder.utility.progress.ProgressContext or None.
+        :param firstFolder: if not None, the first folder copied in a tree of
+                            folders.
         :returns: the new folder document.
         """
         # copy metadata and other extension values
@@ -671,6 +679,8 @@ class Folder(AccessControlledModel):
         # copy subfolders
         for sub in self.childFolders(parentType='folder', parent=srcFolder,
                                      user=creator, limit=0, timeout=False):
+            if firstFolder and firstFolder['_id'] == sub['_id']:
+                continue
             self.copyFolder(sub, parent=newFolder, parentType='folder',
                             creator=creator, progress=progress)
         events.trigger('model.folder.copy.after', newFolder)
