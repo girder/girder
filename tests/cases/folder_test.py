@@ -498,3 +498,11 @@ class FolderTestCase(base.TestCase):
             path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
             user=self.admin, params={'parentType': 'badValue'})
         self.assertStatus(resp, 400)
+        # Test that when we copy a folder into itself we don't recurse
+        resp = self.request(
+            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            user=self.admin, params={
+                'progress': True,
+                'parentType': 'folder',
+                'parentId': str(subFolder['_id'])})
+        self.assertStatusOk(resp)
