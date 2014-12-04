@@ -82,10 +82,15 @@ class Notification(Resource):
                 time.sleep(wait)
         return streamGen
     stream.description = (
-        Description('Get notifications from the system.')
-        .notes("""Notifications are returned with a few seconds of when they
-               occur.  When no notication occurs for the timeout duration, the
-               stream is closed.""")
+        Description('Stream notifications for a given user via the SSE '
+                    'protocol.')
+        .notes('This uses long-polling to keep the connection open for '
+               'several minutes at a time (or longer) and should be requested '
+               'with an EventSource object or other SSE-capable client. '
+               '<p>Notifications are returned with a few seconds of when they '
+               'occur.  When no notication occurs for the timeout duration, '
+               'the stream is closed. '
+               '<p>This connection can stay open indefinitely long.')
         .param('timeout', 'The duration without a notification before the '
                'stream is closed.', dataType='integer', required=False)
         .errorResponse()
