@@ -178,8 +178,13 @@ class SystemTestCase(base.TestCase):
         badValues = {
             SettingKey.EMAIL_FROM_ADDRESS: '',
             SettingKey.SMTP_HOST: '',
+            SettingKey.CORS_ALLOW_ORIGIN: {},
+            SettingKey.CORS_ALLOW_METHODS: {},
+            SettingKey.CORS_ALLOW_HEADERS: {},
         }
-        for key in SettingDefault.defaults:
+        allKeys = dict.fromkeys(SettingDefault.defaults.keys())
+        allKeys.update(badValues)
+        for key in allKeys:
             resp = self.request(path='/system/setting', method='PUT', params={
                 'key': key,
                 'value': badValues.get(key, 'bad')
@@ -187,7 +192,7 @@ class SystemTestCase(base.TestCase):
             self.assertStatus(resp, 400)
             resp = self.request(path='/system/setting', method='PUT', params={
                 'key': key,
-                'value': SettingDefault.defaults[key]
+                'value': SettingDefault.defaults.get(key, '')
             }, user=users[0])
             self.assertStatusOk(resp)
 

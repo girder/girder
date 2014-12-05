@@ -9,4 +9,5 @@ Developer Documentation
    plugin-development
    developer-cookbook
    external-web-clients
+   security
    build-docs
