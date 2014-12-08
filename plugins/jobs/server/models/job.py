@@ -180,10 +180,10 @@ class Job(AccessControlledModel):
             'user': user
         })
 
-        keys = ['title', 'type', 'created', 'interval','when', 'status',
+        keys = ['title', 'type', 'created', 'interval', 'when', 'status',
                 'progress', 'log', 'meta', '_id', 'public']
 
-        if user['admin'] is True:
+        if user and user['admin'] is True:
             keys.extend(('args', 'kwargs'))
 
         for resp in event.responses:
