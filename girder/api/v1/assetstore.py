@@ -111,7 +111,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403))
 
     @access.admin
-    @loadmodel(map={'id': 'assetstore'}, model='assetstore')
+    @loadmodel(model='assetstore')
     def updateAssetstore(self, assetstore, params):
         self.requireParams(('name', 'current'), params)
 
@@ -159,7 +159,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403))
 
     @access.admin
-    @loadmodel(map={'id': 'assetstore'}, model='assetstore')
+    @loadmodel(model='assetstore')
     def deleteAssetstore(self, assetstore, params):
         self.model('assetstore').remove(assetstore)
         return {'message': 'Deleted assetstore {}.'.format(assetstore['name'])}

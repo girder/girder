@@ -89,9 +89,10 @@ class Collection(Resource):
         .errorResponse('You are not an administrator', 403))
 
     @access.public
-    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.READ)
-    def getCollection(self, coll, params):
-        return self.model('collection').filter(coll, self.getCurrentUser())
+    @loadmodel(model='collection', level=AccessType.READ)
+    def getCollection(self, collection, params):
+        return self.model('collection').filter(
+            collection, self.getCurrentUser())
     getCollection.description = (
         Description('Get a collection by ID.')
         .responseClass('Collection')
@@ -100,9 +101,9 @@ class Collection(Resource):
         .errorResponse('Read permission denied on the collection.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
-    def getCollectionAccess(self, coll, params):
-        return self.model('collection').getFullAccessList(coll)
+    @loadmodel(model='collection', level=AccessType.ADMIN)
+    def getCollectionAccess(self, collection, params):
+        return self.model('collection').getFullAccessList(collection)
     getCollectionAccess.description = (
         Description('Get the access control list for a collection.')
         .param('id', 'The ID of the collection.', paramType='path')
@@ -110,17 +111,17 @@ class Collection(Resource):
         .errorResponse('Admin permission denied on the collection.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
-    def updateCollectionAccess(self, coll, params):
+    @loadmodel(model='collection', level=AccessType.ADMIN)
+    def updateCollectionAccess(self, collection, params):
         self.requireParams('access', params)
 
         public = self.boolParam('public', params, default=False)
-        self.model('collection').setPublic(coll, public)
+        self.model('collection').setPublic(collection, public)
 
         try:
             access = json.loads(params['access'])
             return self.model('collection').setAccessList(
-                coll, access, save=True)
+                collection, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
     updateCollectionAccess.description = (
@@ -133,14 +134,14 @@ class Collection(Resource):
         .errorResponse('Admin permission denied on the collection.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.WRITE)
-    def updateCollection(self, coll, params):
-        coll['name'] = params.get('name', coll['name']).strip()
-        coll['description'] = params.get(
-            'description', coll['description']).strip()
+    @loadmodel(model='collection', level=AccessType.WRITE)
+    def updateCollection(self, collection, params):
+        collection['name'] = params.get('name', collection['name']).strip()
+        collection['description'] = params.get(
+            'description', collection['description']).strip()
 
-        coll = self.model('collection').updateCollection(coll)
-        return self.model('collection').filter(coll)
+        collection = self.model('collection').updateCollection(collection)
+        return self.model('collection').filter(collection)
     updateCollection.description = (
         Description('Edit a collection by ID.')
         .responseClass('Collection')
@@ -151,10 +152,10 @@ class Collection(Resource):
         .errorResponse('Write permission denied on the collection.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'coll'}, model='collection', level=AccessType.ADMIN)
-    def deleteCollection(self, coll, params):
-        self.model('collection').remove(coll)
-        return {'message': 'Deleted collection %s.' % coll['name']}
+    @loadmodel(model='collection', level=AccessType.ADMIN)
+    def deleteCollection(self, collection, params):
+        self.model('collection').remove(collection)
+        return {'message': 'Deleted collection %s.' % collection['name']}
     deleteCollection.description = (
         Description('Delete a collection by ID.')
         .param('id', 'The ID of the collection.', paramType='path')

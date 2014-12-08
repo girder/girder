@@ -422,7 +422,7 @@ class GeospatialItem(Resource):
     )
 
     @access.public
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def getGeospatial(self, item, params):
         """
         Get an item and its geospatial data by ID.
@@ -445,7 +445,7 @@ class GeospatialItem(Resource):
         .errorResponse('Read access was denied for the item.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    @loadmodel(model='item', level=AccessType.WRITE)
     def setGeospatial(self, item, params):
         """
         Set geospatial data on an item.

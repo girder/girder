@@ -119,7 +119,7 @@ class Group(Resource):
         .errorResponse('Write access was denied on the parent', 403))
 
     @access.public
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def getGroup(self, group, params):
         user = self.getCurrentUser()
         return self.model('group').filter(group, user)
@@ -131,7 +131,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def getGroupAccess(self, group, params):
         user = self.getCurrentUser()
         return self.model('group').filter(group, user, accessList=True,
@@ -144,7 +144,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def getGroupInvitations(self, group, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
         return self.model('group').getInvites(group, limit, offset, sort)
@@ -164,7 +164,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    @loadmodel(model='group', level=AccessType.WRITE)
     def updateGroup(self, group, params):
         user = self.getCurrentUser()
 
@@ -188,7 +188,7 @@ class Group(Resource):
         .errorResponse('Write access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def joinGroup(self, group, params):
         """
         Accept a group invitation. If you have not been invited, this will
@@ -213,7 +213,7 @@ class Group(Resource):
                        'read access to it.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def listMembers(self, group, params):
         """
         Paginated member list of group members.
@@ -239,7 +239,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.WRITE)
+    @loadmodel(model='group', level=AccessType.WRITE)
     def inviteToGroup(self, group, params):
         """Invite the user to join the group."""
         self.requireParams('userId', params)
@@ -291,7 +291,7 @@ class Group(Resource):
         .errorResponse('Write access was denied for the group.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    @loadmodel(model='group', level=AccessType.ADMIN)
     def promoteToModerator(self, group, params):
         return self._promote(group, params, AccessType.WRITE)
     promoteToModerator.description = (
@@ -303,7 +303,7 @@ class Group(Resource):
         .errorResponse("You don't have permission to promote users.", 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    @loadmodel(model='group', level=AccessType.ADMIN)
     def promoteToAdmin(self, group, params):
         return self._promote(group, params, AccessType.ADMIN)
     promoteToAdmin.description = (
@@ -337,7 +337,7 @@ class Group(Resource):
         return self.model('group').filter(group, user, accessList=True)
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    @loadmodel(model='group', level=AccessType.ADMIN)
     def demote(self, group, params):
         """
         Demote a user down to a normal member.
@@ -363,7 +363,7 @@ class Group(Resource):
         .errorResponse("You don't have permission to demote users.", 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.READ)
+    @loadmodel(model='group', level=AccessType.READ)
     def removeFromGroup(self, group, params):
         """
         Remove a user from a group. Pass a 'userId' key in params to
@@ -413,7 +413,7 @@ class Group(Resource):
         .errorResponse("You don't have permission to remove that user.", 403))
 
     @access.user
-    @loadmodel(map={'id': 'group'}, model='group', level=AccessType.ADMIN)
+    @loadmodel(model='group', level=AccessType.ADMIN)
     def deleteGroup(self, group, params):
         self.model('group').remove(group)
         return {'message': 'Deleted the group {}.'.format(group['name'])}
