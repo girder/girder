@@ -322,6 +322,8 @@ def _setCommonCORSHeaders(isOptions=False):
         if isOptions:
             raise cherrypy.HTTPError(405)
         return
+    cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
+    cherrypy.response.headers['Vary'] = 'Origin'
     # Some requests do not require further checking
     if not isOptions and cherrypy.request.method in ('GET', 'HEAD', 'POST'):
         if cherrypy.request.method != 'POST':
@@ -337,11 +339,9 @@ def _setCommonCORSHeaders(isOptions=False):
     if not cors['allowOrigin']:
         if isOptions:
             raise cherrypy.HTTPError(405)
-        if origin and origin != base:
+        if origin != base:
             raise cherrypy.HTTPError(403)
         return
-    # If no origin was sent in the request headers, then we require
-    # allowing all origins.
     # If this origin is not allowed, return an error
     if ('*' not in cors['allowOrigin'] and origin not in cors['allowOrigin']
             and origin != base):
@@ -349,8 +349,6 @@ def _setCommonCORSHeaders(isOptions=False):
             raise cherrypy.HTTPError(405)
         raise cherrypy.HTTPError(403)
     # If possible, send back the requesting origin.
-    cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
-    cherrypy.response.headers['Vary'] = 'Origin'
     if origin != base and not isOptions:
         _validateCORSMethodAndHeaders(cors)
 
