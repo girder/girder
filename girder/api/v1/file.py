@@ -206,7 +206,7 @@ class File(Resource):
         .errorResponse('Failed to store upload.', 500))
 
     @access.public
-    @loadmodel(map={'id': 'file'}, model='file')
+    @loadmodel(model='file')
     def download(self, file, params):
         """
         Defers to the underlying assetstore adapter to stream a file out.
@@ -242,7 +242,7 @@ class File(Resource):
         .errorResponse('Read access was denied on the parent folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'file'}, model='file')
+    @loadmodel(model='file')
     def deleteFile(self, file, params):
         user = self.getCurrentUser()
         self.model('item').load(id=file['itemId'], user=user,
@@ -255,7 +255,7 @@ class File(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'file'}, model='file')
+    @loadmodel(model='file')
     def updateFile(self, file, params):
         self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
                                 level=AccessType.WRITE, exc=True)
@@ -272,7 +272,7 @@ class File(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'file'}, model='file')
+    @loadmodel(model='file')
     def updateFileContents(self, file, params):
         self.requireParams('size', params)
         self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),

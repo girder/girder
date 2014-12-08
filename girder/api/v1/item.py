@@ -103,7 +103,7 @@ class Item(Resource):
         .errorResponse('Read access was denied on the parent folder.', 403))
 
     @access.public
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def getItem(self, item, params):
         return self.model('item').filter(item)
     getItem.description = (
@@ -146,7 +146,7 @@ class Item(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    @loadmodel(model='item', level=AccessType.WRITE)
     def updateItem(self, item, params):
         user = self.getCurrentUser()
         item['name'] = params.get('name', item['name']).strip()
@@ -174,7 +174,7 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item or folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    @loadmodel(model='item', level=AccessType.WRITE)
     def setMetadata(self, item, params):
         try:
             metadata = json.load(cherrypy.request.body)
@@ -219,7 +219,7 @@ class Item(Resource):
         return stream
 
     @access.public
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def getFiles(self, item, params):
         """Get a page of files in an item."""
         limit, offset, sort = self.getPagingParameters(params, 'name')
@@ -239,7 +239,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403))
 
     @access.public
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def download(self, item, params):
         """
         Defers to the underlying assetstore adapter to stream the file or
@@ -267,7 +267,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.WRITE)
+    @loadmodel(model='item', level=AccessType.WRITE)
     def deleteItem(self, item, params):
         """
         Delete an item and its contents.
@@ -281,7 +281,7 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item.', 403))
 
     @access.public
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def rootpath(self, item, params):
         """
         Get the path to the root of the item's parent hierarchy.
@@ -294,7 +294,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'item'}, model='item', level=AccessType.READ)
+    @loadmodel(model='item', level=AccessType.READ)
     def copyItem(self, item, params):
         """
         Copy an existing item to a new item.

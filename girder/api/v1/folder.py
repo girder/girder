@@ -112,7 +112,7 @@ class Folder(Resource):
         .errorResponse('Read access was denied on the parent resource.', 403))
 
     @access.public
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    @loadmodel(model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):
         """
         Returns a generator function that will be used to stream out a zip
@@ -139,7 +139,7 @@ class Folder(Resource):
         .errorResponse('Read access was denied for the folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
+    @loadmodel(model='folder', level=AccessType.WRITE)
     def updateFolder(self, folder, params):
         user = self.getCurrentUser()
         folder['name'] = params.get('name', folder['name']).strip()
@@ -175,7 +175,7 @@ class Folder(Resource):
                        'parent object.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    @loadmodel(model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
         self.requireParams('access', params)
 
@@ -253,7 +253,7 @@ class Folder(Resource):
         .errorResponse('Write access was denied on the parent', 403))
 
     @access.public
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    @loadmodel(model='folder', level=AccessType.READ)
     def getFolder(self, folder, params):
         """Get a folder by ID."""
         return self.model('folder').filter(folder, self.getCurrentUser())
@@ -265,7 +265,7 @@ class Folder(Resource):
         .errorResponse('Read access was denied for the folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    @loadmodel(model='folder', level=AccessType.ADMIN)
     def getFolderAccess(self, folder, params):
         """
         Get an access list for a folder.
@@ -279,7 +279,7 @@ class Folder(Resource):
         .errorResponse('Admin access was denied for the folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.ADMIN)
+    @loadmodel(model='folder', level=AccessType.ADMIN)
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
@@ -299,7 +299,7 @@ class Folder(Resource):
         .errorResponse('Admin access was denied for the folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.WRITE)
+    @loadmodel(model='folder', level=AccessType.WRITE)
     def setMetadata(self, folder, params):
         try:
             metadata = json.load(cherrypy.request.body)
@@ -327,7 +327,7 @@ class Folder(Resource):
         .errorResponse('Write access was denied for the folder.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'folder'}, model='folder', level=AccessType.READ)
+    @loadmodel(model='folder', level=AccessType.READ)
     def copyFolder(self, folder, params):
         """
         Copy an existing folder to a new folder.

@@ -215,7 +215,7 @@ class User(Resource):
         .errorResponse('You do not have permission to delete this user.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'user'}, model='user', level=AccessType.WRITE)
+    @loadmodel(model='user', level=AccessType.WRITE)
     def updateUser(self, user, params):
         self.requireParams(('firstName', 'lastName', 'email'), params)
 

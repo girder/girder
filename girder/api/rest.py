@@ -149,7 +149,9 @@ class loadmodel(object):
     arguments that is transformed by the "map" parameter of this decorator.
 
     :param map: Map of incoming parameter name to corresponding model arg name.
-    :type map: dict
+    If None is passed, this will map the parameter named "id" to a kwarg named
+    the same as the "model" parameter.
+    :type map: dict or None
     :param model: The model name, e.g. 'folder'
     :type model: str
     :param plugin: Plugin name, if loading a plugin model.
@@ -157,8 +159,13 @@ class loadmodel(object):
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
     """
-    def __init__(self, map, model, plugin='_core', level=None, force=False):
-        self.map = map
+    def __init__(self, map=None, model=None, plugin='_core', level=None,
+                 force=False):
+        if map is None:
+            self.map = {'id': model}
+        else:
+            self.map = map
+
         self.model = ModelImporter.model(model, plugin)
         self.level = level
         self.force = force

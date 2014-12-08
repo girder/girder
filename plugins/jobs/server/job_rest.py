@@ -69,8 +69,7 @@ class Job(Resource):
                required=False, dataType='int'))
 
     @access.public
-    @loadmodel(map={'id': 'job'}, model='job', plugin='jobs',
-               level=AccessType.READ)
+    @loadmodel(model='job', plugin='jobs', level=AccessType.READ)
     def getJob(self, job, params):
         return self.model('job', 'jobs').filter(job, self.getCurrentUser())
     getJob.description = (
@@ -80,7 +79,7 @@ class Job(Resource):
         .errorResponse('Read access was denied for the job.', 403))
 
     @access.token
-    @loadmodel(map={'id': 'job'}, model='job', plugin='jobs', force=True)
+    @loadmodel(model='job', plugin='jobs', force=True)
     def updateJob(self, job, params):
         user = self.getCurrentUser()
         if user is None:
@@ -124,8 +123,7 @@ class Job(Resource):
         .errorResponse('Write access was denied for the job.', 403))
 
     @access.user
-    @loadmodel(map={'id': 'job'}, model='job', plugin='jobs',
-               level=AccessType.ADMIN)
+    @loadmodel(model='job', plugin='jobs', level=AccessType.ADMIN)
     def deleteJob(self, job, params):
         self.model('job', 'jobs').remove(job)
     deleteJob.description = (
