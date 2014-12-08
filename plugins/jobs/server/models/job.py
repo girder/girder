@@ -174,7 +174,22 @@ class Job(AccessControlledModel):
         return job
 
     def filter(self, job, user):
-        # TODO refine?
-        keys = ('title', 'type', 'args', 'kwargs', 'created', 'interval',
-                'when', 'status', 'progress', 'log', 'meta', '_id', 'public')
+        # Allow downstreams to filter job info as they see fit
+        event = events.trigger('jobs.filter', info={
+            'job': job,
+            'user': user
+        })
+
+        keys = ['title', 'type', 'created', 'interval', 'when', 'status',
+                'progress', 'log', 'meta', '_id', 'public']
+
+        if user and user['admin'] is True:
+            keys.extend(('args', 'kwargs'))
+
+        for resp in event.responses:
+            if 'exposeFields' in resp:
+                keys.extend(resp['exposeFields'])
+            if 'removeFields' in resp:
+                keys = [k for k in keys if k not in resp['removeFields']]
+
         return self.filterDocument(job, allow=keys)

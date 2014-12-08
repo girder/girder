@@ -9,30 +9,53 @@ their own plugins should see the :ref:`Plugin Development <plugindevelopment>` s
 a listing and brief documentation of some of Girder's standard plugins that come
 pre-packaged with the application.
 
-OAuth Login
+Jobs
 -----------
 
-This plugin allows users to log in using OAuth against a set of supported providers,
-rather than storing their credentials in the Girder instance. Specific instructions
-for each provider can be found below.
+The jobs plugin is useful for representing long-running (usually asynchronous) jobs
+in the Girder data model. Since the notion of tracking batch jobs is so common to
+many applications of Girder, this plugin is very generic and is meant to be an
+upstream dependency of more specialized plugins that actually create and execute
+the batch jobs.
 
-Google
-******
+The job resource that is the primary data type exposed by this plugin has many
+common and useful fields, including:
 
-On the plugin configuration page, you must enter a **Client ID** and **Client secret**.
-Those values can be created in the Google Developer Console, in the **APIS & AUTH** >
-**Credentials** section. When you create a new Client ID, you must enter the
-``AUTHORIZED_JAVASCRIPT_ORIGINS`` and ``AUTHORIZED_REDIRECT_URI`` fields. These *must*
-point back to your Girder instance. For example, if your Girder instance is hosted
-at ``https://my.girder.com``, then you should specify the following values: ::
+- ``title``: The name that will be displayed in the job management console.
+- ``type``: The type identifier for the job, used by downstream plugins opaquely.
+- ``args``: Ordered arguments of the job (a list).
+- ``kwargs``: Keyword arguments of the job (a dictionary).
+- ``created``: Timestamp when the job was created
+- ``progress``: Progress information about the job's execution.
+- ``status``: The state of the job, e.g. Inactive, Running, Success.
+- ``log``: Log output from this job's execution.
+- ``handler``: An opaque value used by downstream plugins to identify what should
+  handle this job.
+- ``meta``: Any additional information about the job should be stored here by
+  downstream plugins.
 
-    AUTHORIZED_JAVASCRIPT_ORIGINS: https://my.girder.com
-    AUTHORIZED_REDIRECT_URI: https://my.girder.com/api/v1/oauth/google/callback
+Jobs should be created with the ``createJob`` method of the job model. Downstream
+plugins that are in charge of actually scheduling a job for execution should then
+call ``scheduleJob``, which triggers the ``jobs.schedule`` event with the job
+document as the event info.
 
-After successfully creating the Client ID, copy and paste the client ID and client
-secret values into the plugin's configuration page, and hit **Save**. Users should
-then be able to log in with their Google account when they click the log in page
-and select the option to log in with Google.
+For controlling what fields of a job are visible in the REST API, downstream plugins
+should bind to the ``jobs.filter`` event, which receives a dictionary with ``job``
+and ``user`` keys as its info. They can modify any existing fields or the job
+document as needed, and can also expose or redact fields. To make some fields
+visible while redacting others, you can use the event response with ``exposeFields``
+and/or ``removeFields`` keys, e.g.
+
+.. code-block:: python
+
+  def filterJob(event):
+      event.addResponse({
+          'exposeFields': ['_some_other_field'],
+          'removeFields': ['created']
+      })
+
+  events.bind('jobs.filter', 'a_downstream_plugin', filterJob)
+
 
 Geospatial
 ----------
@@ -63,6 +86,7 @@ it does not technically trigger routing events for hierarchy navigation).
 
 To use this plugin, simply copy your tracking ID from Google Analytics into the
 plugin configuration page.
+
 
 Metadata Extractor
 ------------------
@@ -106,6 +130,33 @@ located at ``path`` on the remote filesystem that has been uploaded to
 
 The user authenticating with ``login`` and ``password`` must have ``WRITE``
 access to the file located at ``itemId`` on the server.
+
+
+OAuth Login
+-----------
+
+This plugin allows users to log in using OAuth against a set of supported providers,
+rather than storing their credentials in the Girder instance. Specific instructions
+for each provider can be found below.
+
+Google
+******
+
+On the plugin configuration page, you must enter a **Client ID** and **Client secret**.
+Those values can be created in the Google Developer Console, in the **APIS & AUTH** >
+**Credentials** section. When you create a new Client ID, you must enter the
+``AUTHORIZED_JAVASCRIPT_ORIGINS`` and ``AUTHORIZED_REDIRECT_URI`` fields. These *must*
+point back to your Girder instance. For example, if your Girder instance is hosted
+at ``https://my.girder.com``, then you should specify the following values: ::
+
+    AUTHORIZED_JAVASCRIPT_ORIGINS: https://my.girder.com
+    AUTHORIZED_REDIRECT_URI: https://my.girder.com/api/v1/oauth/google/callback
+
+After successfully creating the Client ID, copy and paste the client ID and client
+secret values into the plugin's configuration page, and hit **Save**. Users should
+then be able to log in with their Google account when they click the log in page
+and select the option to log in with Google.
+
 
 Provenance Tracker
 ------------------
