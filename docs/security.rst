@@ -24,10 +24,10 @@ restricted based on the girder CORS settings.
 
 By default, all cross-origin requests that could modify data are refused.
 Different origins may be allowed via the System Configuration.  For best
-security is recommended that only a specific list of origins be allowed, and
-not all origins using the ``*`` token.  When responding to a valid Cross-Origin
-request, Girder only responds that the specific origin is allowed, and does not
-reveal what other origins can be accessed.
+security it is highly recommended that only a specific list of origins be
+allowed, and not all origins using the ``*`` token.  When responding to a valid
+Cross-Origin request, Girder only responds that the specific origin is allowed,
+and does not reveal what other origins can be accessed.
 
 If desired, cross-origin requests can be further restricted by specifying a
 list of permitted endpoint methods.  The ``CORS specification
