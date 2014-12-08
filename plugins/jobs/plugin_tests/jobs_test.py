@@ -121,7 +121,7 @@ class JobsTestCase(base.TestCase):
         anonJob = self.model('job', 'jobs').createJob(
             title='Anon job', type='t')
         # Ensure timestamp for public job is strictly higher (ms resolution)
-        time.sleep(0.1) 
+        time.sleep(0.1)
         publicJob = self.model('job', 'jobs').createJob(
             title='Anon job', type='t', public=True)
 
@@ -159,3 +159,29 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicJob['_id']))
+
+    def testFiltering(self):
+        job = self.model('job', 'jobs').createJob(
+            title='A job', type='t', user=self.users[1], public=True)
+
+        job['_some_other_field'] = 'foo'
+        job = self.model('job', 'jobs').save(job)
+
+        resp = self.request('/job/{}'.format(job['_id']))
+        self.assertStatusOk(resp)
+        self.assertTrue('created' in resp.json)
+        self.assertTrue('_some_other_field' not in resp.json)
+
+        def filterJob(event):
+            event.info['job']['_some_other_field'] = 'bar'
+            event.addResponse({
+                'exposeFields': ['_some_other_field'],
+                'removeFields': ['created']
+            })
+
+        events.bind('jobs.filter', 'test', filterJob)
+
+        resp = self.request('/job/{}'.format(job['_id']))
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_some_other_field'], 'bar')
+        self.assertTrue('created' not in resp.json)

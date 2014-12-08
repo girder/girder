@@ -190,6 +190,6 @@ class Job(AccessControlledModel):
             if 'exposeFields' in resp:
                 keys.extend(resp['exposeFields'])
             if 'removeFields' in resp:
-                keys = filter(lambda k: k not in resp['removeFields'], keys)
+                keys = [k for k in keys if k not in resp['removeFields']]
 
         return self.filterDocument(job, allow=keys)
