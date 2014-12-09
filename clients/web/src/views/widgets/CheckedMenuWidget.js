@@ -18,7 +18,7 @@ girder.views.CheckedMenuWidget = girder.View.extend({
         }
 
         this.dropdownToggle.removeAttr('disabled');
-        this.$el.html(jade.templates.checkedActionsMenu({
+        this.$el.html(girder.templates.checkedActionsMenu({
             minFolderLevel: this.minFolderLevel,
             minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,

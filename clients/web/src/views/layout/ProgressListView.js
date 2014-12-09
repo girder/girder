@@ -13,7 +13,7 @@ girder.views.ProgressListView = Backbone.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.layoutProgressArea());
+        this.$el.html(girder.templates.layoutProgressArea());
 
         this._onUpdate();
 

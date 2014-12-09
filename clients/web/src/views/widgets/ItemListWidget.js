@@ -31,7 +31,7 @@ girder.views.ItemListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(jade.templates.itemList({
+        this.$el.html(girder.templates.itemList({
             items: this.collection.models,
             hasMore: this.collection.hasNextPage(),
             girder: girder

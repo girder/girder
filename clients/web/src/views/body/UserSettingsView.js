@@ -94,7 +94,7 @@ girder.views.UserAccountView = girder.View.extend({
             return;
         }
 
-        this.$el.html(jade.templates.userSettings({
+        this.$el.html(girder.templates.userSettings({
             user: this.model,
             girder: girder
         }));

@@ -32,7 +32,7 @@ girder.views.EditGroupWidget = girder.View.extend({
     render: function () {
         var view = this;
         var pub = this.model ? this.model.get('public') : false;
-        var modal = this.$el.html(jade.templates.editGroupWidget({
+        var modal = this.$el.html(girder.templates.editGroupWidget({
             group: this.model,
             public: pub
         })).girderModal(this).on('shown.bs.modal', function () {

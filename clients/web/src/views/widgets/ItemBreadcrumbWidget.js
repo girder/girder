@@ -20,7 +20,7 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.itemBreadcrumb({
+        this.$el.html(girder.templates.itemBreadcrumb({
             parentChain: this.parentChain
         }));
 

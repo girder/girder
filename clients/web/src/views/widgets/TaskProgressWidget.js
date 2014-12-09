@@ -31,7 +31,7 @@ girder.views.TaskProgressWidget = Backbone.View.extend({
             this._scheduleHide(10000);
         }
 
-        this.$el.html(jade.templates.taskProgress({
+        this.$el.html(girder.templates.taskProgress({
             progress: this.progress,
             width: width,
             barClass: barClass.join(' '),

@@ -30,7 +30,7 @@ girder.views.GroupAdminsWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupAdminList({
+        this.$el.html(girder.templates.groupAdminList({
             group: this.model,
             level: this.model.get('_accessLevel'),
             admins: this.admins,

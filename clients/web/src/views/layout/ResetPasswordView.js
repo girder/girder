@@ -39,7 +39,7 @@ girder.views.ResetPasswordView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.resetPasswordDialog())
+        this.$el.html(girder.templates.resetPasswordDialog())
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-email').focus();
             });

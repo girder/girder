@@ -30,7 +30,7 @@ girder.views.GroupModsWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupModList({
+        this.$el.html(girder.templates.groupModList({
             group: this.model,
             level: this.model.get('_accessLevel'),
             moderators: this.moderators,

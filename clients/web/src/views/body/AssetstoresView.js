@@ -28,7 +28,7 @@ girder.views.AssetstoresView = girder.View.extend({
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
-        this.$el.html(jade.templates.assetstores({
+        this.$el.html(girder.templates.assetstores({
             assetstores: this.collection.models,
             types: girder.AssetstoreType
         }));

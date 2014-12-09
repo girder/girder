@@ -45,7 +45,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
      },
 
     render: function () {
-        this.$el.html(jade.templates.layoutGlobalNav({
+        this.$el.html(girder.templates.layoutGlobalNav({
             navItems: this.navItems
         }));
 

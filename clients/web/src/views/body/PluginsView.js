@@ -45,7 +45,7 @@ girder.views.PluginsView = girder.View.extend({
             }
         }, this);
 
-        this.$el.html(jade.templates.plugins({
+        this.$el.html(girder.templates.plugins({
             allPlugins: this.allPlugins
         }));
 

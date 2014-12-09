@@ -75,7 +75,7 @@ girder.confirm = function (params) {
         noText: 'Cancel',
         escapedHtml: false
     }, params);
-    $('#g-dialog-container').html(jade.templates.confirmDialog({
+    $('#g-dialog-container').html(girder.templates.confirmDialog({
         params: params
     })).girderModal(false);
 

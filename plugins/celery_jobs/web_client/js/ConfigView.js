@@ -40,7 +40,7 @@ girder.views.celery_jobs_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.celery_jobs_config());
+        this.$el.html(girder.templates.celery_jobs_config());
 
         this.searchWidget = new girder.views.SearchFieldWidget({
             el: this.$('.g-celery-user-select-container'),

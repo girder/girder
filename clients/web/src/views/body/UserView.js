@@ -61,7 +61,7 @@
         },
 
         render: function () {
-            this.$el.html(jade.templates.userPage({
+            this.$el.html(girder.templates.userPage({
                 user: this.model,
                 girder: girder
             }));

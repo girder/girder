@@ -34,7 +34,7 @@ girder.views.oauth_LoginView = girder.View.extend({
             }
         }, this);
 
-        this.$el.append(jade.templates.oauth_login({
+        this.$el.append(girder.templates.oauth_login({
             buttons: buttons
         }));
     },

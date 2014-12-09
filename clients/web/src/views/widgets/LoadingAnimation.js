@@ -3,7 +3,7 @@
  */
 girder.views.LoadingAnimation = girder.View.extend({
     render: function () {
-        this.$el.html(jade.templates.loadingAnimation());
+        this.$el.html(girder.templates.loadingAnimation());
         return this;
     }
 });

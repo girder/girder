@@ -28,7 +28,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(jade.templates.editCollectionWidget({
+        var modal = this.$el.html(girder.templates.editCollectionWidget({
             collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();

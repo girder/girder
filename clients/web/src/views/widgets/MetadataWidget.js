@@ -57,7 +57,7 @@ girder.views.MetadataWidget = girder.View.extend({
             }
             metaList.push({key: metaKeys[i], value: value});
         }
-        this.$el.html(jade.templates.metadataWidget({
+        this.$el.html(girder.templates.metadataWidget({
             item: this.item,
             meta: metaList,
             accessLevel: this.accessLevel,
