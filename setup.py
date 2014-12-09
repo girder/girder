@@ -19,7 +19,7 @@
 
 import json
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
+from pkg_resources import parse_requirements
 
 with open('README.rst') as f:
     readme = f.read()
@@ -31,7 +31,7 @@ with open('package.json') as f:
 install_reqs = parse_requirements('requirements.txt')
 
 # reqs is a list of requirement
-reqs = [str(ir.req) for ir in install_reqs]
+reqs = [str(req) for req in install_reqs]
 
 setup(
     name='girder',
