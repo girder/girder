@@ -300,6 +300,26 @@ module.exports = function (grunt) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
 
+    // bring plugin Grunt targets into default Girder Grunt tasks
+    var extractPluginGruntTargets = function (pluginDir) {
+        var pluginJson = pluginDir + '/plugin.json';
+        if (fs.existsSync(pluginJson)) {
+            var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
+            if (pluginDescription.hasOwnProperty('grunt')) {
+                var pluginGruntCfg = pluginDescription.grunt;
+
+                // Merge plugin Grunt file
+                require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
+
+                // Register default targets
+                pluginGruntCfg.defaultTargets.forEach(function (defaultTarget) {
+                    defaultTasks.push(defaultTarget);
+                });
+            }
+        }
+    };
+
+
     // Configure a given plugin for building
     var configurePlugin = function (pluginDir) {
         var pluginName = path.basename(pluginDir);
@@ -370,18 +390,7 @@ module.exports = function (grunt) {
         }
 
         // Handle external grunt targets specified for the plugin
-        var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
-        if (pluginDescription.hasOwnProperty('grunt')) {
-            var pluginGruntCfg = pluginDescription.grunt;
-
-            // Merge plugin Grunt file
-            require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
-
-            // Register default targets
-            pluginGruntCfg.defaultTargets.forEach(function (defaultTarget) {
-                defaultTasks.push(defaultTarget);
-            });
-        }
+        extractPluginGruntTargets(pluginDir);
     };
 
     // Glob for front-end plugins and configure each one to build
@@ -394,6 +403,9 @@ module.exports = function (grunt) {
     pluginDirs.forEach(function (pluginDir) {
         if (fs.existsSync(pluginDir + '/web_client')) {
             configurePlugin(pluginDir);
+        } else {
+            // plugins lacking a web_client dir might have grunt tasks
+            extractPluginGruntTargets(pluginDir);
         }
     });
 
