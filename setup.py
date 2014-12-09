@@ -17,9 +17,56 @@
 #  limitations under the License.
 ###############################################################################
 
+import sys
 import json
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 from pkg_resources import parse_requirements
+
+
+class InstallWithOptions(install):
+    '''
+    A custom install command that recognizes extra options
+    to perform plugin and/or web client installation.
+    '''
+
+    user_options = install.user_options + [
+        ('plugins', None, 'Install default plugins.'),
+        ('client', None, 'Install web client resources.')
+    ]
+
+    boolean_options = install.boolean_options + [
+        'plugins', 'client'
+    ]
+
+    def initialize_options(self, *arg, **kw):
+        install.initialize_options(self, *arg, **kw)
+        self.plugins = None
+        self.client = None
+
+    def run(self, *arg, **kw):
+        install.run(self, *arg, **kw)
+        if self.plugins:
+            print 'Installing plugins'
+        if self.client:
+            print 'Installing client'
+
+    @staticmethod
+    def girder_install(component):
+        '''
+        Try to import girder_install to install
+        optional components.
+        '''
+        try:
+            import girder_install
+        except ImportError:
+            sys.stderr.write(
+                'Install {} failed.  '.format(component)
+                'Could not import girder_install.\n'
+            )
+            return
+        girder_install.main()
+
 
 with open('README.rst') as f:
     readme = f.read()
@@ -33,6 +80,7 @@ install_reqs = parse_requirements('requirements.txt')
 # reqs is a list of requirement
 reqs = [str(req) for req in install_reqs]
 
+# perform the install
 setup(
     name='girder',
     version=version,
@@ -58,5 +106,8 @@ setup(
     },
     install_requires=reqs,
     zip_safe=False,
-    scripts=['girder-install']
+    scripts=['girder-install'],
+    cmdclass={
+        'install': InstallWithOptions
+    }
 )

@@ -49,6 +49,12 @@ try:
 except IOError:  # pragma: no cover
     pass
 
+#: The local directory containing the static content.
+#: Should contain ``clients/web/static``.
+STATIC_ROOT_DIR = ROOT_DIR
+if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
+    STATIC_ROOT_DIR = PACKAGE_DIR
+
 
 class TerminalColor(object):
     """
