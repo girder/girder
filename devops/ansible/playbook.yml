@@ -4,10 +4,10 @@
 
   handlers:
   - name: restart nginx
-    action: service name=nginx pattern=/etc/init.d/nginx state=restarted enabled=yes
+    service: name=nginx pattern=/etc/init.d/nginx state=restarted enabled=yes
 
   - name: restart mongodb
-    action: service name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
+    service: name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
 
   tasks:
 
