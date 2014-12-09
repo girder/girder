@@ -17,7 +17,7 @@ girder.views.PluginConfigBreadcrumbWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.pluginConfigBreadcrumb({
+        this.$el.html(girder.templates.pluginConfigBreadcrumb({
             pluginName: this.pluginName
         }));
 

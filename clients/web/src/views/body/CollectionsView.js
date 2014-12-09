@@ -40,7 +40,7 @@ girder.views.CollectionsView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.collectionList({
+        this.$el.html(girder.templates.collectionList({
             collections: this.collection.models,
             girder: girder
         }));

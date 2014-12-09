@@ -34,7 +34,7 @@ girder.views.FolderListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(jade.templates.folderList({
+        this.$el.html(girder.templates.folderList({
             folders: this.collection.models,
             hasMore: this.collection.hasNextPage()
         }));

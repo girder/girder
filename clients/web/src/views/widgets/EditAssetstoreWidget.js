@@ -41,7 +41,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(jade.templates.editAssetstoreWidget({
+        var modal = this.$el.html(girder.templates.editAssetstoreWidget({
             assetstore: view.model,
             types: girder.AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {

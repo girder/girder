@@ -26,7 +26,7 @@ girder.views.GroupsView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupList({
+        this.$el.html(girder.templates.groupList({
             groups: this.collection.models,
             girder: girder
         }));

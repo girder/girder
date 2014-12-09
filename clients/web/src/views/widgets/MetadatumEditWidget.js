@@ -31,7 +31,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         if (this.newDatum) {
             curRow.remove();
         } else {
-            curRow.removeClass('editing').html(jade.templates.metadatumView({
+            curRow.removeClass('editing').html(girder.templates.metadatumView({
                 key: this.key,
                 value: this.value,
                 accessLevel: this.accessLevel,
@@ -74,7 +74,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
                 'g-value': this.value
-            }).html(jade.templates.metadatumView({
+            }).html(girder.templates.metadatumView({
                 key: this.key,
                 value: this.value,
                 accessLevel: this.accessLevel,
@@ -107,7 +107,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.metadatumEditWidget({
+        this.$el.html(girder.templates.metadatumEditWidget({
             item: this.item,
             key: this.key,
             value: this.value,

@@ -34,7 +34,7 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.newAssetstore());
+        this.$el.html(girder.templates.newAssetstore());
         return this;
     },
 

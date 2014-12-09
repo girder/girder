@@ -41,7 +41,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
                 target: 'admin'
             });
         }
-        this.$el.html(jade.templates.layoutGlobalNav({
+        this.$el.html(girder.templates.layoutGlobalNav({
             navItems: navItems
         }));
 

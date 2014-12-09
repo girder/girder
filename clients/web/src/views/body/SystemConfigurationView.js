@@ -72,7 +72,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.systemConfiguration({
+        this.$el.html(girder.templates.systemConfiguration({
             settings: this.settings,
             defaults: this.defaults
         }));

@@ -81,7 +81,7 @@
         },
 
         render: function () {
-            this.$el.html(jade.templates.collectionPage({
+            this.$el.html(girder.templates.collectionPage({
                 collection: this.model,
                 girder: girder
             }));

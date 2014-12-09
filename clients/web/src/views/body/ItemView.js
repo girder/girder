@@ -74,7 +74,7 @@
             // the access level is fetched.
             this.model.getAccessLevel(_.bind(function (accessLevel) {
 
-                this.$el.html(jade.templates.itemPage({
+                this.$el.html(girder.templates.itemPage({
                     item: this.model,
                     accessLevel: accessLevel,
                     girder: girder

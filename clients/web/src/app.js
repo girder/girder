@@ -28,7 +28,7 @@ girder.App = Backbone.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.layout());
+        this.$el.html(girder.templates.layout());
 
         this.globalNavView = new girder.views.LayoutGlobalNavView({
             el: this.$('#g-global-nav-container')
@@ -149,7 +149,7 @@ girder.App = Backbone.View.extend({
      *                Default is 6000ms. Set to <= 0 to have no timeout.
      */
     alert: function (options) {
-        var el = $(jade.templates.alert({
+        var el = $(girder.templates.alert({
             text: options.text,
             type: options.type || 'info',
             icon: options.icon

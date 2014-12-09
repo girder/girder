@@ -31,7 +31,7 @@ girder.views.provenance_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.provenance_config());
+        this.$el.html(girder.templates.provenance_config());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({

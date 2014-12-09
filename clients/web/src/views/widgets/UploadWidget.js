@@ -62,7 +62,7 @@ girder.views.UploadWidget = girder.View.extend({
         if (this.parentType === 'file') {
             dialogid = this.parent.get('_id');
         }
-        this.$el.html(jade.templates.uploadWidget({
+        this.$el.html(girder.templates.uploadWidget({
             parent: this.parent,
             parentType: this.parentType,
             title: this.title
