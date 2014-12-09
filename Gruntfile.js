@@ -71,7 +71,7 @@ module.exports = function (grunt) {
             options: {
                 client: true,
                 compileDebug: false,
-                namespace: 'jade.templates',
+                namespace: 'girder.templates',
                 processName: function (filename) {
                     return path.basename(filename, '.jade');
                 }
