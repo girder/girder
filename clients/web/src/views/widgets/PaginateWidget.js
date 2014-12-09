@@ -24,7 +24,7 @@ girder.views.PaginateWidget = girder.View.extend({
      * Do not call render() until the collection has been fetched once.
      */
     render: function () {
-        this.$el.html(jade.templates.paginateWidget({
+        this.$el.html(girder.templates.paginateWidget({
             collection: this.collection
         }));
 

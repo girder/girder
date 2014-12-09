@@ -44,7 +44,7 @@ girder.views.LoginView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.loginDialog()).girderModal(this)
+        this.$el.html(girder.templates.loginDialog()).girderModal(this)
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {

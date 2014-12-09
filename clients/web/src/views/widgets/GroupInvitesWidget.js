@@ -33,7 +33,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupInviteList({
+        this.$el.html(girder.templates.groupInviteList({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.models,
             accessType: girder.AccessType

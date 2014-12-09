@@ -34,14 +34,14 @@ girder.views.AccessWidget = girder.View.extend({
                 girder.dialogs.handleClose('access');
             };
         }
-        this.$el.html(jade.templates.accessEditor({
+        this.$el.html(girder.templates.accessEditor({
             model: this.model,
             modelType: this.modelType,
             public: this.model.get('public')
         })).girderModal(this).on('hidden.bs.modal', closeFunction);
 
         _.each(this.model.get('access').groups, function (groupAccess) {
-            this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+            this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
                 accessTypes: girder.AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
@@ -52,7 +52,7 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         _.each(this.model.get('access').users, function (userAccess) {
-            this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+            this.$('#g-ac-list-users').append(girder.templates.accessEntry({
                 accessTypes: girder.AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
@@ -105,7 +105,7 @@ girder.views.AccessWidget = girder.View.extend({
         if (!exists) {
             var model = new girder.models.UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+                this.$('#g-ac-list-users').append(girder.templates.accessEntry({
                     accessTypes: girder.AccessType,
                     type: 'user',
                     entry: {
@@ -131,7 +131,7 @@ girder.views.AccessWidget = girder.View.extend({
         if (!exists) {
             var model = new girder.models.GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+                this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
                     accessTypes: girder.AccessType,
                     type: 'group',
                     entry: {

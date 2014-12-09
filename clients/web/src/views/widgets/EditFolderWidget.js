@@ -28,7 +28,7 @@ girder.views.EditFolderWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(jade.templates.editFolderWidget({
+        var modal = this.$el.html(girder.templates.editFolderWidget({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();

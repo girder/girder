@@ -86,7 +86,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.folderCount = null;
         this.itemCount = null;
 
-        this.$el.html(jade.templates.hierarchyWidget({
+        this.$el.html(girder.templates.hierarchyWidget({
             type: this.parentModel.resourceName,
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
@@ -671,7 +671,7 @@ girder.views.HierarchyBreadcrumbView = girder.View.extend({
         // object and should be the "active" class, and not a link.
         var active = objects.pop();
 
-        this.$el.html(jade.templates.hierarchyBreadcrumb({
+        this.$el.html(girder.templates.hierarchyBreadcrumb({
             links: objects,
             current: active
         }));

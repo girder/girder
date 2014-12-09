@@ -56,7 +56,7 @@ girder.views.GroupMembersWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupMemberList({
+        this.$el.html(girder.templates.groupMemberList({
             group: this.model,
             members: this.membersColl.models,
             level: this.model.get('_accessLevel'),
@@ -134,7 +134,7 @@ girder.views.InviteUserDialog = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupInviteDialog({
+        this.$el.html(girder.templates.groupInviteDialog({
             group: this.group,
             user: this.user,
             level: this.group.get('_accessLevel'),

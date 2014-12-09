@@ -24,7 +24,7 @@ girder.views.AdminView = girder.View.extend({
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
-        this.$el.html(jade.templates.adminConsole());
+        this.$el.html(girder.templates.adminConsole());
 
         return this;
     }

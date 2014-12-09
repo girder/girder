@@ -370,7 +370,7 @@ that can be used to import content:
   subdirectories will be automatically built as templates available in the
   application. Just like in core, these templates are uniquely identified by
   the name of their file; e.g., ``myTemplate.jade`` could be rendered at runtime
-  by calling ``jade.templates.myTemplate()``. So, if you want to override an
+  by calling ``girder.templates.myTemplate()``. So, if you want to override an
   existing core template, simply create one in this directory with the same
   name. If you want to create a template that is not an override of a core
   template, but simply belongs to your plugin, convention dictates that it should

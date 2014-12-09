@@ -38,7 +38,7 @@ girder.views.oauth_ConfigView = girder.View.extend({
 
     render: function () {
         var origin = window.location.protocol + '//' + window.location.host;
-        this.$el.html(jade.templates.oauth_config({
+        this.$el.html(girder.templates.oauth_config({
             google: {
                 jsOrigin: origin,
                 redirectUri: origin + girder.apiRoot + '/oauth/google/callback'

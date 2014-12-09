@@ -29,7 +29,7 @@ girder.views.EditItemWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(jade.templates.editItemWidget({
+        var modal = this.$el.html(girder.templates.editItemWidget({
             item: this.item}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();

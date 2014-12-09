@@ -8,7 +8,7 @@ girder.views.geospatial_ItemWidget = girder.View.extend({
         this.render();
     },
     render: function () {
-        this.$el.html(jade.templates.geospatial_item({
+        this.$el.html(girder.templates.geospatial_item({
             accessLevel: this.accessLevel,
             girder: girder,
             item: this.item

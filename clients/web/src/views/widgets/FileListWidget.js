@@ -64,7 +64,7 @@ girder.views.FileListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(jade.templates.fileList({
+        this.$el.html(girder.templates.fileList({
             files: this.collection.models,
             hasMore: this.collection.hasNextPage(),
             girder: girder

@@ -39,7 +39,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.searchField({
+        this.$el.html(girder.templates.searchField({
             placeholder: this.placeholder
         }));
 
@@ -51,7 +51,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
             trigger: 'manual',
             placement: 'bottom',
             html: true,
-            content: jade.templates.searchHelp()
+            content: girder.templates.searchHelp()
         }).blur(function () {
             $(this).popover('hide');
         }).click(function () {
@@ -135,7 +135,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
                         });
                     }, this);
                 }, this);
-                list.html(jade.templates.searchResults({
+                list.html(girder.templates.searchResults({
                     results: resources
                 }));
 

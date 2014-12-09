@@ -9,7 +9,7 @@ girder.views.LayoutHeaderView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.layoutHeader());
+        this.$el.html(girder.templates.layoutHeader());
 
         new girder.views.LayoutHeaderUserView({
             el: this.$('.g-current-user-wrapper')

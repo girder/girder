@@ -37,7 +37,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.layoutHeaderUser({
+        this.$el.html(girder.templates.layoutHeaderUser({
             user: girder.currentUser
         }));
         return this;

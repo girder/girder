@@ -24,7 +24,7 @@ girder.views.UsersView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.userList({
+        this.$el.html(girder.templates.userList({
             users: this.collection.models,
             girder: girder
         }));

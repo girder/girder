@@ -116,7 +116,7 @@
                     return true;
                 }, this);
             }
-            this.$el.html(jade.templates.groupPage({
+            this.$el.html(girder.templates.groupPage({
                 group: this.model,
                 girder: girder,
                 isInvited: this.isInvited,

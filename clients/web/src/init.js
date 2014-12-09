@@ -13,8 +13,7 @@ if (!window.console) {
     };
 }
 
-// This script must be invoked first to declare the girder namespace
-var girder = {
+_.extend(girder, {
     models: {},
     collections: {},
     views: {},
@@ -119,4 +118,12 @@ var girder = {
         }
         return Backbone.ajax(opts);
     }
-};
+});
+
+/**
+ * The old "jade.templates" namespace is deprecated as of version 1.1, but is
+ * retained here for backward compatibility. It will be removed in version 2.0.
+ */
+/* jshint -W079 */
+var jade = jade || {};
+jade.templates = girder.templates;
