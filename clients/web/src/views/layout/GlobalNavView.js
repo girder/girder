@@ -19,7 +19,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         girder.events.on('g:highlightItem', this.selectForView, this);
         girder.events.on('g:login', this.render, this);
 
-       if (settings && settings.navItems) {
+        if (settings && settings.navItems) {
             this.navItems = settings.navItems;
         } else {
             this.navItems = [{
