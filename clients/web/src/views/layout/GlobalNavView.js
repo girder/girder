@@ -20,7 +20,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         girder.events.on('g:login', this.render, this);
     },
 
-    render: function () {
+    navItems: function () {
         var navItems = [{
             name: 'Collections',
             icon: 'icon-sitemap',
@@ -41,8 +41,12 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
                 target: 'admin'
             });
         }
+        return navItems;
+    },
+
+    render: function () {
         this.$el.html(jade.templates.layoutGlobalNav({
-            navItems: navItems
+            navItems: this.navItems()
         }));
 
         if (Backbone.history.fragment) {
