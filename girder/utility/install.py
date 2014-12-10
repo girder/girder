@@ -78,7 +78,7 @@ def handle_source(src, dest):
         download.file.flush()
         download.file.seek(0)
         src = download.name
-    except Exception:
+    except (urllib2.URLError, ValueError):
         pass
 
     src = fix_path(src)
@@ -93,7 +93,7 @@ def handle_source(src, dest):
         # Try to open as a tarball.
         try:
             tgz = tarfile.open(src)
-        except Exception:
+        except tarfile.ReadError:
             pass
         tgz.extractall(dest)
         return True
@@ -193,9 +193,7 @@ def install_plugin(source=None, force=False):
                     'Attempting to install requirements for {}.\n'
                     .format(pluginName)
                 )
-                try:
-                    assert pip.main(['install', '-U', '-r', requirements]) == 0
-                except Exception:
+                if pip.main(['install', '-U', '-r', requirements]) != 0:
                     print constants.TerminalColor.error(
                         'Failed to install requirements for {}.'
                         .format(pluginName)
