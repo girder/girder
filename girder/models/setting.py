@@ -17,7 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-from ..constants import SettingDefault
+from collections import OrderedDict
+
+from ..constants import SettingDefault, SettingKey
 from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 
@@ -29,6 +31,7 @@ class Setting(Model):
     def initialize(self):
         self.name = 'setting'
         self.ensureIndices(['key'])
+        self._corsSettingsCache = None
 
     def validate(self, doc):
         """
@@ -84,6 +87,43 @@ class Setting(Model):
             pass  # We want to raise the ValidationException
         raise ValidationException(
             'Cookie lifetime must be an integer > 0.', 'value')
+
+    def validateCoreCorsAllowMethods(self, doc):
+        if isinstance(doc['value'], basestring):
+            methods = doc['value'].replace(",", " ").strip().upper().split()
+            # remove duplicates
+            methods = list(OrderedDict.fromkeys(methods))
+            doc['value'] = ", ".join(methods)
+            self.corsSettingsCacheClear()
+            return
+        raise ValidationException(
+            'Allowed methods must be a comma-separated list or an empty '
+            'string.', 'value')
+
+    def validateCoreCorsAllowHeaders(self, doc):
+        if isinstance(doc['value'], basestring):
+            headers = doc['value'].replace(",", " ").strip().split()
+            # remove duplicates
+            headers = list(OrderedDict.fromkeys(headers))
+            doc['value'] = ", ".join(headers)
+            self.corsSettingsCacheClear()
+            return
+        raise ValidationException(
+            'Allowed headers must be a comma-separated list or an empty '
+            'string.', 'value')
+
+    def validateCoreCorsAllowOrigin(self, doc):
+        if isinstance(doc['value'], basestring):
+            origins = doc['value'].replace(",", " ").strip().split()
+            origins = [origin.rstrip('/') for origin in origins]
+            # remove duplicates
+            origins = list(OrderedDict.fromkeys(origins))
+            doc['value'] = ", ".join(origins)
+            self.corsSettingsCacheClear()
+            return
+        raise ValidationException(
+            'Allowed origin must be a comma-separated list of base urls or * '
+            'or an empty string.', 'value')
 
     def validateCoreEmailFromAddress(self, doc):
         if not doc['value']:
@@ -173,3 +213,49 @@ class Setting(Model):
         """
         default = SettingDefault.defaults.get(key, None)
         return default
+
+    def corsSettingsCacheClear(self):
+        """
+        Clear the CORS information we have stored for quick use, forcing it to
+        be reloaded the next time it is requested.
+        """
+        self._corsSettingsCache = None
+
+    def corsSettingsDict(self):
+        """Return a dictionary of CORS settings.  This parses the user settings
+        into a format that is useful for the REST api.  The dictionary
+        contains:
+
+        * allowOrigin: None if no CORS settings are present, or a list of
+          allowed origins.  If the list contains '*', all origins are allowed.
+        * allowMethods: None if all methods allowed, or a list of allowed
+          methods.  Note that regardless of this list, GET, HEAD, and some POST
+          methods are always allowed.  These are always upper case.
+        * allowHeaders: a set of allowed headers.  This includes the headers
+          which are always allowed by CORS.  There are always all lower case.
+
+        :returns settings: a dictionary as described above.
+        """
+        if self._corsSettingsCache is None:
+            cors = {}
+            allowOrigin = self.get(SettingKey.CORS_ALLOW_ORIGIN)
+            if not allowOrigin:
+                cors['allowOrigin'] = None
+            else:
+                cors['allowOrigin'] = allowOrigin.replace(",", " ").strip(). \
+                    split()
+            methods = self.get(SettingKey.CORS_ALLOW_METHODS)
+            if not methods:
+                cors['allowMethods'] = None
+            else:
+                cors['allowMethods'] = methods.replace(",", " ").strip(). \
+                    upper().split()
+            headers = set(self.get(SettingKey.CORS_ALLOW_HEADERS).replace(
+                ",", " ").strip().lower().split())
+            headers = {header.lower() for header in headers.union({
+                'Content-Type', 'Content-Length', 'Accept', 'Accept-Language',
+                'Content-Language', 'Host', 'Origin', 'Referrer',
+                'User-Agent'})}
+            cors['allowHeaders'] = headers
+            self._corsSettingsCache = cors
+        return self._corsSettingsCache

@@ -72,6 +72,22 @@ describe('Test the settings page', function () {
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
     });
+    it('Change settings', function () {
+        runs(function () {
+            $('#g-core-cookie-lifetime').val('not a number');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-settings-error-message').text() === 'Cookie lifetime must be an integer > 0.';
+        }, 'error message to be shown');
+        runs(function () {
+            $('#g-core-cookie-lifetime').val('180');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-settings-error-message').text() === '';
+        }, 'error message to be cleared');
+    });
 });
 
 describe('Test the assetstore page', function () {
