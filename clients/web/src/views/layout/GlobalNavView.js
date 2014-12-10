@@ -20,33 +20,43 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         girder.events.on('g:login', this.render, this);
 
         settings = settings || {};
-        var defaultNavItems = [{
-            name: 'Collections',
-            icon: 'icon-sitemap',
-            target: 'collections'
-        }, {
-            name: 'Users',
-            icon: 'icon-user',
-            target: 'users'
-        }, {
-            name: 'Groups',
-            icon: 'icon-users',
-            target: 'groups'
-        }];
-        if (girder.currentUser && girder.currentUser.get('admin')) {
-            defaultNavItems.push({
-                name: 'Admin console',
-                icon: 'icon-wrench',
-                target: 'admin'
-            });
+        if (settings.navItems) {
+            this.navItems = settings.navItems;
+        } else {
+            this.defaultNavItems = [{
+                name: 'Collections',
+                icon: 'icon-sitemap',
+                target: 'collections'
+            }, {
+                name: 'Users',
+                icon: 'icon-user',
+                target: 'users'
+            }, {
+                name: 'Groups',
+                icon: 'icon-users',
+                target: 'groups'
+            }];
         }
-        this.navItems = settings.navItems || defaultNavItems;
-
-     },
+    },
 
     render: function () {
+        var navItems;
+        if (this.navItems) {
+            navItems = this.navItems;
+        } else {
+            navItems = this.defaultNavItems;
+            if (girder.currentUser && girder.currentUser.get('admin')) {
+                // copy navItems so that this.defaultNavItems is unchanged
+                navItems = navItems.slice();
+                navItems.push({
+                    name: 'Admin console',
+                    icon: 'icon-wrench',
+                    target: 'admin'
+                });
+            }
+        }
         this.$el.html(girder.templates.layoutGlobalNav({
-            navItems: this.navItems
+            navItems: navItems
         }));
 
         if (Backbone.history.fragment) {
