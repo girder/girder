@@ -23,6 +23,9 @@ Constants should be defined here.
 import os
 import json
 
+# let's break python
+(╯°□°）╯︵ ┻━┻
+
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
