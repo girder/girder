@@ -121,9 +121,9 @@ def install_web(source=None, force=False):
         if force:
             shutil.rmtree(clients)
         else:
-            sys.stderr.write(
-                'Client files already exist at {}, use -f to overwrite.\n'.format(
-                    constants.PACKAGE_DIR
+            print constants.TerminalColor.warning(
+                'Client files already exist at {}, use "force" to overwrite.'.format(
+                    constants.STATIC_ROOT_DIR
                 )
             )
             sys.exit(1)
@@ -171,8 +171,8 @@ def install_plugin(source=None, force=False):
                 if force:
                     shutil.rmtree(pluginTarget)
                 else:
-                    sys.stderr.write(
-                        'A plugin already exsts at {}, use -f to overwrite.\n'.format(
+                    print constants.TerminalColor.warning(
+                        'A plugin already exists at {}, use "force" to overwrite.'.format(
                             pluginTarget
                         )
                     )
@@ -181,13 +181,15 @@ def install_plugin(source=None, force=False):
             shutil.copytree(pluginSource, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):
-                print '\nAttempting to install requirements for {}.\n'.format(pluginName)
+                print constants.TerminalColor.info(
+                    'Attempting to install requirements for {}.\n'.format(pluginName)
+                )
                 try:
                     assert pip.main(['install', '-U', '-r', requirements]) == 0
                 except Exception:
-                    print '\nFailed to install requirements for {}.'.format(pluginName)
-
-        print ''
+                    print constants.TerminalColor.error(
+                        'Failed to install requirements for {}.'.format(pluginName)
+                    )
     finally:
         shutil.rmtree(tmp)
     return found
