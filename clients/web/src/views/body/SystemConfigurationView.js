@@ -45,7 +45,10 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.email_from_address',
             'core.registration_policy',
             'core.smtp_host',
-            'core.upload_minimum_chunk_size'
+            'core.upload_minimum_chunk_size',
+            'core.cors.allow_origin',
+            'core.cors.allow_methods',
+            'core.cors.allow_headers'
         ];
         this.settingsKeys = keys;
         girder.restRequest({
@@ -82,13 +85,6 @@ girder.views.SystemConfigurationView = girder.View.extend({
             animation: false,
             delay: {show: 200}
         });
-
-        if (this.settings['core.registration_policy'] !== null) {
-            this.$('#g-core-registration-policy').val(
-                this.settings['core.registration_policy']
-            );
-        }
-
         return this;
     }
 });

@@ -121,6 +121,9 @@ class SettingKey:
     REGISTRATION_POLICY = 'core.registration_policy'
     SMTP_HOST = 'core.smtp_host'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
+    CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
+    CORS_ALLOW_METHODS = 'core.cors.allow_methods'
+    CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
 
 
 class SettingDefault:
@@ -135,6 +138,8 @@ class SettingDefault:
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.SMTP_HOST: 'localhost:25',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
+        SettingKey.CORS_ALLOW_HEADERS: 'Content-Disposition, Content-Type, '
+                                       'Authorization'
     }
 
 

@@ -22,8 +22,10 @@ form.g-settings-form(role="form")
   .form-group
     label(for="g-core-registration-policy") Registration policy
     select#g-core-registration-policy.form-control.input-sm
-      option(value="open") Open registration
-      option(value="closed") Closed registration
+      option(value="open", selected=(settings['core.registration_policy'] ==
+             "open")) Open registration
+      option(value="closed", selected=(settings['core.registration_policy'] ==
+             "closed")) Closed registration
 
   .panel-group#g-configuration-accordion
     .panel.panel-default
@@ -45,6 +47,26 @@ form.g-settings-form(role="form")
               type="text", value="#{settings['core.upload_minimum_chunk_size'] || ''}",
               placeholder="Default: #{defaults['core.upload_minimum_chunk_size'] || ''}",
               title="For large files, the minimum size of all but the last chunk.")
+          | CORS (Cross-origin resource sharing) allows access from other
+          | websites.
+          .form-group
+            label(for="g-core-cors-allow-origin") CORS Allowed Origins
+            input#g-core-cors-allow-origin.form-control.input-sm(
+              type="text", value="#{settings['core.cors.allow_origin'] || ''}",
+              placeholder="Default: none",
+              title="A comma-separated list of allowed base URLs that can make cross-site requests.  This may include *.")
+          .form-group
+            label(for="g-core-cors-allow-methods") CORS Allowed Methods
+            input#g-core-cors-allow-methods.form-control.input-sm(
+              type="text", value="#{settings['core.cors.allow_methods'] || ''}",
+              placeholder="Default: allow all methods",
+              title="A comma-separated list of allowed methods")
+          .form-group
+            label(for="g-core-cors-allow-headers") CORS Allowed Headers
+            input#g-core-cors-allow-headers.form-control.input-sm(
+              type="text", value="#{settings['core.cors.allow_headers'] || ''}",
+              placeholder="Default: #{defaults['core.cors.allow_headers'] || ''}",
+              title="A comma-separated list of allowed headers.")
   p
   .form-group
     button.g-submit-settings.btn.btn-default.btn-sm
