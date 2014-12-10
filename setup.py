@@ -32,41 +32,49 @@ class InstallWithOptions(install):
 
     user_options = install.user_options + [
         ('plugins', None, 'Install default plugins.'),
-        ('client', None, 'Install web client resources.')
+        ('web', None, 'Install web client resources.')
     ]
 
     boolean_options = install.boolean_options + [
-        'plugins', 'client'
+        'plugins', 'web'
     ]
 
     def initialize_options(self, *arg, **kw):
         install.initialize_options(self, *arg, **kw)
         self.plugins = None
-        self.client = None
+        self.web = None
 
     def run(self, *arg, **kw):
+        '''
+        Runs the main installation, then installs optional
+        components.  This will fail if (for whatever reason)
+        the installation path is not in ``sys.path``.
+        '''
         install.run(self, *arg, **kw)
         if self.plugins:
             print 'Installing plugins'
-        if self.client:
-            print 'Installing client'
+            self.girder_install('plugins')
+        if self.web:
+            print 'Installing web components'
+            self.girder_install('web')
 
-    @staticmethod
-    def girder_install(component):
+    def girder_install(self, component):
         '''
         Try to import girder_install to install
         optional components.
         '''
         try:
-            import girder_install
+            from girder.utility import install
         except ImportError:
             sys.stderr.write(
-                'Install {} failed.  '.format(component)
-                'Could not import girder_install.\n'
+                'Install {} failed.  '.format(component) +
+                'Could not import girder.\n'
             )
             return
-        girder_install.main()
-
+        if component == 'web':
+            install.install_web(force=True)
+        elif component == 'plugins':
+            install.install_plugin(force=True)
 
 with open('README.rst') as f:
     readme = f.read()
@@ -75,7 +83,11 @@ with open('package.json') as f:
     version = json.load(f)['version']
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
-install_reqs = parse_requirements('requirements.txt')
+install_reqs = []
+try:
+    install_reqs = parse_requirements(open('requirements.txt').read())
+except Exception:
+    pass
 
 # reqs is a list of requirement
 reqs = [str(req) for req in install_reqs]
