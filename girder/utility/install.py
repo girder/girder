@@ -39,8 +39,7 @@ version = constants.VERSION['apiVersion']
 
 # Default download location for optional features
 defaultSource = (
-    'https://github.com/girder/girder/releases/download/v{}/'
-    .format(version)
+    'https://github.com/girder/girder/releases/download/v%s/' % version
 )
 
 
@@ -125,10 +124,8 @@ def install_web(source=None, force=False):
             shutil.rmtree(clients)
         else:
             print constants.TerminalColor.warning(
-                'Client files already exist at {}, use "force" to overwrite.'
-                .format(
-                    constants.STATIC_ROOT_DIR
-                )
+                'Client files already exist at %s, use "force" to overwrite.' %
+                constants.STATIC_ROOT_DIR
             )
             sys.exit(1)
 
@@ -179,10 +176,8 @@ def install_plugin(source=None, force=False):
                     shutil.rmtree(pluginTarget)
                 else:
                     print constants.TerminalColor.warning(
-                        'A plugin already exists at {}, '
-                        'use "force" to overwrite.'.format(
-                            pluginTarget
-                        )
+                        'A plugin already exists at %s, '
+                        'use "force" to overwrite.' % pluginTarget
                     )
                     continue
             found.append(pluginName)
@@ -190,13 +185,11 @@ def install_plugin(source=None, force=False):
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):
                 print constants.TerminalColor.info(
-                    'Attempting to install requirements for {}.\n'
-                    .format(pluginName)
+                    'Attempting to install requirements for %s.\n' % pluginName
                 )
                 if pip.main(['install', '-U', '-r', requirements]) != 0:
                     print constants.TerminalColor.error(
-                        'Failed to install requirements for {}.'
-                        .format(pluginName)
+                        'Failed to install requirements for %s.' % pluginName
                     )
     finally:
         shutil.rmtree(tmp)
