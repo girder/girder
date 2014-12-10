@@ -38,7 +38,10 @@ from girder.utility.plugin_utilities import getPluginDir
 version = constants.VERSION['apiVersion']
 
 # Default download location for optional features
-defaultSource = 'https://github.com/girder/girder/releases/download/v{}/'.format(version)
+defaultSource = (
+    'https://github.com/girder/girder/releases/download/v{}/'
+    .format(version)
+)
 
 
 def fix_path(path):
@@ -122,7 +125,8 @@ def install_web(source=None, force=False):
             shutil.rmtree(clients)
         else:
             print constants.TerminalColor.warning(
-                'Client files already exist at {}, use "force" to overwrite.'.format(
+                'Client files already exist at {}, use "force" to overwrite.'
+                .format(
                     constants.STATIC_ROOT_DIR
                 )
             )
@@ -133,7 +137,10 @@ def install_web(source=None, force=False):
         result = handle_source(source, tmp)
         clients = os.path.join(tmp, 'clients')
         if result and os.path.isdir(clients):
-            shutil.copytree(clients, os.path.join(constants.PACKAGE_DIR, 'clients'))
+            shutil.copytree(clients, os.path.join(
+                constants.PACKAGE_DIR,
+                'clients'
+            ))
             result = webRoot
 
     finally:
@@ -172,7 +179,8 @@ def install_plugin(source=None, force=False):
                     shutil.rmtree(pluginTarget)
                 else:
                     print constants.TerminalColor.warning(
-                        'A plugin already exists at {}, use "force" to overwrite.'.format(
+                        'A plugin already exists at {}, '
+                        'use "force" to overwrite.'.format(
                             pluginTarget
                         )
                     )
@@ -182,13 +190,15 @@ def install_plugin(source=None, force=False):
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):
                 print constants.TerminalColor.info(
-                    'Attempting to install requirements for {}.\n'.format(pluginName)
+                    'Attempting to install requirements for {}.\n'
+                    .format(pluginName)
                 )
                 try:
                     assert pip.main(['install', '-U', '-r', requirements]) == 0
                 except Exception:
                     print constants.TerminalColor.error(
-                        'Failed to install requirements for {}.'.format(pluginName)
+                        'Failed to install requirements for {}.'
+                        .format(pluginName)
                     )
     finally:
         shutil.rmtree(tmp)
