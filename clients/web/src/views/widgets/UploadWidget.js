@@ -48,6 +48,39 @@ girder.views.UploadWidget = girder.View.extend({
         'drop .g-drop-zone': 'filesDropped'
     },
 
+    /**
+     * This widget has several configuration options to control its view and
+     * behavior. The following keys can be passed in the settings object:
+     *
+     * @param [parent] If the parent object is known when instantiating this
+     * upload widget, pass the object here.
+     * @param [parentType=folder] If the parent type is known when instantiating this
+     * upload widget, pass the object here. Otherwise set noParent: true and
+     * set it later, prior to starting the upload.
+     * @param [noParent=false] If the parent object being uploaded into is not known
+     * at the time of widget instantiation, pass noParent: true. Callers must
+     * ensure that the parent is set by the time uploadNextFile() actually gets
+     * called.
+     * @param [title="Upload files"] Title for the widget. This is highly recommended
+     * when rendering as a modal dialog. To disable rendering of the title, simply
+     * pass a falsy object.
+     * @param [modal=true] This widget normally renders as a modal dialog. Pass
+     * modal: false to disable the modal behavior and simply render underneath a
+     * parent element.
+     * @param [overrideStart=false] Some callers will want to hook into the pressing
+     * of the start upload button and add their own logic prior to actually sending
+     * the files. To do so, set overrideStart: true and bind to the "g:uploadStarted"
+     * event of this widget. The caller is then responsible for calling "uploadNextFile()"
+     * on the widget when they have completed their actions and are ready to actually
+     * send the files.
+     *
+     * Other events:
+     *   - "g:filesChanged": This is triggered any time the user changes the
+     *     file selection, either by dropping or browsing and selecting new files.
+     *     Handlers will receive a single argument, which is the list of chosen files.
+     *   - "g:uploadFinished": When all files have been successfully uploaded,
+     *     this event is fired.
+     */
     initialize: function (settings) {
         if (settings.noParent) {
             this.parent = null;
