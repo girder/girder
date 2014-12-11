@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import os
 
 import girder.events
 from girder import constants
@@ -42,9 +41,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     if curConfig is None:
         curConfig = config.getConfig()
 
-    curStaticRoot = constants.ROOT_DIR
-    if not os.path.exists(os.path.join(curStaticRoot, 'clients')):
-        curStaticRoot = constants.PACKAGE_DIR
+    curStaticRoot = constants.STATIC_ROOT_DIR
 
     appconf = {
         '/': {
