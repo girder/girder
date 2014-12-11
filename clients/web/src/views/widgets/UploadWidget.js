@@ -14,7 +14,7 @@ girder.views.UploadWidget = girder.View.extend({
         },
         'click .g-restart-upload': function () {
             this.$('.g-upload-error-message').html('');
-            this._uploadNextFile();
+            this.uploadNextFile();
         },
         'change #g-files': function (e) {
             var files = this.$('#g-files')[0].files;
@@ -49,34 +49,52 @@ girder.views.UploadWidget = girder.View.extend({
     },
 
     initialize: function (settings) {
-        this.parent = settings.parent || settings.folder;
-        this.parentType = settings.parentType || 'folder';
-        this.title = settings.title || 'Upload files';
+        if (settings.noParent) {
+            this.parent = null;
+            this.parentType = null;
+        } else {
+            this.parent = settings.parent || settings.folder;
+            this.parentType = settings.parentType || 'folder';
+        }
         this.files = [];
         this.totalSize = 0;
+        this.title = _.has(settings, 'title') ? settings.title : 'Upload files';
+        this.modal = _.has(settings, 'modal') ? settings.modal : true;
+        this.overrideStart = settings.overrideStart || false;
     },
 
     render: function () {
-        var base = this;
-        var dialogid;
-        if (this.parentType === 'file') {
-            dialogid = this.parent.get('_id');
-        }
-        this.$el.html(girder.templates.uploadWidget({
-            parent: this.parent,
-            parentType: this.parentType,
-            title: this.title
-        })).girderModal(this).on('hidden.bs.modal', function () {
-            /* If we are showing the resume option, we have a partial upload
-             * that should be deleted, since the user has no way to get back to
-             * it. */
-            if ($('.g-resume-upload').length && base.currentFile) {
-                base.currentFile.abortUpload();
-            }
-            girder.dialogs.handleClose('upload', undefined, dialogid);
-        });
+        if (this.modal) {
+            this.$el.html(girder.templates.uploadWidget({
+                parent: this.parent,
+                parentType: this.parentType,
+                title: this.title
+            }));
 
-        girder.dialogs.handleOpen('upload', undefined, dialogid);
+            var base = this;
+            var dialogid;
+            if (this.parentType === 'file') {
+                dialogid = this.parent.get('_id');
+            }
+
+            this.$el.girderModal(this).on('hidden.bs.modal', function () {
+                /* If we are showing the resume option, we have a partial upload
+                 * that should be deleted, since the user has no way to get back
+                 * to it. */
+                if ($('.g-resume-upload').length && base.currentFile) {
+                    base.currentFile.abortUpload();
+                }
+                girder.dialogs.handleClose('upload', undefined, dialogid);
+            });
+
+            girder.dialogs.handleOpen('upload', undefined, dialogid);
+        } else {
+            this.$el.html(girder.templates.uploadWidgetNonModal({
+                parent: this.parent,
+                parentType: this.parentType,
+                title: this.title
+            }));
+        }
         return this;
     },
 
@@ -115,6 +133,8 @@ girder.views.UploadWidget = girder.View.extend({
             this.$('.g-current-progress-message').empty();
             this.$('.g-upload-error-message').empty();
         }
+
+        this.trigger('g:filesChanged', this.files);
     },
 
     startUpload: function (e) {
@@ -127,7 +147,11 @@ girder.views.UploadWidget = girder.View.extend({
 
         this.currentIndex = 0;
         this.overallProgress = 0;
-        this._uploadNextFile();
+        this.trigger('g:uploadStarted');
+
+        if (!this.overrideStart) {
+            this.uploadNextFile();
+        }
     },
 
     /**
@@ -135,10 +159,12 @@ girder.views.UploadWidget = girder.View.extend({
      * from the server. If successful, this will call _uploadChunk to send the
      * actual bytes from the file if it is of non-zero length.
      */
-    _uploadNextFile: function () {
+    uploadNextFile: function () {
         if (this.currentIndex >= this.files.length) {
             // All files have finished
-            this.$el.modal('hide');
+            if (this.modal) {
+                this.$el.modal('hide');
+            }
             this.trigger('g:uploadFinished');
             return;
         }
@@ -148,7 +174,7 @@ girder.views.UploadWidget = girder.View.extend({
 
         this.currentFile.on('g:upload.complete', function () {
             this.currentIndex += 1;
-            this._uploadNextFile();
+            this.uploadNextFile();
         }, this).on('g:upload.chunkSent', function (info) {
             this.overallProgress += info.bytes;
         }, this).on('g:upload.progress', function (info) {
