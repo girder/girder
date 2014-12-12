@@ -142,3 +142,15 @@ class InstallTestCase(base.TestCase):
             )),
             ['multi1', 'multi2']
         )
+
+    def testInvalidClientInstall(self):
+        self.assertFalse(
+            install.install_web('http://notvalid.kitware.com')
+        )
+        self.assertFalse(
+            install.install_web(
+                os.path.join(
+                    pluginRoot, 'has_deps', 'plugin.json'
+                )
+            )
+        )
