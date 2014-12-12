@@ -1,38 +1,15 @@
+include uploadWidgetMixins
+
 .modal-dialog
   .modal-content
     form#g-upload-form.modal-form(role="form")
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title= title
-        .g-dialog-subtitle
-          if (parentType === 'folder')
-            i.icon-folder-open
-          else if (parentType === 'item')
-            i.icon-doc-text-inv
-          else if (parentType === 'file')
-            i.icon-doc-inv
-          | #{parent.name()}
+        +g-upload-widget-subtitle
       .modal-body
-        .g-drop-zone
-          i.icon-docs
-          if (parentType === 'file')
-            |  Browse or drop a file here
-          else
-            |  Browse or drop files here
-        .form-group.hide
-          if (parentType === 'file')
-            input#g-files(type="file")
-          else
-            input#g-files(type="file", multiple)
-        .g-current-progress-message
-        .g-progress-current.progress.progress-striped.hide
-          .progress-bar.progress-bar-info(role="progressbar")
-        .g-overall-progress-message No files selected
-        .g-progress-overall.progress.progress-striped.hide
-          .progress-bar.progress-bar-info(role="progressbar")
-        .g-upload-error-message.g-validation-failed-message
+        +g-upload-widget-browse-or-drop
+        +g-upload-widget-progress
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Close
-        button.g-start-upload.btn.btn-small.btn-primary.disabled(type="submit")
-          i.icon-upload
-          |  Start Upload
+        +g-upload-widget-start-button

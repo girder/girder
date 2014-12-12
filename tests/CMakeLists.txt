@@ -43,6 +43,7 @@ add_web_client_test(item "${PROJECT_SOURCE_DIR}/clients/web/test/spec/itemSpec.j
 add_web_client_test(folder "${PROJECT_SOURCE_DIR}/clients/web/test/spec/folderSpec.js")
 add_web_client_test(routing "${PROJECT_SOURCE_DIR}/clients/web/test/spec/routingSpec.js")
 add_web_client_test(version "${PROJECT_SOURCE_DIR}/clients/web/test/spec/versionSpec.js")
+add_web_client_test(custom_widgets "${PROJECT_SOURCE_DIR}/clients/web/test/spec/customWidgetsSpec.js")
 
 add_subdirectory(clients)
 add_subdirectory(packaging)
