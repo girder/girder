@@ -101,7 +101,7 @@ def handle_source(src, dest):
     return False
 
 
-def install_web(source=None, force=False):
+def install_web(source=None, force=False):  # pragma: no cover
     '''
     Install the web client from the given source.  If no source
     is present it will install from the current release package
