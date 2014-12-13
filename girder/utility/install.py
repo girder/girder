@@ -69,7 +69,7 @@ def handle_source(src, dest):
     :rtype: bool
     '''
 
-    try:
+    try:  # pragma: no cover
         # Try to open as a url
         request = urllib2.urlopen(src)
         download = tempfile.NamedTemporaryFile(suffix='.tgz')
@@ -92,16 +92,16 @@ def handle_source(src, dest):
         # Try to open as a tarball.
         try:
             tgz = tarfile.open(src)
+            tgz.extractall(dest)
+            return True
         except tarfile.ReadError:
             pass
-        tgz.extractall(dest)
-        return True
 
     # Nothing else to try
     return False
 
 
-def install_web(source=None, force=False):
+def install_web(source=None, force=False):  # pragma: no cover
     '''
     Install the web client from the given source.  If no source
     is present it will install from the current release package
@@ -157,7 +157,7 @@ def install_plugin(source=None, force=False):
     :returns: a list of plugins that were installed
     :rtype: list
     '''
-    if source is None:
+    if source is None:  # pragma: no cover
         source = defaultSource + 'girder-plugins-' + version + '.tar.gz'
 
     found = []
@@ -183,7 +183,7 @@ def install_plugin(source=None, force=False):
             found.append(pluginName)
             shutil.copytree(pluginSource, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
-            if os.path.exists(requirements):
+            if os.path.exists(requirements):  # pragma: no cover
                 print constants.TerminalColor.info(
                     'Attempting to install requirements for %s.\n' % pluginName
                 )
