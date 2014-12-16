@@ -1,13 +1,13 @@
 language: cpp
 compiler:
     - gcc
+services:
+    - mongodb
 before_install:
+    - mongod --version
     - sudo apt-get install npm
     - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10"
     - "echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list"
-    - sudo apt-get update
-    - sudo apt-get install -y mongodb-org-server=2.6.5
-    - mongod --version
     - pushd "${HOME}"
     - curl "http://www.cmake.org/files/v3.1/cmake-3.1.0-rc3-Linux-x86_64.tar.gz" | gunzip -c | tar x
     - cd cmake-*/bin && export PATH="${PWD}:${PATH}"
