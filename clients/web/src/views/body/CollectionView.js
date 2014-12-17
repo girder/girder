@@ -47,12 +47,15 @@
                     this.folder.set({
                         _id: settings.folderId
                     }).on('g:fetched', function () {
+                        this._createHierarchyWidget();
                         this.render();
                     }, this).on('g:error', function () {
                         this.folder = null;
+                        this._createHierarchyWidget();
                         this.render();
                     }, this).fetch();
                 } else {
+                    this._createHierarchyWidget();
                     this.render();
                 }
             } else if (settings.id) {
@@ -60,10 +63,22 @@
                 this.model.set('_id', settings.id);
 
                 this.model.on('g:fetched', function () {
+                    this._createHierarchyWidget();
                     this.render();
                 }, this).fetch();
             }
+        },
 
+        _createHierarchyWidget: function () {
+            this.hierarchyWidget = new girder.views.HierarchyWidget({
+                parentModel: this.folder || this.model,
+                upload: this.upload,
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate,
+            });
+            this.registerChildView(this.hierarchyWidget);
         },
 
         editCollection: function () {
@@ -86,15 +101,9 @@
                 girder: girder
             }));
 
-            this.hierarchyWidget = new girder.views.HierarchyWidget({
-                parentModel: this.folder || this.model,
-                upload: this.upload,
-                folderAccess: this.folderAccess,
-                folderEdit: this.folderEdit,
-                folderCreate: this.folderCreate,
-                itemCreate: this.itemCreate,
-                el: this.$('.g-collection-hierarchy-container')
-            });
+            this.hierarchyWidget.setElement(
+                this.$('.g-collection-hierarchy-container')).render();
+
             this.upload = false;
             this.folderAccess = false;
             this.folderEdit = false;
@@ -126,7 +135,6 @@
                 // need to do anything?
             }, this);
         }
-
     });
 
     /**
