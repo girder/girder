@@ -315,6 +315,8 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentId: parent.get('_id')
         });
 
+        this.updateChecked();
+
         if (parent.resourceName === 'folder') {
             if (this.itemListView) {
                 this.itemListView.initialize({
