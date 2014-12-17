@@ -76,7 +76,7 @@
                 folderAccess: this.folderAccess,
                 folderEdit: this.folderEdit,
                 folderCreate: this.folderCreate,
-                itemCreate: this.itemCreate,
+                itemCreate: this.itemCreate
             });
             this.registerChildView(this.hierarchyWidget);
         },

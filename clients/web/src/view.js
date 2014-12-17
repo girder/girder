@@ -5,7 +5,6 @@ girder.View = Backbone.View.extend({
      */
     destroy: function () {
         _.each(this._childViews, function (child) {
-            child.remove();
             child.destroy();
         });
         this._childViews = null;
