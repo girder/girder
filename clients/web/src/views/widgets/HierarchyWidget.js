@@ -58,10 +58,8 @@ girder.views.HierarchyWidget = girder.View.extend({
             objects: this.breadcrumbs
         });
         this.breadcrumbView.on('g:breadcrumbClicked', function (idx) {
-            this.parentModel = this.breadcrumbs[idx];
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
-            this.render();
-            this._setRoute();
+            this.setCurrentModel(this.breadcrumbs[idx]);
         }, this);
         this.registerChildView(this.breadcrumbView);
 
@@ -306,8 +304,11 @@ girder.views.HierarchyWidget = girder.View.extend({
      *
      * @param parent The parent model to change to.
      */
-    setCurrentModel: function (parent) {
+    setCurrentModel: function (parent, opts) {
+        opts = opts || {};
         this.parentModel = parent;
+
+        this.breadcrumbView.objects = this.breadcrumbs;
 
         this.folderListView.initialize({
             parentType: parent.resourceName,
@@ -324,7 +325,9 @@ girder.views.HierarchyWidget = girder.View.extend({
             }
         }
         this.render();
-        this._setRoute();
+        if (!_.has(opts, 'setRoute') || opts.setRoute) {
+            this._setRoute();
+        }
     },
 
     /**
@@ -388,7 +391,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(function () {
-                    view.render();
+                    view.setCurrentModel(view.parentModel, {setRoute: false});
                 });
             }
         };
@@ -408,7 +411,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         }).on('g:uploadFinished', function () {
             girder.dialogs.handleClose('upload');
             this.upload = false;
-            this.render();
+            this.setCurrentModel(this.parentModel, {setRoute: false});
         }, this).render();
     },
 
@@ -616,7 +619,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 progress: true
             }
         }).done(function () {
-            view.render();
+            view.setCurrentModel(view.parentModel, {setRoute: false});
         });
         this.clearPickedResources();
     },
@@ -636,7 +639,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 progress: true
             }
         }).done(function () {
-            view.render();
+            view.setCurrentModel(view.parentModel, {setRoute: false});
         });
         this.clearPickedResources();
     },
