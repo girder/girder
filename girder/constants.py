@@ -144,8 +144,14 @@ class SettingDefault:
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.SMTP_HOST: 'localhost:25',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
-        SettingKey.CORS_ALLOW_HEADERS: 'Content-Disposition, Content-Type, '
-                                       'Authorization'
+        # These headers are necessary to allow the web server to work with just
+        # changes to the CORS origin
+        SettingKey.CORS_ALLOW_HEADERS:
+            'Accept-Encoding, Authorization, Content-Disposition, '
+            'Content-Type, Cookie, Girder-Token'
+            # An apache server using reverse proxy would also need
+            #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
+            #  X-Forwarded-Host, Remote-Addr
     }
 
 
