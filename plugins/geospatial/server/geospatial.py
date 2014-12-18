@@ -221,6 +221,19 @@ class GeospatialItem(Resource):
         .errorResponse()
     )
 
+    def _getGeometry(self, params):
+        try:
+            geometry = bson.json_util.loads(params['geometry'])
+            GeoJSON.to_instance(geometry, strict=True)
+
+            if geometry['type'] != 'Point':
+                raise ValueError
+
+            return geometry
+        except (TypeError, ValueError):
+            raise RestException("Invalid GeoJSON passed as 'geometry'"
+                                " parameter.")
+
     @access.public
     def near(self, params):
         """
@@ -238,20 +251,8 @@ class GeospatialItem(Resource):
         """
         self.requireParams(('field', 'geometry'), params)
 
-        if 'ensureIndex' not in params:
-            params['ensureIndex'] = False
-
-        try:
-            geometry = bson.json_util.loads(params['geometry'])
-            GeoJSON.to_instance(geometry, strict=True)
-
-            if geometry['type'] != 'Point':
-                raise ValueError
-        except (TypeError, ValueError):
-            raise RestException("Invalid GeoJSON passed as 'geometry'"
-                                " parameter.")
         condition = {
-            '$geometry': geometry
+            '$geometry': self._getGeometry(params)
         }
 
         for param in ('maxDistance', 'minDistance'):
@@ -273,7 +274,7 @@ class GeospatialItem(Resource):
         else:
             field = '{}.{}'.format(GEOSPATIAL_FIELD, params['field'].strip())
 
-        if params['ensureIndex']:
+        if params.get('ensureIndex', False):
             user = self.getCurrentUser()
 
             if not user:

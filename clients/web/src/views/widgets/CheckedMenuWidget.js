@@ -7,7 +7,6 @@ girder.views.CheckedMenuWidget = girder.View.extend({
     initialize: function (params) {
         this._fetchAndInit(params);
         this.dropdownToggle = params.dropdownToggle;
-        this.render();
     },
 
     render: function () {
