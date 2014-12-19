@@ -17,10 +17,10 @@ enpoint code is executed.
 CORS (Cross-Origin Resource Sharing)
 ------------------------------------
 
-When a request is sent from a web browser that could modify the data in girder,
+When a request is sent from a web browser that could modify the data in Girder,
 the web browser sends an ``Origin`` header.  If this is not the same origin as
 where a user's sessions was initiated, it is a Cross-Origin request, and is
-restricted based on the girder CORS settings.
+restricted based on the Girder CORS settings.
 
 By default, all cross-origin requests that could modify data are refused.
 Different origins may be allowed via the System Configuration.  For best
@@ -39,8 +39,8 @@ CORS policy accepts requests with simple headers.  If requests include other
 headers, they must be listed in the System Configuration, or the request will
 be refused.  If the default isn't changed, Girder will authorize a small set of
 headers that are typically needed when accessing the default web client from a
-different origin than the girder server.  Some configurations require
-additional headers to be allowed.  For instance, if the girder server is behind
+different origin than the Girder server.  Some configurations require
+additional headers to be allowed.  For instance, if the Girder server is behind
 a proxy, the ``X-Requested-With``, ``X-Forwarded-Server``, ``X-Forwarded-For``,
 ``X-Forwarded-Host``, and ``Remote-Addr`` headers may also be needed.  Changing
 the allowed headers overrides the default values.  Therefore, to have the
