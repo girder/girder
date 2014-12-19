@@ -91,6 +91,19 @@ class NotificationTestCase(base.TestCase):
             messages = self.getSseMessages(resp)
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]['data']['current'], 2)
+            # If we use a non-numeric value, nothing bad should happen
+            time.sleep(0.02)
+            progress.update(current='not_a_number')
+            resp = self.request(path='/notification/stream', method='GET',
+                                user=user, token=token, isJson=False,
+                                params={'timeout': 1})
+            messages = self.getSseMessages(resp)
+            self.assertEqual(len(messages), 1)
+            self.assertEqual(messages[0]['data']['current'], 'not_a_number')
+            # Updating the progress without saving and then exiting should
+            # send the update.
+            progress.interval = 1000
+            progress.update(current=3)
 
         # Exiting the context manager should flush the most recent update.
         resp = self.request(path='/notification/stream', method='GET',
@@ -98,7 +111,7 @@ class NotificationTestCase(base.TestCase):
                             params={'timeout': 1})
         messages = self.getSseMessages(resp)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0]['data']['current'], 2)
+        self.assertEqual(messages[0]['data']['current'], 3)
 
         # Test a ValidationException within the progress context
         try:
