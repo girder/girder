@@ -253,8 +253,25 @@ class Setting(Model):
             headers = set(self.get(SettingKey.CORS_ALLOW_HEADERS).replace(
                 ",", " ").strip().lower().split())
             headers = {header.lower() for header in headers.union({
-                'Content-Type', 'Content-Length', 'Accept', 'Accept-Language',
-                'Content-Language', 'Host', 'Origin', 'Referrer',
+                'Accept',
+                # in defaults: Accept-Encoding
+                'Accept-Language',
+                # in defaults: Authorization
+                # in defaults: Content-Dispostion
+                'Connection',
+                'Content-Language',
+                'Content-Length',
+                # Content-Type is in the defaults besides being listed here,
+                # because some CORS requests don't have to permit it.  We side
+                # on always allowing it, though it may need to be in the
+                # allowed headers that are sent to the browser for the browser
+                # to be willing to send the CORS request
+                'Content-Type',
+                # in defaults: Cookie
+                # in defaults: Girder-Token
+                'Host',
+                'Origin',
+                'Referer',
                 'User-Agent'})}
             cors['allowHeaders'] = headers
             self._corsSettingsCache = cors
