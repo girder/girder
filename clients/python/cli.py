@@ -9,7 +9,6 @@ class GirderCli(object):
 
     def __init__(self, username, password, dryrun=False, blacklist=[]):
         self.g = girderclient.GirderClient()
-        self.g
         self.g.authenticate(username, password)
         self.dryrun = dryrun
         self.blacklist = blacklist
@@ -184,6 +183,7 @@ if __name__ == '__main__':
     parser.add_argument('folder_id', help='id of Girder target folder')
     parser.add_argument('local_folder', help='path to local target folder')
     args = parser.parse_args()
+
     g = GirderCli(args.username, args.password, bool(args.dryrun), args.blacklist.split(','))
     if args.c == 'upload':
         g.upload(args.local_folder, args.folder_id, reuse_existing=args.reuse)

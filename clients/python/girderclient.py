@@ -22,9 +22,9 @@ class GirderClient(object):
     client.uploadFileToItem(itemId, 'path/to/your/file.txt')
 
     r1 = client.getItem('52e935037bee0436e29a7130')
-    r2 = client.sendRestRequest('GET', 'item',
+    r2 = client.get('item',
         {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
-    r3 = client.sendRestRequest('GET', 'resource/search',
+    r3 = client.get('resource/search',
         {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
@@ -40,9 +40,6 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    #-------------------------------------------------------------------------
-    # Constructor
-    #-------------------------------------------------------------------------
     def __init__(self, host="localhost", port=8080):
         """
         Construct a new GirderClient object, given a host name and port number,
@@ -62,9 +59,6 @@ class GirderClient(object):
 
         self.token = None
 
-    #-------------------------------------------------------------------------
-    # Construct URL and send request
-    #-------------------------------------------------------------------------
     def authenticate(self, username, password):
         """
         Authenticate to Girder, storing the token that comes back to be used in
@@ -87,10 +81,7 @@ class GirderClient(object):
 
         self.token = authResponse['authToken']['token']
 
-    #-------------------------------------------------------------------------
-    # Construct URL and send request
-    #-------------------------------------------------------------------------
-    def sendRestRequest(self, method, path, parameters=None):
+    def sendRestRequest(self, method, path, parameters=None, data=None, files=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -126,7 +117,7 @@ class GirderClient(object):
         parameters.update({'token': self.token})
 
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters)
+        result = f(url, params=parameters, data=data, files=files)
 
         # If success, return the json object.  Otherwise throw an exception.
         if result.status_code == 200 or result.status_code == 403:
@@ -137,11 +128,23 @@ class GirderClient(object):
             raise Exception('Request: ' + result.url + ', return code: ' +
                             str(result.status_code))
 
+    def get(self, path, parameters=None):
+        return self.sendRestRequest('GET', path, parameters)
+
+    def post(self, path, parameters=None, files=None):
+        return self.sendRestRequest('POST', path, parameters, files=files)
+
+    def put(self, path, parameters=None, data=None):
+        return self.sendRestRequest('PUT', path, parameters, data=data)
+
+    def delete(self, path, parameters=None):
+        return self.sendRestRequest('DELETE', path, parameters)
+
     def createResource(self, path,  params):
         """
         Creates and returns a resource
         """
-        obj = self.sendRestRequest('POST', path, params)
+        obj = self.post(path, params)
         if '_id' in obj:
             return obj
         else:
@@ -152,13 +155,13 @@ class GirderClient(object):
         """
         Loads a resource by id or None if no resource is returned
         """
-        return self.sendRestRequest('GET', path + '/' + id)
+        return self.get(path + '/' + id)
 
     def listResource(self, path, params):
         """
         search for a list of resources based on params.
         """
-        return self.sendRestRequest('GET', path, params)
+        return self.get(path, params)
 
     def createItem(self, parentFolderId, name, description):
         """
@@ -236,14 +239,11 @@ class GirderClient(object):
         }
         return self.listResource(path, params)
 
-    #-------------------------------------------------------------------------
-    # A convenience method for uploading a file to an existing item
-    #-------------------------------------------------------------------------
     def uploadFileToItem(self, itemId, filepath):
         """
         Uploads a file to an item, in chunks.
-        If the file already exists in the item with the same name and sha512,
-        or if the file has 0 bytes, no uploading will be performed.
+        If ((the file already exists in the item with the same name and sha512)
+        or (if the file has 0 bytes), no uploading will be performed.
         """
 
         filename = os.path.basename(filepath)
@@ -258,8 +258,8 @@ class GirderClient(object):
             next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
             with open(filepath, 'rb') as fd:
                 while next_chunk_size > 0:
-                    data = fd.read(next_chunk_size)
-                    yield (data, startbyte)
+                    chunk = fd.read(next_chunk_size)
+                    yield (chunk, startbyte)
                     startbyte = startbyte + next_chunk_size
                     next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
 
@@ -275,7 +275,7 @@ class GirderClient(object):
         # to upload anyway in this case also.
         file_id = None
         path = 'item/' + itemId + '/files'
-        item_files = self.sendRestRequest('GET', path)
+        item_files = self.get(path)
         for item_file in item_files:
             if filename == item_file['name']:
                 file_id = item_file['_id']
@@ -289,7 +289,7 @@ class GirderClient(object):
             params = {
                 'size': filesize
             }
-            obj = self.sendRestRequest('PUT', path, params)
+            obj = self.put(path, params)
             if '_id' in obj:
                 uploadId = obj['_id']
             else:
@@ -302,7 +302,7 @@ class GirderClient(object):
                 'name': filename,
                 'size': filesize
             }
-            obj = self.sendRestRequest('POST', 'file', params)
+            obj = self.post('file', params)
             if '_id' in obj:
                 uploadId = obj['_id']
             else:
@@ -318,26 +318,32 @@ class GirderClient(object):
             filedata = {
                 'chunk': chunk
             }
-            upResult = requests.post(self.urlBase + 'file/chunk', params=parameters,
-                                     files=filedata)
-            obj = upResult.json()
+            path = 'file/chunk'
+            obj = self.post(path, parameters=parameters, files=filedata)
 
             if '_id' not in obj:
                 raise Exception('After uploading a file chunk, did'
                                 ' not receive object with _id. Got instead: ' +
                                 json.dumps(obj))
 
+    def addMetadataToItem(self, itemId, metadata):
+        """
+        Takes an item ID and a dictionary containing the metadata
+        """
+        path = 'item/' + itemId + '/metadata'
+        params = {
+            'token': self.token,
+        }
+        obj = self.put(path, params, data=json.dumps(metadata))
+        return obj
 
-##-------------------------------------------------------------------------
-    ## A convenience method for adding metadata to an existing item
-    ##-------------------------------------------------------------------------
-    #def addMetadataToItem(self, itemId, metadata):
-        #"""
-        #Takes an item ID and a JSON object containing the metadata
-        #"""
-        #path = 'item/' + itemId + '/metadata'
-        #obj = requests.put(self.urlBase + path, params={'token': self.token},
-                           #data=json.dumps(metadata))
-        #return obj.json()
-
-
+    def addMetadataToFolder(self, folderId, metadata):
+        """
+        Takes an folder ID and a dictionary containing the metadata
+        """
+        path = 'folder/' + folderId + '/metadata'
+        params = {
+            'token': self.token,
+        }
+        obj = self.put(path, params, data=json.dumps(metadata))
+        return obj
