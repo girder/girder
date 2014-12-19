@@ -82,7 +82,8 @@ class GirderClient(object):
 
         self.token = authResponse['authToken']['token']
 
-    def sendRestRequest(self, method, path, parameters=None, data=None, files=None):
+    def sendRestRequest(self, method, path, parameters=None, data=None,
+                        files=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -259,7 +260,8 @@ class GirderClient(object):
                     chunk = fd.read(next_chunk_size)
                     yield (chunk, startbyte)
                     startbyte = startbyte + next_chunk_size
-                    next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
+                    next_chunk_size = min(self.MAX_CHUNK_SIZE,
+                                          filesize - startbyte)
 
         def sha512_hasher(filepath):
             hasher = hashlib.sha512()
@@ -291,8 +293,10 @@ class GirderClient(object):
             if '_id' in obj:
                 uploadId = obj['_id']
             else:
-                raise Exception('After creating an upload token for replacing file contents, expected an object'
-                                'with an id. Got instead: ' + json.dumps(obj))
+                raise Exception(
+                    'After creating an upload token for replacing file '
+                    'contents, expected an object with an id. Got instead: ' +
+                    json.dumps(obj))
         else:
             params = {
                 'parentType': 'item',
@@ -304,8 +308,9 @@ class GirderClient(object):
             if '_id' in obj:
                 uploadId = obj['_id']
             else:
-                raise Exception('After creating an upload token for a new file, expected an object'
-                                'with an id. Got instead: ' + json.dumps(obj))
+                raise Exception(
+                    'After creating an upload token for a new file, expected an'
+                    ' object with an id. Got instead: ' + json.dumps(obj))
 
         for chunk, startbyte in file_chunker(filepath):
             parameters = {

@@ -3,6 +3,7 @@ import os
 import os.path
 import girderclient
 
+
 class GirderCli(object):
     """
     """
@@ -21,7 +22,8 @@ class GirderCli(object):
             if child['name'] == folder_name:
                 folder = child
         if folder is None:
-            folder = self.g.createFolder(parent_folder_id, 'folder', folder_name, description = '')
+            folder = self.g.createFolder(parent_folder_id, 'folder',
+                                         folder_name, description='')
         return folder
 
     def _has_only_files(self, local_folder):
@@ -32,7 +34,8 @@ class GirderCli(object):
         return not any(os.path.isdir(os.path.join(local_folder, entry))
                        for entry in os.listdir(local_folder))
 
-    def _create_or_reuse_item(self, local_file, parent_folder_id, reuse_existing=False):
+    def _create_or_reuse_item(self, local_file, parent_folder_id,
+                              reuse_existing=False):
         """Create an item from the local_file in the parent_folder
         :param local_file: full path to a file on the local file system
         :param parent_folder_id: id of parent folder in Girder
@@ -50,10 +53,10 @@ class GirderCli(object):
                     break
 
         if item is None:
-            item = self.g.createItem(parent_folder_id, local_item_name, description='')
+            item = self.g.createItem(parent_folder_id, local_item_name,
+                                     description='')
 
         return item
-
 
     def _upload_file_to_item(self, local_file, parent_item_id, file_path):
         self.g.uploadFileToItem(parent_item_id, file_path)
@@ -70,20 +73,17 @@ class GirderCli(object):
         """
         print 'Uploading Item from %s' % local_file
         if not self.dryrun:
-            current_item = self._create_or_reuse_item(local_file, parent_folder_id,
-                                                 reuse_existing)
-            self._upload_file_to_item(local_file, current_item['_id'], file_path)
-        #_create_bitstream(file_path, local_file, current_item_id)
-        #for callback in session.item_upload_callbacks:
-            #callback(session.communicator, session.token, current_item_id)
+            current_item = self._create_or_reuse_item(
+                local_file, parent_folder_id, reuse_existing)
+            self._upload_file_to_item(
+                local_file, current_item['_id'], file_path)
+        # _create_bitstream(file_path, local_file, current_item_id)
+        # for callback in session.item_upload_callbacks:
+            # callback(session.communicator, session.token, current_item_id)
 
-
-
-
-    def _upload_folder_recursive(self, local_folder,
-                             parent_folder_id,
-                             leaf_folders_as_items=False,
-                             reuse_existing=False):
+    def _upload_folder_recursive(self, local_folder, parent_folder_id,
+                                 leaf_folders_as_items=False,
+                                 reuse_existing=False):
         """Function to recursively upload a folder and all of its descendants.
         :param local_folder: full path to local folder to be uploaded
         :param parent_folder_id: id of parent folder in Girder, where new folder
@@ -98,7 +98,6 @@ class GirderCli(object):
             print 'Creating Item from folder %s' % local_folder
             if not self.dryrun:
                 # TODO not implemented
-                #_upload_folder_as_item(local_folder, parent_folder_id, reuse_existing)
                 pass
         else:
             filename = os.path.basename(local_folder)
@@ -112,7 +111,8 @@ class GirderCli(object):
                 # create a dryrun placeholder
                 folder = {'_id': 'dryrun'}
             else:
-                folder = self._load_or_create_folder(local_folder, parent_folder_id)
+                folder = self._load_or_create_folder(
+                    local_folder, parent_folder_id)
 
             for entry in sorted(os.listdir(local_folder)):
                 if entry in self.blacklist:
@@ -125,18 +125,12 @@ class GirderCli(object):
                     print "Skipping file %s as it is a symlink" % entry
                     continue
                 elif os.path.isdir(full_entry):
-                    self._upload_folder_recursive(full_entry,
-                                             folder['_id'],
-                                             leaf_folders_as_items,
-                                             reuse_existing)
+                    self._upload_folder_recursive(
+                        full_entry, folder['_id'], leaf_folders_as_items,
+                        reuse_existing)
                 else:
-                    self._upload_as_item(entry,
-                                    folder['_id'],
-                                    full_entry,
-                                    reuse_existing)
-
-
-
+                    self._upload_as_item(
+                        entry, folder['_id'], full_entry, reuse_existing)
 
     def upload(self, file_pattern, parent_folder_id, parent_type='folder',
                leaf_folders_as_items=False, reuse_existing=False):
@@ -161,30 +155,39 @@ class GirderCli(object):
                     print "Ignoring file %s as it is blacklisted" % filename
                 continue
             if os.path.isfile(current_file):
-                self._upload_as_item(os.path.basename(current_file),
-                                parent_folder_id,
-                                current_file,
-                                reuse_existing)
+                self._upload_as_item(
+                    os.path.basename(current_file), parent_folder_id,
+                    current_file, reuse_existing)
             else:
-                self._upload_folder_recursive(current_file,
-                                         parent_folder_id,
-                                         leaf_folders_as_items,
-                                         reuse_existing)
+                self._upload_folder_recursive(
+                    current_file, parent_folder_id, leaf_folders_as_items,
+                    reuse_existing)
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='Perform common Girder CLI operations.')
-    parser.add_argument('--reuse', action='store_true', help='use existing items of same name at same location or create a new one')
-    parser.add_argument('--blacklist', default='', required=False, help='comma separated list of filenames to ignore')
-    parser.add_argument('--dryrun', action='store_true', help='will not write anything to Girder, only report on what would happen')
+    parser = argparse.ArgumentParser(
+        description='Perform common Girder CLI operations.')
+    parser.add_argument(
+        '--reuse', action='store_true',
+        help='use existing items of same name at same location or create a new '
+        'one')
+    parser.add_argument(
+        '--blacklist', default='', required=False,
+        help='comma separated list of filenames to ignore')
+    parser.add_argument(
+        '--dryrun', action='store_true',
+        help='will not write anything to Girder, only report on what would '
+        'happen')
     parser.add_argument('username')
     parser.add_argument('password')
-    parser.add_argument('-c', default='upload', choices=['upload'], help='command to run')
+    parser.add_argument('-c', default='upload', choices=['upload'],
+                        help='command to run')
     parser.add_argument('folder_id', help='id of Girder target folder')
     parser.add_argument('local_folder', help='path to local target folder')
     args = parser.parse_args()
 
-    g = GirderCli(args.username, args.password, bool(args.dryrun), args.blacklist.split(','))
+    g = GirderCli(args.username, args.password, bool(args.dryrun),
+                  args.blacklist.split(','))
     if args.c == 'upload':
         g.upload(args.local_folder, args.folder_id, reuse_existing=args.reuse)
     else:
