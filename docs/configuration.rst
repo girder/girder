@@ -46,7 +46,7 @@ using intermittent polling rather than long-duration connections.
 
 Each available thread uses up some additional memory and requires internal
 socket or handle resources.  The exact amount of memory and resources is
-dependant on the host operating system and the types of queries made to girder.
+dependent on the host operating system and the types of queries made to girder.
 As one benchmark from an Ubuntu server, each additional available but unused
 connection requires roughly 25 kb of memory.  If all connections are serving
 notification streams, each uses around 50 kb of memory.
