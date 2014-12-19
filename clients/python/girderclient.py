@@ -14,18 +14,20 @@ class GirderClient(object):
     A class for interacting with the Girder RESTful API. Some simple examples of
     how to use this class follow:
 
-    client = GirderClient('myhost', 9000)
-    client.authenticate('myname', 'mypass')
+    .. code-block:: python
 
-    itemId = client.createitem(folderId, 'some item name', 'and description')
-    client.addMetadataToItem(itemId, {'metadatakey': 'metadatavalue'})
-    client.uploadFileToItem(itemId, 'path/to/your/file.txt')
+        client = GirderClient('myhost', 9000)
+        client.authenticate('myname', 'mypass')
 
-    r1 = client.getItem('52e935037bee0436e29a7130')
-    r2 = client.sendRestRequest('GET', 'item',
-        {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
-    r3 = client.sendRestRequest('GET', 'resource/search',
-        {'q': 'aggregated','types': '["folder", "item"]'})
+        itemId = client.createitem(folderId, 'an item name', 'a description')
+        client.addMetadataToItem(itemId, {'metadatakey': 'metadatavalue'})
+        client.uploadFileToItem(itemId, 'path/to/your/file.txt')
+
+        r1 = client.getItem('52e935037bee0436e29a7130')
+        r2 = client.sendRestRequest('GET', 'item',
+            {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
+        r3 = client.sendRestRequest('GET', 'resource/search',
+            {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
     # A convenience dictionary mapping HTTP method names to functions in the
@@ -49,10 +51,10 @@ class GirderClient(object):
         as well as a username and password which will be used in all requests
         (HTTP Basic Auth).
 
-            host: A string containing the host name where Girder is running, the
-            default value is 'localhost'
+        :param host: A string containing the host name where Girder is running,
+            the default value is 'localhost'
 
-            port: A number containing the port on which to connect to Girder,
+        :param port: A number containing the port on which to connect to Girder,
             the default value is 8080
         """
         self.host = host
@@ -70,10 +72,9 @@ class GirderClient(object):
         Authenticate to Girder, storing the token that comes back to be used in
         future requests.
 
-            username: A string containing the username to use in basic
+        :param username: A string containing the username to use in basic
             authentication
-
-            password: A string containing the password to use in basic
+        :param password: A string containing the password to use in basic
             authentication
         """
         if username is None or password is None:
@@ -101,14 +102,12 @@ class GirderClient(object):
         not involve multipart file data which might need to be specially encoded
         or handled differently.
 
-            method: One of 'GET', 'POST', 'PUT', or 'DELETE'
-
-            path: A string containing the path elements for this request. Note
-            that the path string should not begin or end with the path
+        :param method: One of 'GET', 'POST', 'PUT', or 'DELETE'
+        :param path: A string containing the path elements for this request.
+            Note that the path string should not begin or end with the path
             separator, '/'.
-
-            parameters: A dictionary mapping strings to strings, to be used as
-            the key/value pairs in the request parameters
+        :param parameters: A dictionary mapping strings to strings, to be used
+            as the key/value pairs in the request parameters
         """
         if not parameters:
             parameters = {}
@@ -139,7 +138,7 @@ class GirderClient(object):
 
     def createResource(self, path,  params):
         """
-        Creates and returns a resource
+        Creates and returns a resource.
         """
         obj = self.sendRestRequest('POST', path, params)
         if '_id' in obj:
@@ -150,7 +149,7 @@ class GirderClient(object):
 
     def getResource(self, path, id):
         """
-        Loads a resource by id or None if no resource is returned
+        Loads a resource by id or None if no resource is returned.
         """
         return self.sendRestRequest('GET', path + '/' + id)
 
@@ -162,7 +161,7 @@ class GirderClient(object):
 
     def createItem(self, parentFolderId, name, description):
         """
-        Creates and returns an item
+        Creates and returns an item.
         """
         path = 'item'
         params = {
@@ -176,8 +175,8 @@ class GirderClient(object):
         """
         Retrieves a item by its ID.
 
-            itemId: A string containing the ID of the item to retrieve from
-            Girder
+        :param itemId: A string containing the ID of the item to retrieve from
+            Girder.
         """
         path = 'item'
         return self.getResource(path, itemId)
@@ -186,8 +185,8 @@ class GirderClient(object):
         """
         Retrieves a item set from this folder ID.
 
-            folderId: the parent folder's ID
-            text: query for full text search of items, optional.
+        :param folderId: the parent folder's ID.
+        :param text: query for full text search of items, optional.
         """
         path = 'item'
         params = {
@@ -200,7 +199,8 @@ class GirderClient(object):
     def createFolder(self, parentId, parentType, name, description):
         """
         Creates and returns an folder
-        parentType: one of ('folder', 'user', 'collection')
+
+        :param parentType: One of ('folder', 'user', 'collection')
         """
         path = 'folder'
         params = {
@@ -215,8 +215,8 @@ class GirderClient(object):
         """
         Retrieves a folder by its ID.
 
-            folderId: A string containing the ID of the folder to retrieve from
-            Girder
+        :param folderId: A string containing the ID of the folder to retrieve
+            from Girder.
         """
         path = 'folder'
         return self.getResource(path, folderId)
@@ -225,9 +225,8 @@ class GirderClient(object):
         """
         Retrieves a folder set from this parent ID.
 
-            parentId: the parent's ID
-            parentFolderType: one of ('folder', 'user', 'collection')
-                defaults to 'folder'
+        :param parentId: The parent's ID.
+        :param parentFolderType: One of ('folder', 'user', 'collection').
         """
         path = 'folder'
         params = {
@@ -245,7 +244,6 @@ class GirderClient(object):
         If the file already exists in the item with the same name and sha512,
         or if the file has 0 bytes, no uploading will be performed.
         """
-
         filename = os.path.basename(filepath)
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
@@ -339,5 +337,3 @@ class GirderClient(object):
         #obj = requests.put(self.urlBase + path, params={'token': self.token},
                            #data=json.dumps(metadata))
         #return obj.json()
-
-
