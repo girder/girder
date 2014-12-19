@@ -1,8 +1,8 @@
 Configuration
 =============
 
-In many cases, girder will work with default configuration whether installed via
-pip or from a source checkout or tarball. That said, the girder config file can
+In many cases, Girder will work with default configuration whether installed via
+pip or from a source checkout or tarball. That said, the Girder config file can
 be set at the following locations (ordered by precedent):
 
 #. The path specified by the environment variable `GIRDER_CONFIG`.
@@ -14,8 +14,8 @@ be set at the following locations (ordered by precedent):
 Logging
 -------
 
-Much of girder's ouput is placed into the error or info log file. By default,
-these logs are stored in ~/.girder/logs. To set the girder log root or error and
+Much of Girder's ouput is placed into the error or info log file. By default,
+these logs are stored in ~/.girder/logs. To set the Girder log root or error and
 info logs specifically, set the `log_root`, `error_log_file`, and/or
 `info_log_file` variables in the `logging` config group. If `log_root` is set
 error and info will be set to error.log and info.log within `log_root`
@@ -35,10 +35,10 @@ Server thread pool
 
 Girder can handle mutiple requests at one time.  The maximum number of
 simultaneous requests is set with the `server.thread_pool` value in the
-`global` config group.  Once this many connections have been made to girder,
+`global` config group.  Once this many connections have been made to Girder,
 additional connections will block until existing connections finish.
 
-Most operations on girder are quick, and therefore do not use up a connection
+Most operations on Girder are quick, and therefore do not use up a connection
 for a long duration.  Some connections, notably calls to the
 `notification/stream` endpoint, can block for long periods.  If you expect to
 have many clients, either increase the size of the thread pool or switch to
@@ -46,7 +46,7 @@ using intermittent polling rather than long-duration connections.
 
 Each available thread uses up some additional memory and requires internal
 socket or handle resources.  The exact amount of memory and resources is
-dependent on the host operating system and the types of queries made to girder.
+dependent on the host operating system and the types of queries made to Girder.
 As one benchmark from an Ubuntu server, each additional available but unused
 connection requires roughly 25 kb of memory.  If all connections are serving
 notification streams, each uses around 50 kb of memory.
@@ -77,9 +77,10 @@ file: ::
     *    soft    nofile    32768
     *    hard    nofile    32768
 
-Save and close the file.  The girder user will need to logout and log back in
-and restart the girder server for the new limits to take effect.
+Save and close the file.  The user running the Girder server will need
+to logout and log back in and restart the Girder server for the new limits
+to take effect.
 
 This raises the limits for all users on the system.  You can limit this change
-to just the user that runs the girder server.  See the documentation for
+to just the user that runs the Girder server.  See the documentation for
 ``/etc/security/limits.conf`` for details.
