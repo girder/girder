@@ -239,11 +239,76 @@ class GirderClient(object):
         }
         return self.listResource(path, params)
 
+    def file_chunker(self, filepath, filesize=None):
+        """
+        Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
+
+        :param filepath: path to file on disk.
+        :param filesize: size of file on disk if known.
+        """
+        if filesize is None:
+            filesize = os.path.getsize(filepath)
+        startbyte = 0
+        next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
+        with open(filepath, 'rb') as fd:
+            while next_chunk_size > 0:
+                chunk = fd.read(next_chunk_size)
+                yield (chunk, startbyte)
+                startbyte = startbyte + next_chunk_size
+                next_chunk_size = min(self.MAX_CHUNK_SIZE,
+                                      filesize - startbyte)
+
+    def sha512_hasher(self, filepath):
+        """
+        Returns sha512 hash of passed in file.
+
+        :param filepath: path to file on disk.
+        """
+        hasher = hashlib.sha512()
+        for chunk, _ in self.file_chunker(filepath):
+            hasher.update(chunk)
+        return hasher.hexdigest()
+
+    def isFileCurrent(self, itemId, filename, filepath):
+        """
+        Tests whether the passed in filepath exists in the item with itemId,
+        with a name of filename, and with the same contents as the file at
+        filepath.  Returns a tuple (file_id, current) where
+            file_id: id of the file with that filename under the item, or
+            None if no such file exists under the item.
+            current: boolean if the file with that filename under the item
+            has the same contents as the file at filepath.
+
+        :param itemId: ID of parent item for file.
+        :param filename: name of file to look for under the parent item.
+        :param filepath: path to file on disk.
+        """
+        path = 'item/' + itemId + '/files'
+        item_files = self.get(path)
+        for item_file in item_files:
+            if filename == item_file['name']:
+                file_id = item_file['_id']
+                if 'sha512' in item_file:
+                    if item_file['sha512'] == self.sha512_hasher(filepath):
+                        return (file_id, True)
+                    else:
+                        return (file_id, False)
+                else:
+                    # Some assetstores don't support sha512
+                    # so we'll need to upload anyway
+                    return (file_id, False)
+        # Some files may already be stored under a different name, we'll need
+        # to upload anyway in this case also.
+        return (None, False)
+
     def uploadFileToItem(self, itemId, filepath):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and sha512)
         or (if the file has 0 bytes), no uploading will be performed.
+
+        :param itemId: ID of parent item for file.
+        :param filepath: path to file on disk.
         """
         filename = os.path.basename(filepath)
         filepath = os.path.abspath(filepath)
@@ -252,39 +317,14 @@ class GirderClient(object):
         if filesize == 0:
             return
 
-        def file_chunker(filepath):
-            startbyte = 0
-            next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
-            with open(filepath, 'rb') as fd:
-                while next_chunk_size > 0:
-                    chunk = fd.read(next_chunk_size)
-                    yield (chunk, startbyte)
-                    startbyte = startbyte + next_chunk_size
-                    next_chunk_size = min(self.MAX_CHUNK_SIZE,
-                                          filesize - startbyte)
-
-        def sha512_hasher(filepath):
-            hasher = hashlib.sha512()
-            for chunk, _ in file_chunker(filepath):
-                hasher.update(chunk)
-            return hasher.hexdigest()
-
         # Check if the file already exists by name and sha512 in the file.
-        # Some assetstores don't support sha512, so we'll need to upload anyway
-        # Some files may already be stored under a different name, we'll need
-        # to upload anyway in this case also.
-        file_id = None
-        path = 'item/' + itemId + '/files'
-        item_files = self.get(path)
-        for item_file in item_files:
-            if filename == item_file['name']:
-                file_id = item_file['_id']
-                if 'sha512' in item_file:
-                    if item_file['sha512'] == sha512_hasher(filepath):
-                        print 'File %s already exists in parent Item' % filename
-                        return
+        file_id, current = self.isFileCurrent(itemId, filename, filepath)
+        if file_id is not None and current:
+            print 'File %s already exists in parent Item' % filename
+            return
 
-        if file_id is not None:
+        if file_id is not None and not current:
+            print 'File %s exists in Item, but with stale contents' % filename
             path = 'file/' + file_id + '/contents'
             params = {
                 'size': filesize
@@ -312,7 +352,7 @@ class GirderClient(object):
                     'After creating an upload token for a new file, expected an'
                     ' object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in file_chunker(filepath):
+        for chunk, startbyte in self.file_chunker(filepath, filesize):
             parameters = {
                 'token': self.token,
                 'offset': startbyte,
@@ -332,6 +372,9 @@ class GirderClient(object):
     def addMetadataToItem(self, itemId, metadata):
         """
         Takes an item ID and a dictionary containing the metadata
+
+        :param itemId: ID of the item to set metadata on.
+        :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
         params = {
@@ -343,6 +386,9 @@ class GirderClient(object):
     def addMetadataToFolder(self, folderId, metadata):
         """
         Takes an folder ID and a dictionary containing the metadata
+
+        :param folderId: ID of the folder to set metadata on.
+        :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
         params = {
