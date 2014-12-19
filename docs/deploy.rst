@@ -71,7 +71,7 @@ Docker Container
 ----------------
 
 Every time a new commit is pushed to master, Docker Hub is updated with a new
-image of a docker container running Girder. This container exposes girder at
+image of a docker container running Girder. This container exposes Girder at
 port 8080 and requires the database URL to be passed in as an option. For more
 information, see the
 `Docker Hub Page <https://registry.hub.docker.com/u/girder/girder/>`_. Since the
