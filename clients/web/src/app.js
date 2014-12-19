@@ -63,12 +63,8 @@ girder.App = Backbone.View.extend({
         settings = settings || {};
 
         if (view) {
-            // Unbind all local events added by the previous body view.
-            container.off();
-
-            // Unbind all globally registered events from the previous view.
             if (this.bodyView) {
-                girder.events.off(null, null, this.bodyView);
+                this.bodyView.destroy();
             }
 
             settings = _.extend(settings, {

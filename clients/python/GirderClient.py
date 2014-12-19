@@ -1,6 +1,11 @@
 import json
 import requests
 import os
+import os.path
+
+
+class AuthenticationError(RuntimeError):
+    pass
 
 
 class GirderClient(object):
@@ -13,7 +18,7 @@ class GirderClient(object):
 
     itemId = client.createitem(folderId, 'some item name', 'and description')
     client.addMetadataToItem(itemId, {'metadatakey': 'metadatavalue'})
-    client.uploadFileToItem(itemId, '/full/path/to/your/file.txt')
+    client.uploadFileToItem(itemId, 'path/to/your/file.txt')
 
     r1 = client.getItem('52e935037bee0436e29a7130')
     r2 = client.sendRestRequest('GET', 'item',
@@ -74,8 +79,12 @@ class GirderClient(object):
             raise Exception('A user name and password are required')
 
         authResponse = requests.get(self.urlBase + 'user/authentication',
-                                    auth=(username, password))
-        self.token = authResponse.json()['authToken']['token']
+                                    auth=(username, password)).json()
+
+        if 'authToken' not in authResponse:
+            raise AuthenticationError()
+
+        self.token = authResponse['authToken']['token']
 
     #-------------------------------------------------------------------------
     # Construct URL and send request
@@ -185,6 +194,9 @@ class GirderClient(object):
         Uploads a file to an item. Currently only supports uploading in a
         single chunk, so files larger than 64 MB will raise an exception.
         """
+        data = None
+
+        filepath = os.path.abspath(filepath)
         with open(filepath, 'rb') as fd:
             data = fd.read()
 
