@@ -10,25 +10,22 @@ girder.views.FolderView = girder.View.extend({
         this.folderCreate = settings.folderCreate || false;
         this.folderEdit = settings.folderEdit || false;
         this.itemCreate = settings.itemCreate || false;
-        this.render();
-    },
 
-    render: function () {
         this.hierarchyWidget = new girder.views.HierarchyWidget({
             parentModel: this.folder,
             upload: this.upload,
             folderAccess: this.folderAccess,
             folderEdit: this.folderEdit,
             folderCreate: this.folderCreate,
-            itemCreate: this.itemCreate,
-            el: this.$el
+            itemCreate: this.itemCreate
         });
-        this.upload = false;
-        this.folderAccess = false;
-        this.folderEdit = false;
-        this.folderCreate = false;
-        this.itemCreate = false;
+        this.registerChildView(this.hierarchyWidget);
 
+        this.render();
+    },
+
+    render: function () {
+        this.hierarchyWidget.setElement(this.$el).render();
         return this;
     }
 });

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import time
 
 from .model_base import Model
 
@@ -59,11 +60,14 @@ class Notification(Model):
         Helper method to create the notification record that gets saved.
         """
         now = datetime.datetime.utcnow()
+        currentTime = time.time()
         doc = {
             'type': type,
             'data': data,
             'time': now,
-            'updated': now
+            'updated': now,
+            'startTime': currentTime,
+            'updatedTime': currentTime
         }
         if user:
             doc['userId'] = user['_id']
@@ -76,7 +80,7 @@ class Notification(Model):
         return self.save(doc)
 
     def initProgress(self, user, title, total=0, state=ProgressState.ACTIVE,
-                     current=0, message='', token=None):
+                     current=0, message='', token=None, estimateTime=True):
         """
         Create a "progress" type notification that can be updated anytime there
         is progress on some task. Progress records that are not updated for more
@@ -101,13 +105,17 @@ class Notification(Model):
         :type message: str
         :param token: if the user is None, associate this notification with the
             specified session token.
+        :param estimateTime: if True, generate an estimate of the total time
+            the task will take, if possible.  If False, never generate a time
+            estimate.
         """
         data = {
             'title': title,
             'total': total,
             'current': current,
             'state': state,
-            'message': message
+            'message': message,
+            'estimateTime': estimateTime
         }
         expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
@@ -157,8 +165,22 @@ class Notification(Model):
 
         record['updated'] = now
         record['expires'] = expires
-
+        record['updatedTime'] = time.time()
         if save:
+            # Only update the time estimate if we are also saving
+            if (record['updatedTime'] > record['startTime'] and
+                    record['data']['estimateTime']):
+                if 'estimatedTotalTime' in record:
+                    del record['estimatedTotalTime']
+                try:
+                    total = float(record['data']['total'])
+                    current = float(record['data']['current'])
+                    if total >= current and total > 0 and current > 0:
+                        record['estimatedTotalTime'] = (total * (
+                            record['updatedTime'] - record['startTime']) /
+                            current)
+                except ValueError:
+                    pass
             return self.save(record)
         else:
             return record

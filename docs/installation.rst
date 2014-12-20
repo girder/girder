@@ -11,7 +11,7 @@ To install the Girder distribution from the python package index, simply run ::
 
     pip install girder
 
-This will install the core girder REST API as a site package in your system
+This will install the core Girder REST API as a site package in your system
 or virtual environment.  At this point, you might want to check the
 :doc:`configuration <configuration>` to change your plugin and logging
 paths.  In order to use the web
@@ -21,7 +21,7 @@ for you.  Just run the following command: ::
 
    girder-install web
 
-If you installed girder into your system ``site-packages``, you may need to
+If you installed Girder into your system ``site-packages``, you may need to
 run this command as root.
 
 Optionally, you can also install a set of :ref:`plugins <plugins>` that are

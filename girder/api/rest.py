@@ -376,12 +376,6 @@ def _validateCORSMethodAndHeaders(cors):
                         cherrypy.request.method)
             raise cherrypy.HTTPError(403)
     # Check if we were sent any unapproved headers
-    allowedHeaders = dict.fromkeys(ModelImporter.model('setting').get(
-        SettingKey.CORS_ALLOW_HEADERS).replace(",", " ").strip().lower().
-        split())
-    allowedHeaders.update(dict.fromkeys([header.lower() for header in [
-        'Content-Type', 'Content-Length', 'Accept', 'Accept-Language',
-        'Content-Language', 'Host', 'Origin', 'Referrer', 'User-Agent']]))
     for header in cherrypy.request.headers.keys():
         if header.lower() not in cors['allowHeaders']:
             logger.info('CORS 403 error: header %s not allowed', header)

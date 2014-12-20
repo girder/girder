@@ -8,9 +8,6 @@ window.alert = function (msg) {
     console.log(msg);
 };
 
-// Not ideal, but it makes phantom env hang, so turning this off for now... TODO
-window.EventSource = undefined;
-
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 

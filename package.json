@@ -28,7 +28,8 @@
     "jquery": "2.1.1",
     "swagger-ui": "2.0.22",
     "underscore": "~1.5",
-    "colors": "0.6.2"
+    "colors": "0.6.2",
+    "event-source": "0.1.1"
   },
   "devDependencies": {
     "jshint": "2.5.5",

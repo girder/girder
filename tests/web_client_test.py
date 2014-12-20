@@ -20,26 +20,71 @@
 import os
 import subprocess
 import sys
+import time
 
 # Need to set the environment variable before importing girder
 os.environ['GIRDER_PORT'] = '50001'
 
+from girder.api import access
+from girder.api.describe import Description
+from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR, SettingKey
+from girder.utility.progress import ProgressContext
 from . import base
+
+testServer = None
 
 
 def setUpModule():
+    global testServer
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
     plugins = os.environ.get('ENABLED_PLUGINS', '')
     if plugins:
         base.enabledPlugins.extend(plugins.split())
-    base.startServer(False, mockS3=mockS3)
+    testServer = base.startServer(False, mockS3=mockS3)
 
 
 def tearDownModule():
     base.stopServer()
+
+
+class WebClientTestEndpoints(Resource):
+    def __init__(self):
+        self.route('GET', ('progress', ), self.testProgress)
+        self.route('PUT', ('progress', 'stop'), self.testProgressStop)
+        self.stop = False
+
+    @access.token
+    def testProgress(self, params):
+        test = params.get('test', 'success')
+        duration = int(params.get('duration', 10))
+        startTime = time.time()
+        with ProgressContext(True, user=self.getCurrentUser(),
+                             title='Progress Test', message='Progress Message',
+                             total=duration) as ctx:
+            for current in xrange(duration):
+                if self.stop:
+                    break
+                ctx.update(current=current)
+                wait = startTime + current + 1 - time.time()
+                if wait > 0:
+                    time.sleep(wait)
+            if test == 'error':
+                raise RestException('Progress error test.')
+    testProgress.description = (
+        Description('Test progress contexts from the web')
+        .param('test', 'Name of test to run.  These include "success" and '
+               '"failure".', required=False)
+        .param('duration', 'Duration of the test in seconds', required=False,
+               dataType='int'))
+
+    @access.token
+    def testProgressStop(self, params):
+        self.stop = True
+    testProgressStop.description = (
+        Description('Halt all progress tests'))
 
 
 class WebClientTestCase(base.TestCase):
@@ -60,6 +105,7 @@ class WebClientTestCase(base.TestCase):
                                       plugins.split())
 
     def testWebClientSpec(self):
+        testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
         cmd = (
             os.path.join(
