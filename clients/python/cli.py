@@ -1,16 +1,38 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import argparse
 import glob
 import os
-import os.path
-import girderclient
+import girder_client
 
 
 class GirderCli(object):
     """
     """
 
-    def __init__(self, username, password, dryrun=False, blacklist=[]):
-        self.g = girderclient.GirderClient()
-        self.g.authenticate(username, password)
+    def __init__(self, username, password, dryrun=False, blacklist=[],
+                 host='localhost', port=8080, apiRoot=None):
+        self.g = girder_client.GirderClient(
+            host=host, port=port, apiRoot=apiRoot)
+        interactive = password is None
+        self.g.authenticate(username, password, interactive=interactive)
         self.dryrun = dryrun
         self.blacklist = blacklist
 
@@ -147,7 +169,9 @@ class GirderCli(object):
         :param reuse_existing: boolean indicating whether to accept an existing
         item of the same name in the same location, or create a new one instead
         """
+        empty = True
         for current_file in glob.iglob(file_pattern):
+            empty = False
             current_file = os.path.normpath(current_file)
             filename = os.path.basename(current_file)
             if filename in self.blacklist:
@@ -162,9 +186,10 @@ class GirderCli(object):
                 self._upload_folder_recursive(
                     current_file, parent_folder_id, leaf_folders_as_items,
                     reuse_existing)
+        if empty:
+            print 'No matching files: ' + file_pattern
 
 if __name__ == '__main__':
-    import argparse
     parser = argparse.ArgumentParser(
         description='Perform common Girder CLI operations.')
     parser.add_argument(
@@ -178,8 +203,12 @@ if __name__ == '__main__':
         '--dryrun', action='store_true',
         help='will not write anything to Girder, only report on what would '
         'happen')
-    parser.add_argument('username')
-    parser.add_argument('password')
+    parser.add_argument('--username', required=False, default=None)
+    parser.add_argument('--password', required=False, default=None)
+    parser.add_argument('--host', required=False, default='localhost')
+    parser.add_argument('--port', required=False, default='8080')
+    parser.add_argument('--api-root', required=False, default='/api/v1',
+                        help='path to the Girder REST API')
     parser.add_argument('-c', default='upload', choices=['upload'],
                         help='command to run')
     parser.add_argument('folder_id', help='id of Girder target folder')
@@ -187,7 +216,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     g = GirderCli(args.username, args.password, bool(args.dryrun),
-                  args.blacklist.split(','))
+                  args.blacklist.split(','), host=args.host, port=args.port,
+                  apiRoot=args.api_root)
     if args.c == 'upload':
         g.upload(args.local_folder, args.folder_id, reuse_existing=args.reuse)
     else:

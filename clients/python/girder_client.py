@@ -1,8 +1,27 @@
-import json
-import requests
-import os
-import os.path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import getpass
 import hashlib
+import json
+import os
+import requests
 
 
 class AuthenticationError(RuntimeError):
@@ -42,7 +61,7 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, host="localhost", port=8080):
+    def __init__(self, host="localhost", port=8080, apiRoot=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -50,27 +69,43 @@ class GirderClient(object):
 
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
-
         :param port: A number containing the port on which to connect to Girder,
             the default value is 8080
+        :param apiRoot: The path on the server corresponding to the root of the
+            Girder REST API. If None is passed, assumes '/api/v1'.
         """
+        if apiRoot is None:
+            apiRoot = '/api/v1'
+
         self.host = host
         self.port = port
 
-        self.urlBase = 'http://' + self.host + ':' + str(self.port) + '/api/v1/'
+        self.urlBase = 'http://' + self.host + ':' + str(self.port) + apiRoot
 
-        self.token = None
+        if self.urlBase[-1] != '/':
+            self.urlBase += '/'
 
-    def authenticate(self, username, password):
+        self.token = ''
+
+    def authenticate(self, username=None, password=None, interactive=False):
         """
         Authenticate to Girder, storing the token that comes back to be used in
         future requests.
 
         :param username: A string containing the username to use in basic
-            authentication
+            authentication.
         :param password: A string containing the password to use in basic
-            authentication
+            authentication.
+        :param interactive: If you want the user to type their username or
+            password in the shell rather than passing it in as an argument,
+            set this to True. If you pass a username in interactive mode, the
+            user will only be prompted for a password.
         """
+        if interactive:
+            if username is None:
+                username = raw_input('Login or email: ')
+            password = getpass.getpass('Password: ')
+
         if username is None or password is None:
             raise Exception('A user name and password are required')
 
@@ -113,14 +148,13 @@ class GirderClient(object):
         # Construct the url
         url = self.urlBase + path
 
-        # Add the authentication token to any parameters we got
-        parameters.update({'token': self.token})
-
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters, data=data, files=files)
+        result = f(url, params=parameters, data=data, files=files, headers={
+            'Girder-Token': self.token
+        })
 
-        # If success, return the json object.  Otherwise throw an exception.
-        if result.status_code == 200 or result.status_code == 403:
+        # If success, return the json object. Otherwise throw an exception.
+        if result.status_code == 200:
             return result.json()
         else:
             print 'Showing result before raising exception:'
@@ -354,7 +388,6 @@ class GirderClient(object):
 
         for chunk, startbyte in self.file_chunker(filepath, filesize):
             parameters = {
-                'token': self.token,
                 'offset': startbyte,
                 'uploadId': uploadId
             }
@@ -377,10 +410,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
-        params = {
-            'token': self.token,
-        }
-        obj = self.put(path, params, data=json.dumps(metadata))
+        obj = self.put(path, data=json.dumps(metadata))
         return obj
 
     def addMetadataToFolder(self, folderId, metadata):
@@ -391,8 +421,5 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
-        params = {
-            'token': self.token,
-        }
-        obj = self.put(path, params, data=json.dumps(metadata))
+        obj = self.put(path, data=json.dumps(metadata))
         return obj
