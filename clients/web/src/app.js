@@ -5,6 +5,23 @@ girder.App = girder.View.extend({
         }).done(_.bind(function (user) {
             girder.eventStream = new girder.EventStream();
 
+            this.headerView = new girder.views.LayoutHeaderView({
+                parentView: this
+            });
+
+            this.globalNavView = new girder.views.LayoutGlobalNavView({
+                parentView: this
+            });
+
+            this.footerView = new girder.views.LayoutFooterView({
+                parentView: this
+            });
+
+            this.progressListView = new girder.views.ProgressListView({
+                eventStream: girder.eventStream,
+                parentView: this
+            });
+
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
                 girder.eventStream.open();
@@ -28,26 +45,10 @@ girder.App = girder.View.extend({
     render: function () {
         this.$el.html(girder.templates.layout());
 
-        this.globalNavView = new girder.views.LayoutGlobalNavView({
-            el: this.$('#g-global-nav-container'),
-            parentView: this
-        }).render();
-
-        new girder.views.LayoutHeaderView({
-            el: this.$('#g-app-header-container'),
-            parentView: this
-        }).render();
-
-        new girder.views.LayoutFooterView({
-            el: this.$('#g-app-footer-container'),
-            parentView: this
-        }).render();
-
-        new girder.views.ProgressListView({
-            el: this.$('#g-app-progress-container'),
-            eventStream: girder.eventStream,
-            parentView: this
-        }).render();
+        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
+        this.headerView.setElement(this.$('#g-app-header-container')).render();
+        this.footerView.setElement(this.$('#g-app-footer-container')).render();
+        this.progressListView.setElement(this.$('#g-app-progress-container')).render();
 
         return this;
     },
