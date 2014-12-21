@@ -68,6 +68,7 @@ girder.App = girder.View.extend({
         if (view) {
             if (this.bodyView) {
                 this.bodyView.destroy();
+                this.unregisterChildView(this.bodyView);
             }
 
             settings = _.extend(settings, {

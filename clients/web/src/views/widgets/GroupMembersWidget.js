@@ -65,13 +65,15 @@ girder.views.GroupMembersWidget = girder.View.extend({
 
         new girder.views.PaginateWidget({
             el: this.$('.g-member-pagination'),
-            collection: this.membersColl
+            collection: this.membersColl,
+            parentView: this
         }).render();
 
         this.userSearch = new girder.views.SearchFieldWidget({
             el: this.$('.g-group-invite-container'),
             placeholder: 'Invite a user to join...',
-            types: ['user']
+            types: ['user'],
+            parentView: this
         }).off().on('g:resultClicked', this._inviteUser, this).render();
 
         this.$('.g-group-member-remove,.g-group-member-promote').tooltip({
@@ -94,7 +96,8 @@ girder.views.GroupMembersWidget = girder.View.extend({
         new girder.views.InviteUserDialog({
             el: $('#g-dialog-container'),
             group: this.model,
-            user: user
+            user: user,
+            parentView: this
         }).on('g:sendInvite', function (params) {
             this.trigger('g:sendInvite', params);
         }, this).render();

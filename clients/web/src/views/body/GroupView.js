@@ -48,7 +48,8 @@
             if (!this.editGroupWidget) {
                 this.editGroupWidget = new girder.views.EditGroupWidget({
                     el: container,
-                    model: this.model
+                    model: this.model,
+                    parentView: this
                 }).off('g:saved').on('g:saved', function (group) {
                     this.render();
                 }, this);
@@ -130,12 +131,14 @@
                 new girder.views.GroupInvitesWidget({
                     el: this.$('.g-group-invites-body'),
                     invitees: this.invitees,
-                    group: this.model
+                    group: this.model,
+                    parentView: this
                 }).render();
             } else {
                 var container = this.$('.g-group-invites-body');
                 new girder.views.LoadingAnimation({
-                    el: container
+                    el: container,
+                    parentView: this
                 }).render();
 
                 this.invitees = new girder.collections.UserCollection();
@@ -149,7 +152,7 @@
             this.membersWidget = new girder.views.GroupMembersWidget({
                 el: this.$('.g-group-members-container'),
                 group: this.model,
-                parent: this
+                parentView: this
             }).off().on('g:sendInvite', function (params) {
                 var opts = {
                     force: params.force || false
@@ -255,7 +258,7 @@
                 el: this.$('.g-group-mods-container'),
                 group: this.model,
                 moderators: mods,
-                parent: this
+                parentView: this
             }).off().on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.WRITE);
@@ -265,7 +268,7 @@
                 el: this.$('.g-group-admins-container'),
                 group: this.model,
                 admins: admins,
-                parent: this
+                parentView: this
             }).off().on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.ADMIN);

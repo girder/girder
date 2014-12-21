@@ -29,11 +29,19 @@ girder.View = Backbone.View.extend({
     },
 
     /**
-     * Views should register their child views using this function so that they
-     * can be cleaned up when the parent is destroyed.
+     * It's typically not necessary to call this directly; instead, instantiate
+     * child views with the "parentView" field.
      */
     registerChildView: function (child) {
         this._childViews = this._childViews || [];
         this._childViews.push(child);
+    },
+
+    /**
+     * Use this if you manually destroy a child view and need to remove it from
+     * the child list.
+     */
+    unregisterChildView: function (child) {
+        this._childViews = _.without(this._childViews, child);
     }
 });
