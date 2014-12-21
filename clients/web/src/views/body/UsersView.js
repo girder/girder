@@ -21,6 +21,17 @@ girder.views.UsersView = girder.View.extend({
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search users...',
+            types: ['user'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoUser, this);
     },
 
     render: function () {
@@ -29,16 +40,8 @@ girder.views.UsersView = girder.View.extend({
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-user-pagination'),
-            collection: this.collection
-        }).render();
-
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-users-search-container'),
-            placeholder: 'Search users...',
-            types: ['user']
-        }).off().on('g:resultClicked', this._gotoUser, this).render();
+        this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-users-search-container')).render();
 
         return this;
     },

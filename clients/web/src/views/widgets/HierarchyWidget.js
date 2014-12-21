@@ -124,7 +124,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.metadataWidget = new girder.views.MetadataWidget({
             item: this.parentModel,
             parentView: this,
-            accessLevel: this.parentModel.getAccessLevel(),
+            accessLevel: this.parentModel.getAccessLevel()
         });
     },
 

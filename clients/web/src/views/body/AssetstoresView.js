@@ -12,6 +12,10 @@ girder.views.AssetstoresView = girder.View.extend({
         girder.cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
 
+        this.newAssetstoreWidget = new girder.views.NewAssetstoreWidget({
+            parentView: this
+        }).on('g:created', this.addAssetstore, this);
+
         // Fetch all of the current assetstores
         if (girder.currentUser && girder.currentUser.get('admin')) {
             this.collection = new girder.collections.AssetstoreCollection();
@@ -32,11 +36,8 @@ girder.views.AssetstoresView = girder.View.extend({
             assetstores: this.collection.models,
             types: girder.AssetstoreType
         }));
-        this.newAssetstoreWidget = new girder.views.NewAssetstoreWidget({
-            el: this.$('#g-new-assetstore-container')
-        });
-        this.newAssetstoreWidget
-            .off().on('g:created', this.addAssetstore, this).render();
+
+        this.newAssetstoreWidget.setElement(this.$('#g-new-assetstore-container')).render();
         this.$('.g-assetstore-button-container[title]').tooltip();
 
         _.each(this.$('.g-assetstore-capacity-chart'),
@@ -147,7 +148,8 @@ girder.views.AssetstoresView = girder.View.extend({
 
         var editAssetstoreWidget = new girder.views.EditAssetstoreWidget({
             el: container,
-            model: assetstore
+            model: assetstore,
+            parentView: this
         }).off('g:saved').on('g:saved', function (group) {
             this.render();
         }, this);
