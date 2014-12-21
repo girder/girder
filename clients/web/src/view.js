@@ -6,7 +6,7 @@ girder.View = Backbone.View.extend({
             }
         } else {
             console.error('View created with no parentView property set. ' +
-                          'This view may not be garbage collected.')
+                          'This view may not be garbage collected.');
         }
         Backbone.View.prototype.constructor.apply(this, arguments);
     },

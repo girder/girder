@@ -72,9 +72,9 @@
                 folderAccess: this.folderAccess,
                 folderEdit: this.folderEdit,
                 folderCreate: this.folderCreate,
-                itemCreate: this.itemCreate
+                itemCreate: this.itemCreate,
+                parentView: this
             });
-            this.registerChildView(this.hierarchyWidget);
         },
 
         render: function () {
