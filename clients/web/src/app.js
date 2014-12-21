@@ -1,6 +1,4 @@
-girder.App = Backbone.View.extend({
-    el: 'body',
-
+girder.App = girder.View.extend({
     initialize: function (settings) {
         girder.restRequest({
             path: 'user/me'
@@ -31,20 +29,24 @@ girder.App = Backbone.View.extend({
         this.$el.html(girder.templates.layout());
 
         this.globalNavView = new girder.views.LayoutGlobalNavView({
-            el: this.$('#g-global-nav-container')
+            el: this.$('#g-global-nav-container'),
+            parentView: this
         }).render();
 
         new girder.views.LayoutHeaderView({
-            el: this.$('#g-app-header-container')
+            el: this.$('#g-app-header-container'),
+            parentView: this
         }).render();
 
         new girder.views.LayoutFooterView({
-            el: this.$('#g-app-footer-container')
+            el: this.$('#g-app-footer-container'),
+            parentView: this
         }).render();
 
         new girder.views.ProgressListView({
             el: this.$('#g-app-progress-container'),
-            eventStream: girder.eventStream
+            eventStream: girder.eventStream,
+            parentView: this
         }).render();
 
         return this;
@@ -68,7 +70,8 @@ girder.App = Backbone.View.extend({
             }
 
             settings = _.extend(settings, {
-                el: this.$('#g-app-body-container')
+                el: this.$('#g-app-body-container'),
+                parentView: this
             });
 
             /* We let the view be created in this way even though it is
