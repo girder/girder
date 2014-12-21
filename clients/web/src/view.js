@@ -1,4 +1,16 @@
 girder.View = Backbone.View.extend({
+    constructor: function (opts) {
+        if (opts && _.has(opts, 'parentView')) {
+            if (opts.parentView) {
+                opts.parentView.registerChildView(this);
+            }
+        } else {
+            console.error('View created with no parentView property set. ' +
+                          'This view may not be garbage collected.')
+        }
+        Backbone.View.prototype.constructor.apply(this, arguments);
+    },
+
     /**
      * Remove a view, unbinding its events and removing its listeners on
      * girder.events so that it can be garbage collected.
