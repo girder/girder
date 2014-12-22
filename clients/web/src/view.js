@@ -31,15 +31,24 @@ girder.View = Backbone.View.extend({
             this.parentView.unregisterChildView(this);
         }
 
-        // If there is an active modal, we need to properly hide it, then destroy
-        if (this.$el.is('.modal.in')) {
+        // Modal views need special cleanup.
+        if (this.$el.is('.modal')) {
             var el = this.$el;
-            el.on('hidden.bs.modal', function () {
-                el.off().removeData().empty();
-            }).modal('hide');
+            if (el.data('bs.modal') && el.data('bs.modal').isShown) {
+                el.on('hidden.bs.modal', function () {
+                    el.off().removeData().empty();
+                }).modal('hide');
+                el.modal('removeBackdrop');
+            } else {
+                el.modal('removeBackdrop');
+                el.empty().off().removeData();
+            }
+
         } else {
             this.$el.empty().off().removeData();
         }
+
+
     },
 
     /**
