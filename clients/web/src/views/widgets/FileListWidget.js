@@ -26,7 +26,8 @@ girder.views.FileListWidget = girder.View.extend({
     editFileDialog: function (cid) {
         this.editFileWidget = new girder.views.EditFileWidget({
             el: $('#g-dialog-container'),
-            file: this.collection.get(cid)
+            file: this.collection.get(cid),
+            parentView: this
         }).off('g:saved', null, this).on('g:saved', function (file) {
             this.render();
         }, this);
@@ -38,7 +39,8 @@ girder.views.FileListWidget = girder.View.extend({
             el: $('#g-dialog-container'),
             title: 'Replace file contents',
             parent: this.collection.get(cid),
-            parentType: 'file'
+            parentType: 'file',
+            parentView: this
         }).on('g:uploadFinished', function () {
             girder.events.trigger('g:alert', {
                 icon: 'ok',
