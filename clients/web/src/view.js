@@ -31,7 +31,7 @@ girder.View = Backbone.View.extend({
             this.parentView.unregisterChildView(this);
         }
 
-        this.$el.empty();
+        this.$el.empty().off().removeData();
     },
 
     /**
