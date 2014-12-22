@@ -78,5 +78,5 @@ def schedule(event):
 
 
 def load(info):
-    events.bind('model.setting.validate', 'oauth', validateSettings)
+    events.bind('model.setting.validate', 'celery_jobs', validateSettings)
     events.bind('jobs.schedule', 'celery_jobs', schedule)

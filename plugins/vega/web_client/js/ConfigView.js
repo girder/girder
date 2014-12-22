@@ -14,7 +14,8 @@ girder.views.vega_ConfigView = girder.View.extend({
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
                 pluginName: 'Vega file visualizer',
-                el: this.$('.g-config-breadcrumb-container')
+                el: this.$('.g-config-breadcrumb-container'),
+                parentView: this
             }).render();
         }
 

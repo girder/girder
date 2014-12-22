@@ -36,7 +36,8 @@ girder.views.provenance_ConfigView = girder.View.extend({
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
                 pluginName: 'Provenance tracker',
-                el: this.$('.g-config-breadcrumb-container')
+                el: this.$('.g-config-breadcrumb-container'),
+                parentView: this
             }).render();
         }
 

@@ -35,7 +35,8 @@ girder.views.google_analytics_ConfigView = girder.View.extend({
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
                 pluginName: 'Google Analytics',
-                el: this.$('.g-config-breadcrumb-container')
+                el: this.$('.g-config-breadcrumb-container'),
+                parentView: this
             }).render();
         }
 

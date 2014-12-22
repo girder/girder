@@ -45,13 +45,15 @@ girder.views.celery_jobs_ConfigView = girder.View.extend({
         this.searchWidget = new girder.views.SearchFieldWidget({
             el: this.$('.g-celery-user-select-container'),
             placeholder: 'Search for celery user...',
-            types: ['user']
+            types: ['user'],
+            parentView: this
         }).off().on('g:resultClicked', this._setCeleryUser, this).render();
 
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
                 pluginName: 'Celery jobs',
-                el: this.$('.g-config-breadcrumb-container')
+                el: this.$('.g-config-breadcrumb-container'),
+                parentView: this
             }).render();
         }
 
