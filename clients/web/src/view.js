@@ -3,6 +3,7 @@ girder.View = Backbone.View.extend({
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
                 opts.parentView.registerChildView(this);
+                this.parentView = opts.parentView;
             }
         } else {
             console.error('View created with no parentView property set. ' +
@@ -25,11 +26,16 @@ girder.View = Backbone.View.extend({
         this.stopListening();
         this.off();
         girder.events.off(null, null, this);
+
+        if (this.parentView) {
+            this.parentView.unregisterChildView(this);
+        }
+
         this.$el.empty();
     },
 
     /**
-     * It's typically not necessary to call this directly; instead, instantiate
+     * It's typically not necessary to call this directly. Instead, instantiate
      * child views with the "parentView" field.
      */
     registerChildView: function (child) {
@@ -38,8 +44,9 @@ girder.View = Backbone.View.extend({
     },
 
     /**
-     * Use this if you manually destroy a child view and need to remove it from
-     * the child list.
+     * Typically, you will not need to call this method directly. Calling
+     * destroy on a child element will automatically unregister it from its
+     * parent view if the parent view was specified.
      */
     unregisterChildView: function (child) {
         this._childViews = _.without(this._childViews, child);

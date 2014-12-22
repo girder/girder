@@ -68,7 +68,6 @@ girder.App = girder.View.extend({
         if (view) {
             if (this.bodyView) {
                 this.bodyView.destroy();
-                this.unregisterChildView(this.bodyView);
             }
 
             settings = _.extend(settings, {
@@ -110,7 +109,8 @@ girder.App = girder.View.extend({
         }
         if (!this.loginView) {
             this.loginView = new girder.views.LoginView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.loginView.render();
@@ -122,7 +122,8 @@ girder.App = girder.View.extend({
         }
         if (!this.registerView) {
             this.registerView = new girder.views.RegisterView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.registerView.render();
@@ -134,7 +135,8 @@ girder.App = girder.View.extend({
         }
         if (!this.resetPasswordView) {
             this.resetPasswordView = new girder.views.ResetPasswordView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.resetPasswordView.render();
