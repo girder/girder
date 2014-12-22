@@ -68,6 +68,29 @@ API endpoints. The Swagger page can be accessed by navigating a web browser to
 ``api/v1`` relative to the server root. If you wish to consume the Swagger-compliant
 API specification programmatically, the JSON listing is served out of ``api/v1/describe``.
 
+If you are working on the main Girder web client, either in core or extending it via
+plugins, there are a few conventions that should be followed. Namely, if you write
+code that instantiates new ``girder.View`` descendant objects, you should pass a
+``parentView`` property when constructing it. This will allow the child view to
+be cleaned up recursively when the parent view is destroyed. If you forget to set
+the ``parentView`` property when constructing the view, the view will still work as
+expected, but a warning message will appear in the console to remind you. Example:
+
+.. code-block:: javascript
+
+    MySubView = girder.View.extend({
+       ...
+    });
+
+    new MySubView({
+        el: ...,
+        otherProperty: ...,
+        parentView: this
+    });
+
+If you use ``girder.View`` in custom Backbone apps and need to create a new root
+view object, set the ``parentView`` to ``null``.
+
 
 Server Side Testing
 -------------------
