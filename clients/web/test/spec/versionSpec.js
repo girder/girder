@@ -3,7 +3,10 @@
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -12,7 +15,7 @@ describe('Test version reporting', function () {
         waitsFor(function () {
             return $('.g-frontpage-body').length > 0;
         });
-        
+
         runs(function () {
             // Better checks are possible, but this at least ensures
             // that the sha isn't 'undefined'.

@@ -421,20 +421,20 @@ girderTest.testMetadata = function () {
  */
 girderTest.waitForLoad = function (desc) {
     desc = desc?' ('+desc+')':'';
-    waitsFor(function() {
-        return $('#g-dialog-container:visible').length === 0;
-    }, 'for the dialog container to be hidden'+desc);
+    /*waitsFor(function() {
+        return !$('#g-dialog-container').html();
+    }, 'for the dialog container to be hidden'+desc);*/
     /* It is faster to wait to make sure a dialog is being hidden than to wait
      * for it to be fullt gone.  It is probably more reliable, too.  This had
-     * been:
+     * been:*/
     waitsFor(function () {
         return $('.modal-backdrop').length === 0;
     }, 'for the modal backdrop to go away');
-     */
-    waitsFor(function () {
+
+    /*waitsFor(function () {
         return $('.modal').data('bs.modal') === undefined ||
                $('.modal').data('bs.modal').isShown === false;
-    }, 'for any modal dialog to be hidden'+desc);
+    }, 'for any modal dialog to be hidden'+desc);*/
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
     }, 'rest requests to finish');

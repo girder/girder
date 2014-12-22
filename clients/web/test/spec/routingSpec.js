@@ -3,7 +3,10 @@
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -344,7 +347,7 @@ describe('Test routing paths', function () {
 
         var groupPath = 'group/'+ids.group;
         _testRoute(groupPath+'/roles', false, function () {
-            return $('.g-member-name:visible').length === 2 && 
+            return $('.g-member-name:visible').length === 2 &&
                    $('#g-group-tab-roles .g-member-list-empty:visible')
                    .length === 1 &&
                    $('.g-member-list-empty:hidden').length === 2;
