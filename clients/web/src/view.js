@@ -36,7 +36,7 @@ girder.View = Backbone.View.extend({
             var el = this.$el;
             if (el.data('bs.modal') && el.data('bs.modal').isShown) {
                 el.on('hidden.bs.modal', function () {
-                    el.off().removeData().empty();
+                    el.empty().off().removeData();
                 }).modal('hide');
                 el.modal('removeBackdrop');
             } else {
