@@ -9,10 +9,13 @@ $(function () {
                   href: '/static/built/plugins/provenance/plugin.min.css'
     }).appendTo('head');
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
-    
+
 describe('test the provenance plugin', function () {
     it('create the admin user', girderTest.createUser(
         'provenance', 'provenance@girder.org', 'Provenance', 'Plugin',

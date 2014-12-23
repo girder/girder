@@ -12,6 +12,12 @@ girder.views.AccessWidget = girder.View.extend({
         this.model = settings.model;
         this.modelType = settings.modelType;
 
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Start typing a name...',
+            types: ['group', 'user'],
+            parentView: this
+        }).on('g:resultClicked', this.addEntry, this);
+
         if (this.model.get('access')) {
             this.render();
         } else {
@@ -69,11 +75,7 @@ girder.views.AccessWidget = girder.View.extend({
             delay: {show: 100}
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
-            el: this.$('.g-search-field-container'),
-            placeholder: 'Start typing a name...',
-            types: ['group', 'user']
-        }).off().on('g:resultClicked', this.addEntry, this).render();
+        this.searchWidget.setElement(this.$('.g-search-field-container')).render();
 
         this.privacyChanged();
 

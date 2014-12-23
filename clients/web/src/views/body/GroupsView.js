@@ -22,6 +22,17 @@ girder.views.GroupsView = girder.View.extend({
             this.render();
         }, this).fetch();
 
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search groups...',
+            types: ['group'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoGroup, this);
+
         this.create = settings.dialog === 'create';
     },
 
@@ -31,16 +42,8 @@ girder.views.GroupsView = girder.View.extend({
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-group-pagination'),
-            collection: this.collection
-        }).render();
-
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-groups-search-container'),
-            placeholder: 'Search groups...',
-            types: ['group']
-        }).off().on('g:resultClicked', this._gotoGroup, this).render();
+        this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-groups-search-container')).render();
 
         if (this.create) {
             this.createGroupDialog();
@@ -55,7 +58,8 @@ girder.views.GroupsView = girder.View.extend({
      */
     createGroupDialog: function () {
         new girder.views.EditGroupWidget({
-            el: $('#g-dialog-container')
+            el: $('#g-dialog-container'),
+            parentView: this
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list

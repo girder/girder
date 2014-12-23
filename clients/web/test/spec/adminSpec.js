@@ -3,7 +3,10 @@
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -207,7 +210,7 @@ describe('Test the assetstore page', function () {
             }, 'assetstore to be deleted');
             runs(function () {
                 /* The original assetstore should be back to being the current
-                 * assetstore */ 
+                 * assetstore */
                 var container = _getAssetstoreContainer('Test');
                 expect($('.g-set-current', container).length).toBe(0);
             });
@@ -257,7 +260,7 @@ describe('Test the assetstore page', function () {
                      'g-new-s3-service': 'service'});
 
     /* Logout to make sure we don't see the assetstores any more */
-    it('logout from admin account', girderTest.logout());
+    it('logout from admin account', girderTest.logout('logout to no longer view asset stores'));
     it('check logged out state', function() {
         runs(function () {
             expect($('#g-app-body-container').text()).toEqual('Must be logged in as admin to view this page.');
@@ -355,7 +358,7 @@ describe('Test the plugins page', function () {
         });
         waitsFor(function () {
             return girder.currentUser === null;
-        }, 'user to be cleared'); 
+        }, 'user to be cleared');
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-login').length > 0;

@@ -34,7 +34,8 @@
             if (!this.editItemWidget) {
                 this.editItemWidget = new girder.views.EditItemWidget({
                     el: container,
-                    item: this.model
+                    item: this.model,
+                    parentView: this
                 }).off('g:saved').on('g:saved', function (item) {
                     this.render();
                 }, this);
@@ -91,7 +92,8 @@
                     el: this.$('.g-item-files-container'),
                     itemId: this.model.get('_id'),
                     fileEdit: this.fileEdit,
-                    upload: this.upload
+                    upload: this.upload,
+                    parentView: this
                 });
                 this.fileEdit = false;
                 this.upload = false;
@@ -100,13 +102,14 @@
                     el: this.$('.g-item-metadata'),
                     item: this.model,
                     accessLevel: accessLevel,
-                    girder: girder
+                    parentView: this
                 });
 
                 this.model.getRootPath(_.bind(function (resp) {
                     this.breadcrumbWidget = new girder.views.ItemBreadcrumbWidget({
                         el: this.$('.g-item-breadcrumb-container'),
-                        parentChain: resp
+                        parentChain: resp,
+                        parentView: this
                     });
                 }, this));
 

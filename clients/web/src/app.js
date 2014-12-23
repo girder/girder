@@ -1,11 +1,26 @@
-girder.App = Backbone.View.extend({
-    el: 'body',
-
+girder.App = girder.View.extend({
     initialize: function (settings) {
         girder.restRequest({
             path: 'user/me'
         }).done(_.bind(function (user) {
             girder.eventStream = new girder.EventStream();
+
+            this.headerView = new girder.views.LayoutHeaderView({
+                parentView: this
+            });
+
+            this.globalNavView = new girder.views.LayoutGlobalNavView({
+                parentView: this
+            });
+
+            this.footerView = new girder.views.LayoutFooterView({
+                parentView: this
+            });
+
+            this.progressListView = new girder.views.ProgressListView({
+                eventStream: girder.eventStream,
+                parentView: this
+            });
 
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
@@ -30,22 +45,10 @@ girder.App = Backbone.View.extend({
     render: function () {
         this.$el.html(girder.templates.layout());
 
-        this.globalNavView = new girder.views.LayoutGlobalNavView({
-            el: this.$('#g-global-nav-container')
-        }).render();
-
-        new girder.views.LayoutHeaderView({
-            el: this.$('#g-app-header-container')
-        }).render();
-
-        new girder.views.LayoutFooterView({
-            el: this.$('#g-app-footer-container')
-        }).render();
-
-        new girder.views.ProgressListView({
-            el: this.$('#g-app-progress-container'),
-            eventStream: girder.eventStream
-        }).render();
+        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
+        this.headerView.setElement(this.$('#g-app-header-container')).render();
+        this.footerView.setElement(this.$('#g-app-footer-container')).render();
+        this.progressListView.setElement(this.$('#g-app-progress-container')).render();
 
         return this;
     },
@@ -68,7 +71,8 @@ girder.App = Backbone.View.extend({
             }
 
             settings = _.extend(settings, {
-                el: this.$('#g-app-body-container')
+                el: this.$('#g-app-body-container'),
+                parentView: this
             });
 
             /* We let the view be created in this way even though it is
@@ -105,7 +109,8 @@ girder.App = Backbone.View.extend({
         }
         if (!this.loginView) {
             this.loginView = new girder.views.LoginView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.loginView.render();
@@ -117,7 +122,8 @@ girder.App = Backbone.View.extend({
         }
         if (!this.registerView) {
             this.registerView = new girder.views.RegisterView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.registerView.render();
@@ -129,7 +135,8 @@ girder.App = Backbone.View.extend({
         }
         if (!this.resetPasswordView) {
             this.resetPasswordView = new girder.views.ResetPasswordView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.resetPasswordView.render();

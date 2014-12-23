@@ -76,9 +76,9 @@
                 folderAccess: this.folderAccess,
                 folderEdit: this.folderEdit,
                 folderCreate: this.folderCreate,
-                itemCreate: this.itemCreate
+                itemCreate: this.itemCreate,
+                parentView: this
             });
-            this.registerChildView(this.hierarchyWidget);
         },
 
         editCollection: function () {
@@ -87,8 +87,9 @@
             if (!this.editCollectionWidget) {
                 this.editCollectionWidget = new girder.views.EditCollectionWidget({
                     el: container,
-                    model: this.model
-                }).off('g:saved').on('g:saved', function (collection) {
+                    model: this.model,
+                    parentView: this
+                }).on('g:saved', function (collection) {
                     this.render();
                 }, this);
             }
@@ -130,7 +131,8 @@
             new girder.views.AccessWidget({
                 el: $('#g-dialog-container'),
                 modelType: 'collection',
-                model: this.model
+                model: this.model,
+                parentView: this
             }).on('g:saved', function (collection) {
                 // need to do anything?
             }, this);

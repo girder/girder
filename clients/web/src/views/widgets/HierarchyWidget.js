@@ -55,25 +55,26 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         // Initialize the breadcrumb bar state
         this.breadcrumbView = new girder.views.HierarchyBreadcrumbView({
-            objects: this.breadcrumbs
+            objects: this.breadcrumbs,
+            parentView: this
         });
         this.breadcrumbView.on('g:breadcrumbClicked', function (idx) {
             this.breadcrumbs = this.breadcrumbs.slice(0, idx + 1);
             this.setCurrentModel(this.breadcrumbs[idx]);
         }, this);
-        this.registerChildView(this.breadcrumbView);
 
         this.checkedMenuWidget = new girder.views.CheckedMenuWidget({
             pickedCount: this.getPickedCount(),
             pickedCopyAllowed: this.getPickedCopyAllowed(),
             pickedMoveAllowed: this.getPickedMoveAllowed(),
-            pickedDesc: this.getPickedDescription()
+            pickedDesc: this.getPickedDescription(),
+            parentView: this
         });
-        this.registerChildView(this.checkedMenuWidget);
 
         this.folderListView = new girder.views.FolderListWidget({
             parentType: this.parentModel.resourceName,
-            parentId: this.parentModel.get('_id')
+            parentId: this.parentModel.get('_id'),
+            parentView: this
         });
         this.folderListView.on('g:folderClicked', function (folder) {
             this.descend(folder);
@@ -87,7 +88,6 @@ girder.views.HierarchyWidget = girder.View.extend({
                     this.folderCount = this.folderListView.collection.length;
                     this._childCountCheck();
                 }, this);
-        this.registerChildView(this.folderListView);
 
         if (this.parentModel.resourceName === 'folder') {
             this._initFolderViewSubwidgets();
@@ -109,7 +109,8 @@ girder.views.HierarchyWidget = girder.View.extend({
      */
     _initFolderViewSubwidgets: function () {
         this.itemListView = new girder.views.ItemListWidget({
-            folderId: this.parentModel.get('_id')
+            folderId: this.parentModel.get('_id'),
+            parentView: this
         });
         this.itemListView.on('g:itemClicked', function (item) {
             girder.router.navigate('item/' + item.get('_id'), {trigger: true});
@@ -119,14 +120,12 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.itemCount = this.itemListView.collection.length;
             this._childCountCheck();
         }, this);
-        this.registerChildView(this.itemListView);
 
         this.metadataWidget = new girder.views.MetadataWidget({
             item: this.parentModel,
-            accessLevel: this.parentModel.getAccessLevel(),
-            girder: girder
+            parentView: this,
+            accessLevel: this.parentModel.getAccessLevel()
         });
-        this.registerChildView(this.metadataWidget);
     },
 
     _setRoute: function () {
@@ -237,7 +236,8 @@ girder.views.HierarchyWidget = girder.View.extend({
     createFolderDialog: function () {
         new girder.views.EditFolderWidget({
             el: $('#g-dialog-container'),
-            parentModel: this.parentModel
+            parentModel: this.parentModel,
+            parentView: this
         }).on('g:saved', function (folder) {
             this.folderListView.insertFolder(folder);
             this.updateChecked();
@@ -250,7 +250,8 @@ girder.views.HierarchyWidget = girder.View.extend({
     createItemDialog: function () {
         new girder.views.EditItemWidget({
             el: $('#g-dialog-container'),
-            parentModel: this.parentModel
+            parentModel: this.parentModel,
+            parentView: this
         }).on('g:saved', function (item) {
             this.itemListView.insertItem(item);
             this.updateChecked();
@@ -264,7 +265,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         new girder.views.EditFolderWidget({
             el: $('#g-dialog-container'),
             parentModel: this.parentModel,
-            folder: this.parentModel
+            folder: this.parentModel,
+            parentView: this
         }).on('g:saved', function (folder) {
             girder.events.trigger('g:alert', {
                 icon: 'ok',
@@ -409,7 +411,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         new girder.views.UploadWidget({
             el: container,
             parent: this.parentModel,
-            parentType: this.parentType
+            parentType: this.parentType,
+            parentView: this
         }).on('g:uploadFinished', function () {
             girder.dialogs.handleClose('upload');
             this.upload = false;
@@ -672,7 +675,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         new girder.views.AccessWidget({
             el: $('#g-dialog-container'),
             modelType: this.parentModel.resourceName,
-            model: this.parentModel
+            model: this.parentModel,
+            parentView: this
         }).on('g:saved', function (folder) {
             // need to do anything?
         }, this);

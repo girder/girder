@@ -16,7 +16,8 @@ girder.views.ItemListWidget = girder.View.extend({
         this.checked = [];
 
         new girder.views.LoadingAnimation({
-            el: this.$el
+            el: this.$el,
+            parentView: this
         }).render();
 
         this.collection = new girder.collections.ItemCollection();

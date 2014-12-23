@@ -38,8 +38,8 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
         this.geospatialItemWidget = new girder.views.geospatial_ItemWidget({
             accessLevel: accessLevel,
             el: element,
-            girder: girder,
-            item: this.model
+            item: this.model,
+            parentView: this
         });
     }, this));
 

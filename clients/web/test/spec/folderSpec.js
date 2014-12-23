@@ -3,7 +3,10 @@
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -215,30 +218,30 @@ describe('Test folder creation, editing, and deletion', function () {
         runs(function () {
             $('a.g-item-breadcrumb-link:last').click();
         });
-        
+
         waitsFor(function () {
             return $('a.g-breadcrumb-link').length === 2;
         }, 'the folder page to load');
         girderTest.waitForLoad();
-        
+
         runs(function () {
             $('i.icon-level-up').click();
         });
-        
+
         waitsFor(function () {
             return $('a.g-breadcrumb-link').length === 1;
         }, 'the folder page to load');
         girderTest.waitForLoad();
-        
+
         runs(function () {
             $('a.g-breadcrumb-link').click();
         });
-        
+
         waitsFor(function () {
             return $('a.g-breadcrumb-link').length === 0;
         }, 'the user page to load');
         girderTest.waitForLoad();
-        
+
         waitsFor(function () {
             return $('a.g-folder-list-link:contains(Public):visible').length === 1;
         }, 'the public folder to be clickable');
@@ -296,7 +299,7 @@ describe('Test folder creation, editing, and deletion', function () {
                    $('.g-folder-actions-button:visible').length === 1;
         }, 'An empty folder to be shown');
         girderTest.waitForLoad();
-        
+
         runs(function () {
             expect($('.breadcrumb .active').text()).toBe("Public");
         });

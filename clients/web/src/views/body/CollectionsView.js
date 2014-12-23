@@ -22,6 +22,17 @@ girder.views.CollectionsView = girder.View.extend({
             this.render();
         }, this).fetch();
 
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search collections...',
+            types: ['collection'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoCollection, this);
+
         this.create = settings.dialog === 'create';
     },
 
@@ -32,8 +43,9 @@ girder.views.CollectionsView = girder.View.extend({
         var container = $('#g-dialog-container');
 
         new girder.views.EditCollectionWidget({
-            el: container
-        }).off('g:saved').on('g:saved', function (collection) {
+            el: container,
+            parentView: this
+        }).on('g:saved', function (collection) {
             girder.router.navigate('collection/' + collection.get('_id'),
                                    {trigger: true});
         }, this).render();
@@ -45,16 +57,8 @@ girder.views.CollectionsView = girder.View.extend({
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-collection-pagination'),
-            collection: this.collection
-        }).render();
-
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-collections-search-container'),
-            placeholder: 'Search collections...',
-            types: ['collection']
-        }).off().on('g:resultClicked', this._gotoCollection, this).render();
+        this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-collections-search-container')).render();
 
         if (this.create) {
             this.createCollectionDialog();

@@ -52,7 +52,7 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
         this.vegaWidget = new vegaPlugin.views.VegaWidget({
             item: this.model,
             accessLevel: accessLevel,
-            girder: girder
+            parentView: this
         });
 
     }, this));

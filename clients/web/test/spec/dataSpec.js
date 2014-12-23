@@ -188,7 +188,10 @@ function _setMinimumChunkSize(minSize)
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -630,7 +633,7 @@ describe('Create a data hierarchy', function () {
         }, 'items to be deleted');
     });
     /* Create a second user so that we can test move/copy permissions */
-    it('logout from first account', girderTest.logout());
+    it('logout from first account', girderTest.logout('logout from first account'));
     it('register a second user',
         girderTest.createUser('janedoe',
                               'jane.doe@email.com',

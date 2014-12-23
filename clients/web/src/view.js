@@ -1,4 +1,17 @@
 girder.View = Backbone.View.extend({
+    constructor: function (opts) {
+        if (opts && _.has(opts, 'parentView')) {
+            if (opts.parentView) {
+                opts.parentView.registerChildView(this);
+                this.parentView = opts.parentView;
+            }
+        } else {
+            console.error('View created with no parentView property set. ' +
+                          'This view may not be garbage collected.');
+        }
+        Backbone.View.prototype.constructor.apply(this, arguments);
+    },
+
     /**
      * Remove a view, unbinding its events and removing its listeners on
      * girder.events so that it can be garbage collected.
@@ -13,15 +26,43 @@ girder.View = Backbone.View.extend({
         this.stopListening();
         this.off();
         girder.events.off(null, null, this);
-        this.$el.empty();
+
+        if (this.parentView) {
+            this.parentView.unregisterChildView(this);
+        }
+
+        // Modal views need special cleanup.
+        if (this.$el.is('.modal')) {
+            var el = this.$el;
+            if (el.data('bs.modal') && el.data('bs.modal').isShown) {
+                el.on('hidden.bs.modal', function () {
+                    el.empty().off().removeData();
+                }).modal('hide');
+                el.modal('removeBackdrop');
+            } else {
+                el.modal('removeBackdrop');
+                el.empty().off().removeData();
+            }
+        } else {
+            this.$el.empty().off().removeData();
+        }
     },
 
     /**
-     * Views should register their child views using this function so that they
-     * can be cleaned up when the parent is destroyed.
+     * It's typically not necessary to call this directly. Instead, instantiate
+     * child views with the "parentView" field.
      */
     registerChildView: function (child) {
         this._childViews = this._childViews || [];
         this._childViews.push(child);
+    },
+
+    /**
+     * Typically, you will not need to call this method directly. Calling
+     * destroy on a child element will automatically unregister it from its
+     * parent view if the parent view was specified.
+     */
+    unregisterChildView: function (child) {
+        this._childViews = _.without(this._childViews, child);
     }
 });
