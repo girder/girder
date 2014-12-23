@@ -20,31 +20,38 @@
 import argparse
 import glob
 import os
-import girder_client
+from girder_client import GirderClient
 
 
-class GirderCli(object):
+class GirderCli(GirderClient):
     """
     """
 
     def __init__(self, username, password, dryrun=False, blacklist=[],
                  host='localhost', port=8080, apiRoot=None):
-        self.g = girder_client.GirderClient(
-            host=host, port=port, apiRoot=apiRoot)
+        GirderClient.__init__(self, host=host, port=port, apiRoot=apiRoot)
         interactive = password is None
-        self.g.authenticate(username, password, interactive=interactive)
+        self.authenticate(username, password, interactive=interactive)
         self.dryrun = dryrun
         self.blacklist = blacklist
+        self.item_upload_callbacks = []
+        self.folder_upload_callbacks = []
+
+    def add_folder_upload_callback(self, callback):
+        self.folder_upload_callbacks.append(callback)
+
+    def add_item_upload_callback(self, callback):
+        self.item_upload_callbacks.append(callback)
 
     def _load_or_create_folder(self, local_folder, parent_folder_id):
-        child_folders = self.g.listFolder(parent_folder_id)
+        child_folders = self.listFolder(parent_folder_id)
         folder_name = os.path.basename(local_folder)
         folder = None
         for child in child_folders:
             if child['name'] == folder_name:
                 folder = child
         if folder is None:
-            folder = self.g.createFolder(parent_folder_id, 'folder',
+            folder = self.createFolder(parent_folder_id, 'folder',
                                          folder_name, description='')
         return folder
 
@@ -68,20 +75,20 @@ class GirderCli(object):
         local_item_name = os.path.basename(local_file)
         item = None
         if reuse_existing:
-            children = self.g.listItem(parent_folder_id, local_item_name)
+            children = self.listItem(parent_folder_id, local_item_name)
             for child in children:
                 if child['name'] == local_item_name:
                     item = child
                     break
 
         if item is None:
-            item = self.g.createItem(parent_folder_id, local_item_name,
+            item = self.createItem(parent_folder_id, local_item_name,
                                      description='')
 
         return item
 
     def _upload_file_to_item(self, local_file, parent_item_id, file_path):
-        self.g.uploadFileToItem(parent_item_id, file_path)
+        self.uploadFileToItem(parent_item_id, file_path)
 
     def _upload_as_item(self, local_file, parent_folder_id, file_path,
                         reuse_existing=False):
@@ -99,9 +106,39 @@ class GirderCli(object):
                 local_file, parent_folder_id, reuse_existing)
             self._upload_file_to_item(
                 local_file, current_item['_id'], file_path)
-        # _create_bitstream(file_path, local_file, current_item_id)
-        # for callback in session.item_upload_callbacks:
-            # callback(session.communicator, session.token, current_item_id)
+
+            for callback in self.item_upload_callbacks:
+                callback(current_item, file_path)
+
+    def _upload_folder_as_item(self, local_folder, parent_folder_id,
+                           reuse_existing=False):
+        """Take a folder and use its base name as the name of a new item. Then,
+        upload its containing files into the new item as bitstreams.
+        :param local_folder: The path to the folder to be uploaded.
+        :param parent_folder_id: The id of the destination folder for the new item.
+        :param reuse_existing: boolean indicating whether to accept an existing
+        item
+        of the same name in the same location, or create a new one instead
+        """
+        print 'Creating Item from folder %s' % local_folder
+        if not self.dryrun:
+            item = self._create_or_reuse_item(local_folder, parent_folder_id,
+                                        reuse_existing)
+
+        subdircontents = sorted(os.listdir(local_folder))
+        # for each file in the subdir, add it to the item
+        filecount = len(subdircontents)
+        for (ind, current_file) in enumerate(subdircontents):
+            filepath = os.path.join(local_folder, current_file)
+            print 'Adding file %s, (%d of %d) to Item' % (current_file,
+                                                          ind + 1, filecount)
+
+            if not self.dryrun:
+                self._upload_file_to_item(current_file, item['_id'], filepath)
+
+        if not self.dryrun:
+            for callback in self.item_upload_callbacks:
+                callback(item, local_folder)
 
     def _upload_folder_recursive(self, local_folder, parent_folder_id,
                                  leaf_folders_as_items=False,
@@ -117,10 +154,8 @@ class GirderCli(object):
         of the same name in the same location, or create a new one instead
         """
         if leaf_folders_as_items and self._has_only_files(local_folder):
-            print 'Creating Item from folder %s' % local_folder
-            if not self.dryrun:
-                # TODO not implemented
-                pass
+            self._upload_folder_as_item(local_folder, parent_folder_id,
+                           reuse_existing)
         else:
             filename = os.path.basename(local_folder)
             if filename in self.blacklist:
@@ -213,12 +248,18 @@ if __name__ == '__main__':
                         help='command to run')
     parser.add_argument('folder_id', help='id of Girder target folder')
     parser.add_argument('local_folder', help='path to local target folder')
+    parser.add_argument('--leaf-folders-as-items', required=False,
+                        action='store_true',
+                        help='upload all files in leaf folders'
+                        'to a single Item named after the folder')
     args = parser.parse_args()
 
     g = GirderCli(args.username, args.password, bool(args.dryrun),
                   args.blacklist.split(','), host=args.host, port=args.port,
                   apiRoot=args.api_root)
     if args.c == 'upload':
-        g.upload(args.local_folder, args.folder_id, reuse_existing=args.reuse)
+        g.upload(args.local_folder, args.folder_id,
+                 leaf_folders_as_items=args.leaf_folders_as_items,
+                 reuse_existing=args.reuse)
     else:
         print 'No implementation for command %s' % args.c
