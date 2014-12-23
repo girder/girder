@@ -95,7 +95,7 @@ girderTest.login = function (login, firstName, lastName, password) {
     };
 };
 
-girderTest.logout = function () {
+girderTest.logout = function (desc) {
 
     return function () {
         runs(function () {
@@ -117,7 +117,7 @@ girderTest.logout = function () {
         waitsFor(function () {
             return $('.g-login').length > 0;
         }, 'login link to appear');
-        girderTest.waitForLoad();
+        girderTest.waitForLoad(desc);
     };
 };
 
@@ -421,27 +421,28 @@ girderTest.testMetadata = function () {
  */
 girderTest.waitForLoad = function (desc) {
     desc = desc?' ('+desc+')':'';
-    /*waitsFor(function() {
-        return $('#g-dialog-container:visible').length === 0;
-    }, 'for the dialog container to be hidden'+desc);*/
+    waitsFor(function() {
+        return $('#g-dialog-container:visible').length === 0 ||
+               $('#g-dialog-container:visible').children().length === 0;
+    }, 'for the dialog container to be hidden'+desc);
     /* It is faster to wait to make sure a dialog is being hidden than to wait
-     * for it to be fullt gone.  It is probably more reliable, too.  This had
-     * been:*/
+     * for it to be fully gone.  It is probably more reliable, too.  This had
+     * been:
     waitsFor(function () {
         return $('.modal-backdrop').length === 0;
-    }, 'for the modal backdrop to go away');
-
-
-    /*waitsFor(function () {
+    }, 'for the modal backdrop to go away'+desc);
+    */
+    waitsFor(function () {
         return $('.modal').data('bs.modal') === undefined ||
-               $('.modal').data('bs.modal').isShown === false;
-    }, 'for any modal dialog to be hidden'+desc);*/
+               $('.modal').data('bs.modal').isShown === false ||
+               $('.modal').data('bs.modal').isShown === null;
+    }, 'for any modal dialog to be hidden'+desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
-    }, 'rest requests to finish');
+    }, 'rest requests to finish'+desc);
     waitsFor(function() {
         return $('.g-loading-block').length === 0;
-    }, 'dialogs to close and all blocks to finish loading'+desc);
+    }, 'all blocks to finish loading'+desc);
 };
 
 /**
@@ -449,22 +450,21 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
-    /* If is faster to wait until the diable is officially shown than to wait
+    /* If is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
         return $('#g-dialog-container:visible').length > 0 &&
                $('.modal-backdrop:visible').length > 0;
-    }, 'a dialog to fully render');
+    }, 'a dialog to fully render'+desc);
      */
     waitsFor(function () {
         return $('.modal').data('bs.modal') &&
-               $('.modal.in').length > 0 &&
                $('.modal').data('bs.modal').isShown === true &&
                $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render'+desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
-    }, 'dialog rest requests to finish');
+    }, 'dialog rest requests to finish'+desc);
 };
 
 /**

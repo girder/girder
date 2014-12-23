@@ -260,7 +260,7 @@ describe('Test the assetstore page', function () {
                      'g-new-s3-service': 'service'});
 
     /* Logout to make sure we don't see the assetstores any more */
-    it('logout from admin account', girderTest.logout());
+    it('logout from admin account', girderTest.logout('logout to no longer view asset stores'));
     it('check logged out state', function() {
         runs(function () {
             expect($('#g-app-body-container').text()).toEqual('Must be logged in as admin to view this page.');
