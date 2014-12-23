@@ -43,39 +43,47 @@ def _objectToDict(obj):
                        (int, long, float, basestring, tuple))}
 
 
-def getStatus(mode='quick'):
+def getStatus(mode='basic', user=None):
     """
     Get a dictionary of status information regarding the girder server.
 
-    :params mode: 'quick' returns only values that are cheap to acquire.
+    :param mode: 'basic' returns values available to any anonymous user.
+        'quick' returns only values that are cheap to acquire.
         'slow' provides all of that information and adds additional
+    :param user: a user record.  Must have admin access to get anything other
+                 than basic mode.
     :returns: a status dictionary.
     """
+    isAdmin = (user is not None and user.get('admin', False) is True)
+
     status = {}
-    status['virtualMemory'] = _objectToDict(psutil.virtual_memory())
-    status['swap'] = _objectToDict(psutil.swap_memory())
     status['bootTime'] = psutil.boot_time()
     status['currentTime'] = time.time()
-    status['cpuCount'] = psutil.cpu_count()
-
     process = psutil.Process(os.getpid())
-    status['processMemory'] = _objectToDict(process.get_memory_info())
-    status['processName'] = process.name()
-    status['cmdline'] = process.cmdline()
-    status['exe'] = process.exe()
-    status['cwd'] = process.cwd()
     status['processStartTime'] = process.create_time()
-    status['userName'] = process.username()
-    status['processCpuTimes'] = _objectToDict(process.cpu_times())
-    db = getDbConnection().get_default_database()
-    status['mongoBuildInfo'] = db.command('buildInfo')
-    status['cherrypyThreadsMaxUsed'] = len(cherrypy.tools.status.seenThreads)
-    status['cherrypyThreadsInUse'] = len([
-        True for threadId in cherrypy.tools.status.seenThreads
-        if 'end' not in cherrypy.tools.status.seenThreads[threadId]])
-    status['cherrypyThreadPoolSize'] = cherrypy.server.thread_pool
 
-    if mode == 'slow':
+    if mode in ('quick', 'slow') and isAdmin:
+        status['virtualMemory'] = _objectToDict(psutil.virtual_memory())
+        status['swap'] = _objectToDict(psutil.swap_memory())
+        status['cpuCount'] = psutil.cpu_count()
+
+        status['processMemory'] = _objectToDict(process.get_memory_info())
+        status['processName'] = process.name()
+        status['cmdline'] = process.cmdline()
+        status['exe'] = process.exe()
+        status['cwd'] = process.cwd()
+        status['userName'] = process.username()
+        status['processCpuTimes'] = _objectToDict(process.cpu_times())
+        db = getDbConnection().get_default_database()
+        status['mongoBuildInfo'] = db.command('buildInfo')
+        status['cherrypyThreadsMaxUsed'] = len(
+            cherrypy.tools.status.seenThreads)
+        status['cherrypyThreadsInUse'] = len([
+            True for threadId in cherrypy.tools.status.seenThreads
+            if 'end' not in cherrypy.tools.status.seenThreads[threadId]])
+        status['cherrypyThreadPoolSize'] = cherrypy.server.thread_pool
+
+    if mode == 'slow' and isAdmin:
         status['diskPartitions'] = [_objectToDict(part) for part in
                                     psutil.disk_partitions()]
         try:

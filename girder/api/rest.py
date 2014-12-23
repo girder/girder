@@ -240,6 +240,7 @@ def endpoint(fun):
     @functools.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
         _setCommonCORSHeaders()
+        cherrypy.lib.caching.expires(0)
         try:
             val = fun(self, args, kwargs)
 
@@ -737,6 +738,7 @@ class Resource(ModelImporter):
     # behavior
     def OPTIONS(self, *path, **param):
         _setCommonCORSHeaders(True)
+        cherrypy.lib.caching.expires(0)
         # Get a list of allowed methods for this path
         if not self._routes:
             raise Exception('No routes defined for resource')

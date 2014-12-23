@@ -299,19 +299,23 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 
-    @access.admin
+    @access.token
     def systemStatus(self, params):
-        mode = params.get('mode', 'quick')
-        status = system.getStatus(mode)
+        mode = params.get('mode', 'basic')
+        user = self.getCurrentUser()
+        if mode != 'basic':
+            self.requireAdmin(user)
+        status = system.getStatus(mode, user)
         status["requestBase"] = cherrypy.request.base.rstrip('/')
         return status
     systemStatus.description = (
         Description('Report the current system status.')
-        .notes("""Must be a system administrator to call this.""")
+        .notes('Must be a system administrator to call this with any mode '
+               'other than basic.')
         .param('mode', 'Select details to return.  "quick" are the details '
                'that can be answered without much load on the system.  "slow" '
                'also includes some resource-intensive queries.',
-               required=False, enum=['quick', 'slow'])
+               required=False, enum=['basic', 'quick', 'slow'])
         .errorResponse('You are not a system administrator.', 403))
 
     @access.admin

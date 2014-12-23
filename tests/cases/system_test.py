@@ -245,7 +245,26 @@ class SystemTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
     def testCheck(self):
+        resp = self.request(path='/token/session', method='GET')
+        self.assertStatusOk(resp)
+        token = resp.json['token']
+        # 'basic' mode should work for a token
+        resp = self.request(path='/system/check', token=token)
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        # but should fail for 'quick' mode
+        resp = self.request(path='/system/check', token=token, params={
+            'mode': 'quick'})
+        self.assertStatus(resp, 401)
+        # Admin can ask for any mode
         resp = self.request(path='/system/check', user=self.users[0])
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        self.assertNotIn('cherrypyThreadsInUse', check)
+        resp = self.request(path='/system/check', user=self.users[0], params={
+            'mode': 'quick'})
         self.assertStatusOk(resp)
         check = resp.json
         self.assertLess(check['bootTime'], time.time())
@@ -259,5 +278,5 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/check', method='PUT',
                             user=self.users[0], params={'progress': True})
         self.assertStatusOk(resp)
-        # checks that repair different models are convered in the individual
-        # model's test
+        # tests that check repair of different models are convered in the
+        # individual models' tests
