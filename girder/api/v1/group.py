@@ -130,7 +130,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 
-    @access.user
+    @access.public
     @loadmodel(model='group', level=AccessType.READ)
     def getGroupAccess(self, group, params):
         user = self.getCurrentUser()
@@ -143,7 +143,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 
-    @access.user
+    @access.public
     @loadmodel(model='group', level=AccessType.READ)
     def getGroupInvitations(self, group, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
@@ -212,7 +212,7 @@ class Group(Resource):
         .errorResponse('You were not invited to this group, or do not have '
                        'read access to it.', 403))
 
-    @access.user
+    @access.public
     @loadmodel(model='group', level=AccessType.READ)
     def listMembers(self, group, params):
         """
