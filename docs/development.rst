@@ -59,6 +59,8 @@ values in the file that you wish to change from their default values; the system
 loads the **dist** file first, then the **local** file, so your local settings
 will override the defaults.
 
+.. _client_development_js:
+
 Client Development
 ------------------
 
@@ -89,7 +91,10 @@ expected, but a warning message will appear in the console to remind you. Exampl
     });
 
 If you use ``girder.View`` in custom Backbone apps and need to create a new root
-view object, set the ``parentView`` to ``null``.
+view object, set the ``parentView`` to ``null``. If you are using a Girder widget
+in a custom app that does not use the ``girder.View`` as the base object for
+its views, you should pass ``parentView: null`` and make sure to call
+``destroy()`` on the view manually when it should be cleaned up.
 
 
 Server Side Testing
