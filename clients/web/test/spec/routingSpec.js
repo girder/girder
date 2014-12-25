@@ -152,9 +152,6 @@ describe('Test routing paths', function () {
     /* Now test various routes */
     it('logout', girderTest.logout());
     it('test routes without being logged in', function () {
-        waitsFor(function () {
-            return $('.g-group-link:first').text() === 'Public Group';
-        }, 'logout to finish');
         _testRoute('', false, function () {
             return $('a.g-login-link:first').text() === ' Log In';
         });
