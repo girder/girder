@@ -32,6 +32,7 @@ import json
 import os
 import sys
 import traceback
+import yaml
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
@@ -197,15 +198,27 @@ def findAllPlugins(curConfig=None):
 
     for plugin in dirs:
         data = {}
-        configFile = os.path.join(pluginsDir, plugin, 'plugin.json')
-        if os.path.isfile(configFile):
-            with open(configFile) as conf:
+        configJson = os.path.join(pluginsDir, plugin, 'plugin.json')
+        configYml = os.path.join(pluginsDir, plugin, 'plugin.yml')
+        if os.path.isfile(configJson):
+            with open(configJson) as conf:
                 try:
                     data = json.load(conf)
-                except ValueError:
-                    print TerminalColor.error(
-                        'ERROR: Failed to load plugin "{}": plugin.json is '
-                        'not valid JSON'.format(plugin))
+                except ValueError as e:
+                    print(TerminalColor.error(
+                        'ERROR: Failed to load plugin "%s": plugin.json is not '
+                        'valid JSON.' % plugin))
+                    print e
+                    continue
+        elif os.path.isfile(configYml):
+            with open(configYml) as conf:
+                try:
+                    data = yaml.load(conf)
+                except yaml.parser.ParserError as e:
+                    print(TerminalColor.error(
+                        'ERROR: Failed to load plugin "%s": plugin.yml is not '
+                        'valid YAML.' % plugin))
+                    print e
                     continue
 
         allPlugins[plugin] = {
