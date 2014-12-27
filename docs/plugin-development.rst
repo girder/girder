@@ -20,14 +20,16 @@ a plugin. Our plugin will be called `cats`. ::
 
     cd plugins ; mkdir cats
 
-The first thing we should do is create a **plugin.json** file in the **cats**
+The first thing we should do is create a plugin config file in the **cats**
 directory. As promised above, this file is not required, but is strongly
 recommended by convention. This file contains high-level information about
-your plugin. ::
+your plugin, and can be either JSON or YAML. If you want to use YAML features,
+make sure to name your config file ``plugin.yml`` instead of ``plugin.json``. For
+our example, we'll just use JSON. ::
 
     touch cats/plugin.json
 
-This JSON file should specify a human-readable name and description for your
+The plugin config file should specify a human-readable name and description for your
 plugin, and can optionally contain a list of other plugins that your plugin
 depends on. If your plugin has dependencies, the other plugins will be
 enabled whenever your plugin is enabled. The contents of plugin.json for our
