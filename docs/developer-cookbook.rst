@@ -80,6 +80,55 @@ It will prompt the user to drag and drop or browse for files, and then shows
 a current and overall progress bar and also provides controls for resuming a
 failed upload.
 
+Using the Girder upload widget in a custom app
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Your custom javascript application can easily reuse the existing upload
+widget provided in the Girder javascript library if you don't want to write your
+own upload view. This can save time spent duplicating functionality, since the
+upload widget provides current and overall progress bars, file displays, a
+drag-and-droppable file selection button, resume behavior in failure conditions, and
+customizable hooks for various stages of the upload process.
+
+The default behavior of the upload widget is to display as a modal dialog, but
+many users will want to simply embed it underneath a normal DOM element flow.
+The look and behavior of the widget can be customized when the widget is instantiated
+by passing in options like so:
+
+.. code-block:: javascript
+
+    new girder.views.UploadWidget({
+        option: value,
+        ...
+    });
+
+The following options are not required, but may be used to modify the behavior
+of the widget:
+
+    * ``[parent]`` - If the parent object is known when instantiating this
+      upload widget, pass the object here.
+    * ``[parentType=folder]`` - If the parent type is known when instantiating this
+      upload widget, pass the object here. Otherwise set ``noParent: true`` and
+      set it later, prior to starting the upload.
+    * ``[noParent=false]`` - If the parent object being uploaded into is not known
+      at the time of widget instantiation, pass ``noParent: true``. Callers must
+      ensure that the parent is set by the time ``uploadNextFile()`` actually gets called.
+    * ``[title="Upload files"]`` - Title for the widget. This is highly recommended
+      when rendering as a modal dialog. To disable rendering of the title, simply
+      pass a falsy object.
+    * ``[modal=true]`` - This widget normally renders as a modal dialog. Pass
+      ``modal: false`` to disable the modal behavior and simply render underneath a
+      parent element.
+    * ``[overrideStart=false]`` - Some callers will want to hook into the pressing
+      of the start upload button and add their own logic prior to actually sending
+      the files. To do so, set ``overrideStart: true`` and bind to the ``g:uploadStarted``
+      event of this widget. The caller is then responsible for calling ``uploadNextFile()``
+      on the widget when they have completed their actions and are ready to actually
+      send the files.
+
+For general documentation on embedding Girder widgets in a custom application,
+see the section on :ref:`client development <client_development_js>`.
+
 Server cookbook
 ---------------
 
