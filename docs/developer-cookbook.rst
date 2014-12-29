@@ -86,8 +86,8 @@ Using the Girder upload widget in a custom app
 Your custom javascript application can easily reuse the existing upload
 widget provided in the Girder javascript library if you don't want to write your
 own upload view. This can save time spent duplicating functionality, since the
-upload widget provides current and overall progress bars, file displays, a drag
-and droppable file selection button, resume behavior in failure conditions, and
+upload widget provides current and overall progress bars, file displays, a
+drag-and-droppable file selection button, resume behavior in failure conditions, and
 customizable hooks for various stages of the upload process.
 
 The default behavior of the upload widget is to display as a modal dialog, but
@@ -121,7 +121,7 @@ of the widget:
       parent element.
     * ``[overrideStart=false]`` - Some callers will want to hook into the pressing
       of the start upload button and add their own logic prior to actually sending
-      the files. To do so, set overrideStart: true and bind to the ``g:uploadStarted``
+      the files. To do so, set ``overrideStart: true`` and bind to the ``g:uploadStarted``
       event of this widget. The caller is then responsible for calling ``uploadNextFile()``
       on the widget when they have completed their actions and are ready to actually
       send the files.
