@@ -219,12 +219,13 @@ class SystemTestCase(base.TestCase):
         # should be enabled.
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["test_plugin","bad_json"]'})
+            params={'plugins': '["test_plugin","bad_json","bad_yaml"]'})
         self.assertStatusOk(resp)
         enabled = resp.json['value']
         self.assertEqual(len(enabled), 1)
         self.assertTrue('test_plugin' in enabled)
         self.assertTrue('bad_json' not in enabled)
+        self.assertTrue('bad_yaml' not in enabled)
 
     def testRestart(self):
         resp = self.request(path='/system/restart', method='PUT',

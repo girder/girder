@@ -213,8 +213,8 @@ def findAllPlugins(curConfig=None):
         elif os.path.isfile(configYml):
             with open(configYml) as conf:
                 try:
-                    data = yaml.load(conf)
-                except yaml.parser.ParserError as e:
+                    data = yaml.safe_load(conf)
+                except yaml.YAMLError as e:
                     print(TerminalColor.error(
                         'ERROR: Failed to load plugin "%s": plugin.yml is not '
                         'valid YAML.' % plugin))
