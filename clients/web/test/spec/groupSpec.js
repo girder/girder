@@ -149,7 +149,12 @@ describe('Test group actions', function () {
         runs(function () {
             expect($('.g-group-list-entry').text().match('pubGroup').length === 1);
             expect($('.g-group-list-entry').text().match('public group').length === 1);
+            $('.g-group-link:first').click();
         });
+
+        waitsFor(function () {
+            return $('.g-group-name').text() === 'pubGroup';
+        }, 'the group page to load');
     });
 
 });
