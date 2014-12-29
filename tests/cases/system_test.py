@@ -248,8 +248,12 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
         token = resp.json['token']
-        # 'basic' mode should work for a token
+        # 'basic' mode should work for a token or for anonymous
         resp = self.request(path='/system/check', token=token)
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        resp = self.request(path='/system/check')
         self.assertStatusOk(resp)
         check = resp.json
         self.assertLess(check['bootTime'], time.time())

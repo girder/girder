@@ -299,7 +299,7 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 
-    @access.token
+    @access.public
     def systemStatus(self, params):
         mode = params.get('mode', 'basic')
         user = self.getCurrentUser()
