@@ -126,9 +126,18 @@ class RoutesTestCase(base.TestCase):
         # If we specify an origin of ourselves, there should be no change
         self._testOrigin('http://127.0.0.1', {'OPTIONS': 405})
         # If we specify a different origin, simple queries are allowed and
-        # everything should be refused
+        # everything else should be refused
         self._testOrigin('http://kitware.com', {
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
+        # If we have a X-Forward-Host that contains ourselves, even thouugh
+        # the origin is different, then it should be just like coming from
+        # ourselves
+        self._testOrigin('http://kitware.com', {'OPTIONS': 405},
+                         headers={'X-Forwarded-Host': 'kitware.com'})
+        # But a different X-Forwarded-Host should be like a different origin
+        self._testOrigin('http://kitware.com', {
+            'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405},
+            headers={'X-Forwarded-Host': 'www.kitware.com'})
 
         # Set a single allowed origin
         self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN,
