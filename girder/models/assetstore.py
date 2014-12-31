@@ -130,12 +130,15 @@ class Assetstore(Model):
             'root': root
         })
 
-    def createGridFsAssetstore(self, name, db):
+    def createGridFsAssetstore(self, name, db, mongohost=None,
+                               replicaset=None):
         return self.save({
             'type': AssetstoreType.GRIDFS,
             'created': datetime.datetime.utcnow(),
             'name': name,
-            'db': db
+            'db': db,
+            'mongohost': mongohost,
+            'replicaset': replicaset
         })
 
     def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',

@@ -24,6 +24,7 @@ import uuid
 
 from StringIO import StringIO
 from .model_importer import ModelImporter
+from girder import logger
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
 
@@ -48,7 +49,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Makes sure the database name is valid.
         """
-        if not doc.get('db'):
+        if not doc.get('db', ''):
             raise ValidationException('Database name must not be empty.', 'db')
         if '.' in doc['db'] or ' ' in doc['db']:
             raise ValidationException('Database name cannot contain spaces'
@@ -64,7 +65,15 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param assetstore: The assetstore to act on.
         """
         self.assetstore = assetstore
-        self.chunkColl = getDbConnection()[assetstore['db']]['chunk']
+        try:
+            self.chunkColl = getDbConnection(
+                assetstore.get('mongohost', None),
+                assetstore.get('replicaset', None))[assetstore['db']]['chunk']
+        except pymongo.errors.ConnectionFailure:
+            logger.info('Failed to connect to GridFS assetstore %s',
+                        assetstore['db'])
+            self.chunkColl = 'Failed to connect'
+            return
         self.chunkColl.ensure_index([
             ('uuid', pymongo.ASCENDING),
             ('n', pymongo.ASCENDING)
@@ -122,11 +131,20 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             data = chunk.read(CHUNK_SIZE)
             if not data:
                 break
-            self.chunkColl.insert({
-                'n': n,
-                'uuid': upload['chunkUuid'],
-                'data': bson.binary.Binary(data)
-            })
+            # If a timeout occurs while we are trying to load data, we might
+            # have succeeded, in which case we will get a DuplicateKeyError
+            # when it automatically retries.  Therefore, log this error but
+            # don't stop.
+            try:
+                self.chunkColl.insert({
+                    'n': n,
+                    'uuid': upload['chunkUuid'],
+                    'data': bson.binary.Binary(data)
+                })
+            except pymongo.errors.DuplicateKeyError:
+                logger.info('Received a DuplicateKeyError while uploading, '
+                            'probably because we reconnected to the database '
+                            '(chunk uuid %s part %d)', upload['chunkUuid'], n)
             n += 1
             size += len(data)
             checksum.update(data)
