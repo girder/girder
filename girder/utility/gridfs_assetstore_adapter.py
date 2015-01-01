@@ -247,7 +247,12 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         matching = ModelImporter().model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
-            self.chunkColl.remove({'uuid': file['chunkUuid']})
+            try:
+                self.chunkColl.remove({'uuid': file['chunkUuid']})
+            except pymongo.errors.AutoReconnect:
+                # we can't reach the database.  Go ahead and return; a system
+                # check will be necessary to remove the abandoned file
+                pass
 
     def cancelUpload(self, upload):
         """
