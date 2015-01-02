@@ -21,7 +21,7 @@ import pymongo
 
 from pymongo.read_preferences import ReadPreference
 from girder import logger
-from girder.lib.mongodb_proxy import MongoProxy
+from girder.external.mongodb_proxy import MongoProxy
 from girder.utility import config
 from girder.constants import TerminalColor
 

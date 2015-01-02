@@ -19,7 +19,7 @@
 
 import pymongo
 
-from girder.lib.mongodb_proxy import MongoProxy
+from girder.external.mongodb_proxy import MongoProxy
 
 from bson.objectid import ObjectId
 from girder import events
