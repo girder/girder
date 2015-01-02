@@ -83,9 +83,9 @@ girder.views.PluginsView = girder.View.extend({
         /* Sort a dictionary of plugins alphabetically so that the appear in a
          * predictable order to the user.
          *
-         * :param plugins: a dictionary to sort.  Each entry has a .name
+         * @param plugins: a dictionary to sort.  Each entry has a .name
          *                 attribute used for sorting.
-         * :returns sortedPlugins: the sorted list. */
+         * @returns sortedPlugins: the sorted list. */
         var sortedPlugins = [];
         _.each(plugins, function (value, key) {
             sortedPlugins.push({key: key, value: value});
