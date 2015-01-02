@@ -143,7 +143,7 @@ class AssetstoreTestCase(base.TestCase):
         # current assetstore will be switched to the second one.
         secondStore = self.model('assetstore').createFilesystemAssetstore(
             'Another Store',  os.path.join(ROOT_DIR, 'tests', 'assetstore',
-                                           'test2'))
+                                           'server_assetstore_test2'))
         # make sure our original asset store is the current one
         current = self.model('assetstore').getCurrent()
         self.assertEqual(current['_id'], assetstore['_id'])

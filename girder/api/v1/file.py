@@ -23,7 +23,7 @@ import errno
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
-from girder.models.model_base import AccessException
+from girder.models.model_base import AccessException, GirderException
 from girder.api import access
 
 
@@ -77,7 +77,9 @@ class File(Resource):
                     parent=parent, size=int(params['size']), mimeType=mimeType)
             except OSError as exc:
                 if exc[0] in (errno.EACCES,):
-                    raise Exception('Failed to create upload.')
+                    raise GirderException(
+                        'Failed to create upload.',
+                        'girder.api.v1.file.create-upload-failed')
                 raise
             if upload['size'] > 0:
                 return upload

@@ -23,8 +23,8 @@ import smtpd
 import threading
 import time
 
-_startPort = 50002
-_maxTries = 98
+_startPort = 51000
+_maxTries = 100
 
 
 class MockSmtpServer(smtpd.SMTPServer):

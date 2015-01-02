@@ -20,7 +20,7 @@
 import datetime
 import pymongo
 
-from .model_base import Model, ValidationException
+from .model_base import Model, ValidationException, GirderException
 from girder.utility import assetstore_utilities
 from girder.utility.filesystem_assetstore_adapter import\
     FilesystemAssetstoreAdapter
@@ -161,6 +161,8 @@ class Assetstore(Model):
         """
         current = self.findOne({'current': True})
         if current is None:
-            raise Exception('No current assetstore is set.')
+            raise GirderException(
+                'No current assetstore is set.',
+                'girder.model.assetstore.no-current-assetstore')
 
         return current

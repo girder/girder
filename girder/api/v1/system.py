@@ -24,6 +24,7 @@ import json
 
 from girder.api import access
 from girder.constants import SettingKey, VERSION
+from girder.models.model_base import GirderException
 from girder.utility import plugin_utilities
 from girder.utility import system
 from girder.utility.progress import ProgressContext
@@ -239,7 +240,9 @@ class System(Resource):
                 self.model('upload').cancelUpload(upload)
             except OSError as exc:
                 if exc[0] in (errno.EACCES,):
-                    raise Exception('Failed to delete upload.')
+                    raise GirderException(
+                        'Failed to delete upload.',
+                        'girder.api.v1.system.delete-upload-failed')
                 raise
         untracked = self.boolParam('includeUntracked', params, default=True)
         if untracked:

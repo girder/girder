@@ -31,5 +31,5 @@ html(lang="en")
       })();
 
   body
-    #g-global-info-apiroot.hide http://localhost:50001#{apiRoot}
-    #g-global-info-staticroot.hide http://localhost:50001#{staticRoot}
+    #g-global-info-apiroot.hide TESTURL#{apiRoot}
+    #g-global-info-staticroot.hide TESTURL#{staticRoot}

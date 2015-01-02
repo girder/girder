@@ -17,8 +17,10 @@ _.extend(girder, {
     models: {},
     collections: {},
     views: {},
-    apiRoot: $('#g-global-info-apiroot').text(),
-    staticRoot: $('#g-global-info-staticroot').text(),
+    apiRoot: $('#g-global-info-apiroot').text().replace(
+        'TESTURL', 'http://' + window.location.host),
+    staticRoot: $('#g-global-info-staticroot').text().replace(
+        'TESTURL', 'http://' + window.location.host),
     currentUser: null,
     events: _.clone(Backbone.Events),
     uploadHandlers: {},
@@ -89,6 +91,14 @@ _.extend(girder, {
                 } else if (error.status === 0 && error.statusText === 'abort') {
                     /* We expected this abort, so do nothing. */
                     return;
+                } else if (error.status === 500 && error.responseJSON &&
+                           error.responseJSON.type === 'girder') {
+                    info = {
+                        text: error.responseJSON.message,
+                        type: 'warning',
+                        timeout: 5000,
+                        icon: 'info'
+                    };
                 } else {
                     info = {
                         text: 'An error occurred while communicating with the ' +

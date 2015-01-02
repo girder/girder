@@ -73,11 +73,13 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             logger.error('Failed to connect to GridFS assetstore %s',
                          assetstore['db'])
             self.chunkColl = 'Failed to connect'
+            self.unavailable = True
             return
         except pymongo.errors.ConfigurationError:
             logger.exception('Failed to configure GridFS assetstore %s',
                              assetstore['db'])
             self.chunkColl = 'Failed to configure'
+            self.unavailable = True
             return
         self.chunkColl.ensure_index([
             ('uuid', pymongo.ASCENDING),

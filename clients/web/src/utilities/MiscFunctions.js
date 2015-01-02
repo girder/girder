@@ -36,24 +36,22 @@ girder.formatDate = function (datestr, resolution) {
 };
 
 /**
- * Format a size in bytes into a human-readable string with metric unit prefixes.
+ * Format a size in bytes into a human-readable string with metric unit
+ * prefixes.
  */
 girder.formatSize = function (sizeBytes) {
-    // If it's > 1GB, report to two decimal places, otherwise just one.
-    var precision = sizeBytes > 1073741824 ? 2 : 1;
-
+    var i, sizeVal = sizeBytes, precision = 1;
+    for (i = 0; sizeVal >= 1024; i += 1) {
+        sizeVal /= 1024;
+    }
     // If we are just reporting bytes, no need for decimal places.
     if (sizeBytes < 1024) {
         precision = 0;
+    } else if (sizeVal < 10) {
+        precision = 2;
     }
-
-    var i;
-    for (i = 0; sizeBytes >= 1024; i += 1) {
-        sizeBytes /= 1024;
-    }
-
-    return sizeBytes.toFixed(precision) + ' ' +
-        ['B', 'KB', 'MB', 'GB', 'TB'][i];
+    return sizeVal.toFixed(precision) + ' ' +
+        ['B', 'kB', 'MB', 'GB', 'TB'][i];
 };
 
 /**
