@@ -269,6 +269,16 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
 
+        # Change the replica set assetstore to use the default mongo instance,
+        # which should be allowed, even though we won't be able to connect to
+        # the database.
+        params['mongohost'] = 'mongodb://127.0.0.1:27017'
+        resp = self.request(path='/assetstore/{}'.format(rsassetstore['_id']),
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+
     @moto.mock_s3bucket_path
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore

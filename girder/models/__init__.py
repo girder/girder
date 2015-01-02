@@ -49,10 +49,10 @@ def getDbConnection(uri=None, replicaSet=None):
     """
     global _dbClients
 
-    if uri in _dbClients:
-        return _dbClients[uri]
+    origKey = (uri, replicaSet)
+    if origKey in _dbClients:
+        return _dbClients[origKey]
 
-    origUri = uri
     if uri is None or uri == '':
         dbConf = getDbConfig()
         uri = dbConf.get('uri')
@@ -86,6 +86,10 @@ def getDbConnection(uri=None, replicaSet=None):
         else:
             client = pymongo.MongoClient(uri, **clientOptions)
     client = MongoProxy(client, logger=logger)
-    _dbClients[origUri] = _dbClients[uri] = client
-    print(TerminalColor.info('Connected to MongoDB: {}'.format(dbUriRedacted)))
+    _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
+    desc = ''
+    if replicaSet:
+        desc += ', replica set: %s' % replicaSet
+    print(TerminalColor.info('Connected to MongoDB: %s%s' % (dbUriRedacted,
+                                                             desc)))
     return client
