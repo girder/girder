@@ -46,7 +46,7 @@ girder.views.PluginsView = girder.View.extend({
         }, this);
 
         this.$el.html(girder.templates.plugins({
-            allPlugins: this.allPlugins
+            allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
         var view = this;
@@ -77,6 +77,23 @@ girder.views.PluginsView = girder.View.extend({
         }
 
         return this;
+    },
+
+    _sortPlugins: function (plugins) {
+        /* Sort a dictionary of plugins alphabetically so that the appear in a
+         * predictable order to the user.
+         *
+         * :param plugins: a dictionary to sort.  Each entry has a .name
+         *                 attribute used for sorting.
+         * :returns sortedPlugins: the sorted list. */
+        var sortedPlugins = [];
+        _.each(plugins, function (value, key) {
+            sortedPlugins.push({key: key, value: value});
+        });
+        sortedPlugins.sort(function (a, b) {
+            return a.value.name.localeCompare(b.value.name);
+        });
+        return sortedPlugins;
     },
 
     _updatePlugins: function () {

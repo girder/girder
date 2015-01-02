@@ -8,17 +8,17 @@ div.g-plugin-restart
     | changes to take effect.
   .g-plugin-clear
 .g-plugin-list-container
-  each plugin, key in allPlugins
+  each plugin in allPlugins
     .g-plugin-list-item
-      input.g-plugin-switch(type="checkbox", key="#{key}",
-                            checked=(plugin.enabled ? "checked" : undefined))
+      input.g-plugin-switch(type="checkbox", key="#{plugin.key}",
+                            checked=(plugin.value.enabled ? "checked" : undefined))
       .g-plugin-name
-        | #{plugin.name}
-        if (plugin.version)
+        | #{plugin.value.name}
+        if (plugin.value.version)
           span.g-plugin-version
-            | Version #{plugin.version)
-        if(plugin.configRoute)
-          a.g-plugin-config-link(g-route="#{plugin.configRoute}",
+            | Version #{plugin.value.version)
+        if(plugin.value.configRoute)
+          a.g-plugin-config-link(g-route="#{plugin.value.configRoute}",
                                  title="Configure Plugin")
             i.icon-cog
-      .g-plugin-description #{plugin.description}
+      .g-plugin-description #{plugin.value.description}
