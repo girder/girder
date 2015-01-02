@@ -332,31 +332,45 @@ def _setCommonCORSHeaders(isOptions=False):
     cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
     cherrypy.response.headers['Vary'] = 'Origin'
     # Some requests do not require further checking
-    if not isOptions and cherrypy.request.method in ('GET', 'HEAD', 'POST'):
-        if cherrypy.request.method != 'POST':
-            return
-        if (cherrypy.request.headers.get('Content-Type', '') in
-                ('application/x-www-form-urlencoded', 'multipart/form-data',
-                 'text/plain')):
-            return
+    if (cherrypy.request.method in ('GET', 'HEAD') or (
+            cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
+            'Content-Type', '') in ('application/x-www-form-urlencoded',
+                                    'multipart/form-data', 'text/plain'))):
+        return
     cors = ModelImporter.model('setting').corsSettingsDict()
     base = cherrypy.request.base.rstrip('/')
+    # We want to handle X-Forwarded-Host be default
+    altbase = cherrypy.request.headers.get('X-Forwarded-Host', '')
+    if altbase:
+        altbase = '%s://%s' % (cherrypy.request.scheme, altbase)
+        logAltBase = ', forwarded base origin is ' + altbase
+    else:
+        altbase = base
+        logAltBase = ''
     # If we don't have any allowed origins, return that OPTIONS isn't a
     # valid method.  If the request specified an origin, fail.
     if not cors['allowOrigin']:
         if isOptions:
+            logger.info('CORS 405 error: no allowed origins (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
             raise cherrypy.HTTPError(405)
-        if origin != base:
+        if origin not in (base, altbase):
+            logger.info('CORS 403 error: no allowed origins (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
             raise cherrypy.HTTPError(403)
         return
     # If this origin is not allowed, return an error
     if ('*' not in cors['allowOrigin'] and origin not in cors['allowOrigin']
-            and origin != base):
+            and origin not in (base, altbase)):
         if isOptions:
+            logger.info('CORS 405 error: origin not allowed (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
             raise cherrypy.HTTPError(405)
+        logger.info('CORS 403 error: origin not allowed (request origin '
+                    'is %s, base origin is %s%s', origin, base, logAltBase)
         raise cherrypy.HTTPError(403)
     # If possible, send back the requesting origin.
-    if origin != base and not isOptions:
+    if origin not in (base, altbase) and not isOptions:
         _validateCORSMethodAndHeaders(cors)
 
 
