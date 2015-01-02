@@ -17,6 +17,12 @@
           .form-group
             label.control-label(for="g-edit-gridfs-db") Database name
             input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
+          .form-group
+            label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
+            input.input-sm#g-edit-gridfs-mongohost.form-control(type="text", placeholder="Mongo host uri (defaults to the main girder database)")
+          .form-group
+            label.control-label(for="g-edit-gridfs-replicaset") Replica Set
+            input.input-sm#g-edit-gridfs-replicaset.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
         if assetstore.get('type') == types.S3
           .form-group
             label.control-label(for="g-edit-s3-bucket") S3 bucket name

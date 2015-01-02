@@ -38,6 +38,7 @@ from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
+from . import mongo_replicaset
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
@@ -131,6 +132,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
                                any other value, use a filesystem assetstore.
         """
+        self.assetstoreType = assetstoreType
         dropTestDatabase()
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
@@ -140,6 +142,14 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = self.model('assetstore'). \
                 createGridFsAssetstore(name='Test', db=gridfsDbName)
+        elif assetstoreType == 'gridfsrs':
+            gridfsDbName = 'gridfsrs_assetstore_test'
+            mongo_replicaset.startMongoReplicaSet()
+            self.assetstore = self.model('assetstore'). \
+                createGridFsAssetstore(
+                name='Test', db=gridfsDbName,
+                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
+                '127.0.0.1:27072', replicaset='replicaset')
         elif assetstoreType == 's3':
             self.assetstore = self.model('assetstore'). \
                 createS3Assetstore(name='Test', bucket='bucketname',
@@ -153,6 +163,13 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
+
+    def tearDown(self):
+        """
+        Stop any services that we started just for this test.
+        """
+        if self.assetstoreType == 'gridfsrs':
+            mongo_replicaset.stopMongoReplicaSet()
 
     def assertStatusOk(self, response):
         """

@@ -16,7 +16,9 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             } else if (view.model.get('type') === girder.AssetstoreType.GRIDFS) {
                 fields = {
                     name: this.$('#g-edit-name').val(),
-                    db: this.$('#g-edit-gridfs-db').val()
+                    db: this.$('#g-edit-gridfs-db').val(),
+                    mongohost: this.$('#g-edit-gridfs-mongohost').val(),
+                    replicaset: this.$('#g-edit-gridfs-replicaset').val()
                 };
             } else if (view.model.get('type') === girder.AssetstoreType.S3) {
                 fields = {
@@ -55,6 +57,8 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
                 view.$('#g-edit-fs-root').val(view.model.get('root'));
             } else if (view.model.get('type') === girder.AssetstoreType.GRIDFS) {
                 view.$('#g-edit-gridfs-db').val(view.model.get('db'));
+                view.$('#g-edit-gridfs-mongohost').val(view.model.get('mongohost'));
+                view.$('#g-edit-gridfs-replicaset').val(view.model.get('replicaset'));
             } else if (view.model.get('type') === girder.AssetstoreType.S3) {
                 view.$('#g-edit-s3-bucket').val(view.model.get('bucket'));
                 view.$('#g-edit-s3-prefix').val(view.model.get('prefix'));

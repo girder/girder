@@ -31,6 +31,14 @@
           div
             b Database name:
             span.g-assetstore-root  #{assetstore.get('db')}
+          if assetstore.get('mongohost')
+            div
+              b Mongo Host URI:
+              span.g-assetstore-mongohost  #{assetstore.get('mongohost')}
+            if assetstore.get('replicaset')
+              div
+                b Replica Set:
+                span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
         else if assetstore.get('type') == types.S3
           div
             b Type:
@@ -51,12 +59,11 @@
           div
             b Service:
             span.g-service-key  #{assetstore.get('service')}
-        div
-          b Capacity:
-          span.g-assetstore-capacity  #{assetstore.capacityString()}
         if assetstore.capacityKnown()
-          .g-assetstore-capacity-chart(cid="#{assetstore.cid}")
-
+          div
+            b Capacity:
+            span.g-assetstore-capacity  #{assetstore.capacityString()}
+            .g-assetstore-capacity-chart(cid="#{assetstore.cid}")
         .g-assetstore-buttons
           button.g-edit-assetstore.btn.btn-sm.btn-default(
               cid="#{assetstore.cid}") Edit

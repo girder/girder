@@ -227,6 +227,58 @@ class AssetstoreTestCase(base.TestCase):
         oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
         self.assertFalse(oldAssetstore['current'])
 
+        # Test that we can create an assetstore with an alternate mongo host
+        # and a replica set (but don't actual bother using a replica set)
+        params = {
+            'name': 'Replica Set Name',
+            'type': AssetstoreType.GRIDFS,
+            'db': 'girder_assetstore_rs_create_test',
+            'mongohost': 'mongodb://127.0.0.1:27070,127.0.0.1:27071,'
+                         '127.0.0.1:27072',
+            'replicaset': 'replicaset'
+        }
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        rsassetstore = resp.json
+        self.assertEqual(rsassetstore['name'], 'Replica Set Name')
+        self.assertFalse(rsassetstore['current'])
+
+        # Set the replica set assetstore as current
+        params = {
+            'name': rsassetstore['name'],
+            'db': rsassetstore['db'],
+            'mongohost': rsassetstore['mongohost'],
+            'replicaset': rsassetstore['replicaset'],
+            'current': True
+        }
+        resp = self.request(path='/assetstore/{}'.format(rsassetstore['_id']),
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        rsassetstore = self.model('assetstore').load(resp.json['_id'])
+        self.assertTrue(rsassetstore['current'])
+
+        # Neither of the old assetstores should  be current
+        oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
+        self.assertFalse(oldAssetstore['current'])
+        assetstore = self.model('assetstore').load(assetstore['_id'])
+        self.assertFalse(assetstore['current'])
+
+        # Getting the assetstores should succeed, even though we can't connect
+        # to the replica set.
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+
+        # Change the replica set assetstore to use the default mongo instance,
+        # which should be allowed, even though we won't be able to connect to
+        # the database.
+        params['mongohost'] = 'mongodb://127.0.0.1:27017'
+        resp = self.request(path='/assetstore/{}'.format(rsassetstore['_id']),
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+
     @moto.mock_s3bucket_path
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore

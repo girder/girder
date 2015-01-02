@@ -7,9 +7,6 @@ girder.models.AssetstoreModel = girder.Model.extend({
     },
 
     capacityString: function () {
-        if (!this.capacityKnown()) {
-            return 'Unknown';
-        }
         var cap = this.get('capacity');
         return girder.formatSize(cap.free) + ' free of ' +
             girder.formatSize(cap.total) + ' total';

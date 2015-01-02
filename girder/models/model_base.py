@@ -19,6 +19,8 @@
 
 import pymongo
 
+from girder.external.mongodb_proxy import MongoProxy
+
 from bson.objectid import ObjectId
 from girder import events
 from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
@@ -44,7 +46,7 @@ class Model(ModelImporter):
 
         db_connection = getDbConnection()
         self.database = db_connection.get_default_database()
-        self.collection = self.database[self.name]
+        self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
             if isinstance(index, (list, tuple)):

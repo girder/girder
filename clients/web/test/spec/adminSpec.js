@@ -194,6 +194,20 @@ describe('Test the assetstore page', function () {
             });
             girderTest.waitForLoad();
 
+            /* navigate away and back */
+            runs(function () {
+                $("a.g-nav-link[g-target='admin']").click();
+            });
+            waitsFor(function () {
+                return $('.g-assetstore-config').length > 0;
+            }, 'admin page to load');
+            runs(function () {
+                $('.g-assetstore-config').click();
+            });
+            waitsFor(function () {
+                return $('.g-assetstore-container').length > 0;
+            }, 'assetstore page to load');
+
             /* delete the assetstore */
             runs(function () {
                 $('.g-delete-assetstore', _getAssetstoreContainer(name)).click();
@@ -250,6 +264,13 @@ describe('Test the assetstore page', function () {
     _testAssetstore('gridfs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
                      'g-new-gridfs-db': 'girder_webclient_gridfs'});
+
+    _testAssetstore('gridfs', 'g-create-gridfs-tab',
+                    {'g-new-gridfs-name': 'name',
+                     'g-new-gridfs-db': 'girder_webclient_gridfsrs',
+                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.1:27070,'+
+                        '127.0.0.1:27071,127.0.0.1:27072',
+                     'g-new-gridfs-replicaset': 'replicaset'});
 
     _testAssetstore('s3', 'g-create-s3-tab',
                     {'g-new-s3-name': 'name',

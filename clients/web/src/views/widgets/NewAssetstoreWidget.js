@@ -16,7 +16,9 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
             this.createAssetstore(e, this.$('#g-new-gridfs-error'), {
                 type: girder.AssetstoreType.GRIDFS,
                 name: this.$('#g-new-gridfs-name').val(),
-                db: this.$('#g-new-gridfs-db').val()
+                db: this.$('#g-new-gridfs-db').val(),
+                mongohost: this.$('#g-new-gridfs-mongohost').val(),
+                replicaset: this.$('#g-new-gridfs-replicaset').val()
             });
         },
 
