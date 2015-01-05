@@ -144,7 +144,7 @@ girder.views.UploadWidget = girder.View.extend({
     filesChanged: function () {
         if (this.files.length === 0) {
             this.$('.g-overall-progress-message').text('No files selected');
-            this.$('.g-start-upload').addClass('disabled');
+            this.setUploadEnabled(false);
         } else {
             this.totalSize = 0;
             _.each(this.files, function (file) {
@@ -161,7 +161,7 @@ girder.views.UploadWidget = girder.View.extend({
             this.$('.g-overall-progress-message').html('<i class="icon-ok"/> ' +
                 msg + '  (' + girder.formatSize(this.totalSize) +
                 ') -- Press start button');
-            this.$('.g-start-upload').removeClass('disabled');
+            this.setUploadEnabled(true);
             this.$('.g-progress-overall,.g-progress-current').addClass('hide');
             this.$('.g-current-progress-message').empty();
             this.$('.g-upload-error-message').empty();
@@ -173,8 +173,8 @@ girder.views.UploadWidget = girder.View.extend({
     startUpload: function (e) {
         e.preventDefault();
 
+        this.setUploadEnabled(false);
         this.$('.g-drop-zone').addClass('hide');
-        this.$('.g-start-upload').addClass('disabled');
         this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
         this.$('.g-upload-error-message').empty();
 
@@ -184,6 +184,19 @@ girder.views.UploadWidget = girder.View.extend({
 
         if (!this.overrideStart) {
             this.uploadNextFile();
+        }
+    },
+
+    /**
+     * Enable or disable the start upload button.
+     *
+     * @param state {bool} Truthy for enabled, falsy for disabled.
+     */
+    setUploadEnabled: function (state) {
+        if (state) {
+            this.$('.g-start-upload').removeClass('disabled');
+        } else {
+            this.$('.g-start-upload').addClass('disabled');
         }
     },
 
