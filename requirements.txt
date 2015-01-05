@@ -6,3 +6,4 @@ boto==2.29.1
 Mako==1.0.0
 PyYaml==3.11
 requests==2.3.0
+psutil==2.1.3

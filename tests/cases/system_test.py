@@ -19,6 +19,7 @@
 
 import json
 import os
+import time
 
 from subprocess import check_output, CalledProcessError
 
@@ -95,6 +96,11 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['field'], 'key')
 
         # Only a valid JSON list is permitted
+        resp = self.request(path='/system/setting', method='GET', params={
+            'list': json.dumps('not_a_list')
+        }, user=users[0])
+        self.assertStatus(resp, 400)
+
         resp = self.request(path='/system/setting', method='PUT', params={
             'list': json.dumps('not_a_list')
         }, user=users[0])
@@ -197,11 +203,18 @@ class SystemTestCase(base.TestCase):
             self.assertStatusOk(resp)
 
     def testPlugins(self):
+        resp = self.request(path='/system/plugins', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertIn('all', resp.json)
         pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                                   'test_plugins')
         conf = config.getConfig()
         conf['plugins'] = {'plugin_directory': pluginRoot}
 
+        resp = self.request(
+            path='/system/plugins', method='PUT', user=self.users[0],
+            params={'plugins': 'not_a_json_list'})
+        self.assertStatus(resp, 400)
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
             params={'plugins': '["has_deps"]'})
@@ -231,3 +244,44 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/restart', method='PUT',
                             user=self.users[0])
         self.assertStatusOk(resp)
+
+    def testCheck(self):
+        resp = self.request(path='/token/session', method='GET')
+        self.assertStatusOk(resp)
+        token = resp.json['token']
+        # 'basic' mode should work for a token or for anonymous
+        resp = self.request(path='/system/check', token=token)
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        resp = self.request(path='/system/check')
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        # but should fail for 'quick' mode
+        resp = self.request(path='/system/check', token=token, params={
+            'mode': 'quick'})
+        self.assertStatus(resp, 401)
+        # Admin can ask for any mode
+        resp = self.request(path='/system/check', user=self.users[0])
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        self.assertNotIn('cherrypyThreadsInUse', check)
+        resp = self.request(path='/system/check', user=self.users[0], params={
+            'mode': 'quick'})
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertLess(check['bootTime'], time.time())
+        self.assertGreaterEqual(check['cherrypyThreadsInUse'], 1)
+        self.assertIn('rss', check['processMemory'])
+        resp = self.request(path='/system/check', user=self.users[0], params={
+            'mode': 'slow'})
+        self.assertStatusOk(resp)
+        check = resp.json
+        self.assertGreater(check['girderDiskUsage']['free'], 0)
+        resp = self.request(path='/system/check', method='PUT',
+                            user=self.users[0], params={'progress': True})
+        self.assertStatusOk(resp)
+        # tests that check repair of different models are convered in the
+        # individual models' tests
