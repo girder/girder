@@ -52,7 +52,7 @@ class GirderCli(GirderClient):
                 folder = child
         if folder is None:
             folder = self.createFolder(parent_folder_id, 'folder',
-                                         folder_name, description='')
+                                       folder_name, description='')
         return folder
 
     def _has_only_files(self, local_folder):
@@ -69,8 +69,7 @@ class GirderCli(GirderClient):
         :param local_file: full path to a file on the local file system
         :param parent_folder_id: id of parent folder in Girder
         :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
+            item of the same name in the same location, or create a new one.
         """
         local_item_name = os.path.basename(local_file)
         item = None
@@ -83,7 +82,7 @@ class GirderCli(GirderClient):
 
         if item is None:
             item = self.createItem(parent_folder_id, local_item_name,
-                                     description='')
+                                   description='')
 
         return item
 
@@ -111,11 +110,11 @@ class GirderCli(GirderClient):
                 callback(current_item, file_path)
 
     def _upload_folder_as_item(self, local_folder, parent_folder_id,
-                           reuse_existing=False):
+                               reuse_existing=False):
         """Take a folder and use its base name as the name of a new item. Then,
         upload its containing files into the new item as bitstreams.
         :param local_folder: The path to the folder to be uploaded.
-        :param parent_folder_id: The id of the destination folder for the new item.
+        :param parent_folder_id: Id of the destination folder for the new item.
         :param reuse_existing: boolean indicating whether to accept an existing
         item
         of the same name in the same location, or create a new one instead
@@ -123,7 +122,7 @@ class GirderCli(GirderClient):
         print 'Creating Item from folder %s' % local_folder
         if not self.dryrun:
             item = self._create_or_reuse_item(local_folder, parent_folder_id,
-                                        reuse_existing)
+                                              reuse_existing)
 
         subdircontents = sorted(os.listdir(local_folder))
         # for each file in the subdir, add it to the item
@@ -155,7 +154,7 @@ class GirderCli(GirderClient):
         """
         if leaf_folders_as_items and self._has_only_files(local_folder):
             self._upload_folder_as_item(local_folder, parent_folder_id,
-                           reuse_existing)
+                                        reuse_existing)
         else:
             filename = os.path.basename(local_folder)
             if filename in self.blacklist:
