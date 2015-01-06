@@ -423,3 +423,103 @@ class GirderClient(object):
         path = 'folder/' + folderId + '/metadata'
         obj = self.put(path, data=json.dumps(metadata))
         return obj
+
+    def downloadFile(self, fileId, path):
+        """
+        Download a file to the given local path.
+
+        :param fileId: The ID of the Girder file to download.
+        :param path: The local path to write the file to.
+        """
+        with open(path, 'wb') as fd:
+            req = requests.get('%s/file/%s/download' % (self.urlBase, fileId),
+                               headers={'Girder-Token': self.token})
+            for chunk in req.iter_content(chunk_size=65536):
+                fd.write(chunk)
+
+    def downloadItem(self, itemId, dest, name=None):
+        """
+        Download an item from Girder into a local folder. Each file in the
+        item will be placed into the directory specified by the dest parameter.
+        If the item contains multiple files or a single file with a different
+        name than the item, the item will be created as a directory under dest
+        and the files will become files within that directory.
+
+        :param itemId: The Id of the Girder item to download.
+        :param dest: The destination to write the item into.
+        :param name: If the item name is known in advance, you may pass it here
+            which will save a lookup to the server.
+        """
+        if name is None:
+            item = self.get('item/' + itemId)
+            name = item['name']
+
+        offset = 0
+        first = True
+        while 1:
+            files = self.get('item/%s/files' % itemId, parameters={
+                'limit': 50,
+                'offset': offset
+            })
+
+            if first:
+                if len(files) == 1 and files[0]['name'] == name:
+                    self.downloadFile(
+                        files[0]['_id'], os.path.join(dest, name))
+                    break
+                else:
+                    dest = os.path.join(dest, name)
+                    os.makedirs(dest)
+
+            for file in files:
+                self.downloadFile(file['_id'], os.path.join(dest, file['name']))
+
+            first = False
+            offset += len(files)
+            if len(files) < 50:
+                break
+
+    def downloadFolderRecursive(self, folderId, dest):
+        """
+        Download a folder recursively from Girder into a local directory.
+
+        :param folderId: Id of the Girder folder to download.
+        :param dest: The local download destination.
+        """
+        offset = 0
+
+        while 1:
+            folders = self.get('folder', parameters={
+                'limit': 50,
+                'offset': offset,
+                'parentType': 'folder',
+                'parentId': folderId
+            })
+
+            for folder in folders:
+                local = os.path.join(dest, folder['name'])
+
+                if not os.path.isdir(local):
+                    os.makedirs(local)
+
+                self.downloadFolderRecursive(folder['_id'], local)
+
+            offset += len(folders)
+            if len(folders) < 50:
+                break
+
+        offset = 0
+
+        while 1:
+            items = self.get('item', parameters={
+                'folderId': folderId,
+                'limit': 50,
+                'offset': offset
+            })
+
+            for item in items:
+                self.downloadItem(item['_id'], dest, name=item['name'])
+
+            offset += len(items)
+            if len(items) < 50:
+                break
