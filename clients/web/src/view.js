@@ -26,6 +26,7 @@ girder.View = Backbone.View.extend({
         this.stopListening();
         this.off();
         girder.events.off(null, null, this);
+        girder.eventStream.off(null, null, this);
 
         if (this.parentView) {
             this.parentView.unregisterChildView(this);
