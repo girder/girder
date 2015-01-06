@@ -21,6 +21,7 @@ import getpass
 import hashlib
 import json
 import os
+import re
 import requests
 
 
@@ -424,6 +425,17 @@ class GirderClient(object):
         obj = self.put(path, data=json.dumps(metadata))
         return obj
 
+    def _transformFilename(self, name):
+        """
+        Sanitize the filename a bit.
+        """
+        if name in ('.', '..'):
+            name = '_' + name
+        name = name.replace(os.path.sep, ' ')
+        if os.path.altsep:
+            name = name.replace(os.path.altsep, ' ')
+        return re.sub(r'^[/\\]+', '', name)
+
     def downloadFile(self, fileId, path):
         """
         Download a file to the given local path.
@@ -446,7 +458,7 @@ class GirderClient(object):
         and the files will become files within that directory.
 
         :param itemId: The Id of the Girder item to download.
-        :param dest: The destination to write the item into.
+        :param dest: The destination directory to write the item into.
         :param name: If the item name is known in advance, you may pass it here
             which will save a lookup to the server.
         """
@@ -456,7 +468,7 @@ class GirderClient(object):
 
         offset = 0
         first = True
-        while 1:
+        while True:
             files = self.get('item/%s/files' % itemId, parameters={
                 'limit': 50,
                 'offset': offset
@@ -465,14 +477,17 @@ class GirderClient(object):
             if first:
                 if len(files) == 1 and files[0]['name'] == name:
                     self.downloadFile(
-                        files[0]['_id'], os.path.join(dest, name))
+                        files[0]['_id'],
+                        os.path.join(dest, self._transformFilename(name)))
                     break
                 else:
-                    dest = os.path.join(dest, name)
+                    dest = os.path.join(dest, self._transformFilename(name))
                     os.makedirs(dest)
 
             for file in files:
-                self.downloadFile(file['_id'], os.path.join(dest, file['name']))
+                self.downloadFile(
+                    file['_id'],
+                    os.path.join(dest, self._transformFilename(file['name'])))
 
             first = False
             offset += len(files)
@@ -488,7 +503,7 @@ class GirderClient(object):
         """
         offset = 0
 
-        while 1:
+        while True:
             folders = self.get('folder', parameters={
                 'limit': 50,
                 'offset': offset,
@@ -497,7 +512,8 @@ class GirderClient(object):
             })
 
             for folder in folders:
-                local = os.path.join(dest, folder['name'])
+                local = os.path.join(
+                    dest, self._transformFilename(folder['name']))
 
                 if not os.path.isdir(local):
                     os.makedirs(local)
@@ -510,7 +526,7 @@ class GirderClient(object):
 
         offset = 0
 
-        while 1:
+        while True:
             items = self.get('item', parameters={
                 'folderId': folderId,
                 'limit': 50,
