@@ -17,12 +17,30 @@
 #  limitations under the License.
 ###############################################################################
 
+import errno
 import getpass
 import hashlib
 import json
 import os
 import re
 import requests
+
+
+_safeNameRegex = re.compile(r'^[/\\]+')
+
+
+def _safeMakedirs(path):
+    """
+    Wraps os.makedirs in such a way that it will not raise exceptions if the
+    directory already exists.
+
+    :param path: The directory to create.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
 
 class AuthenticationError(RuntimeError):
@@ -105,7 +123,7 @@ class GirderClient(object):
         if interactive:
             if username is None:
                 username = raw_input('Login or email: ')
-            password = getpass.getpass('Password: ')
+            password = getpass.getpass('Password for %s: ' % username)
 
         if username is None or password is None:
             raise Exception('A user name and password are required')
@@ -431,10 +449,10 @@ class GirderClient(object):
         """
         if name in ('.', '..'):
             name = '_' + name
-        name = name.replace(os.path.sep, ' ')
+        name = name.replace(os.path.sep, '_')
         if os.path.altsep:
-            name = name.replace(os.path.altsep, ' ')
-        return re.sub(r'^[/\\]+', '', name)
+            name = name.replace(os.path.altsep, '_')
+        return _safeNameRegex.sub('_', name)
 
     def downloadFile(self, fileId, path):
         """
@@ -482,7 +500,7 @@ class GirderClient(object):
                     break
                 else:
                     dest = os.path.join(dest, self._transformFilename(name))
-                    os.makedirs(dest)
+                    _safeMakedirs(dest)
 
             for file in files:
                 self.downloadFile(
@@ -514,9 +532,7 @@ class GirderClient(object):
             for folder in folders:
                 local = os.path.join(
                     dest, self._transformFilename(folder['name']))
-
-                if not os.path.isdir(local):
-                    os.makedirs(local)
+                _safeMakedirs(local)
 
                 self.downloadFolderRecursive(folder['_id'], local)
 
