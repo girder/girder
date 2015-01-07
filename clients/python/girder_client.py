@@ -25,6 +25,9 @@ import re
 import requests
 
 
+_safeNameRegex = re.compile(r'^[/\\]+')
+
+
 class AuthenticationError(RuntimeError):
     pass
 
@@ -434,7 +437,7 @@ class GirderClient(object):
         name = name.replace(os.path.sep, ' ')
         if os.path.altsep:
             name = name.replace(os.path.altsep, ' ')
-        return re.sub(r'^[/\\]+', '', name)
+        return _safeNameRegex.sub('', name)
 
     def downloadFile(self, fileId, path):
         """
@@ -482,7 +485,11 @@ class GirderClient(object):
                     break
                 else:
                     dest = os.path.join(dest, self._transformFilename(name))
-                    os.makedirs(dest)
+                    try:
+                        os.makedirs(dest)
+                    except:
+                        if not os.path.isdir(dest):
+                            raise
 
             for file in files:
                 self.downloadFile(
@@ -515,8 +522,11 @@ class GirderClient(object):
                 local = os.path.join(
                     dest, self._transformFilename(folder['name']))
 
-                if not os.path.isdir(local):
+                try:
                     os.makedirs(local)
+                except:
+                    if not os.path.isdir(local):
+                        raise
 
                 self.downloadFolderRecursive(folder['_id'], local)
 
