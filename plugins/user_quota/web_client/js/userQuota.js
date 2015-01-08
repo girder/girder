@@ -138,6 +138,30 @@ girder.views.QuotaPolicies = girder.View.extend({
                 preferredAssetstore: this.$('#g-preferredAssetstore').val(),
                 fallbackAssetstore: this.$('#g-fallbackAssetstore').val()
             };
+            var sizeValue = this.$('#g-sizeValue').val();
+            var sizeUnits = this.$('#g-sizeUnits').val();
+            if (parseFloat(sizeValue) > 0) {
+                fields.fileSizeQuota = parseFloat(sizeValue);
+                /* parse suffix */
+                var suffixes = 'bkMGT';
+                var match = sizeValue.match(
+                    new RegExp('^\\s*[0-9.]+\\s*([' + suffixes + '])', 'i'));
+                if (match && match.length > 1) {
+                    for (sizeUnits = 0; sizeUnits < suffixes.length;
+                         sizeUnits += 1) {
+                        if (match[1].toLowerCase() ===
+                                suffixes[sizeUnits].toLowerCase()) {
+                            break;
+                        }
+                    }
+                }
+                for (var i = 0; i < parseInt(sizeUnits); i += 1) {
+                    fields.fileSizeQuota *= 1024;
+                }
+                fields.fileSizeQuota = parseInt(fields.fileSizeQuota);
+            } else {
+                fields.fileSizeQuota = sizeValue;
+            }
             this.updateQuotaPolicies(fields);
             this.$('button.g-save-policies').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
@@ -213,12 +237,22 @@ girder.views.QuotaPolicies = girder.View.extend({
             name = view.model.attributes.firstName + ' ' +
                    view.model.attributes.lastName;
         }
+        var sizeUnits = 0;
+        var sizeValue = view.model.get('quotaPolicy').fileSizeQuota;
+        if (sizeValue) {
+            for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024) *
+                    1024 === sizeValue; sizeUnits += 1) {
+                sizeValue /= 1024;
+            }
+        }
         var modal = this.$el.html(girder.templates.quotaPolicies({
             girder: girder,
             model: view.model,
             modelType: view.modelType,
             name: name,
             quotaPolicy: view.model.get('quotaPolicy'),
+            sizeValue: sizeValue,
+            sizeUnits: sizeUnits,
             assetstoreList: (girder.currentUser.get('admin') ?
                 view.model.get('assetstoreList').models : undefined),
             capacityString: ' ' + this.capacityString()

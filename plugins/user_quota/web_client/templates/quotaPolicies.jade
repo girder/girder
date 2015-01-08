@@ -17,10 +17,16 @@
           .form-group
             label.control-label(for="g-fileSizeQuota") File Size Quota
             p.g-quota-description
-              | This is the maximum allowed size of all files in bytes.
-            input.input-sm#g-fileSizeQuota.form-control(type="text",
-              value="#{quotaPolicy.fileSizeQuota ? quotaPolicy.fileSizeQuota : ''}",
-              placeholder="Maximum allowed size of all files in bytes, or blank for no limit")
+              | This is the maximum allowed size of all files.
+            input.input-sm#g-sizeValue.form-control(type="text",
+              value="#{sizeValue ? sizeValue : ''}",
+              placeholder="Maximum allowed size of all files, or blank for no limit")
+            select#g-sizeUnits.form-control.input-sm
+              option(value='0', selected=(sizeUnits === 0)) bytes
+              option(value='1', selected=(sizeUnits === 1)) kB
+              option(value='2', selected=(sizeUnits === 2)) MB
+              option(value='3', selected=(sizeUnits === 3)) GB
+              option(value='4', selected=(sizeUnits === 4)) TB
           .form-group
             label.control-label(for="g-preferredAssetstore") Preferred Assetstore
             p.g-quota-description

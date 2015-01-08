@@ -73,8 +73,8 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
     }, 'the chart to be determined');
     runs(function () {
-        expect($("#g-fileSizeQuota").length).toBe(1);
-        $("#g-fileSizeQuota").val('abc');
+        expect($("#g-sizeValue").length).toBe(1);
+        $("#g-sizeValue").val('abc');
         $('.g-save-policies').click();
     });
     waitsFor(function () {
@@ -82,7 +82,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
             indexOf('Invalid fileSizeQuota') >= 0;
     }, 'an error message to appear');
     runs(function () {
-        $("#g-fileSizeQuota").val(capacity ? capacity : '');
+        $("#g-sizeValue").val(capacity ? capacity : '');
     });
     runs(function () {
         $('.g-save-policies').click();
@@ -106,7 +106,7 @@ function _testQuotaDialogAsUser(hasChart) {
         return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
     }, 'the chart to be determined');
     runs(function () {
-        expect($("#g-fileSizeQuota").length).toBe(0);
+        expect($("#g-sizeValue").length).toBe(0);
     });
     runs(function () {
         $('a.btn-default').click();
@@ -197,7 +197,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-policies').click();
         });
         /* We should now have a chart */
-        _testQuotaDialogAsAdmin(true, 32768);
+        _testQuotaDialogAsAdmin(true, '32 kB');
         _goToUser('Quota User');
         runs(function () {
             userRoute = window.location.hash;
