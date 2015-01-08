@@ -131,7 +131,7 @@ class Notification(Model):
         expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
         return self.createNotification('progress', data, user, expires,
-                                        token=token)
+                                       token=token)
 
     def updateProgress(self, record, save=True, **kwargs):
         """
