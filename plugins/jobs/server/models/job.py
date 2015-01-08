@@ -109,15 +109,18 @@ class Job(AccessControlledModel):
         job, pass it in and it will have the job-specific scope set.
         :type externalToken: token (dict) or None.
         """
+        now = datetime.datetime.utcnow()
+
         if when is None:
-            when = datetime.datetime.utcnow()
+            when = now
 
         job = {
             'title': title,
             'type': type,
             'args': args,
             'kwargs': kwargs,
-            'created': datetime.datetime.utcnow(),
+            'created': now,
+            'updated': now,
             'when': when,
             'interval': interval,
             'status': JobStatus.INACTIVE,
@@ -152,9 +155,25 @@ class Job(AccessControlledModel):
         return self.model('token').createToken(
             days=days, scope='jobs.job_' + str(job['_id']))
 
-    def updateJob(self, job, log=None, overwrite=False, status=None):
+    def updateJob(self, job, log=None, overwrite=False, status=None,
+                  progressTotal=None, progressCurrent=None, notify=True,
+                  progressMessage=None):
         """
-        Update an existing job.
+        Update an existing job. Any of the updateable fields that are set to
+        None in the kwargs will not be modified. If you set progress information
+        on the job for the first time and set notify=True, a new notification
+        record for the job progress will be created. Job status changes will
+        also create a notification with type="job_status" if notify=True.
+
+        :param job: The job document to update.
+        :param log: Message to append to the job log. If you wish to overwrite
+            instead of append, pass overwrite=True.
+        :type log: str
+        :param overwrite: Whether to overwrite the log (default is append).
+        :type overwrite: bool
+        :param status: New status for the job.
+        :type status: JobStatus
+        :param progressTotal: Max progress value for this job.
         """
         changed = False
 
@@ -168,10 +187,63 @@ class Job(AccessControlledModel):
             changed = True
             job['status'] = status
 
+            if notify and job['userId']:
+                user = self.model('user').load(job['userId'], force=True)
+                expires = expires = (datetime.datetime.utcnow() +
+                                     datetime.timedelta(seconds=30))
+                self.model('notification').createNotification(
+                    type='job_status', data={'status': status}, user=user,
+                    expires=expires)
+        if (progressMessage is not None or progressCurrent is not None or
+                progressTotal is not None):
+            changed = True
+            self._updateJobProgress(job, progressTotal, progressCurrent,
+                                    progressMessage, notify)
+
         if changed:
+            job['updated'] = datetime.datetime.utcnow()
             job = self.save(job)
 
         return job
+
+    def _updateJobProgress(job, total, current, message, notify):
+        """Helper for updating job progress information."""
+        state = JobStatus.toNotificationStatus(job['status'])
+
+        if job['progress'] is None:
+            if notify and job['userId']:
+                user = self.model('user').load(job['userId'], force=True)
+                # TODO support channel-based notifications for jobs. For
+                # right now we'll just go through the user.
+                notification = self.model('notification').initProgress(
+                    user, job['title'], total, state=state, current=current,
+                    message=message, estimateTime=False)
+                notificationId = notification['_id']
+            else:
+                notificationId = None
+            job['progress'] = {
+                'message': progressMessage,
+                'total': progressTotal,
+                'current': progressCurrent,
+                'notificationId': notificationId
+            }
+        else:
+            if total is not None:
+                job['progress']['total'] = total
+            if current is not None:
+                job['progress']['current'] = current
+            if message is not None:
+                job['progress']['message'] = message
+
+            if notify and job['progress']['notificationId'] is not None:
+                notification = self.model('notification').load(
+                    job['notificationId'])
+
+                self.model('notification').updateProgress(
+                    notification, state=state,
+                    message=job['progress']['message'],
+                    current=job['progress']['current'],
+                    total=job['progress']['total'])
 
     def filter(self, job, user):
         # Allow downstreams to filter job info as they see fit

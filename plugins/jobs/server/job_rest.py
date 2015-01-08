@@ -96,7 +96,11 @@ class Job(Resource):
         if not event.defaultPrevented:
             job = self.model('job', 'jobs').updateJob(
                 job, log=params.get('log'), status=params.get('status'),
-                overwrite=self.boolParam('overwrite', params, False))
+                overwrite=self.boolParam('overwrite', params, False),
+                notify=self.boolParam('notify', params, default=True),
+                progressCurrent=params.get('progressCurrent'),
+                progressTotal=params.get('progressTotal'),
+                progressMessage=params.get('progressMessage'))
 
         return job
     updateJob.description = (
@@ -118,6 +122,13 @@ class Job(Resource):
         .param('status', 'Update the status of the job. See the JobStatus '
                'enumeration in the constants module in this plugin for the '
                'numerical values of each status.', dataType='integer',
+               required=False)
+        .param('progressTotal', 'Maximum progress value, set <= 0 to indicate '
+               'indeterminate progress for this job.', required=False)
+        .param('progressCurrent', 'Current progress value.', required=False)
+        .param('progressMessage', 'Current progress message.', required=False)
+        .param('notify', 'If this update should trigger a notification, set '
+               'this field to true. The default is true.', dataType='boolean',
                required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the job.', 403))

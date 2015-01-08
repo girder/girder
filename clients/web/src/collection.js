@@ -46,14 +46,14 @@ girder.Collection = Backbone.Collection.extend({
      */
     fetchPreviousPage: function (params) {
         this.offset = Math.max(0, this.offset - this.length - this.pageLimit);
-        this.fetch(params);
+        this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
     fetchNextPage: function (params) {
-        this.fetch(_.extend(this.params, params || {}));
+        this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
