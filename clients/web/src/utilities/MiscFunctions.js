@@ -40,14 +40,17 @@ girder.formatDate = function (datestr, resolution) {
  * prefixes.
  */
 girder.formatSize = function (sizeBytes) {
+    if (sizeBytes < 20000) {
+        return sizeBytes + ' B';
+    }
     var i, sizeVal = sizeBytes, precision = 1;
     for (i = 0; sizeVal >= 1024; i += 1) {
         sizeVal /= 1024;
     }
-    // If we are just reporting bytes, no need for decimal places.
-    if (sizeBytes < 1024) {
-        precision = 0;
-    } else if (sizeVal < 10) {
+    // If we are just reporting a low number, no need for decimal places.
+    if (sizeVal < 10) {
+        precision = 3;
+    } else if (sizeVal < 100) {
         precision = 2;
     }
     return sizeVal.toFixed(precision) + ' ' +

@@ -20,7 +20,6 @@ add_python_style_test(pep8_style_user_quota
 add_web_client_test(
     user_quota
     "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests/userQuotaSpec.js"
-    PLUGIN user_quota
-    RESOURCE_LOCKS uploadtest)
+    PLUGIN user_quota)
 add_javascript_style_test(
     user_quota "${PROJECT_SOURCE_DIR}/plugins/user_quota/web_client/js")

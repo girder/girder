@@ -197,7 +197,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-policies').click();
         });
         /* We should now have a chart */
-        _testQuotaDialogAsAdmin(true, 16384);
+        _testQuotaDialogAsAdmin(true, 32768);
         _goToUser('Quota User');
         runs(function () {
             userRoute = window.location.hash;
@@ -240,6 +240,10 @@ describe('test the user quota plugin', function () {
         }, 'my folders list to display');
         girderTest.testUpload(2048);
         girderTest.testUpload(2048, 'abort', 'file storage quota');
+        runs(function () {
+            window.callPhantom({action: 'uploadCleanup',
+                                suffix: girderTest._uploadSuffix});
+        });
     });
     it('check that user2 can view but not set quota', function () {
         girderTest.logout('logout from admin')();

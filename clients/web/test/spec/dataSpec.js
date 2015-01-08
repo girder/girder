@@ -503,6 +503,10 @@ describe('Create a data hierarchy', function () {
         waitsFor(function () {
             return $('.g-list-checkbox').length == 0;
         }, 'items to be deleted');
+        runs(function () {
+            window.callPhantom({action: 'uploadCleanup',
+                                suffix: girderTest._uploadSuffix});
+        });
     });
     /* Create a second user so that we can test move/copy permissions */
     it('logout from first account', girderTest.logout('logout from first account'));

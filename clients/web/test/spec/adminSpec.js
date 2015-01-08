@@ -265,11 +265,13 @@ describe('Test the assetstore page', function () {
                     {'g-new-gridfs-name': 'name',
                      'g-new-gridfs-db': 'girder_webclient_gridfs'});
 
+    /* The specified assetstore should NOT exist, and the specified mongohost
+     * should NOT be present (nothing should respond on those ports). */
     _testAssetstore('gridfs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
                      'g-new-gridfs-db': 'girder_webclient_gridfsrs',
-                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.1:27070,'+
-                        '127.0.0.1:27071,127.0.0.1:27072',
+                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,'+
+                        '127.0.0.2:27081,127.0.0.2:27082',
                      'g-new-gridfs-replicaset': 'replicaset'});
 
     _testAssetstore('s3', 'g-create-s3-tab',

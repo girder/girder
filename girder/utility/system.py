@@ -162,14 +162,16 @@ def formatSize(sizeBytes):
     :returns formatedSize: the formatted size string.
     """
     suffixes = ['B', 'kB', 'MB', 'GB', 'TB']
+    if sizeBytes < 20000:
+        return '%d %s' % (sizeBytes, suffixes[0])
     idx = 0
     sizeVal = float(sizeBytes)
     while sizeVal >= 1024 and idx + 1 < len(suffixes):
         sizeVal /= 1024
         idx += 1
-    if sizeBytes < 1024:
-        precision = 0
-    elif sizeVal < 10:
+    if sizeVal < 10:
+        precision = 3
+    elif sizeVal < 100:
         precision = 2
     else:
         precision = 1

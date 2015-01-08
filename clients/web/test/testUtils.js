@@ -588,6 +588,11 @@ function _prepareTestUpload() {
     girderTest._uploadData = null;
     /* used for resume testing */
     girderTest._uploadDataExtra = 0;
+    girderTest._uploadSuffix = '';
+    var hostport = window.location.host.match(':([0-9]+)');
+    if (hostport && hostport.length === 2) {
+        girderTest._uploadSuffix = hostport[1];
+    }
 
     (function (impl) {
         FormData.prototype.append = function (name, value, filename) {
@@ -678,7 +683,8 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
         // Incantation that causes the phantom environment to send us a File.
         $('#g-files').parent().removeClass('hide');
-        var params = {action: 'uploadFile', selector: '#g-files'};
+        var params = {action: 'uploadFile', selector: '#g-files',
+                      suffix: girderTest._uploadSuffix};
         if (uploadItem === parseInt(uploadItem)) {
             params.size = uploadItem;
         } else {
@@ -723,5 +729,6 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
-    window.callPhantom({action: 'uploadCleanup'});
+    window.callPhantom({action: 'uploadCleanup',
+                        suffix: girderTest._uploadSuffix});
 };
