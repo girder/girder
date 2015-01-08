@@ -17,8 +17,22 @@
 #  limitations under the License.
 ###############################################################################
 
-from quota import QuotaPolicy
+import constants
+from quota import QuotaPolicy, ValidateSizeQuota
 from girder import events
+from girder.models.model_base import ValidationException
+
+
+def validateSettings(event):
+    key, val = event.info['key'], event.info['value']
+
+    if key in (constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA,
+               constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA):
+        (val, err) = ValidateSizeQuota(val)
+        if err:
+            raise ValidationException(err, 'value')
+        event.info['value'] = val
+        event.preventDefault().stopPropagation()
 
 
 def load(info):
@@ -29,6 +43,7 @@ def load(info):
                                      quota.setCollectionQuota)
     info['apiRoot'].user.route('GET', (':id', 'quota'), quota.getUserQuota)
     info['apiRoot'].user.route('PUT', (':id', 'quota'), quota.setUserQuota)
+    events.bind('model.setting.validate', 'userQuota', validateSettings)
     events.bind('model.upload.assetstore', 'userQuota',
                 quota.getUploadAssetstore)
     events.bind('model.upload.save', 'userQuota', quota.checkUploadStart)

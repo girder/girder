@@ -5,6 +5,8 @@ $(function () {
         '/static/built/plugins/user_quota/templates.js');
     girderTest.addCoveredScript(
         '/plugins/user_quota/web_client/js/userQuota.js');
+    girderTest.addCoveredScript(
+        '/plugins/user_quota/web_client/js/configView.js');
     $('<link/>', {rel: 'stylesheet', type: 'text/css',
                   href: '/static/built/plugins/user_quota/plugin.min.css'
     }).appendTo('head');
@@ -74,7 +76,9 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
     }, 'the chart to be determined');
     runs(function () {
         expect($("#g-sizeValue").length).toBe(1);
-        $("#g-sizeValue").val('abc');
+        /* The change() call should automatically set the custom quota radio
+         * button. */
+        $("#g-sizeValue").val('abc').trigger('input');
         $('.g-save-policies').click();
     });
     waitsFor(function () {
@@ -88,7 +92,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         $('.g-save-policies').click();
     });
     girderTest.waitForLoad('quota dialog to hide');
-}        
+}
 
 /* Test the quota dialog, expecting that this is a user and can not set the
  * quota.
@@ -112,7 +116,7 @@ function _testQuotaDialogAsUser(hasChart) {
         $('a.btn-default').click();
     });
     girderTest.waitForLoad();
-}        
+}
 
 describe('test the user quota plugin', function () {
     var collectionDialogRoute, userDialogRoute, userRoute;
@@ -175,9 +179,54 @@ describe('test the user quota plugin', function () {
             return !$('#g-dialog-container').hasClass('in');
         }, 'access dialog to be hidden');
     });
+    it('check that admin can set the default quotas', function () {
+        waitsFor(function () {
+            return $('a.g-nav-link[g-target="admin"]').length > 0;
+        }, 'admin console link to load');
+        runs(function () {
+            $('a.g-nav-link[g-target="admin"]').click();
+        });
+        waitsFor(function () {
+            return $('.g-plugins-config').length > 0;
+        }, 'the admin console to load');
+        runs(function () {
+            $('.g-plugins-config').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('input.g-plugin-switch[key="user_quota"]').length > 0;
+        }, 'the plugins page to load');
+        runs(function () {
+            expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);
+            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('input.g-sizeValue').length > 0
+        }, 'quota default settings to be shown');
+        runs(function () {
+            $('input.g-sizeValue[model=user]').val('abc');
+            $('#g-user-quota-form input.btn-primary').click();
+        });
+        waitsFor(function () {
+            return $('#g-user-quota-error-message').text().indexOf('Invalid quota') >= 0;
+        }, 'error message to appear');
+        runs(function () {
+            $('input.g-sizeValue[model=user]').val('512000');
+            $('#g-user-quota-form input.btn-primary').click();
+        });
+        waitsFor(function () {
+            var resp = girder.restRequest({
+                path: 'system/setting',
+                type: 'GET',
+                data: {key: 'user_quota.default_user_quota'},
+                async: false
+            });
+            return resp.responseText == '512000';
+        }, 'default quota settings to change');
+        girderTest.waitForLoad();
+    });
     it('check that admin can set quota for collections and users', function () {
-        girderTest.logout('logout from user')();
-        girderTest.login('admin', 'Quota', 'Admin', 'testpassword')();
         _goToCollection('Collection A');
         runs(function () {
             $('.g-collection-actions-button').click();

@@ -23,6 +23,9 @@ import os
 from tests import base
 from girder import events
 from girder.constants import AccessType, AssetstoreType, SettingKey
+from girder.models.model_base import ValidationException
+from girder.utility.system import formatSize
+from server import constants
 
 
 def setUpModule():
@@ -148,7 +151,37 @@ class QuotaTestCase(base.TestCase):
         if not results:
             results = policy
         for key in results:
-            self.assertEqual(currentPolicy[key], results[key] or None)
+            if results[key] or results[key] is False:
+                self.assertEqual(currentPolicy[key], results[key])
+            else:
+                self.assertEqual(currentPolicy[key], None)
+
+    def _setQuotaDefault(self, model, value, testVal='__NOCHECK__',
+                         error=None):
+        """
+        Set the default quota for a particular model.
+
+        :param model: either 'user' or 'collection'.
+        :param value: the value to set.  Either None or a positive integer.
+        :param testVal: if not __NOCHECK__, test the current value to see if it
+                        matches this.
+        :param error: if set, this is a substring expected in an error message.
+        """
+        if model == 'user':
+            key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+        elif model == 'collection':
+            key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+        try:
+            self.model('setting').set(key, value)
+        except ValidationException as err:
+            if not error:
+                raise
+            if not error in err.message:
+                raise
+            return
+        if testVal is not '__NOCHECK__':
+            newVal = self.model('setting').get(key)
+            self.assertEqual(newVal, testVal)
 
     def _testAssetstores(self, model, resource, user):
         """
@@ -221,7 +254,8 @@ class QuotaTestCase(base.TestCase):
         # Start by uploading one file so that there is some use
         self._uploadFile('First upload', folder, size=1024)
         # Set a policy limiting things to 4 kb, then a 4 kb file should fail
-        self._setPolicy({'fileSizeQuota': 4096}, model, resource, user)
+        self._setPolicy({'fileSizeQuota': 4096, 'useQuotaDefault': False},
+                        model, resource, user)
         self._uploadFile('File too large', folder, size=4096,
                          error='Upload would exceed file storage quota')
         # But a 2 kb file will succeed
@@ -245,6 +279,21 @@ class QuotaTestCase(base.TestCase):
         # existing file should still work, though
         self._setPolicy({'fileSizeQuota': 2048}, model, resource, user)
         self._uploadFile('Second upload', file, 'file', size=1536)
+        # Now test again using default quotas.  We have 1024+1536+768 = 3328
+        # bytes currently uploaded
+        self._setPolicy({'useQuotaDefault': True}, model, resource, user)
+        # Upload should now be unlimited, so anything will work
+        self._uploadFile('Fourth upload', folder, size=1792)
+        # Set a policy limiting things to 8 kb, then an additional 4 kb file
+        # should fail
+        self._setQuotaDefault(model, 8192)
+        self._uploadFile('File too large', folder, size=4096,
+                         error='Upload would exceed file storage quota')
+        # But a 2 kb file will succeed
+        file = self._uploadFile('Fifth upload', folder, size=2048)
+        # And a second 2 kb file will fail
+        self._uploadFile('File too large', folder, size=2048,
+                         error='Upload would exceed file storage quota')
 
     def testAssetstorePolicy(self):
         """
@@ -337,9 +386,39 @@ class QuotaTestCase(base.TestCase):
                         results={'fileSizeQuota': None})
         self._setPolicy({'fileSizeQuota': 'not an integer'},
                         'user', self.user, self.user,
-                        error='Invalid fileSizeQuota')
+                        error='Invalid quota')
         self._setPolicy({'fileSizeQuota': -1},
                         'user', self.user, self.user,
-                        error='Invalid fileSizeQuota')
+                        error='Invalid quota')
         self._setPolicy({'fileSizeQuota': None},
                         'user', self.user, self.user)
+        # useDefaultQuota can be True, False, None, yes, no, 0, 1.
+        valdict = {None: True, True: True, 'true': True, 1: True, 'True': True,
+                   False: False, 'false': False, 0: False, 'False': False}
+        for val in valdict:
+            self._setPolicy({'useQuotaDefault': val},
+                            'user', self.user, self.user,
+                            results={'useQuotaDefault': valdict[val]})
+        self._setPolicy({'useQuotaDefault': 'not_a_boolean'}, 'user',
+                        self.user, self.user, error='Invalid useQuotaDefault')
+        # the resource default values behave like fileSizeQuota
+        self._setQuotaDefault('user', 0, None)
+        self._setQuotaDefault('user', '00', None)
+        self._setQuotaDefault('user', '', None)
+        self._setQuotaDefault('user', 'not an integer', error='Invalid quota')
+        self._setQuotaDefault('user', -1, error='Invalid quota')
+        self._setQuotaDefault('user', None)
+
+    def testFormatSize(self):
+        """
+        Test the formatSize function
+        """
+        testList = [
+            (1000, '1000 B'),
+            (10000, '10000 B'),
+            (20000, '19.53 kB'),
+            (200000, '195.3 kB'),
+            (2000000, '1.907 MB'),
+            ]
+        for testItem in testList:
+            self.assertEqual(testItem[1], formatSize(testItem[0]))

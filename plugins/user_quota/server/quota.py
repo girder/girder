@@ -20,6 +20,7 @@
 from bson.objectid import ObjectId, InvalidId
 import json
 
+import constants
 from girder import logger
 from girder.api import access
 from girder.api.describe import Description
@@ -31,6 +32,32 @@ from girder.utility.system import formatSize
 
 
 QUOTA_FIELD = 'quota'
+
+
+def ValidateSizeQuota(value):
+    """
+    Validate a quota value.  This may be blank or a non-negative integer.
+
+    :param value: the proposed value.
+    :return value: the validated value: either None or an integer
+    :return err: None if no error occurred, otherwise a recommended error
+                 message.
+    """
+    if value is None or value == '' or value == 0:
+        return None, None
+    error = False
+    try:
+        value = int(value)
+        if value < 0:
+            error = True
+    except ValueError:
+        error = True
+    if error:
+        return (value, 'Invalid quota.  Must be blank or a positive integer '
+                       'representing the limit in bytes.')
+    if value == 0:
+        return None, None
+    return value, None
 
 
 class QuotaPolicy(Resource):
@@ -92,21 +119,9 @@ class QuotaPolicy(Resource):
         :param value: the proposed value.
         :returns value: the validated value: either None or an integer
         """
-        if value is None or value == '' or value == 0:
-            return None
-        error = False
-        try:
-            value = int(value)
-            if value < 0:
-                error = True
-        except ValueError:
-            error = True
-        if error:
-            raise RestException(
-                'Invalid fileSizeQuota.  Must be blank or a positive integer '
-                'representing the limit in bytes.', extra='fileSizeQuota')
-        if value == 0:
-            return None
+        (value, err) = ValidateSizeQuota(value)
+        if err:
+            raise RestException(err, extra='fileSizeQuota')
         return value
 
     def _validate_preferredAssetstore(self, value):
@@ -126,6 +141,20 @@ class QuotaPolicy(Resource):
                 'ID, or be blank or "current" to use the current assetstore.',
                 extra='preferredAssetstore')
         return value
+
+    def _validate_useQuotaDefault(self, value):
+        """Validate the useQuotaDefault parameter.
+
+        :param value: the proposed value.
+        :returns value: the validated value: either True, False, or None.
+        """
+        if str(value).lower() in ('none', 'true', 'yes', '1'):
+            return True
+        if str(value).lower() in ('false', 'no', '0'):
+            return False
+        raise RestException(
+            'Invalid useQuotaDefault.  Must either be true or false.',
+            extra='useQuotaDefault')
 
     def _validatePolicy(self, policy):
         """
@@ -287,6 +316,31 @@ class QuotaPolicy(Resource):
         if assetstore:
             event.info['assetstore'] = assetstore
 
+    def _getFileSizeQuota(self, model, resource):
+        """
+        Get the current fileSizeQuota for a resource.  This takes the default
+        quota into account if necessary.
+
+        :param model: the type of resource (e.g., user or collection)
+        :param resource: the resource document.
+        :return quota: the fileSizeQuota.  None for no quota (unlimited),
+                       otherwise a positive integer.
+        """
+        useDefault = resource[QUOTA_FIELD].get('useQuotaDefault', True)
+        quota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
+        if useDefault:
+            if model == 'user':
+                key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+            elif model == 'collection':
+                key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+            else:
+                key = None
+            if key:
+                quota = self.model('setting').get(key, None)
+        if not quota or quota < 0 or not isinstance(quota, int):
+            return None
+        return quota
+
     def _checkUploadSize(self, upload):
         """
         Check if an upload will fit within a quota restriction.
@@ -306,8 +360,8 @@ class QuotaPolicy(Resource):
                                                     upload['parentId'])
         if resource is None:
             return None
-        fileSizeQuota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
-        if not fileSizeQuota or fileSizeQuota < 0:
+        fileSizeQuota = self._getFileSizeQuota(model, resource)
+        if not fileSizeQuota:
             return None
         newSize = resource['size'] + upload['size'] - origSize
         # always allow replacement with a smaller object

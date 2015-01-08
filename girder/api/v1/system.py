@@ -77,7 +77,10 @@ class System(Resource):
                 value = None
             else:
                 try:
-                    value = json.loads(setting['value'])
+                    if isinstance(setting['value'], basestring):
+                        value = json.loads(setting['value'])
+                    else:
+                        value = setting['value']
                 except ValueError:
                     value = setting['value']
 

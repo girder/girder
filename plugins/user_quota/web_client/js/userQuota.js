@@ -101,10 +101,35 @@
             fetchAssetstores: function (force) {
                 if (girder.currentUser.get('admin') &&
                         (!this.get('assetstoreList') || force)) {
-                    this.set('assetstoreList', new girder.collections.AssetstoreCollection());
+                    this.set('assetstoreList',
+                             new girder.collections.AssetstoreCollection());
                     this.get('assetstoreList').on('g:changed', function () {
-                        this.trigger('g:quotaPolicyFetched');
+                        this.fetchDefaultQuota(force);
                     }, this).fetch();
+                } else {
+                    this.fetchDefaultQuota(force);
+                }
+                return this;
+            },
+            /* Fetches the global default setting for quota for this resource.
+             * @param force: By default, this only fetches the default quota if
+             *               it hasn't already been set on the model.  If you
+             *               want to force a refresh anyway, set this param to
+             *               true.
+             */
+            fetchDefaultQuota: function (force) {
+                if (girder.currentUser.get('admin') &&
+                        (!this.get('defaultQuota') || force)) {
+                    girder.restRequest({
+                        path: 'system/setting',
+                        type: 'GET',
+                        data: {
+                            key: 'user_quota.default_' + modelType + '_quota'
+                        }
+                    }).done(_.bind(function (resp) {
+                        this.set('defaultQuota', resp);
+                        this.trigger('g:quotaPolicyFetched');
+                    }, this));
                 } else {
                     this.trigger('g:quotaPolicyFetched');
                 }
@@ -135,45 +160,34 @@ girder.views.QuotaPolicies = girder.View.extend({
             e.preventDefault();
             var fields = {
                 fileSizeQuota: this.$('#g-fileSizeQuota').val(),
+                useQuotaDefault: $('input:radio[name=defaultQuota]:checked')
+                    .val() === 'True',
                 preferredAssetstore: this.$('#g-preferredAssetstore').val(),
                 fallbackAssetstore: this.$('#g-fallbackAssetstore').val()
             };
             var sizeValue = this.$('#g-sizeValue').val();
             var sizeUnits = this.$('#g-sizeUnits').val();
-            if (parseFloat(sizeValue) > 0) {
-                fields.fileSizeQuota = parseFloat(sizeValue);
-                /* parse suffix */
-                var suffixes = 'bkMGT';
-                var match = sizeValue.match(
-                    new RegExp('^\\s*[0-9.]+\\s*([' + suffixes + '])', 'i'));
-                if (match && match.length > 1) {
-                    for (sizeUnits = 0; sizeUnits < suffixes.length;
-                         sizeUnits += 1) {
-                        if (match[1].toLowerCase() ===
-                                suffixes[sizeUnits].toLowerCase()) {
-                            break;
-                        }
-                    }
-                }
-                for (var i = 0; i < parseInt(sizeUnits); i += 1) {
-                    fields.fileSizeQuota *= 1024;
-                }
-                fields.fileSizeQuota = parseInt(fields.fileSizeQuota);
-            } else {
-                fields.fileSizeQuota = sizeValue;
-            }
+            fields.fileSizeQuota = girder.userQuota.valueAndUnitsToSize(
+                this.$('#g-sizeValue').val(), this.$('#g-sizeUnits').val());
             this.updateQuotaPolicies(fields);
             this.$('button.g-save-policies').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
-        }
+        },
+        'input #g-sizeValue': '_selectCustomQuota',
+        'change #g-sizeUnits': '_selectCustomQuota'
+    },
+
+    _selectCustomQuota: function (e) {
+        $('#g-customQuota').prop('checked', true);
     },
 
     initialize: function (settings) {
         this.model = settings.model;
         this.modelType = settings.modelType;
-        this.model.on('g:quotaPolicyFetched', function () {
-            this.render();
-        }, this).fetchQuotaPolicy();
+        this.model.off('g:quotaPolicyFetched').on('g:quotaPolicyFetched',
+            function () {
+                this.render();
+            }, this).fetchQuotaPolicy();
     },
 
     capacityChart: function (view, el) {
@@ -186,8 +200,8 @@ girder.views.QuotaPolicies = girder.View.extend({
         var used = view.model.get('size');
         var free = used < quota ? quota - used : 0;
         var data = [
-            ['Used', used],
-            ['Free', free]
+            ['Used (' + girder.formatSize(used) + ')', used],
+            ['Free (' + girder.formatSize(free) + ')', free]
         ];
         var plot = $(el).jqplot([data], {
             seriesDefaults: {
@@ -197,7 +211,8 @@ girder.views.QuotaPolicies = girder.View.extend({
                     shadow: false,
                     highlightMouseOver: false,
                     showDataLabels: true,
-                    padding: 5
+                    padding: 5,
+                    startAngle: 180
                 }
             },
             legend: {
@@ -237,13 +252,13 @@ girder.views.QuotaPolicies = girder.View.extend({
             name = view.model.attributes.firstName + ' ' +
                    view.model.attributes.lastName;
         }
-        var sizeUnits = 0;
-        var sizeValue = view.model.get('quotaPolicy').fileSizeQuota;
-        if (sizeValue) {
-            for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024) *
-                    1024 === sizeValue; sizeUnits += 1) {
-                sizeValue /= 1024;
-            }
+        var sizeInfo = girder.userQuota.sizeToValueAndUnits(
+            view.model.get('quotaPolicy').fileSizeQuota);
+        var defaultQuota = this.model.get('defaultQuota'), defaultQuotaString;
+        if (!defaultQuota) {
+            defaultQuotaString = 'Unlimited';
+        } else {
+            defaultQuotaString = girder.formatSize(defaultQuota);
         }
         var modal = this.$el.html(girder.templates.quotaPolicies({
             girder: girder,
@@ -251,11 +266,12 @@ girder.views.QuotaPolicies = girder.View.extend({
             modelType: view.modelType,
             name: name,
             quotaPolicy: view.model.get('quotaPolicy'),
-            sizeValue: sizeValue,
-            sizeUnits: sizeUnits,
+            sizeValue: sizeInfo.sizeValue,
+            sizeUnits: sizeInfo.sizeUnits,
             assetstoreList: (girder.currentUser.get('admin') ?
                 view.model.get('assetstoreList').models : undefined),
-            capacityString: ' ' + this.capacityString()
+            capacityString: ' ' + this.capacityString(),
+            defaultQuotaString: defaultQuotaString
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-fileSizeQuota').focus();
             view.capacityChart(view, '.g-quota-capacity-chart');
@@ -283,3 +299,57 @@ girder.views.QuotaPolicies = girder.View.extend({
         }, this).updateQuotaPolicy();
     }
 });
+
+girder.userQuota = {
+    /* Convert a number of bytes to a value and units.  The units are the
+     * powers of 1024.  For instance, 4096 will result in (4, 1).
+     * @param sizeValue: number of bytes to convert.  If this is falsy, an
+     *                   empty string is returned.
+     * @return .sizeValue: the new size value.  This may be an empty string.
+     * @return .sizeUnits: the size units (0-based powers of 1024). */
+    sizeToValueAndUnits: function (sizeValue) {
+        var sizeUnits = 0;
+        if (sizeValue) {
+            for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024) *
+                    1024 === sizeValue; sizeUnits += 1) {
+                sizeValue /= 1024;
+            }
+        } else {
+            sizeValue = '';
+        }
+        return {sizeUnits: sizeUnits, sizeValue: sizeValue};
+    },
+
+    /* Convert a number and units to a number of bytes.  The units can either
+     * be included as a suffix for the number or are the power of 1024.
+     * @param sizeValue: an integer, empty string, or a string with a floating
+     *                   point number followed by an SI prefix.
+     * @param sizeUnits: the size units (0-based powers of 1024).  Ignored if
+     *                   units are given in the string.
+     * @return sizeBytes: the number of bytes specified, or the empty string
+     *                    for none. */
+    valueAndUnitsToSize: function (sizeValue, sizeUnits) {
+        var sizeBytes = sizeValue;
+        if (parseFloat(sizeValue) > 0) {
+            sizeBytes = parseFloat(sizeValue);
+            /* parse suffix */
+            var suffixes = 'bkMGT';
+            var match = sizeValue.match(
+                new RegExp('^\\s*[0-9.]+\\s*([' + suffixes + '])', 'i'));
+            if (match && match.length > 1) {
+                for (sizeUnits = 0; sizeUnits < suffixes.length;
+                     sizeUnits += 1) {
+                    if (match[1].toLowerCase() ===
+                            suffixes[sizeUnits].toLowerCase()) {
+                        break;
+                    }
+                }
+            }
+            for (var i = 0; i < parseInt(sizeUnits); i += 1) {
+                sizeBytes *= 1024;
+            }
+            sizeBytes = parseInt(sizeBytes);
+        }
+        return sizeBytes;
+    }
+};

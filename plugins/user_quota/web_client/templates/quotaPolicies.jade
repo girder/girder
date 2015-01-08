@@ -15,13 +15,25 @@
           .g-quota-capacity-chart
         if girder.currentUser.get('admin')
           .form-group
-            label.control-label(for="g-fileSizeQuota") File Size Quota
+            label.control-label(for="g-sizeValue") File Size Quota
             p.g-quota-description
               | This is the maximum allowed size of all files.
-            input.input-sm#g-sizeValue.form-control(type="text",
+            .radio
+              label
+                input#g-defaultQuota(type="radio", name="defaultQuota",
+                  value="True",
+                  checked=(quotaPolicy.useQuotaDefault !== false))
+                | Use the default quota: #{defaultQuotaString}
+            .radio.g-customQuota
+              label
+                input#g-customQuota(type="radio", name="defaultQuota",
+                  value="False",
+                  checked=(quotaPolicy.useQuotaDefault === false))
+                | Use a specific quota:
+            input.input-sm#g-sizeValue.g-sizeValue.form-control(type="text",
               value="#{sizeValue ? sizeValue : ''}",
               placeholder="Maximum allowed size of all files, or blank for no limit")
-            select#g-sizeUnits.form-control.input-sm
+            select#g-sizeUnits.form-control.input-sm.g-sizeUnits
               option(value='0', selected=(sizeUnits === 0)) bytes
               option(value='1', selected=(sizeUnits === 1)) kB
               option(value='2', selected=(sizeUnits === 2)) MB
