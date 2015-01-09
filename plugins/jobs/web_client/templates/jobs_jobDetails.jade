@@ -2,6 +2,9 @@
   .g-job-info-key.inline Title:
   .g-job-info-value.inline= job.get('title')
 .g-field-container
+  .g-job-info-key.inline Job ID:
+  .g-job-info-value.inline= job.get('_id')
+.g-field-container
   .g-job-info-key.inline Status:
   .g-job-status-badge(status="#{statusText.toLowerCase()}")= statusText
 .g-field-container

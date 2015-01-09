@@ -192,7 +192,7 @@ class Job(AccessControlledModel):
                 expires = expires = (datetime.datetime.utcnow() +
                                      datetime.timedelta(seconds=30))
                 self.model('notification').createNotification(
-                    type='job_status', data={'status': status}, user=user,
+                    type='job_status', data=self.filter(job, user), user=user,
                     expires=expires)
         if (progressMessage is not None or progressCurrent is not None or
                 progressTotal is not None):
