@@ -1,0 +1,19 @@
+.g-field-container
+  .g-job-info-key.inline Title:
+  .g-job-info-value.inline= job.get('title')
+.g-field-container
+  .g-job-info-key.inline Status:
+  .g-job-status-badge(status="#{statusText.toLowerCase()}")= statusText
+.g-field-container
+  .g-job-info-key.inline Scheduled start:
+  .g-job-info-value.inline= girder.formatDate(job.get('when'), girder.DATE_SECOND)
+if job.get('updated')
+  .g-field-container
+    .g-job-info-key.inline Last update:
+    .g-job-info-value.inline= girder.formatDate(job.get('updated'), girder.DATE_SECOND)
+if job.get('log')
+  .g-job-info-key Log output:
+  .g-monospace-viewer= job.get('log')
+if job.get('kwargs')
+  .g-job-info-key Keyword arguments:
+  .g-monospace-viewer= JSON.stringify(job.get('kwargs'), null, '  ')
