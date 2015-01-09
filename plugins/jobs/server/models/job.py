@@ -206,7 +206,7 @@ class Job(AccessControlledModel):
 
         return job
 
-    def _updateJobProgress(job, total, current, message, notify):
+    def _updateJobProgress(self, job, total, current, message, notify):
         """Helper for updating job progress information."""
         state = JobStatus.toNotificationStatus(job['status'])
 
@@ -222,9 +222,9 @@ class Job(AccessControlledModel):
             else:
                 notificationId = None
             job['progress'] = {
-                'message': progressMessage,
-                'total': progressTotal,
-                'current': progressCurrent,
+                'message': message,
+                'total': total,
+                'current': current,
                 'notificationId': notificationId
             }
         else:
