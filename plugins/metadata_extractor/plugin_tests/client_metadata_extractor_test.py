@@ -46,7 +46,7 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
         clientPath = os.path.join(ROOT_DIR, 'clients', 'python')
         sys.path.insert(0, clientPath)
 
-        from GirderClient import GirderClient
+        from girder_client import GirderClient
 
         client = GirderClient('localhost', 50001)
         client.authenticate(self.user['login'], self.password)

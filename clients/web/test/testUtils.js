@@ -181,7 +181,6 @@ girderTest.createCollection = function (collName, collDesc) {
             $('#g-description').val(collDesc);
             $('.g-save-collection').click();
         });
-
         waitsFor(function () {
             return $('.g-collection-name').text() === collName &&
                    $('.g-collection-description').text() === collDesc;
@@ -422,8 +421,7 @@ girderTest.testMetadata = function () {
 girderTest.waitForLoad = function (desc) {
     desc = desc?' ('+desc+')':'';
     waitsFor(function() {
-        return $('#g-dialog-container:visible').length === 0 ||
-               $('#g-dialog-container:visible').children().length === 0;
+        return $('#g-dialog-container:visible').length === 0;
     }, 'for the dialog container to be hidden'+desc);
     /* It is faster to wait to make sure a dialog is being hidden than to wait
      * for it to be fully gone.  It is probably more reliable, too.  This had
@@ -472,7 +470,6 @@ girderTest.waitForDialog = function (desc) {
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    $('<script/>', {src: url}).appendTo('head');
     blanket.utils.cache[url] = {};
     blanket.utils.attachScript({url:url}, function (content) {
         blanket.instrument({inputFile: content, inputFileName: url},
@@ -482,7 +479,7 @@ girderTest.addCoveredScript = function (url) {
             blanket.requiringFile(url, true);
         });
    });
-}
+};
 
 /**
  * For the current folder, check if it is public or private and take an action.
@@ -546,4 +543,191 @@ girderTest.folderAccessControl = function (current, action) {
     waitsFor(function () {
         return !$('#g-dialog-container').hasClass('in');
     }, 'access dialog to be hidden');
+};
+
+girderTest.testRoute = function (route, hasDialog, testFunc)
+/* Test going to a particular route, waiting for the dialog or page to load
+ *  fully, and then testing that we have what we expect.
+ * Enter: route: the hash url fragment to go to.
+ *        hasDialog: true if we should wait for a dialog to appear.
+ *        testFunc: a function with an expect call to validate the route.  If
+ *                  this is not specified, just navigate to the specified
+ *                  route.
+ */
+{
+    runs(function() {
+        if (route.indexOf('#') === 0) {
+            route = route.substr(1);
+        }
+        window.location.hash = route;
+    });
+    /* We need to let the window have a chance to reload, so we just release
+     * our time slice. */
+    waits(1);
+    if (hasDialog) {
+        girderTest.waitForDialog('route: '+route);
+    } else {
+        girderTest.waitForLoad('route: '+route);
+    }
+    if (testFunc) {
+        waitsFor(testFunc, 'route: '+route);
+        runs(function () {
+            expect(testFunc()).toBe(true);
+        });
+    }
+};
+
+/* Upload tests require that we modify how xmlhttp requests are handled.  Check
+ * that this has been done (but only do it once).
+ */
+function _prepareTestUpload() {
+    if (girderTest._preparedTestUpload) {
+        return;
+    }
+    girderTest._uploadData = null;
+    /* used for resume testing */
+    girderTest._uploadDataExtra = 0;
+    girderTest._uploadSuffix = '';
+    var hostport = window.location.host.match(':([0-9]+)');
+    if (hostport && hostport.length === 2) {
+        girderTest._uploadSuffix = hostport[1];
+    }
+
+    (function (impl) {
+        FormData.prototype.append = function (name, value, filename) {
+            this.vals = this.vals || {};
+            if (filename)
+                this.vals[name+'_filename'] = value;
+            this.vals[name] = value;
+            impl.call(this, name, value, filename);
+        };
+    } (FormData.prototype.append));
+
+    (function (impl) {
+        XMLHttpRequest.prototype.send = function (data) {
+            if (data && data instanceof FormData) {
+                var newdata = new FormData();
+                newdata.append('offset', data.vals.offset);
+                newdata.append('uploadId', data.vals.uploadId);
+                var len = data.vals.chunk.size;
+                /* Note that this appears to fail if _uploadData contains
+                 * certain characters, such as LF. */
+                if (girderTest._uploadData.length &&
+                        girderTest._uploadData.length==len &&
+                        !girderTest._uploadDataExtra) {
+                    newdata.append('chunk', girderTest._uploadData);
+                } else {
+                    newdata.append('chunk', new Array(
+                        len + 1 + girderTest._uploadDataExtra).join('-'));
+                }
+                data = newdata;
+            }
+            else if (data && data instanceof Blob) {
+                if (girderTest._uploadDataExtra) {
+                    /* Our mock S3 server will take extra data, so break it
+                     * by adding a faulty copy header.  This will throw an
+                     * error so we can test resumes. */
+                    this.setRequestHeader('x-amz-copy-source', 'bad_value');
+                }
+                if (girderTest._uploadData.length &&
+                        girderTest._uploadData.length==data.size &&
+                        !girderTest._uploadDataExtra) {
+                    data = girderTest._uploadData;
+                } else {
+                    data = new Array(
+                        data.size + 1 + girderTest._uploadDataExtra
+                        ).join('-');
+                }
+            }
+            impl.call(this, data);
+        };
+    } (XMLHttpRequest.prototype.send));
+
+    girderTest._preparedTestUpload = true;
 }
+
+/* Upload a file and make sure it lands properly.
+ * @param uploadItem: either the path to the file to upload or an integer to
+ *                    create and upload a temporary file of that size.
+ * @param needResume: if true, upload a partial file so that we are asked if we
+ *                    want to resume, then resume.  If 'abort', then abort the
+ *                    upload instead of resuming it.
+ * @param error: if present and the needResume is set, then we expect the
+ *               upload to fail with an error that includes this string.
+ */
+girderTest.testUpload = function (uploadItem, needResume, error) {
+    var orig_len;
+
+    _prepareTestUpload()
+
+    waitsFor(function () {
+        return $('.g-upload-here-button').length > 0;
+    }, 'the upload here button to appear');
+
+    runs(function () {
+        orig_len = $('.g-item-list-entry').length;
+        $('.g-upload-here-button').click();
+    });
+
+    waitsFor(function () {
+        return $('.g-drop-zone:visible').length > 0 &&
+               $('.modal-dialog:visible').length > 0;
+    }, 'the upload dialog to appear');
+
+    runs(function () {
+        if (needResume)
+            girderTest._uploadDataExtra = 1024 * 20;
+        else
+            girderTest._uploadDataExtra = 0;
+
+        // Incantation that causes the phantom environment to send us a File.
+        $('#g-files').parent().removeClass('hide');
+        var params = {action: 'uploadFile', selector: '#g-files',
+                      suffix: girderTest._uploadSuffix};
+        if (uploadItem === parseInt(uploadItem)) {
+            params.size = uploadItem;
+        } else {
+            params.path = uploadItem;
+        }
+        girderTest._uploadData = window.callPhantom(params);
+    });
+
+    waitsFor(function () {
+        return $('.g-overall-progress-message i.icon-ok').length > 0;
+    }, 'the file to be received');
+
+    runs(function () {
+        $('#g-files').parent().addClass('hide');
+        $('.g-start-upload').click();
+    });
+
+    if (needResume) {
+        waitsFor(function () {
+            return $('.g-resume-upload:visible').length > 0 ||
+                   $('.g-restart-upload:visible').length > 0;
+        }, 'the resume link to appear');
+        runs(function () {
+            if (error) {
+                expect($('.g-upload-error-message').text().indexOf(
+                    error) >= 0).toBe(true);
+            }
+            girderTest._uploadDataExtra = 0;
+
+            if (needResume == 'abort') {
+                $('.btn-default').click();
+                orig_len -= 1;
+            } else {
+                $('.g-resume-upload').click();
+            }
+        });
+    }
+
+    waitsFor(function () {
+        return $('.modal-content:visible').length === 0 &&
+               $('.g-item-list-entry').length === orig_len+1;
+    }, 'the upload to finish');
+    girderTest.waitForLoad();
+
+    window.callPhantom({action: 'uploadCleanup',
+                        suffix: girderTest._uploadSuffix});
+};

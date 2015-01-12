@@ -153,6 +153,31 @@ def getStatus(mode='basic', user=None):
     return status
 
 
+def formatSize(sizeBytes):
+    """
+    Format a size in bytes into a human-readable string with metric unit
+    prefixes.
+
+    :param sizeBytes: the size in bytes to format.
+    :returns formatedSize: the formatted size string.
+    """
+    suffixes = ['B', 'kB', 'MB', 'GB', 'TB']
+    if sizeBytes < 20000:
+        return '%d %s' % (sizeBytes, suffixes[0])
+    idx = 0
+    sizeVal = float(sizeBytes)
+    while sizeVal >= 1024 and idx + 1 < len(suffixes):
+        sizeVal /= 1024
+        idx += 1
+    if sizeVal < 10:
+        precision = 3
+    elif sizeVal < 100:
+        precision = 2
+    else:
+        precision = 1
+    return '%.*f %s' % (precision, sizeVal, suffixes[idx])
+
+
 # This class is used to monitor which threads in cherrypy are actively serving
 # responses, and what each was last used for.  It is based on the example at
 # http://tools.cherrypy.org/wiki/StatusTool, but has changes to handle yield-

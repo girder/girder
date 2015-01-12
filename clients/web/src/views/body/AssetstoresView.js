@@ -63,9 +63,10 @@ girder.views.AssetstoresView = girder.View.extend({
     capacityChart: function (el) {
         var assetstore = this.collection.get($(el).attr('cid'));
         var capacity = assetstore.get('capacity');
+        var used = capacity.total - capacity.free;
         var data = [
-            ['Free', capacity.free],
-            ['Used', capacity.total - capacity.free]
+            ['Used (' + girder.formatSize(used) + ')', used],
+            ['Free (' + girder.formatSize(capacity.free) + ')', capacity.free]
         ];
         var plot = $(el).jqplot([data], {
             seriesDefaults: {
@@ -73,7 +74,10 @@ girder.views.AssetstoresView = girder.View.extend({
                 rendererOptions: {
                     sliceMargin: 2,
                     shadow: false,
-                    highlightMouseOver: false
+                    highlightMouseOver: false,
+                    showDataLabels: true,
+                    padding: 5,
+                    startAngle: 180
                 }
             },
             legend: {
@@ -87,7 +91,8 @@ girder.views.AssetstoresView = girder.View.extend({
                 border: 'none',
                 borderWidth: 0,
                 shadow: false
-            }
+            },
+            gridPadding: {top: 10, right: 10, bottom: 10, left: 10}
         });
     },
 

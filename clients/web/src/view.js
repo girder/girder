@@ -41,6 +41,7 @@ girder.View = Backbone.View.extend({
                 }).modal('hide');
                 el.modal('removeBackdrop');
             } else {
+                el.modal('hideModal');
                 el.modal('removeBackdrop');
                 el.empty().off().removeData();
             }

@@ -114,12 +114,12 @@ packages may be installed using **pip** as follows: ::
 
     pip install requests -r plugins/metadata_extractor/requirements.txt
 
-Assuming ``GirderClient.py`` and ``metadata_extractor.py`` are located in
+Assuming ``girder_client.py`` and ``metadata_extractor.py`` are located in
 the module path, the following code fragment will extract metadata from a file
 located at ``path`` on the remote filesystem that has been uploaded to
 ``itemId`` on the server: ::
 
-    from GirderClient import GirderClient
+    from girder_client import GirderClient
     from metadata_extractor import ClientMetadataExtractor
 
     client = GirderClient(host='localhost', port=8080)

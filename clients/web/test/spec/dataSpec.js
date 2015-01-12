@@ -5,144 +5,16 @@
  * wrapping XHR.prototype.send.
  */
 
-var uploadData;
-/* used for resume testing */
-var uploadDataExtra = 0;
 /* used for adjusting minimum upload size */
 var minUploadSize;
 
-(function (impl) {
-    FormData.prototype.append = function (name, value, filename) {
-        this.vals = this.vals || {};
-        if (filename)
-            this.vals[name+'_filename'] = value;
-        this.vals[name] = value;
-        impl.call(this, name, value, filename);
-    };
-} (FormData.prototype.append));
 
-(function (impl) {
-    XMLHttpRequest.prototype.send = function (data) {
-        if (data && data instanceof FormData) {
-            var newdata = new FormData();
-            newdata.append('offset', data.vals.offset);
-            newdata.append('uploadId', data.vals.uploadId);
-            var len = data.vals.chunk.size;
-            /* Note that this appears to fail if uploadData contains certain
-             * characters, such as LF. */
-            if (uploadData.length && uploadData.length==len &&
-                    !uploadDataExtra)
-                newdata.append('chunk', uploadData);
-            else
-                newdata.append('chunk',
-                                new Array(len+1+uploadDataExtra).join('-'));
-            data = newdata;
-        }
-        else if (data && data instanceof Blob) {
-            if (uploadDataExtra)
-            {
-                /* Our mock S3 server will take extra data, so break it by
-                 * adding a faulty copy header.  This will throw an error so we
-                 * can test resumes. */
-                this.setRequestHeader('x-amz-copy-source', 'bad_value');
-            }
-            if (uploadData.length && uploadData.length==data.size &&
-                    !uploadDataExtra)
-                data = uploadData;
-            else
-                data = new Array(data.size+1+uploadDataExtra).join('-');
-        }
-        impl.call(this, data);
-    };
-} (XMLHttpRequest.prototype.send));
-
-function _testUpload(uploadItem, needResume)
-/* Upload a file and make sure it lands properly.
- * :param uploadItem: either the path to the file to upload or an integer to
- *                    create and upload a temporary file of that size.
- * :param needResume: if true, upload a partial file so that we are asked if we
- *                    want to resume, then resume.  If 'abort', then abort the
- *                    upload instead of resuming it.
- */
-{
-    var orig_len;
-
-    waitsFor(function () {
-        return $('.g-upload-here-button').length > 0;
-    }, 'the upload here button to appear');
-
-    runs(function () {
-        orig_len = $('.g-item-list-entry').length;
-        $('.g-upload-here-button').click();
-    });
-
-    waitsFor(function () {
-        return $('.g-drop-zone:visible').length > 0 &&
-               $('.modal-dialog:visible').length > 0;
-    }, 'the upload dialog to appear');
-
-    runs(function () {
-        if (needResume)
-            uploadDataExtra = 1024 * 20;
-        else
-            uploadDataExtra = 0;
-
-        // Incantation that causes the phantom environment to send us a File.
-        $('#g-files').parent().removeClass('hide');
-        var params = {action: 'uploadFile', selector: '#g-files'};
-        if (uploadItem === parseInt(uploadItem))
-        {
-            params.size = uploadItem;
-        }
-        else
-        {
-            params.path = uploadItem;
-        }
-        uploadData = window.callPhantom(params);
-    });
-
-    waitsFor(function () {
-        return $('.g-overall-progress-message i.icon-ok').length > 0;
-    }, 'the file to be received');
-
-    runs(function () {
-        $('#g-files').parent().addClass('hide');
-        $('.g-start-upload').click();
-    });
-
-    if (needResume)
-    {
-        waitsFor(function () {
-            return $('.g-resume-upload:visible').length > 0;
-        }, 'the resume link to appear');
-        runs(function () {
-            uploadDataExtra = 0;
-
-            if (needResume == 'abort') {
-                $('.btn-default').click();
-                orig_len -= 1;
-            } else {
-                $('.g-resume-upload').click();
-            }
-        });
-    }
-
-    waitsFor(function () {
-        return $('.modal-content:visible').length === 0 &&
-               $('.g-item-list-entry').length === orig_len+1;
-    }, 'the upload to finish');
-    girderTest.waitForLoad();
-
-    window.callPhantom({action: 'uploadCleanup'});
-}
-
-function _setMinimumChunkSize(minSize)
 /* Set the minimum chunk size in the server settings, the upload handler, and
  *  the S3 asset store handler.
  * :param minSize: the new minimum size.  If null, revert to the original
  *                 minimums.
  */
-{
+function _setMinimumChunkSize(minSize) {
     if (!minUploadSize)
     {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
@@ -281,7 +153,7 @@ describe('Create a data hierarchy', function () {
     });
 
     it('upload a file into the current folder', function () {
-        _testUpload('clients/web/test/testFile.txt');
+        girderTest.testUpload('clients/web/test/testFile.txt');
     });
 
     it('download the file', function () {
@@ -348,19 +220,19 @@ describe('Create a data hierarchy', function () {
             return $('.g-loading-block').length == 0;
         }, 'for all blocks to load');
 
-        _testUpload('clients/web/test/testFile2');
+        girderTest.testUpload('clients/web/test/testFile2');
     });
 
     it('upload another file by size', function () {
-        _testUpload(11);
+        girderTest.testUpload(11);
     });
 
     it('upload requiring resume', function () {
-        _testUpload(1024 * 32, true);
+        girderTest.testUpload(1024 * 32, true);
     });
 
     it('upload requiring resume that is aborted', function () {
-        _testUpload(1024 * 32, 'abort');
+        girderTest.testUpload(1024 * 32, 'abort');
     });
 
     it('upload a large file', function () {
@@ -372,11 +244,11 @@ describe('Create a data hierarchy', function () {
          * this test will fail unless phantomjs is run with
          * --web-security=false */
         _setMinimumChunkSize(1024 * 256);
-        _testUpload(1024 * 513);
+        girderTest.testUpload(1024 * 513);
     });
     it('upload a large file requiring resume', function () {
         _setMinimumChunkSize(1024 * 256);
-        _testUpload(1024 * 513, true);
+        girderTest.testUpload(1024 * 513, true);
     });
 
     it('download a folder', function () {
@@ -631,6 +503,10 @@ describe('Create a data hierarchy', function () {
         waitsFor(function () {
             return $('.g-list-checkbox').length == 0;
         }, 'items to be deleted');
+        runs(function () {
+            window.callPhantom({action: 'uploadCleanup',
+                                suffix: girderTest._uploadSuffix});
+        });
     });
     /* Create a second user so that we can test move/copy permissions */
     it('logout from first account', girderTest.logout('logout from first account'));

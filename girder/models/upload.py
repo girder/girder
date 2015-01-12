@@ -81,6 +81,7 @@ class Upload(Model):
         This should only be called manually in the case of creating an
         empty file, i.e. one that has no chunks.
         """
+        events.trigger('model.upload.finalize', upload)
         if assetstore is None:
             assetstore = self.model('assetstore').load(upload['assetstoreId'])
 
@@ -144,7 +145,11 @@ class Upload(Model):
         :param user: The user performing this upload.
         :param size: The size of the new file contents.
         """
-        assetstore = self.model('assetstore').getCurrent()
+        eventParams = {'model': 'file', 'resource': file}
+        events.trigger('model.upload.assetstore', eventParams)
+        assetstore = eventParams.get('assetstore',
+                                     self.model('assetstore').getCurrent())
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
@@ -182,7 +187,11 @@ class Upload(Model):
         :type mimeType: str
         :returns: The upload document that was created.
         """
-        assetstore = self.model('assetstore').getCurrent()
+        eventParams = {'model': parentType, 'resource': parent}
+        events.trigger('model.upload.assetstore', eventParams)
+        assetstore = eventParams.get('assetstore',
+                                     self.model('assetstore').getCurrent())
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 

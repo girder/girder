@@ -84,15 +84,17 @@ girder.models.FileModel = girder.Model.extend({
                 this.trigger('g:upload.complete');
             }
         }, this)).error(_.bind(function (resp) {
-            var text = 'Error: ';
+            var text = 'Error: ', identifier;
 
             if (resp.status === 0) {
                 text += 'Connection to the server interrupted.';
             } else {
                 text += resp.responseJSON.message;
+                identifier = resp.responseJSON.identifier;
             }
             this.trigger('g:upload.errorStarting', {
-                message: text
+                message: text,
+                identifier: identifier
             });
         }, this));
     },
@@ -184,12 +186,13 @@ girder.models.FileModel = girder.Model.extend({
                 }
             },
             error: function (xhr) {
-                var text = 'Error: ';
+                var text = 'Error: ', identifier;
 
                 if (xhr.status === 0) {
                     text += 'Connection to the server interrupted.';
                 } else {
                     text += xhr.responseJSON.message;
+                    identifier = xhr.responseJSON.identifier;
                 }
 
                 model.resumeInfo = {
@@ -198,7 +201,8 @@ girder.models.FileModel = girder.Model.extend({
                 };
 
                 model.trigger('g:upload.error', {
-                    message: text
+                    message: text,
+                    identifier: identifier
                 });
 
             },

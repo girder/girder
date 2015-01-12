@@ -750,6 +750,22 @@ class AccessException(Exception):
     pass
 
 
+class GirderException(Exception):
+    """
+    Represents a general exception that might occur in regular use.  From the
+    user perspective, these are failures, but not catastrophic ones.  An
+    identifier can be passed, which allows receivers to check the exception
+    without relying on the text of the message.  It is recommended that
+    identifiers are a dot-separated string consisting of the originating
+    python module and a distinct error.  For example,
+    'girder.model.assetstore.no-current-assetstore'.
+    """
+    def __init__(self, message, identifier=None):
+        self.identifier = identifier
+
+        Exception.__init__(self, message)
+
+
 class ValidationException(Exception):
     """
     Represents validation failure in the model layer. Raise this with
