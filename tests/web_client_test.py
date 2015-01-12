@@ -23,7 +23,7 @@ import sys
 import time
 
 # Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = '50001'
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '50001')
 
 from girder.api import access
 from girder.api.describe import Description
@@ -112,7 +112,8 @@ class WebClientTestCase(base.TestCase):
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
-            'http://localhost:50001/static/built/testEnv.html',
+            'http://localhost:%s/static/built/testEnv.html' % os.environ[
+                'GIRDER_PORT'],
             self.specFile,
             self.coverageFile
         )

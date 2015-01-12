@@ -62,7 +62,8 @@ def getDbConnection(uri=None, replicaSet=None):
         # This is the maximum time between when we fetch data from a cursor.
         # If it times out, the cursor is lost and we can't reconnect.  If it
         # isn't set, we have issues with replica sets when the primary goes
-        # down.
+        # down.  This value can be overridden in the mongodb uri connection
+        # string with the socketTimeoutMS.
         'socketTimeoutMS': 60000,
         }
     if uri is None:

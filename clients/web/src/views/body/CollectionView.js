@@ -160,7 +160,8 @@
         _fetchAndInit(collectionId, {
             access: params.dialog === 'access',
             edit: params.dialog === 'edit',
-            folderCreate: params.dialog === 'foldercreate'
+            folderCreate: params.dialog === 'foldercreate',
+            dialog: params.dialog
         });
     });
 

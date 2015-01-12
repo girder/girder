@@ -28,34 +28,6 @@ function _getFirstId(collection, ids, key, fetchParamsFunc)
     });
 }
 
-function _testRoute(route, hasDialog, testFunc)
-/* Test going to a particular route, waiting for the dialog or page to load
- *  fully, and then testing that we have what we expect.
- * Enter: route: the hash url fragment to go to.
- *        hasDialog: true if we should wait for a dialog to appear.
- *        testFunc: a function with an expect call to validate the route.  If
- *                  this is not specified, jut navigate to the specified route.
- */
-{
-    runs(function() {
-        window.location.hash = route;
-    });
-    /* We need to let the window have a chance to reload, so we just release
-     * our time slice. */
-    waits(1);
-    if (hasDialog) {
-        girderTest.waitForDialog('route: '+route);
-    } else {
-        girderTest.waitForLoad('route: '+route);
-    }
-    if (testFunc) {
-        waitsFor(testFunc, 'route: '+route);
-        runs(function () {
-            expect(testFunc()).toBe(true);
-        });
-    }
-}
-
 describe('Test routing paths', function () {
     var ids = {};
 
@@ -152,251 +124,255 @@ describe('Test routing paths', function () {
     /* Now test various routes */
     it('logout', girderTest.logout());
     it('test routes without being logged in', function () {
-        _testRoute('', false, function () {
+        girderTest.testRoute('', false, function () {
             return $('a.g-login-link:first').text() === ' Log In';
         });
-        _testRoute('useraccount/'+ids.admin+'/info', false, function () {
+        girderTest.testRoute('useraccount/'+ids.admin+'/info', false,
+                             function () {
             return window.location.hash === '#users';
         });
-        _testRoute('useraccount/'+ids.admin+'/password', false, function () {
+        girderTest.testRoute('useraccount/'+ids.admin+'/password', false,
+                             function () {
             return window.location.hash === '#users';
         });
-        _testRoute('?dialog=login', true, function () {
+        girderTest.testRoute('?dialog=login', true, function () {
             return $('label[for=g-login]').text() === 'Login or email';
         });
-        _testRoute('?dialog=register', true, function () {
+        girderTest.testRoute('?dialog=register', true, function () {
             return $('input#g-password2').length === 1;
         });
-        _testRoute('?dialog=resetpassword', true, function () {
+        girderTest.testRoute('?dialog=resetpassword', true, function () {
             return $('.modal-title').text() === 'Reset password';
         });
         /* Navigate to a non-dialog so we can log in */
-        _testRoute('collections', false, function () {
+        girderTest.testRoute('collections', false, function () {
             return $('.g-collection-title:first').text() === 'Test Collection';
         });
     });
 
     it('login', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('test routes while logged in', function () {
-        _testRoute('', false, function () {
+        girderTest.testRoute('', false, function () {
             return $('a.g-my-folders-link:first').text() ===
                    ' personal data space';
         });
-        _testRoute('useraccount/'+ids.admin+'/info', false, function () {
+        girderTest.testRoute('useraccount/'+ids.admin+'/info', false,
+                             function () {
             return $('input#g-email').val() === 'admin@email.com';
         });
-        _testRoute('useraccount/'+ids.admin+'/password', false, function () {
+        girderTest.testRoute('useraccount/'+ids.admin+'/password', false,
+                             function () {
             return $('input#g-password-old:visible').length === 1;
         });
-        _testRoute('?dialog=login', false, function () {
+        girderTest.testRoute('?dialog=login', false, function () {
             return $('a.g-my-folders-link:first').text() ===
                    ' personal data space';
         });
-        _testRoute('?dialog=register', false, function () {
+        girderTest.testRoute('?dialog=register', false, function () {
             return $('a.g-my-folders-link:first').text() ===
                    ' personal data space';
         });
-        _testRoute('?dialog=resetpassword', false, function () {
+        girderTest.testRoute('?dialog=resetpassword', false, function () {
             return $('a.g-my-folders-link:first').text() ===
                    ' personal data space';
         });
     });
 
     it('test collection routes', function () {
-        _testRoute('collections', false, function () {
+        girderTest.testRoute('collections', false, function () {
             return $('.g-collection-title:first').text() === 'Test Collection';
         });
-        _testRoute('collections?dialog=create', true, function () {
+        girderTest.testRoute('collections?dialog=create', true, function () {
             return $('input#g-name').attr('placeholder') ===
                    'Enter collection name';
         });
 
         var collPath = 'collection/'+ids.collection;
-        _testRoute(collPath, false, function () {
+        girderTest.testRoute(collPath, false, function () {
             return $('.g-collection-actions-menu').length === 1;
         });
-        _testRoute(collPath+'?dialog=edit', true,
+        girderTest.testRoute(collPath+'?dialog=edit', true,
                    function () {
             return $('.modal-title').text() === 'Edit collection';
         });
-        _testRoute(collPath+'?dialog=access', true,
+        girderTest.testRoute(collPath+'?dialog=access', true,
                    function () {
             return $('.g-dialog-subtitle').text() === 'Test Collection';
         });
-        _testRoute(collPath+'?dialog=foldercreate', true,
+        girderTest.testRoute(collPath+'?dialog=foldercreate', true,
                    function () {
             return $('.modal-title').text() === 'Create folder';
         });
 
         var collFolderPath = collPath+'/folder/'+ids.collectionFolder;
-        _testRoute(collFolderPath, false, function () {
+        girderTest.testRoute(collFolderPath, false, function () {
             return $('.g-collection-actions-menu').length === 1 &&
                    $('.g-folder-access-button').length === 1;
         });
-        _testRoute(collFolderPath+'?dialog=edit', true,
+        girderTest.testRoute(collFolderPath+'?dialog=edit', true,
                    function () {
             return $('.modal-title').text() === 'Edit collection';
         });
-        _testRoute(collFolderPath+'?dialog=access', true,
+        girderTest.testRoute(collFolderPath+'?dialog=access', true,
                    function () {
             return $('.g-dialog-subtitle').text() === 'Test Collection';
         });
-        _testRoute(collFolderPath+'?dialog=foldercreate', true,
+        girderTest.testRoute(collFolderPath+'?dialog=foldercreate', true,
                    function () {
             return $('.modal-title').text() === 'Create folder';
         });
-        _testRoute(collFolderPath+'?dialog=folderedit', true,
+        girderTest.testRoute(collFolderPath+'?dialog=folderedit', true,
                    function () {
             return $('.modal-title').text() === 'Edit folder' &&
                    $('input#g-name').val() === 'Private';
         });
-        _testRoute(collFolderPath+'?dialog=folderaccess', true,
+        girderTest.testRoute(collFolderPath+'?dialog=folderaccess', true,
                    function () {
             return $('.g-dialog-subtitle').text() === 'Private';
         });
-        _testRoute(collFolderPath+'?dialog=itemcreate', true,
+        girderTest.testRoute(collFolderPath+'?dialog=itemcreate', true,
                    function () {
             return $('.modal-title').text() === 'Create item';
         });
-        _testRoute(collFolderPath+'?dialog=upload', true,
+        girderTest.testRoute(collFolderPath+'?dialog=upload', true,
                    function () {
             return $('.modal-title').text() === 'Upload files';
         });
     });
 
     it('test user routes', function () {
-        _testRoute('users', false, function () {
+        girderTest.testRoute('users', false, function () {
             return $('.g-user-link:first').text() === 'Admin Admin';
         });
 
         var userPath = 'user/'+ids.admin;
-        _testRoute(userPath, false, function () {
+        girderTest.testRoute(userPath, false, function () {
             return $('.g-user-actions-button').length === 1;
         });
-        _testRoute(userPath+'?dialog=foldercreate', true,
+        girderTest.testRoute(userPath+'?dialog=foldercreate', true,
                    function () {
             return $('.modal-title').text() === 'Create folder';
         });
 
         var userFolderPath = userPath+'/folder/'+ids.userFolder;
-        _testRoute(userFolderPath, false, function () {
+        girderTest.testRoute(userFolderPath, false, function () {
             return $('.g-user-actions-button').length === 1 &&
                    $('.g-folder-access-button').length === 1;
         });
-        _testRoute(userFolderPath+'?dialog=foldercreate', true,
+        girderTest.testRoute(userFolderPath+'?dialog=foldercreate', true,
                    function () {
             return $('.modal-title').text() === 'Create folder';
         });
-        _testRoute(userFolderPath+'?dialog=folderedit', true,
+        girderTest.testRoute(userFolderPath+'?dialog=folderedit', true,
                    function () {
             return $('.modal-title').text() === 'Edit folder' &&
                    $('input#g-name').val() === 'Private';
         });
-        _testRoute(userFolderPath+'?dialog=folderaccess', true,
+        girderTest.testRoute(userFolderPath+'?dialog=folderaccess', true,
                    function () {
             return $('.g-dialog-subtitle').text() === 'Private';
         });
-        _testRoute(userFolderPath+'?dialog=itemcreate', true,
+        girderTest.testRoute(userFolderPath+'?dialog=itemcreate', true,
                    function () {
             return $('.modal-title').text() === 'Create item';
         });
-        _testRoute(userFolderPath+'?dialog=upload', true,
+        girderTest.testRoute(userFolderPath+'?dialog=upload', true,
                    function () {
             return $('.modal-title').text() === 'Upload files';
         });
 
         var folderPath = 'folder/'+ids.userFolder;
-        _testRoute(folderPath, false, function () {
+        girderTest.testRoute(folderPath, false, function () {
             return $('.g-user-actions-button').length === 0 &&
                    $('.g-folder-access-button').length === 1;
         });
-        _testRoute(folderPath+'?dialog=foldercreate', true,
+        girderTest.testRoute(folderPath+'?dialog=foldercreate', true,
                    function () {
             return $('.modal-title').text() === 'Create folder';
         });
-        _testRoute(folderPath+'?dialog=folderedit', true,
+        girderTest.testRoute(folderPath+'?dialog=folderedit', true,
                    function () {
             return $('.modal-title').text() === 'Edit folder' &&
                    $('input#g-name').val() === 'Private';
         });
-        _testRoute(folderPath+'?dialog=folderaccess', true,
+        girderTest.testRoute(folderPath+'?dialog=folderaccess', true,
                    function () {
             return $('.g-dialog-subtitle').text() === 'Private';
         });
-        _testRoute(folderPath+'?dialog=itemcreate', true,
+        girderTest.testRoute(folderPath+'?dialog=itemcreate', true,
                    function () {
             return $('.modal-title').text() === 'Create item';
         });
-        _testRoute(folderPath+'?dialog=upload', true,
+        girderTest.testRoute(folderPath+'?dialog=upload', true,
                    function () {
             return $('.modal-title').text() === 'Upload files';
         });
     });
 
     it('test group routes', function () {
-        _testRoute('groups', false, function () {
+        girderTest.testRoute('groups', false, function () {
             return $('.g-group-link:first').text() === 'Public Group';
         });
-        _testRoute('groups?dialog=create', true, function () {
+        girderTest.testRoute('groups?dialog=create', true, function () {
             return $('input#g-name').attr('placeholder') ===
                    'Enter group name';
         });
 
         var groupPath = 'group/'+ids.group;
-        _testRoute(groupPath+'/roles', false, function () {
+        girderTest.testRoute(groupPath+'/roles', false, function () {
             return $('.g-member-name:visible').length === 2 &&
                    $('#g-group-tab-roles .g-member-list-empty:visible')
                    .length === 1 &&
                    $('.g-member-list-empty:hidden').length === 2;
         });
-        _testRoute(groupPath+'/pending', false, function () {
+        girderTest.testRoute(groupPath+'/pending', false, function () {
             return $('.g-group-requests-container:visible').length === 1 &&
                    $('#g-group-tab-pending .g-member-list-empty:visible')
                    .length === 2 &&
                    $('.g-member-list-empty:hidden').length === 1;
         });
-        _testRoute(groupPath+'?dialog=edit', true, function () {
+        girderTest.testRoute(groupPath+'?dialog=edit', true, function () {
             return $('.modal-title').text() === 'Edit group';
         });
     });
 
     it('test item routes', function () {
         var itemPath = 'item/'+ids.item;
-        _testRoute(itemPath, false, function () {
+        girderTest.testRoute(itemPath, false, function () {
             return $('.g-item-header .g-item-name').text() == 'Link File';
         });
-        _testRoute(itemPath+'?dialog=itemedit', true, function () {
+        girderTest.testRoute(itemPath+'?dialog=itemedit', true, function () {
             return $('.modal-title').text() === 'Edit item';
         });
-        _testRoute(itemPath+'?dialog=fileedit&dialogid='+ids.file, true,
-                   function () {
+        girderTest.testRoute(itemPath+'?dialog=fileedit&dialogid='+ids.file,
+                             true, function () {
             return $('.modal-title').text() === 'Edit file';
         });
-        _testRoute(itemPath+'?dialog=upload&dialogid='+ids.file, true,
-                   function () {
+        girderTest.testRoute(itemPath+'?dialog=upload&dialogid='+ids.file,
+                             true, function () {
             return $('.modal-title').text() === 'Replace file contents';
         });
-        _testRoute(itemPath+'?dialog=fileedit&dialogid='+ids.file, true,
-                   function () {
+        girderTest.testRoute(itemPath+'?dialog=fileedit&dialogid='+ids.file,
+                             true, function () {
             return $('.modal-title').text() === 'Edit file';
         });
     });
 
     it('test admin routes', function () {
-        _testRoute('admin', false, function () {
+        girderTest.testRoute('admin', false, function () {
             return $('.g-server-config').length === 1;
         });
-        _testRoute('settings', false, function () {
+        girderTest.testRoute('settings', false, function () {
             return $('input#g-core-cookie-lifetime').length === 1;
         });
-        _testRoute('plugins', false, function () {
+        girderTest.testRoute('plugins', false, function () {
             return $('.g-body-title').text() === 'Plugins';
         });
-        _testRoute('assetstores', false, function () {
+        girderTest.testRoute('assetstores', false, function () {
             return $('.g-assetstore-container').length === 1;
         });
-        _testRoute('assetstores?dialog=assetstoreedit&dialogid='+ids.assetstore,
-                    true, function () {
+        girderTest.testRoute('assetstores?dialog=assetstoreedit&dialogid=' +
+                             ids.assetstore, true, function () {
             return $('.modal-title').text() === 'Edit assetstore';
         });
     });

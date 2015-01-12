@@ -31,7 +31,7 @@ import moto.s3
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
     botoConnectS3, S3AssetstoreAdapter
 
-_startPort = 50100
+_startPort = 51100
 _maxTries = 100
 
 

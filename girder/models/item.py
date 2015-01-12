@@ -23,7 +23,7 @@ import json
 import os
 
 from bson.objectid import ObjectId
-from .model_base import Model, ValidationException
+from .model_base import Model, ValidationException, GirderException
 from girder import events
 from girder import logger
 from girder.constants import AccessType
@@ -335,7 +335,8 @@ class Item(Model):
 
         if not type(creator) is dict or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
-            raise Exception('Creator must be a user.')
+            raise GirderException('Creator must be a user.',
+                                  'girder.models.item.creator-not-user')
 
         if 'baseParentType' not in folder:
             pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
@@ -495,9 +496,10 @@ class Item(Model):
         Check all of the items and make sure they are valid.  This operates in
         stages, since some actions should be done before other models that rely
         on items and some need to be done after.  The stages are:
-            count - count how many items need to be checked.
-            remove - remove lost items
-            verify - verify and fix existing items
+        * count - count how many items need to be checked.
+        * remove - remove lost items
+        * verify - verify and fix existing items
+
         :param stage: which stage of the check to run.  See above.
         :param progress: an option progress context to update.
         :returns: numItems: number of items to check or processed,

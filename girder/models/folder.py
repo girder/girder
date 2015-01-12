@@ -23,7 +23,8 @@ import json
 import os
 
 from bson.objectid import ObjectId
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel, ValidationException, \
+    GirderException
 from girder import events
 from girder.constants import AccessType
 from girder.utility.progress import setResponseTimeLimit
@@ -81,8 +82,9 @@ class Folder(AccessControlledModel):
 
         if not doc['parentCollection'] in ('folder', 'user', 'collection'):
             # Internal error; this shouldn't happen
-            raise Exception('Invalid folder parent type: %s.' %
-                            doc['parentCollection'])
+            raise GirderException('Invalid folder parent type: %s.' %
+                                  doc['parentCollection'],
+                                  'girder.models.folder.invalid-parent-type')
         name = doc['name']
         n = 0
         while True:

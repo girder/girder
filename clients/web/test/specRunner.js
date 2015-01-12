@@ -92,7 +92,11 @@ page.onCallback = function (data) {
      * :param data: an object with an 'action', as listed above.
      * :returns: depends on the action.
      */
-    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload.tmp';
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload';
+    if (data.suffix) {
+        uploadTemp += '_' + data.suffix;
+    }
+    uploadTemp += '.tmp';
     switch (data.action)
     {
         case 'uploadFile':

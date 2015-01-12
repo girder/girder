@@ -28,7 +28,7 @@ from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
-from girder.models.model_base import ValidationException
+from girder.models.model_base import ValidationException, GirderException
 from girder import logger
 
 BUF_SIZE = 65536
@@ -202,7 +202,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         path = os.path.join(self.assetstore['root'], file['path'])
         if not os.path.isfile(path):
-            raise Exception('File %s does not exist.' % path)
+            raise GirderException(
+                'File %s does not exist.' % path,
+                'girder.utility.filesystem_assetstore_adapter.'
+                'file-does-not-exist')
 
         if headers:
             mimeType = file.get('mimeType', 'application/octet-stream')

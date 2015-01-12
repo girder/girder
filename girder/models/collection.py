@@ -67,7 +67,7 @@ class Collection(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         duplicate = self.findOne(q, fields=['_id'])
         if duplicate is not None:
-            raise ValidationException('A collection with that name already'
+            raise ValidationException('A collection with that name already '
                                       'exists.', 'name')
 
         return doc

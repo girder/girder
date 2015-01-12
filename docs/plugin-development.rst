@@ -287,6 +287,23 @@ successfully authenticate the user, it should perform the logic it needs and
 then ``preventDefault`` on the event and ``addResponse`` containing the
 authenticated user document.
 
+*  **Before file upload**
+
+This event is triggered as an upload is being initialized.  The event
+``model.upload.assetstore`` is sent before the ``model.upload.save`` event.
+The event information is a dictionary containing ``model`` and ``resource``
+with the resource model type and resource document of the upload parent.  For
+new uploads, the model type will be either ``item`` or ``folder``.  When the
+contents of a file are being replaced, this will be a ``file``.  To change from
+the current assetstore, add an ``assetstore`` key to the event information
+dictionary that contains an assetstore model document.
+
+*  **Just before a file upload completes**
+
+The event ``model.upload.finalize`` after the upload is completed but before
+the new file is saved.  This can be used if the file needs to be altered or the
+upload should be cancelled at the last moment.
+
 *  **On file upload**
 
 This event is always triggered asynchronously and is fired after a file has

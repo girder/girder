@@ -30,7 +30,8 @@ import types
 from . import docs
 from girder import events, logger
 from girder.constants import SettingKey, TerminalColor, TokenScope
-from girder.models.model_base import AccessException, ValidationException
+from girder.models.model_base import AccessException, GirderException, \
+    ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
 
@@ -149,8 +150,8 @@ class loadmodel(object):
     arguments that is transformed by the "map" parameter of this decorator.
 
     :param map: Map of incoming parameter name to corresponding model arg name.
-    If None is passed, this will map the parameter named "id" to a kwarg named
-    the same as the "model" parameter.
+        If None is passed, this will map the parameter named "id" to a kwarg
+        named the same as the "model" parameter.
     :type map: dict or None
     :param model: The model name, e.g. 'folder'
     :type model: str
@@ -176,7 +177,8 @@ class loadmodel(object):
         elif idParam in kwargs['params']:
             return kwargs['params'].pop(idParam)
         else:
-            raise Exception('No ID parameter passed: ' + idParam)
+            raise GirderException('No ID parameter passed: ' + idParam,
+                                  'girder.api.rest.no-id')
 
     def __call__(self, fun):
         @functools.wraps(fun)
@@ -239,6 +241,12 @@ def endpoint(fun):
     """
     @functools.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
+        # Note that the cyclomatic complexity of this function crosses our
+        # flake8 configuration threshold.  Because it is largely exception
+        # handling, I think thta breaking it into smaller functions actually
+        # reduces readablity and maintainability.  To work around this, some
+        # simple branches have been marked to be skipped in the cyclomatic
+        # analysis.
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
         try:
@@ -265,12 +273,19 @@ def endpoint(fun):
                 cherrypy.response.status = 403
                 logger.exception('403 Error')
             val = {'message': e.message, 'type': 'access'}
+        except GirderException as e:
+            # Handle general girder exceptions
+            logger.exception('500 Error')
+            cherrypy.response.status = 500
+            val = {'message': e.message, 'type': 'girder'}
+            if e.identifier is not None:
+                val['identifier'] = e.identifier
         except ValidationException as e:
             cherrypy.response.status = 400
             val = {'message': e.message, 'type': 'validation'}
             if e.field is not None:
                 val['field'] = e.field
-        except cherrypy.HTTPRedirect:
+        except cherrypy.HTTPRedirect:  # flake8: noqa
             raise
         except:
             # These are unexpected failures; send a 500 status

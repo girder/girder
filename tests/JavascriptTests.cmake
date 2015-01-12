@@ -1,3 +1,5 @@
+set(web_client_port 50001)
+
 function(javascript_tests_init)
   add_test(
     NAME js_coverage_reset
@@ -89,14 +91,21 @@ function(add_web_client_test case specFile)
     "WEB_SECURITY=${webSecurity}"
     "ENABLED_PLUGINS=${plugins}"
     "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
-    "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_webclient"
-    "GIRDER_TEST_ASSETSTORE=webclient"
+    "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
+    "GIRDER_TEST_ASSETSTORE=webclient_${testname}"
+    "GIRDER_PORT=${web_client_port}"
   )
+  math(EXPR next_web_client_port "${web_client_port} + 1")
+  set(web_client_port ${next_web_client_port} PARENT_SCOPE)
+
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
-  else()
-    set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
   endif()
+  #if(fn_RESOURCE_LOCKS)
+  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy ${fn_RESOURCE_LOCKS})
+  #else()
+  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
+  #endif()
   if(fn_TIMEOUT)
     set_property(TEST ${testname} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()

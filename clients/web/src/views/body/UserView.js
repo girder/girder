@@ -114,7 +114,8 @@
 
     girder.router.route('user/:id', 'user', function (userId, params) {
         _fetchAndInit(userId, {
-            folderCreate: params.dialog === 'foldercreate'
+            folderCreate: params.dialog === 'foldercreate',
+            dialog: params.dialog
         });
     });
 
