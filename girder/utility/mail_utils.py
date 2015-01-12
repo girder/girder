@@ -24,6 +24,7 @@ import smtplib
 from email.mime.text import MIMEText
 from mako.lookup import TemplateLookup
 from girder import events
+from girder import logger
 from girder.constants import SettingKey, ROOT_DIR
 from .model_importer import ModelImporter
 
@@ -84,10 +85,13 @@ def addTemplateDirectory(dir):
 
 def _sendmail(event):
     msg = event.info
-    s = smtplib.SMTP(
-        ModelImporter().model('setting').get(SettingKey.SMTP_HOST, 'localhost'))
+    smtpHost = ModelImporter().model('setting').get(SettingKey.SMTP_HOST,
+                                                    'localhost')
+    logger.info('Sending email to %s through %s', msg['To'], smtpHost)
+    s = smtplib.SMTP(smtpHost)
     s.sendmail(msg['From'], (msg['To'],), msg.as_string())
     s.quit()
+    logger.info('Sent email to %s', msg['To'])
 
 
 _templateDir = os.path.join(ROOT_DIR, 'girder', 'mail_templates')

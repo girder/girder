@@ -37,6 +37,7 @@
     prototype.close = function () {
         if (this._eventSource) {
             this._eventSource.close();
+            this._eventSource = null;
         }
     };
 } ());

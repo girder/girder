@@ -11,6 +11,8 @@ $(function () {
 });
 
 describe('Create an admin and non-admin user', function () {
+    var link;
+
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -27,9 +29,8 @@ describe('Create an admin and non-admin user', function () {
                               'Admin',
                               'password!'));
 
-    it('go to users page', girderTest.goToUsersPage());
-
     it('view the users on the user page and click on one', function () {
+        girderTest.goToUsersPage()();
         runs(function () {
             expect($('.g-user-list-entry').length).toBe(2);
             expect($('a.g-user-link').text()).toBe('Admin AdminNot Admin');
@@ -50,18 +51,15 @@ describe('Create an admin and non-admin user', function () {
         });
     });
 
-    it('go to current user settings page',
-        girderTest.goToCurrentUserSettings());
-
-    it('check for lack of admin checkbox', function () {
+    it('check for no admin checkbox on user settings page', function () {
+        girderTest.goToCurrentUserSettings()();
         runs(function () {
             expect($('input#g-admin').length).toBe(0);
         });
     });
 
-    it('logout', girderTest.logout());
-
     it('check redirect to users page', function () {
+        girderTest.logout()();
         waitsFor(function () {
             return Backbone.history.fragment === 'users';
         }, 'redirect to users');
@@ -70,18 +68,105 @@ describe('Create an admin and non-admin user', function () {
         }, 'user list to be present');
     });
 
-    it('login as admin',
-        girderTest.login('admin',
-                         'Admin',
-                         'Admin',
-                         'adminpassword!'));
-
-    it('go to current user settings page',
-        girderTest.goToCurrentUserSettings());
-
-    it('check for admin checkbox', function () {
+    it('check for admin checkbox on admin user settings page', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        girderTest.goToCurrentUserSettings()();
         runs(function () {
             expect($('input#g-admin').length).toBe(1);
+        });
+        runs(function () {
+            $('#g-firstName').val('');
+            $('button').has('.icon-edit').click();
+        });
+        waitsFor(function () {
+            return $('#g-user-info-error-msg').text() === 'First name must not be empty.';
+        }, 'Name error to occur');
+        runs(function () {
+            $('#g-firstName').val('Admin');
+            $('button').has('.icon-edit').click();
+        });
+        waitsFor(function () {
+            return $('#g-user-info-error-msg').text() === '';
+        }, 'error to vanish');
+    });
+
+    it('test reset password', function () {
+        girderTest.logout()();
+        runs(function () {
+            $('.g-login').click();
+        });
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('input#g-login').length > 0;
+        }, 'register dialog to appear');
+        runs(function () {
+            $('.g-forgot-password').click();
+        });
+        waitsFor(function () {
+            return $('.g-password-reset-explanation').length > 0;
+        }, 'forgotton password dialog to appear');
+        girderTest.waitForDialog();
+        runs(function () {
+            $('#g-email').val('invalid@email.com');
+            $('#g-reset-password-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text().indexOf(
+                'not registered') >= 0;
+        }, 'error message to appear');
+        runs(function () {
+            $('#g-email').val('nonadmin@email.com');
+            $('#g-reset-password-button').click();
+        });
+        girderTest.waitForLoad();
+        runs(function () {
+            console.log('__FETCHEMAIL__');
+        });
+        waitsFor(function () {
+            var msg = window.callPhantom({
+                action: 'fetchEmail',
+                suffix: girderTest.getCallbackSuffix()});
+            if (!msg || msg.indexOf('<a href="') <0) {
+                return false;
+            }
+            link = msg.substr(msg.indexOf('<a href="')+9);
+            link = link.substr(0, link.indexOf('"'));
+            link = link.substr(link.indexOf('#'));
+            return link;
+        }, 'email to be received');
+    });
+    it('Use reset link', function () {
+        girderTest.testRoute(link, false, function () {
+            return $('#g-password-new:visible').length > 0 &&
+                   $('#g-password-old:visible').length === 0;
+        });
+        runs(function () {
+            $('#g-password-new').val('newpassword');
+            $('#g-password-retype').val('newpassword2');
+            $('button').has('.icon-lock').click();
+        });
+        waitsFor(function () {
+            return $('#g-password-change-error-msg').text() === 'Passwords do not match, try again.';
+        }, 'password match error to occur');
+        runs(function () {
+            $('#g-password-new').val('new');
+            $('#g-password-retype').val('new');
+            $('button').has('.icon-lock').click();
+        });
+        waitsFor(function () {
+            return $('#g-password-change-error-msg').text() === 'Password must be at least 6 characters.';
+        }, 'password match error to occur');
+        runs(function () {
+            $('#g-password-new').val('newpassword');
+            $('#g-password-retype').val('newpassword');
+            $('button').has('.icon-lock').click();
+        });
+        waitsFor(function () {
+            return $('#g-password-new').val() === '';
+        }, 'new password to be accepted');
+        runs(function () {
+            window.callPhantom({action: 'uploadCleanup',
+                                suffix: girderTest._uploadSuffix});
         });
     });
 });

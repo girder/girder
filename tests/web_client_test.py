@@ -127,10 +127,16 @@ class WebClientTestCase(base.TestCase):
                                     stderr=subprocess.STDOUT)
             while task.poll() is None:
                 line = task.stdout.readline()
-                sys.stdout.write(line)
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
                     retry = True
+                    sys.stdout.write(line)
+                elif '__FETCHEMAIL__' in line:
+                    msg = base.mockSmtp.getMail()
+                    open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
+                         'wb').write(msg)
+                else:
+                    sys.stdout.write(line)
             returncode = task.wait()
             if not retry:
                 break

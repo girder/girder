@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "jshint": "2.5.5",
-    "phantomjs": "1.9.9",
+    "phantomjs": "1.9.13",
     "blanket": "1.1.6",
     "jscs": "1.6.1"
   },

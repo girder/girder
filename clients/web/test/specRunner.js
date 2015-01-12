@@ -40,12 +40,23 @@ var terminate = function () {
     });
 
     if (status) {
-        phantom.exit(0);
+        safePhantomExit(0);
     }
     else {
-        phantom.exit(1);
+        safePhantomExit(1);
     }
 };
+
+/* Exit phantom instance "safely" see
+ * https://github.com/ariya/phantomjs/issues/12697
+ * https://github.com/mammaldev/node-webshot-mammal/commit/9b26fb3
+ */
+function safePhantomExit() {
+    var args = [].slice.call(arguments);
+    setTimeout(function () {
+        phantom.exit.apply(phantom, args);
+    }, 0);
+}
 
 // Set decent viewport size for screenshots.
 page.viewportSize = {
@@ -91,27 +102,33 @@ page.onCallback = function (data) {
      * :param data: an object with an 'action', as listed above.
      * :returns: depends on the action.
      */
-    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload';
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
     if (data.suffix) {
         uploadTemp += '_' + data.suffix;
     }
     uploadTemp += '.tmp';
     switch (data.action)
     {
+        case 'fetchEmail':
+            if (fs.exists(uploadTemp)) {
+                return fs.read(uploadTemp);
+            }
+            break;
         case 'uploadFile':
             var path = data.path
-            if (!path && data.size!==undefined)
-            {
+            if (!path && data.size!==undefined) {
                 path = uploadTemp;
                 fs.write(path, new Array(data.size+1).join("-"), "wb");
             }
             page.uploadFile(data.selector, path);
-            if (fs.size(path) >= 1024 * 64)
+            if (fs.size(path) >= 1024 * 64) {
                 return fs.size(path);
+            }
             return fs.read(path);
         case 'uploadCleanup':
-            if (fs.exists(uploadTemp))
+            if (fs.exists(uploadTemp)) {
                 fs.remove(uploadTemp);
+            }
             break;
     }
 };
@@ -130,19 +147,19 @@ page.onError = function (msg, trace) {
     console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
         fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
     page.render('phantom_error_screenshot.png');
-    phantom.exit(1);
+    safePhantomExit(1);
 };
 
 page.onLoadFinished = function (status) {
     if (status !== 'success') {
         console.error('Page load failed');
-        phantom.exit(1);
+        safePhantomExit(1);
     }
 
     page.injectJs('coverageHandler.js');
     if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
-        phantom.exit(1);
+        safePhantomExit(1);
     }
 };
 
@@ -164,6 +181,6 @@ page.onResourceTimeout = function (request) {
 page.open(pageUrl, function (status) {
     if (status !== 'success') {
         console.error('Could not load page: ' + pageUrl);
-        phantom.exit(1);
+        safePhantomExit(1);
     }
 });
