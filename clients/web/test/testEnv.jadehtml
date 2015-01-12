@@ -16,6 +16,7 @@ html(lang="en")
       (function () {
           var jasmineEnv = jasmine.getEnv();
           var consoleReporter = new jasmine.ConsoleReporter();
+          blanket.options('timeout', 2000);
           window.jasmine_phantom_reporter = consoleReporter;
 
           jasmineEnv.addReporter(consoleReporter);
