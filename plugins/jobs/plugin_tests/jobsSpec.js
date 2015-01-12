@@ -20,31 +20,40 @@ $(function () {
 
     describe('Unit test the job widget.', function () {
         it('Show a job detail widget.', function () {
-            var job = new girder.models.JobModel({
-                _id: 'foo',
-                title: 'My batch job',
-                status: girder.jobs_JobStatus.INACTIVE,
-                log: 'Hello world\ngoodbye world',
-                when: '2015-01-12T12:00:00'
+            waitsFor('scripts to load', function () {
+                return girder.views.jobs_JobDetailsWidget &&
+                       girder.models.JobModel &&
+                       girder.jobs_JobStatus &&
+                       girder.templates.jobs_jobDetails;
             });
 
-            var widget = new girder.views.jobs_JobDetailsWidget({
-                el: $('#g-app-body-container'),
-                job: job,
-                parentView: app
-            }).render();
+            runs(function () {
+                var job = new girder.models.JobModel({
+                    _id: 'foo',
+                    title: 'My batch job',
+                    status: girder.jobs_JobStatus.INACTIVE,
+                    log: 'Hello world\ngoodbye world',
+                    when: '2015-01-12T12:00:00'
+                });
 
-            expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
-            expect($('.g-monospace-viewer[property="log"]').text()).toBe(job.get('log'));
-            expect($('.g-job-info-value[property="_id"]').text()).toBe(job.get('_id'));
-            expect($('.g-job-info-value[property="title"]').text()).toBe(job.get('title'));
-            expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
-            expect($('.g-job-status-badge').text()).toBe('Inactive');
+                var widget = new girder.views.jobs_JobDetailsWidget({
+                    el: $('#g-app-body-container'),
+                    job: job,
+                    parentView: app
+                }).render();
 
-            job.on('change', widget.render, widget);
-            job.set('status', girder.jobs_JobStatus.SUCCESS);
+                expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe(job.get('log'));
+                expect($('.g-job-info-value[property="_id"]').text()).toBe(job.get('_id'));
+                expect($('.g-job-info-value[property="title"]').text()).toBe(job.get('title'));
+                expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
+                expect($('.g-job-status-badge').text()).toBe('Inactive');
 
-            expect($('.g-job-status-badge').text()).toBe('Success');
+                job.on('change', widget.render, widget);
+                job.set('status', girder.jobs_JobStatus.SUCCESS);
+
+                expect($('.g-job-status-badge').text()).toBe('Success');
+            });
         });
     });
 });
