@@ -9,5 +9,7 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
             statusText: girder.jobs_JobStatus.text(this.job.get('status')),
             girder: girder
         }));
+
+        return this;
     }
 });

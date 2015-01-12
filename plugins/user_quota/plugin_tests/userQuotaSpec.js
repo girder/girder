@@ -1,15 +1,15 @@
 $(function () {
     /* Include the built version of the our templates.  This means that grunt
      * must be run to generate these before the test. */
-    girderTest.addCoveredScript(
-        '/static/built/plugins/user_quota/templates.js');
-    girderTest.addCoveredScript(
-        '/plugins/user_quota/web_client/js/userQuota.js');
-    girderTest.addCoveredScript(
-        '/plugins/user_quota/web_client/js/configView.js');
-    $('<link/>', {rel: 'stylesheet', type: 'text/css',
-                  href: '/static/built/plugins/user_quota/plugin.min.css'
-    }).appendTo('head');
+    girderTest.addCoveredScripts([
+        '/static/built/plugins/user_quota/templates.js',
+        '/plugins/user_quota/web_client/js/userQuota.js',
+        '/plugins/user_quota/web_client/js/configView.js'
+    ]);
+    girderTest.importStylesheet(
+        '/static/built/plugins/user_quota/plugin.min.css'
+    );
+
     girder.events.trigger('g:appload.before');
     var app = new girder.App({
         el: 'body',
