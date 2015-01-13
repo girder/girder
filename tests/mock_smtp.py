@@ -53,9 +53,18 @@ class MockSmtpReceiver(object):
         else:
             raise Exception('Could not bind to any port for Mock SMTP server')
 
-        self.thread = threading.Thread(target=asyncore.loop,
-                                       kwargs={'timeout': 0, 'use_poll': True})
+        self.thread = threading.Thread(target=self.loop)
+        self.thread.daemon = True
         self.thread.start()
+
+    def loop(self):
+        """
+        Instead of calling asyncore.loop directly, wrap it with a small
+        timeout.  This prevents using 100% cpu and still allows a graceful
+        exit.
+        """
+        while len(asyncore.socket_map):
+            asyncore.loop(timeout=1, use_poll=True)
 
     def stop(self):
         """Stop the mock STMP server"""
@@ -73,7 +82,7 @@ class MockSmtpReceiver(object):
         """Return whether or not the mail queue is empty"""
         return self.smtp.mailQueue.empty()
 
-    def waitForMail(self, timeout=2):
+    def waitForMail(self, timeout=10):
         """
         Waits for mail to appear on the queue. Returns "True" as soon as the
         queue is not empty, or "False" if the timeout was reached before any

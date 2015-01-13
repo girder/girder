@@ -118,6 +118,22 @@ class WebClientTestCase(base.TestCase):
             self.coverageFile
         )
 
-        returncode = subprocess.call(cmd, stdout=sys.stdout.fileno(),
-                                     stderr=sys.stdout.fileno())
+        # phantomjs occasionally fails to load javascript files.  This appears
+        # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.i
+        # Retry several times if it looks like this has occurred.
+        for tries in xrange(5):
+            retry = False
+            task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+            while task.poll() is None:
+                line = task.stdout.readline()
+                sys.stdout.write(line)
+                if ('PHANTOM_TIMEOUT' in line or
+                        'error loading source script' in line):
+                    retry = True
+            returncode = task.wait()
+            if not retry:
+                break
+            print 'Retrying test'
+
         self.assertEqual(returncode, 0)

@@ -70,8 +70,7 @@ page.onConsoleMessage = function (msg) {
         } catch (e) {
             console.log('Exception writing coverage results: ', e);
         }
-    }
-    else {
+    } else {
         console.log(msg);
     }
     if (msg === 'ConsoleReporter finished') {
@@ -146,6 +145,21 @@ page.onLoadFinished = function (status) {
         phantom.exit(1);
     }
 };
+
+/* Sometimes phantom fails when loading many resources.  I think this is this
+ * known issue: https://github.com/ariya/phantomjs/issues/10652.  Adding a
+ * resource timeout and then reloading the resource works around the problem.
+ */
+page.settings.resourceTimeout = 15000;
+
+page.onResourceTimeout = function (request) {
+    console.log('PHANTOM_TIMEOUT')
+    console.log('Resource timed out.  (#' + request.id + '): ' +
+                JSON.stringify(request));
+    /* The exit code doesn't get sent back from here, so setting this to a
+     * non-zero value doesn't seem to have any benefit. */
+    phantom.exit(0);
+}
 
 page.open(pageUrl, function (status) {
     if (status !== 'success') {
