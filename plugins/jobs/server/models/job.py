@@ -210,14 +210,15 @@ class Job(AccessControlledModel):
         """Helper for updating job progress information."""
         state = JobStatus.toNotificationStatus(job['status'])
 
+        if current is not None:
+            current = float(current)
+        if total is not None:
+            total = float(total)
+
         if job['progress'] is None:
             if notify and job['userId']:
-                user = self.model('user').load(job['userId'], force=True)
-                # TODO support channel-based notifications for jobs. For
-                # right now we'll just go through the user.
-                notification = self.model('notification').initProgress(
-                    user, job['title'], total, state=state, current=current,
-                    message=message, estimateTime=False)
+                notification = self._createProgressNotification(
+                    job, total, current, state, message)
                 notificationId = notification['_id']
             else:
                 notificationId = None
@@ -235,15 +236,29 @@ class Job(AccessControlledModel):
             if message is not None:
                 job['progress']['message'] = message
 
-            if notify and job['progress']['notificationId'] is not None:
-                notification = self.model('notification').load(
-                    job['notificationId'])
+            if notify and job['userId']:
+                if job['progress']['notificationId'] is None:
+                    notification = self._createProgressNotification(
+                        job, total, current, state, message)
+                    job['progress']['notificationId'] = notification['_id']
+                    self.save(job)
+                else:
+                    notification = self.model('notification').load(
+                        job['progress']['notificationId'])
 
                 self.model('notification').updateProgress(
                     notification, state=state,
                     message=job['progress']['message'],
                     current=job['progress']['current'],
                     total=job['progress']['total'])
+
+    def _createProgressNotification(self, job, total, current, state, message):
+        user = self.model('user').load(job['userId'], force=True)
+        # TODO support channel-based notifications for jobs. For
+        # right now we'll just go through the user.
+        return self.model('notification').initProgress(
+            user, job['title'], total, state=state, current=current,
+            message=message, estimateTime=False)
 
     def filter(self, job, user):
         # Allow downstreams to filter job info as they see fit
