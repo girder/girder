@@ -82,7 +82,7 @@ class MockSmtpReceiver(object):
         """Return whether or not the mail queue is empty"""
         return self.smtp.mailQueue.empty()
 
-    def waitForMail(self, timeout=2):
+    def waitForMail(self, timeout=10):
         """
         Waits for mail to appear on the queue. Returns "True" as soon as the
         queue is not empty, or "False" if the timeout was reached before any
