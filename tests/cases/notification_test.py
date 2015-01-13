@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import json
 import time
 
 from .. import base
@@ -43,10 +42,6 @@ class NotificationTestCase(base.TestCase):
             email='admin@email.com', login='admin', firstName='first',
             lastName='last', password='mypasswd')
 
-    def getSseMessages(self, resp):
-        messages = resp.collapse_body().strip().split('\n\n')
-        return map(lambda m: json.loads(m.replace('data: ', '')), messages)
-
     def _testStream(self, user, token=None):
         # Should only work for users or token sessions
         resp = self.request(path='/notification/stream', method='GET')
@@ -57,7 +52,7 @@ class NotificationTestCase(base.TestCase):
 
         resp = self.request(path='/notification/stream', method='GET',
                             user=user, token=token, isJson=False,
-                            params={'timeout': 1})
+                            params={'timeout': 0})
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body(), '')
 
@@ -72,7 +67,7 @@ class NotificationTestCase(base.TestCase):
             # update within the time interval.
             resp = self.request(path='/notification/stream', method='GET',
                                 user=user, token=token, isJson=False,
-                                params={'timeout': 1})
+                                params={'timeout': 0})
             messages = self.getSseMessages(resp)
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]['type'], 'progress')
@@ -87,7 +82,7 @@ class NotificationTestCase(base.TestCase):
             progress.update(current=2)
             resp = self.request(path='/notification/stream', method='GET',
                                 user=user, token=token, isJson=False,
-                                params={'timeout': 1})
+                                params={'timeout': 0})
             messages = self.getSseMessages(resp)
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]['data']['current'], 2)
@@ -96,7 +91,7 @@ class NotificationTestCase(base.TestCase):
             progress.update(current='not_a_number')
             resp = self.request(path='/notification/stream', method='GET',
                                 user=user, token=token, isJson=False,
-                                params={'timeout': 1})
+                                params={'timeout': 0})
             messages = self.getSseMessages(resp)
             self.assertEqual(len(messages), 1)
             self.assertEqual(messages[0]['data']['current'], 'not_a_number')
@@ -108,7 +103,7 @@ class NotificationTestCase(base.TestCase):
         # Exiting the context manager should flush the most recent update.
         resp = self.request(path='/notification/stream', method='GET',
                             user=user, token=token, isJson=False,
-                            params={'timeout': 1})
+                            params={'timeout': 0})
         messages = self.getSseMessages(resp)
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]['data']['current'], 3)
@@ -125,7 +120,7 @@ class NotificationTestCase(base.TestCase):
         # Exiting the context manager should flush the most recent update.
         resp = self.request(path='/notification/stream', method='GET',
                             user=user, token=token, isJson=False,
-                            params={'timeout': 1})
+                            params={'timeout': 0})
         messages = self.getSseMessages(resp)
         self.assertEqual(messages[-1]['data']['message'],
                          'Error: Test Message')
