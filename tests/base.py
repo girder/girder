@@ -257,6 +257,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def getSseMessages(self, resp):
         messages = resp.collapse_body().strip().split('\n\n')
+        if not messages or messages == ['']:
+            return ()
         return map(lambda m: json.loads(m.replace('data: ', '')), messages)
 
     def ensureRequiredParams(self, path='/', method='GET', required=(),

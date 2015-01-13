@@ -77,9 +77,9 @@ class Notification(Resource):
                     wait = MIN_POLL_INTERVAL
                     start = time.time()
                     yield sseMessage(event)
-                if (time.time() - start > timeout or
-                    cherrypy.engine.state != cherrypy.engine.states.STARTED):
-                        break
+                if (cherrypy.engine.state != cherrypy.engine.states.STARTED or
+                        time.time() - start > timeout):
+                    break
 
                 time.sleep(wait)
         return streamGen
