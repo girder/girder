@@ -185,7 +185,22 @@ describe('Create a data hierarchy', function () {
             $('.g-quick-search-container input.g-search-field')
                 .val('john').trigger('input');
         });
-
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('').trigger('input');
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open') == false;
+        }, 'search to return');
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('john').trigger('input');
+        });
         waitsFor(function () {
             return $('.g-quick-search-container .g-search-results')
                 .hasClass('open');
@@ -200,6 +215,33 @@ describe('Create a data hierarchy', function () {
 
             results.find('a[resourcetype="user"]').click();
 
+            expect(Backbone.history.fragment).toBe(
+                'user/' + girder.currentUser.get('_id'));
+        });
+    });
+    it('keyboard control of quick search box', function () {
+        function sendKeyDown(code, selector) {
+            var e = $.Event("keydown");
+            e.which = code;
+            $(selector).trigger(e);
+        }
+        runs(function () {
+            for (var i=1; i<=4; i++) {
+                $('.g-quick-search-container input.g-search-field')
+                    .val('john'.substr(0, i)).trigger('input');
+            }                    
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+        runs(function () {
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(40, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(40, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(13, '.g-quick-search-container input.g-search-field');
             expect(Backbone.history.fragment).toBe(
                 'user/' + girder.currentUser.get('_id'));
         });
