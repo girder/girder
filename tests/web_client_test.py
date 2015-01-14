@@ -119,7 +119,7 @@ class WebClientTestCase(base.TestCase):
         )
 
         # phantomjs occasionally fails to load javascript files.  This appears
-        # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.i
+        # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
         for tries in xrange(5):
             retry = False
@@ -130,16 +130,16 @@ class WebClientTestCase(base.TestCase):
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
                     retry = True
-                    sys.stdout.write(line)
+                    sys.stderr.write(line)
                 elif '__FETCHEMAIL__' in line:
                     msg = base.mockSmtp.getMail()
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
                          'wb').write(msg)
                 else:
-                    sys.stdout.write(line)
+                    sys.stderr.write(line)
             returncode = task.wait()
             if not retry:
                 break
-            print 'Retrying test'
+            sys.stderr.write('Retrying test\n')
 
         self.assertEqual(returncode, 0)

@@ -40,23 +40,12 @@ var terminate = function () {
     });
 
     if (status) {
-        safePhantomExit(0);
+        phantom.exit(0);
     }
     else {
-        safePhantomExit(1);
+        phantom.exit(1);
     }
 };
-
-/* Exit phantom instance "safely" see
- * https://github.com/ariya/phantomjs/issues/12697
- * https://github.com/mammaldev/node-webshot-mammal/commit/9b26fb3
- */
-function safePhantomExit() {
-    var args = [].slice.call(arguments);
-    setTimeout(function () {
-        phantom.exit.apply(phantom, args);
-    }, 0);
-}
 
 // Set decent viewport size for screenshots.
 page.viewportSize = {
@@ -147,19 +136,19 @@ page.onError = function (msg, trace) {
     console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
         fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
     page.render('phantom_error_screenshot.png');
-    safePhantomExit(1);
+    phantom.exit(1);
 };
 
 page.onLoadFinished = function (status) {
     if (status !== 'success') {
         console.error('Page load failed');
-        safePhantomExit(1);
+        phantom.exit(1);
     }
 
     page.injectJs('coverageHandler.js');
     if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
-        safePhantomExit(1);
+        phantom.exit(1);
     }
 };
 
@@ -181,6 +170,6 @@ page.onResourceTimeout = function (request) {
 page.open(pageUrl, function (status) {
     if (status !== 'success') {
         console.error('Could not load page: ' + pageUrl);
-        safePhantomExit(1);
+        phantom.exit(1);
     }
 });
