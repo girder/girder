@@ -25,11 +25,31 @@ from girder_client import GirderClient
 
 class GirderCli(GirderClient):
     """
+    A command line Python client for interacting with a Girder instance's
+    RESTful api, specifically for performing uploads into a Girder instance.
     """
 
     def __init__(self, username, password, dryrun=False, blacklist=[],
-                 host='localhost', port=8080, apiRoot=None):
-        GirderClient.__init__(self, host=host, port=port, apiRoot=apiRoot)
+                 scheme='http', host='localhost', port=8080, apiRoot=None):
+        """initialization function to create a GirderCli instance, will attempt
+        to authenticate with the designated Girder instance.
+        :param username: username to authenticate to Girder instance.
+        :param password: password to authenticate to Girder instance, leave
+            this blank to be prompted.
+        :param dryrun: boolean indicating whether to run the command or just
+            perform a dryrun showing which files and folders will be uploaded.
+        :param blacklist: list of filenames which will be ignored by upload.
+        :param scheme: scheme used to connect to Girder instance,
+            defaults to 'http'; if passing 'https' port should likely be 443.
+        :param host: host used to connect to Girder instance,
+            defaults to 'localhost'
+        :param port: port used to connect to Girder instance,
+            defaults to 8080
+        :param apiRoot: The path on the server corresponding to the root of the
+            Girder REST API. If None is passed, assumes '/api/v1'.
+        """
+        GirderClient.__init__(self, scheme=scheme, host=host, port=port,
+                              apiRoot=apiRoot)
         interactive = password is None
         self.authenticate(username, password, interactive=interactive)
         self.dryrun = dryrun
@@ -38,12 +58,38 @@ class GirderCli(GirderClient):
         self.folder_upload_callbacks = []
 
     def add_folder_upload_callback(self, callback):
+        """Saves a passed in callback function that will be called after each
+        folder has completed.  Multiple callback functions can be added, they
+        will be called in the order they were added by calling this function.
+        Callback functions will be called after a folder in Girder is created
+        and all subfolders and items for that folder have completed uploading.
+        Callback functions should take two parameters:
+            - the folder in girder
+            - the full path to the local folder
+        :param callback: callback function to be called
+        """
         self.folder_upload_callbacks.append(callback)
 
     def add_item_upload_callback(self, callback):
+        """Saves a passed in callback function that will be called after each
+        item has completed.  Multiple callback functions can be added, they
+        will be called in the order they were added by calling this function.
+        Callback functions will be called after an item in Girder is created
+        and all files for that item have been uploaded.  Callback functions
+        should take two parameters:
+            - the item in girder
+            - the full path to the local folder or file comprising the item
+        :param callback: callback function to be called
+        """
         self.item_upload_callbacks.append(callback)
 
     def _load_or_create_folder(self, local_folder, parent_folder_id):
+        """Returns a folder in Girder with the same name as the passed in
+        local_folder under the parent_folder_id, creating a new Girder folder
+        if need be or returning an existing folder with that name.
+        :param local_folder: full path to the local folder
+        :param parent_folder_id: id of parent folder in Girder
+        """
         child_folders = self.listFolder(parent_folder_id)
         folder_name = os.path.basename(local_folder)
         folder = None
@@ -87,6 +133,11 @@ class GirderCli(GirderClient):
         return item
 
     def _upload_file_to_item(self, local_file, parent_item_id, file_path):
+        """Helper function to upload a file to an item
+        :param local_file: name of local file to upload
+        :param parent_item_id: id of parent item in Girder to add file to
+        :param file_path: full path to the file
+        """
         self.uploadFileToItem(parent_item_id, file_path)
 
     def _upload_as_item(self, local_file, parent_folder_id, file_path,
@@ -144,10 +195,10 @@ class GirderCli(GirderClient):
                                  reuse_existing=False):
         """Function to recursively upload a folder and all of its descendants.
         :param local_folder: full path to local folder to be uploaded
-        :param parent_folder_id: id of parent folder in Girder, where new folder
-        will be added
-        :param leaf_folders_as_items: whether leaf folders should have all files
-        uploaded as single items
+        :param parent_folder_id: id of parent folder in Girder, where new
+        folder will be added
+        :param leaf_folders_as_items: whether leaf folders should have all
+        files uploaded as single items
         :param reuse_existing: boolean indicating whether to accept an existing
         item
         of the same name in the same location, or create a new one instead
@@ -188,6 +239,10 @@ class GirderCli(GirderClient):
                     self._upload_as_item(
                         entry, folder['_id'], full_entry, reuse_existing)
 
+            if not self.dryrun:
+                for callback in self.folder_upload_callbacks:
+                    callback(folder, local_folder)
+
     def upload(self, file_pattern, parent_folder_id, parent_type='folder',
                leaf_folders_as_items=False, reuse_existing=False):
         """Upload a pattern of files.
@@ -198,8 +253,8 @@ class GirderCli(GirderClient):
         :param file_pattern: a glob pattern for files that will be uploaded,
         recursively copying any file folder structures
         :param parent_folder_id: id of the parent folder in girder
-        :param leaf_folders_as_items: whether leaf folders should have all files
-        uploaded as single items
+        :param leaf_folders_as_items: whether leaf folders should have all
+        files uploaded as single items
         :param reuse_existing: boolean indicating whether to accept an existing
         item of the same name in the same location, or create a new one instead
         """
@@ -228,8 +283,8 @@ if __name__ == '__main__':
         description='Perform common Girder CLI operations.')
     parser.add_argument(
         '--reuse', action='store_true',
-        help='use existing items of same name at same location or create a new '
-        'one')
+        help='use existing items of same name at same location or create a new'
+        ' one')
     parser.add_argument(
         '--blacklist', default='', required=False,
         help='comma separated list of filenames to ignore')
@@ -239,6 +294,7 @@ if __name__ == '__main__':
         'happen')
     parser.add_argument('--username', required=False, default=None)
     parser.add_argument('--password', required=False, default=None)
+    parser.add_argument('--scheme', required=False, default='http')
     parser.add_argument('--host', required=False, default='localhost')
     parser.add_argument('--port', required=False, default='8080')
     parser.add_argument('--api-root', required=False, default='/api/v1',
