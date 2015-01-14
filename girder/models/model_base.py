@@ -371,6 +371,7 @@ class AccessControlledModel(Model):
         for groupAccess in perms:
             if groupAccess['id'] in groupIds and groupAccess['level'] >= level:
                 return True
+        return False
 
     def _hasUserAccess(self, perms, userId, level):
         """
