@@ -83,21 +83,22 @@ class GirderCli(GirderClient):
         """
         self.item_upload_callbacks.append(callback)
 
-    def _load_or_create_folder(self, local_folder, parent_folder_id):
+    def _load_or_create_folder(self, local_folder, parent_id, parent_type):
         """Returns a folder in Girder with the same name as the passed in
-        local_folder under the parent_folder_id, creating a new Girder folder
+        local_folder under the parent_id, creating a new Girder folder
         if need be or returning an existing folder with that name.
         :param local_folder: full path to the local folder
-        :param parent_folder_id: id of parent folder in Girder
+        :param parent_id: id of parent in Girder
+        :param parent_type: one of (collection, folder, user)
         """
-        child_folders = self.listFolder(parent_folder_id)
+        child_folders = self.listFolder(parent_id, parent_type)
         folder_name = os.path.basename(local_folder)
         folder = None
         for child in child_folders:
             if child['name'] == folder_name:
                 folder = child
         if folder is None:
-            folder = self.createFolder(parent_folder_id, 'folder',
+            folder = self.createFolder(parent_id, parent_type,
                                        folder_name, description='')
         return folder
 
@@ -190,13 +191,14 @@ class GirderCli(GirderClient):
             for callback in self.item_upload_callbacks:
                 callback(item, local_folder)
 
-    def _upload_folder_recursive(self, local_folder, parent_folder_id,
+    def _upload_folder_recursive(self, local_folder, parent_id, parent_type,
                                  leaf_folders_as_items=False,
                                  reuse_existing=False):
         """Function to recursively upload a folder and all of its descendants.
         :param local_folder: full path to local folder to be uploaded
-        :param parent_folder_id: id of parent folder in Girder, where new
-        folder will be added
+        :param parent_id: id of parent in Girder,
+            where new folder will be added
+        :param parent_type: one of (collection, folder, user)
         :param leaf_folders_as_items: whether leaf folders should have all
         files uploaded as single items
         :param reuse_existing: boolean indicating whether to accept an existing
@@ -204,8 +206,13 @@ class GirderCli(GirderClient):
         of the same name in the same location, or create a new one instead
         """
         if leaf_folders_as_items and self._has_only_files(local_folder):
-            self._upload_folder_as_item(local_folder, parent_folder_id,
-                                        reuse_existing)
+            if parent_type != 'folder':
+                raise Exception(
+                    ('Attempting to upload a folder as an item under a %s. '
+                        % parent_type) + 'Items can only be added to folders.')
+            else:
+                self._upload_folder_as_item(local_folder, parent_id,
+                                            reuse_existing)
         else:
             filename = os.path.basename(local_folder)
             if filename in self.blacklist:
@@ -219,7 +226,7 @@ class GirderCli(GirderClient):
                 folder = {'_id': 'dryrun'}
             else:
                 folder = self._load_or_create_folder(
-                    local_folder, parent_folder_id)
+                    local_folder, parent_id, parent_type)
 
             for entry in sorted(os.listdir(local_folder)):
                 if entry in self.blacklist:
@@ -232,9 +239,11 @@ class GirderCli(GirderClient):
                     print "Skipping file %s as it is a symlink" % entry
                     continue
                 elif os.path.isdir(full_entry):
+                    # At this point we should have an actual folder, so can
+                    # pass that as the parent_type
                     self._upload_folder_recursive(
-                        full_entry, folder['_id'], leaf_folders_as_items,
-                        reuse_existing)
+                        full_entry, folder['_id'], 'folder',
+                        leaf_folders_as_items, reuse_existing)
                 else:
                     self._upload_as_item(
                         entry, folder['_id'], full_entry, reuse_existing)
@@ -243,16 +252,17 @@ class GirderCli(GirderClient):
                 for callback in self.folder_upload_callbacks:
                     callback(folder, local_folder)
 
-    def upload(self, file_pattern, parent_folder_id, parent_type='folder',
+    def upload(self, file_pattern, parent_id, parent_type='folder',
                leaf_folders_as_items=False, reuse_existing=False):
         """Upload a pattern of files.
 
         This will recursively walk down every tree in the file pattern to
-        create a hierarchy on the server.  Assumes the parent is a folder.
+        create a hierarchy on the server under the parent_id.
 
         :param file_pattern: a glob pattern for files that will be uploaded,
         recursively copying any file folder structures
-        :param parent_folder_id: id of the parent folder in girder
+        :param parent_id: id of the parent in girder
+        :param parent_type: one of (collection, folder, user) default of folder
         :param leaf_folders_as_items: whether leaf folders should have all
         files uploaded as single items
         :param reuse_existing: boolean indicating whether to accept an existing
@@ -268,13 +278,18 @@ class GirderCli(GirderClient):
                     print "Ignoring file %s as it is blacklisted" % filename
                 continue
             if os.path.isfile(current_file):
-                self._upload_as_item(
-                    os.path.basename(current_file), parent_folder_id,
-                    current_file, reuse_existing)
+                if parent_type != 'folder':
+                    raise Exception(('Attempting to upload an item under a %s.'
+                                    % parent_type) +
+                                    ' Items can only be added to folders.')
+                else:
+                    self._upload_as_item(
+                        os.path.basename(current_file), parent_id,
+                        current_file, reuse_existing)
             else:
                 self._upload_folder_recursive(
-                    current_file, parent_folder_id, leaf_folders_as_items,
-                    reuse_existing)
+                    current_file, parent_id, parent_type,
+                    leaf_folders_as_items, reuse_existing)
         if empty:
             print 'No matching files: ' + file_pattern
 
@@ -301,7 +316,10 @@ if __name__ == '__main__':
                         help='path to the Girder REST API')
     parser.add_argument('-c', default='upload', choices=['upload'],
                         help='command to run')
-    parser.add_argument('folder_id', help='id of Girder target folder')
+    parser.add_argument('parent_id', help='id of Girder parent target')
+    parser.add_argument('--parent-type', required=False, default='folder',
+                        help='type of Girder parent target, one of ' +
+                        '(collection, folder, user)')
     parser.add_argument('local_folder', help='path to local target folder')
     parser.add_argument('--leaf-folders-as-items', required=False,
                         action='store_true',
@@ -313,7 +331,7 @@ if __name__ == '__main__':
                   args.blacklist.split(','), host=args.host, port=args.port,
                   apiRoot=args.api_root)
     if args.c == 'upload':
-        g.upload(args.local_folder, args.folder_id,
+        g.upload(args.local_folder, args.parent_id, args.parent_type,
                  leaf_folders_as_items=args.leaf_folders_as_items,
                  reuse_existing=args.reuse)
     else:
