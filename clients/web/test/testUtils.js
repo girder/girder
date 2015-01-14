@@ -482,6 +482,24 @@ girderTest.addCoveredScript = function (url) {
 };
 
 /**
+ * Import a list of covered scripts. Order will be respected.
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    _.each(scripts, girderTest.addCoveredScript);
+};
+
+/**
+ * Import a CSS file into the runtime context.
+ */
+girderTest.importStylesheet = function (css) {
+    $('<link/>', {
+        rel: 'stylesheet',
+        type: 'text/css',
+        href: css
+    }).appendTo('head');
+};
+
+/**
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.

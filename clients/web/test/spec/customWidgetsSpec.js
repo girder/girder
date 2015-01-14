@@ -6,7 +6,8 @@ describe('Test upload widget non-standard options', function () {
                 noParent: true,
                 modal: false,
                 title: null,
-                el: 'body'
+                el: 'body',
+                parentView: null
             }).render();
 
             expect($('.modal').length).toBe(0);

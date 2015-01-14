@@ -171,6 +171,12 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertTrue('created' in resp.json)
         self.assertTrue('_some_other_field' not in resp.json)
+        self.assertTrue('kwargs' not in resp.json)
+        self.assertTrue('args' not in resp.json)
+
+        resp = self.request('/job/{}'.format(job['_id']), user=self.users[0])
+        self.assertTrue('kwargs' in resp.json)
+        self.assertTrue('args' in resp.json)
 
         def filterJob(event):
             event.info['job']['_some_other_field'] = 'bar'
@@ -185,3 +191,64 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_some_other_field'], 'bar')
         self.assertTrue('created' not in resp.json)
+
+    def testJobProgressAndNotifications(self):
+        job = self.model('job', 'jobs').createJob(
+            title='a job', type='t', user=self.users[1], public=True)
+
+        path = '/job/%s' % job['_id']
+        resp = self.request(path)
+        self.assertEqual(resp.json['progress'], None)
+
+        resp = self.request(path, method='PUT', user=self.users[1], params={
+            'progressTotal': 100,
+            'progressCurrent': 3,
+            'progressMessage': 'Started',
+            'notify': 'false',
+            'status': JobStatus.RUNNING
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['progress'], {
+            'total': 100,
+            'current': 3,
+            'message': 'Started',
+            'notificationId': None
+        })
+
+        # We passed notify=false, so we should not have any notifications
+        resp = self.request(path='/notification/stream', method='GET',
+                            user=self.users[1], isJson=False,
+                            params={'timeout': 0})
+        messages = self.getSseMessages(resp)
+        self.assertEqual(len(messages), 0)
+
+        # Update progress with notify=true (the default)
+        resp = self.request(path, method='PUT', user=self.users[1], params={
+            'progressCurrent': 50,
+            'progressMessage': 'Something bad happened',
+            'status': JobStatus.ERROR
+        })
+        self.assertStatusOk(resp)
+        self.assertNotEqual(resp.json['progress']['notificationId'], None)
+
+        # We should now see two notifications (job status + progress)
+        resp = self.request(path='/notification/stream', method='GET',
+                            user=self.users[1], isJson=False,
+                            params={'timeout': 0})
+        messages = self.getSseMessages(resp)
+        job = self.model('job', 'jobs').load(job['_id'], force=True)
+        self.assertEqual(len(messages), 2)
+        statusNotify = messages[0]
+        progressNotify = messages[1]
+
+        self.assertEqual(statusNotify['type'], 'job_status')
+        self.assertEqual(statusNotify['data']['_id'], str(job['_id']))
+        self.assertEqual(int(statusNotify['data']['status']), JobStatus.ERROR)
+        self.assertTrue('kwargs' not in statusNotify['data'])
+
+        self.assertEqual(progressNotify['type'], 'progress')
+        self.assertEqual(progressNotify['data']['title'], job['title'])
+        self.assertEqual(progressNotify['data']['current'], float(50))
+        self.assertEqual(progressNotify['data']['state'], 'error')
+        self.assertEqual(progressNotify['_id'],
+                         str(job['progress']['notificationId']))

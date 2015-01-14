@@ -1,7 +1,7 @@
 /**
  * This widget renders the state of a progress notification.
  */
-girder.views.TaskProgressWidget = Backbone.View.extend({
+girder.views.TaskProgressWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;

@@ -18,6 +18,9 @@
 ###############################################################################
 
 
+from girder.models.notification import ProgressState
+
+
 # Constants representing the setting keys for this plugin
 class JobStatus(object):
     INACTIVE = 0
@@ -32,3 +35,14 @@ class JobStatus(object):
         return status in (JobStatus.INACTIVE, JobStatus.QUEUED,
                           JobStatus.RUNNING, JobStatus.SUCCESS, JobStatus.ERROR,
                           JobStatus.CANCELED)
+
+    @staticmethod
+    def toNotificationStatus(status):
+        if status in (JobStatus.INACTIVE, JobStatus.QUEUED):
+            return ProgressState.QUEUED
+        if status == JobStatus.RUNNING:
+            return ProgressState.ACTIVE
+        if status == JobStatus.SUCCESS:
+            return ProgressState.SUCCESS
+        else:
+            return ProgressState.ERROR

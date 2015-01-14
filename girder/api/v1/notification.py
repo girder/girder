@@ -68,8 +68,7 @@ class Notification(Resource):
             lastUpdate = None
             start = time.time()
             wait = MIN_POLL_INTERVAL
-            while time.time() - start < timeout and\
-                    cherrypy.engine.state == cherrypy.engine.states.STARTED:
+            while cherrypy.engine.state == cherrypy.engine.states.STARTED:
                 wait = min(wait + MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
                 for event in self.model('notification').get(
                         user, lastUpdate, token=token):
@@ -78,6 +77,8 @@ class Notification(Resource):
                     wait = MIN_POLL_INTERVAL
                     start = time.time()
                     yield sseMessage(event)
+                if time.time() - start > timeout:
+                    break
 
                 time.sleep(wait)
         return streamGen

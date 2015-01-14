@@ -55,9 +55,20 @@ class Notification(Model):
     def validate(self, doc):
         return doc
 
-    def _createNotification(self, type, data, user, expires=None, token=None):
+    def createNotification(self, type, data, user, expires=None, token=None):
         """
-        Helper method to create the notification record that gets saved.
+        Create a generic notification.
+
+        :param type: The notification type.
+        :type type: str
+        :param data: The notification payload.
+        :param user: User to send the notification to.
+        :type user: dict
+        :param expires: Expiration date (for transient notifications).
+        :type expires: datetime
+        :param token: Set this if the notification should correspond to a token
+            instead of a user.
+        :type token: dict
         """
         now = datetime.datetime.utcnow()
         currentTime = time.time()
@@ -71,7 +82,7 @@ class Notification(Model):
         }
         if user:
             doc['userId'] = user['_id']
-        else:
+        elif token:
             doc['tokenId'] = token['_id']
 
         if expires is not None:
@@ -119,8 +130,8 @@ class Notification(Model):
         }
         expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
-        return self._createNotification('progress', data, user, expires,
-                                        token=token)
+        return self.createNotification('progress', data, user, expires,
+                                       token=token)
 
     def updateProgress(self, record, save=True, **kwargs):
         """
