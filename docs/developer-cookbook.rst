@@ -237,7 +237,7 @@ below: ::
             'param1': 'foo',
             'param2': 'bar'
         })
-        mail_utils.sendEmail(to=email, subject='My mail from girder', text=html)
+        mail_utils.sendEmail(to=email, subject='My mail from Girder', text=html)
 
 If you wish to send email from within a plugin, simply create a
 **server/mail_templates** directory within your plugin, and it will be
