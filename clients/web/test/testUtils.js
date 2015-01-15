@@ -466,7 +466,7 @@ girderTest.waitForDialog = function (desc) {
 };
 
 /**
- * Import a javascript file and ask register it with the blanket coverage
+ * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
@@ -595,6 +595,18 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
     }
 };
 
+/* Determine a value used to keep tests using different files.
+ * @returns suffix: the suffix used in callPhantom actions.
+ */
+girderTest.getCallbackSuffix = function () {
+    girderTest._uploadSuffix = '';
+    var hostport = window.location.host.match(':([0-9]+)');
+    if (hostport && hostport.length === 2) {
+        girderTest._uploadSuffix = hostport[1];
+    }
+    return girderTest._uploadSuffix;
+}
+
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
  */
@@ -605,11 +617,7 @@ function _prepareTestUpload() {
     girderTest._uploadData = null;
     /* used for resume testing */
     girderTest._uploadDataExtra = 0;
-    girderTest._uploadSuffix = '';
-    var hostport = window.location.host.match(':([0-9]+)');
-    if (hostport && hostport.length === 2) {
-        girderTest._uploadSuffix = hostport[1];
-    }
+    girderTest.getCallbackSuffix();
 
     (function (impl) {
         FormData.prototype.append = function (name, value, filename) {

@@ -91,27 +91,33 @@ page.onCallback = function (data) {
      * :param data: an object with an 'action', as listed above.
      * :returns: depends on the action.
      */
-    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload';
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
     if (data.suffix) {
         uploadTemp += '_' + data.suffix;
     }
     uploadTemp += '.tmp';
     switch (data.action)
     {
+        case 'fetchEmail':
+            if (fs.exists(uploadTemp)) {
+                return fs.read(uploadTemp);
+            }
+            break;
         case 'uploadFile':
             var path = data.path
-            if (!path && data.size!==undefined)
-            {
+            if (!path && data.size!==undefined) {
                 path = uploadTemp;
                 fs.write(path, new Array(data.size+1).join("-"), "wb");
             }
             page.uploadFile(data.selector, path);
-            if (fs.size(path) >= 1024 * 64)
+            if (fs.size(path) >= 1024 * 64) {
                 return fs.size(path);
+            }
             return fs.read(path);
         case 'uploadCleanup':
-            if (fs.exists(uploadTemp))
+            if (fs.exists(uploadTemp)) {
                 fs.remove(uploadTemp);
+            }
             break;
     }
 };

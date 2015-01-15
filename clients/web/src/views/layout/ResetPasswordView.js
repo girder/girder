@@ -7,8 +7,9 @@ girder.views.ResetPasswordView = girder.View.extend({
             e.preventDefault();
 
             girder.restRequest({
-                path: 'user/password?email=' + this.$('#g-email').val().trim(),
-                type: 'DELETE',
+                path: 'user/password/temporary?email=' + this.$('#g-email')
+                    .val().trim(),
+                type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function (resp) {
                 this.$el.modal('hide');

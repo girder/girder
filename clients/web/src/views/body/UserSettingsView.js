@@ -73,6 +73,7 @@ girder.views.UserAccountView = girder.View.extend({
             settings.user.get('_id') === girder.currentUser.get('_id');
 
         this.model = this.user;
+        this.temporary = settings.temporary;
 
         if (!this.user ||
                 this.user.getAccessLevel() < girder.AccessType.WRITE) {
@@ -88,7 +89,6 @@ girder.views.UserAccountView = girder.View.extend({
     },
 
     render: function () {
-
         if (girder.currentUser === null) {
             girder.router.navigate('users', {trigger: true});
             return;
@@ -96,7 +96,8 @@ girder.views.UserAccountView = girder.View.extend({
 
         this.$el.html(girder.templates.userSettings({
             user: this.model,
-            girder: girder
+            girder: girder,
+            temporaryToken: this.temporary
         }));
 
         _.each($('.g-account-tabs>li>a'), function (el) {
@@ -141,4 +142,26 @@ girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     }, this).on('g:error', function () {
         girder.router.navigate('users', {trigger: true});
     }, this).fetch();
+});
+
+girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
+    girder.restRequest({
+        path: 'user/password/temporary/' + id,
+        type: 'GET',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        resp.user.token = resp.authToken.token;
+        girder.eventStream.close();
+        girder.currentUser = new girder.models.UserModel(resp.user);
+        girder.eventStream.open();
+        girder.events.trigger('g:login-changed');
+        girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
+            user: girder.currentUser,
+            tab: 'password',
+            temporary: token
+        });
+    }, this)).error(_.bind(function (err) {
+        girder.router.navigate('users', {trigger: true});
+    }, this));
 });

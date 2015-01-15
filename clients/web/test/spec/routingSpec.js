@@ -142,7 +142,7 @@ describe('Test routing paths', function () {
             return $('input#g-password2').length === 1;
         });
         girderTest.testRoute('?dialog=resetpassword', true, function () {
-            return $('.modal-title').text() === 'Reset password';
+            return $('.modal-title').text() === 'Forgotten password';
         });
         /* Navigate to a non-dialog so we can log in */
         girderTest.testRoute('collections', false, function () {
