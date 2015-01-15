@@ -41,10 +41,12 @@ def renderTemplate(name, params=None):
     if not params:
         params = {}
 
-    host = '://'.join((cherrypy.request.scheme, cherrypy.request.local.name))
-
-    if cherrypy.request.local.port != 80:
-        host += ':{}'.format(cherrypy.request.local.port)
+    host = ModelImporter().model('setting').get(SettingKey.EMAIL_HOST, '')
+    if not host:
+        host = '://'.join((cherrypy.request.scheme,
+                           cherrypy.request.local.name))
+        if cherrypy.request.local.port != 80:
+            host += ':{}'.format(cherrypy.request.local.port)
 
     params['host'] = host
     template = _templateLookup.get_template(name)

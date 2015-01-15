@@ -20,6 +20,12 @@ form.g-settings-form(role="form")
       placeholder="Default: #{defaults['core.email_from_address'] || ''}",
       title="The email address the system will use when sending emails.")
   .form-group
+    label(for="g-core-email-host") Email host
+    input#g-core-email-host.form-control.input-sm(
+      type="text", value="#{settings['core.email_host'] || ''}",
+      placeholder="Default: #{defaults['core.email_host'] || ''}",
+      title="The host email server that is shown as a link in the footer of emails.")
+  .form-group
     label(for="g-core-registration-policy") Registration policy
     select#g-core-registration-policy.form-control.input-sm
       option(value="open", selected=(settings['core.registration_policy'] ==
