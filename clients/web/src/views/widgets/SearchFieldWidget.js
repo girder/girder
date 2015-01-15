@@ -27,6 +27,37 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 id: link.attr('resourceid'),
                 text: link.text()
             });
+        },
+        'keydown .g-search-field': function (e) {
+            var code = e.keyCode || e.which;
+            var list, pos;
+            if (code === 40) { /* down arrow */
+                list = this.$('.g-search-result');
+                pos = list.index(list.filter('.g-search-selected')) + 1;
+                list.removeClass('g-search-selected');
+                if (pos < list.length) {
+                    list.eq(pos).addClass('g-search-selected');
+                }
+            } else if (code === 38) { /* up arrow */
+                list = this.$('.g-search-result');
+                pos = list.index(list.filter('.g-search-selected')) - 1;
+                list.removeClass('g-search-selected');
+                if (pos === -2) {
+                    pos = list.length - 1;
+                }
+                if (pos >= 0) {
+                    list.eq(pos).addClass('g-search-selected');
+                }
+            } else if (code === 13) { /* enter */
+                var link = this.$('.g-search-result.g-search-selected>a');
+                if (link.length) {
+                    this.trigger('g:resultClicked', {
+                        type: link.attr('resourcetype'),
+                        id: link.attr('resourceid'),
+                        text: link.text()
+                    });
+                }
+            }
         }
     },
 
