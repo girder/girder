@@ -170,7 +170,7 @@ class SystemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, None)
 
-        # But we have to ask for a sensible value in teh default parameter
+        # But we have to ask for a sensible value in the default parameter
         resp = self.request(path='/system/setting', method='GET', params={
             'key': SettingKey.COOKIE_LIFETIME,
             'default': 'bad_value'
@@ -183,6 +183,7 @@ class SystemTestCase(base.TestCase):
         # the badValues table.
         badValues = {
             SettingKey.EMAIL_FROM_ADDRESS: '',
+            SettingKey.EMAIL_HOST: {},
             SettingKey.SMTP_HOST: '',
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
@@ -199,6 +200,15 @@ class SystemTestCase(base.TestCase):
             resp = self.request(path='/system/setting', method='PUT', params={
                 'key': key,
                 'value': SettingDefault.defaults.get(key, '')
+            }, user=users[0])
+            self.assertStatusOk(resp)
+            resp = self.request(path='/system/setting', method='PUT', params={
+                'list': json.dumps([{'key': key, 'value': None}])
+            }, user=users[0])
+            self.assertStatusOk(resp)
+            resp = self.request(path='/system/setting', method='GET', params={
+                'key': key,
+                'default': 'default'
             }, user=users[0])
             self.assertStatusOk(resp)
 

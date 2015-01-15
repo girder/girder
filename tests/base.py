@@ -40,8 +40,8 @@ from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
 
-local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
-remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+local = cherrypy.lib.httputil.Host('127.0.0.1', 50000)
+remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001)
 mockSmtp = mock_smtp.MockSmtpReceiver()
 mockS3Server = None
 enabledPlugins = []
