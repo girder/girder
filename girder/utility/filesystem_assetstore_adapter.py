@@ -20,6 +20,7 @@
 import cherrypy
 import os
 import psutil
+import shutil
 import stat
 import tempfile
 
@@ -187,7 +188,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             os.remove(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
-            os.rename(upload['tempFile'], abspath)
+            shutil.move(upload['tempFile'], abspath)
             os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
 
         file['sha512'] = hash
