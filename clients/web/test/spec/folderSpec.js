@@ -225,6 +225,7 @@ describe('Test folder creation, editing, and deletion', function () {
         girderTest.waitForLoad();
 
         runs(function () {
+            expect($(".g-widget-metadata-row").length).toNotBe(0);
             $('i.icon-level-up').click();
         });
 
@@ -234,6 +235,8 @@ describe('Test folder creation, editing, and deletion', function () {
         girderTest.waitForLoad();
 
         runs(function () {
+            /* This folder shouldn't show any metadata */
+            expect($(".g-widget-metadata-row").length).toBe(0);
             $('a.g-breadcrumb-link').click();
         });
 
