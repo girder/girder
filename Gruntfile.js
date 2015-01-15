@@ -33,8 +33,8 @@ module.exports = function (grunt) {
         }
         try {
             var cfg = JSON.parse(stdout);
-            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
-            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            apiRoot = ((cfg.server && cfg.server.api_root) || '/api/v1').replace(/\"/g, "");
+            staticRoot = ((cfg.server && cfg.server.static_root) || '/static').replace(/\"/g, "");
             console.log('Static root: ' + staticRoot.bold);
             console.log('API root: ' + apiRoot.bold);
         }
