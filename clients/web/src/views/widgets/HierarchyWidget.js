@@ -179,6 +179,7 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         if (this.parentModel.resourceName === 'folder') {
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
+            this.metadataWidget.setItem(this.parentModel);
             this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
         }
 
