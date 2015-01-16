@@ -131,14 +131,13 @@ girder.views.HierarchyWidget = girder.View.extend({
             folderId: this.parentModel.get('_id'),
             parentView: this
         });
-        this.itemListView.on('g:itemClicked', function (item) {
-            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-        }, this).off('g:checkboxesChanged')
-        .on('g:checkboxesChanged', this.updateChecked, this)
-        .off('g:changed').on('g:changed', function () {
-            this.itemCount = this.itemListView.collection.length;
-            this._childCountCheck();
-        }, this);
+        this.itemListView.on('g:itemClicked', this._onItemClick, this)
+            .off('g:checkboxesChanged')
+            .on('g:checkboxesChanged', this.updateChecked, this)
+            .off('g:changed').on('g:changed', function () {
+                this.itemCount = this.itemListView.collection.length;
+                this._childCountCheck();
+            }, this);
 
         this.metadataWidget = new girder.views.MetadataWidget({
             item: this.parentModel,
