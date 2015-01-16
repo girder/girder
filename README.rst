@@ -1,5 +1,5 @@
 Girder |build-status| |docs-status| |license-badge|
-===================================
+===================================================
 
 *High-Performance Data Management Platform*
 
