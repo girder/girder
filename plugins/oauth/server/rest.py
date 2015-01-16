@@ -26,6 +26,7 @@ import urllib
 from girder.constants import AccessType
 from girder.api.describe import Description
 from girder.api.rest import Resource
+from girder.api import access
 from . import constants, providers
 
 
@@ -36,6 +37,7 @@ class OAuth(Resource):
         self.route('GET', ('provider',), self.listProviders)
         self.route('GET', ('google', 'callback'), self.googleCallback)
 
+    @access.public
     def listProviders(self, params):
         """
         TODO Once we have multiple providers, this list should be dynamically
@@ -60,8 +62,8 @@ class OAuth(Resource):
         if clientId is None:
             raise Exception('No Google client ID setting is present.')
 
-        callbackUrl = os.path.join(
-            os.path.dirname(cherrypy.url()), 'google', 'callback')
+        callbackUrl = '/'.join((
+            os.path.dirname(cherrypy.url()), 'google', 'callback'))
 
         query = urllib.urlencode({
             'response_type': 'code',
@@ -76,6 +78,7 @@ class OAuth(Resource):
 
         return '{}?{}'.format(constants.GOOGLE_AUTH_URL, query)
 
+    @access.public
     def googleCallback(self, params):
         self.requireParams(('state', 'code'), params)
 
@@ -143,5 +146,5 @@ class OAuth(Resource):
 
         self.model('token').remove(token)
 
-        if token['expires'] < datetime.datetime.now():
+        if token['expires'] < datetime.datetime.utcnow():
             raise Exception('Expired CSRF token (state="{}").'.format(redirect))

@@ -9,12 +9,13 @@ girder.views.vega_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.vega_config());
+        this.$el.html(girder.templates.vega_config());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
                 pluginName: 'Vega file visualizer',
-                el: this.$('.g-config-breadcrumb-container')
+                el: this.$('.g-config-breadcrumb-container'),
+                parentView: this
             }).render();
         }
 

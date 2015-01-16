@@ -20,11 +20,13 @@
 import io
 import os
 import shutil
+import urllib
 import zipfile
 
 from hashlib import sha512
 from .. import base
 
+from girder.constants import SettingKey
 from girder.models import getDbConnection
 
 
@@ -61,6 +63,14 @@ class FileTestCase(base.TestCase):
                 self.publicFolder = folder
             else:
                 self.privateFolder = folder
+        secondUser = {
+            'email': 'second@email.com',
+            'login': 'secondlogin',
+            'firstName': 'Second',
+            'lastName': 'User',
+            'password': 'secondpassword'
+        }
+        self.secondUser = self.model('user').createUser(**secondUser)
 
     def _testEmptyUpload(self, name):
         """
@@ -101,9 +111,36 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
-        # Send the first chunk
+        # Uploading with no user should fail
         fields = [('offset', 0), ('uploadId', uploadId)]
         files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', fields=fields, files=files)
+        self.assertStatus(resp, 401)
+
+        # Uploading with the wrong user should fail
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.secondUser, fields=fields,
+            files=files)
+        self.assertStatus(resp, 403)
+
+        # Sending the first chunk should fail because the default minimum chunk
+        # size is larger than our chunk.
+        self.model('setting').unset(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'helloWorld.txt', chunk1)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Chunk is smaller than the minimum size.'
+        })
+
+        # Send the first chunk
+        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
@@ -115,10 +152,35 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
 
+        # Ask for completion before sending second chunk should fail
+        resp = self.request(path='/file/completion', method='POST',
+                            user=self.user, params={'uploadId': uploadId})
+        self.assertStatus(resp, 400)
+
         # Request offset from server (simulate a resume event)
         resp = self.request(path='/file/offset', method='GET', user=self.user,
                             params={'uploadId': uploadId})
         self.assertStatusOk(resp)
+
+        # Tryng to send too many bytes should fail
+        currentOffset = resp.json['offset']
+        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
+        files = [('chunk', name, "extra_"+chunk2+"_bytes")]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Received too many bytes.'
+        })
+
+        # The offset should not have changed
+        resp = self.request(path='/file/offset', method='GET', user=self.user,
+                            params={'uploadId': uploadId})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['offset'], currentOffset)
+
+        files = [('chunk', name, chunk2)]
 
         # Now upload the second chunk
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
@@ -159,6 +221,17 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         self.assertEqual(contents[1:], resp.collapse_body())
+
+        # Test downloading with a name
+        resp = self.request(
+            path='/file/%s/download/%s' % (
+                str(file['_id']), urllib.quote(file['name']).encode('utf8')),
+            method='GET', user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        if contents:
+            self.assertEqual(resp.headers['Content-Type'],
+                             'text/plain;charset=utf-8')
+        self.assertEqual(contents, resp.collapse_body())
 
     def _testDownloadFolder(self):
         """
@@ -230,6 +303,12 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
 
+        # Test editing of the file info
+        resp = self.request(path='/file/{}'.format(file['_id']), method='PUT',
+                            user=self.user, params={'name': ' newName.json'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'newName.json')
+
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
         hash = sha512(chunk1 + chunk2).hexdigest()
@@ -240,8 +319,48 @@ class FileTestCase(base.TestCase):
         self.assertTrue(os.path.isfile(abspath))
         self.assertEqual(os.stat(abspath).st_size, file['size'])
 
+        # Make sure access control is enforced on download
+        resp = self.request(
+            path='/file/{}/download'.format(file['_id']), method='GET')
+        self.assertStatus(resp, 401)
+
+        resp = self.request(
+            path='/folder/{}/download'.format(self.privateFolder['_id']),
+            method='GET')
+        self.assertStatus(resp, 401)
+
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
+
+        # Test updating of the file contents
+        newContents = 'test'
+        resp = self.request(
+            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            user=self.user, params={'size': len(newContents)})
+        self.assertStatusOk(resp)
+
+        # Old contents should not be immediately destroyed
+        self.assertTrue(os.path.isfile(abspath))
+
+        # Send the first chunk
+        fields = (('offset', 0), ('uploadId', resp.json['_id']))
+        files = (('chunk', 'newName.json', newContents),)
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        file = resp.json
+
+        # Old contents should now be destroyed, new contents should be present
+        self.assertFalse(os.path.isfile(abspath))
+        abspath = os.path.join(root, file['path'])
+        self.assertTrue(os.path.isfile(abspath))
+        self._testDownloadFile(file, newContents)
+
+        # Test updating an empty file
+        resp = self.request(
+            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            user=self.user, params={'size': 1})
+        self.assertStatusOk(resp)
 
         self._testDeleteFile(file)
         self.assertFalse(os.path.isfile(abspath))
@@ -269,6 +388,8 @@ class FileTestCase(base.TestCase):
         """
         Test usage of the GridFS assetstore type.
         """
+        # Clear any old DB data
+        base.dropGridFSDatabase('girder_assetstore_test')
         # Clear the assetstore database
         conn = getDbConnection()
         conn.drop_database('girder_assetstore_test')

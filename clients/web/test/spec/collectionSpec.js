@@ -3,7 +3,10 @@
  */
 $(function () {
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({});
+    var app = new girder.App({
+        el: 'body',
+        parentView: null
+    });
     girder.events.trigger('g:appload.after');
 });
 
@@ -57,8 +60,6 @@ describe('Test collection actions', function () {
 
     it('make new collection public', function () {
 
-        waits(1000);
-
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
         }, 'collection actions link to appear');
@@ -67,8 +68,6 @@ describe('Test collection actions', function () {
             $('.g-collection-actions-button').click();
         });
 
-        waits(1000);
-
         waitsFor(function () {
             return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
         }, 'access control menu item to appear');
@@ -76,8 +75,7 @@ describe('Test collection actions', function () {
         runs(function () {
             $('.g-collection-access-control').click();
         });
-
-        waits(1000);
+        girderTest.waitForDialog();
 
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
@@ -88,8 +86,6 @@ describe('Test collection actions', function () {
             $('#g-access-public').click();
         });
 
-        waits(1000);
-
         waitsFor(function () {
             return $('.g-save-access-list:visible').is(':enabled') &&
                    $('.radio.g-selected').text().match("Public").length > 0;
@@ -99,7 +95,7 @@ describe('Test collection actions', function () {
             $('.g-save-access-list').click();
         });
 
-        waits(1000);
+        girderTest.waitForLoad();
 
         waitsFor(function () {
             return !$('#g-dialog-container').hasClass('in');
@@ -135,9 +131,65 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('.g-collection-list-entry').text().match('collName1').length > 0;
+            return $('.g-collection-list-entry').text().match('collName1') !== null;
         }, 'collName1 to appear');
 
     });
 
+    it('log back in', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
+
+    it('delete the collection', function () {
+        runs(function () {
+            $("a.g-nav-link[g-target='collections']").click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-button').is(':enabled');
+        }, 'navigate to collections page');
+
+        waitsFor(function () {
+            return $('.g-collection-list-entry').text().match('collName0').length > 0;
+        }, 'new collection to appear');
+
+        runs(function () {
+            $('.g-collection-link:first').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-actions-button').length > 0;
+        }, 'collection view to load');
+
+        waitsFor(function () {
+            return $('.g-loading-block').length == 0;
+        }, 'for all blocks to load');
+
+        runs(function () {
+            $('.g-collection-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-delete-collection:visible').length > 0;
+        }, 'delete button to appear');
+
+        runs(function () {
+            $('.g-delete-collection').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-confirm-button:visible').length > 0;
+        }, 'delete confirmation to appear');
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-list-header').length > 0;
+        }, 'go back to the collections list');
+
+        runs(function () {
+            expect($('.g-collection-list-entry').text()).not.toContain('collName0');
+            expect($('.g-collection-list-entry').length).toBe(1);
+        });
+    });
 });

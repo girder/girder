@@ -1,0 +1,41 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-79.055844, 35.913200]
+            },
+            "properties": {
+                "name": "Chapel Hill",
+                "description": "The Southern Part of Heaven",
+                "founded": 1793
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-78.898619, 35.994033]
+            },
+            "properties": {
+                "name": "Durham",
+                "description": "The Bull City",
+                "founded": 1869
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-78.638179, 35.779590]
+            },
+            "properties": {
+                "name": "Raleigh",
+                "description": "The City of Oaks",
+                "founded": 1792
+            }
+        }
+    ]
+}

@@ -19,11 +19,13 @@
 
 import pymongo
 
+from girder.external.mongodb_proxy import MongoProxy
+
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType, TerminalColor
+from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
 from girder.utility.model_importer import ModelImporter
-from girder.models import getDbConfig, getDbConnection
+from girder.models import getDbConnection
 
 
 class Model(ModelImporter):
@@ -38,14 +40,13 @@ class Model(ModelImporter):
         self.name = None
         self._indices = []
         self._textIndex = None
+        self._textLanguage = None
 
         self.initialize()
 
-        db_cfg = getDbConfig()
         db_connection = getDbConnection()
-        dbName = db_cfg['database']
-        self.database = db_connection[dbName]
-        self.collection = self.database[self.name]
+        self.database = db_connection.get_default_database()
+        self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
             if isinstance(index, (list, tuple)):
@@ -68,9 +69,10 @@ class Model(ModelImporter):
         Call this during initialize() of the subclass if you want your
         model to have a full-text searchable index. Each collection may
         have zero or one full-text index.
+
         :param language: The default_language value for the text index,
-        which is used for stemming and stop words. If the text index
-        should not use stemming and stop words, set this param to 'none'.
+            which is used for stemming and stop words. If the text index
+            should not use stemming and stop words, set this param to 'none'.
         :type language: str
         """
         self._textIndex = index
@@ -114,9 +116,10 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query={}, offset=0, limit=50, sort=None, fields=None):
+    def find(self, query=None, offset=0, limit=50, **kwargs):
         """
-        Search the collection by a set of parameters.
+        Search the collection by a set of parameters. Passes any kwargs
+        through to the underlying pymongo.collection.find function.
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
@@ -130,11 +133,34 @@ class Model(ModelImporter):
         :type fields: List of strings
         :returns: A pymongo database cursor.
         """
-        return self.collection.find(spec=query, fields=fields, skip=offset,
-                                    limit=limit, sort=sort)
+        if not query:
+            query = {}
+
+        return self.collection.find(
+            spec=query, skip=offset, limit=limit, **kwargs)
+
+    def findOne(self, query=None, **kwargs):
+        """
+        Search the collection by a set of parameters. Passes any kwargs
+        through to the underlying pymongo.collection.find function.
+
+        :param query: The search query (see general MongoDB docs for "find()")
+        :type query: dict
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key.
+        :type fields: List of strings
+        :returns: the first object that was found, or None if none found.
+        """
+        if not query:
+            query = {}
+        cursor = self.collection.find(spec=query, skip=0, limit=1, **kwargs)
+        if cursor.count() == 0:
+            return None
+        return cursor.next()
 
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
-                   filters={}):
+                   filters=None):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -142,22 +168,29 @@ class Model(ModelImporter):
         :type query: str
         :param filters: Any additional query operators to apply.
         :type filters: dict
+        :returns: A pymongo cursor. It is left to the caller to build the
+            results from the cursor.
         """
-        filters['$text'] = {
-            '$search': query
-        }
+        if not filters:
+            filters = {}
+        if not fields:
+            fields = {}
 
-        if sort is None:
-            if fields is None:
-                fields = {'_textScore': {'$meta': 'textScore'}}
-            else:
-                fields['_textScore'] = {'$meta': 'textScore'}
-            sort = [('_textScore', {'$meta': 'textScore'})]
+        fields['_textScore'] = {'$meta': 'textScore'}
+        filters['$text'] = {'$search': query}
 
-        return [r for r in self.find(filters, offset=offset, limit=limit,
-                                     sort=sort, fields=fields)]
+        cursor = self.find(filters, offset=offset, limit=limit,
+                           sort=sort, fields=fields)
 
-    def save(self, document, validate=True):
+        # Sort by meta text score, but only if result count is below a certain
+        # threshold. The text score is not a real index, so we cannot always
+        # sort by it if there is a high number of matching documents.
+        if cursor.count() < TEXT_SCORE_SORT_MAX and sort is None:
+            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+
+        return cursor
+
+    def save(self, document, validate=True, triggerEvents=True):
         """
         Create or update a document in the collection. This triggers two
         events; one prior to validation, and one prior to saving. Either of
@@ -167,20 +200,35 @@ class Model(ModelImporter):
         :type document: dict
         :param validate: Whether to call the model's validate() before saving.
         :type validate: bool
+        :param triggerEvents: Whether to trigger events for validate and
+            pre- and post-save hooks.
         """
-        if validate:
+        if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
                                    document)
-            if not event.defaultPrevented:
-                document = self.validate(document)
+            if event.defaultPrevented:
+                validate = False
 
-        event = events.trigger('.'.join(('model', self.name, 'save')), document)
-        if not event.defaultPrevented:
-            document['_id'] = self.collection.save(document)
+        if validate:
+            document = self.validate(document)
+
+        if triggerEvents:
+            event = events.trigger('model.{}.save'.format(self.name), document)
+            if event.defaultPrevented:
+                return document
+
+        sendCreateEvent = ('_id' not in document)
+        document['_id'] = self.collection.save(document)
+
+        if triggerEvents:
+            if sendCreateEvent:
+                events.trigger('model.{}.save.created'.format(self.name),
+                               document)
+            events.trigger('model.{}.save.after'.format(self.name), document)
 
         return document
 
-    def update(self, query, update):
+    def update(self, query, update, multi=True):
         """
         This method should be used for updating multiple documents in the
         collection. This is useful for things like removing all references in
@@ -197,11 +245,30 @@ class Model(ModelImporter):
         :param update: The update specifier.
         :type update: dict
         """
-        self.collection.update(query, update, multi=True)
+        self.collection.update(query, update, multi=multi)
 
-    def remove(self, document):
+    def increment(self, query, field, amount, **kwargs):
+        """
+        This is a specialization of the update method that atomically increments
+        a field by a given amount. Additional kwargs are passed directly through
+        to update.
+
+        :param query: The query selector for documents to update.
+        :type query: dict
+        :param field: The name of the field in the document to increment.
+        :type field: str
+        :param amount: The amount to increment the field by.
+        :type amount: int or float
+        """
+        self.update(query=query, update={
+            '$inc': {field: amount}
+        }, **kwargs)
+
+    def remove(self, document, **kwargs):
         """
         Delete an object from the collection; must have its _id set.
+
+        :param doc: the item to remove.
         """
         assert '_id' in document
 
@@ -221,8 +288,7 @@ class Model(ModelImporter):
 
     def load(self, id, objectId=True, fields=None, exc=False):
         """
-        Fetch a single object from the databse using its _id field. If the
-        id is not valid, throws an exception.
+        Fetch a single object from the database using its _id field.
 
         :param id: The value for searching the _id field.
         :type id: string or ObjectId
@@ -236,16 +302,20 @@ class Model(ModelImporter):
         :returns: The matching document, or None.
         """
         if objectId and type(id) is not ObjectId:
-            id = ObjectId(id)
+            try:
+                id = ObjectId(id)
+            except:
+                raise ValidationException('Invalid ObjectId: {}'.format(id),
+                                          field='id')
         doc = self.collection.find_one({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('Invalid {} ID: {}'.format(
-                                      self.name, id), field='_id')
+            raise ValidationException('No such {}: {}'.format(
+                                      self.name, id), field='id')
 
         return doc
 
-    def filterDocument(self, doc, allow=[]):
+    def filterDocument(self, doc, allow=None):
         """
         This method will filter the given document to make it suitable to
         output to the user.
@@ -255,6 +325,9 @@ class Model(ModelImporter):
         :param allow: The whitelist of fields to allow in the output document.
         :type allow: List of strings
         """
+        if not allow:
+            allow = []
+
         if doc is None:
             return None
 
@@ -263,7 +336,23 @@ class Model(ModelImporter):
             if field in doc:
                 out[field] = doc[field]
 
+        if '_textScore' in doc:
+            out['_textScore'] = doc['_textScore']
+
         return out
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the subtree rooted at the given document.  In
+        general, if this contains items or folders, it will be the count of the
+        items and folders in all containers.  If it does not, it will be 1.
+        This returns the absolute size of the subtree, it does not filter by
+        permissions.
+
+        :param doc: The root of the subtree.
+        :type doc: dict
+        """
+        return 1
 
 
 class AccessControlledModel(Model):
@@ -282,6 +371,7 @@ class AccessControlledModel(Model):
         for groupAccess in perms:
             if groupAccess['id'] in groupIds and groupAccess['level'] >= level:
                 return True
+        return False
 
     def _hasUserAccess(self, perms, userId, level):
         """
@@ -546,23 +636,37 @@ class AccessControlledModel(Model):
                 perm = 'Write'
             else:
                 perm = 'Admin'
-            raise AccessException("%s access denied for %s." %
-                                  (perm, self.name))
+            if user:
+                userid = str(user.get('_id', ''))
+            else:
+                userid = None
+            raise AccessException("%s access denied for %s %s (user %s)." %
+                                  (perm, self.name, doc.get('_id', 'unknown'),
+                                   userid))
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
         """
-        We override Model.load to also do permission checking.
+        Override of Model.load to also do permission checking.
 
         :param id: The id of the resource.
-        :type id: string or ObjectId
+        :type id: str or ObjectId
         :param user: The user to check access against.
         :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
-        :param force: If you explicity want to circumvent access
+        :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
+        :param objectId: Whether the _id field is an ObjectId.
+        :type objectId: bool
+        :param fields: The subset of fields to load from the returned document,
+            or None to return the full document.
+        :param exc: If not found, throw a ValidationException instead of
+            returning None.
+        :type exc: bool
+        :raises ValidationException: If an invalid ObjectId is passed.
+        :returns: The matching document, or None if no match exists.
         """
         doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
@@ -621,7 +725,7 @@ class AccessControlledModel(Model):
             if count == limit:
                 break
 
-    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to also force permission-based
@@ -629,11 +733,14 @@ class AccessControlledModel(Model):
 
         :param user: The user to apply permission filtering for.
         """
-        results = Model.textSearch(
+        if not filters:
+            filters = {}
+
+        cursor = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)
         return [r for r in self.filterResultsByPermission(
-            results, user=user, level=AccessType.READ, limit=limit,
+            cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)]
 
 
@@ -642,6 +749,22 @@ class AccessException(Exception):
     Represents denial of access to a resource.
     """
     pass
+
+
+class GirderException(Exception):
+    """
+    Represents a general exception that might occur in regular use.  From the
+    user perspective, these are failures, but not catastrophic ones.  An
+    identifier can be passed, which allows receivers to check the exception
+    without relying on the text of the message.  It is recommended that
+    identifiers are a dot-separated string consisting of the originating
+    python module and a distinct error.  For example,
+    'girder.model.assetstore.no-current-assetstore'.
+    """
+    def __init__(self, message, identifier=None):
+        self.identifier = identifier
+
+        Exception.__init__(self, message)
 
 
 class ValidationException(Exception):

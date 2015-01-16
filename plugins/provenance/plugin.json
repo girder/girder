@@ -1,0 +1,5 @@
+{
+"name": "Provenance tracker",
+"description": "Tracks provenance of items in Girder",
+"version": "0.1.1"
+}

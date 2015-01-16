@@ -1,12 +1,13 @@
 /**
  * Place global styles in this file.
  */
+@import 'nib'
 
 *:not(i)
   font-family 'Droid Sans',sans-serif
 
 i
-  -webkit-font-smoothing antialiased
+  font-smoothing antialiased
 
 body
   padding 0
@@ -30,6 +31,7 @@ ul.dropdown-menu
     color white
   >li>a
     padding 3px 20px 3px 8px
+
     &:hover
       background-color #eee
     >i
@@ -69,12 +71,33 @@ ul.dropdown-menu
   &:hover
     border 1px solid #cdcdcd
     background-color #f0f0f0
-    background-image linear-gradient(to bottom, #f0f0f0 0%, #f7f7f7 100%)
+    background linear-gradient(top, #f0f0f0, #f7f7f7)
 
-/* Bugfix for tabs in bootstrap 3 */
+/* Bug fix for tabs in bootstrap 3 */
 .nav-tabs
   overflow hidden
 
 /* Personal preference for less white space at bottom of dialogs */
 .modal-footer
   margin-top 5px
+
+.modal-content
+  border-radius 0
+
+.modal-backdrop.in
+  opacity .35
+
+/* Don't show the vertical scroll bar when we show a dialog unless we must */
+.modal
+  overflow-y auto
+
+.g-monospace-viewer
+  font-family monospace
+  border 1px solid #ccc
+  background-color #f5f5f5
+  border-radius 0
+  overflow-x scroll
+  padding 7px 11px
+  white-space pre
+  word-wrap initial
+  font-size 13px

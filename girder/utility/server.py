@@ -18,15 +18,15 @@
 ###############################################################################
 
 import cherrypy
-import girder.events
 
+import girder.events
 from girder import constants
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
-from . import dev_endpoints, webroot
+from . import webroot
 
 
-def setup(test=False, plugins=None):
+def configureServer(test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
@@ -36,14 +36,19 @@ def setup(test=False, plugins=None):
     :param plugins: If you wish to start the server with a custom set of
                     plugins, pass this as a list of plugins to load. Otherwise,
                     will use the PLUGINS_ENABLED setting value from the db.
+    :param curConfig: The configuration dictionary to update.
     """
-    cur_config = config.getConfig()
+    if curConfig is None:
+        curConfig = config.getConfig()
+
+    curStaticRoot = constants.STATIC_ROOT_DIR
 
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root': constants.ROOT_DIR,
-            'request.show_tracebacks': test
+            'tools.staticdir.root': curStaticRoot,
+            'request.show_tracebacks': test,
+            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH')
         },
         '/static': {
             'tools.staticdir.on': 'True',
@@ -64,12 +69,16 @@ def setup(test=False, plugins=None):
             'tools.staticdir.on': 'True',
             'tools.staticdir.dir': 'clients'
         }
+        appconf['/plugins'] = {
+            'tools.staticdir.on': 'True',
+            'tools.staticdir.dir': 'plugins',
+        }
 
-    cur_config.update(appconf)
+    curConfig.update(appconf)
 
     if test:
         # Force some config params in testing mode
-        cur_config.update({'server': {
+        curConfig.update({'server': {
             'mode': 'testing',
             'api_root': '/api/v1',
             'static_root': '/static'
@@ -82,23 +91,39 @@ def setup(test=False, plugins=None):
     root = webroot.Webroot()
     api_main.addApiToNode(root)
 
-    if cur_config['server']['mode'] is 'development':
-        dev_endpoints.addDevEndpoints(root, appconf)  # pragma: no cover
-
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
+                               default=())
 
     root.updateHtmlVars({
-        'apiRoot': cur_config['server']['api_root'],
-        'staticRoot': cur_config['server']['static_root'],
+        'apiRoot': curConfig['server']['api_root'],
+        'staticRoot': curConfig['server']['static_root'],
         'plugins': plugins
     })
 
-    plugin_utilities.loadPlugins(plugins, root, appconf)
+    root.api.v1.updateHtmlVars({
+        'staticRoot': curConfig['server']['static_root']
+    })
+
+    root, appconf, _ = plugin_utilities.loadPlugins(
+        plugins, root, appconf, root.api.v1, curConfig=curConfig)
+
+    return root, appconf
+
+
+def setup(test=False, plugins=None, curConfig=None):
+    """
+    Configure and mount the Girder server under '/'.
+
+    :param test: Whether to start in test mode.
+    :param plugins: List of plugins to enable.
+    :param curConfig: The config object to update.
+    """
+    root, appconf = configureServer(test, plugins, curConfig)
 
     application = cherrypy.tree.mount(root, '/', appconf)
 

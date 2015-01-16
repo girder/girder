@@ -18,11 +18,12 @@
 ###############################################################################
 
 import cherrypy
-import json
+import datetime
 import re
 
 from .. import base
 
+from girder import events
 from girder.constants import AccessType, SettingKey
 
 
@@ -37,19 +38,18 @@ def tearDownModule():
 class UserTestCase(base.TestCase):
 
     def _verifyAuthCookie(self, resp):
-        self.assertTrue('authToken' in resp.cookie)
-        cookieVal = json.loads(resp.cookie['authToken'].value)
-        self.assertHasKeys(cookieVal, ['token', 'userId'])
-        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME,
-                                                 default=180))
+        self.assertTrue('girderToken' in resp.cookie)
+        self.cookieVal = resp.cookie['girderToken'].value
+        self.assertFalse(not self.cookieVal)
+        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         self.assertEqual(
-            resp.cookie['authToken']['expires'],
+            resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
 
     def _verifyDeletedCookie(self, resp):
-        self.assertTrue('authToken' in resp.cookie)
-        self.assertEqual(resp.cookie['authToken'].value, '')
-        self.assertEqual(resp.cookie['authToken']['expires'], 0)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(resp.cookie['girderToken'].value, '')
+        self.assertEqual(resp.cookie['girderToken']['expires'], 0)
 
     def _verifyUserDocument(self, doc, admin=True):
         self.assertHasKeys(
@@ -114,6 +114,20 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/authentication', method='GET')
         self.assertStatus(resp, 401)
 
+        # Bad authentication header
+        resp = self.request(
+            path='/user/authentication', method='GET',
+            additionalHeaders=[('Authorization', 'Basic Not-Valid-64')])
+        self.assertStatus(resp, 401)
+        self.assertEqual('Invalid HTTP Authorization header',
+                         resp.json['message'])
+        resp = self.request(
+            path='/user/authentication', method='GET',
+            additionalHeaders=[('Authorization', 'Basic NotValid')])
+        self.assertStatus(resp, 401)
+        self.assertEqual('Invalid HTTP Authorization header',
+                         resp.json['message'])
+
         # Login with unregistered email
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='incorrect@email.com:badpassword')
@@ -132,7 +146,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
         self.assertHasKeys(
-            resp.json['authToken'], ['token', 'expires', 'userId'])
+            resp.json['authToken'], ['token', 'expires'])
         self._verifyAuthCookie(resp)
 
         # Invalid login
@@ -190,10 +204,18 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
+        token = self.model('token').load(
+            self.cookieVal, objectId=False, force=True)
+        self.assertEqual(str(token['userId']), resp.json['user']['_id'])
+
         # Hit the logout endpoint
         resp = self.request(path='/user/authentication', method='DELETE',
-                            user=user)
+                            token=token['_id'])
         self._verifyDeletedCookie(resp)
+
+        token = self.model('token').load(
+            token['_id'], objectId=False, force=True)
+        self.assertEqual(token, None)
 
     def testGetAndUpdateUser(self):
         """
@@ -211,6 +233,11 @@ class UserTestCase(base.TestCase):
         params['email'] = 'notasgood@email.com'
         params['login'] = 'notasgoodlogin'
         nonAdminUser = self.model('user').createUser(**params)
+
+        # Test that invalid objectID gives us a 400
+        resp = self.request(path='/user/bad_id')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid ObjectId: bad_id')
 
         resp = self.request(path='/user/{}'.format(user['_id']))
         self._verifyUserDocument(resp.json, admin=False)
@@ -248,9 +275,9 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['admin'], True)
 
         # test admin flag as non-admin
-        params['admin'] = 'false'
-        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
-                            user=nonAdminUser, params=params)
+        params['admin'] = 'true'
+        resp = self.request(path='/user/{}'.format(nonAdminUser['_id']),
+                            method='PUT', user=nonAdminUser, params=params)
         self.assertStatus(resp, 403)
 
     def testDeleteUser(self):
@@ -368,7 +395,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
-            resp.json['authToken'], ('token', 'expires', 'userId'))
+            resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
         # Now test changing passwords the normal way
@@ -408,8 +435,72 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
-            resp.json['authToken'], ('token', 'expires', 'userId'))
+            resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
+
+    def testTemporaryPassword(self):
+        self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
+                                      'user@user.com')
+        # Temporary password should require email param
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "Parameter 'email' is required.")
+        # Temporary password with an incorrect email
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={'email': 'bad_email@user.com'})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "That email is not registered.")
+        # Actually generate temporary access token
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={'email': 'user@user.com'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail()
+        # Pull out the auto-generated token from the email
+        search = re.search('<a href="(.*)">', msg)
+        link = search.group(1)
+        linkParts = link.split('/')
+        userId = linkParts[-3]
+        tokenId = linkParts[-1]
+        # Checking if a token is a valid temporary token should fail if the
+        # token is missing or doesn't match the user ID
+        path = '/user/password/temporary/' + userId
+        resp = self.request(path=path, method='GET', params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "Parameter 'token' is required.")
+        resp = self.request(path=path, method='GET',
+                            params={'token': 'not valid'})
+        self.assertStatus(resp, 403)
+        resp = self.request(path=path, method='GET', params={'token': tokenId})
+        self.assertStatusOk(resp)
+        user = resp.json['user']
+        # We should now be able to change the password
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': tokenId,
+            'new': 'another_password'
+        }, user=user)
+        self.assertStatusOk(resp)
+        # Artificially adjust the token to have expired.
+        token = self.model('token').load(tokenId, force=True, objectId=False)
+        token['expires'] = (datetime.datetime.utcnow() -
+                            datetime.timedelta(days=1))
+        self.model('token').save(token)
+        resp = self.request(path=path, method='GET', params={'token': tokenId})
+        self.assertStatus(resp, 403)
+        # Generate an email with a forwarded header
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+        resp = self.request(
+            path='/user/password/temporary', method='PUT',
+            params={'email': 'user@user.com'},
+            additionalHeaders=[('X-Forwarded-Host', 'anotherhost')])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail()
+        self.assertTrue('anotherhost' in msg)
 
     def testUserCreation(self):
         admin = self.model('user').createUser(
@@ -482,3 +573,35 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user', method='POST', params=params)
         self.assertStatusOk(resp)
         self.assertFalse(resp.json['admin'])
+
+    def testModelSaveHooks(self):
+        """
+        This tests the general correctness of the model save hooks
+        """
+        self.ctr = 0
+
+        def preSave(event):
+            if '_id' not in event.info:
+                self.ctr += 1
+
+        def postSave(event):
+            self.ctr += 2
+
+        events.bind('model.user.save', 'test', preSave)
+
+        user = self.model('user').createUser(
+            login='myuser', password='passwd', firstName='A', lastName='A',
+            email='email@email.com')
+        self.assertEqual(self.ctr, 1)
+
+        events.bind('model.user.save.after', 'test', postSave)
+        self.ctr = 0
+
+        user = self.model('user').save(user, triggerEvents=False)
+        self.assertEqual(self.ctr, 0)
+
+        self.model('user').save(user)
+        self.assertEqual(self.ctr, 2)
+
+        events.unbind('model.user.save', 'test')
+        events.unbind('model.user.save.after', 'test')

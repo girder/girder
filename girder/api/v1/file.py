@@ -18,11 +18,13 @@
 ###############################################################################
 
 import cherrypy
+import errno
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
-from girder.models.model_base import AccessException
+from girder.models.model_base import AccessException, GirderException
+from girder.api import access
 
 
 class File(Resource):
@@ -35,11 +37,14 @@ class File(Resource):
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('GET', ('offset',), self.requestOffset)
         self.route('GET', (':id', 'download'), self.download)
-        self.route('GET', (':id', 'download', ':name'), self.download)
+        self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
         self.route('POST', ('completion',), self.finalizeUpload)
+        self.route('PUT', (':id',), self.updateFile)
+        self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
+    @access.user
     def initUpload(self, params):
         """
         Before any bytes of the actual file are sent, a request should be made
@@ -51,7 +56,7 @@ class File(Resource):
         self.requireParams(('name', 'parentId', 'parentType'), params)
         user = self.getCurrentUser()
 
-        mimeType = params.get('mimeType', None)
+        mimeType = params.get('mimeType', 'application/octet-stream')
         parentType = params['parentType'].lower()
 
         if parentType not in ('folder', 'item'):
@@ -65,10 +70,17 @@ class File(Resource):
                 url=params['linkUrl'], parent=parent, name=params['name'],
                 parentType=parentType, creator=user)
         else:
-            self.requireParams(('size',), params)
-            upload = self.model('upload').createUpload(
-                user=user, name=params['name'], parentType=parentType,
-                parent=parent, size=int(params['size']), mimeType=mimeType)
+            self.requireParams('size', params)
+            try:
+                upload = self.model('upload').createUpload(
+                    user=user, name=params['name'], parentType=parentType,
+                    parent=parent, size=int(params['size']), mimeType=mimeType)
+            except OSError as exc:
+                if exc[0] in (errno.EACCES,):
+                    raise GirderException(
+                        'Failed to create upload.',
+                        'girder.api.v1.file.create-upload-failed')
+                raise
             if upload['size'] > 0:
                 return upload
             else:
@@ -85,16 +97,26 @@ class File(Resource):
         .param('linkUrl', 'If this is a link file, pass its URL instead'
                'of size and mimeType using this parameter.', required=False)
         .errorResponse()
-        .errorResponse('Write access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403)
+        .errorResponse('Failed to create upload.', 500))
 
+    @access.user
     def finalizeUpload(self, params):
-        self.requireParams(('uploadId',), params)
+        self.requireParams('uploadId', params)
         user = self.getCurrentUser()
 
         upload = self.model('upload').load(params['uploadId'], exc=True)
 
         if upload['userId'] != user['_id']:
             raise AccessException('You did not initiate this upload.')
+
+        # If we don't have as much data as we were told would be uploaded and
+        # the upload hasn't specified it has an alternate behavior, refuse to
+        # complete the upload.
+        if upload['received'] != upload['size'] and 'behavior' not in upload:
+            raise RestException(
+                'Server has only received {} bytes, but the file should be {} '
+                'bytes.'.format(upload['received'], upload['size']))
 
         return self.model('upload').finalizeUpload(upload)
     finalizeUpload.description = (
@@ -105,8 +127,10 @@ class File(Resource):
         .param('uploadId', 'The ID of the upload record.', paramType='form')
         .errorResponse('ID was invalid.')
         .errorResponse('The upload does not require finalization.')
+        .errorResponse('Not enough bytes have been uploaded.')
         .errorResponse('You are not the user who initiated the upload.', 403))
 
+    @access.user
     def requestOffset(self, params):
         """
         This should be called when resuming an interrupted upload. It will
@@ -114,7 +138,7 @@ class File(Resource):
         :param uploadId: The _id of the temp upload record being resumed.
         :returns: The offset in bytes that the client should use.
         """
-        self.requireParams(('uploadId',), params)
+        self.requireParams('uploadId', params)
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
 
@@ -131,6 +155,7 @@ class File(Resource):
         .errorResponse("The ID was invalid, or the offset did not match the "
                        "server's record."))
 
+    @access.user
     def readChunk(self, params):
         """
         After the temporary upload record has been created (see initUpload),
@@ -143,6 +168,9 @@ class File(Resource):
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
         user = self.getCurrentUser()
 
+        if not user:
+            raise AccessException('You must be logged in to upload.')
+
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = int(params['offset'])
         chunk = params['chunk']
@@ -154,11 +182,15 @@ class File(Resource):
             raise RestException(
                 'Server has received {} bytes, but client sent offset {}.'
                 .format(upload['received'], offset))
-
-        if type(chunk) == cherrypy._cpreqbody.Part:
-            return self.model('upload').handleChunk(upload, chunk.file)
-        else:
-            return self.model('upload').handleChunk(upload, chunk)
+        try:
+            if type(chunk) == cherrypy._cpreqbody.Part:
+                return self.model('upload').handleChunk(upload, chunk.file)
+            else:
+                return self.model('upload').handleChunk(upload, chunk)
+        except IOError as exc:
+            if exc[0] in (errno.EACCES,):
+                raise Exception('Failed to store upload.')
+            raise
     readChunk.description = (
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
@@ -170,34 +202,95 @@ class File(Resource):
                'handled by the assetstore adapter.',
                dataType='File', paramType='body')
         .errorResponse('ID was invalid.')
-        .errorResponse('You are not the user who initiated the upload.', 403))
+        .errorResponse('Received too many bytes.')
+        .errorResponse('Chunk is smaller than the minimum size.')
+        .errorResponse('You are not the user who initiated the upload.', 403)
+        .errorResponse('Failed to store upload.', 500))
 
-    @loadmodel(map={'id': 'file'}, model='file')
-    def download(self, file, params, name=None):
+    @access.public
+    @loadmodel(model='file')
+    def download(self, file, params):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
         offset = int(params.get('offset', 0))
         user = self.getCurrentUser()
-
         self.model('item').load(id=file['itemId'], user=user,
                                 level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
     download.description = (
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within '
+               'the file.', dataType='integer', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 
-    @loadmodel(map={'id': 'file'}, model='file')
+    @access.public
+    def downloadWithName(self, id, name, params):
+        return self.download(id=id, params=params)
+    downloadWithName.description = (
+        Description('Download a file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('name', 'The name of the file.  This is ignored.',
+               paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within '
+               'the file.', dataType='integer', required=False)
+        .notes('The name parameter doesn\'t alter the download.  Some '
+               'download clients save files based on the last part of a path, '
+               'and specifying the name satisfies those clients.')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the parent folder.', 403))
+
+    @access.user
+    @loadmodel(model='file')
     def deleteFile(self, file, params):
         user = self.getCurrentUser()
         self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.ADMIN, exc=True)
+                                level=AccessType.WRITE, exc=True)
         self.model('file').remove(file)
     deleteFile.description = (
         Description('Delete a file by ID.')
         .param('id', 'The ID of the file.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403))
+
+    @access.user
+    @loadmodel(model='file')
+    def updateFile(self, file, params):
+        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
+                                level=AccessType.WRITE, exc=True)
+        file['name'] = params.get('name', file['name']).strip()
+        file['mimeType'] = params.get('mimeType',
+                                      file.get('mimeType', '')).strip()
+        return self.model('file').save(file)
+    updateFile.description = (
+        Description('Change file metadata such as name or MIME type.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('name', 'The name to set on the file.', required=False)
+        .param('mimeType', 'The MIME type of the file.', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied on the parent folder.', 403))
+
+    @access.user
+    @loadmodel(model='file')
+    def updateFileContents(self, file, params):
+        self.requireParams('size', params)
+        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
+                                level=AccessType.WRITE, exc=True)
+
+        # Create a new upload record into the existing file
+        upload = self.model('upload').createUploadToFile(
+            file=file, user=self.getCurrentUser(), size=int(params['size']))
+
+        if upload['size'] > 0:
+            return upload
+        else:
+            return self.model('upload').finalizeUpload(upload)
+    updateFileContents.description = (
+        Description('Change the contents of an existing file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('size', 'Size in bytes of the new file.', dataType='integer')
+        .notes('After calling this, send the chunks just like you would with a '
+               'normal file upload.'))

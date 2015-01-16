@@ -17,10 +17,17 @@
 #  limitations under the License.
 ###############################################################################
 
+import copy
 import datetime
+import json
+import os
 
-from .model_base import Model, ValidationException
+from bson.objectid import ObjectId
+from .model_base import Model, ValidationException, GirderException
+from girder import events
+from girder import logger
 from girder.constants import AccessType
+from girder.utility.progress import setResponseTimeLimit
 
 
 class Item(Model):
@@ -31,7 +38,8 @@ class Item(Model):
 
     def initialize(self):
         self.name = 'item'
-        self.ensureIndices(('folderId', 'name', 'lowerName'))
+        self.ensureIndices(('folderId', 'name', 'lowerName',
+                            ([('folderId', 1), ('name', 1)], {})))
         self.ensureTextIndex({
             'name': 10,
             'description': 1
@@ -49,10 +57,22 @@ class Item(Model):
 
         return filtered
 
+    def _validateString(self, value):
+        """
+        Make sure a value is an instance of basestring and is stripped of
+        whitespace.
+        :param value: the value to coerce into a string if it isn't already.
+        :return stringValue: the string version of the value.
+        """
+        if value is None:
+            value = ''
+        if not isinstance(value, basestring):
+            value = str(value)
+        return value.strip()
+
     def validate(self, doc):
-        doc['name'] = doc['name'].strip()
-        doc['lowerName'] = doc['name'].lower()
-        doc['description'] = doc['description'].strip()
+        doc['name'] = self._validateString(doc.get('name', ''))
+        doc['description'] = self._validateString(doc.get('description', ''))
 
         if not doc['name']:
             raise ValidationException('Item name must not be empty.', 'name')
@@ -69,21 +89,22 @@ class Item(Model):
             }
             if '_id' in doc:
                 q['_id'] = {'$ne': doc['_id']}
-            dupItems = self.find(q, limit=1, fields=['_id'])
+            dupItem = self.findOne(q, fields=['_id'])
 
             q = {
                 'parentId': doc['folderId'],
                 'name': name,
                 'parentCollection': 'folder'
             }
-            dupFolders = self.model('folder').find(q, limit=1, fields=['_id'])
-            if dupItems.count() + dupFolders.count() == 0:
+            dupFolder = self.model('folder').findOne(q, fields=['_id'])
+            if dupItem is None and dupFolder is None:
                 doc['name'] = name
                 break
             else:
                 n += 1
                 name = '%s (%d)' % (doc['name'], n)
 
+        doc['lowerName'] = doc['name'].lower()
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
@@ -109,13 +130,13 @@ class Item(Model):
                                       force, fields)
 
         if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=force)
+            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
-            self.save(doc)
+            self.save(doc, triggerEvents=False)
         if doc is not None and 'lowerName' not in doc:
-            self.save(doc)
+            self.save(doc, triggerEvents=False)
 
         return doc
 
@@ -128,15 +149,51 @@ class Item(Model):
         :param folder: The folder to move the item into.
         :type folder: dict.
         """
+        self.propagateSizeChange(item, -item['size'])
+
         item['folderId'] = folder['_id']
         item['baseParentType'] = folder['baseParentType']
         item['baseParentId'] = folder['baseParentId']
 
+        self.propagateSizeChange(item, item['size'])
+
         return self.save(item)
 
-    def childFiles(self, item, limit=50, offset=0, sort=None):
+    def propagateSizeChange(self, item, inc):
+        self.model('folder').increment(query={
+            '_id': item['folderId']
+        }, field='size', amount=inc, multi=False)
+
+        self.model(item['baseParentType']).increment(query={
+            '_id': item['baseParentId']
+        }, field='size', amount=inc, multi=False)
+
+    def recalculateSize(self, item):
         """
-        Generator function that yields child files in the item.
+        Recalculate the item size based on the files that are in it.  If this
+        is different than the recorded size, propagate the changes.
+        :param item: The item to recalculate the size of.
+        :returns size: the recalculated size in bytes
+        """
+        size = 0
+        for file in self.childFiles(item, limit=0, timeout=False):
+            # We could add a recalcuateSize to the file model, in which case
+            # this would be:
+            # size += self.model('file').recalculateSize(file)
+            size += file.get('size', 0)
+        delta = size-item.get('size', 0)
+        if delta:
+            logger.info('Item %s was wrong size: was %d, is %d' % (
+                item['_id'], item['size'], size))
+            item['size'] = size
+            self.update({'_id': item['_id']}, update={'$set': {'size': size}})
+            self.propagateSizeChange(item, delta)
+        return size
+
+    def childFiles(self, item, limit=50, offset=0, sort=None, **kwargs):
+        """
+        Generator function that yields child files in the item.  Passes any
+        kwargs to the find function.
 
         :param item: The parent item.
         :param limit: Result limit.
@@ -148,11 +205,11 @@ class Item(Model):
         }
 
         cursor = self.model('file').find(
-            q, limit=limit, offset=offset, sort=sort)
+            q, limit=limit, offset=offset, sort=sort, **kwargs)
         for file in cursor:
             yield file
 
-    def remove(self, item):
+    def remove(self, item, **kwargs):
         """
         Delete an item, and all references to it in the database.
 
@@ -165,7 +222,9 @@ class Item(Model):
             'itemId': item['_id']
         }, limit=0)
         for file in files:
-            self.model('file').remove(file)
+            fileKwargs = kwargs.copy()
+            fileKwargs.pop('updateItemSize', None)
+            self.model('file').remove(file, updateItemSize=False, **fileKwargs)
 
         # Delete pending uploads into this item
         uploads = self.model('upload').find({
@@ -173,20 +232,23 @@ class Item(Model):
             'parentType': 'item'
         }, limit=0)
         for upload in uploads:
-            self.model('upload').remove(upload)
+            self.model('upload').remove(upload, **kwargs)
 
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters={}, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to filter items by permissions
         of the parent folder.
         """
+        if not filters:
+            filters = {}
+
         # get the non-filtered search result from Model.textSearch
-        results = Model.textSearch(self, query=query, limit=0, sort=sort,
-                                   filters=filters)
+        cursor = Model.textSearch(self, query=query, limit=0, sort=sort,
+                                  filters=filters)
 
         # list where we will store the filtered results
         filtered = []
@@ -196,7 +258,7 @@ class Item(Model):
 
         # loop through all results in the non-filtered list
         i = 0
-        for result in results:
+        for result in cursor:
             # check if the folderId is cached
             folderId = result['folderId']
 
@@ -218,6 +280,7 @@ class Item(Model):
                 if len(filtered) >= limit:
                     break
 
+        cursor.close()
         return filtered
 
     def hasAccess(self, item, user=None, level=AccessType.READ):
@@ -261,29 +324,30 @@ class Item(Model):
 
         :param name: The name of the item.
         :type name: str
-        :param description: Description for the folder.
+        :param description: Description for the item.
         :type description: str
         :param folder: The parent folder of the item.
         :param creator: User document representing the creator of the group.
         :type creator: dict
         :returns: The item document that was created.
         """
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         if not type(creator) is dict or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
-            raise Exception('Creator must be a user.')
+            raise GirderException('Creator must be a user.',
+                                  'girder.models.item.creator-not-user')
 
         if 'baseParentType' not in folder:
             pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
-                                              creator)
+                                              creator, force=True)
             folder['baseParentType'] = pathFromRoot[0]['type']
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
         return self.save({
-            'name': name,
-            'description': description,
-            'folderId': folder['_id'],
+            'name': self._validateString(name),
+            'description': self._validateString(description),
+            'folderId': ObjectId(folder['_id']),
             'creatorId': creator['_id'],
             'baseParentType': folder['baseParentType'],
             'baseParentId': folder['baseParentId'],
@@ -300,9 +364,9 @@ class Item(Model):
         :type item: dict
         :returns: The item document that was edited.
         """
-        item['updated'] = datetime.datetime.now()
+        item['updated'] = datetime.datetime.utcnow()
 
-        # Validate and save the collection
+        # Validate and save the item
         return self.save(item)
 
     def setMetadata(self, item, metadata):
@@ -319,7 +383,7 @@ class Item(Model):
         :returns: the item document
         """
         if 'meta' not in item:
-            item['meta'] = dict()
+            item['meta'] = {}
 
         # Add new metadata to existing metadata
         item['meta'].update(metadata.items())
@@ -329,7 +393,7 @@ class Item(Model):
         for key in toDelete:
             del item['meta'][key]
 
-        item['updated'] = datetime.datetime.now()
+        item['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the item
         return self.save(item)
@@ -349,3 +413,137 @@ class Item(Model):
         filteredFolder = self.model('folder').filter(curFolder, user)
         folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
         return folderIdsToRoot
+
+    def copyItem(self, srcItem, creator, name=None, folder=None,
+                 description=None):
+        """
+        Copy an item, including duplicating files and metadata.
+
+        :param srcItem: the item to copy.
+        :type srcItem: dict
+        :param creator: the user who will own the copied item.
+        :param name: The name of the new item.  None to copy the original name.
+        :type name: str
+        :param folder: The parent folder of the new item.  None to store in the
+                same folder as the original item.
+        :param description: Description for the new item.  None to copy the
+                original description.
+        :type description: str
+        :returns: the new item.
+        """
+        if name is None:
+            name = srcItem['name']
+        if folder is None:
+            folder = self.model('folder').load(srcItem['folderId'], force=True)
+        if description is None:
+            description = srcItem['description']
+        newItem = self.createItem(
+            folder=folder, name=name, creator=creator, description=description)
+        # copy metadata and other extension values
+        filteredItem = self.filter(newItem)
+        updated = False
+        for key in srcItem:
+            if key not in filteredItem and key not in newItem:
+                newItem[key] = copy.deepcopy(srcItem[key])
+                updated = True
+        if updated:
+            self.save(newItem, triggerEvents=False)
+        # Give listeners a chance to change things
+        events.trigger('model.item.copy.prepare', (srcItem, newItem))
+        # copy files
+        for file in self.childFiles(item=srcItem, limit=0):
+            self.model('file').copyFile(file, creator=creator, item=newItem)
+        events.trigger('model.item.copy.after', newItem)
+        return self.filter(newItem)
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this item.
+
+        :param doc: the item to list.
+        :param user: a user used to validate data that is returned.  This isn't
+                     used, but is present to be consistent across all model
+                     implementations of fileList.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True and the item has more than one file, metadata,
+                        or the sole file is not named the same as the item,
+                        then the returned paths include the item name.
+        """
+        if subpath:
+            files = [file for file in self.childFiles(item=doc, limit=2)]
+            if (len(files) != 1 or files[0]['name'] != doc['name'] or
+                    (includeMetadata and len(doc.get('meta', {})))):
+                path = os.path.join(path, doc['name'])
+        metadataFile = "girder-item-metadata.json"
+        for file in self.childFiles(item=doc, limit=0, timeout=False):
+            if file['name'] == metadataFile:
+                metadataFile = None
+            yield (os.path.join(path, file['name']),
+                   self.model('file').download(file, headers=False))
+        if includeMetadata and metadataFile and len(doc.get('meta', {})):
+            def stream():
+                yield json.dumps(doc['meta'], default=str)
+            yield (os.path.join(path, metadataFile), stream)
+
+    def checkConsistency(self, stage, progress=None):
+        """
+        Check all of the items and make sure they are valid.  This operates in
+        stages, since some actions should be done before other models that rely
+        on items and some need to be done after.  The stages are:
+        * count - count how many items need to be checked.
+        * remove - remove lost items
+        * verify - verify and fix existing items
+
+        :param stage: which stage of the check to run.  See above.
+        :param progress: an option progress context to update.
+        :returns: numItems: number of items to check or processed,
+                  numChanged: number of items changed.
+        """
+        if stage == 'count':
+            numItems = self.find(limit=1, timeout=False).count()
+            return numItems, 0
+        elif stage == 'remove':
+            # Check that all items are in existing folders.  Any that are not
+            # can be deleted.  Perhaps we should put them in a lost+found
+            # instead
+            folderIds = self.model('folder').collection.distinct('_id')
+            lostItems = self.find(
+                limit=0, timeout=False,
+                query={'$or': [{'folderId': {'$nin': folderIds}},
+                               {'folderId': {'$exists': False}}]})
+            numItems = itemsLeft = lostItems.count()
+            if numItems:
+                if progress is not None:
+                    progress.update(message='Removing orphaned items')
+                for item in lostItems:
+                    setResponseTimeLimit()
+                    self.collection.remove({'_id': item['_id']})
+                    if progress is not None:
+                        itemsLeft -= 1
+                        progress.update(increment=1, message='Removing '
+                                        'orphaned items (%d left)' % itemsLeft)
+            return numItems, numItems
+        elif stage == 'verify':
+            # Check items sizes
+            items = self.find(limit=0, timeout=False)
+            numItems = itemsLeft = items.count()
+            itemsCorrected = 0
+            if progress is not None:
+                progress.update(message='Checking items')
+            for item in items:
+                setResponseTimeLimit()
+                oldsize = item.get('size', 0)
+                newsize = self.recalculateSize(item)
+                if newsize != oldsize:
+                    itemsCorrected += 1
+                if progress is not None:
+                    itemsLeft -= 1
+                    progress.update(increment=1, message='Checking items (%d '
+                                    'left)' % itemsLeft)
+            return numItems, itemsCorrected

@@ -71,7 +71,7 @@ class Google(model_importer.ModelImporter):
         Given an authorization code from an oauth callback, retrieve the user
         information, creating or updating our user record if necessary.
         :param code: The authorization code from google.
-        :returns: The user document corresponding to thsi google user.
+        :returns: The user document corresponding to this google user.
         """
         params = {
             'grant_type': 'authorization_code',

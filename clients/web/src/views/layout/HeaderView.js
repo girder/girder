@@ -8,23 +8,27 @@ girder.views.LayoutHeaderView = girder.View.extend({
         }
     },
 
-    render: function () {
-        this.$el.html(jade.templates.layoutHeader());
-
-        new girder.views.LayoutHeaderUserView({
-            el: this.$('.g-current-user-wrapper')
-        }).render();
+    initialize: function () {
+        this.userView = new girder.views.LayoutHeaderUserView({
+            parentView: this
+        });
 
         this.searchWidget = new girder.views.SearchFieldWidget({
-            el: this.$('.g-quick-search-container'),
-            placeholder: 'Quick Search...',
-            types: ['item', 'folder', 'group', 'collection', 'user']
-        }).off().on('g:resultClicked', function (result) {
+            placeholder: 'Quick search...',
+            types: ['item', 'folder', 'group', 'collection', 'user'],
+            parentView: this
+        }).on('g:resultClicked', function (result) {
             this.searchWidget.resetState();
             girder.router.navigate(result.type + '/' + result.id, {
                 trigger: true
             });
-        }, this).render();
+        }, this);
+    },
 
+    render: function () {
+        this.$el.html(girder.templates.layoutHeader());
+
+        this.userView.setElement(this.$('.g-current-user-wrapper')).render();
+        this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
     }
 });

@@ -25,22 +25,23 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                     .on('g:saved', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Info saved.',
-                    type: 'success',
-                    timeout: 4000
-                });
-            }, this).save();
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Info saved.',
+                            type: 'success',
+                            timeout: 4000
+                        });
+                    }, this).save();
         },
         'submit #g-password-change-form': function (event) {
             event.preventDefault();
             this.$('#g-password-change-error-msg').empty();
 
             if (this.$('#g-password-new').val() !==
-                this.$('#g-password-retype').val()) {
+                    this.$('#g-password-retype').val()) {
                 this.$('#g-password-change-error-msg').text(
-                    'Passwords do not match, try again.');
+                    'Passwords do not match, try again.'
+                );
                 this.$('#g-password-retype,#g-password-new').val('');
                 this.$('#g-password-new').focus();
                 return;
@@ -51,16 +52,17 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Password changed.',
-                    type: 'success',
-                    timeout: 4000
-                });
-                this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
-            }, this).changePassword(
-                this.$('#g-password-old').val(),
-                this.$('#g-password-new').val());
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Password changed.',
+                            type: 'success',
+                            timeout: 4000
+                        });
+                        this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
+                    }, this).changePassword(
+                        this.$('#g-password-old').val(),
+                        this.$('#g-password-new').val()
+                    );
         }
     },
 
@@ -71,13 +73,15 @@ girder.views.UserAccountView = girder.View.extend({
             settings.user.get('_id') === girder.currentUser.get('_id');
 
         this.model = this.user;
+        this.temporary = settings.temporary;
 
         if (!this.user ||
-            this.user.getAccessLevel() < girder.AccessType.WRITE) {
+                this.user.getAccessLevel() < girder.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
             return;
         }
 
+        girder.cancelRestRequests('fetch');
         this.render();
 
         // This page should be re-rendered if the user logs in or out
@@ -85,15 +89,15 @@ girder.views.UserAccountView = girder.View.extend({
     },
 
     render: function () {
-
         if (girder.currentUser === null) {
             girder.router.navigate('users', {trigger: true});
             return;
         }
 
-        this.$el.html(jade.templates.userSettings({
+        this.$el.html(girder.templates.userSettings({
             user: this.model,
-            girder: girder
+            girder: girder,
+            temporaryToken: this.temporary
         }));
 
         _.each($('.g-account-tabs>li>a'), function (el) {
@@ -138,4 +142,26 @@ girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     }, this).on('g:error', function () {
         girder.router.navigate('users', {trigger: true});
     }, this).fetch();
+});
+
+girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
+    girder.restRequest({
+        path: 'user/password/temporary/' + id,
+        type: 'GET',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        resp.user.token = resp.authToken.token;
+        girder.eventStream.close();
+        girder.currentUser = new girder.models.UserModel(resp.user);
+        girder.eventStream.open();
+        girder.events.trigger('g:login-changed');
+        girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
+            user: girder.currentUser,
+            tab: 'password',
+            temporary: token
+        });
+    }, this)).error(_.bind(function (err) {
+        girder.router.navigate('users', {trigger: true});
+    }, this));
 });

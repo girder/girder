@@ -16,7 +16,9 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
             this.createAssetstore(e, this.$('#g-new-gridfs-error'), {
                 type: girder.AssetstoreType.GRIDFS,
                 name: this.$('#g-new-gridfs-name').val(),
-                db: this.$('#g-new-gridfs-db').val()
+                db: this.$('#g-new-gridfs-db').val(),
+                mongohost: this.$('#g-new-gridfs-mongohost').val(),
+                replicaset: this.$('#g-new-gridfs-replicaset').val()
             });
         },
 
@@ -27,13 +29,14 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
                 bucket: this.$('#g-new-s3-bucket').val(),
                 prefix: this.$('#g-new-s3-prefix').val(),
                 accessKeyId: this.$('#g-new-s3-access-key-id').val(),
-                secretKey: this.$('#g-new-s3-secret').val()
+                secret: this.$('#g-new-s3-secret').val(),
+                service: this.$('#g-new-s3-service').val()
             });
         }
     },
 
     render: function () {
-        this.$el.html(jade.templates.newAssetstore());
+        this.$el.html(girder.templates.newAssetstore());
         return this;
     },
 

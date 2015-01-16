@@ -15,6 +15,10 @@ set(CTEST_UPDATE_COMMAND "git")
 
 ctest_start("Nightly")
 ctest_update(SOURCE ${CTEST_SOURCE_DIRECTORY})
+
+# We must run grunt so the correct git hash gets built into the version file
+execute_process(COMMAND npm install WORKING_DIRECTORY ${CTEST_SOURCE_DIRECTORY})
+
 ctest_configure()
 ctest_build()
 ctest_test(PARALLEL_LEVEL 3 RETURN_VALUE res)

@@ -33,8 +33,8 @@ module.exports = function (grunt) {
         }
         try {
             var cfg = JSON.parse(stdout);
-            apiRoot = (cfg.server.api_root || '/api/v1').replace(/\"/g, "");
-            staticRoot = (cfg.server.static_root || '/static').replace(/\"/g, "");
+            apiRoot = ((cfg.server && cfg.server.api_root) || '/api/v1').replace(/\"/g, "");
+            staticRoot = ((cfg.server && cfg.server.static_root) || '/static').replace(/\"/g, "");
             console.log('Static root: ' + staticRoot.bold);
             console.log('API root: ' + apiRoot.bold);
         }
@@ -42,6 +42,25 @@ module.exports = function (grunt) {
             grunt.warn('Invalid json from config_parse: ' + stdout);
         }
         callback();
+    };
+
+    // Returns a json string containing information from the current git repository.
+    var versionInfoObject = function () {
+        var gitVersion = grunt.config.get('gitinfo');
+        var local = gitVersion.local || {};
+        var branch = local.branch || {};
+        var current = branch.current || {};
+        return JSON.stringify(
+            {
+                git: !!current.SHA,
+                SHA: current.SHA,
+                shortSHA: current.shortSHA,
+                date: grunt.template.date(new Date(), "isoDateTime", true),
+                apiVersion: grunt.config.get('pkg').version
+            },
+            null,
+            "  "
+        );
     };
 
     // Project configuration.
@@ -52,7 +71,7 @@ module.exports = function (grunt) {
             options: {
                 client: true,
                 compileDebug: false,
-                namespace: 'jade.templates',
+                namespace: 'girder.templates',
                 processName: function (filename) {
                     return path.basename(filename, '.jade');
                 }
@@ -73,11 +92,6 @@ module.exports = function (grunt) {
                     cwd: 'node_modules/swagger-ui/dist',
                     src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
                     dest: 'clients/web/static/built/swagger'
-                }, {
-                    expand: true,
-                    cwd: 'node_modules/requirejs',
-                    src: ['require.js'],
-                    dest: 'clients/web/static/built/swagger/lib'
                 }]
             }
         },
@@ -112,6 +126,70 @@ module.exports = function (grunt) {
                     stdout: false,
                     callback: setServerConfig
                 }
+            },
+            // create girder-[version].tar.gz
+            'package-server': {
+                command: 'python setup.py sdist --dist-dir .',
+                options: {
+                    stdout: false,
+                    callback: function (err, stdout, stderr, callback) {
+                        var fname = 'girder-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                        var stat = fs.statSync(fname);
+                        if (!err && stat.isFile() && stat.size > 0) {
+                            grunt.verbose.write(stdout);
+                            grunt.log
+                                .write('Created ')
+                                .write(grunt.log.wordlist([fname]))
+                                .write(' (' + stat.size + ' bytes)\n');
+                        } else {
+                            grunt.verbose.write(stdout).write(stderr).write('\n');
+                            grunt.fail.warn('python setup.py sdist failed.');
+                        }
+                        callback();
+                    }
+                }
+            },
+        },
+
+        compress: {
+            // create girder-web-[version].tar.gz
+            'package-web': {
+                options: {
+                    mode: 'tgz',
+                    archive: function () {
+                        return 'girder-web-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                    },
+                    level: 9
+                },
+                expand: true,
+                cwd: 'clients/web',
+                src: ['lib/**', 'static/**'],
+                dest: 'clients/web/'
+            },
+            // create girder-plugins-[version].tar.gz
+            'package-plugins': {
+                options: {
+                    mode: 'tgz',
+                    archive: function () {
+                        return 'girder-plugins-' +
+                            grunt.config.get('pkg').version +
+                            '.tar.gz';
+                    },
+                    level: 9
+                },
+                expand: true,
+                cwd: 'plugins',
+                src: ['**'],
+                dest: '',
+                filter: function (fname) {
+                    return !fname.match(/\/plugin_tests/) &&
+                           !fname.match(/cmake$/) &&
+                           !fname.match(/py[co]$/);
+                }
             }
         },
 
@@ -129,13 +207,14 @@ module.exports = function (grunt) {
                     'clients/web/static/built/app.min.js': [
                         'clients/web/static/built/templates.js',
                         'clients/web/src/init.js',
+                        'clients/web/src/girder-version.js',
+                        'clients/web/src/view.js',
                         'clients/web/src/app.js',
                         'clients/web/src/router.js',
                         'clients/web/src/utilities/**/*.js',
                         'clients/web/src/plugin_utils.js',
                         'clients/web/src/collection.js',
                         'clients/web/src/model.js',
-                        'clients/web/src/view.js',
                         'clients/web/src/models/**/*.js',
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'
@@ -148,7 +227,7 @@ module.exports = function (grunt) {
             libs: {
                 files: {
                     'clients/web/static/built/libs.min.js': [
-                        'node_modules/jquery-browser/lib/jquery.js',
+                        'node_modules/jquery/dist/jquery.js',
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
@@ -156,7 +235,8 @@ module.exports = function (grunt) {
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
                         'clients/web/lib/js/jquery.jqplot.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.js'
+                        'clients/web/lib/js/jqplot.pieRenderer.js',
+                        'clients/web/lib/js/sprintf.js'
                     ],
                     'clients/web/static/built/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
@@ -180,13 +260,39 @@ module.exports = function (grunt) {
                 files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js']
             },
-            swagger: {
-                files: ['clients/web/src/templates/swagger/swagger.jadehtml'],
-                tasks: ['swagger-ui']
-            },
             sphinx: {
                 files: ['docs/*.rst'],
                 tasks: ['docs']
+            }
+        },
+
+        'file-creator': {
+            'python-version': {
+                'girder/girder-version.json': function (fs, fd, done) {
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(fd, girderVersion);
+                    done();
+                }
+            },
+
+            'javascript-version': {
+                'clients/web/src/girder-version.js': function (fs, fd, done) {
+                    girderVersion = versionInfoObject();
+                    fs.writeSync(
+                        fd,
+                        [
+                            '/* global girder: true */',
+                            '/* jshint ignore: start */',
+                            '//jscs:disable',
+                            'girder.versionInfo = ',
+                            girderVersion,
+                            ';',
+                            '/* jshint ignore: end */',
+                            '//jscs:enable\n'
+                        ].join('\n')
+                    );
+                    done();
+                }
             }
         }
     });
@@ -194,6 +300,26 @@ module.exports = function (grunt) {
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
+
+    // bring plugin Grunt targets into default Girder Grunt tasks
+    var extractPluginGruntTargets = function (pluginDir) {
+        var pluginJson = pluginDir + '/plugin.json';
+        if (fs.existsSync(pluginJson)) {
+            var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
+            if (pluginDescription.hasOwnProperty('grunt')) {
+                var pluginGruntCfg = pluginDescription.grunt;
+
+                // Merge plugin Grunt file
+                require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
+
+                // Register default targets
+                pluginGruntCfg.defaultTargets.forEach(function (defaultTarget) {
+                    defaultTasks.push(defaultTarget);
+                });
+            }
+        }
+    };
+
 
     // Configure a given plugin for building
     var configurePlugin = function (pluginDir) {
@@ -265,18 +391,7 @@ module.exports = function (grunt) {
         }
 
         // Handle external grunt targets specified for the plugin
-        var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
-        if (pluginDescription.hasOwnProperty('grunt')) {
-            var pluginGruntCfg = pluginDescription.grunt;
-
-            // Merge plugin Grunt file
-            require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
-
-            // Register default targets
-            pluginGruntCfg.defaultTargets.forEach(function (defaultTarget) {
-                defaultTasks.push(defaultTarget);
-            });
-        }
+        extractPluginGruntTargets(pluginDir);
     };
 
     // Glob for front-end plugins and configure each one to build
@@ -289,6 +404,9 @@ module.exports = function (grunt) {
     pluginDirs.forEach(function (pluginDir) {
         if (fs.existsSync(pluginDir + '/web_client')) {
             configurePlugin(pluginDir);
+        } else {
+            // plugins lacking a web_client dir might have grunt tasks
+            extractPluginGruntTargets(pluginDir);
         }
     });
 
@@ -298,17 +416,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
-
-    grunt.registerTask('swagger-ui', 'Build swagger front-end requirements.', function () {
-        var buffer = fs.readFileSync('clients/web/src/templates/swagger/swagger.jadehtml');
-
-        var fn = jade.compile(buffer, {
-            client: false
-        });
-        fs.writeFileSync('clients/web/static/built/swagger/swagger.html', fn({
-            staticRoot: staticRoot
-        }));
-    });
+    grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-file-creator');
+    grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
@@ -351,8 +461,33 @@ module.exports = function (grunt) {
         }
     });
 
+    // Remove all old packaging files
+    grunt.registerTask('remove-packaging', function () {
+        // match things that look like girder packages
+        grunt.file.expand('girder-*.tar.gz').forEach(function (f) {
+            // use regex's to further filter
+            if (f.match(/girder(-web-|-plugins-|-)[0-9]+\.[0-9]+.[0-9]+.*\.tar\.gz/)) {
+                grunt.file.delete(f);
+            }
+        });
+    });
+
+    // Create tarballs for distribution through pip and github releases
+    grunt.registerTask('package', 'Generate a python package for distribution.', [
+        'remove-packaging',
+        'compress:package-web',
+        'compress:package-plugins',
+        'shell:package-server'
+    ]);
+
+    grunt.registerTask('version-info', [
+        'gitinfo',
+        'file-creator'
+    ]);
+
     grunt.registerTask('build-js', [
         'jade',
+        'version-info',
         'uglify:app',
         'shell:readServerConfig',
         'test-env-html'
@@ -361,8 +496,7 @@ module.exports = function (grunt) {
         'setup',
         'uglify:libs',
         'copy:swagger',
-        'shell:readServerConfig',
-        'swagger-ui'
+        'shell:readServerConfig'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
     grunt.registerTask('default', defaultTasks);

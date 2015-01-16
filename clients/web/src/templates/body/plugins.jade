@@ -1,13 +1,24 @@
 .g-body-title Plugins
+div.g-plugin-restart
+  button.g-plugin-restart-button.btn.btn-danger
+    i.icon-cw
+    | Restart Server
+  .g-plugin-restart-text
+    | The selected plugins have changed.  You must restart the server for the
+    | changes to take effect.
+  .g-plugin-clear
 .g-plugin-list-container
-  each plugin, key in allPlugins
+  each plugin in allPlugins
     .g-plugin-list-item
-      input.g-plugin-switch(type="checkbox", key="#{key}",
-                            checked=(plugin.enabled ? "checked" : undefined))
+      input.g-plugin-switch(type="checkbox", key="#{plugin.key}",
+                            checked=(plugin.value.enabled ? "checked" : undefined))
       .g-plugin-name
-        | #{plugin.name}
-        if(plugin.configRoute)
-          a.g-plugin-config-link(g-route="#{plugin.configRoute}",
+        | #{plugin.value.name}
+        if (plugin.value.version)
+          span.g-plugin-version
+            | Version #{plugin.value.version}
+        if(plugin.value.configRoute)
+          a.g-plugin-config-link(g-route="#{plugin.value.configRoute}",
                                  title="Configure Plugin")
             i.icon-cog
-      .g-plugin-description #{plugin.description}
+      .g-plugin-description #{plugin.value.description}

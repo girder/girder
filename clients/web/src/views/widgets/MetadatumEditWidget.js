@@ -3,9 +3,9 @@
  */
 girder.views.MetadatumEditWidget = girder.View.extend({
     events: {
-        'click .g-item-metadata-cancel-button': 'cancelEdit',
-        'click .g-item-metadata-save-button': 'save',
-        'click .g-item-metadata-delete-button': 'deleteMetadatum'
+        'click .g-widget-metadata-cancel-button': 'cancelEdit',
+        'click .g-widget-metadata-save-button': 'save',
+        'click .g-widget-metadata-delete-button': 'deleteMetadatum'
     },
 
     deleteMetadatum: function (event) {
@@ -13,7 +13,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         var metadataList = $(event.currentTarget.parentElement);
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
-                  this.key + '</b>?',
+                  _.escape(this.key) + '</b>?',
+            escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 this.item.removeMetadata(this.key, function () {
@@ -30,7 +31,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         if (this.newDatum) {
             curRow.remove();
         } else {
-            curRow.removeClass('editing').html(jade.templates.metadatumView({
+            curRow.removeClass('editing').html(girder.templates.metadatumView({
                 key: this.key,
                 value: this.value,
                 accessLevel: this.accessLevel,
@@ -42,24 +43,38 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     save: function (event) {
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
-            tempKey = curRow.find('.g-item-metadata-key-input').val(),
-            tempValue = curRow.find('.g-item-metadata-value-input').val();
+            tempKey = curRow.find('.g-widget-metadata-key-input').val(),
+            tempValue = curRow.find('.g-widget-metadata-value-input').val();
 
-        if (this.newDatum && tempKey === "") {
+        if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
-                'text': 'A key is required for all metadata.',
-                'type': 'warning'
+                text: 'A key is required for all metadata.',
+                type: 'warning'
             });
             return;
         }
 
+        var displayValue = tempValue;
+        try {
+            var jsonValue = JSON.parse(tempValue);
+            /* This may succeed when we don't want it to (for instance with the
+             * value 'false' or '1234'), so check and only switch to JSON if we
+             * got an object back. */
+            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
+                tempValue = jsonValue;
+            }
+        }
+        catch (err) {
+            /* Do nothing -- keep our original value */
+        }
+
         var saveCallback = _.bind(function () {
             this.key = tempKey;
-            this.value = tempValue;
+            this.value = displayValue;
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
                 'g-value': this.value
-            }).html(jade.templates.metadatumView({
+            }).html(girder.templates.metadatumView({
                 key: this.key,
                 value: this.value,
                 accessLevel: this.accessLevel,
@@ -70,8 +85,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
         var errorCallback = function (out) {
             girder.events.trigger('g:alert', {
-                'text': out.message,
-                'type': 'danger'
+                text: out.message,
+                type: 'danger'
             });
         };
 
@@ -92,7 +107,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.metadatumEditWidget({
+        this.$el.html(girder.templates.metadatumEditWidget({
             item: this.item,
             key: this.key,
             value: this.value,
@@ -100,7 +115,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             newDatum: this.newDatum,
             girder: girder
         }));
-        this.$el.find('.g-item-metadata-key-input').focus();
+        this.$el.find('.g-widget-metadata-key-input').focus();
 
         this.$('[title]').tooltip({
             container: this.$el,

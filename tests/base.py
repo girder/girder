@@ -22,7 +22,9 @@ import codecs
 import cherrypy
 import io
 import json
+import logging
 import os
+import shutil
 import signal
 import sys
 import unittest
@@ -33,23 +35,33 @@ from StringIO import StringIO
 from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
+from girder.models import getDbConnection
 from . import mock_smtp
+from . import mock_s3
+from . import mongo_replicaset
 
-local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
-remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+local = cherrypy.lib.httputil.Host('127.0.0.1', 50000)
+remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001)
 mockSmtp = mock_smtp.MockSmtpReceiver()
+mockS3Server = None
 enabledPlugins = []
 
 
-def startServer(mock=True):
+def startServer(mock=True, mockS3=False):
     """
     Test cases that communicate with the server should call this
     function in their setUpModule() function.
     """
-    setupServer(test=True, plugins=enabledPlugins)
+    server = setupServer(test=True, plugins=enabledPlugins)
 
     # Make server quiet (won't announce start/stop or requests)
     cherrypy.config.update({'environment': 'embedded'})
+    # Log all requests if we asked to do so
+    if 'cherrypy' in os.environ.get('EXTRADEBUG', '').split():
+        cherrypy.config.update({'log.screen': True})
+        logHandler = logging.StreamHandler(sys.stdout)
+        logHandler.setLevel(logging.DEBUG)
+        cherrypy.log.error_log.addHandler(logHandler)
 
     if mock:
         cherrypy.server.unsubscribe()
@@ -57,6 +69,11 @@ def startServer(mock=True):
     cherrypy.engine.start()
 
     mockSmtp.start()
+    if mockS3:
+        global mockS3Server
+        mockS3Server = mock_s3.startMockS3Server()
+
+    return server
 
 
 def stopServer():
@@ -73,10 +90,9 @@ def dropTestDatabase():
     Call this to clear all contents from the test database. Also forces models
     to reload.
     """
-    from girder.models import getDbConnection
     db_connection = getDbConnection()
-    model_importer.clearModels()  # Must clear the models so indices are rebuilt
-    dbName = cherrypy.config['database']['database']
+    model_importer.clearModels()  # Must clear the models to rebuild indices
+    dbName = cherrypy.config['database']['uri'].split('/')[-1]
 
     if 'girder_test_' not in dbName:
         raise Exception('Expected a testing database name, but got {}'
@@ -84,26 +100,77 @@ def dropTestDatabase():
     db_connection.drop_database(dbName)
 
 
+def dropGridFSDatabase(dbName):
+    """
+    Clear all contents from a gridFS database used as an assetstore.
+    :param dbName: the name of the database to drop.
+    """
+    db_connection = getDbConnection()
+    db_connection.drop_database(dbName)
+
+
+def dropFsAssetstore(path):
+    """
+    Delete all of the files in a filesystem assetstore.  This unlinks the path,
+    which is potentially dangerous.
+    :param path: the path to remove.
+    """
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
-    def setUp(self):
+    def setUp(self, assetstoreType=None):
         """
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
+        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
+                               any other value, use a filesystem assetstore.
         """
+        self.assetstoreType = assetstoreType
         dropTestDatabase()
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
-        self.assetstore = self.model('assetstore').createFilesystemAssetstore(
-            name='Test', root=assetstorePath)
+        if assetstoreType == 'gridfs':
+            gridfsDbName = os.environ.get('GIRDER_TEST_ASSETSTORE',
+                                          'gridfs_assetstore_test')
+            dropGridFSDatabase(gridfsDbName)
+            self.assetstore = self.model('assetstore'). \
+                createGridFsAssetstore(name='Test', db=gridfsDbName)
+        elif assetstoreType == 'gridfsrs':
+            gridfsDbName = 'gridfsrs_assetstore_test'
+            mongo_replicaset.startMongoReplicaSet()
+            self.assetstore = self.model('assetstore'). \
+                createGridFsAssetstore(
+                name='Test', db=gridfsDbName,
+                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
+                '127.0.0.1:27072', replicaset='replicaset')
+        elif assetstoreType == 's3':
+            self.assetstore = self.model('assetstore'). \
+                createS3Assetstore(name='Test', bucket='bucketname',
+                                   accessKeyId='test', secret='test',
+                                   service=mockS3Server.service)
+        else:
+            dropFsAssetstore(assetstorePath)
+            self.assetstore = self.model('assetstore'). \
+                createFilesystemAssetstore(name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
+        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
+
+    def tearDown(self):
+        """
+        Stop any services that we started just for this test.
+        """
+        if self.assetstoreType == 'gridfsrs':
+            mongo_replicaset.stopMongoReplicaSet()
 
     def assertStatusOk(self, response):
         """
@@ -188,6 +255,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                          response.json.get('message', ''))
         self.assertStatus(response, 400)
 
+    def getSseMessages(self, resp):
+        messages = resp.collapse_body().strip().split('\n\n')
+        if not messages or messages == ['']:
+            return ()
+        return map(lambda m: json.loads(m.replace('data: ', '')), messages)
+
     def ensureRequiredParams(self, path='/', method='GET', required=(),
                              user=None):
         """
@@ -204,20 +277,33 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                                 user=user)
             self.assertMissingParameter(resp, exclude)
 
-    def _genCookie(self, user):
+    def _genToken(self, user):
         """
-        Helper method for creating an authentication cookie for the user.
+        Helper method for creating an authentication token for the user.
         """
         token = self.model('token').createToken(user)
-        cookie = json.dumps({
-            'userId': str(user['_id']),
-            'token': str(token['_id'])
-        }).replace('"', "\\\"")
-        return 'authToken="%s"' % cookie
+        return str(token['_id'])
 
-    def request(self, path='/', method='GET', params={}, user=None,
+    def _buildHeaders(self, headers, cookie, user, token, basicAuth):
+        if cookie is not None:
+            headers.append(('Cookie', cookie))
+
+        if user is not None:
+            headers.append(('Girder-Token', self._genToken(user)))
+        elif token is not None:
+            if isinstance(token, dict):
+                headers.append(('Girder-Token', token['_id']))
+            else:
+                headers.append(('Girder-Token', token))
+
+        if basicAuth is not None:
+            auth = base64.b64encode(basicAuth)
+            headers.append(('Authorization', 'Basic {}'.format(auth)))
+
+    def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None, exception=False, cookie=None):
+                type=None, exception=False, cookie=None, token=None,
+                additionalHeaders=None):
         """
         Make an HTTP request.
 
@@ -233,12 +319,23 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                           of the form 'login:password'
         :param exception: Set this to True if a 500 is expected from this call.
         :param cookie: A custom cookie value to set.
+        :param token: If you want to use an existing token to login, pass
+            the token ID.
+        :type token: str
+        :param additionalHeaders: a list of headers to add to the
+                                  request.  Each item is a tuple of the form
+                                  (header-name, header-value).
         :returns: The cherrypy response object from the request.
         """
+        if not params:
+            params = {}
+
         headers = [('Host', '127.0.0.1'), ('Accept', 'application/json')]
         qs = fd = None
 
-        if method in ['POST', 'PUT']:
+        if additionalHeaders:
+            headers.extend(additionalHeaders)
+        if method in ['POST', 'PUT', 'PATCH'] or body:
             qs = urllib.urlencode(params)
             if type is None:
                 headers.append(('Content-Type',
@@ -256,14 +353,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        if cookie is not None:
-            headers.append(('Cookie', cookie))
-        elif user is not None:
-            headers.append(('Cookie', self._genCookie(user)))
-
-        if basicAuth is not None:
-            authToken = base64.b64encode(basicAuth)
-            headers.append(('Authorization', 'Basic {}'.format(authToken)))
+        self._buildHeaders(headers, cookie, user, token, basicAuth)
 
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',
@@ -313,7 +403,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request.show_tracebacks = True
 
         if user is not None:
-            headers.append(('Cookie', self._genCookie(user)))
+            headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)
         try:

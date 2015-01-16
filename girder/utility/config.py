@@ -18,16 +18,15 @@
 ###############################################################################
 
 import cherrypy
-from girder import constants
+from girder.constants import ROOT_DIR
 import os
-import re
 
 
 def _mergeConfig(filename):
-    '''
+    """
     Load `filename` into the cherrypy config.
     Also, handle global options by putting them in the root.
-    '''
+    """
     cherrypy._cpconfig.merge(cherrypy.config, filename)
     global_config = cherrypy.config.pop('global', {})
 
@@ -35,37 +34,42 @@ def _mergeConfig(filename):
         cherrypy.config[option] = value
 
 
+def _loadConfigsByPrecedent():
+    """
+    Load configuration in reverse order of precedent.
+    """
+    configPaths = []
+    configPaths.append(
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
+    configPaths.append(
+        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.local.cfg'))
+    configPaths.append(
+        os.path.join('/etc', 'girder.cfg'))
+    configPaths.append(
+        os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg'))
+    if 'GIRDER_CONFIG' in os.environ:
+        configPaths.append(os.environ['GIRDER_CONFIG'])
+
+    for curConfigPath in configPaths:
+        if os.path.exists(curConfigPath):
+            _mergeConfig(curConfigPath)
+
+
 def loadConfig():
-    _mergeConfig(
-        os.path.join(constants.ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
 
-    local = os.path.join(constants.ROOT_DIR, 'girder', 'conf',
-                         'girder.local.cfg')
-    if os.path.exists(local):
-        _mergeConfig(local)
-    else:
-        print constants.TerminalColor.warning(
-            'WARNING: "{}" does not exist.'.format(local))
+    _loadConfigsByPrecedent()
 
-    # The PORT environment variable will override the config port
-    if 'PORT' in os.environ:
-        port = int(os.environ['PORT'])
-        print 'Using PORT env value ({})'.format(port)
+    if 'GIRDER_PORT' in os.environ:
+        port = int(os.environ['GIRDER_PORT'])
         cherrypy.config['server.socket_port'] = port
 
-    # The MONGOLAB_URI should override the database config
-    if os.getenv('MONGOLAB_URI'):  # for Heroku
-        matcher = re.match(r"mongodb://(.+):(.+)@(.+):(.+)/(.+)",
-                           os.getenv('MONGOLAB_URI'))
-        res = {'user': matcher.group(1),
-               'password': matcher.group(2),
-               'host': matcher.group(3),
-               'port': int(matcher.group(4)),
-               'database': matcher.group(5)}
-        cherrypy.config['database'] = res
+    if 'GIRDER_MONGO_URI' in os.environ:
+        if 'database' not in cherrypy.config:
+            cherrypy.config['database'] = {}
+        cherrypy.config['database']['uri'] = os.getenv('GIRDER_MONGO_URI')
 
     if 'GIRDER_TEST_DB' in os.environ:
-        cherrypy.config['database']['database'] =\
+        cherrypy.config['database']['uri'] =\
             os.environ['GIRDER_TEST_DB'].replace('.', '_')
 
 

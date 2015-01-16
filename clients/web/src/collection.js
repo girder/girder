@@ -7,6 +7,7 @@ girder.Collection = Backbone.Collection.extend({
 
     sortField: 'name',
     sortDir: girder.SORT_ASC,
+    comparator: girder.localeComparator,
 
     // Number of records to fetch per page
     pageLimit: 25,
@@ -45,14 +46,14 @@ girder.Collection = Backbone.Collection.extend({
      */
     fetchPreviousPage: function (params) {
         this.offset = Math.max(0, this.offset - this.length - this.pageLimit);
-        this.fetch(params);
+        this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
     fetchNextPage: function (params) {
-        this.fetch(_.extend(this.params, params || {}));
+        this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
@@ -78,17 +79,17 @@ girder.Collection = Backbone.Collection.extend({
         }
 
         if (reset) {
-            this.offset -= this.length;
+            this.offset = 0;
         }
 
         this.params = params || {};
-        girder.restRequest({
+        var xhr = girder.restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
-                'limit': this.pageLimit + 1,
-                'offset': this.offset,
-                'sort': this.sortField,
-                'sortdir': this.sortDir
+                limit: this.pageLimit + 1,
+                offset: this.offset,
+                sort: this.sortField,
+                sortdir: this.sortDir
             }, this.params)
         }).done(_.bind(function (list) {
             if (list.length > this.pageLimit) {
@@ -96,8 +97,7 @@ girder.Collection = Backbone.Collection.extend({
                 // the extra that we fetched.
                 list.pop();
                 this._hasMorePages = true;
-            }
-            else {
+            } else {
                 this._hasMorePages = false;
             }
 
@@ -110,13 +110,13 @@ girder.Collection = Backbone.Collection.extend({
             if (list.length > 0 || reset) {
                 if (this.append) {
                     this.add(list);
-                }
-                else {
+                } else {
                     this.set(list);
                 }
             }
 
             this.trigger('g:changed');
         }, this));
+        xhr.girder = {fetch: true};
     }
 });

@@ -7,21 +7,27 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @param userId The ID of the user to invite.
      * @param accessType The access level to invite them as.
      * @param request Set to true if this is accepting a user's request to join.
+     * @param [params] Additional parameters to pass with the request.
      */
-    sendInvitation: function (userId, accessType, request) {
+    sendInvitation: function (userId, accessType, request, params) {
+        params = params || {};
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
-            data: {
+            data: _.extend({
                 userId: userId,
                 level: accessType
-            },
+            }, params),
             type: 'POST',
             error: null
         }).done(_.bind(function (resp) {
             this.set(resp);
 
             if (!request && userId === girder.currentUser.get('_id')) {
-                girder.currentUser.addInvitation(this.get('_id'), accessType);
+                if (params.force) {
+                    girder.currentUser.addToGroup(this.get('_id'));
+                } else {
+                    girder.currentUser.addInvitation(this.get('_id'), accessType);
+                }
             }
             this.trigger('g:invited');
         }, this)).error(_.bind(function (err) {
@@ -77,8 +83,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         var role;
         if (level === girder.AccessType.WRITE) {
             role = 'moderator';
-        }
-        else if (level === girder.AccessType.ADMIN) {
+        } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
         girder.restRequest({
@@ -106,8 +111,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         var role;
         if (level === girder.AccessType.WRITE) {
             role = 'moderator';
-        }
-        else if (level === girder.AccessType.ADMIN) {
+        } else if (level === girder.AccessType.ADMIN) {
             role = 'admin';
         }
         girder.restRequest({

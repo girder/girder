@@ -21,11 +21,11 @@ REST interface.
 Tangelo
 ^^^^^^^
 
-`Tangelo <http://tangelo.kitware.com>`_ is a Cherry-Py based web server framework
+`Tangelo <http://tangelo.kitware.com>`_ is a CherryPy based web server framework
 for rapid data analytics and visualization application development.
 Tangelo has options for directly mounting the Girder API and static application
 files inside a Tangelo instance. See details in Tangelo's
-`setup <http://tangelo.readthedocs.org/en/latest/setup.html>`_ documentation.
+`setup <https://tangelo.readthedocs.org/en/latest/setup.html>`_ documentation.
 
 
 Using Girder JavaScript Utilities and Views
@@ -35,7 +35,9 @@ Including the JavaScript
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use the following to include the Girder libraries in your web application,
-assuming Girder is hosted at ``/girder``: ::
+assuming Girder is hosted at ``/girder``:
+
+.. code-block:: html
 
     <script src="/girder/static/built/libs.min.js"></script>
     <script src="/girder/static/built/app.min.js"></script>
@@ -48,7 +50,9 @@ Initializing Girder
 ^^^^^^^^^^^^^^^^^^^
 
 The following code will initialize the Girder environment and should
-be set before performing any Girder API calls: ::
+be set before performing any Girder API calls:
+
+.. code-block:: javascript
 
     $(document).ready(function () {
         girder.apiRoot = '/girder/api/v1';
@@ -63,13 +67,17 @@ behavior specific to the full Girder web application.
 Using Girder Register and Login UI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To user Girder UI components, you will need Bootstrap and Girder CSS in your HTML: ::
+To user Girder UI components, you will need Bootstrap and Girder CSS in your HTML:
+
+.. code-block:: html
 
     <link rel="stylesheet" href="/girder/static/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/girder/static/built/app.min.css">
 
 To make login and logout controls, provide a dialog container and login/logout/register links,
-and a container where the dialogs will be rendered: ::
+and a container where the dialogs will be rendered:
+
+.. code-block:: html
 
     <button class="btn btn-link" id="login" href="#">Login</button>
     <button class="btn btn-link" id="register" href="#">Register</button>
@@ -77,7 +85,9 @@ and a container where the dialogs will be rendered: ::
     <button class="btn btn-link hidden" id="logout" href="#">Logout</button>
     <div class="modal fade" id="dialog-container"></div>
 
-In your JavaScript, perform callbacks such as the following: ::
+In your JavaScript, perform callbacks such as the following:
+
+.. code-block:: javascript
 
     $('#login').click(function () {
         var loginView = new girder.views.LoginView({
@@ -109,20 +119,21 @@ In your JavaScript, perform callbacks such as the following: ::
             $("#register").addClass("hidden");
             $("#name").removeClass("hidden");
             $("#logout").removeClass("hidden");
-            $("#name").text("Logged in as " + girder.currentUser.get('firstName') + " " + girder.currentUser.get('lastName'));
+            $("#name").text("Logged in as " + girder.currentUser.get('firstName') + " " +
+                            girder.currentUser.get('lastName'));
 
-            // Do anything else you'd like to do on login.
+            // Do anything else you would like to do on login.
         } else {
             $("#login").removeClass("hidden");
             $("#register").removeClass("hidden");
             $("#name").addClass("hidden");
             $("#logout").addClass("hidden");
 
-            // Do anything else you'd like to do on logout.
+            // Do anything else you would like to do on logout.
         }
     });
 
-    // Check for who is logged in initially
+    // Check who is logged in initially.
     girder.restRequest({
         path: 'user/authentication',
         error: null

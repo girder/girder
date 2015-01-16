@@ -11,13 +11,12 @@ girder.views.EditItemWidget = girder.View.extend({
 
             if (this.item) {
                 this.updateItem(fields);
-            }
-            else {
+            } else {
                 this.createItem(fields);
             }
 
             this.$('button.g-save-item').addClass('disabled');
-            this.$('.g-validation-failed-message').text('');
+            this.$('.g-validation-failed-message').empty();
 
             return false;
         }
@@ -30,8 +29,22 @@ girder.views.EditItemWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editItemWidget({item: this.item}))
+        var modal = this.$el.html(girder.templates.editItemWidget({
+            item: this.item}))
             .girderModal(this).on('shown.bs.modal', function () {
+                view.$('#g-name').focus();
+                if (view.item) {
+                    girder.dialogs.handleOpen('itemedit');
+                } else {
+                    girder.dialogs.handleOpen('itemcreate');
+                }
+            }).on('hidden.bs.modal', function () {
+                if (view.create) {
+                    girder.dialogs.handleClose('itemcreate');
+                } else {
+                    girder.dialogs.handleClose('itemedit');
+                }
+            }).on('ready.girder.modal', function () {
                 if (view.item) {
                     view.$('#g-name').val(view.item.get('name'));
                     view.$('#g-description').val(view.item.get('description'));
@@ -39,20 +52,8 @@ girder.views.EditItemWidget = girder.View.extend({
                 } else {
                     view.create = true;
                 }
-                view.$('#g-name').focus();
-            }).on('hidden.bs.modal', function () {
-                if (view.create) {
-                    girder.dialogs.handleClose('itemcreate');
-                } else {
-                    girder.dialogs.handleClose('itemedit');
-                }
             });
-
-        if (view.item) {
-            girder.dialogs.handleOpen('itemedit');
-        } else {
-            girder.dialogs.handleOpen('itemcreate');
-        }
+        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
 
         return this;
     },

@@ -17,9 +17,9 @@ girder.views.ItemListWidget = girder.View.extend({
         this._checkboxes = settings.checkboxes;
 
         new girder.views.LoadingAnimation({
-            el: this.$el
+            el: this.$el,
+            parentView: this
         }).render();
-
 
         this.collection = new girder.collections.ItemCollection();
         this.collection.append = true; // Append, don't replace pages
@@ -33,7 +33,7 @@ girder.views.ItemListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(jade.templates.itemList({
+        this.$el.html(girder.templates.itemList({
             items: this.collection.models,
             hasMore: this.collection.hasNextPage(),
             girder: girder,
@@ -45,8 +45,7 @@ girder.views.ItemListWidget = girder.View.extend({
             var cid = $(this).attr('g-item-cid');
             if (this.checked) {
                 view.checked.push(cid);
-            }
-            else {
+            } else {
                 var idx = view.checked.indexOf(cid);
                 if (idx !== -1) {
                     view.checked.splice(idx, 1);

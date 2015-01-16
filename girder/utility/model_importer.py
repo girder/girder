@@ -19,26 +19,23 @@
 
 import importlib
 
+from . import camelcase
+from girder import logger
+
 # We want the models to essentially be singletons, so we keep this centralized
 # cache of instantiated models that have been lazy-loaded.
 _modelInstances = {}
 
 
-def _camelcase(value):
-    """
-    Helper method to convert module name to class name.
-    """
-    return ''.join(str.capitalize(x) if x else '_' for x in value.split('_'))
-
-
 def _loadModel(model, module, plugin):
     global _modelInstances
-    className = _camelcase(model)
+    className = camelcase(model)
 
     try:
         imported = importlib.import_module(module)
-    except ImportError:  # pragma: no cover
-        raise Exception('Could not load model "{}".'.format(module))
+    except ImportError:
+        logger.exception('Could not load model "{}".'.format(module))
+        raise
 
     try:
         constructor = getattr(imported, className)
@@ -64,7 +61,8 @@ class ModelImporter(object):
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
-    def model(self, model, plugin='_core'):
+    @staticmethod
+    def model(model, plugin='_core'):
         """
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import os
 import re
 
 from .model_base import AccessControlledModel, ValidationException
@@ -94,8 +95,8 @@ class User(AccessControlledModel):
         q = {'login': doc['login']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        existing = self.find(q, limit=1)
-        if existing.count(True) > 0:
+        existing = self.findOne(q)
+        if existing is not None:
             raise ValidationException('That login is already registered.',
                                       'login')
 
@@ -103,24 +104,26 @@ class User(AccessControlledModel):
         q = {'email': doc['email']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        existing = self.find(q, limit=1)
-        if existing.count(True) > 0:
+        existing = self.findOne(q)
+        if existing is not None:
             raise ValidationException('That email is already registered.',
                                       'email')
 
         # If this is the first user being created, make it an admin
-        existing = self.find({}, limit=1)
-        if existing.count(True) == 0:
+        existing = self.findOne({})
+        if existing is None:
             doc['admin'] = True
 
         return doc
 
-    def remove(self, user):
+    def remove(self, user, progress=None, **kwargs):
         """
         Delete a user, and all references to it in the database.
 
         :param user: The user document to delete.
         :type user: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext or None.
         """
         # Remove creator references for this user.
         creatorQuery = {
@@ -156,10 +159,13 @@ class User(AccessControlledModel):
             'parentCollection': 'user'
         }, limit=0)
         for folder in folders:
-            self.model('folder').remove(folder)
+            self.model('folder').remove(folder, progress=progress, **kwargs)
 
         # Finally, delete the user document itself
         AccessControlledModel.remove(self, user)
+        if progress:
+            progress.update(increment=1, message='Deleted user ' +
+                            user['login'])
 
     def search(self, text=None, user=None, limit=50, offset=0, sort=None):
         """
@@ -174,11 +180,12 @@ class User(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         :returns: List of users.
         """
-        # TODO support full-text search
-
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find({}, limit=0, sort=sort)
+        if text is not None:
+            cursor = self.textSearch(text, limit=0, sort=sort)
+        else:
+            cursor = self.find({}, limit=0, sort=sort)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=user,
                                                 level=AccessType.READ,
@@ -191,8 +198,9 @@ class User(AccessControlledModel):
 
         :param user: The user whose password to change.
         :param password: The new password. If set to None, no password will
-        be stored for this user. This should be done in cases where an external
-        system is responsible for authenticating the user.
+                         be stored for this user. This should be done in cases
+                         where an external system is responsible for
+                         authenticating the user.
         """
         if password is None:
             user['salt'] = None
@@ -221,7 +229,7 @@ class User(AccessControlledModel):
             'email': email,
             'firstName': firstName,
             'lastName': lastName,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'emailVerified': False,
             'admin': admin,
             'size': 0,
@@ -247,3 +255,44 @@ class User(AccessControlledModel):
             privateFolder, user, AccessType.ADMIN, save=True)
 
         return user
+
+    def fileList(self, doc, user=None, path='', includeMetadata=False,
+                 subpath=True):
+        """
+        Generate a list of files within this user's folders.
+
+        :param doc: the user to list.
+        :param user: a user used to validate data that is returned.
+        :param path: a path prefix to add to the results.
+        :param includeMetadata: if True and there is any metadata, include a
+                                result which is the json string of the
+                                metadata.  This is given a name of
+                                metadata[-(number).json that is distinct from
+                                any file within the item.
+        :param subpath: if True, add the user's name to the path.
+        """
+        if subpath:
+            path = os.path.join(path, doc['login'])
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'user'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            for (filepath, file) in self.model('folder').fileList(
+                    folder, user, path, includeMetadata, subpath=True):
+                yield (filepath, file)
+
+    def subtreeCount(self, doc):
+        """
+        Return the size of the user's folders.  The user is counted as well.
+
+        :param doc: The user.
+        """
+        count = 1
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'user'
+        }, limit=0, timeout=False)
+        for folder in folders:
+            count += self.model('folder').subtreeCount(folder)
+        return count

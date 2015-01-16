@@ -17,9 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
+import json
+
 from .. import base
 
 from girder.constants import AccessType
+from girder.models.notification import ProgressState
 
 
 def setUpModule():
@@ -106,6 +110,15 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], 'New name')
         self.assertEqual(resp.json['description'], 'A description')
 
+        # Move should fail with a bogus parent
+        resp = self.request(
+            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            user=self.admin, params={
+                'parentType': 'badParent',
+                'parentId': privateFolder['_id']
+            })
+        self.assertStatus(resp, 400)
+
         # Move the public folder underneath the private folder
         resp = self.request(
             path='/folder/{}'.format(publicFolder['_id']), method='PUT',
@@ -118,7 +131,8 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(resp.json['parentId'], privateFolder['_id'])
         self.assertEqual(resp.json['name'], 'New name')
 
-        # Move should fail if we don't have write permission on the dest parent
+        # Move should fail if we don't have write permission on the
+        # destination parent
         publicFolder = self.model('folder').load(
             publicFolder['_id'], force=True)
         publicFolder = self.model('folder').setUserAccess(
@@ -128,13 +142,15 @@ class FolderTestCase(base.TestCase):
             user=self.user, params={
                 'parentId': self.admin['_id'],
                 'parentType': 'user'
-                })
+            })
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Write access denied for user.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Write access denied for user'))
 
     def testCreateFolder(self):
         self.ensureRequiredParams(
-            path='/folder', method='POST', required=['name', 'parentId'])
+            path='/folder', method='POST', required=['name', 'parentId'],
+            user=self.admin)
 
         # Grab the default user folders
         resp = self.request(
@@ -155,7 +171,24 @@ class FolderTestCase(base.TestCase):
             'name': 'a folder',
             'parentId': publicFolder['_id']
         })
-        self.assertAccessDenied(resp, AccessType.WRITE, 'folder')
+        self.assertStatus(resp, 401)
+
+        # Try to create a folder with a bogus parent; should fail
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentType': 'badParent',
+                'parentId': publicFolder['_id']
+            })
+        self.assertStatus(resp, 400)
+
+        # Try to create a folder with a blank name; should fail
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertStatus(resp, 400)
 
         # Actually create subfolder under Public
         resp = self.request(
@@ -189,6 +222,96 @@ class FolderTestCase(base.TestCase):
             })
         self.assertValidationError(resp, 'name')
 
+        # Create a folder in the user
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': 'New User Folder',
+                'parentType': 'user',
+                'parentId': str(self.admin['_id'])
+            })
+        self.assertStatus(resp, 200)
+
+    def testFolderMetadataCrud(self):
+        """
+        Test CRUD of metadata on folders
+        """
+
+        # Grab the default user folders
+        resp = self.request(
+            path='/folder', method='GET', user=self.admin, params={
+                'parentType': 'user',
+                'parentId': self.admin['_id'],
+                'sort': 'name',
+                'sortdir': 1
+            })
+        self.assertStatusOk(resp)
+        publicFolder = resp.json[1]
+
+        # Actually create subfolder under Public
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertStatusOk(resp)
+        folder = resp.json
+
+        # Test that bad json fails
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body='badJSON', type='application/json')
+        self.assertStatus(resp, 400)
+
+        # Add some metadata
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+
+        folder = resp.json
+        self.assertEqual(folder['meta']['foo'], metadata['foo'])
+        self.assertEqual(folder['meta']['test'], metadata['test'])
+
+        # Edit and remove metadata
+        metadata['test'] = None
+        metadata['foo'] = 'baz'
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+
+        folder = resp.json
+        self.assertEqual(folder['meta']['foo'], metadata['foo'])
+        self.assertNotHasKeys(folder['meta'], ['test'])
+
+        # Make sure metadata cannot be added if there is a period in the key
+        # name
+        metadata = {
+            'foo.bar': 'notallowed'
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name foo.bar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
+        # Make sure metadata cannot be added if the key begins with a
+        # dollar sign
+        metadata = {
+            '$foobar': 'alsonotallowed'
+        }
+        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+                            method='PUT', user=self.admin,
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'The key name $foobar must not contain a period' +
+                         ' or begin with a dollar sign.')
+
     def testDeleteFolder(self):
         # Requesting with no path should fail
         resp = self.request(path='/folder', method='DELETE', user=self.admin)
@@ -210,7 +333,9 @@ class FolderTestCase(base.TestCase):
 
         # Delete the folder
         resp = self.request(path='/folder/%s' % folderResp['_id'],
-                            method='DELETE', user=self.admin)
+                            method='DELETE', user=self.admin, params={
+                                'progress': 'true'
+        })
         self.assertStatusOk(resp)
 
         # Make sure the folder, its subfolder, and its item were all deleted
@@ -221,6 +346,18 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder, None)
         self.assertEqual(subfolder, None)
         self.assertEqual(item, None)
+
+        # Make sure progress record exists and that it is set to expire soon
+        notifs = list(self.model('notification').get(self.admin))
+        self.assertEqual(len(notifs), 1)
+        self.assertEqual(notifs[0]['type'], 'progress')
+        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
+        self.assertEqual(notifs[0]['data']['title'], 'Deleting folder Public')
+        self.assertEqual(notifs[0]['data']['message'], 'Done')
+        self.assertEqual(notifs[0]['data']['total'], 3)
+        self.assertEqual(notifs[0]['data']['current'], 3)
+        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
+                        datetime.timedelta(minutes=1))
 
     def testLazyFieldComputation(self):
         """
@@ -235,7 +372,8 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder['lowerName'], 'my folder name')
         self.assertEqual(folder['baseParentType'], 'user')
 
-        # Force the item to be saved without lowerName and baseParentType fields
+        # Force the item to be saved without lowerName and baseParentType
+        # fields
         del folder['lowerName']
         del folder['baseParentType']
         self.model('folder').save(folder, validate=False)
@@ -251,3 +389,120 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder['lowerName'], 'my folder name')
         self.assertEqual(folder['baseParentType'], 'user')
         self.assertEqual(folder['baseParentId'], self.admin['_id'])
+
+    def testFolderAccess(self):
+        # create a folder to work with
+        folder = self.model('folder').createFolder(
+            parent=self.admin, parentType='user', creator=self.admin,
+            name='Folder')
+        resp = self.request(
+            path='/folder/{}/access'.format(folder['_id']), method='GET',
+            user=self.admin)
+        self.assertStatusOk(resp)
+        access = resp.json
+        self.assertEqual(access, {
+            'users': [{
+                'login': self.admin['login'],
+                'level': AccessType.ADMIN,
+                'id': str(self.admin['_id']),
+                'name': '{} {}'.format(self.admin['firstName'],
+                                       self.admin['lastName'])}],
+            'groups': []
+        })
+        # Setting the access list with bad json should throw an error
+        resp = self.request(
+            path='/folder/{}/access'.format(folder['_id']), method='PUT',
+            user=self.admin, params={'access': 'badJSON'})
+        self.assertStatus(resp, 400)
+        # Change the access to private.
+        resp = self.request(
+            path='/folder/{}/access'.format(folder['_id']), method='PUT',
+            user=self.admin,
+            params={'access': json.dumps(access), 'public': False})
+        self.assertStatusOk(resp)
+        resp = self.request(
+            path='/folder/{}'.format(folder['_id']), method='GET',
+            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['public'], False)
+
+    def testFolderCopy(self):
+        # create a folder with a subfolder, items, and metadata
+        mainFolder = self.model('folder').createFolder(
+            parent=self.admin, parentType='user', creator=self.admin,
+            name='Main Folder')
+        subFolder = self.model('folder').createFolder(
+            parent=mainFolder, parentType='folder', creator=self.admin,
+            name='Sub Folder')
+        mainItem = self.model('item').createItem(
+            'Main Item', creator=self.admin, folder=mainFolder)
+        subItem = self.model('item').createItem(
+            'Sub Item', creator=self.admin, folder=subFolder)
+        metadata = {'key': 'value'}
+        resp = self.request(
+            path='/folder/{}/metadata'.format(mainFolder['_id']), method='PUT',
+            user=self.admin, body=json.dumps(metadata),
+            type='application/json')
+        self.assertStatusOk(resp)
+        resp = self.request(
+            path='/folder/{}/copy'.format(mainFolder['_id']), method='POST',
+            user=self.admin, type='application/json', body='')
+        self.assertStatusOk(resp)
+        # Check our new folder name
+        newFolder = resp.json
+        self.assertEqual(newFolder['name'], 'Main Folder (1)')
+        # Check its metadata
+        resp = self.request(
+            path='/folder/{}'.format(newFolder['_id']), method='GET',
+            user=self.admin, type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['meta'], metadata)
+        # Check for the item, subfolder, and subfolder item
+        resp = self.request(
+            path='/folder', method='GET',
+            params={'parentType': 'folder', 'parentId': str(newFolder['_id'])},
+            user=self.admin, type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        newSub = resp.json[0]
+        self.assertEqual(newSub['name'], subFolder['name'])
+        self.assertNotEqual(str(newSub['_id']), str(subFolder['_id']))
+        resp = self.request(
+            path='/item', method='GET',
+            params={'folderId': str(newFolder['_id'])},
+            user=self.admin, type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        newItem = resp.json[0]
+        self.assertEqual(newItem['name'], mainItem['name'])
+        self.assertNotEqual(str(newItem['_id']), str(mainItem['_id']))
+        resp = self.request(
+            path='/item', method='GET',
+            params={'folderId': str(newSub['_id'])},
+            user=self.admin, type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        newSubItem = resp.json[0]
+        self.assertEqual(newSubItem['name'], subItem['name'])
+        self.assertNotEqual(str(newSubItem['_id']), str(subItem['_id']))
+        # Test copying the subFolder
+        resp = self.request(
+            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            user=self.admin, params={'public': 'original', 'progress': True})
+        self.assertStatusOk(resp)
+        # Check our new folder name
+        newSubFolder = resp.json
+        self.assertEqual(newSubFolder['name'], 'Sub Folder (1)')
+        # Test that a bogus parentType throws an error
+        resp = self.request(
+            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            user=self.admin, params={'parentType': 'badValue'})
+        self.assertStatus(resp, 400)
+        # Test that when we copy a folder into itself we don't recurse
+        resp = self.request(
+            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            user=self.admin, params={
+                'progress': True,
+                'parentType': 'folder',
+                'parentId': str(subFolder['_id'])})
+        self.assertStatusOk(resp)

@@ -19,14 +19,18 @@
 
 import cherrypy
 import os
+import psutil
+import shutil
 import stat
 import tempfile
 
+from StringIO import StringIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from .model_importer import ModelImporter
-from girder.models.model_base import ValidationException
+from girder.models.model_base import ValidationException, GirderException
+from girder import logger
 
 BUF_SIZE = 65536
 
@@ -68,19 +72,35 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param assetstore: The assetstore to act on.
         """
         self.assetstore = assetstore
+        # If we can't create the temp directory, the assetstore still needs to
+        # be initialized so that it can be deleted or modified.  The validation
+        # prevents invalid new assetstores from being created, so this only
+        # happens to existing assetstores that no longer can access their temp
+        # directories.
         self.tempDir = os.path.join(assetstore['root'], 'temp')
         if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+            try:
+                os.makedirs(self.tempDir)
+            except OSError:
+                logger.exception('Failed to create filesystem assetstore '
+                                 'directories {}'.format(self.tempDir))
 
     def capacityInfo(self):
         """
         For filesystem assetstores, we just need to report the free and total
         space on the filesystem where the assetstore lives.
         """
-        stat = os.statvfs(self.assetstore['root'])
-        return {
-            'free': stat.f_bavail * stat.f_frsize,
-            'total': stat.f_blocks * stat.f_frsize
+        try:
+            usage = psutil.disk_usage(self.assetstore['root'])
+            return {'free': usage.free, 'total': usage.total}
+        except OSError:
+            logger.exception(
+                'Failed to get disk usage of %s' % self.assetstore['root'])
+        # If psutil.disk_usage fails or we can't query the assetstore's root
+        # directory, just report nothing regarding disk capacity
+        return {  # pragma: no cover
+            'free': None,
+            'total': None
         }
 
     def initUpload(self, upload):
@@ -98,6 +118,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Appends the chunk into the temporary file.
         """
+        # If we know the chunk size is too large or small, fail early.
+        self.checkUploadSize(upload, self.getChunkSize(chunk))
+
+        if isinstance(chunk, basestring):
+            chunk = StringIO(chunk)
+
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
 
@@ -115,7 +141,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
-            while True:
+            while not upload['received']+size > upload['size']:
                 data = chunk.read(BUF_SIZE)
                 if not data:
                     break
@@ -123,6 +149,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 tempFile.write(data)
                 checksum.update(data)
         chunk.close()
+
+        try:
+            self.checkUploadSize(upload, size)
+        except ValidationException:
+            with open(upload['tempFile'], 'a+b') as tempFile:
+                tempFile.truncate(upload['received'])
+            raise
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)
@@ -155,7 +188,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             os.remove(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
-            os.rename(upload['tempFile'], abspath)
+            shutil.move(upload['tempFile'], abspath)
             os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
 
         file['sha512'] = hash
@@ -170,7 +203,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         path = os.path.join(self.assetstore['root'], file['path'])
         if not os.path.isfile(path):
-            raise Exception('File %s does not exist.' % path)
+            raise GirderException(
+                'File %s does not exist.' % path,
+                'girder.utility.filesystem_assetstore_adapter.'
+                'file-does-not-exist')
 
         if headers:
             mimeType = file.get('mimeType', 'application/octet-stream')
@@ -208,3 +244,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             path = os.path.join(self.assetstore['root'], file['path'])
             if os.path.isfile(path):
                 os.remove(path)
+
+    def cancelUpload(self, upload):
+        """
+        Delete the temporary files associated with a given upload.
+        """
+        if os.path.exists(upload['tempFile']):
+            os.unlink(upload['tempFile'])

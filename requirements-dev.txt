@@ -1,0 +1,8 @@
+coverage==3.7.1
+flake8==2.2.2
+httmock==1.2.2
+moto==0.3.6
+sphinx_rtd_theme==0.1.6
+six==1.8.0
+Sphinx==1.2.2
+virtualenv==1.11.6

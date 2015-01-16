@@ -22,6 +22,9 @@ import cherrypy
 import pymongo
 import uuid
 
+from StringIO import StringIO
+from .model_importer import ModelImporter
+from girder import logger
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
 
@@ -46,7 +49,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Makes sure the database name is valid.
         """
-        if not doc.get('db'):
+        if not doc.get('db', ''):
             raise ValidationException('Database name must not be empty.', 'db')
         if '.' in doc['db'] or ' ' in doc['db']:
             raise ValidationException('Database name cannot contain spaces'
@@ -62,7 +65,22 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         :param assetstore: The assetstore to act on.
         """
         self.assetstore = assetstore
-        self.chunkColl = getDbConnection()[assetstore['db']]['chunk']
+        try:
+            self.chunkColl = getDbConnection(
+                assetstore.get('mongohost', None),
+                assetstore.get('replicaset', None))[assetstore['db']]['chunk']
+        except pymongo.errors.ConnectionFailure:
+            logger.error('Failed to connect to GridFS assetstore %s',
+                         assetstore['db'])
+            self.chunkColl = 'Failed to connect'
+            self.unavailable = True
+            return
+        except pymongo.errors.ConfigurationError:
+            logger.exception('Failed to configure GridFS assetstore %s',
+                             assetstore['db'])
+            self.chunkColl = 'Failed to configure'
+            self.unavailable = True
+            return
         self.chunkColl.ensure_index([
             ('uuid', pymongo.ASCENDING),
             ('n', pymongo.ASCENDING)
@@ -78,9 +96,17 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def uploadChunk(self, upload, chunk):
         """
-        Stores the uploaded chunk in fixed-sized pieces in the chunks collection
-        of this assetstore's database.
+        Stores the uploaded chunk in fixed-sized pieces in the chunks
+        collection of this assetstore's database.
         """
+        # If we know the chunk size is too large or small, fail early.
+        self.checkUploadSize(upload, self.getChunkSize(chunk))
+
+        if isinstance(chunk, basestring):
+            if isinstance(chunk, unicode):
+                chunk = chunk.encode('utf8')
+            chunk = StringIO(chunk)
+
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
 
@@ -106,20 +132,39 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             n = cursor[0]['n'] + 1
 
         size = 0
+        startingN = n
 
-        while True:
+        while not upload['received']+size > upload['size']:
             data = chunk.read(CHUNK_SIZE)
             if not data:
                 break
-            self.chunkColl.insert({
-                'n': n,
-                'uuid': upload['chunkUuid'],
-                'data': bson.binary.Binary(data)
-            })
+            # If a timeout occurs while we are trying to load data, we might
+            # have succeeded, in which case we will get a DuplicateKeyError
+            # when it automatically retries.  Therefore, log this error but
+            # don't stop.
+            try:
+                self.chunkColl.insert({
+                    'n': n,
+                    'uuid': upload['chunkUuid'],
+                    'data': bson.binary.Binary(data)
+                })
+            except pymongo.errors.DuplicateKeyError:
+                logger.info('Received a DuplicateKeyError while uploading, '
+                            'probably because we reconnected to the database '
+                            '(chunk uuid %s part %d)', upload['chunkUuid'], n)
             n += 1
             size += len(data)
             checksum.update(data)
         chunk.close()
+
+        try:
+            self.checkUploadSize(upload, size)
+        except ValidationException:
+            # The user tried to upload too much or too little.  Delete
+            # everything we added
+            self.chunkColl.remove({'uuid': upload['chunkUuid'],
+                                   'n': {'$gte': startingN}}, multi=True)
+            raise
 
         # Persist the internal state of the checksum
         upload['sha512state'] = sha512_state.serializeHex(checksum)
@@ -203,4 +248,21 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Delete all of the chunks in the collection that correspond to the
         given file.
         """
-        self.chunkColl.remove({'uuid': file['chunkUuid']})
+        q = {
+            'chunkUuid': file['chunkUuid'],
+            'assetstoreId': self.assetstore['_id']
+        }
+        matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+        if matching.count(True) == 1:
+            try:
+                self.chunkColl.remove({'uuid': file['chunkUuid']})
+            except pymongo.errors.AutoReconnect:
+                # we can't reach the database.  Go ahead and return; a system
+                # check will be necessary to remove the abandoned file
+                pass
+
+    def cancelUpload(self, upload):
+        """
+        Delete all of the chunks associated with a given upload.
+        """
+        self.chunkColl.remove({'uuid': upload['chunkUuid']})

@@ -16,28 +16,32 @@ girder.views.UsersView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search users...',
+            types: ['user'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoUser, this);
     },
 
     render: function () {
-        this.$el.html(jade.templates.userList({
+        this.$el.html(girder.templates.userList({
             users: this.collection.models,
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-user-pagination'),
-            collection: this.collection
-        }).render();
-
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-users-search-container'),
-            placeholder: 'Search users...',
-            types: ['user']
-        }).off().on('g:resultClicked', this._gotoUser, this).render();
+        this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-users-search-container')).render();
 
         return this;
     },

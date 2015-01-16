@@ -9,7 +9,8 @@ girder.views.GroupInvitesWidget = girder.View.extend({
 
             girder.confirm({
                 text: 'Are you sure you want to remove the invitation ' +
-                    'for <b>' + li.attr('username') + '</b>?',
+                    'for <b>' + _.escape(li.attr('username')) + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     var user = view.collection.get(li.attr('cid'));
                     view.group.off('g:removed').on('g:removed', function () {
@@ -32,7 +33,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupInviteList({
+        this.$el.html(girder.templates.groupInviteList({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.models,
             accessType: girder.AccessType

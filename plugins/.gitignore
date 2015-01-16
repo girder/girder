@@ -1,0 +1,12 @@
+/*
+!.gitignore
+!celery_jobs/
+!geospatial/
+!google_analytics/
+!jobs/
+!jquery_widgets/
+!metadata_extractor/
+!mongo_search/
+!oauth/
+!provenance/
+!vega/

@@ -1,12 +1,30 @@
-girder.App = Backbone.View.extend({
-    el: 'body',
-
+girder.App = girder.View.extend({
     initialize: function (settings) {
         girder.restRequest({
             path: 'user/me'
         }).done(_.bind(function (user) {
+            girder.eventStream = new girder.EventStream();
+
+            this.headerView = new girder.views.LayoutHeaderView({
+                parentView: this
+            });
+
+            this.globalNavView = new girder.views.LayoutGlobalNavView({
+                parentView: this
+            });
+
+            this.footerView = new girder.views.LayoutFooterView({
+                parentView: this
+            });
+
+            this.progressListView = new girder.views.ProgressListView({
+                eventStream: girder.eventStream,
+                parentView: this
+            });
+
             if (user) {
                 girder.currentUser = new girder.models.UserModel(user);
+                girder.eventStream.open();
             }
             this.render();
 
@@ -25,19 +43,12 @@ girder.App = Backbone.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.layout());
+        this.$el.html(girder.templates.layout());
 
-        this.globalNavView = new girder.views.LayoutGlobalNavView({
-            el: this.$('#g-global-nav-container')
-        }).render();
-
-        new girder.views.LayoutHeaderView({
-            el: this.$('#g-app-header-container')
-        }).render();
-
-        new girder.views.LayoutFooterView({
-            el: this.$('#g-app-footer-container')
-        }).render();
+        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
+        this.headerView.setElement(this.$('#g-app-header-container')).render();
+        this.footerView.setElement(this.$('#g-app-footer-container')).render();
+        this.progressListView.setElement(this.$('#g-app-progress-container')).render();
 
         return this;
     },
@@ -55,55 +66,77 @@ girder.App = Backbone.View.extend({
         settings = settings || {};
 
         if (view) {
-            // Unbind all local events added by the previous body view.
-            container.off();
-
-            // Unbind all globally registered events from the previous view.
             if (this.bodyView) {
-                girder.events.off(null, null, this.bodyView);
+                this.bodyView.destroy();
             }
 
             settings = _.extend(settings, {
-                el: this.$('#g-app-body-container')
+                el: this.$('#g-app-body-container'),
+                parentView: this
             });
 
             /* We let the view be created in this way even though it is
              * normally against convention.
              */
             /*jshint -W055 */
+            // jscs:disable requireCapitalizedConstructors
             this.bodyView = new view(settings);
-        }
-        else {
+            // jscs:enable requireCapitalizedConstructors
+        } else {
             console.error('Undefined page.');
         }
         return this;
     },
 
     /**
+     * Close any open dialog if we are already logged in.
+     * :returns loggedIn: true if we have a current user.
+     */
+    closeDialogIfUser: function () {
+        if (girder.currentUser) {
+            $('.modal').girderModal('close');
+            return true;
+        }
+        return false;
+    },
+
+    /**
      * Show a dialog allowing a user to login or register.
      */
     loginDialog: function () {
+        if (this.closeDialogIfUser()) {
+            return;
+        }
         if (!this.loginView) {
             this.loginView = new girder.views.LoginView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.loginView.render();
     },
 
     registerDialog: function () {
+        if (this.closeDialogIfUser()) {
+            return;
+        }
         if (!this.registerView) {
             this.registerView = new girder.views.RegisterView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.registerView.render();
     },
 
     resetPasswordDialog: function () {
+        if (this.closeDialogIfUser()) {
+            return;
+        }
         if (!this.resetPasswordView) {
             this.resetPasswordView = new girder.views.ResetPasswordView({
-                el: this.$('#g-dialog-container')
+                el: this.$('#g-dialog-container'),
+                parentView: this
             });
         }
         this.resetPasswordView.render();
@@ -119,7 +152,7 @@ girder.App = Backbone.View.extend({
      *                Default is 6000ms. Set to <= 0 to have no timeout.
      */
     alert: function (options) {
-        var el = $(jade.templates.alert({
+        var el = $(girder.templates.alert({
             text: options.text,
             type: options.type || 'info',
             icon: options.icon
@@ -146,5 +179,12 @@ girder.App = Backbone.View.extend({
         var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         girder.router.navigate(route, {trigger: true});
+
+        if (girder.currentUser) {
+            girder.eventStream.close();
+            girder.eventStream.open();
+        } else {
+            girder.eventStream.close();
+        }
     }
 });

@@ -20,6 +20,7 @@
         },
 
         initialize: function (settings) {
+            girder.cancelRestRequests('fetch');
             this.tab = settings.tab || 'roles';
             this.edit = settings.edit || false;
 
@@ -29,8 +30,7 @@
                 this.model.on('g:accessFetched', function () {
                     this.render();
                 }, this).fetchAccess();
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.GroupModel();
                 this.model.set('_id', settings.id);
 
@@ -48,7 +48,8 @@
             if (!this.editGroupWidget) {
                 this.editGroupWidget = new girder.views.EditGroupWidget({
                     el: container,
-                    model: this.model
+                    model: this.model,
+                    parentView: this
                 }).off('g:saved').on('g:saved', function (group) {
                     this.render();
                 }, this);
@@ -60,7 +61,8 @@
             var view = this;
             girder.confirm({
                 text: 'Are you sure you want to delete the group <b>' +
-                view.model.get('name') + '</b>?',
+                    view.model.escape('name') + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.model.on('g:deleted', function () {
                         girder.router.navigate('groups', {trigger: true});
@@ -73,6 +75,8 @@
             this.isMember = false;
             this.isInvited = false;
             this.isRequested = false;
+            this.isModerator = false;
+            this.isAdmin = false;
 
             if (girder.currentUser) {
                 _.every(girder.currentUser.get('groups'), function (groupId) {
@@ -100,25 +104,41 @@
                 }, this);
             }
 
-            this.$el.html(jade.templates.groupPage({
+            if (this.isMember) {
+                _.every(this.model.get('access').users || [], function (access) {
+                    if (access.id === girder.currentUser.get('_id')) {
+                        if (access.level === girder.AccessType.WRITE) {
+                            this.isModerator = true;
+                        } else if (access.level === girder.AccessType.ADMIN) {
+                            this.isAdmin = true;
+                        }
+                        return false; // 'break';
+                    }
+                    return true;
+                }, this);
+            }
+            this.$el.html(girder.templates.groupPage({
                 group: this.model,
                 girder: girder,
                 isInvited: this.isInvited,
                 isRequested: this.isRequested,
-                isMember: this.isMember
+                isMember: this.isMember,
+                isModerator: this.isModerator,
+                isAdmin: this.isAdmin
             }));
 
             if (this.invitees) {
                 new girder.views.GroupInvitesWidget({
                     el: this.$('.g-group-invites-body'),
                     invitees: this.invitees,
-                    group: this.model
+                    group: this.model,
+                    parentView: this
                 }).render();
-            }
-            else {
+            } else {
                 var container = this.$('.g-group-invites-body');
                 new girder.views.LoadingAnimation({
-                    el: container
+                    el: container,
+                    parentView: this
                 }).render();
 
                 this.invitees = new girder.collections.UserCollection();
@@ -132,21 +152,20 @@
             this.membersWidget = new girder.views.GroupMembersWidget({
                 el: this.$('.g-group-members-container'),
                 group: this.model,
-                parent: this
+                parentView: this
             }).off().on('g:sendInvite', function (params) {
+                var opts = {
+                    force: params.force || false
+                };
                 this.model.off('g:invited').on('g:invited', function () {
                     this.invitees.fetch(null, true);
                 }, this).off('g:error').on('g:error', function (err) {
                     // TODO don't alert, show something useful
                     alert(err.responseJSON.message);
-                }, this).sendInvitation(params.user.id, params.level);
+                }, this).sendInvitation(params.user.id, params.level, false, opts);
             }, this).on('g:removeMember', this.removeMember, this)
-                    .on('g:moderatorAdded', function () {
-                        this._updateRolesLists();
-                    }, this)
-                    .on('g:adminAdded', function () {
-                        this._updateRolesLists();
-                    }, this);
+                    .on('g:moderatorAdded', this.render, this)
+                    .on('g:adminAdded', this.render, this);
 
             this._updateRolesLists();
 
@@ -162,6 +181,7 @@
 
             if (this.edit) {
                 this.editGroup();
+                this.edit = false;
             }
 
             _.each($('.g-group-tabs>li>a'), function (el) {
@@ -229,8 +249,7 @@
             _.each(this.model.get('access').users, function (userAccess) {
                 if (userAccess.level === girder.AccessType.WRITE) {
                     mods.push(userAccess);
-                }
-                else if (userAccess.level === girder.AccessType.ADMIN) {
+                } else if (userAccess.level === girder.AccessType.ADMIN) {
                     admins.push(userAccess);
                 }
             }, this);
@@ -239,7 +258,7 @@
                 el: this.$('.g-group-mods-container'),
                 group: this.model,
                 moderators: mods,
-                parent: this
+                parentView: this
             }).off().on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.WRITE);
@@ -249,7 +268,7 @@
                 el: this.$('.g-group-admins-container'),
                 group: this.model,
                 admins: admins,
-                parent: this
+                parentView: this
             }).off().on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.ADMIN);
@@ -287,4 +306,4 @@
         });
     });
 
-}) ();
+}());

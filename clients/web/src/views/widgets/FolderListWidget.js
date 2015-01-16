@@ -19,7 +19,8 @@ girder.views.FolderListWidget = girder.View.extend({
         this._checkboxes = settings.checkboxes;
 
         new girder.views.LoadingAnimation({
-            el: this.$el
+            el: this.$el,
+            parentView: this
         }).render();
 
         this.collection = new girder.collections.FolderCollection();
@@ -35,7 +36,7 @@ girder.views.FolderListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(jade.templates.folderList({
+        this.$el.html(girder.templates.folderList({
             folders: this.collection.models,
             hasMore: this.collection.hasNextPage(),
             checkboxes: this._checkboxes
@@ -46,8 +47,7 @@ girder.views.FolderListWidget = girder.View.extend({
             var cid = $(this).attr('g-folder-cid');
             if (this.checked) {
                 view.checked.push(cid);
-            }
-            else {
+            } else {
                 var idx = view.checked.indexOf(cid);
                 if (idx !== -1) {
                     view.checked.splice(idx, 1);

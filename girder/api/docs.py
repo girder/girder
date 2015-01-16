@@ -62,3 +62,54 @@ def addRouteDocs(resource, route, method, info, handler):
 
     routes[resource][path].append(info)
     discovery.add(resource)
+
+
+def removeRouteDocs(resource, route, method, info, handler):
+    """
+    Remove documentation for a route handler.
+
+    :param resource: The name of the resource, e.g. "item"
+    :type resource: str
+    :param route: The route to describe.
+    :type route: list
+    :param method: The HTTP method for this route, e.g. "POST"
+    :type method: str
+    :param info: The information representing the API documentation.
+    :type info: dict
+    """
+    # Convert wildcard tokens from :foo form to {foo} form.
+    convRoute = []
+    for token in route:
+        if token[0] == ':':
+            convRoute.append('{{{}}}'.format(token[1:]))
+        else:
+            convRoute.append(token)
+
+    path = '/'.join(['', resource] + convRoute)
+
+    if path not in routes[resource]:
+        return
+
+    info = info.copy()
+    info['httpMethod'] = method.upper()
+
+    if 'nickname' not in info:
+        info['nickname'] = handler.__name__
+    if info in routes[resource][path]:
+        routes[resource][path].remove(info)
+        if not len(routes[resource][path]):
+            del routes[resource][path]
+            if not len(routes[resource]):
+                discovery.remove(resource)
+
+
+def addModel(name, model):
+    """
+    This is called to add a model to the swagger documentation.
+
+    :param name: The name of the model.
+    :type name: str
+    :param model: The model to add.
+    :type model: dict
+    """
+    models[name] = model

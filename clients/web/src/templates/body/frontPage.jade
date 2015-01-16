@@ -36,3 +36,14 @@
         a.g-my-folders-link  personal data space
         |  or go to your
         a.g-my-account-link  user account page.
+
+    p.g-frontpage-paragraph
+      if versionInfo.git
+        | This instance of girder was built from git version&nbsp;
+        a.g-git-sha(
+          target="_blank", href="https://github.com/girder/girder/tree/#{versionInfo.SHA}")= versionInfo.shortSHA
+        | .
+      else
+        | This instance of girder was built on #{new Date(versionInfo.date).toLocaleDateString()}.
+      if versionInfo.apiVersion
+        |   API Version #{versionInfo.apiVersion}.

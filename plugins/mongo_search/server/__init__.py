@@ -24,9 +24,11 @@ from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
+from girder.api import access
 
 
 class ResourceExt(Resource):
+    @access.public
     def mongoSearch(self, params):
         self.requireParams(('type', 'q'), params)
         allowed = {

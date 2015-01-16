@@ -18,8 +18,9 @@
 ###############################################################################
 
 import datetime
+import pymongo
 
-from .model_base import Model, ValidationException
+from .model_base import Model, ValidationException, GirderException
 from girder.utility import assetstore_utilities
 from girder.utility.filesystem_assetstore_adapter import\
     FilesystemAssetstoreAdapter
@@ -40,8 +41,8 @@ class Assetstore(Model):
         q = {'name': doc['name']}
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        duplicates = self.find(q, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
+        duplicate = self.findOne(q, fields=['_id'])
+        if duplicate is not None:
             raise ValidationException('An assetstore with that name already '
                                       'exists.', 'name')
 
@@ -58,8 +59,8 @@ class Assetstore(Model):
             S3AssetstoreAdapter.validateInfo(doc)
 
         # If no current assetstore exists yet, set this one as the current.
-        current = self.find({'current': True}, limit=1, fields=['_id'])
-        if current.count() == 0:
+        current = self.findOne({'current': True}, fields=['_id'])
+        if current is None:
             doc['current'] = True
         if 'current' not in doc:
             doc['current'] = False
@@ -71,7 +72,7 @@ class Assetstore(Model):
 
         return doc
 
-    def remove(self, assetstore):
+    def remove(self, assetstore, **kwargs):
         """
         Delete an assetstore. If there are any files within this assetstore,
         a validation exception is raised.
@@ -79,14 +80,27 @@ class Assetstore(Model):
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
         """
-        files = self.model('file').find({
-            'assetstoreId': assetstore['_id']
-            }, limit=1)
-        if files.count(True) > 0:
+        files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
+        if files is not None:
             raise ValidationException('You may not delete an assetstore that '
                                       'contains files.')
-
+        # delete partial uploads before we delete the store.
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        try:
+            adapter.untrackedUploads([], 'delete')
+        except ValidationException:
+            # this assetstore is currently unreachable, so skip this step
+            pass
+        # now remove the assetstore
         Model.remove(self, assetstore)
+        # If after removal there is no current assetstore, then pick a
+        # different assetstore to be the current one.
+        current = self.findOne({'current': True})
+        if current is None:
+            first = self.findOne(sort=[('created', pymongo.DESCENDING)])
+            if first is not None:
+                first['current'] = True
+                self.save(first)
 
     def list(self, limit=50, offset=0, sort=None):
         """
@@ -102,6 +116,8 @@ class Assetstore(Model):
         for assetstore in cursor:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             assetstore['capacity'] = adapter.capacityInfo()
+            assetstore['hasFiles'] = (self.model('file').findOne(
+                {'assetstoreId': assetstore['_id']}) is not None)
             assetstores.append(assetstore)
 
         return assetstores
@@ -109,28 +125,33 @@ class Assetstore(Model):
     def createFilesystemAssetstore(self, name, root):
         return self.save({
             'type': AssetstoreType.FILESYSTEM,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
             'root': root
         })
 
-    def createGridFsAssetstore(self, name, db):
+    def createGridFsAssetstore(self, name, db, mongohost=None,
+                               replicaset=None):
         return self.save({
             'type': AssetstoreType.GRIDFS,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
-            'db': db
+            'db': db,
+            'mongohost': mongohost,
+            'replicaset': replicaset
         })
 
-    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix=''):
+    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',
+                           service=''):
         return self.save({
             'type': AssetstoreType.S3,
-            'created': datetime.datetime.now(),
+            'created': datetime.datetime.utcnow(),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,
             'prefix': prefix,
-            'bucket': bucket
+            'bucket': bucket,
+            'service': service
         })
 
     def getCurrent(self):
@@ -138,8 +159,10 @@ class Assetstore(Model):
         Returns the current assetstore. If none exists, this will raise a 500
         exception.
         """
-        cursor = self.find({'current': True}, limit=1)
-        if cursor.count() == 0:
-            raise Exception('No current assetstore is set.')
+        current = self.findOne({'current': True})
+        if current is None:
+            raise GirderException(
+                'No current assetstore is set.',
+                'girder.model.assetstore.no-current-assetstore')
 
-        return cursor.next()
+        return current

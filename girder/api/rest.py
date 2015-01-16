@@ -20,6 +20,7 @@
 import cherrypy
 import collections
 import datetime
+import functools
 import json
 import pymongo
 import sys
@@ -28,14 +29,11 @@ import types
 
 from . import docs
 from girder import events, logger
-from girder.constants import AccessType, SettingKey, TerminalColor
-from girder.models.model_base import AccessException, ValidationException
+from girder.constants import SettingKey, TerminalColor, TokenScope
+from girder.models.model_base import AccessException, GirderException, \
+    ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
-from bson.objectid import ObjectId
-
-
-_importer = ModelImporter()
 
 
 def _cacheAuthUser(fun):
@@ -44,11 +42,11 @@ def _cacheAuthUser(fun):
     is only performed once per request, and is cached on the request for
     subsequent calls to getCurrentUser().
     """
-    def inner(self, *args, **kwargs):
-        if hasattr(cherrypy.request, 'girderUser'):
+    def inner(returnToken=False, *args, **kwargs):
+        if not returnToken and hasattr(cherrypy.request, 'girderUser'):
             return cherrypy.request.girderUser
 
-        user = fun(self, *args, **kwargs)
+        user = fun(returnToken, *args, **kwargs)
         if type(user) is tuple:
             setattr(cherrypy.request, 'girderUser', user[0])
         else:
@@ -58,30 +56,150 @@ def _cacheAuthUser(fun):
     return inner
 
 
-def loadmodel(map, model, plugin='_core', level=None):
+def _cacheAuthToken(fun):
     """
-    This is a meta-decorator that can be used to convert parameters that are
-    ObjectID's into the actual documents.
+    This decorator for getCurrentToken ensures that the token lookup
+    is only performed once per request, and is cached on the request for
+    subsequent calls to getCurrentToken().
     """
-    _model = _importer.model(model, plugin)
+    def inner(*args, **kwargs):
+        if hasattr(cherrypy.request, 'girderToken'):
+            return cherrypy.request.girderToken
 
-    def meta(fun):
-        def wrapper(self, *args, **kwargs):
-            for raw, converted in map.iteritems():
-                if level is not None:
-                    user = self.getCurrentUser()
-                    kwargs[converted] = _model.load(
-                        id=kwargs[raw], level=level, user=user)
+        token = fun(*args, **kwargs)
+        setattr(cherrypy.request, 'girderToken', token)
+
+        return token
+    return inner
+
+
+@_cacheAuthToken
+def getCurrentToken():
+    """
+    Returns the current valid token object that was passed via the token header
+    or parameter, or None if no valid token was passed.
+    """
+    tokenStr = None
+    if 'token' in cherrypy.request.params:  # Token as a parameter
+        tokenStr = cherrypy.request.params.get('token')
+    elif 'Girder-Token' in cherrypy.request.headers:
+        tokenStr = cherrypy.request.headers['Girder-Token']
+
+    if not tokenStr:
+        return None
+
+    return ModelImporter.model('token').load(tokenStr, force=True,
+                                             objectId=False)
+
+
+@_cacheAuthUser
+def getCurrentUser(returnToken=False):
+    """
+    Returns the currently authenticated user based on the token header or
+    parameter.
+
+    :param returnToken: Whether we should return a tuple that also contains the
+                        token.
+    :type returnToken: bool
+    :returns: the user document from the database, or None if the user is not
+              logged in or the token is invalid or expired.  If
+              returnToken=True, returns a tuple of (user, token).
+    """
+    event = events.trigger('auth.user.get')
+    if event.defaultPrevented and len(event.responses) > 0:
+        return event.responses[0]
+
+    token = getCurrentToken()
+
+    def retVal(user, token):
+        if returnToken:
+            return (user, token)
+        else:
+            return user
+
+    if (token is None or token['expires'] < datetime.datetime.utcnow() or
+            'userId' not in token):
+        return retVal(None, token)
+    else:
+        try:
+            ensureTokenScopes(token, TokenScope.USER_AUTH)
+        except:
+            return retVal(None, token)
+        user = ModelImporter.model('user').load(token['userId'], force=True)
+        return retVal(user, token)
+
+
+def requireAdmin(user):
+    """
+    Calling this on a user will ensure that they have admin rights.  If not,
+    raises an AccessException.
+
+    :param user: The user to check admin flag on.
+    :type user: dict.
+    :raises AccessException: If the user is not an administrator.
+    """
+    if user is None or user.get('admin', False) is not True:
+        raise AccessException('Administrator access required.')
+
+
+class loadmodel(object):
+    """
+    This is a decorator that can be used to load a model based on an ID param.
+    For access controlled models, it will check authorization for the current
+    user. The underlying function is called with a modified set of keyword
+    arguments that is transformed by the "map" parameter of this decorator.
+
+    :param map: Map of incoming parameter name to corresponding model arg name.
+        If None is passed, this will map the parameter named "id" to a kwarg
+        named the same as the "model" parameter.
+    :type map: dict or None
+    :param model: The model name, e.g. 'folder'
+    :type model: str
+    :param plugin: Plugin name, if loading a plugin model.
+    :type plugin: str
+    :param level: Access level, if this is an access controlled model.
+    :type level: AccessType
+    """
+    def __init__(self, map=None, model=None, plugin='_core', level=None,
+                 force=False):
+        if map is None:
+            self.map = {'id': model}
+        else:
+            self.map = map
+
+        self.model = ModelImporter.model(model, plugin)
+        self.level = level
+        self.force = force
+
+    def _getIdValue(self, kwargs, idParam):
+        if idParam in kwargs:
+            return kwargs.pop(idParam)
+        elif idParam in kwargs['params']:
+            return kwargs['params'].pop(idParam)
+        else:
+            raise GirderException('No ID parameter passed: ' + idParam,
+                                  'girder.api.rest.no-id')
+
+    def __call__(self, fun):
+        @functools.wraps(fun)
+        def wrapped(*args, **kwargs):
+            for raw, converted in self.map.iteritems():
+                id = self._getIdValue(kwargs, raw)
+
+                if self.force:
+                    kwargs[converted] = self.model.load(id, force=True)
+                elif self.level is not None:
+                    kwargs[converted] = self.model.load(
+                        id=id, level=self.level, user=getCurrentUser())
                 else:
-                    kwargs[converted] = _model.load(kwargs[raw])
+                    kwargs[converted] = self.model.load(id)
 
                 if kwargs[converted] is None:
                     raise RestException('Invalid {} id ({}).'
-                                        .format(model, kwargs[raw]))
-                del kwargs[raw]
-            return fun(self, *args, **kwargs)
-        return wrapper
-    return meta
+                                        .format(self.model.name, id))
+
+            return fun(*args, **kwargs)
+        return wrapped
 
 
 def _createResponse(val):
@@ -95,7 +213,7 @@ def _createResponse(val):
         if accept.value == 'application/json':
             break
         elif accept.value == 'text/html':  # pragma: no cover
-            # Pretty-print and HTMLify the response for the browser
+            # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
             resp = json.dumps(val, indent=4, sort_keys=True,
                               separators=(',', ': '), default=str)
@@ -106,7 +224,7 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, default=str)
+    return json.dumps(val, sort_keys=True, default=str)
 
 
 def endpoint(fun):
@@ -121,7 +239,16 @@ def endpoint(fun):
     If you want a streamed response, simply return a generator function
     from the inner method.
     """
+    @functools.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
+        # Note that the cyclomatic complexity of this function crosses our
+        # flake8 configuration threshold.  Because it is largely exception
+        # handling, I think thta breaking it into smaller functions actually
+        # reduces readablity and maintainability.  To work around this, some
+        # simple branches have been marked to be skipped in the cyclomatic
+        # analysis.
+        _setCommonCORSHeaders()
+        cherrypy.lib.caching.expires(0)
         try:
             val = fun(self, args, kwargs)
 
@@ -146,19 +273,26 @@ def endpoint(fun):
                 cherrypy.response.status = 403
                 logger.exception('403 Error')
             val = {'message': e.message, 'type': 'access'}
+        except GirderException as e:
+            # Handle general girder exceptions
+            logger.exception('500 Error')
+            cherrypy.response.status = 500
+            val = {'message': e.message, 'type': 'girder'}
+            if e.identifier is not None:
+                val['identifier'] = e.identifier
         except ValidationException as e:
             cherrypy.response.status = 400
             val = {'message': e.message, 'type': 'validation'}
             if e.field is not None:
                 val['field'] = e.field
-        except cherrypy.HTTPRedirect:
+        except cherrypy.HTTPRedirect:  # flake8: noqa
             raise
         except:
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
             t, value, tb = sys.exc_info()
-            val = {'message': '%s: %s' % (t.__name__, str(value)),
+            val = {'message': '%s: %s' % (t.__name__, repr(value)),
                    'type': 'internal'}
             curConfig = config.getConfig()
             if curConfig['server']['mode'] != 'production':
@@ -167,6 +301,115 @@ def endpoint(fun):
 
         return _createResponse(val)
     return endpointDecorator
+
+
+def ensureTokenScopes(token, scope):
+    """
+    Call this to validate a token scope for endpoints that require tokens
+    other than a user authentication token. Raises an AccessException if the
+    required scopes are not allowed by the given token.
+
+    :param token: The token object used in the request.
+    :type token: dict
+    :param scope: The required scope or set of scopes.
+    :type scope: str or list of str
+    """
+    tokenModel = ModelImporter.model('token')
+    if not tokenModel.hasScope(token, scope):
+        setattr(cherrypy.request, 'girderUser', None)
+        if isinstance(scope, basestring):
+            scope = (scope,)
+        raise AccessException(
+            'Invalid token scope.\nRequired: {}.\nAllowed: {}'
+            .format(' '.join(scope),
+                    ' '.join(tokenModel.getAllowedScopes(token))))
+
+
+def _setCommonCORSHeaders(isOptions=False):
+    """
+    CORS requires that we specify the allowed origins on both the preflight
+    request via OPTIONS and on the actual request.  Unless the default setting
+    for allowed origin is changed, we don't support CORS.  We can permit
+    multiple origins, including * to allow all origins.  Even in the wildcard
+    case, we report just the requesting origin (if there is one), so as not to
+    advertise the openness of the system.
+
+    In general, see
+    https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
+    for details.
+
+    :param isOptions: True if this call is from the options method
+    """
+    origin = cherrypy.request.headers.get('origin', '').rstrip('/')
+    if not origin:
+        if isOptions:
+            raise cherrypy.HTTPError(405)
+        return
+    cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
+    cherrypy.response.headers['Vary'] = 'Origin'
+    # Some requests do not require further checking
+    if (cherrypy.request.method in ('GET', 'HEAD') or (
+            cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
+            'Content-Type', '') in ('application/x-www-form-urlencoded',
+                                    'multipart/form-data', 'text/plain'))):
+        return
+    cors = ModelImporter.model('setting').corsSettingsDict()
+    base = cherrypy.request.base.rstrip('/')
+    # We want to handle X-Forwarded-Host be default
+    altbase = cherrypy.request.headers.get('X-Forwarded-Host', '')
+    if altbase:
+        altbase = '%s://%s' % (cherrypy.request.scheme, altbase)
+        logAltBase = ', forwarded base origin is ' + altbase
+    else:
+        altbase = base
+        logAltBase = ''
+    # If we don't have any allowed origins, return that OPTIONS isn't a
+    # valid method.  If the request specified an origin, fail.
+    if not cors['allowOrigin']:
+        if isOptions:
+            logger.info('CORS 405 error: no allowed origins (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
+            raise cherrypy.HTTPError(405)
+        if origin not in (base, altbase):
+            logger.info('CORS 403 error: no allowed origins (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
+            raise cherrypy.HTTPError(403)
+        return
+    # If this origin is not allowed, return an error
+    if ('*' not in cors['allowOrigin'] and origin not in cors['allowOrigin']
+            and origin not in (base, altbase)):
+        if isOptions:
+            logger.info('CORS 405 error: origin not allowed (request origin '
+                        'is %s, base origin is %s%s', origin, base, logAltBase)
+            raise cherrypy.HTTPError(405)
+        logger.info('CORS 403 error: origin not allowed (request origin '
+                    'is %s, base origin is %s%s', origin, base, logAltBase)
+        raise cherrypy.HTTPError(403)
+    # If possible, send back the requesting origin.
+    if origin not in (base, altbase) and not isOptions:
+        _validateCORSMethodAndHeaders(cors)
+
+
+def _validateCORSMethodAndHeaders(cors):
+    """
+    When processing a CORS request for a method other than OPTIONS, check to
+    make sure that the method has not been restricted and that no unapproved
+    headers have been sent.  Note that GET, HEAD, and POST are always allowed
+    (provided, for POST, the an appropriate Content-Type is specified).
+
+    :param cors: cors settings dictionary.
+    """
+    # Check if we are restricting methods
+    if cors['allowMethods']:
+        if cherrypy.request.method not in cors['allowMethods']:
+            logger.info('CORS 403 error: method %s not allowed',
+                        cherrypy.request.method)
+            raise cherrypy.HTTPError(403)
+    # Check if we were sent any unapproved headers
+    for header in cherrypy.request.headers.keys():
+        if header.lower() not in cors['allowHeaders']:
+            logger.info('CORS 403 error: header %s not allowed', header)
+            raise cherrypy.HTTPError(403)
 
 
 class RestException(Exception):
@@ -184,46 +427,39 @@ class RestException(Exception):
 
 
 class Resource(ModelImporter):
+    """
+    All REST resources should inherit from this class, which provides utilities
+    for adding resources/routes to the REST API.
+    """
     exposed = True
 
     def route(self, method, route, handler, nodoc=False, resource=None):
         """
         Define a route for your REST resource.
 
-        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT', 'PATCH'
         :type method: str
         :param route: The route, as a list of path params relative to the
-        resource root. Elements of this list starting with ':' are assumed to
-        be wildcards.
+            resource root. Elements of this list starting with ':' are assumed
+            to be wildcards.
         :type route: list
         :param handler: The method to be called if the route and method are
-        matched by a request. Wildcards in the route will be expanded and
-        passed as kwargs with the same name as the wildcard identifier.
+            matched by a request. Wildcards in the route will be expanded and
+            passed as kwargs with the same name as the wildcard identifier.
         :type handler: function
         :param nodoc: If your route intentionally provides no documentation,
-                      set this to True to disable the warning on startup.
+            set this to True to disable the warning on startup.
         :type nodoc: bool
+        :param resource: The name of the resource at the root of this route.
         """
         if not hasattr(self, '_routes'):
             self._routes = collections.defaultdict(
                 lambda: collections.defaultdict(list))
 
         # Insertion sort to maintain routes in required order.
-        def shouldInsert(a, b):
-            """
-            Return bool representing whether route a should go before b. Checks
-            by comparing each token in order and making sure routes with
-            literals in forward positions come before routes with wildcards
-            in those positions.
-            """
-            for i in xrange(0, len(a)):
-                if a[i][0] != ':' and b[i][0] == ':':
-                    return True
-            return False
-
         nLengthRoutes = self._routes[method.lower()][len(route)]
         for i in xrange(0, len(nLengthRoutes)):
-            if shouldInsert(route, nLengthRoutes[i][0]):
+            if self._shouldInsertRoute(route, nLengthRoutes[i][0]):
                 nLengthRoutes.insert(i, (route, handler))
                 break
         else:
@@ -246,6 +482,57 @@ class Resource(ModelImporter):
                 'WARNING: No description docs present for route {} {}'
                 .format(method, routePath))
 
+        # Warn if there is no access decorator on the handler function
+        if not hasattr(handler, 'accessLevel'):
+            routePath = '/'.join([resource] + list(route))
+            print TerminalColor.warning(
+                'WARNING: No access level specified for route {} {}'
+                .format(method, routePath))
+
+    def removeRoute(self, method, route, handler=None, resource=None):
+        """
+        Remove a route from the handler and documentation.
+
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :type method: str
+        :param route: The route, as a list of path params relative to the
+                      resource root. Elements of this list starting with ':'
+                      are assumed to be wildcards.
+        :type route: list
+        :param handler: The method called for the route; this is necessary to
+                        remove the documentation.
+        :type handler: function
+        :param resource: the name of the resource at the root of this route.
+        """
+        if not hasattr(self, '_routes'):
+            return
+        nLengthRoutes = self._routes[method.lower()][len(route)]
+        for i in xrange(0, len(nLengthRoutes)):
+            if nLengthRoutes[i][0] == route:
+                del nLengthRoutes[i]
+                break
+        # Remove the api doc
+        if resource is None and hasattr(self, 'resourceName'):
+            resource = self.resourceName
+        elif resource is None:
+            resource = handler.__module__.rsplit('.', 1)[-1]
+        if handler and hasattr(handler, 'description'):
+            if handler.description is not None:
+                docs.removeRouteDocs(
+                    resource=resource, route=route, method=method,
+                    info=handler.description.asDict(), handler=handler)
+
+    def _shouldInsertRoute(self, a, b):
+        """
+        Return bool representing whether route a should go before b. Checks by
+        comparing each token in order and making sure routes with literals in
+        forward positions come before routes with wildcards in those positions.
+        """
+        for i in xrange(0, len(a)):
+            if a[i][0] != ':' and b[i][0] == ':':
+                return True
+        return False
+
     def handleRoute(self, method, path, params):
         """
         Match the requested path to its corresponding route, and calls the
@@ -257,11 +544,11 @@ class Resource(ModelImporter):
         the request. As an example, if the user calls GET /api/v1/item/123,
         the following two events would be fired:
 
-            rest.get.item/:id.before
+            ``rest.get.item/:id.before``
 
         would be fired prior to calling the default API function, and
 
-            rest.get.item/:id.after
+            ``rest.get.item/:id.after``
 
         would be fired after the route handler returns. The query params are
         passed in the info of the before and after event handlers as
@@ -270,7 +557,10 @@ class Resource(ModelImporter):
         also contain an 'id' key with the value of 123. For endpoints with empty
         sub-routes, the trailing slash is omitted from the event name, e.g.:
 
-            rest.post.group.before
+            ``rest.post.group.before``
+
+        Note: You will normally not need to call this method directly, as it
+        is called by the internals of this class during the routing process.
 
         :param method: The HTTP method of the current request.
         :type method: str
@@ -303,6 +593,7 @@ class Resource(ModelImporter):
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
+                    self._defaultAccess(handler)
                     val = handler(**kwargs)
 
                 # Fire the after-call event that has a chance to augment the
@@ -342,8 +633,18 @@ class Resource(ModelImporter):
 
     def requireParams(self, required, provided):
         """
-        Pass a list of required parameters.
+        Throws an exception if any of the parameters in the required iterable
+        is not found in the provided parameter set.
+
+        :param required: An iterable of required params, or if just one is
+            required, you can simply pass it as a string.
+        :type required: list, tuple, or str
+        :param provided: The list of provided parameters.
+        :type provided: dict
         """
+        if isinstance(required, basestring):
+            required = (required,)
+
         for param in required:
             if param not in provided:
                 raise RestException("Parameter '%s' is required." % param)
@@ -353,10 +654,10 @@ class Resource(ModelImporter):
         Coerce a parameter value from a str to a bool. This function is case
         insensitive. The following string values will be interpreted as True:
 
-          'true'
-          'on'
-          '1'
-          'yes'
+          - ``'true'``
+          - ``'on'``
+          - ``'1'``
+          - ``'yes'``
 
         All other strings will be interpreted as False. If the given param
         is not passed at all, returns the value specified by the default arg.
@@ -374,17 +675,16 @@ class Resource(ModelImporter):
     def requireAdmin(self, user):
         """
         Calling this on a user will ensure that they have admin rights.
-        an AccessException.
+        If not, raises an AccessException.
 
         :param user: The user to check admin flag on.
         :type user: dict.
         :raises AccessException: If the user is not an administrator.
         """
+        return requireAdmin(user)
 
-        if user is None or user.get('admin', False) is not True:
-            raise AccessException('Administrator access required.')
-
-    def getPagingParameters(self, params, defaultSortField=None):
+    def getPagingParameters(self, params, defaultSortField=None,
+                            defaultSortDir=pymongo.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of
@@ -396,13 +696,13 @@ class Resource(ModelImporter):
         :param params: The URL query parameters.
         :type params: dict
         :param defaultSortField: If the client did not pass a 'sort' parameter,
-        set this to choose a default sort field. If None, the results will
-        be returned unsorted.
+            set this to choose a default sort field. If None, the results will
+            be returned unsorted.
         :type defaultSortField: str or None
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))
-        sortdir = int(params.get('sortdir', pymongo.ASCENDING))
+        sortdir = int(params.get('sortdir', defaultSortDir))
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
@@ -411,79 +711,98 @@ class Resource(ModelImporter):
         else:
             sort = None
 
-        return (limit, offset, sort)
+        return limit, offset, sort
 
-    @_cacheAuthUser
+    def ensureTokenScopes(self, scope):
+        """
+        Ensure that the token passed to this request is authorized for the
+        designated scope or set of scopes. Raises an AccessException if not.
+
+        :param scope: A scope or set of scopes that is required.
+        :type scope: str or list of str
+        """
+        ensureTokenScopes(getCurrentToken(), scope)
+
+    def getCurrentToken(self):
+        """
+        Returns the current valid token object that was passed via the token
+        header or parameter, or None if no valid token was passed.
+        """
+        return getCurrentToken()
+
     def getCurrentUser(self, returnToken=False):
         """
-        Returns the current user from the long-term cookie token.
+        Returns the currently authenticated user based on the token header or
+        parameter.
 
         :param returnToken: Whether we should return a tuple that also contains
                             the token.
         :type returnToken: bool
         :returns: The user document from the database, or None if the user
-                  is not logged in or the cookie token is invalid or expired.
+                  is not logged in or the token is invalid or expired.
                   If returnToken=True, returns a tuple of (user, token).
         """
-        event = events.trigger('auth.user.get')
-        if event.defaultPrevented and len(event.responses) > 0:
-            return event.responses[0]
+        return getCurrentUser(returnToken)
 
-        cookie = cherrypy.request.cookie
-        if 'authToken' in cookie:
-            info = json.loads(cookie['authToken'].value)
-            try:
-                userId = ObjectId(info['userId'])
-            except:
-                return (None, None) if returnToken else None
-
-            user = self.model('user').load(userId, force=True)
-            token = self.model('token').load(info['token'], AccessType.ADMIN,
-                                             objectId=False, user=user)
-
-            if token is None or token['expires'] < datetime.datetime.now():
-                return (None, token) if returnToken else None
-            else:
-                return (user, token) if returnToken else user
-        elif 'token' in cherrypy.request.params:  # Token as a parameter
-            token = self.model('token').load(
-                cherrypy.request.params.get('token'), objectId=False,
-                force=True)
-            user = self.model('user').load(token['userId'], force=True)
-
-            if token is None or token['expires'] < datetime.datetime.now():
-                return (None, token) if returnToken else None
-            else:
-                return (user, token) if returnToken else user
-
-        else:  # user is not logged in
-            return (None, None) if returnToken else None
-
-    def sendAuthTokenCookie(self, user):
+    def sendAuthTokenCookie(self, user, scope=None):
         """ Helper method to send the authentication cookie """
-        days = int(self.model('setting').get(
-            SettingKey.COOKIE_LIFETIME, default=180))
-        token = self.model('token').createToken(user, days=days)
+        days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
+        token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
-        cookie['authToken'] = json.dumps({
-            'userId': str(user['_id']),
-            'token': str(token['_id'])
-        })
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = days * 3600 * 24
+        cookie['girderToken'] = str(token['_id'])
+        cookie['girderToken']['path'] = '/'
+        cookie['girderToken']['expires'] = days * 3600 * 24
 
         return token
 
     def deleteAuthTokenCookie(self):
         """ Helper method to kill the authentication cookie """
         cookie = cherrypy.response.cookie
-        cookie['authToken'] = ''
-        cookie['authToken']['path'] = '/'
-        cookie['authToken']['expires'] = 0
+        cookie['girderToken'] = ''
+        cookie['girderToken']['path'] = '/'
+        cookie['girderToken']['expires'] = 0
+
+    # This is NOT wrapped in an @endpoint decorator; we don't want that
+    # behavior
+    def OPTIONS(self, *path, **param):
+        _setCommonCORSHeaders(True)
+        cherrypy.lib.caching.expires(0)
+        # Get a list of allowed methods for this path
+        if not self._routes:
+            raise Exception('No routes defined for resource')
+        allowedMethods = ['OPTIONS']
+        for routeMethod in self._routes:
+            for route, handler in self._routes[routeMethod][len(path)]:
+                kwargs = self._matchRoute(path, route)
+                if kwargs is not False:
+                    allowedMethods.append(routeMethod.upper())
+                    break
+        # Restrict this further if there is a user setting
+        restrictMethods = self.model('setting').get(
+            SettingKey.CORS_ALLOW_METHODS)
+        if restrictMethods:
+            restrictMethods = restrictMethods.replace(",", " ").strip() \
+                .upper().split()
+            allowedMethods = [method for method in allowedMethods
+                              if method in restrictMethods]
+        cherrypy.response.headers['Access-Control-Allow-Methods'] = \
+            ', '.join(allowedMethods)
+        # Send the allowed headers.
+        allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
+        cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
+
+        # All successful OPTIONS return 200 OK with no data
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+        return
 
     @endpoint
     def DELETE(self, path, params):
+        # DELETE bodies are optional.  Assume if we have a content-length, then
+        # there is a body that should be processed.
+        if 'Content-Length' in cherrypy.request.headers:
+            cherrypy.request.body.process()
+            params.update(cherrypy.request.params)
         return self.handleRoute('DELETE', path, params)
 
     @endpoint
@@ -492,8 +811,30 @@ class Resource(ModelImporter):
 
     @endpoint
     def POST(self, path, params):
-        return self.handleRoute('POST', path, params)
+        method = 'POST'
+        # When using a POST request, the method can be overridden and really be
+        # something else.  There seem to be three different 'standards' on how
+        # to do this (see http://fandry.blogspot.com/2012/03/
+        # x-http-header-method-override-and-rest.html).  We might as well
+        # support all three.
+        for key in ('X-HTTP-Method-Override', 'X-HTTP-Method',
+                    'X-Method-Override'):
+            if key in cherrypy.request.headers:
+                method = cherrypy.request.headers[key]
+        return self.handleRoute(method, path, params)
 
     @endpoint
     def PUT(self, path, params):
         return self.handleRoute('PUT', path, params)
+
+    @endpoint
+    def PATCH(self, path, params):
+        return self.handleRoute('PATCH', path, params)
+
+    def _defaultAccess(self, fun):
+        """
+        If a function wasn't wrapped by one of the security decorators, check
+        the default access rights (admin required).
+        """
+        if not hasattr(fun, 'accessLevel'):
+            self.requireAdmin(self.getCurrentUser())

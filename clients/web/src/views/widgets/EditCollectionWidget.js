@@ -13,8 +13,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
             if (this.model) {
                 this.updateCollection(fields);
-            }
-            else {
+            } else {
                 this.createCollection(fields);
             }
 
@@ -29,16 +28,9 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.editCollectionWidget({
+        var modal = this.$el.html(girder.templates.editCollectionWidget({
             collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-                view.create = false;
-            } else {
-                view.create = true;
-            }
             view.$('#g-name').focus();
         }).on('hidden.bs.modal', function () {
             if (view.create) {
@@ -46,7 +38,16 @@ girder.views.EditCollectionWidget = girder.View.extend({
             } else {
                 girder.dialogs.handleClose('edit');
             }
+        }).on('ready.girder.modal', function () {
+            if (view.model) {
+                view.$('#g-name').val(view.model.get('name'));
+                view.$('#g-description').val(view.model.get('description'));
+                view.create = false;
+            } else {
+                view.create = true;
+            }
         });
+        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.$('#g-name').focus();
 
         if (view.model) {
@@ -64,7 +65,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
         collection.on('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', collection);
-        }, this).on('g:error', function (err) {
+        }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();
@@ -76,7 +77,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
         this.model.on('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', this.model);
-        }, this).on('g:error', function (err) {
+        }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-collection').removeClass('disabled');
             this.$('#g-' + err.responseJSON.field).focus();

@@ -1,7 +1,7 @@
 /*global girder:true*/
 /*global console:true*/
 
-"use strict";
+'use strict';
 
 /*
  * Some cross-browser globals
@@ -13,13 +13,14 @@ if (!window.console) {
     };
 }
 
-// This script must be invoked first to declare the girder namespace
-var girder = {
+_.extend(girder, {
     models: {},
     collections: {},
     views: {},
-    apiRoot: $('#g-global-info-apiroot').text(),
-    staticRoot: $('#g-global-info-staticroot').text(),
+    apiRoot: $('#g-global-info-apiroot').text().replace(
+        '%HOST%', 'http://' + window.location.host),
+    staticRoot: $('#g-global-info-staticroot').text().replace(
+        '%HOST%', 'http://' + window.location.host),
     currentUser: null,
     events: _.clone(Backbone.Events),
     uploadHandlers: {},
@@ -36,8 +37,10 @@ var girder = {
     UPLOAD_CHUNK_SIZE: 1024 * 1024 * 64, // 64MB
     SORT_ASC: 1,
     SORT_DESC: -1,
-    MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-             'August', 'September', 'October', 'November', 'December'],
+    MONTHS: [
+        'January', 'February', 'March', 'April', 'May', 'June', 'July',
+        'August', 'September', 'October', 'November', 'December'
+    ],
     AccessType: {
         NONE: -1,
         READ: 0,
@@ -78,16 +81,25 @@ var girder = {
                         timeout: 4000,
                         icon: 'info'
                     };
-                }
-                else if (error.status === 403) {
+                } else if (error.status === 403) {
                     info = {
                         text: 'Access denied. See the console for more details.',
                         type: 'danger',
                         timeout: 5000,
                         icon: 'attention'
                     };
-                }
-                else {
+                } else if (error.status === 0 && error.statusText === 'abort') {
+                    /* We expected this abort, so do nothing. */
+                    return;
+                } else if (error.status === 500 && error.responseJSON &&
+                           error.responseJSON.type === 'girder') {
+                    info = {
+                        text: error.responseJSON.message,
+                        type: 'warning',
+                        timeout: 5000,
+                        icon: 'info'
+                    };
+                } else {
                     info = {
                         text: 'An error occurred while communicating with the ' +
                               'server. Details have been logged in the console.',
@@ -107,6 +119,21 @@ var girder = {
         }
         opts.url = girder.apiRoot + opts.path;
 
-        return Backbone.ajax(_.extend(defaults, opts));
+        opts = _.extend(defaults, opts);
+
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            opts.headers = opts.headers || {};
+            opts.headers['Girder-Token'] = token;
+        }
+        return Backbone.ajax(opts);
     }
-};
+});
+
+/**
+ * The old "jade.templates" namespace is deprecated as of version 1.1, but is
+ * retained here for backward compatibility. It will be removed in version 2.0.
+ */
+/* jshint -W079 */
+var jade = jade || {};
+jade.templates = girder.templates;

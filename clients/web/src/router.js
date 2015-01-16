@@ -12,6 +12,8 @@ girder.Router = Backbone.Router.extend({
             girder.events.trigger('g:loginUi');
         } else if (queryString.dialog === 'register') {
             girder.events.trigger('g:registerUi');
+        } else if (queryString.dialog === 'resetpassword') {
+            girder.events.trigger('g:resetPasswordUi');
         }
     }
 
@@ -22,9 +24,11 @@ if (girder.handleRouting) {
 
     // When the back button is pressed, we want to close open modals.
     girder.router.on('route', function (route, params) {
-        if ($('.modal').hasClass('in')) {
-            $('.modal').modal('hide');
+        if (!params.slice(-1)[0].dialog) {
+            $('.modal').girderModal('close');
         }
+        // get rid of tooltips
+        $('.tooltip').remove();
     });
 
 } else {

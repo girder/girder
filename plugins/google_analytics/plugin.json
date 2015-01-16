@@ -1,0 +1,5 @@
+{
+    "name": "Google Analytics",
+    "description": "Allow the tracking of page views via Google Analytics.",
+    "version": "0.1.1"
+}

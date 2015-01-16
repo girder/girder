@@ -12,10 +12,15 @@ girder.views.AccessWidget = girder.View.extend({
         this.model = settings.model;
         this.modelType = settings.modelType;
 
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Start typing a name...',
+            types: ['group', 'user'],
+            parentView: this
+        }).on('g:resultClicked', this.addEntry, this);
+
         if (this.model.get('access')) {
             this.render();
-        }
-        else {
+        } else {
             this.model.on('g:accessFetched', function () {
                 this.render();
             }, this).fetchAccess();
@@ -35,14 +40,14 @@ girder.views.AccessWidget = girder.View.extend({
                 girder.dialogs.handleClose('access');
             };
         }
-        this.$el.html(jade.templates.accessEditor({
+        this.$el.html(girder.templates.accessEditor({
             model: this.model,
             modelType: this.modelType,
             public: this.model.get('public')
         })).girderModal(this).on('hidden.bs.modal', closeFunction);
 
         _.each(this.model.get('access').groups, function (groupAccess) {
-            this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+            this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
                 accessTypes: girder.AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
@@ -53,7 +58,7 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         _.each(this.model.get('access').users, function (userAccess) {
-            this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+            this.$('#g-ac-list-users').append(girder.templates.accessEntry({
                 accessTypes: girder.AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
@@ -70,11 +75,7 @@ girder.views.AccessWidget = girder.View.extend({
             delay: {show: 100}
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
-            el: this.$('.g-search-field-container'),
-            placeholder: 'Start typing a name...',
-            types: ['group', 'user']
-        }).off().on('g:resultClicked', this.addEntry, this).render();
+        this.searchWidget.setElement(this.$('.g-search-field-container')).render();
 
         this.privacyChanged();
 
@@ -89,8 +90,7 @@ girder.views.AccessWidget = girder.View.extend({
         this.searchWidget.resetState();
         if (entry.type === 'user') {
             this._addUserEntry(entry);
-        }
-        else if (entry.type === 'group') {
+        } else if (entry.type === 'group') {
             this._addGroupEntry(entry);
         }
     },
@@ -107,7 +107,7 @@ girder.views.AccessWidget = girder.View.extend({
         if (!exists) {
             var model = new girder.models.UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-users').append(jade.templates.accessEntry({
+                this.$('#g-ac-list-users').append(girder.templates.accessEntry({
                     accessTypes: girder.AccessType,
                     type: 'user',
                     entry: {
@@ -133,7 +133,7 @@ girder.views.AccessWidget = girder.View.extend({
         if (!exists) {
             var model = new girder.models.GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-groups').append(jade.templates.accessEntry({
+                this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
                     accessTypes: girder.AccessType,
                     type: 'group',
                     entry: {
@@ -162,7 +162,9 @@ girder.views.AccessWidget = girder.View.extend({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
                 level: parseInt(
-                    $el.find('.g-access-col-right>select').val(), 10)
+                    $el.find('.g-access-col-right>select').val(),
+                    10
+                )
             });
         }, this);
 
@@ -173,7 +175,9 @@ girder.views.AccessWidget = girder.View.extend({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
                 level: parseInt(
-                    $el.find('.g-access-col-right>select').val(), 10)
+                    $el.find('.g-access-col-right>select').val(),
+                    10
+                )
             });
         }, this);
 
@@ -184,8 +188,8 @@ girder.views.AccessWidget = girder.View.extend({
 
         this.model.off('g:accessListSaved')
                   .on('g:accessListSaved', function () {
-            this.$el.modal('hide');
-        }, this).updateAccess();
+                      this.$el.modal('hide');
+                  }, this).updateAccess();
     },
 
     removeAccessEntry: function (event) {

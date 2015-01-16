@@ -3,7 +3,7 @@
  */
 girder.views.LayoutFooterView = girder.View.extend({
     render: function () {
-        this.$el.html(jade.templates.layoutFooter({
+        this.$el.html(girder.templates.layoutFooter({
             apiRoot: girder.apiRoot
         }));
         return this;

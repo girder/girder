@@ -38,6 +38,44 @@ class GroupTestCase(base.TestCase):
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1, 2]]
 
+    def testDirectAdd(self):
+        """
+        Tests the functionality of an admin user adding a user directly to
+        a group, bypassing the invitation process.
+        """
+        group = self.model('group').createGroup('g1', self.users[0])
+        self.assertFalse(self.model('group').hasAccess(
+            group, self.users[1], AccessType.WRITE))
+
+        # Admin user can add user 1 directly if they pass force=True.
+        resp = self.request(path='/group/{}/invitation'.format(group['_id']),
+                            method='POST', user=self.users[0],
+                            params={
+                                'force': 'true',
+                                'userId': self.users[1]['_id'],
+                                'level': AccessType.WRITE
+                                })
+        self.assertStatus(resp, 200)
+        user1 = self.model('user').load(self.users[1]['_id'], force=True)
+        group = self.model('group').load(group['_id'], force=True)
+        self.assertTrue(self.model('group').hasAccess(
+            group, user1, AccessType.WRITE))
+        self.assertFalse(self.model('group').hasAccess(
+            group, user1, AccessType.ADMIN))
+        self.assertTrue(group['_id'] in user1['groups'])
+
+        # User 1 should not be able to use the force option.
+        resp = self.request(path='/group/{}/invitation'.format(group['_id']),
+                            method='POST', user=self.users[1],
+                            params={
+                                'force': 'true',
+                                'userId': self.users[2]['_id']
+                                })
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Administrator access required.')
+        user2 = self.model('user').load(self.users[2]['_id'], force=True)
+        self.assertFalse(group['_id'] in user2.get('groups',  ()))
+
     def testDeleteGroupDeletesAccessReferences(self):
         """
         This test ensures that when a group is deleted, references to it in
@@ -99,16 +137,32 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], 'private')
 
         # Test listing all groups
-        resp = self.request(path='/group/', method='GET', user=self.users[0])
+        privateGroup2 = self.model('group').createGroup(
+            'private group', self.users[0], public=False)
+        resp = self.request(path='/group', method='GET', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(type(resp.json), list)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
-        resp = self.request(path='/group/', method='GET', user=self.users[1])
+        resp = self.request(path='/group', method='GET', user=self.users[1])
         self.assertStatusOk(resp)
         self.assertEqual(type(resp.json), list)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicGroup['_id']))
+        # Test searching by name
+        resp = self.request(path='/group', method='GET', user=self.users[0],
+                            params={'text': 'private'})
+        self.assertStatusOk(resp)
+        self.assertEqual(type(resp.json), list)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
+        self.assertEqual(resp.json[1]['_id'], str(privateGroup2['_id']))
+        resp = self.request(path='/group', method='GET', user=self.users[0],
+                            params={'text': 'private', 'exact': True})
+        self.assertStatusOk(resp)
+        self.assertEqual(type(resp.json), list)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
 
     def testUpdateGroup(self):
         """
@@ -147,7 +201,7 @@ class GroupTestCase(base.TestCase):
         groups.
         """
         self.ensureRequiredParams(
-            path='/group', method='POST', required=['name'])
+            path='/group', method='POST', required=['name'], user=self.users[0])
 
         params = {
             'name': ' A group name ',
@@ -158,8 +212,7 @@ class GroupTestCase(base.TestCase):
         # Anonymous users can't make groups
         resp = self.request(path='/group', method='POST', params=params)
         self.assertStatus(resp, 401)
-        self.assertEqual('Must be logged in to create a group.',
-                         resp.json['message'])
+        self.assertEqual('You must be logged in.', resp.json['message'])
 
         # Have user 0 make a public group
         resp = self.request(path='/group', method='POST', params=params,
@@ -328,14 +381,16 @@ class GroupTestCase(base.TestCase):
             path='/group/%s/member' % privateGroup['_id'], user=self.users[1],
             method='DELETE', params=params)
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Admin access denied for group.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Admin access denied for group'))
 
         # User 1 should not be able to delete the group
         resp = self.request(
             path='/group/%s' % privateGroup['_id'], user=self.users[1],
             method='DELETE')
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'], 'Admin access denied for group.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Admin access denied for group'))
 
         # We promote user 1 to admin
         resp = self.request(

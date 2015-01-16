@@ -7,12 +7,14 @@ girder.views.ResetPasswordView = girder.View.extend({
             e.preventDefault();
 
             girder.restRequest({
-                path: 'user/password?email=' + this.$('#g-email').val().trim(),
-                type: 'DELETE',
+                path: 'user/password/temporary?email=' + this.$('#g-email')
+                    .val().trim(),
+                type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function (resp) {
                 this.$el.modal('hide');
 
+                girder.dialogs.handleClose('resetpassword', {replace: true});
                 girder.events.trigger('g:alert', {
                     icon: 'mail-alt',
                     text: 'Password reset email sent.',
@@ -38,11 +40,13 @@ girder.views.ResetPasswordView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.resetPasswordDialog())
+        this.$el.html(girder.templates.resetPasswordDialog())
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-email').focus();
             });
         this.$('#g-email').focus();
+
+        girder.dialogs.handleOpen('resetpassword', {replace: true});
 
         return this;
     }

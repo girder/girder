@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+from bson.objectid import ObjectId
 
 from girder import events
 from girder.utility import assetstore_utilities
@@ -41,7 +42,7 @@ class Upload(Model):
             raise ValidationException('Received bytes must not be larger than '
                                       'the total size of the upload.')
 
-        doc['updated'] = datetime.datetime.now()
+        doc['updated'] = datetime.datetime.utcnow()
 
         return doc
 
@@ -57,6 +58,7 @@ class Upload(Model):
         """
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+
         upload = self.save(adapter.uploadChunk(upload, chunk))
 
         # If upload is finished, we finalize it
@@ -79,24 +81,44 @@ class Upload(Model):
         This should only be called manually in the case of creating an
         empty file, i.e. one that has no chunks.
         """
+        events.trigger('model.upload.finalize', upload)
         if assetstore is None:
             assetstore = self.model('assetstore').load(upload['assetstoreId'])
 
-        if upload['parentType'] == 'folder':
-            # Create a new item with the name of the file.
-            item = self.model('item').createItem(
-                name=upload['name'], creator={'_id': upload['userId']},
-                folder={'_id': upload['parentId']})
-        else:
-            item = self.model('item').load(id=upload['parentId'],
-                                           objectId=True,
-                                           user={'_id': upload['userId']},
-                                           level=AccessType.WRITE)
+        if 'fileId' in upload:  # Updating an existing file's contents
+            file = self.model('file').load(upload['fileId'])
 
-        file = self.model('file').createFile(
-            item=item, name=upload['name'], size=upload['size'],
-            creator={'_id': upload['userId']}, assetstore=assetstore,
-            mimeType=upload['mimeType'])
+            # Delete the previous file contents from the containing assetstore
+            assetstore_utilities.getAssetstoreAdapter(
+                self.model('assetstore').load(
+                    file['assetstoreId'])).deleteFile(file)
+
+            item = self.model('item').load(file['itemId'], force=True)
+            self.model('file').propagateSizeChange(
+                item, upload['size'] - file['size'])
+
+            # Update file info
+            file['creatorId'] = upload['userId']
+            file['created'] = datetime.datetime.utcnow()
+            file['assetstoreId'] = assetstore['_id']
+            file['size'] = upload['size']
+        else:  # Creating a new file record
+            if upload['parentType'] == 'folder':
+                # Create a new item with the name of the file.
+                item = self.model('item').createItem(
+                    name=upload['name'], creator={'_id': upload['userId']},
+                    folder={'_id': upload['parentId']})
+            else:
+                uploadUser = self.model('user').load(
+                    id=upload['userId'], objectId=True, level=AccessType.READ)
+                item = self.model('item').load(id=upload['parentId'],
+                                               objectId=True, user=uploadUser,
+                                               level=AccessType.WRITE)
+
+            file = self.model('file').createFile(
+                item=item, name=upload['name'], size=upload['size'],
+                creator={'_id': upload['userId']}, assetstore=assetstore,
+                mimeType=upload['mimeType'], saveFile=False)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         file = adapter.finalizeUpload(upload, file)
@@ -110,6 +132,40 @@ class Upload(Model):
         })
 
         return file
+
+    def createUploadToFile(self, file, user, size):
+        """
+        Creates a new upload record into a file that already exists. This
+        should be used when updating the contents of a file. Deletes any
+        previous file content from the assetstore it was in. This will upload
+        into the current assetstore rather than assetstore the file was
+        previously contained in.
+
+        :param file: The file record to update.
+        :param user: The user performing this upload.
+        :param size: The size of the new file contents.
+        """
+        eventParams = {'model': 'file', 'resource': file}
+        events.trigger('model.upload.assetstore', eventParams)
+        assetstore = eventParams.get('assetstore',
+                                     self.model('assetstore').getCurrent())
+
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        now = datetime.datetime.utcnow()
+
+        upload = {
+            'created': now,
+            'updated': now,
+            'userId': user['_id'],
+            'fileId': file['_id'],
+            'assetstoreId': assetstore['_id'],
+            'size': size,
+            'name': file['name'],
+            'mimeType': file['mimeType'],
+            'received': 0
+        }
+        upload = adapter.initUpload(upload)
+        return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType):
         """
@@ -131,16 +187,22 @@ class Upload(Model):
         :type mimeType: str
         :returns: The upload document that was created.
         """
-        assetstore = self.model('assetstore').getCurrent()
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.now()
+        eventParams = {'model': parentType, 'resource': parent}
+        events.trigger('model.upload.assetstore', eventParams)
+        assetstore = eventParams.get('assetstore',
+                                     self.model('assetstore').getCurrent())
 
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        now = datetime.datetime.utcnow()
+
+        if not mimeType:
+            mimeType = 'application/octet-stream'
         upload = {
             'created': now,
             'updated': now,
             'userId': user['_id'],
             'parentType': parentType.lower(),
-            'parentId': parent['_id'],
+            'parentId': ObjectId(parent['_id']),
             'assetstoreId': assetstore['_id'],
             'size': size,
             'name': name,
@@ -149,3 +211,82 @@ class Upload(Model):
         }
         upload = adapter.initUpload(upload)
         return self.save(upload)
+
+    def list(self, limit=50, offset=0, sort=None, filters=None):
+        """
+        Search for uploads or simply list all visible uploads.
+
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort direction.
+        :param filters: if not None, a dictionary that can contain ids that
+                        must match the uploads, plus an minimumAge value.
+        """
+        query = {}
+        if filters:
+            for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
+                if key in filters:
+                    id = filters[key]
+                    if id and type(id) is not ObjectId:
+                        id = ObjectId(id)
+                    if id:
+                        if key == 'uploadId':
+                            query['_id'] = id
+                        else:
+                            query[key] = id
+            if 'minimumAge' in filters:
+                query['updated'] = {
+                    '$lte': datetime.datetime.utcnow() -
+                    datetime.timedelta(days=float(filters['minimumAge']))
+                    }
+        # Perform the find; we'll do access-based filtering of the result
+        # set afterward.
+        cursor = self.find(query, limit=limit, sort=sort, offset=offset)
+        for r in cursor:
+            yield r
+
+    def cancelUpload(self, upload):
+        """
+        Discard an upload that is in progress.  This asks the assetstore to
+        discard the data, then removes the item from the upload database.
+        :param upload: The upload document to remove.
+        :type upload: dict
+        """
+        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        # If the assetstore was deleted, the upload may still be in our
+        # database
+        if assetstore:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                adapter.cancelUpload(upload)
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
+        self.model('upload').remove(upload)
+
+    def untrackedUploads(self, action='list', assetstoreId=None):
+        """
+        List or discard any uploads that an assetstore knows about but that our
+        database doesn't have in it.
+        :param action: 'delete' to discard the untracked uploads, anything else
+                       to just return with a list of them.
+        :type action: str
+        :param assetstoreId: if present, only include untracked items from the
+                             specified assetstore.
+        :type assetstoreId: str
+        :returns: a list of items that were removed or could be removed.
+        """
+        results = []
+        knownUploads = [upload for upload in self.list(limit=0)]
+        # Iterate through all assetstores
+        for assetstore in self.model('assetstore').list(limit=0):
+            if assetstoreId and assetstoreId != assetstore['_id']:
+                continue
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                results += adapter.untrackedUploads(knownUploads,
+                                                    delete=(action == 'delete'))
+            except ValidationException:
+                # this assetstore is currently unreachable, so skip it
+                pass
+        return results

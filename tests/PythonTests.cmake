@@ -16,6 +16,12 @@ configure_file(
   @ONLY
 )
 
+if(WIN32)
+  set(_separator "\\;")
+else()
+  set(_separator ":")
+endif()
+
 function(python_tests_init)
   if(PYTHON_COVERAGE)
     add_test(
@@ -64,7 +70,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_args PLUGIN)
-  set(_multival_args RESOURCE_LOCKS)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PLUGIN)
@@ -94,13 +100,16 @@ function(add_python_test case)
   endif()
 
   set_property(TEST ${name} PROPERTY ENVIRONMENT
-    "PYTHONPATH=${pythonpath}"
-    "GIRDER_TEST_DB=girder_test_${name}"
+    "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}"
+    "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${name}"
     "GIRDER_TEST_ASSETSTORE=${name}"
   )
   set_property(TEST ${name} PROPERTY COST 50)
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
+  endif()
+  if(fn_TIMEOUT)
+    set_property(TEST ${name} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()
 
   if(PYTHON_COVERAGE)

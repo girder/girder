@@ -23,6 +23,8 @@ import json
 import shutil
 import zipfile
 
+from bson.objectid import ObjectId
+
 from .. import base
 
 from girder.constants import AccessType
@@ -118,14 +120,33 @@ class ItemTestCase(base.TestCase):
 
         self.assertEqual(contents[1:], resp.collapse_body())
 
-    def _testDownloadMultiFileItem(self, item, user, contents):
+    def _testDownloadMultiFileItem(self, item, user, contents, format=None):
+        params = None
+        if format:
+            params = {'format': format}
         resp = self.request(path='/item/{}/download'.format(item['_id']),
-                            method='GET', user=user, isJson=False)
+                            method='GET', user=user, isJson=False,
+                            params=params)
         self.assertStatusOk(resp)
-        zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
-        filesInItem = zipFile.namelist()
-        self.assertEqual(zipFile.read(filesInItem[0]), contents[0])
-        self.assertEqual(zipFile.read(filesInItem[1]), contents[1])
+        # cherrypy doesn't collapse the body properly when unicode is mixed
+        # with binary data.  Instead of using
+        #  zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        # we have to generate the body ourselves.
+        body = []
+        for chunk in resp.body:
+            if isinstance(chunk, unicode):
+                chunk = chunk.encode("utf8")
+            body.append(chunk)
+        body = "".join(body)
+        zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')
+        prefix = os.path.split(zipFile.namelist()[0])[0]
+        expectedZip = {}
+        for name in contents:
+            expectedZip[os.path.join(prefix, name)] = contents[name]
+        self.assertHasKeys(expectedZip, zipFile.namelist())
+        self.assertHasKeys(zipFile.namelist(), expectedZip)
+        for name in zipFile.namelist():
+            self.assertEqual(expectedZip[name], zipFile.read(name))
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],
@@ -134,6 +155,8 @@ class ItemTestCase(base.TestCase):
         self._testUploadFileToItem(curItem, 'file_1', self.users[0], 'foobar')
 
         self._testDownloadSingleFileItem(curItem, self.users[0], 'foobar')
+        self._testDownloadMultiFileItem(curItem, self.users[0],
+                                        {'file_1': 'foobar'}, format='zip')
 
         self._testUploadFileToItem(curItem, 'file_2', self.users[0], 'foobz')
 
@@ -146,14 +169,15 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json[1]['size'], 5)
 
         self._testDownloadMultiFileItem(curItem, self.users[0],
-                                        ('foobar', 'foobz'))
+                                        {'file_1': 'foobar', 'file_2': 'foobz'})
 
     def testItemCrud(self):
         """
         Test Create, Read, Update, and Delete of items.
         """
         self.ensureRequiredParams(
-            path='/item', method='POST', required=('name', 'folderId'))
+            path='/item', method='POST', required=('name', 'folderId'),
+            user=self.users[1])
 
         # Attempt to create an item without write permission, should fail
         params = {
@@ -206,6 +230,38 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], item['_id'])
 
+        # Test finding the item using a text string with and without a folderId
+        params['text'] = 'my item name'
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        del params['folderId']
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+
+        # A limit should work
+        params['limit'] = 1
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json[0]['_id'], item['_id'])
+        # An offset should give us nothing
+        params['offset'] = 1
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 0)
+
+        # Finding should fail with no parameters
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid search mode.')
+
         # Test update of the item
         params = {
             'name': 'changed name',
@@ -222,22 +278,21 @@ class ItemTestCase(base.TestCase):
         self.assertFalse(self.model('item').hasAccess(item))
         resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
                             user=self.users[0], params={
-                                'folderId': self.publicFolder['_id']
-                                })
+                                'folderId': self.publicFolder['_id']})
         self.assertStatusOk(resp)
         item = self.model('item').load(resp.json['_id'], force=True)
         self.assertTrue(self.model('item').hasAccess(item))
 
-        # Move should fail if we don't have write permission on the dest folder
+        # Move should fail if we don't have write permission on the
+        # destination folder
         self.publicFolder = self.model('folder').setUserAccess(
             self.publicFolder, self.users[1], AccessType.WRITE, save=True)
         resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
                             user=self.users[1], params={
-                                'folderId': self.privateFolder['_id']
-                                })
+                                'folderId': self.privateFolder['_id']})
         self.assertStatus(resp, 403)
-        self.assertEqual(resp.json['message'],
-                         'Write access denied for folder.')
+        self.assertTrue(resp.json['message'].startswith(
+            'Write access denied for folder'))
 
         # Try to update/PUT without an id
         resp = self.request(path='/item/', method='PUT',
@@ -312,6 +367,18 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
+        # Make sure metadata cannot be added with invalid JSON
+        metadata = {
+            'test': 'allowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata).replace('"', "'"),
+                            type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Invalid JSON passed in request body.')
+
         # Make sure metadata cannot be added if there is a period in the key
         # name
         metadata = {
@@ -337,6 +404,17 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json['message'],
                          'The key name $foobar must not contain a period' +
                          ' or begin with a dollar sign.')
+
+        # Make sure metadata cannot be added with a blank key
+        metadata = {
+            '': 'stillnotallowed'
+        }
+        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Key names must be at least one character long.')
 
     def testItemFiltering(self):
         """
@@ -429,3 +507,133 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
+        # Also test that this works for a duplicate item, such that the
+        # automatically renamed item still has the correct lowerName, and a
+        # None description is changed to an empty string.
+        item = self.model('item').createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder,
+            description=None)
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '')
+        # test if non-strings are coerced and if just missing lowerName is
+        # corrected.
+        item['description'] = 1
+        del item['lowerName']
+        self.model('item').save(item, validate=False)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertNotHasKeys(item, ('lowerName', ))
+        self.model('item').load(item['_id'], force=True)
+        item = self.model('item').find({'_id': item['_id']}).next()
+        self.assertHasKeys(item, ('lowerName', ))
+        self.assertEqual(item['lowerName'], 'my item name (1)')
+        self.assertEqual(item['description'], '1')
+
+    def testItemCopy(self):
+        origItem = self._createItem(self.publicFolder['_id'],
+                                    'test_for_copy', 'fake description',
+                                    self.users[0])
+        # Add metadata and files, since we want to make sure those get copied
+        metadata = {
+            'foo': 'value1',
+            'test': 2
+        }
+        self.request(path='/item/{}/metadata'.format(origItem['_id']),
+                     method='PUT', user=self.users[0],
+                     body=json.dumps(metadata), type='application/json')
+        self._testUploadFileToItem(origItem, 'file_1', self.users[0], 'foobar')
+        self._testUploadFileToItem(origItem, 'file_2', self.users[0], 'foobz')
+        # Also upload a link
+        params = {
+            'parentType': 'item',
+            'parentId': origItem['_id'],
+            'name': 'link_file',
+            'linkUrl': 'http://www.google.com'
+        }
+        resp = self.request(path='/file', method='POST', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        # Copy to a new item.  It will be in the same folder, but we want a
+        # different name.
+        params = {
+            'name': 'copied_item'
+        }
+        resp = self.request(path='/item/{}/copy'.format(origItem['_id']),
+                            method='POST', user=self.users[0], params=params)
+        self.assertStatusOk(resp)
+        # Now ask for the new item explicitly and check its metadata
+        self.request(path='/item/{}'.format(resp.json['_id']),
+                     user=self.users[0], type='application/json')
+        self.assertStatusOk(resp)
+        newItem = resp.json
+        self.assertEqual(newItem['name'], 'copied_item')
+        self.assertEqual(newItem['meta']['foo'], metadata['foo'])
+        self.assertEqual(newItem['meta']['test'], metadata['test'])
+        # Check if we can download the files from the new item
+        resp = self.request(path='/item/{}/files'.format(newItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        newFiles = resp.json
+        self.assertEqual(newFiles[0]['name'], 'file_1')
+        self.assertEqual(newFiles[1]['name'], 'file_2')
+        self.assertEqual(newFiles[2]['name'], 'link_file')
+        self.assertEqual(newFiles[0]['size'], 6)
+        self.assertEqual(newFiles[1]['size'], 5)
+        self._testDownloadMultiFileItem(newItem, self.users[0],
+                                        {'file_1': 'foobar', 'file_2': 'foobz',
+                                         'link_file': 'http://www.google.com'})
+        # Check to make sure the original item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'test_for_copy'})
+        self.assertStatusOk(resp)
+        self.assertEqual(origItem['_id'], resp.json[0]['_id'])
+        # Check to make sure the new item is still present
+        resp = self.request(path='/item', method='GET', user=self.users[0],
+                            params={'folderId': self.publicFolder['_id'],
+                                    'text': 'copied_item'})
+        self.assertStatusOk(resp)
+        self.assertEqual(newItem['_id'], resp.json[0]['_id'])
+        # Check if we can download the files from the old item and that they
+        # are distinct from the files in the original item
+        resp = self.request(path='/item/{}/files'.format(origItem['_id']),
+                            method='GET', user=self.users[0])
+        self.assertStatusOk(resp)
+        origFiles = resp.json
+        self._testDownloadMultiFileItem(origItem, self.users[0],
+                                        {'file_1': 'foobar', 'file_2': 'foobz',
+                                         'link_file': 'http://www.google.com'})
+        for index, file in enumerate(origFiles):
+            self.assertNotEqual(origFiles[index]['_id'],
+                                newFiles[index]['_id'])
+
+    def testSystemCheck(self):
+        # Create an item in a non existent folder and then use the check to
+        # remove it.  Also, create an item and set that the size is some value
+        # other than what it is; this should be corrected.
+        item1 = self._createItem(self.publicFolder['_id'],
+                                 'test_for_no_folder', 'description',
+                                 self.users[0])
+        item2 = self._createItem(self.publicFolder['_id'],
+                                 'test_for_bad_size', 'description',
+                                 self.users[0])
+        self._testUploadFileToItem(item2, 'file_1', self.users[0], 'foobar')
+        # break the folder for item1
+        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
+        item['folderId'] = 'not_a_folder'
+        self.model('item').save(item, validate=False)
+        # break the size for item2
+        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
+        item['size'] += 1
+        self.model('item').save(item, validate=False)
+        # Use the system check to repair this.  item1 should vanish, item2's
+        # size should be fized.
+        resp = self.request(path='/system/check', method='PUT',
+                            user=self.users[0], params={'progress': True})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['itemCorrected'], 1)
+        self.assertEqual(resp.json['itemCount'], 1)
+        self.assertEqual(resp.json['itemRemoved'], 1)
+        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
+        self.assertIsNone(item)
+        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
+        self.assertEqual(item['size'], len('foobar'))

@@ -1,0 +1,37 @@
+mixin g-upload-widget-subtitle
+  if parent && parentType
+    .g-dialog-subtitle
+      if (parentType === 'folder')
+        i.icon-folder-open
+      else if (parentType === 'item')
+        i.icon-doc-text-inv
+      else if (parentType === 'file')
+        i.icon-doc-inv
+      | #{parent.name()}
+
+mixin g-upload-widget-browse-or-drop
+  .g-drop-zone
+    i.icon-docs
+    if (parentType === 'file')
+      |  Browse or drop a file here
+    else
+      |  Browse or drop files here
+  .form-group.hide
+    if (parentType === 'file')
+      input#g-files(type="file")
+    else
+      input#g-files(type="file", multiple)
+
+mixin g-upload-widget-progress
+  .g-current-progress-message
+  .g-progress-current.progress.progress-striped.hide
+    .progress-bar.progress-bar-info(role="progressbar")
+  .g-overall-progress-message No files selected
+  .g-progress-overall.progress.progress-striped.hide
+    .progress-bar.progress-bar-info(role="progressbar")
+  .g-upload-error-message.g-validation-failed-message
+
+mixin g-upload-widget-start-button
+  button.g-start-upload.btn.btn-small.btn-primary.disabled(type="submit")
+    i.icon-upload
+    |  Start Upload

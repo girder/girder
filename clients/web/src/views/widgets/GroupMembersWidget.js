@@ -5,20 +5,21 @@ girder.views.GroupMembersWidget = girder.View.extend({
     events: {
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
-                $(e.currentTarget).parents('li').attr('cid'));
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
-                id: model.get('_id')
-            });
+                $(e.currentTarget).parents('li').attr('cid')
+            );
+            girder.router.navigate('user/' + model.get('_id'), {trigger: true});
         },
 
         'click a.g-group-member-remove': function (e) {
             var view = this;
             var user = this.membersColl.get(
-                $(e.currentTarget).parents('li').attr('cid'));
+                $(e.currentTarget).parents('li').attr('cid')
+            );
 
             girder.confirm({
-                text: 'Are you sure you want to remove <b> ' + user.name() +
-                '</b> from this group?',
+                text: 'Are you sure you want to remove <b> ' + _.escape(user.name()) +
+                    '</b> from this group?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.trigger('g:removeMember', user);
                 }
@@ -55,7 +56,7 @@ girder.views.GroupMembersWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupMemberList({
+        this.$el.html(girder.templates.groupMemberList({
             group: this.model,
             members: this.membersColl.models,
             level: this.model.get('_accessLevel'),
@@ -64,13 +65,15 @@ girder.views.GroupMembersWidget = girder.View.extend({
 
         new girder.views.PaginateWidget({
             el: this.$('.g-member-pagination'),
-            collection: this.membersColl
+            collection: this.membersColl,
+            parentView: this
         }).render();
 
         this.userSearch = new girder.views.SearchFieldWidget({
             el: this.$('.g-group-invite-container'),
             placeholder: 'Invite a user to join...',
-            types: ['user']
+            types: ['user'],
+            parentView: this
         }).off().on('g:resultClicked', this._inviteUser, this).render();
 
         this.$('.g-group-member-remove,.g-group-member-promote').tooltip({
@@ -93,7 +96,8 @@ girder.views.GroupMembersWidget = girder.View.extend({
         new girder.views.InviteUserDialog({
             el: $('#g-dialog-container'),
             group: this.model,
-            user: user
+            user: user,
+            parentView: this
         }).on('g:sendInvite', function (params) {
             this.trigger('g:sendInvite', params);
         }, this).render();
@@ -103,30 +107,27 @@ girder.views.GroupMembersWidget = girder.View.extend({
 girder.views.InviteUserDialog = girder.View.extend({
     events: {
         'click .g-invite-as-member': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.READ
-            });
+            this._sendInvitation(girder.AccessType.READ);
         },
 
         'click .g-invite-as-moderator': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.WRITE
-            });
+            this._sendInvitation(girder.AccessType.WRITE);
         },
 
         'click .g-invite-as-admin': function () {
-            this.$el.modal('hide');
-            this.trigger('g:sendInvite', {
-                user: this.user,
-                group: this.group,
-                level: girder.AccessType.ADMIN
-            });
+            this._sendInvitation(girder.AccessType.ADMIN);
+        },
+
+        'click .g-add-as-member': function () {
+            this._sendInvitation(girder.AccessType.READ, true);
+        },
+
+        'click .g-add-as-moderator': function () {
+            this._sendInvitation(girder.AccessType.WRITE, true);
+        },
+
+        'click .g-add-as-admin': function () {
+            this._sendInvitation(girder.AccessType.ADMIN, true);
         }
     },
 
@@ -136,13 +137,24 @@ girder.views.InviteUserDialog = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupInviteDialog({
+        this.$el.html(girder.templates.groupInviteDialog({
             group: this.group,
             user: this.user,
             level: this.group.get('_accessLevel'),
-            accessType: girder.AccessType
+            accessType: girder.AccessType,
+            isAdmin: girder.currentUser.get('admin')
         })).girderModal(this);
 
         return this;
+    },
+
+    _sendInvitation: function (level, force) {
+        this.$el.modal('hide');
+        this.trigger('g:sendInvite', {
+            user: this.user,
+            group: this.group,
+            level: level,
+            force: force
+        });
     }
 });

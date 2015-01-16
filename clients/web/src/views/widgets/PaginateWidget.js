@@ -24,21 +24,19 @@ girder.views.PaginateWidget = girder.View.extend({
      * Do not call render() until the collection has been fetched once.
      */
     render: function () {
-        this.$el.html(jade.templates.paginateWidget({
+        this.$el.html(girder.templates.paginateWidget({
             collection: this.collection
         }));
 
         if (this.collection.hasNextPage()) {
             this.$('.g-page-next').removeClass('disabled');
-        }
-        else {
+        } else {
             this.$('.g-page-next').addClass('disabled');
         }
 
         if (this.collection.hasPreviousPage()) {
             this.$('.g-page-prev').removeClass('disabled');
-        }
-        else {
+        } else {
             this.$('.g-page-prev').addClass('disabled');
         }
         return this;

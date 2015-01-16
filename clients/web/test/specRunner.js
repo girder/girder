@@ -23,6 +23,7 @@ var page = new WebPage();
 var accumCoverage = false;
 
 var fs = require('fs');
+require('event-source/global');
 
 if (coverageOutput) {
     fs.write(coverageOutput, '', 'w');
@@ -59,7 +60,7 @@ page.onConsoleMessage = function (msg) {
         console.log('Created screenshot: ' + imageFile);
 
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
-            fs.workingDirectory + '/' + imageFile + '</DartMeasurementFile>');
+            fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
         return;
     }
 
@@ -69,13 +70,55 @@ page.onConsoleMessage = function (msg) {
         } catch (e) {
             console.log('Exception writing coverage results: ', e);
         }
-    }
-    else {
+    } else {
         console.log(msg);
     }
     if (msg === 'ConsoleReporter finished') {
         accumCoverage = true;
         return terminate();
+    }
+};
+
+page.onCallback = function (data) {
+    /* Perform an action asked for in the web test and return a result.  An
+     * action must be specified in the data object for this to do anything.
+     * Available actions are:
+     *   uploadFile: upload the file in data.path to the element determined
+     * with the selector data.selector.  If no path or an invalid path is
+     * specified, and data.size is present, create a temporary file with
+     * data.size bytes and upload that.
+     *   uploadCleanup: delete any temporary file that was created for uploads.
+     * :param data: an object with an 'action', as listed above.
+     * :returns: depends on the action.
+     */
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
+    if (data.suffix) {
+        uploadTemp += '_' + data.suffix;
+    }
+    uploadTemp += '.tmp';
+    switch (data.action)
+    {
+        case 'fetchEmail':
+            if (fs.exists(uploadTemp)) {
+                return fs.read(uploadTemp);
+            }
+            break;
+        case 'uploadFile':
+            var path = data.path
+            if (!path && data.size!==undefined) {
+                path = uploadTemp;
+                fs.write(path, new Array(data.size+1).join("-"), "wb");
+            }
+            page.uploadFile(data.selector, path);
+            if (fs.size(path) >= 1024 * 64) {
+                return fs.size(path);
+            }
+            return fs.read(path);
+        case 'uploadCleanup':
+            if (fs.exists(uploadTemp)) {
+                fs.remove(uploadTemp);
+            }
+            break;
     }
 };
 
@@ -89,6 +132,10 @@ page.onError = function (msg, trace) {
         });
     }
     console.error(msgStack.join('\n'));
+    console.log('Saved phantom_error_screenshot.png');
+    console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
+        fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
+    page.render('phantom_error_screenshot.png');
     phantom.exit(1);
 };
 
@@ -99,11 +146,26 @@ page.onLoadFinished = function (status) {
     }
 
     page.injectJs('coverageHandler.js');
-    if(!page.injectJs(spec)) {
+    if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
     }
 };
+
+/* Sometimes phantom fails when loading many resources.  I think this is this
+ * known issue: https://github.com/ariya/phantomjs/issues/10652.  Adding a
+ * resource timeout and then reloading the resource works around the problem.
+ */
+page.settings.resourceTimeout = 15000;
+
+page.onResourceTimeout = function (request) {
+    console.log('PHANTOM_TIMEOUT')
+    console.log('Resource timed out.  (#' + request.id + '): ' +
+                JSON.stringify(request));
+    /* The exit code doesn't get sent back from here, so setting this to a
+     * non-zero value doesn't seem to have any benefit. */
+    phantom.exit(0);
+}
 
 page.open(pageUrl, function (status) {
     if (status !== 'success') {

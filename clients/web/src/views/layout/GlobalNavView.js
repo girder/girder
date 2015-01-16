@@ -15,33 +15,48 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         girder.events.on('g:highlightItem', this.selectForView, this);
         girder.events.on('g:login', this.render, this);
+        girder.events.on('g:login-changed', this.render, this);
+
+        settings = settings || {};
+        if (settings.navItems) {
+            this.navItems = settings.navItems;
+        } else {
+            this.defaultNavItems = [{
+                name: 'Collections',
+                icon: 'icon-sitemap',
+                target: 'collections'
+            }, {
+                name: 'Users',
+                icon: 'icon-user',
+                target: 'users'
+            }, {
+                name: 'Groups',
+                icon: 'icon-users',
+                target: 'groups'
+            }];
+        }
     },
 
     render: function () {
-        var navItems = [{
-            'name': 'Collections',
-            'icon': 'icon-sitemap',
-            'target': 'collections'
-        }, {
-            'name': 'Users',
-            'icon': 'icon-user',
-            'target': 'users'
-        }, {
-            'name': 'Groups',
-            'icon': 'icon-users',
-            'target': 'groups'
-        }];
-        if (girder.currentUser && girder.currentUser.get('admin')) {
-            navItems.push({
-                'name': 'Admin console',
-                'icon': 'icon-wrench',
-                'target': 'admin'
-            });
+        var navItems;
+        if (this.navItems) {
+            navItems = this.navItems;
+        } else {
+            navItems = this.defaultNavItems;
+            if (girder.currentUser && girder.currentUser.get('admin')) {
+                // copy navItems so that this.defaultNavItems is unchanged
+                navItems = navItems.slice();
+                navItems.push({
+                    name: 'Admin console',
+                    icon: 'icon-wrench',
+                    target: 'admin'
+                });
+            }
         }
-        this.$el.html(jade.templates.layoutGlobalNav({
+        this.$el.html(girder.templates.layoutGlobalNav({
             navItems: navItems
         }));
 

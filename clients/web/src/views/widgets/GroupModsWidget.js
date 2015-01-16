@@ -9,7 +9,8 @@ girder.views.GroupModsWidget = girder.View.extend({
 
             girder.confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
-                    'from <b>' + li.attr('username') + '</b>?',
+                    'from <b>' + _.escape(li.attr('username')) + '</b>?',
+                escapedHtml: true,
                 confirmCallback: function () {
                     view.trigger('g:demoteUser', li.attr('userid'));
                 }
@@ -29,7 +30,7 @@ girder.views.GroupModsWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupModList({
+        this.$el.html(girder.templates.groupModList({
             group: this.model,
             level: this.model.get('_accessLevel'),
             moderators: this.moderators,

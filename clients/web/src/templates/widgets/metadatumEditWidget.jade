@@ -1,9 +1,11 @@
-input.input-sm.form-control.g-item-metadata-key-input(type="text", value=key, placeholder="Key")
-input.input-sm.form-control.g-item-metadata-value-input(type="text", value=value, placeholder="Value")
-button.btn.btn-sm.btn-warning.g-item-metadata-cancel-button(title="Cancel")
+input.input-sm.form-control.g-widget-metadata-key-input(type="text", value=key, placeholder="Key")
+-var rows = value.length <= 40 ? 1 : (value.length <= 100 ? 3 : 5)
+textarea.input-sm.form-control.g-widget-metadata-value-input(placeholder="Value", rows=rows)
+  = value
+button.btn.btn-sm.btn-warning.g-widget-metadata-cancel-button(title="Cancel")
   i.icon-cancel
-button.btn.btn-sm.btn-primary.g-item-metadata-save-button(title="Accept")
+button.btn.btn-sm.btn-primary.g-widget-metadata-save-button(title="Accept")
   i.icon-ok
 if !newDatum
-  button.btn.btn-sm.btn-danger.g-item-metadata-delete-button(title="Delete")
+  button.btn.btn-sm.btn-danger.g-widget-metadata-delete-button(title="Delete")
     i.icon-trash

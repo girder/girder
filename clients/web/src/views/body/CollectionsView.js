@@ -16,10 +16,22 @@ girder.views.CollectionsView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search collections...',
+            types: ['collection'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoCollection, this);
 
         this.create = settings.dialog === 'create';
     },
@@ -31,29 +43,22 @@ girder.views.CollectionsView = girder.View.extend({
         var container = $('#g-dialog-container');
 
         new girder.views.EditCollectionWidget({
-            el: container
-        }).off('g:saved').on('g:saved', function (collection) {
+            el: container,
+            parentView: this
+        }).on('g:saved', function (collection) {
             girder.router.navigate('collection/' + collection.get('_id'),
                                    {trigger: true});
         }, this).render();
     },
 
     render: function () {
-        this.$el.html(jade.templates.collectionList({
+        this.$el.html(girder.templates.collectionList({
             collections: this.collection.models,
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-collection-pagination'),
-            collection: this.collection
-        }).render();
-
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-collections-search-container'),
-            placeholder: 'Search collections...',
-            types: ['collection']
-        }).off().on('g:resultClicked', this._gotoCollection, this).render();
+        this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-collections-search-container')).render();
 
         if (this.create) {
             this.createCollectionDialog();
@@ -69,7 +74,7 @@ girder.views.CollectionsView = girder.View.extend({
     _gotoCollection: function (result) {
         var collection = new girder.models.CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('/collection/' + this.id, {trigger: true});
+            girder.router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });

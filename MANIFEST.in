@@ -1,0 +1,11 @@
+prune clients
+prune tests
+include LICENSE
+include setup.py
+include requirements.txt
+include girder/girder-version.json
+include package.json
+include README.rst
+include girder-install
+include girder/conf/girder.dist.cfg
+global-exclude *.pyc *.pyo *.cmake

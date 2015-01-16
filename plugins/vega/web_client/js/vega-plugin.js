@@ -17,7 +17,7 @@ vegaPlugin.views.VegaWidget = girder.View.extend({
 
         if (this.accessLevel >= girder.AccessType.READ && meta && meta.vega) {
             $("#g-app-body-container")
-                .append(jade.templates.vega_render());
+                .append(girder.templates.vega_render());
             $.ajax({
                 url: "/api/v1/item/" + this.item.get("_id") + "/download",
                 type: "GET",
@@ -52,7 +52,7 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
         this.vegaWidget = new vegaPlugin.views.VegaWidget({
             item: this.model,
             accessLevel: accessLevel,
-            girder: girder
+            parentView: this
         });
 
     }, this));

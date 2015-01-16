@@ -47,6 +47,7 @@ __all__ = ['STORE', 'DEFLATE', 'ZipGenerator']
 
 
 Z64_LIMIT = (1 << 31) - 1
+Z_FILECOUNT_LIMIT = 1 << 16
 STORE = 0
 DEFLATE = 8
 
@@ -235,20 +236,23 @@ class ZipGenerator(object):
 
         pos2 = self.offset
         offsetVal = pos1
+        size = pos2 - pos1
 
-        if pos1 > Z64_LIMIT:
+        if pos1 > Z64_LIMIT or size > Z64_LIMIT or count >= Z_FILECOUNT_LIMIT:
             zip64endrec = struct.pack(
                 '<4sqhhllqqqq', 'PK\x06\x06', 44, 45, 45, 0, 0, count, count,
-                pos2 - pos1, pos1)
+                size, pos1)
             data.append(self._advanceOffset(zip64endrec))
 
             zip64locrec = struct.pack('<4slql', 'PK\x06\x07', 0, pos2, 1)
             data.append(self._advanceOffset(zip64locrec))
 
-            offsetVal = -1
+            count = min(count, 0xFFFF)
+            size = min(size, 0xFFFFFFFF)
+            offsetVal = min(offsetVal, 0xFFFFFFFF)
 
         endrec = struct.pack('<4s4H2lH', 'PK\005\006', 0, 0, count, count,
-                             pos2 - pos1, offsetVal, 0)
+                             size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 
         return ''.join(data)

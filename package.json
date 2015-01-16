@@ -1,10 +1,15 @@
 {
   "name": "girder",
-  "description": "Data management platform",
-  "version": "0.0.1",
+  "version": "1.2.0",
+  "description": "High-performance data management platform",
+  "homepage": "https://girder.readthedocs.org",
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/girder/girder.git"
+    "url": "https://github.com/girder/girder.git"
   },
   "dependencies": {
     "backbone": "~1.1.2",
@@ -16,16 +21,23 @@
     "grunt-contrib-watch": "~0.3.1",
     "grunt-contrib-copy": "~0.5.0",
     "grunt-shell": ">=0.2.1",
+    "grunt-gitinfo": "~0.1.0",
+    "grunt-file-creator": "~0.1.0",
+    "grunt-contrib-compress": "~0.12.0",
     "jade": "1.3.1",
-    "jquery-browser": "~1.10",
-    "jshint": "1.0.0",
-    "swagger-ui": "2.0.13",
+    "jquery": "2.1.1",
+    "swagger-ui": "2.0.22",
     "underscore": "~1.5",
     "colors": "0.6.2",
-    "phantomjs": "~1.9.1",
-    "blanket": "1.1.6"
+    "event-source": "0.1.1"
+  },
+  "devDependencies": {
+    "jshint": "2.5.5",
+    "phantomjs": "1.9.9",
+    "blanket": "1.1.6",
+    "jscs": "1.6.1"
   },
   "scripts": {
-    "postinstall": "./node_modules/.bin/grunt init && ./node_modules/.bin/grunt"
+    "postinstall": "grunt init && grunt"
   }
 }

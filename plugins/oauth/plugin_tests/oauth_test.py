@@ -56,7 +56,7 @@ class OauthTest(base.TestCase):
         """
         expect = {
             'admin@google.com': None,  # duplicate of existing admin user
-            '234@mail.com': None, # violates regex even after coercion
+            '234@mail.com': None,  # violates regex even after coercion
             'hello.world.foo@mail.com': 'helloworldfoo',
             'first-last@mail.com': 'first-last'
         }
@@ -73,8 +73,11 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', exception=True, params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatus(resp, 500)
-        self.assertEqual(resp.json['message'],
-                         'Exception: No Google client ID setting is present.')
+        self.assertTrue(
+            resp.json['message'].find(
+                'No Google client ID setting is present.'
+            ) >= 0
+        )
 
         params = {
             'list': json.dumps([{
@@ -129,9 +132,11 @@ class OauthTest(base.TestCase):
             'state': queryParams['state'][0]
         }, exception=True)
         self.assertStatus(resp, 500)
-        self.assertEqual(
-            resp.json['message'],
-            'Exception: No CSRF cookie (state="http://localhost/#foo/bar").')
+        self.assertTrue(
+            resp.json['message'].find(
+                'No CSRF cookie (state="http://localhost/#foo/bar").'
+            ) >= 0
+        )
 
         resp = self.request('/oauth/google/callback', isJson=False, params={
             'code': None,
@@ -152,6 +157,7 @@ class OauthTest(base.TestCase):
         cookie = resp.cookie
 
         email = 'admin@mail.com'
+
         @httmock.all_requests
         def google_mock(url, request):
             if url.netloc == 'accounts.google.com':
@@ -185,11 +191,8 @@ class OauthTest(base.TestCase):
                          'http://localhost/#foo/bar')
         self.assertEqual(len(resp.cookie.values()), 2)
         self.assertTrue('oauthLogin' in resp.cookie)
-        self.assertTrue('authToken' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')
-        authToken = json.loads(resp.cookie['authToken'].value)
-
-        self.assertEqual(authToken['userId'], str(self.admin['_id']))
 
         # Test login in with a new user
 
@@ -228,13 +231,12 @@ class OauthTest(base.TestCase):
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
         self.assertTrue('oauthLogin' in resp.cookie)
-        self.assertTrue('authToken' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')
-        authToken = json.loads(resp.cookie['authToken'].value)
 
-        self.assertNotEqual(authToken['userId'], str(self.admin['_id']))
-
-        newUser = self.model('user').load(authToken['userId'], force=True)
+        token = self.model('token').load(resp.cookie['girderToken'].value,
+                                         force=True, objectId=False)
+        newUser = self.model('user').load(token['userId'], force=True)
         self.assertEqual(newUser['login'], 'anotheruser')
         self.assertEqual(newUser['email'], 'anotheruser@mail.com')
         self.assertEqual(newUser['oauth'], {

@@ -6,13 +6,13 @@ girder.views.LoginView = girder.View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            var authStr = btoa(this.$('#g-login').val() + ':' +
-                               this.$('#g-password').val());
+            var authStr = window.btoa(this.$('#g-login').val() + ':' +
+                this.$('#g-password').val());
             girder.restRequest({
                 path: 'user/authentication',
                 type: 'GET',
                 headers: {
-                    'Authorization': 'Basic ' + authStr
+                    Authorization: 'Basic ' + authStr
                 },
                 error: null // don't do default error behavior
             }).done(_.bind(function (resp) {
@@ -22,6 +22,7 @@ girder.views.LoginView = girder.View.extend({
                 resp.user.token = resp.authToken.token;
 
                 girder.currentUser = new girder.models.UserModel(resp.user);
+                girder.dialogs.handleClose('login', {replace: true});
                 girder.events.trigger('g:login');
             }, this)).error(_.bind(function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
@@ -43,14 +44,14 @@ girder.views.LoginView = girder.View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(jade.templates.loginDialog()).girderModal(this)
+        this.$el.html(girder.templates.loginDialog()).girderModal(this)
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('login');
+                girder.dialogs.handleClose('login', {replace: true});
             });
 
-        girder.dialogs.handleOpen('login');
+        girder.dialogs.handleOpen('login', {replace: true});
         this.$('#g-login').focus();
 
         return this;

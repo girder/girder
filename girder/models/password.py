@@ -136,4 +136,4 @@ class Password(Model):
             hash = self._digest(salt=salt, alg=alg, password=password)
             self.save({'_id': hash})
 
-        return (salt, alg)
+        return salt, alg

@@ -14,48 +14,54 @@ girder.dialogs = {
         }
 
         if (lastIndex === -1) {
-            dialogName = "";
+            dialogName = '';
         } else {
             dialogName = route.slice(lastIndex + 1);
         }
 
-        return {'name': dialogName, 'base': baseRoute};
+        return {name: dialogName, base: baseRoute};
     },
 
-    handleClose: function (name) {
+    handleClose: function (name, options, nameId) {
         if (!girder.handleRouting) {
             return;
         }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
             queryString = girder.parseQueryString(routeParts.name),
-            dialogName = queryString.dialog;
+            dialogName = queryString.dialog,
+            dialogId = queryString.dialogid;
         delete queryString.dialog;
+        delete queryString.dialogid;
         var unparsedQueryString = $.param(queryString);
         if (unparsedQueryString.length > 0) {
             unparsedQueryString = '?' + unparsedQueryString;
         }
-        if (dialogName === name) {
-            girder.router.navigate(routeParts.base + unparsedQueryString);
+        if (dialogName === name && dialogId === nameId) {
+            girder.router.navigate(routeParts.base + unparsedQueryString, options);
         }
     },
 
-    handleOpen: function (name) {
+    handleOpen: function (name, options, nameId) {
         if (!girder.handleRouting) {
             return;
         }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
             queryString = girder.parseQueryString(routeParts.name),
-            dialogName = queryString.dialog;
+            dialogName = queryString.dialog,
+            dialogId = queryString.dialogid;
 
-        if (dialogName !== name) {
+        if (dialogName !== name || nameId !== dialogId) {
             queryString.dialog = name;
+            if (nameId) {
+                queryString.dialogid = nameId;
+            }
             var unparsedQueryString = $.param(queryString);
             if (unparsedQueryString.length > 0) {
                 unparsedQueryString = '?' + unparsedQueryString;
             }
-            girder.router.navigate(routeParts.base + unparsedQueryString);
+            girder.router.navigate(routeParts.base + unparsedQueryString, options);
         }
     }
 

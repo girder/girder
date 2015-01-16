@@ -6,16 +6,25 @@ girder.views.PluginsView = girder.View.extend({
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
             girder.router.navigate(route, {trigger: true});
+        },
+        'click .g-plugin-restart-button': function (evt) {
+            var params = {
+                text: 'Are you sure you want to restart the server?  This ' +
+                      'will interrupt all running tasks for all users.',
+                yesText: 'Restart',
+                confirmCallback: girder.restartServer
+            };
+            girder.confirm(params);
         }
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.render();
-        }
-        else {
+        } else {
             // Fetch the plugin list
             girder.restRequest({
                 path: 'system/plugins',
@@ -36,8 +45,8 @@ girder.views.PluginsView = girder.View.extend({
             }
         }, this);
 
-        this.$el.html(jade.templates.plugins({
-            allPlugins: this.allPlugins
+        this.$el.html(girder.templates.plugins({
+            allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
         var view = this;
@@ -47,13 +56,14 @@ girder.views.PluginsView = girder.View.extend({
                 var plugin = $(event.currentTarget).attr('key');
                 if (state === true) {
                     view.enabled.push(plugin);
-                }
-                else {
+                } else {
                     var idx;
                     while ((idx = view.enabled.indexOf(plugin)) >= 0) {
                         view.enabled.splice(idx, 1);
                     }
                 }
+                girder.pluginsChanged = true;
+                $('.g-plugin-restart').addClass('g-plugin-restart-show');
                 view._updatePlugins();
             });
         this.$('.g-plugin-config-link').tooltip({
@@ -62,8 +72,28 @@ girder.views.PluginsView = girder.View.extend({
             placement: 'bottom',
             delay: {show: 100}
         });
+        if (girder.pluginsChanged) {
+            $('.g-plugin-restart').addClass('g-plugin-restart-show');
+        }
 
         return this;
+    },
+
+    _sortPlugins: function (plugins) {
+        /* Sort a dictionary of plugins alphabetically so that the appear in a
+         * predictable order to the user.
+         *
+         * @param plugins: a dictionary to sort.  Each entry has a .name
+         *                 attribute used for sorting.
+         * @returns sortedPlugins: the sorted list. */
+        var sortedPlugins = [];
+        _.each(plugins, function (value, key) {
+            sortedPlugins.push({key: key, value: value});
+        });
+        sortedPlugins.sort(function (a, b) {
+            return a.value.name.localeCompare(b.value.name);
+        });
+        return sortedPlugins;
     },
 
     _updatePlugins: function () {
@@ -74,7 +104,12 @@ girder.views.PluginsView = girder.View.extend({
                 plugins: JSON.stringify(this.enabled)
             }
         }).done(_.bind(function (resp) {
-            // TODO acknowledge?
+            this.enabled = resp.value;
+
+            _.each(this.enabled, function (plugin) {
+                this.$('.g-plugin-switch[key="' + plugin + '"]')
+                    .attr('checked', 'checked').bootstrapSwitch('state', true, true);
+            }, this);
         }, this)).error(_.bind(function () {
             // TODO acknowledge?
         }, this));

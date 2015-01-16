@@ -16,28 +16,39 @@ girder.views.GroupsView = girder.View.extend({
     },
 
     initialize: function (settings) {
+        girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
+
+        this.paginateWidget = new girder.views.PaginateWidget({
+            collection: this.collection,
+            parentView: this
+        });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Search groups...',
+            types: ['group'],
+            parentView: this
+        }).on('g:resultClicked', this._gotoGroup, this);
+
+        this.create = settings.dialog === 'create';
     },
 
     render: function () {
-        this.$el.html(jade.templates.groupList({
+        this.$el.html(girder.templates.groupList({
             groups: this.collection.models,
             girder: girder
         }));
 
-        new girder.views.PaginateWidget({
-            el: this.$('.g-group-pagination'),
-            collection: this.collection
-        }).render();
+        this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        this.searchWidget.setElement(this.$('.g-groups-search-container')).render();
 
-        new girder.views.SearchFieldWidget({
-            el: this.$('.g-groups-search-container'),
-            placeholder: 'Search groups...',
-            types: ['group']
-        }).off().on('g:resultClicked', this._gotoGroup, this).render();
+        if (this.create) {
+            this.createGroupDialog();
+            this.create = false;
+        }
 
         return this;
     },
@@ -47,7 +58,8 @@ girder.views.GroupsView = girder.View.extend({
      */
     createGroupDialog: function () {
         new girder.views.EditGroupWidget({
-            el: $('#g-dialog-container')
+            el: $('#g-dialog-container'),
+            parentView: this
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list
@@ -67,13 +79,13 @@ girder.views.GroupsView = girder.View.extend({
     _gotoGroup: function (result) {
         var group = new girder.models.GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('group/' + group._id, {trigger: true});
+            girder.router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).fetch();
     }
 
 });
 
-girder.router.route('groups', 'groups', function () {
-    girder.events.trigger('g:navigateTo', girder.views.GroupsView);
+girder.router.route('groups', 'groups', function (params) {
+    girder.events.trigger('g:navigateTo', girder.views.GroupsView, params || {});
     girder.events.trigger('g:highlightItem', 'GroupsView');
 });

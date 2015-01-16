@@ -27,16 +27,24 @@ girder.Model = Backbone.Model.extend({
         if (this.has('_id')) {
             path = this.resourceName + '/' + this.get('_id');
             type = 'PUT';
-        }
-        else {
+        } else {
             path = this.resourceName;
             type = 'POST';
         }
+        /* Don't save attributes which are objects using this call.  For
+         * instance, if the metadata of an item has keys that contain non-ascii
+         * values, they won't get handled the the rest call. */
+        var data = {};
+        _.each(this.attributes, function (value, key) {
+            if (typeof value !== 'object') {
+                data[key] = value;
+            }
+        });
 
         girder.restRequest({
             path: path,
             type: type,
-            data: this.attributes,
+            data: data,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
             this.set(resp);
@@ -70,25 +78,48 @@ girder.Model = Backbone.Model.extend({
     },
 
     /**
-     * Delete the model on the server.
-     * @param throwError Whether to throw an error (bool, default=true)
+     * For models that can be downloaded, this method should be used to
+     * initiate the download in the browser.
      */
-    destroy: function (throwError) {
+    download: function () {
+        var url = girder.apiRoot + '/' + this.resourceName + '/' +
+            this.get('_id') + '/download';
+
+        var token = girder.cookie.find('girderToken');
+        if (token) {
+            url += '?token=' + token;
+        }
+
+        window.location.assign(url);
+    },
+
+    /**
+     * Delete the model on the server.
+     * @param opts Options, may contain:
+     *   throwError Whether to throw an error (bool, default=true)
+     *   progress Whether to record progress (bool, default=false)
+     */
+    destroy: function (opts) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
         }
 
-        var params = {
+        var args = {
             path: this.resourceName + '/' + this.get('_id'),
             type: 'DELETE'
         };
 
-        if (throwError !== false) {
-            params.error = null;
+        opts = opts || {};
+        if (opts.progress === true) {
+            args.path += '?progress=true';
         }
 
-        girder.restRequest(params).done(_.bind(function () {
+        if (opts.throwError !== false) {
+            args.error = null;
+        }
+
+        girder.restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }
@@ -134,8 +165,8 @@ girder.AccessControlledModel = girder.Model.extend({
             path: this.resourceName + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: {
-                'access': JSON.stringify(this.get('access')),
-                'public': this.get('public')
+                access: JSON.stringify(this.get('access')),
+                public: this.get('public')
             }
         }).done(_.bind(function () {
             this.trigger('g:accessListSaved');
@@ -166,19 +197,69 @@ girder.AccessControlledModel = girder.Model.extend({
             }).done(_.bind(function (resp) {
                 if (resp.access) {
                     this.set(resp);
-                }
-                else {
+                } else {
                     this.set('access', resp);
                 }
                 this.trigger('g:accessFetched');
             }, this)).error(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
-        }
-        else {
+        } else {
             this.trigger('g:accessFetched');
         }
 
         return this;
     }
 });
+
+girder.models.MetadataMixin = {
+    _sendMetadata: function (metadata, successCallback, errorCallback) {
+        girder.restRequest({
+            path: this.resourceName + '/' + this.get('_id') + '/metadata',
+            contentType: 'application/json',
+            data: JSON.stringify(metadata),
+            type: 'PUT',
+            error: null
+        }).done(_.bind(function (resp) {
+            this.set('meta', resp.meta);
+            successCallback();
+        }, this)).error(_.bind(function (err) {
+            err.message = err.responseJSON.message;
+            errorCallback(err);
+        }, this));
+    },
+
+    addMetadata: function (key, value, successCallback, errorCallback) {
+        var datum = {};
+        datum[key] = value;
+        var meta = this.get('meta');
+        if (meta && _.has(meta, key)) {
+            errorCallback({message: key + ' is already a metadata key'});
+            return;
+        }
+        this._sendMetadata(datum, successCallback, errorCallback);
+    },
+
+    removeMetadata: function (key, successCallback, errorCallback) {
+        var datum = {};
+        datum[key] = null;
+        this._sendMetadata(datum, successCallback, errorCallback);
+    },
+
+    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback) {
+        if (newKey === oldKey) {
+            var datum = {};
+            datum[newKey] = value;
+            this._sendMetadata(datum, successCallback, errorCallback);
+        } else {
+            if (_.has(this.get('meta'), newKey)) {
+                errorCallback({message: newKey + ' is already a metadata key'});
+                return;
+            }
+            var metas = {};
+            metas[oldKey] = null;
+            metas[newKey] = value;
+            this._sendMetadata(metas, successCallback, errorCallback);
+        }
+    }
+};

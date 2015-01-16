@@ -5,16 +5,38 @@
     girder.views.CollectionView = girder.View.extend({
         events: {
             'click .g-edit-collection': 'editCollection',
-            'click .g-collection-access-control': 'editAccess'
+            'click .g-collection-access-control': 'editAccess',
+            'click .g-delete-collection': function () {
+                girder.confirm({
+                    text: 'Are you sure you want to delete the collection <b>' +
+                          this.model.escape('name') + '</b>?',
+                    yesText: 'Delete',
+                    escapedHtml: true,
+                    confirmCallback: _.bind(function () {
+                        this.model.destroy().on('g:deleted', function () {
+                            girder.events.trigger('g:alert', {
+                                icon: 'ok',
+                                text: 'Collection deleted.',
+                                type: 'success',
+                                timeout: 4000
+                            });
+                            girder.router.navigate('collections', {trigger: true});
+                        });
+                    }, this)
+                });
+            }
         },
 
         initialize: function (settings) {
+            girder.cancelRestRequests('fetch');
 
             this.upload = settings.upload || false;
             this.access = settings.access || false;
-            this.folderAccess = settings.folderAccess || false;
-            this.folderEdit = settings.folderEdit || false;
             this.edit = settings.edit || false;
+            this.folderAccess = settings.folderAccess || false;
+            this.folderCreate = settings.folderCreate || false;
+            this.folderEdit = settings.folderEdit || false;
+            this.itemCreate = settings.itemCreate || false;
 
             // If collection model is already passed, there is no need to fetch.
             if (settings.collection) {
@@ -25,25 +47,38 @@
                     this.folder.set({
                         _id: settings.folderId
                     }).on('g:fetched', function () {
+                        this._createHierarchyWidget();
                         this.render();
                     }, this).on('g:error', function () {
                         this.folder = null;
+                        this._createHierarchyWidget();
                         this.render();
                     }, this).fetch();
-                }
-                else {
+                } else {
+                    this._createHierarchyWidget();
                     this.render();
                 }
-            }
-            else if (settings.id) {
+            } else if (settings.id) {
                 this.model = new girder.models.CollectionModel();
                 this.model.set('_id', settings.id);
 
                 this.model.on('g:fetched', function () {
+                    this._createHierarchyWidget();
                     this.render();
                 }, this).fetch();
             }
+        },
 
+        _createHierarchyWidget: function () {
+            this.hierarchyWidget = new girder.views.HierarchyWidget({
+                parentModel: this.folder || this.model,
+                upload: this.upload,
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate,
+                parentView: this
+            });
         },
 
         editCollection: function () {
@@ -52,8 +87,9 @@
             if (!this.editCollectionWidget) {
                 this.editCollectionWidget = new girder.views.EditCollectionWidget({
                     el: container,
-                    model: this.model
-                }).off('g:saved').on('g:saved', function (collection) {
+                    model: this.model,
+                    parentView: this
+                }).on('g:saved', function (collection) {
                     this.render();
                 }, this);
             }
@@ -61,18 +97,19 @@
         },
 
         render: function () {
-            this.$el.html(jade.templates.collectionPage({
+            this.$el.html(girder.templates.collectionPage({
                 collection: this.model,
                 girder: girder
             }));
 
-            this.hierarchyWidget = new girder.views.HierarchyWidget({
-                parentModel: this.folder || this.model,
-                upload: this.upload,
-                access: this.folderAccess,
-                edit: this.folderEdit,
-                el: this.$('.g-collection-hierarchy-container')
-            });
+            this.hierarchyWidget.setElement(
+                this.$('.g-collection-hierarchy-container')).render();
+
+            this.upload = false;
+            this.folderAccess = false;
+            this.folderEdit = false;
+            this.folderCreate = false;
+            this.itemCreate = false;
 
             this.$('.g-collection-actions-button').tooltip({
                 container: 'body',
@@ -94,12 +131,12 @@
             new girder.views.AccessWidget({
                 el: $('#g-dialog-container'),
                 modelType: 'collection',
-                model: this.model
+                model: this.model,
+                parentView: this
             }).on('g:saved', function (collection) {
                 // need to do anything?
             }, this);
         }
-
     });
 
     /**
@@ -122,7 +159,9 @@
     girder.router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
         _fetchAndInit(collectionId, {
             access: params.dialog === 'access',
-            edit: params.dialog === 'edit'
+            edit: params.dialog === 'edit',
+            folderCreate: params.dialog === 'foldercreate',
+            dialog: params.dialog
         });
     });
 
@@ -132,10 +171,12 @@
                 folderId: folderId,
                 upload: params.dialog === 'upload',
                 access: params.dialog === 'access',
-                folderAccess: params.dialog === 'folderaccess',
                 edit: params.dialog === 'edit',
-                folderEdit: params.dialog === 'folderedit'
+                folderAccess: params.dialog === 'folderaccess',
+                folderCreate: params.dialog === 'foldercreate',
+                folderEdit: params.dialog === 'folderedit',
+                itemCreate: params.dialog === 'itemcreate'
             });
         });
 
-}) ();
+}());

@@ -106,11 +106,11 @@ class Group(AccessControlledModel):
 
         q = {
             'lowerName': doc['lowerName'],
-            }
+        }
         if '_id' in doc:
             q['_id'] = {'$ne': doc['_id']}
-        duplicates = self.find(q, limit=1, fields=['_id'])
-        if duplicates.count() != 0:
+        duplicate = self.findOne(q, fields=['_id'])
+        if duplicate is not None:
             raise ValidationException('A group with that name already'
                                       'exists.', 'name')
 
@@ -144,7 +144,7 @@ class Group(AccessControlledModel):
             'groups': group['_id']
         }, fields=fields, limit=limit, offset=offset, sort=sort)
 
-    def remove(self, group):
+    def remove(self, group, **kwargs):
         """
         Delete a group, and all references to it in the database.
 
@@ -283,7 +283,7 @@ class Group(AccessControlledModel):
             user['groupInvites'].append({
                 'groupId': group['_id'],
                 'level': level
-                })
+            })
 
         return self.model('user').save(user, validate=False)
 
@@ -345,7 +345,7 @@ class Group(AccessControlledModel):
         """
         assert type(public) is bool
 
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
 
         group = {
             'name': name,
@@ -353,7 +353,7 @@ class Group(AccessControlledModel):
             'created': now,
             'updated': now,
             'requests': []
-            }
+        }
 
         self.setPublic(group, public=public)
 
@@ -374,7 +374,7 @@ class Group(AccessControlledModel):
         :type group: dict
         :returns: The group document that was edited.
         """
-        group['updated'] = datetime.datetime.now()
+        group['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the group
         return self.save(group)

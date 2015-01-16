@@ -17,17 +17,27 @@
 #  limitations under the License.
 ###############################################################################
 
-import sys  # pragma: no cover
 import cherrypy  # pragma: no cover
+import argparse  # pragma: no cover
 
 from girder.utility import server  # pragma: no cover
 
+
 if __name__ == '__main__':  # pragma: no cover
-    if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        test = True
-    else:
-        test = False
-    server.setup(test)
+    parser = argparse.ArgumentParser(
+        description='Girder: High Performance Data Management.')
+    parser.add_argument("-t", "--testing", help="run in testing mode",
+                        action="store_true")
+    parser.add_argument("-d", "--database",
+                        help="to what database url should girder connect")
+    parser.add_argument("-p", "--port",
+                        help="on what port should grider serve")
+    args = parser.parse_args()
+    if args.database:
+        cherrypy.config['database']['uri'] = args.database
+    if args.port:
+        cherrypy.config['server.socket_port'] = int(args.port)
+    server.setup(args.testing)
 
     cherrypy.engine.start()
     cherrypy.engine.block()

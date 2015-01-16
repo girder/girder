@@ -1,26 +1,21 @@
-.. Girder documentation master file, created by
-   sphinx-quickstart on Thu Aug  8 21:34:47 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Girder: High-Performance Data Management
 ========================================
+
+For a high-level overview of the system, we recommend checking out the :doc:`user-guide`.
+
+Girder is published under the Apache 2.0 License. Its source code can be found at
+https://github.com/girder/girder.
+
 .. toctree::
    :maxdepth: 2
 
-   prerequisites
-   installation
-   deploy
-   user-guide
+   admin-docs
+   user-docs
+   developer-docs
    plugins
-   build-docs
-   api-docs
-   development
-   external-web-clients
 
 Indices and tables
 ------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

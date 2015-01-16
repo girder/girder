@@ -25,14 +25,16 @@ girder.views.FrontPageView = girder.View.extend({
     },
 
     initialize: function () {
+        girder.cancelRestRequests('fetch');
         this.render();
     },
 
     render: function () {
-        this.$el.html(jade.templates.frontPage({
+        this.$el.html(girder.templates.frontPage({
             apiRoot: girder.apiRoot,
             staticRoot: girder.staticRoot,
-            currentUser: girder.currentUser
+            currentUser: girder.currentUser,
+            versionInfo: girder.versionInfo
         }));
 
         return this;
