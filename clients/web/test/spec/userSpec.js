@@ -136,9 +136,11 @@ describe('Create an admin and non-admin user', function () {
         }, 'email to be received');
     });
     it('Use reset link', function () {
-        girderTest.testRoute(link, false, function () {
-            return $('#g-password-new:visible').length > 0 &&
-                   $('#g-password-old:visible').length === 0;
+        runs(function(){
+            girderTest.testRoute(link, false, function () {
+                return $('#g-password-new:visible').length > 0 &&
+                       $('#g-password-old:visible').length === 0;
+            });
         });
         runs(function () {
             $('#g-password-new').val('newpassword');

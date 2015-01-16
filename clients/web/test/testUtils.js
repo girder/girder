@@ -448,6 +448,7 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
+    waits(1);
     /* If is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
@@ -470,15 +471,19 @@ girderTest.waitForDialog = function (desc) {
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    blanket.utils.cache[url] = {};
-    blanket.utils.attachScript({url:url}, function (content) {
-        blanket.instrument({inputFile: content, inputFileName: url},
-                           function (instrumented) {
-            blanket.utils.cache[url].loaded = true;
-            blanket.utils.blanketEval(instrumented);
-            blanket.requiringFile(url, true);
-        });
-   });
+    if (window.blanket) {
+        blanket.utils.cache[url] = {};
+        blanket.utils.attachScript({url:url}, function (content) {
+            blanket.instrument({inputFile: content, inputFileName: url},
+                               function (instrumented) {
+                blanket.utils.cache[url].loaded = true;
+                blanket.utils.blanketEval(instrumented);
+                blanket.requiringFile(url, true);
+            });
+       });
+    } else {
+        $('<script/>', {src: url}).appendTo('head');
+    }
 };
 
 /**
@@ -581,7 +586,6 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
     });
     /* We need to let the window have a chance to reload, so we just release
      * our time slice. */
-    waits(1);
     if (hasDialog) {
         girderTest.waitForDialog('route: '+route);
     } else {

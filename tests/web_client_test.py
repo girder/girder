@@ -23,7 +23,7 @@ import sys
 import time
 
 # Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '50001')
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 
 from girder.api import access
 from girder.api.describe import Description
@@ -121,10 +121,11 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        for tries in xrange(5):
+        for tries in xrange(10):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
+            hasJasmine = False
             for line in iter(task.stdout.readline, ''):
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
@@ -134,11 +135,15 @@ class WebClientTestCase(base.TestCase):
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
                          'wb').write(msg)
                     continue  # we don't want to print this
+                if 'Jasmine' in line:
+                    hasJasmine = True
                 sys.stdout.write(line)
                 sys.stdout.flush()
             returncode = task.wait()
-            if not retry:
+            if not retry and hasJasmine:
                 break
+            if not hasJasmine:
+                time.sleep(1)
             sys.stderr.write('Retrying test\n')
 
         self.assertEqual(returncode, 0)

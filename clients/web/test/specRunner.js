@@ -30,6 +30,9 @@ if (coverageOutput) {
 }
 
 var terminate = function () {
+    if (!coverageOutput) {
+        phantom.exit(0);
+    }
     var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === "success") {
             return window.coverageHandler.handleCoverage(window._$blanket);
@@ -145,7 +148,9 @@ page.onLoadFinished = function (status) {
         phantom.exit(1);
     }
 
-    page.injectJs('coverageHandler.js');
+    if (coverageOutput) {
+        page.injectJs('coverageHandler.js');
+    }
     if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);

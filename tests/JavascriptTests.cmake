@@ -1,4 +1,4 @@
-set(web_client_port 50001)
+set(web_client_port 30001)
 
 function(javascript_tests_init)
   add_test(

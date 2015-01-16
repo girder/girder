@@ -144,7 +144,8 @@ if __name__ == '__main__':
     parser.add_argument('--source', help='The root directory of the source '
                         'repository')
     parser.add_argument('task', help='The task to perform.',
-                        choices=['reset', 'combine_report'])
+                        choices=['reset', 'combine_report',
+                                 'combine_report_skip'])
     parser.add_argument('coverage_dir', help='The directory containing the '
                         'intermediate coverage files.')
 
