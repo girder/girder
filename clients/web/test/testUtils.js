@@ -20,7 +20,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
 
         waitsFor(function () {
             return $('.g-register').length > 0;
-        }, 'girder app to render');
+        }, 'Girder app to render');
 
         runs(function () {
             $('.g-register').click();
@@ -63,7 +63,7 @@ girderTest.login = function (login, firstName, lastName, password) {
 
         waitsFor(function () {
             return $('.g-login').length > 0;
-        }, 'girder app to render');
+        }, 'Girder app to render');
 
         girderTest.waitForLoad();
 
