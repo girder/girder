@@ -10,5 +10,5 @@ if __name__ == '__main__':
     cache = int(line.split()[5])
 
     if cache < 100:
-        print 'BAD VMSTAT CACHE VALUE: ' + cache
+        print '!!! ABORTING, LOW CACHE DETECTED: %d !!!' % cache
         sys.exit(1)
