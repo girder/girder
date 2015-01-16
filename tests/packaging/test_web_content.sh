@@ -4,6 +4,7 @@ virtualenv_activate="${1}"
 source_path="${2}"
 CURL="${3}"
 GREP="${4}"
+unset PYTHONPATH
 
 source "${virtualenv_activate}"
 

@@ -3,6 +3,7 @@
 virtualenv_activate="${1}"
 CURL="${2}"
 GREP="${3}"
+unset PYTHONPATH
 
 source "${virtualenv_activate}"
 

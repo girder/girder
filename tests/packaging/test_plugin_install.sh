@@ -2,6 +2,7 @@
 
 virtualenv_activate="${1}"
 source_path="${2}"
+unset PYTHONPATH
 
 source "${virtualenv_activate}"
 
