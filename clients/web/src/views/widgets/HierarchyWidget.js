@@ -93,6 +93,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.folderListView = new girder.views.FolderListWidget({
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
+            checkboxes: this._checkboxes,
             parentView: this
         });
         this.folderListView.on('g:folderClicked', function (folder) {
@@ -129,6 +130,7 @@ girder.views.HierarchyWidget = girder.View.extend({
     _initFolderViewSubwidgets: function () {
         this.itemListView = new girder.views.ItemListWidget({
             folderId: this.parentModel.get('_id'),
+            checkboxes: this._checkboxes,
             parentView: this
         });
         this.itemListView.on('g:itemClicked', this._onItemClick, this)
@@ -337,7 +339,8 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         this.folderListView.initialize({
             parentType: parent.resourceName,
-            parentId: parent.get('_id')
+            parentId: parent.get('_id'),
+            checkboxes: this._checkboxes
         });
 
         this.updateChecked();
@@ -345,7 +348,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (parent.resourceName === 'folder') {
             if (this.itemListView) {
                 this.itemListView.initialize({
-                    folderId: parent.get('_id')
+                    folderId: parent.get('_id'),
+                    checkboxes: this._checkboxes
                 });
             } else {
                 this._initFolderViewSubwidgets();

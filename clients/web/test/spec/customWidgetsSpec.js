@@ -90,7 +90,7 @@ describe('Test hierarchy widget non-standard options', function () {
         }, 'item creation');
     });
 
-    it('test minimalist hierarchy widget', function () {
+    it('test custom hierarchy widget options', function () {
         var fn = function () {
             flag = true;
         };
@@ -109,11 +109,13 @@ describe('Test hierarchy widget non-standard options', function () {
 
         waitsFor(function () {
             return $('.g-hierarchy-widget').length > 0;
-        });
+        }, 'the hierarchy widget to display');
 
         runs(function () {
             expect($('.g-upload-here-button').length).toBe(0);
             expect($('.g-hierarchy-actions-header').length).toBe(0);
+            expect($('.g-list-checkbox').length).toBe(2);
+            expect($('.g-select-all').length).toBe(0);
             expect($('.g-folder-list-link').text()).toBe('subfolder');
             expect($('.g-item-list-link').text()).toBe('an item');
 
@@ -123,5 +125,31 @@ describe('Test hierarchy widget non-standard options', function () {
         waitsFor(function () {
             return flag;
         }, 'item click callback to run');
+
+        runs(function () {
+            $('body').empty().off();
+
+            new girder.views.HierarchyWidget({
+                el: 'body',
+                parentModel: folder,
+                checkboxes: false,
+                parentView: null,
+                showItems: false
+            });
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0;
+        }, 'the hierarchy widget with no checkboxes to display');
+
+        runs(function () {
+            expect($('.g-upload-here-button').length).toBe(1);
+            expect($('.g-hierarchy-actions-header').length).toBe(1);
+            expect($('.g-list-checkbox').length).toBe(0);
+            expect($('.g-select-all').length).toBe(0);
+            expect($('.g-checked-actions-buttons').length).toBe(0);
+            expect($('.g-folder-list-link').text()).toBe('subfolder');
+            expect($('.g-item-list-link').length).toBe(0);
+        });
     });
 });
