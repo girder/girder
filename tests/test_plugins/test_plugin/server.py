@@ -16,10 +16,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import os
 
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource
+from girder.utility.server import staticFile
 
 
 class CustomAppRoot(object):
@@ -51,3 +53,7 @@ def load(info):
     del info['serverRoot'].girder.api
 
     info['apiRoot'].other = Other()
+
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                        'static.txt')
+    info['serverRoot'].static_route = staticFile(path)
