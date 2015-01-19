@@ -131,3 +131,23 @@ def setup(test=False, plugins=None, curConfig=None):
         application.merge({'server': {'mode': 'testing'}})
 
     return application
+
+
+class _StaticFileRoute(object):
+    exposed = True
+
+    def __init__(self, path):
+        self.path = path
+
+    def GET(self):
+        return cherrypy.lib.static.serve_file(self.path)
+
+
+def staticFile(path):
+    """
+    Helper function to serve a static file. This should be bound as the route
+    object, i.e. info['serverRoot'].route_name = staticFile('...')
+
+    :param path: The path of the static file to serve from this route.
+    """
+    return _StaticFileRoute(path)
