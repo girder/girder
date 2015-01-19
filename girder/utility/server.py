@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import os
 
 import girder.events
 from girder import constants
@@ -137,7 +138,7 @@ class _StaticFileRoute(object):
     exposed = True
 
     def __init__(self, path):
-        self.path = path
+        self.path = os.path.abspath(path)
 
     def GET(self):
         return cherrypy.lib.static.serve_file(self.path)

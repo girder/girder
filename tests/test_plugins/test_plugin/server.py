@@ -54,6 +54,5 @@ def load(info):
 
     info['apiRoot'].other = Other()
 
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                        'static.txt')
+    path = os.path.join(os.path.dirname(__file__), 'static.txt')
     info['serverRoot'].static_route = staticFile(path)
