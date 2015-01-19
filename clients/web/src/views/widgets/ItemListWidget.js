@@ -101,6 +101,7 @@ girder.views.ItemListWidget = girder.View.extend({
         if (!el.length) {
             return null;
         }
-        return this.collection.get(el[0].attr('g-item-cid'));
+        var cid = $('.g-item-list-link', $(el[0])).attr('g-item-cid');
+        return this.collection.get(cid);
     }
 });

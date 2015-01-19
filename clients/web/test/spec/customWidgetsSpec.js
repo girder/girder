@@ -23,7 +23,7 @@ describe('Test upload widget non-standard options', function () {
 });
 
 describe('Test hierarchy widget non-standard options', function () {
-    var user, folder, subfolder, item, flag = false;
+    var user, folder, subfolder, item, widget;
 
     it('register a user', function () {
         runs(function () {
@@ -91,17 +91,15 @@ describe('Test hierarchy widget non-standard options', function () {
     });
 
     it('test custom hierarchy widget options', function () {
-        var fn = function () {
-            flag = true;
-        };
-
         runs(function () {
             $('body').off();
 
-            new girder.views.HierarchyWidget({
+            widget = new girder.views.HierarchyWidget({
                 el: 'body',
                 parentModel: folder,
-                onItemClick: fn,
+                onItemClick: function (item) {
+                    widget.selectItem(item);
+                },
                 showActions: false,
                 parentView: null
             });
@@ -118,15 +116,19 @@ describe('Test hierarchy widget non-standard options', function () {
             expect($('.g-select-all').length).toBe(0);
             expect($('.g-folder-list-link').text()).toBe('subfolder');
             expect($('.g-item-list-link').text()).toBe('an item');
+            expect(widget.getSelectedItem()).toBe(null);
 
             $('.g-item-list-link').click();
         });
 
         waitsFor(function () {
-            return flag;
-        }, 'item click callback to run');
+            var selected = widget.getSelectedItem();
+            return selected && selected.get('_id') === item.get('_id');
+        }, 'item to be selected');
 
         runs(function () {
+            expect($('.g-item-list-entry.g-selected').length).toBe(1);
+
             $('body').empty().off();
 
             new girder.views.HierarchyWidget({
