@@ -9,10 +9,11 @@
  */
 
 if (phantom.args.length < 2) {
-    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output>]');
+    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
     console.error('  <page> is the path to the HTML page to load');
     console.error('  <spec> is the path to the jasmine spec to run.');
     console.error('  <covg_output> is the path to a file to write coverage into.');
+    console.error('  <default jasmine timeout> is in milliseconds.');
     phantom.exit(2);
 }
 
@@ -154,6 +155,11 @@ page.onLoadFinished = function (status) {
     if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
+    }
+    if (phantom.args[3]) {
+        page.evaluate(function(timeout) {
+            jasmine.getEnv().defaultTimeoutInterval = timeout;
+        }, phantom.args[3]);
     }
 };
 

@@ -431,9 +431,14 @@ girderTest.waitForLoad = function (desc) {
     }, 'for the modal backdrop to go away'+desc);
     */
     waitsFor(function () {
-        return $('.modal').data('bs.modal') === undefined ||
-               $('.modal').data('bs.modal').isShown === false ||
-               $('.modal').data('bs.modal').isShown === null;
+        if ($('.modal').data('bs.modal') === undefined) {
+            return true;
+        }
+        if ($('.modal').data('bs.modal').isShown !== false &&
+            $('.modal').data('bs.modal').isShown !== null) {
+            return false;
+        }
+        return !$('.modal').data('bs.modal').$backdrop;
     }, 'for any modal dialog to be hidden'+desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
@@ -448,7 +453,6 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
-    waits(1);
     /* If is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
@@ -586,6 +590,7 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
     });
     /* We need to let the window have a chance to reload, so we just release
      * our time slice. */
+    waits(1);
     if (hasDialog) {
         girderTest.waitForDialog('route: '+route);
     } else {

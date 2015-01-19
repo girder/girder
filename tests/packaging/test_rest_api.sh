@@ -7,7 +7,7 @@ unset PYTHONPATH
 
 source "${virtualenv_activate}"
 
-export GIRDER_PORT=50201
+export GIRDER_PORT=31200
 python -m girder &> /dev/null &
 
 version="$(girder-install version)"

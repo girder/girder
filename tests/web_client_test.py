@@ -115,13 +115,14 @@ class WebClientTestCase(base.TestCase):
             'http://localhost:%s/static/built/testEnv.html' % os.environ[
                 'GIRDER_PORT'],
             self.specFile,
-            self.coverageFile
+            self.coverageFile,
+            os.environ.get('JASMINE_TIMEOUT', '')
         )
 
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        for tries in xrange(10):
+        for tries in xrange(5):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
@@ -131,6 +132,7 @@ class WebClientTestCase(base.TestCase):
                         'error loading source script' in line):
                     retry = True
                 elif '__FETCHEMAIL__' in line:
+                    base.mockSmtp.waitForMail()
                     msg = base.mockSmtp.getMail()
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
                          'wb').write(msg)
