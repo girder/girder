@@ -69,7 +69,6 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         this.$('.g-action-remove-access').tooltip({
-            container: '.modal',
             placement: 'bottom',
             animation: false,
             delay: {show: 100}
