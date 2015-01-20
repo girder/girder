@@ -22,7 +22,7 @@ import sys
 import time
 
 # Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = '50001'
+os.environ['GIRDER_PORT'] = '31201'
 
 from girder.constants import ROOT_DIR
 from server.metadata_extractor import ClientMetadataExtractor
@@ -48,7 +48,7 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
 
         from girder_client import GirderClient
 
-        client = GirderClient('localhost', 50001)
+        client = GirderClient('localhost', int(os.environ['GIRDER_PORT']))
         client.authenticate(self.user['login'], self.password)
         extractor = ClientMetadataExtractor(client, self.path, self.item['_id'])
         extractor.extractMetadata()
