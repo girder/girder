@@ -71,7 +71,7 @@ describe('Test hierarchy widget non-standard options', function () {
         });
 
         waitsFor(function () {
-            return !!folder;
+            return !!subfolder;
         }, 'subfolder creation');
     });
 
@@ -106,7 +106,9 @@ describe('Test hierarchy widget non-standard options', function () {
         });
 
         waitsFor(function () {
-            return $('.g-hierarchy-widget').length > 0;
+            return $('.g-hierarchy-widget').length > 0 &&
+                   $('.g-folder-list-link').length > 0 &&
+                   $('.g-item-list-link').length > 0;
         }, 'the hierarchy widget to display');
 
         runs(function () {
@@ -141,7 +143,8 @@ describe('Test hierarchy widget non-standard options', function () {
         });
 
         waitsFor(function () {
-            return $('.g-hierarchy-widget').length > 0;
+            return $('.g-hierarchy-widget').length > 0 &&
+                   $('.g-folder-list-link').length > 0;
         }, 'the hierarchy widget with no checkboxes to display');
 
         runs(function () {
