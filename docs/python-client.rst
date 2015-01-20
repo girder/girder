@@ -20,5 +20,5 @@ The Python Client Library
 For those wishing to write their own python scripts that interact with Girder, we
 recommend using the Girder python client library, documented below.
 
-.. automodule:: girderclient
+.. automodule:: girder_client
     :members:

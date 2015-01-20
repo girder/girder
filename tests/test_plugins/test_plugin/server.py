@@ -53,6 +53,5 @@ def load(info):
     del info['serverRoot'].girder.api
 
     info['apiRoot'].other = Other()
-
-    path = os.path.join(os.path.dirname(__file__), 'static.txt')
+    path = os.path.join(PLUGIN_ROOT_DIR, 'static.txt')
     info['serverRoot'].static_route = staticFile(path)
