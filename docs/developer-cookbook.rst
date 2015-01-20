@@ -216,6 +216,31 @@ body would be ``0123456789``.
                 yield str(i)
         return gen
 
+Serving a static file
+^^^^^^^^^^^^^^^^^^^^^
+
+If you are building a plugin that needs to serve up a static file from a path
+on disk, you can make use of the ``staticFile`` utility, as in the following
+example:
+
+.. code-block:: python
+
+    import os
+    from girder.utility.server import staticFile
+
+    def load(info):
+        path = os.path.join(PLUGIN_ROOT_DIR, 'static', 'index.html')
+        info['serverRoot'].static_route = staticFile(path)
+
+The ``staticFile`` utility should be assigned to the route corresponding to
+where the static file should be served from.
+
+.. note:: If a relative path is passed to ``staticFile``, it will be interpreted
+  relative to the current working directory, which may vary. If your static
+  file resides within your plugin, it is recommended to use the special
+  ``PLUGIN_ROOT_DIR`` property of your server module, or the equivalent
+  ``info['pluginRootDir']`` value passed to the ``load`` method.
+
 Sending Emails
 ^^^^^^^^^^^^^^
 

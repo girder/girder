@@ -137,7 +137,8 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
                     'name': name,
                     'config': appconf,
                     'serverRoot': root,
-                    'apiRoot': apiRoot
+                    'apiRoot': apiRoot,
+                    'pluginRootDir': os.path.abspath(pluginDir)
                 }
                 module.load(info)
 
