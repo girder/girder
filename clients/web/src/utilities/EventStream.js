@@ -21,8 +21,9 @@
             var stream = this;
 
             this._eventSource.onmessage = function (e) {
+                var obj;
                 try {
-                    var obj = window.JSON.parse(e.data);
+                    obj = window.JSON.parse(e.data);
                 } catch (err) {
                     console.error('Invalid JSON from SSE stream: ' + e.data + ',' + err);
                     stream.trigger('g:error', e);
