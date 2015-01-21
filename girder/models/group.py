@@ -111,8 +111,8 @@ class Group(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         duplicate = self.findOne(q, fields=['_id'])
         if duplicate is not None:
-            raise ValidationException('A group with that name already'
-                                      'exists.', 'name')
+            raise ValidationException('A group with that name already exists.',
+                                      field='name')
 
         return doc
 
