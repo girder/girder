@@ -117,6 +117,28 @@ class InstallTestCase(base.TestCase):
             )
         )
 
+    def testPluginWithYaml(self):
+        l = install.install_plugin(
+            os.path.join(pluginRoot, 'plugin_yaml')
+        )
+        self.assertEqual(l, ['plugin_yaml'])
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.pluginDir, 'plugin_yaml', 'plugin.yml')
+            )
+        )
+
+    def testPluginWithNoConfig(self):
+        l = install.install_plugin(
+            os.path.join(pluginRoot, 'test_plugin')
+        )
+        self.assertEqual(l, ['test_plugin'])
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(self.pluginDir, 'test_plugin', 'server.py')
+            )
+        )
+
     def testMultiPluginInstallFromTgz(self):
         self.assertEqual(
             sorted(install.install_plugin(self.combinedPluginTarball)),
