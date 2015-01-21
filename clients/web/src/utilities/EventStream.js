@@ -23,11 +23,13 @@
             this._eventSource.onmessage = function (e) {
                 try {
                     var obj = window.JSON.parse(e.data);
-                    stream.trigger('g:event.' + obj.type, obj);
                 } catch (err) {
                     console.error('Invalid JSON from SSE stream: ' + e.data + ',' + err);
                     stream.trigger('g:error', e);
+                    return;
                 }
+                stream.trigger('g:event.' + obj.type, obj);
+
             };
         } else {
             console.error('EventSource is not supported on this platform.');
