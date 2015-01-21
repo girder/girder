@@ -453,7 +453,7 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
-    /* If is faster to wait until the dialog is officially shown than to wait
+    /* It is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
         return $('#g-dialog-container:visible').length > 0 &&

@@ -98,7 +98,7 @@ describe('Create an admin and non-admin user', function () {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-login').length > 0;
-        }, 'register dialog to appear');
+        }, 'login dialog to appear');
         runs(function () {
             $('.g-forgot-password').click();
         });
