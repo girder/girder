@@ -30,6 +30,8 @@ describe('Test widgets that are not covered elsewhere', function () {
                               'adminpassword!'));
 
     it('test task progress widget', function () {
+        var errorCalled=0, onMessageError=0;
+
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
             _setProgress('success', 0);
@@ -50,6 +52,35 @@ describe('Test widgets that are not covered elsewhere', function () {
         waitsFor(function () {
             return $('.g-task-progress-message:last').text() == 'Error: Progress error test.';
         }, 'progress to report an error');
+
+        runs(function () {
+            var origOnMessage = girder.eventStream._eventSource.onmessage;
+            girder.eventStream._eventSource.onmessage = function (e) {
+                try {
+                    origOnMessage(e);
+                } catch (err) {
+                    onMessageError += 1;
+                }
+            };
+            var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
+            stream.on('g:error', function () { errorCalled += 1; });
+            stream.on('g:event.progress', function () {
+                throw 'intentional error';
+            });
+            _setProgress('success', 0);
+        });
+        waitsFor(function () {
+            return onMessageError == 1;
+        }, 'bad progress callbcak to be tried');
+        runs(function () {
+            _setProgress('error', 0);
+        });
+        waitsFor(function () {
+            return onMessageError == 2;
+        }, 'bad progress callbcak to be tried again');
+        runs(function () {
+            expect(errorCalled).toBe(0);
+        });
 
         runs(function () {
             /* Ask for a long test, so that on slow machines we can still
