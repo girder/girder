@@ -71,13 +71,13 @@ describe('Test widgets that are not covered elsewhere', function () {
         });
         waitsFor(function () {
             return onMessageError == 1;
-        }, 'bad progress callbcak to be tried');
+        }, 'bad progress callback to be tried');
         runs(function () {
             _setProgress('error', 0);
         });
         waitsFor(function () {
             return onMessageError == 2;
-        }, 'bad progress callbcak to be tried again');
+        }, 'bad progress callback to be tried again');
         runs(function () {
             expect(errorCalled).toBe(0);
         });
