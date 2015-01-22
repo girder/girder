@@ -31,7 +31,7 @@ import moto.s3
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
     botoConnectS3, S3AssetstoreAdapter
 
-_startPort = 51100
+_startPort = 31100
 _maxTries = 100
 
 
@@ -80,7 +80,11 @@ def startMockS3Server():
     """
     Start a server using the defaults and adding a configuration parameter to
     the system so that the s3 assetstore handler will know to use this
-    server.
+    server.  Attempt to bind to any port within the range specified by
+    _startPort and _maxTries.  Bias it with the pid of the current process so
+    as to reduce potential conflicts with parallel tests that are started
+    nearly simultaneously.
+
     :returns: the started server.
     """
     # Reduce the chunk size to allow faster testing.
@@ -90,7 +94,8 @@ def startMockS3Server():
     if 'mocks3' not in os.environ.get('EXTRADEBUG', '').split():
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
     selectedPort = None
-    for port in range(_startPort, _startPort + _maxTries):
+    for porttry in xrange(_maxTries):
+        port = _startPort + ((porttry + os.getpid()) % _maxTries)
         test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             test_socket.bind(('0.0.0.0', port))

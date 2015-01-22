@@ -431,9 +431,14 @@ girderTest.waitForLoad = function (desc) {
     }, 'for the modal backdrop to go away'+desc);
     */
     waitsFor(function () {
-        return $('.modal').data('bs.modal') === undefined ||
-               $('.modal').data('bs.modal').isShown === false ||
-               $('.modal').data('bs.modal').isShown === null;
+        if ($('.modal').data('bs.modal') === undefined) {
+            return true;
+        }
+        if ($('.modal').data('bs.modal').isShown !== false &&
+            $('.modal').data('bs.modal').isShown !== null) {
+            return false;
+        }
+        return !$('.modal').data('bs.modal').$backdrop;
     }, 'for any modal dialog to be hidden'+desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
@@ -448,7 +453,7 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
-    /* If is faster to wait until the dialog is officially shown than to wait
+    /* It is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
         return $('#g-dialog-container:visible').length > 0 &&
@@ -470,15 +475,19 @@ girderTest.waitForDialog = function (desc) {
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    blanket.utils.cache[url] = {};
-    blanket.utils.attachScript({url:url}, function (content) {
-        blanket.instrument({inputFile: content, inputFileName: url},
-                           function (instrumented) {
-            blanket.utils.cache[url].loaded = true;
-            blanket.utils.blanketEval(instrumented);
-            blanket.requiringFile(url, true);
-        });
-   });
+    if (window.blanket) {
+        blanket.utils.cache[url] = {};
+        blanket.utils.attachScript({url:url}, function (content) {
+            blanket.instrument({inputFile: content, inputFileName: url},
+                               function (instrumented) {
+                blanket.utils.cache[url].loaded = true;
+                blanket.utils.blanketEval(instrumented);
+                blanket.requiringFile(url, true);
+            });
+       });
+    } else {
+        $('<script/>', {src: url}).appendTo('head');
+    }
 };
 
 /**

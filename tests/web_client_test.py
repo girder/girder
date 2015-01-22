@@ -23,7 +23,7 @@ import sys
 import time
 
 # Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '50001')
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 
 from girder.api import access
 from girder.api.describe import Description
@@ -115,7 +115,8 @@ class WebClientTestCase(base.TestCase):
             'http://localhost:%s/static/built/testEnv.html' % os.environ[
                 'GIRDER_PORT'],
             self.specFile,
-            self.coverageFile
+            self.coverageFile,
+            os.environ.get('JASMINE_TIMEOUT', '')
         )
 
         # phantomjs occasionally fails to load javascript files.  This appears
@@ -125,20 +126,26 @@ class WebClientTestCase(base.TestCase):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
+            hasJasmine = False
             for line in iter(task.stdout.readline, ''):
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
                     retry = True
                 elif '__FETCHEMAIL__' in line:
+                    base.mockSmtp.waitForMail()
                     msg = base.mockSmtp.getMail()
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
                          'wb').write(msg)
                     continue  # we don't want to print this
+                if 'Jasmine' in line:
+                    hasJasmine = True
                 sys.stdout.write(line)
                 sys.stdout.flush()
             returncode = task.wait()
-            if not retry:
+            if not retry and hasJasmine:
                 break
+            if not hasJasmine:
+                time.sleep(1)
             sys.stderr.write('Retrying test\n')
 
         self.assertEqual(returncode, 0)

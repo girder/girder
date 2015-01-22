@@ -19,11 +19,16 @@
          * problem switching from one modal dialog to another. */
         if ($(this).is('.modal')) {
             /* We have to reach into the backbone modal object a little to see
-             * if we need to do anything. */
+             * if we need to do anything.  By turning off the fade as we
+             * remove the old dialog, the removal is synchronous and we are
+             * sure it is gone before we add the new dialog. */
             if ($(this).data('bs.modal') && $(this).data('bs.modal').isShown) {
+                var elem = $($(this).data('bs.modal').$element);
+                var hasFade = elem.hasClass('fade');
+                elem.removeClass('fade');
                 $(this).modal('hide');
+                elem.toggleClass('fade', hasFade);
             }
-            $(this).modal('removeBackdrop');
         }
         if (view !== 'close') {
             this.off().modal().find('[data-dismiss="modal"]')
