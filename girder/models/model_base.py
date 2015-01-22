@@ -736,9 +736,9 @@ class AccessControlledModel(Model):
         cursor = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)
-        return [r for r in self.filterResultsByPermission(
+        return self.filterResultsByPermission(
             cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)]
+            offset=offset)
 
 
 class AccessException(Exception):
