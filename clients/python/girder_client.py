@@ -327,10 +327,10 @@ class GirderClient(object):
         Tests whether the passed in filepath exists in the item with itemId,
         with a name of filename, and with the same contents as the file at
         filepath.  Returns a tuple (file_id, current) where
-            file_id: id of the file with that filename under the item, or
-            None if no such file exists under the item.
-            current: boolean if the file with that filename under the item
-            has the same contents as the file at filepath.
+        file_id = id of the file with that filename under the item, or
+        None if no such file exists under the item.
+        current = boolean if the file with that filename under the item
+        has the same contents as the file at filepath.
 
         :param itemId: ID of parent item for file.
         :param filename: name of file to look for under the parent item.

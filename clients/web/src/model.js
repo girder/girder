@@ -52,6 +52,8 @@ girder.Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
+
+        return this;
     },
 
     /**
