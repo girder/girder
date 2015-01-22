@@ -453,7 +453,7 @@ class Resource(ModelImporter):
         :param route: The route, as a list of path params relative to the
             resource root. Elements of this list starting with ':' are assumed
             to be wildcards.
-        :type route: list
+        :type route: tuple
         :param handler: The method to be called if the route and method are
             matched by a request. Wildcards in the route will be expanded and
             passed as kwargs with the same name as the wildcard identifier.
