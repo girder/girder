@@ -15,8 +15,7 @@
     prototype.open = function () {
         if (window.EventSource) {
             this._eventSource = new window.EventSource(
-                girder.apiRoot + '/notification/stream?token=' +
-                girder.cookie.find('girderToken'));
+                girder.apiRoot + '/notification/stream');
 
             var stream = this;
 

@@ -242,8 +242,7 @@ class Item(Resource):
     @loadmodel(model='item', level=AccessType.READ)
     def download(self, item, params):
         """
-        Defers to the underlying assetstore adapter to stream the file or
-        file out.
+        Defers to the underlying assetstore adapter to stream the file out.
         """
         offset = int(params.get('offset', 0))
         user = self.getCurrentUser()
@@ -256,6 +255,7 @@ class Item(Resource):
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
+    download.cookieAuth = True
     download.description = (
         Description('Download the contents of an item.')
         .param('id', 'The ID of the item.', paramType='path')

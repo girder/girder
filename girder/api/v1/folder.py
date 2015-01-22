@@ -111,6 +111,7 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
+
     @access.public
     @loadmodel(model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):
@@ -132,6 +133,7 @@ class Folder(Resource):
                     yield data
             yield zip.footer()
         return stream
+    downloadFolder.cookieAuth = True
     downloadFolder.description = (
         Description('Download an entire folder as a zip archive.')
         .param('id', 'The ID of the folder.', paramType='path')

@@ -82,6 +82,7 @@ class Notification(Resource):
 
                 time.sleep(wait)
         return streamGen
+    stream.cookieAuth = True
     stream.description = (
         Description('Stream notifications for a given user via the SSE '
                     'protocol.')

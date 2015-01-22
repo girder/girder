@@ -80,19 +80,20 @@ girder.Model = Backbone.Model.extend({
     },
 
     /**
-     * For models that can be downloaded, this method should be used to
+     * Get the path for downloading this resource via the API. Can be used
+     * as the href property of a direct download link.
+     */
+    downloadUrl: function () {
+        return girder.apiRoot + '/' + this.resourceName + '/' +
+            this.get('_id') + '/download';
+    },
+
+    /**
+     * For models that can be downloaded, this method can be used to
      * initiate the download in the browser.
      */
     download: function () {
-        var url = girder.apiRoot + '/' + this.resourceName + '/' +
-            this.get('_id') + '/download';
-
-        var token = girder.cookie.find('girderToken');
-        if (token) {
-            url += '?token=' + token;
-        }
-
-        window.location.assign(url);
+        window.location.assign(this.downloadUrl());
     },
 
     /**

@@ -74,16 +74,27 @@ def _cacheAuthToken(fun):
 
 
 @_cacheAuthToken
-def getCurrentToken():
+def getCurrentToken(allowCookie=False):
     """
     Returns the current valid token object that was passed via the token header
     or parameter, or None if no valid token was passed.
+
+    :param allowCookie: Normally, authentication via cookie is disallowed to
+        protect against CSRF attacks. If you want to expose an endpoint that can
+        be authenticated with a token passed in the Cookie, set this to True.
+        This should only be used on read-only operations that will not make any
+        changes to data on the server, and only in cases where the user agent
+        behavior makes passing custom headers infeasible, such as downloading
+        data to disk in the browser.
+    :type allowCookie: bool
     """
     tokenStr = None
     if 'token' in cherrypy.request.params:  # Token as a parameter
         tokenStr = cherrypy.request.params.get('token')
     elif 'Girder-Token' in cherrypy.request.headers:
         tokenStr = cherrypy.request.headers['Girder-Token']
+    elif allowCookie and 'girderToken' in cherrypy.request.cookie:
+        tokenStr = cherrypy.request.cookie['girderToken'].value
 
     if not tokenStr:
         return None
@@ -433,7 +444,8 @@ class Resource(ModelImporter):
     """
     exposed = True
 
-    def route(self, method, route, handler, nodoc=False, resource=None):
+    def route(self, method, route, handler, nodoc=False, resource=None,
+              cookieAuth=False):
         """
         Define a route for your REST resource.
 
@@ -446,9 +458,18 @@ class Resource(ModelImporter):
         :param handler: The method to be called if the route and method are
             matched by a request. Wildcards in the route will be expanded and
             passed as kwargs with the same name as the wildcard identifier.
+        :param cookieAuth: Normally, authentication via cookie is disallowed to
+            protect against CSRF attacks. If you want to expose an endpoint that
+            canbe authenticated with a token passed in the Cookie, set this to
+            True. This should only be used on read-only operations that will not
+            make any changes to data on the server, and only in cases where the
+            user agent behavior makes passing custom headers infeasible, such as
+            downloading data to disk in the browser.
+        :type cookieAuth: bool
         :type handler: function
         :param nodoc: If your route intentionally provides no documentation,
             set this to True to disable the warning on startup.
+
         :type nodoc: bool
         :param resource: The name of the resource at the root of this route.
         """
@@ -575,6 +596,9 @@ class Resource(ModelImporter):
         for route, handler in self._routes[method][len(path)]:
             kwargs = self._matchRoute(path, route)
             if kwargs is not False:
+                if hasattr(handler, 'cookieAuth') and handler.cookieAuth:
+                    getCurrentToken(allowCookie=True)
+
                 kwargs['params'] = params
                 # Add before call for the API method. Listeners can return
                 # their own responses by calling preventDefault() and
