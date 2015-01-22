@@ -167,7 +167,7 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             girderTest._redirect = null;
-            $('.g-file-list-link').click();
+            window.location.assign($('a.g-file-list-link').attr('href'));
         });
 
         waitsFor(function () {
@@ -175,7 +175,7 @@ describe('Create a data hierarchy', function () {
         }, 'redirect to the file download URL');
 
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download\?token=.*$/.test(
+            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/.test(
                 girderTest._redirect)).toBe(true);
         });
     });
@@ -229,7 +229,7 @@ describe('Create a data hierarchy', function () {
             for (var i=1; i<=4; i++) {
                 $('.g-quick-search-container input.g-search-field')
                     .val('john'.substr(0, i)).trigger('input');
-            }                    
+            }
         });
         waitsFor(function () {
             return $('.g-quick-search-container .g-search-results')
@@ -305,13 +305,13 @@ describe('Create a data hierarchy', function () {
         }, 'the folder down action to appear');
         runs(function () {
             girderTest._redirect = null;
-            $('.g-download-folder').click();
+            window.location.assign($('a.g-download-folder').attr('href'));
         });
         waitsFor(function () {
             return girderTest._redirect !== null;
         }, 'redirect to the resource download URL');
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download\?token=.*$/.test(
+            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/.test(
                 girderTest._redirect)).toBe(true);
         });
     });
