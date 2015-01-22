@@ -111,7 +111,6 @@ class Folder(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
-
     @access.public
     @loadmodel(model='folder', level=AccessType.READ)
     def downloadFolder(self, folder, params):

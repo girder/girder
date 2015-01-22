@@ -444,8 +444,7 @@ class Resource(ModelImporter):
     """
     exposed = True
 
-    def route(self, method, route, handler, nodoc=False, resource=None,
-              cookieAuth=False):
+    def route(self, method, route, handler, nodoc=False, resource=None):
         """
         Define a route for your REST resource.
 
@@ -458,14 +457,6 @@ class Resource(ModelImporter):
         :param handler: The method to be called if the route and method are
             matched by a request. Wildcards in the route will be expanded and
             passed as kwargs with the same name as the wildcard identifier.
-        :param cookieAuth: Normally, authentication via cookie is disallowed to
-            protect against CSRF attacks. If you want to expose an endpoint that
-            canbe authenticated with a token passed in the Cookie, set this to
-            True. This should only be used on read-only operations that will not
-            make any changes to data on the server, and only in cases where the
-            user agent behavior makes passing custom headers infeasible, such as
-            downloading data to disk in the browser.
-        :type cookieAuth: bool
         :type handler: function
         :param nodoc: If your route intentionally provides no documentation,
             set this to True to disable the warning on startup.
