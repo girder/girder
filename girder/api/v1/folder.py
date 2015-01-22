@@ -132,6 +132,7 @@ class Folder(Resource):
                     yield data
             yield zip.footer()
         return stream
+    downloadFolder.cookieAuth = True
     downloadFolder.description = (
         Description('Download an entire folder as a zip archive.')
         .param('id', 'The ID of the folder.', paramType='path')

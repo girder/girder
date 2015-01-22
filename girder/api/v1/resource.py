@@ -173,6 +173,7 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
+    download.cookieAuth = True
     download.description = (
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')

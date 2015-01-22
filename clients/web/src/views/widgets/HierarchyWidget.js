@@ -5,7 +5,6 @@ girder.views.HierarchyWidget = girder.View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
-        'click a.g-download-folder': 'downloadFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
@@ -538,10 +537,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         return this._describeResources(girder.pickedResources.resources);
     },
 
-    downloadFolder: function () {
-        this.parentModel.download();
-    },
-
     /**
      * Get a parameter that can be added to a url for the checked resources.
      */
@@ -575,10 +570,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         var url = girder.apiRoot + '/resource/download';
         var resources = this._getCheckedResourceParam();
         var data = {resources: resources};
-        var token = girder.cookie.find('girderToken');
-        if (token) {
-            data.token = token;
-        }
+
         this.redirectViaForm('GET', url, data);
     },
 

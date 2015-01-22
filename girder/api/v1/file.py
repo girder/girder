@@ -219,6 +219,7 @@ class File(Resource):
         self.model('item').load(id=file['itemId'], user=user,
                                 level=AccessType.READ, exc=True)
         return self.model('file').download(file, offset)
+    download.cookieAuth = True
     download.description = (
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -230,6 +231,7 @@ class File(Resource):
     @access.public
     def downloadWithName(self, id, name, params):
         return self.download(id=id, params=params)
+    downloadWithName.cookieAuth = True
     downloadWithName.description = (
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
