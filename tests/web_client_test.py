@@ -97,16 +97,16 @@ class WebClientTestCase(base.TestCase):
             self.webSecurity = 'true'
         base.TestCase.setUp(self, assetstoreType)
         # One of the web client tests uses this db, so make sure it is cleared
-        # ahead of time
+        # ahead of time.  This still allows tests to be run in parallel, since
+        # nothing should be stored in this db
         base.dropGridFSDatabase('girder_webclient_gridfs')
         plugins = os.environ.get('ENABLED_PLUGINS', '')
         if plugins:
             self.model('setting').set(SettingKey.PLUGINS_ENABLED,
                                       plugins.split())
-
-    def testWebClientSpec(self):
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
+    def testWebClientSpec(self):
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
@@ -130,6 +130,7 @@ class WebClientTestCase(base.TestCase):
             for line in iter(task.stdout.readline, ''):
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
+                    task.kill()
                     retry = True
                 elif '__FETCHEMAIL__' in line:
                     base.mockSmtp.waitForMail()
@@ -147,5 +148,9 @@ class WebClientTestCase(base.TestCase):
             if not hasJasmine:
                 time.sleep(1)
             sys.stderr.write('Retrying test\n')
+            # If we are retrying, we need to reset the whole test, as the
+            # databases and other resources are in an unknown state
+            self.tearDown()
+            self.setUp()
 
         self.assertEqual(returncode, 0)
