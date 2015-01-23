@@ -542,8 +542,7 @@ class Folder(AccessControlledModel):
             'parentId': folder['_id'],
             'parentCollection': 'folder'
         }, fields=(), limit=0, timeout=False)
-        for subfolder in folders:
-            count += self.subtreeCount(subfolder)
+        count += sum(self.subtreeCount(subfolder) for subfolder in folders)
 
         return count
 

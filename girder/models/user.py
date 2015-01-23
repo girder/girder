@@ -292,6 +292,6 @@ class User(AccessControlledModel):
             'parentId': doc['_id'],
             'parentCollection': 'user'
         }, limit=0, timeout=False)
-        for folder in folders:
-            count += self.model('folder').subtreeCount(folder)
+        count += sum(self.model('folder').subtreeCount(folder)
+                     for folder in folders)
         return count
