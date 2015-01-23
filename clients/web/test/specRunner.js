@@ -170,9 +170,9 @@ page.onLoadFinished = function (status) {
 page.settings.resourceTimeout = 15000;
 
 page.onResourceTimeout = function (request) {
-    console.log('PHANTOM_TIMEOUT')
     console.log('Resource timed out.  (#' + request.id + '): ' +
                 JSON.stringify(request));
+    console.log('PHANTOM_TIMEOUT')
     /* The exit code doesn't get sent back from here, so setting this to a
      * non-zero value doesn't seem to have any benefit. */
     phantom.exit(0);

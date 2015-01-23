@@ -101,12 +101,12 @@ describe('Test widgets that are not covered elsewhere', function () {
                    '.progress-status .progress-left:last').text());
         }, 'progress to show estimated time');
 
-        /* There is a five second timeout for fading out the success message.
-         * Because we waiting for 4% of the progress of the previous task,
-         * there should be less than a second left to wait for the first test
-         * to vanish. */
+        /* There is a 5 second timeout for fading out the success message.  We
+         * wait for 4% of the progress of the previous task, there should be
+         * less than a second left to wait for the two previous success
+         * messages to vanish (but the error message might still be around). */
         waitsFor(function () {
-            return $('.g-progress-widget-container').length < 3;
+            return $('.g-progress-widget-container').length < 4;
         }, 'at least the first progress to be hidden');
 
         runs(function () {
