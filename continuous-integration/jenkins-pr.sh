@@ -15,7 +15,6 @@ sudo pip install -U six
 sudo python -c "import bcrypt"
 
 # Install Javascript deps
-npm install -g grunt-cli
 npm install
 
 # Now Build
