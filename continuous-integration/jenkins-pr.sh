@@ -24,5 +24,5 @@ npm install
 mkdir _build
 cd _build
 cmake ..
-ctest -VV -S ../cmake/travis_continuous.cmake || true
+ctest -VV -S ../cmake/jenkins_continuous.cmake || true
 if [ -f test_failed ] ; then false ; fi
