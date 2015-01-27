@@ -204,11 +204,15 @@ class GirderClient(object):
             raise Exception('Error, expected the returned '+path+' object to'
                             'have an "_id" field')
 
-    def getResource(self, path, id):
+    def getResource(self, path, id, property=None):
         """
-        Loads a resource by id or None if no resource is returned.
+        Loads a resource or resource property of property is not None
+        by id or None if no resource is returned.
         """
-        return self.get(path + '/' + id)
+        if property is not None:
+            return self.get(path + '/' + id + '/' + property)
+        else:
+            return self.get(path + '/' + id)
 
     def listResource(self, path, params):
         """
@@ -291,6 +295,33 @@ class GirderClient(object):
             'parentType': parentFolderType
         }
         return self.listResource(path, params)
+
+    def getFolderAccess(self, folderId):
+        """
+        Retrieves a folder's access by its ID.
+
+        :param folderId: A string containing the ID of the folder to retrieve
+            access for from Girder.
+        """
+        path = 'folder'
+        property = 'access'
+        return self.getResource(path, folderId, property)
+
+    def setFolderAccess(self, folderId, access, public):
+        """
+        Sets the passed in access control document along with the public value
+        to the target folder.
+
+        :param folderId: Id of the target folder.
+        :param access: JSON document specifying access control.
+        :param public: Boolean specificying the public value.
+        """
+        path = 'folder/' + folderId + '/access'
+        params = {
+            'access': access,
+            'public': public
+        }
+        return self.put(path, params)
 
     def file_chunker(self, filepath, filesize=None):
         """
@@ -554,4 +585,45 @@ class GirderClient(object):
 
             offset += len(items)
             if len(items) < 50:
+                break
+
+    def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
+                                      public=None):
+        """
+        Take the access control and public value of a folder and recursively
+        copy that access control and public value to all folder descendants,
+        replacing any existing access control on the descendant folders with
+        that of the ancestor folder.
+
+        :param ancestorFolderId: Id of the Girder folder to copy access
+        control from, to all of its descendant folders.
+        :param access: Dictionary Access control target, if None, will take
+        existing access control of ancestor folder
+        :param public: Boolean public value target, if None, will take existing
+        public value of ancestor folder
+        """
+        offset = 0
+
+        if public is None:
+            public = self.getFolder(ancestorFolderId)['public']
+
+        if access is None:
+            access = self.getFolderAccess(ancestorFolderId)
+
+        while True:
+            self.setFolderAccess(ancestorFolderId, json.dumps(access), public)
+
+            folders = self.get('folder', parameters={
+                'limit': 50,
+                'offset': offset,
+                'parentType': 'folder',
+                'parentId': ancestorFolderId
+            })
+
+            for folder in folders:
+                self.inheritAccessControlRecursive(folder['_id'], access,
+                                                   public)
+
+            offset += len(folders)
+            if len(folders) < 50:
                 break
