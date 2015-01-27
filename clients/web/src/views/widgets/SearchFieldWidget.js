@@ -28,6 +28,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 text: link.text()
             });
         },
+
         'keydown .g-search-field': function (e) {
             var code = e.keyCode || e.which;
             var list, pos;
@@ -61,11 +62,19 @@ girder.views.SearchFieldWidget = girder.View.extend({
         }
     },
 
+    /**
+     * @param [placeholder="Search..."] The placeholder text for the input field.
+     * @param [getInfoCallback] For custom resource types, this callback can
+     *        be passed in to resolve their title and icon. This callback should
+     *        return an object with "icon" and "text" fields if it can resolve
+     *        the result, or return falsy otherwise.
+     */
     initialize: function (settings) {
         this.ajaxLock = false;
         this.pending = null;
 
         this.placeholder = settings.placeholder || 'Search...';
+        this.getInfoCallback = settings.getInfoCallback || null;
         this.types = settings.types || [];
     },
 
@@ -154,9 +163,17 @@ girder.views.SearchFieldWidget = girder.View.extend({
                             text = result.name;
                             icon = 'doc-text-inv';
                         } else {
-                            // TODO plugin callback to render results
-                            text = '[unknown type]';
-                            icon = 'attention';
+                            if (this.getInfoCallback) {
+                                var res = this.getInfoCallback(type, result);
+                                if (res) {
+                                    text = res.text;
+                                    icon = res.icon;
+                                }
+                            }
+                            if (!text || !icon) {
+                                text = '[unknown type]';
+                                icon = 'attention';
+                            }
                         }
                         resources.push({
                             type: type,
