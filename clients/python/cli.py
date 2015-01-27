@@ -339,6 +339,9 @@ if __name__ == '__main__':
                  leaf_folders_as_items=args.leaf_folders_as_items,
                  reuse_existing=args.reuse)
     elif args.c == 'download':
-        g.downloadFolderRecursive(args.folder_id, args.local_folder)
+        if args.parent_type != 'folder':
+            print 'download command only accepts parent-type of folder'
+        else:
+            g.downloadFolderRecursive(args.parent_id, args.local_folder)
     else:
         print 'No implementation for command %s' % args.c
