@@ -243,7 +243,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', required=False, default='8080')
     parser.add_argument('--api-root', required=False, default='/api/v1',
                         help='path to the Girder REST API')
-    parser.add_argument('-c', default='upload', choices=['upload'],
+    parser.add_argument('-c', default='upload', choices=['upload', 'download'],
                         help='command to run')
     parser.add_argument('folder_id', help='id of Girder target folder')
     parser.add_argument('local_folder', help='path to local target folder')
@@ -260,5 +260,7 @@ if __name__ == '__main__':
         g.upload(args.local_folder, args.folder_id,
                  leaf_folders_as_items=args.leaf_folders_as_items,
                  reuse_existing=args.reuse)
+    elif args.c == 'download':
+        g.downloadFolderRecursive(args.folder_id, args.local_folder)
     else:
         print 'No implementation for command %s' % args.c
