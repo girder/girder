@@ -49,22 +49,22 @@ class AuthenticationError(RuntimeError):
 
 class GirderClient(object):
     """
-    A class for interacting with the Girder RESTful API. Some simple examples of
-    how to use this class follow:
+    A class for interacting with the girder restful api.
+    Some simple examples of how to use this class follow:
 
     .. code-block:: python
 
-        client = GirderClient('myhost', 9000)
+        client = girderclient('myhost', 9000)
         client.authenticate('myname', 'mypass')
 
-        itemId = client.createitem(folderId, 'an item name', 'a description')
-        client.addMetadataToItem(itemId, {'metadatakey': 'metadatavalue'})
-        client.uploadFileToItem(itemId, 'path/to/your/file.txt')
+        itemid = client.createitem(folderid, 'an item name', 'a description')
+        client.addmetadatatoitem(itemid, {'metadatakey': 'metadatavalue'})
+        client.uploadfiletoitem(itemid, 'path/to/your/file.txt')
 
-        r1 = client.getItem('52e935037bee0436e29a7130')
-        r2 = client.sendRestRequest('GET', 'item',
-            {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
-        r3 = client.sendRestRequest('GET', 'resource/search',
+        r1 = client.getitem('52e935037bee0436e29a7130')
+        r2 = client.sendrestrequest('get', 'item',
+            {'folderid': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
+        r3 = client.sendrestrequest('get', 'resource/search',
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
@@ -80,15 +80,19 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, host="localhost", port=8080, apiRoot=None):
+    def __init__(self, scheme="http", host="localhost", port=8080,
+                 apiRoot=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
         (HTTP Basic Auth).
 
+        :param scheme: A string containing the scheme for the Girder host,
+            the default value is 'http'; if you pass 'https' you likely want
+            to pass 443 for the port
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
-        :param port: A number containing the port on which to connect to Girder,
+        :param port: The port number on which to connect to Girder,
             the default value is 8080
         :param apiRoot: The path on the server corresponding to the root of the
             Girder REST API. If None is passed, assumes '/api/v1'.
@@ -96,10 +100,12 @@ class GirderClient(object):
         if apiRoot is None:
             apiRoot = '/api/v1'
 
+        self.scheme = scheme
         self.host = host
         self.port = port
 
-        self.urlBase = 'http://' + self.host + ':' + str(self.port) + apiRoot
+        self.urlBase = self.scheme + '://' + self.host + ':' + str(self.port) \
+            + apiRoot
 
         if self.urlBase[-1] != '/':
             self.urlBase += '/'
@@ -145,7 +151,7 @@ class GirderClient(object):
         raised, otherwise a JSON object is returned with the Girder response.
 
         This is a convenience method to use when making basic requests that do
-        not involve multipart file data which might need to be specially encoded
+        not involve multipart file data that might need to be specially encoded
         or handled differently.
 
         :param method: One of 'GET', 'POST', 'PUT', or 'DELETE'
@@ -402,8 +408,8 @@ class GirderClient(object):
                 uploadId = obj['_id']
             else:
                 raise Exception(
-                    'After creating an upload token for a new file, expected an'
-                    ' object with an id. Got instead: ' + json.dumps(obj))
+                    'After creating an upload token for a new file, expected '
+                    'an object with an id. Got instead: ' + json.dumps(obj))
 
         for chunk, startbyte in self.file_chunker(filepath, filesize):
             parameters = {
