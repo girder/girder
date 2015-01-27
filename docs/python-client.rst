@@ -28,6 +28,18 @@ id `54b6d41a8926486c0cbca367`:
 
     python cli.py 54b6d41a8926486c0cbca367 test_folder
 
+When using the `upload` command, the default parent type--meaning the type of
+resource the local folder will be created under--is Folder, so the
+following are equivalent:
+
+    python cli.py 54b6d41a8926486c0cbca367 test_folder
+    python cli.py 54b6d41a8926486c0cbca367 test_folder --parent-type folder
+
+To upload that same local folder to a Collection or User, specify the parent
+type as follows:
+
+    python cli.py 54b6d41a8926486c0cbca459 test_folder --parent-type user
+
 To see what local folders and files on disk would be uploaded without actually
 uploading anything, add the `--dryrun` flag:
 
@@ -60,6 +72,7 @@ To download a Girder Folder hierarchy rooted at Folder id
     
     python cli.py -c download 54b6d40b8926486c0cbca364 download_folder
 
+Downloading is only supported from a parent type of Folder.
 
 The Python Client Library
 -------------------------
