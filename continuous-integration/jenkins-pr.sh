@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Start mongo
+sudo mongod --fork --logpath mongo.log
+
 # Install Python deps
 sudo pip install -r \
     requirements.txt -r \
