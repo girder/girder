@@ -181,6 +181,10 @@ class GirderCli(GirderClient):
         filecount = len(subdircontents)
         for (ind, current_file) in enumerate(subdircontents):
             filepath = os.path.join(local_folder, current_file)
+            if current_file in self.blacklist:
+                if self.dryrun:
+                    print "Ignoring file %s as blacklisted" % current_file
+                continue
             print 'Adding file %s, (%d of %d) to Item' % (current_file,
                                                           ind + 1, filecount)
 
