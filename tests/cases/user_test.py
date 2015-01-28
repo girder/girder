@@ -611,7 +611,7 @@ class UserTestCase(base.TestCase):
         Make sure private users behave correctly.
         """
         # Create an admin user
-        admin = self.model('user').createUser(
+        self.model('user').createUser(
             firstName='Admin', lastName='Admin', login='admin',
             email='admin@admin.com', password='adminadmin')
 

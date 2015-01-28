@@ -23,7 +23,6 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.utility import assetstore_utilities
 from .model_base import Model, ValidationException
-from ..constants import AccessType
 
 
 class Upload(Model):
