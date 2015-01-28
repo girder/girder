@@ -23,7 +23,6 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.utility import assetstore_utilities
 from .model_base import Model, ValidationException
-from ..constants import AccessType
 
 
 class Upload(Model):
@@ -109,11 +108,8 @@ class Upload(Model):
                     name=upload['name'], creator={'_id': upload['userId']},
                     folder={'_id': upload['parentId']})
             else:
-                uploadUser = self.model('user').load(
-                    id=upload['userId'], objectId=True, level=AccessType.READ)
-                item = self.model('item').load(id=upload['parentId'],
-                                               objectId=True, user=uploadUser,
-                                               level=AccessType.WRITE)
+                item = self.model('item').load(
+                    id=upload['parentId'], force=True)
 
             file = self.model('file').createFile(
                 item=item, name=upload['name'], size=upload['size'],
