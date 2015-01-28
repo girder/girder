@@ -241,9 +241,7 @@ class Upload(Model):
                     }
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.
-        cursor = self.find(query, limit=limit, sort=sort, offset=offset)
-        for r in cursor:
-            yield r
+        return self.find(query, limit=limit, sort=sort, offset=offset)
 
     def cancelUpload(self, upload):
         """

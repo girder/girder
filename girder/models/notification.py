@@ -216,6 +216,4 @@ class Notification(Model):
         if since is not None:
             q['updated'] = {'$gt': since}
 
-        cursor = self.find(q)
-        for result in cursor:
-            yield result
+        return self.find(q)

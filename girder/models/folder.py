@@ -356,10 +356,8 @@ class Folder(AccessControlledModel):
         }
         q.update(filters)
 
-        cursor = self.model('item').find(
+        return self.model('item').find(
             q, limit=limit, offset=offset, sort=sort, **kwargs)
-        for item in cursor:
-            yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
                      sort=None, filters=None, **kwargs):
@@ -397,10 +395,9 @@ class Folder(AccessControlledModel):
         # afterward.
         cursor = self.find(q, limit=0, sort=sort, **kwargs)
 
-        for r in self.filterResultsByPermission(cursor=cursor, user=user,
-                                                level=AccessType.READ,
-                                                limit=limit, offset=offset):
-            yield r
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def createFolder(self, parent, name, description='', parentType='folder',
                      public=None, creator=None, allowRename=False):
