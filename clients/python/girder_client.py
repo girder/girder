@@ -54,17 +54,18 @@ class GirderClient(object):
 
     .. code-block:: python
 
-        client = girderclient('myhost', 9000)
+        client = GirderClient('myhost', 8080)
         client.authenticate('myname', 'mypass')
 
-        itemid = client.createitem(folderid, 'an item name', 'a description')
-        client.addmetadatatoitem(itemid, {'metadatakey': 'metadatavalue'})
-        client.uploadfiletoitem(itemid, 'path/to/your/file.txt')
+        folder_id = '53b714308926486402ac5aba'
+        item = client.createItem(folder_id, 'an item name', 'a description')
+        client.addMetadataToItem(item['_id'], {'metadatakey': 'metadatavalue'})
+        client.uploadFileToItem(item['_id'], 'path/to/your/file.txt')
 
-        r1 = client.getitem('52e935037bee0436e29a7130')
-        r2 = client.sendrestrequest('get', 'item',
-            {'folderid': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
-        r3 = client.sendrestrequest('get', 'resource/search',
+        r1 = client.getItem(item['_id'])
+        r2 = client.sendRestRequest('GET', 'item',
+            {'folderId': folder_id, 'sortdir': '-1' })
+        r3 = client.sendRestRequest('GET', 'resource/search',
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
