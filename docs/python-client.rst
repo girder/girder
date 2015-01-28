@@ -94,5 +94,5 @@ id `54b43e9b8926486c0c06cb4f` and copy those to all of the descendant Folders:
 
 def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
 
-.. automodule:: girderclient
+.. automodule:: girder_client
     :members:

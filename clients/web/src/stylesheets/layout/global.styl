@@ -11,6 +11,7 @@ i
 
 body
   padding 0
+  word-wrap break-word
 
 a
   cursor pointer
@@ -87,6 +88,23 @@ ul.dropdown-menu
 .modal-backdrop.in
   opacity .35
 
+blockquote p
+  font-size inherit
+
 /* Don't show the vertical scroll bar when we show a dialog unless we must */
 .modal
   overflow-y auto
+
+.g-monospace-viewer
+  font-family monospace
+  border 1px solid #ccc
+  background-color #f5f5f5
+  border-radius 0
+  overflow-x scroll
+  padding 7px 11px
+  white-space pre
+  word-wrap initial
+  font-size 13px
+
+textarea
+  max-width 100%

@@ -22,13 +22,11 @@ into the current girder installation.  Note that girder must
 be restarted for these changes to take effect.
 '''
 
-import sys
 import os
 import urllib2
 import tempfile
 import tarfile
 import shutil
-from glob import glob
 import pip
 
 from girder import constants
@@ -127,7 +125,7 @@ def install_web(source=None, force=False):  # pragma: no cover
                 'Client files already exist at %s, use "force" to overwrite.' %
                 constants.STATIC_ROOT_DIR
             )
-            sys.exit(1)
+            return False
 
     tmp = tempfile.mkdtemp()
     try:
@@ -150,7 +148,9 @@ def install_plugin(source=None, force=False):
     '''
     Install one or more plugins from the given source.  If no
     source is given, it will install all plugins in the release
-    package on Github.
+    package on Github.  The source provided must be a directory
+    or tarball containing one or more directories which
+    will be installed as individual plugins.
 
     :param str src: source specification (filesystem or url)
     :param bool force: allow overwriting existing files
@@ -164,11 +164,15 @@ def install_plugin(source=None, force=False):
     tmp = tempfile.mkdtemp()
     try:
         handle_source(source, tmp)
-        json = glob(os.path.join(tmp, '*', 'plugin.json'))
 
-        for plugin in json:
-            pluginSource = os.path.split(plugin)[0]
-            pluginName = os.path.split(pluginSource)[1]
+        plugins = []
+        for pth in os.listdir(tmp):
+            pth = os.path.join(tmp, pth)
+            if os.path.isdir(pth):
+                plugins.append(pth)
+
+        for plugin in plugins:
+            pluginName = os.path.split(plugin)[1]
             pluginTarget = os.path.join(getPluginDir(), pluginName)
 
             if os.path.exists(pluginTarget):
@@ -181,7 +185,7 @@ def install_plugin(source=None, force=False):
                     )
                     continue
             found.append(pluginName)
-            shutil.copytree(pluginSource, pluginTarget)
+            shutil.copytree(plugin, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):  # pragma: no cover
                 print constants.TerminalColor.info(

@@ -29,9 +29,9 @@ if __name__ == '__main__':  # pragma: no cover
     parser.add_argument("-t", "--testing", help="run in testing mode",
                         action="store_true")
     parser.add_argument("-d", "--database",
-                        help="to what database url should girder connect")
+                        help="to what database url should Girder connect")
     parser.add_argument("-p", "--port",
-                        help="on what port should grider serve")
+                        help="on what port should Girder serve")
     args = parser.parse_args()
     if args.database:
         cherrypy.config['database']['uri'] = args.database

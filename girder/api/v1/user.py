@@ -19,11 +19,12 @@
 
 import base64
 import cherrypy
+import datetime
 
 from ..rest import Resource, RestException, AccessException, loadmodel
 from ..describe import Description
 from girder.api import access
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
 
@@ -43,6 +44,10 @@ class User(Resource):
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
+        self.route('GET', ('password', 'temporary', ':id'),
+                   self.checkTemporaryPassword)
+        self.route('PUT', ('password', 'temporary'),
+                   self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
 
     @access.public
@@ -117,8 +122,10 @@ class User(Resource):
 
             try:
                 credentials = base64.b64decode(authHeader[6:])
-            except:
-                raise RestException('Invalid HTTP Authorization header')
+                if ':' not in credentials:
+                    raise TypeError
+            except Exception:
+                raise RestException('Invalid HTTP Authorization header', 401)
 
             login, password = credentials.split(':', 1)
 
@@ -254,13 +261,19 @@ class User(Resource):
         user = self.getCurrentUser()
 
         if not self.model('password').authenticate(user, params['old']):
-            raise RestException('Old password is incorrect.', code=403)
+            token = self.model('token').load(
+                params['old'], force=True, objectId=False, exc=False)
+            if (not token or not token.get('userId', None) or
+                    str(token['userId']) != str(user['_id']) or
+                    not self.model('token').hasScope(
+                        token, TokenScope.TEMPORARY_USER_AUTH)):
+                raise RestException('Old password is incorrect.', code=403)
 
         self.model('user').setPassword(user, params['new'])
         return {'message': 'Password changed.'}
     changePassword.description = (
         Description('Change your password.')
-        .param('old', 'Your current password.')
+        .param('old', 'Your current password or a temporary access token.')
         .param('new', 'Your new password.')
         .errorResponse('You are not logged in.', 401)
         .errorResponse('Your old password is incorrect.', 403)
@@ -288,3 +301,79 @@ class User(Resource):
         Description('Reset a forgotten password via email.')
         .param('email', 'Your email address.')
         .errorResponse('That email does not exist in the system.'))
+
+    @access.public
+    def generateTemporaryPassword(self, params):
+        self.requireParams('email', params)
+        email = params['email'].lower().strip()
+
+        users = self.model('user').find({'email': email}, timeout=False)
+
+        if not users.count():
+            raise RestException('That email is not registered.')
+        for user in users:
+            token = self.model('token').createToken(None, days=1, scope=(
+                TokenScope.USER_AUTH, TokenScope.TEMPORARY_USER_AUTH))
+            token['userId'] = user['_id']
+            self.model('token').save(token)
+            base = cherrypy.request.base.rstrip('/')
+            altbase = cherrypy.request.headers.get('X-Forwarded-Host', '')
+            if altbase:
+                base = '%s://%s' % (cherrypy.request.scheme, altbase)
+            url = '%s/#useraccount/%s/token/%s' % (
+                base, str(user['_id']), str(token['_id']))
+
+            html = mail_utils.renderTemplate('temporaryAccess.mako', {
+                'url': url,
+                'token': str(token['_id'])
+            })
+            mail_utils.sendEmail(to=email, subject='Girder: Temporary Access',
+                                 text=html)
+        return {'message': 'Sent temporary access email.'}
+    generateTemporaryPassword.description = (
+        Description('Create a temporary access token for a user.  The user\'s '
+                    'password is not changed.')
+        .param('email', 'Your email address.')
+        .errorResponse('That email does not exist in the system.'))
+
+    @access.public
+    def checkTemporaryPassword(self, id, params):
+        self.requireParams('token', params)
+        token = self.model('token').load(
+            params['token'], force=True, objectId=False, exc=False)
+        if (not token or not token.get('userId', None) or
+                str(token['userId']) != id or
+                not self.model('token').hasScope(
+                    token, TokenScope.TEMPORARY_USER_AUTH)):
+            raise RestException('The token does not grant temporary access to '
+                                'the specified user.', code=403)
+        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        if delta <= 0:
+            raise RestException('The token does not grant temporary access to '
+                                'the specified user.', code=403)
+        # We have verified that this token allows access to this user, so force
+        # loading the user.
+        user = self.model('user').load(id, force=True)
+        # Send an auth cookie with our token
+        cookie = cherrypy.response.cookie
+        cookie['girderToken'] = str(token['_id'])
+        cookie['girderToken']['path'] = '/'
+        cookie['girderToken']['expires'] = int(delta)
+
+        return {
+            'user': self.model('user').filter(user, user),
+            'authToken': {
+                'token': token['_id'],
+                'expires': token['expires'],
+                'temporary': True
+            },
+            'message': 'Temporary access token is valid.'
+        }
+    checkTemporaryPassword.description = (
+        Description('Check if a specified token is a temporary access token '
+                    'for the specified user.  If the token is valid, returns '
+                    'information on the token and user.')
+        .param('id', 'The user ID to check.', paramType='path')
+        .param('token', 'The token to check.')
+        .errorResponse('The token does not grant temporary access to the '
+                       'specified user.', 403))

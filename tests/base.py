@@ -40,8 +40,8 @@ from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
 
-local = cherrypy.lib.httputil.Host('127.0.0.1', 50000, '')
-remote = cherrypy.lib.httputil.Host('127.0.0.1', 50001, '')
+local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
+remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
 mockSmtp = mock_smtp.MockSmtpReceiver()
 mockS3Server = None
 enabledPlugins = []
@@ -257,6 +257,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def getSseMessages(self, resp):
         messages = resp.collapse_body().strip().split('\n\n')
+        if not messages or messages == ['']:
+            return ()
         return map(lambda m: json.loads(m.replace('data: ', '')), messages)
 
     def ensureRequiredParams(self, path='/', method='GET', required=(),

@@ -9,27 +9,36 @@ html(lang="en")
 
     each css in cssFiles
       link(href="#{css}", rel="stylesheet", type="text/css")
+  body
+    #g-global-info-apiroot.hide %HOST%#{apiRoot}
+    #g-global-info-staticroot.hide %HOST%#{staticRoot}
+
     each js in jsFiles
       script(src="#{js}", data-cover)
 
     script(type="text/javascript").
       (function () {
-          var jasmineEnv = jasmine.getEnv();
-          var consoleReporter = new jasmine.ConsoleReporter();
-          window.jasmine_phantom_reporter = consoleReporter;
+        var jasmineEnv = jasmine.getEnv();
+        var consoleReporter = new jasmine.ConsoleReporter();
+        window.jasmine_phantom_reporter = consoleReporter;
+        jasmineEnv.addReporter(consoleReporter);
+        if (window.blanket) {
+            window.blanket.options('timeout', 3000);
+        }
+        function waitAndExecute() {
+            if (!jasmineEnv.currentRunner().suites_.length) {
+                window.setTimeout(waitAndExecute, 10);
+                return;
+            }
+            jasmineEnv.execute();
+        }
 
-          jasmineEnv.addReporter(consoleReporter);
+        var currentWindowOnload = window.onload;
 
-          var currentWindowOnload = window.onload;
-
-          window.onload = function () {
-              if (currentWindowOnload) {
-                  currentWindowOnload();
-              }
-              jasmineEnv.execute();
-          };
+        window.onload = function () {
+            if (currentWindowOnload) {
+                currentWindowOnload();
+            }
+            waitAndExecute();
+        };
       })();
-
-  body
-    #g-global-info-apiroot.hide %HOST%#{apiRoot}
-    #g-global-info-staticroot.hide %HOST%#{staticRoot}

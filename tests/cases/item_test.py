@@ -50,7 +50,11 @@ class ItemTestCase(base.TestCase):
 
         folders = self.model('folder').childFolders(
             self.users[0], 'user', user=self.users[0])
-        (self.publicFolder, self.privateFolder) = folders
+        for folder in folders:
+            if folder['name'] == 'Public':
+                self.publicFolder = folder
+            else:
+                self.privateFolder = folder
 
         self.assetstore = self.model('assetstore').getCurrent()
         root = self.assetstore['root']
@@ -637,3 +641,30 @@ class ItemTestCase(base.TestCase):
         self.assertIsNone(item)
         item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
         self.assertEqual(item['size'], len('foobar'))
+
+    def testCookieAuth(self):
+        """
+        We make sure a cookie is sufficient for authentication for the item
+        download endpoint. Also, while we're at it, we make sure it's not
+        sufficient for other endpoints.
+        """
+        item = self._createItem(self.privateFolder['_id'],
+                                'cookie_auth_download', '', self.users[0])
+        self._testUploadFileToItem(item, 'file', self.users[0], 'foo')
+        token = self.model('token').createToken(self.users[0])
+        cookie = 'girderToken={}'.format(token['_id'])
+
+        # We should be able to download a private item using a cookie token
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            isJson=False, cookie=cookie)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.collapse_body(), 'foo')
+
+        # We should not be able to call GET /item/:id with a cookie token
+        resp = self.request(path='/item/{}'.format(item['_id']), cookie=cookie)
+        self.assertStatus(resp, 401)
+
+        # Make sure the cookie has to be a valid token
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            cookie='girderToken=invalid_token')
+        self.assertStatus(resp, 401)

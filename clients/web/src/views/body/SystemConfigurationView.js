@@ -43,6 +43,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
         var keys = [
             'core.cookie_lifetime',
             'core.email_from_address',
+            'core.email_host',
             'core.registration_policy',
             'core.smtp_host',
             'core.upload_minimum_chunk_size',

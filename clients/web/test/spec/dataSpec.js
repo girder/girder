@@ -167,7 +167,7 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             girderTest._redirect = null;
-            $('.g-file-list-link').click();
+            window.location.assign($('a.g-file-list-link').attr('href'));
         });
 
         waitsFor(function () {
@@ -175,7 +175,7 @@ describe('Create a data hierarchy', function () {
         }, 'redirect to the file download URL');
 
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download\?token=.*$/.test(
+            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/.test(
                 girderTest._redirect)).toBe(true);
         });
     });
@@ -185,7 +185,22 @@ describe('Create a data hierarchy', function () {
             $('.g-quick-search-container input.g-search-field')
                 .val('john').trigger('input');
         });
-
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('').trigger('input');
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open') == false;
+        }, 'search to return');
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('john').trigger('input');
+        });
         waitsFor(function () {
             return $('.g-quick-search-container .g-search-results')
                 .hasClass('open');
@@ -200,6 +215,33 @@ describe('Create a data hierarchy', function () {
 
             results.find('a[resourcetype="user"]').click();
 
+            expect(Backbone.history.fragment).toBe(
+                'user/' + girder.currentUser.get('_id'));
+        });
+    });
+    it('keyboard control of quick search box', function () {
+        function sendKeyDown(code, selector) {
+            var e = $.Event("keydown");
+            e.which = code;
+            $(selector).trigger(e);
+        }
+        runs(function () {
+            for (var i=1; i<=4; i++) {
+                $('.g-quick-search-container input.g-search-field')
+                    .val('john'.substr(0, i)).trigger('input');
+            }
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+        runs(function () {
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(40, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(40, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(13, '.g-quick-search-container input.g-search-field');
             expect(Backbone.history.fragment).toBe(
                 'user/' + girder.currentUser.get('_id'));
         });
@@ -263,13 +305,13 @@ describe('Create a data hierarchy', function () {
         }, 'the folder down action to appear');
         runs(function () {
             girderTest._redirect = null;
-            $('.g-download-folder').click();
+            window.location.assign($('a.g-download-folder').attr('href'));
         });
         waitsFor(function () {
             return girderTest._redirect !== null;
         }, 'redirect to the resource download URL');
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download\?token=.*$/.test(
+            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/.test(
                 girderTest._redirect)).toBe(true);
         });
     });

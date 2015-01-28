@@ -228,13 +228,13 @@ class AssetstoreTestCase(base.TestCase):
         self.assertFalse(oldAssetstore['current'])
 
         # Test that we can create an assetstore with an alternate mongo host
-        # and a replica set (but don't actual bother using a replica set)
+        # and a replica set (but don't bother using an actual replica set)
         params = {
             'name': 'Replica Set Name',
             'type': AssetstoreType.GRIDFS,
             'db': 'girder_assetstore_rs_create_test',
-            'mongohost': 'mongodb://127.0.0.1:27070,127.0.0.1:27071,'
-                         '127.0.0.1:27072',
+            'mongohost': 'mongodb://127.0.0.1:27080,127.0.0.1:27081,'
+                         '127.0.0.1:27082',
             'replicaset': 'replicaset'
         }
         resp = self.request(path='/assetstore', method='POST', user=self.admin,

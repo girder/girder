@@ -9,10 +9,11 @@
  */
 
 if (phantom.args.length < 2) {
-    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output>]');
+    console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
     console.error('  <page> is the path to the HTML page to load');
     console.error('  <spec> is the path to the jasmine spec to run.');
     console.error('  <covg_output> is the path to a file to write coverage into.');
+    console.error('  <default jasmine timeout> is in milliseconds.');
     phantom.exit(2);
 }
 
@@ -30,6 +31,9 @@ if (coverageOutput) {
 }
 
 var terminate = function () {
+    if (!coverageOutput) {
+        phantom.exit(0);
+    }
     var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === "success") {
             return window.coverageHandler.handleCoverage(window._$blanket);
@@ -91,27 +95,33 @@ page.onCallback = function (data) {
      * :param data: an object with an 'action', as listed above.
      * :returns: depends on the action.
      */
-    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_upload';
+    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
     if (data.suffix) {
         uploadTemp += '_' + data.suffix;
     }
     uploadTemp += '.tmp';
     switch (data.action)
     {
+        case 'fetchEmail':
+            if (fs.exists(uploadTemp)) {
+                return fs.read(uploadTemp);
+            }
+            break;
         case 'uploadFile':
             var path = data.path
-            if (!path && data.size!==undefined)
-            {
+            if (!path && data.size!==undefined) {
                 path = uploadTemp;
                 fs.write(path, new Array(data.size+1).join("-"), "wb");
             }
             page.uploadFile(data.selector, path);
-            if (fs.size(path) >= 1024 * 64)
+            if (fs.size(path) >= 1024 * 64) {
                 return fs.size(path);
+            }
             return fs.read(path);
         case 'uploadCleanup':
-            if (fs.exists(uploadTemp))
+            if (fs.exists(uploadTemp)) {
                 fs.remove(uploadTemp);
+            }
             break;
     }
 };
@@ -139,10 +149,17 @@ page.onLoadFinished = function (status) {
         phantom.exit(1);
     }
 
-    page.injectJs('coverageHandler.js');
+    if (coverageOutput) {
+        page.injectJs('coverageHandler.js');
+    }
     if (!page.injectJs(spec)) {
         console.error('Could not load test spec into page: ' + spec);
         phantom.exit(1);
+    }
+    if (phantom.args[3]) {
+        page.evaluate(function(timeout) {
+            jasmine.getEnv().defaultTimeoutInterval = timeout;
+        }, phantom.args[3]);
     }
 };
 
@@ -153,9 +170,9 @@ page.onLoadFinished = function (status) {
 page.settings.resourceTimeout = 15000;
 
 page.onResourceTimeout = function (request) {
-    console.log('PHANTOM_TIMEOUT')
     console.log('Resource timed out.  (#' + request.id + '): ' +
                 JSON.stringify(request));
+    console.log('PHANTOM_TIMEOUT')
     /* The exit code doesn't get sent back from here, so setting this to a
      * non-zero value doesn't seem to have any benefit. */
     phantom.exit(0);

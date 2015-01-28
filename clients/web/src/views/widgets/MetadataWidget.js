@@ -72,6 +72,10 @@ girder.views.MetadataWidget = girder.View.extend({
         });
 
         return this;
-    }
+    },
 
+    setItem: function (item) {
+        this.item = item;
+        return this;
+    }
 });

@@ -20,7 +20,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
 
         waitsFor(function () {
             return $('.g-register').length > 0;
-        }, 'girder app to render');
+        }, 'Girder app to render');
 
         runs(function () {
             $('.g-register').click();
@@ -63,7 +63,7 @@ girderTest.login = function (login, firstName, lastName, password) {
 
         waitsFor(function () {
             return $('.g-login').length > 0;
-        }, 'girder app to render');
+        }, 'Girder app to render');
 
         girderTest.waitForLoad();
 
@@ -431,9 +431,14 @@ girderTest.waitForLoad = function (desc) {
     }, 'for the modal backdrop to go away'+desc);
     */
     waitsFor(function () {
-        return $('.modal').data('bs.modal') === undefined ||
-               $('.modal').data('bs.modal').isShown === false ||
-               $('.modal').data('bs.modal').isShown === null;
+        if ($('.modal').data('bs.modal') === undefined) {
+            return true;
+        }
+        if ($('.modal').data('bs.modal').isShown !== false &&
+            $('.modal').data('bs.modal').isShown !== null) {
+            return false;
+        }
+        return !$('.modal').data('bs.modal').$backdrop;
     }, 'for any modal dialog to be hidden'+desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
@@ -448,7 +453,7 @@ girderTest.waitForLoad = function (desc) {
  */
 girderTest.waitForDialog = function (desc) {
     desc = desc?' ('+desc+')':'';
-    /* If is faster to wait until the dialog is officially shown than to wait
+    /* It is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
         return $('#g-dialog-container:visible').length > 0 &&
@@ -466,19 +471,41 @@ girderTest.waitForDialog = function (desc) {
 };
 
 /**
- * Import a javascript file and ask register it with the blanket coverage
+ * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    blanket.utils.cache[url] = {};
-    blanket.utils.attachScript({url:url}, function (content) {
-        blanket.instrument({inputFile: content, inputFileName: url},
-                           function (instrumented) {
-            blanket.utils.cache[url].loaded = true;
-            blanket.utils.blanketEval(instrumented);
-            blanket.requiringFile(url, true);
-        });
-   });
+    if (window.blanket) {
+        blanket.utils.cache[url] = {};
+        blanket.utils.attachScript({url:url}, function (content) {
+            blanket.instrument({inputFile: content, inputFileName: url},
+                               function (instrumented) {
+                blanket.utils.cache[url].loaded = true;
+                blanket.utils.blanketEval(instrumented);
+                blanket.requiringFile(url, true);
+            });
+       });
+    } else {
+        $('<script/>', {src: url}).appendTo('head');
+    }
+};
+
+/**
+ * Import a list of covered scripts. Order will be respected.
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    _.each(scripts, girderTest.addCoveredScript);
+};
+
+/**
+ * Import a CSS file into the runtime context.
+ */
+girderTest.importStylesheet = function (css) {
+    $('<link/>', {
+        rel: 'stylesheet',
+        type: 'text/css',
+        href: css
+    }).appendTo('head');
 };
 
 /**
@@ -577,6 +604,18 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
     }
 };
 
+/* Determine a value used to keep tests using different files.
+ * @returns suffix: the suffix used in callPhantom actions.
+ */
+girderTest.getCallbackSuffix = function () {
+    girderTest._uploadSuffix = '';
+    var hostport = window.location.host.match(':([0-9]+)');
+    if (hostport && hostport.length === 2) {
+        girderTest._uploadSuffix = hostport[1];
+    }
+    return girderTest._uploadSuffix;
+}
+
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
  */
@@ -587,11 +626,7 @@ function _prepareTestUpload() {
     girderTest._uploadData = null;
     /* used for resume testing */
     girderTest._uploadDataExtra = 0;
-    girderTest._uploadSuffix = '';
-    var hostport = window.location.host.match(':([0-9]+)');
-    if (hostport && hostport.length === 2) {
-        girderTest._uploadSuffix = hostport[1];
-    }
+    girderTest.getCallbackSuffix();
 
     (function (impl) {
         FormData.prototype.append = function (name, value, filename) {

@@ -1,4 +1,4 @@
-set(web_client_port 50001)
+set(web_client_port 30001)
 
 function(javascript_tests_init)
   add_test(
@@ -84,6 +84,10 @@ function(add_web_client_test case specFile)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.web_client_test
   )
+
+  # Catch view leaks and report them as test failures.
+  set_property(TEST ${testname} PROPERTY FAIL_REGULAR_EXPRESSION
+    "View created with no parentView property")
 
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
     "SPEC_FILE=${specFile}"

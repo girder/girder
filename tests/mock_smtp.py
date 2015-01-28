@@ -18,12 +18,13 @@
 ###############################################################################
 
 import asyncore
+import os
 import Queue
 import smtpd
 import threading
 import time
 
-_startPort = 51000
+_startPort = 31000
 _maxTries = 100
 
 
@@ -41,9 +42,14 @@ class MockSmtpReceiver(object):
         self.thread = None
 
     def start(self):
-        """Start the mock SMTP server. Attempt to bind to any port
-        within the range specified by _startPort and _maxTries"""
-        for port in range(_startPort, _startPort + _maxTries):
+        """
+        Start the mock SMTP server. Attempt to bind to any port within the
+        range specified by _startPort and _maxTries.  Bias it with the pid of
+        the current process so as to reduce potential conflicts with parallel
+        tests that are started nearly simultaneously.
+        """
+        for porttry in xrange(_maxTries):
+            port = _startPort + ((porttry + os.getpid()) % _maxTries)
             try:
                 self.address = ('localhost', port)
                 self.smtp = MockSmtpServer(self.address, None)

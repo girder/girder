@@ -216,6 +216,31 @@ body would be ``0123456789``.
                 yield str(i)
         return gen
 
+Serving a static file
+^^^^^^^^^^^^^^^^^^^^^
+
+If you are building a plugin that needs to serve up a static file from a path
+on disk, you can make use of the ``staticFile`` utility, as in the following
+example:
+
+.. code-block:: python
+
+    import os
+    from girder.utility.server import staticFile
+
+    def load(info):
+        path = os.path.join(PLUGIN_ROOT_DIR, 'static', 'index.html')
+        info['serverRoot'].static_route = staticFile(path)
+
+The ``staticFile`` utility should be assigned to the route corresponding to
+where the static file should be served from.
+
+.. note:: If a relative path is passed to ``staticFile``, it will be interpreted
+  relative to the current working directory, which may vary. If your static
+  file resides within your plugin, it is recommended to use the special
+  ``PLUGIN_ROOT_DIR`` property of your server module, or the equivalent
+  ``info['pluginRootDir']`` value passed to the ``load`` method.
+
 Sending Emails
 ^^^^^^^^^^^^^^
 
@@ -237,7 +262,7 @@ below: ::
             'param1': 'foo',
             'param2': 'bar'
         })
-        mail_utils.sendEmail(to=email, subject='My mail from girder', text=html)
+        mail_utils.sendEmail(to=email, subject='My mail from Girder', text=html)
 
 If you wish to send email from within a plugin, simply create a
 **server/mail_templates** directory within your plugin, and it will be
@@ -379,3 +404,28 @@ may be desirable. If you only want it to be served out of ``/api`` and not
 .. code-block:: python
 
     del info['serverRoot'].girder.api
+
+Supporting web browser operations where custom headers cannot be set
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some aspects of the web browser make it infeasible to pass the usual
+``Girder-Token`` authentication header when making a request. For example,
+if using an ``EventSource`` object for SSE, or when you must redirect the user's
+browser to a download endpoint that serves its content as an attachment. In such
+cases, you may allow specific REST API routes to authenticate using the Cookie.
+You should only do this if the endpoint is "read-only", that is, in cases where
+it does not make modifications to data on the server, to avoid vulnerabilities
+to Cross-Site Request Forgery attacks. If your endpoint is not read-only and
+you are unable to pass the ``Girder-Token`` header to it, you can pass a ``token``
+query parameter containing the token as a last resort, but in practice this will
+probably never be the case.
+
+In order to allow cookie authentication for your route, simply set the
+``cookieAuth`` property on your route handler function to ``True``. Example:
+
+.. code-block:: python
+
+    @access.public
+    def download(self, params):
+        ...
+    download.cookieAuth = True

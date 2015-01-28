@@ -79,3 +79,7 @@ class CustomRootTestCase(base.TestCase):
         # Api should not be served out of /girder/api/v1
         resp = self.request('/girder/api/v1', prefix='', isJson=False)
         self.assertStatus(resp, 404)
+
+        # Test our staticFile method
+        resp = self.request('/static_route', prefix='', isJson=False)
+        self.assertEqual(resp.collapse_body(), 'Hello world!\n')

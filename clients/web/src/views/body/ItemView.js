@@ -5,15 +5,11 @@
      */
     girder.views.ItemView = girder.View.extend({
         events: {
-            'click .g-download-item': function () {
-                this.model.download();
-            },
             'click .g-edit-item': 'editItem',
             'click .g-delete-item': 'deleteItem'
         },
 
         initialize: function (settings) {
-
             girder.cancelRestRequests('fetch');
             this.edit = settings.edit || false;
             this.fileEdit = settings.fileEdit || false;
@@ -69,7 +65,6 @@
         },
 
         render: function () {
-
             // Fetch the access level asynchronously and render once we have
             // it. TODO: load the page and adjust only the action menu once
             // the access level is fetched.
@@ -148,5 +143,4 @@
             upload: params.dialog === 'upload' ? params.dialogid : false
         });
     });
-
 }());

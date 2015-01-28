@@ -125,7 +125,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         cursor = self.chunkColl.find({
             'uuid': upload['chunkUuid']
-        }).sort('n', pymongo.DESCENDING).limit(1)
+        }, fields=['n']).sort('n', pymongo.DESCENDING).limit(1)
         if cursor.count(True) == 0:
             n = 0
         else:
@@ -180,7 +180,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         cursor = self.chunkColl.find({
             'uuid': upload['chunkUuid']
-        }).sort('n', pymongo.DESCENDING).limit(1)
+        }, fields=['n']).sort('n', pymongo.DESCENDING).limit(1)
         if cursor.count(True) == 0:
             offset = 0
         else:

@@ -42,9 +42,12 @@ ul.g-account-tabs.nav.nav-tabs
   #g-account-tab-password.tab-pane
     .g-password-change-container
       form#g-password-change-form(role="form")
-        .form-group
-          label(for="g-password-old") Current password
-          input.input-sm.form-control#g-password-old(type="password", placeholder="Enter current password")
+        if temporaryToken
+            input.input-sm.form-control#g-password-old(type="hidden", value="#{temporaryToken}")
+        else
+          .form-group
+            label(for="g-password-old") Current password
+            input.input-sm.form-control#g-password-old(type="password", placeholder="Enter current password")
         .form-group
           label(for="g-password-new") New password
           input.input-sm.form-control#g-password-new(type="password", placeholder="Enter new password")

@@ -124,6 +124,7 @@ class SettingKey:
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
+    EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
     SMTP_HOST = 'core.smtp_host'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
@@ -163,3 +164,4 @@ class TokenScope:
     """
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
+    TEMPORARY_USER_AUTH = 'core.user_auth.temporary'

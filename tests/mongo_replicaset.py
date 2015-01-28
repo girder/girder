@@ -161,11 +161,18 @@ def stepDownMongoReplicaSet(uri):
                 from the Config list.
     """
     client = getMongoClient(uri)
-    try:
-        client.admin.command({'replSetStepDown': 60})
-    except pymongo.errors.AutoReconnect:
-        # we expect the connection to close, so this is not an error
-        pass
+    numtries = 3
+    for trynum in xrange(numtries):
+        try:
+            client.admin.command({'replSetStepDown': 60})
+            break
+        except pymongo.errors.AutoReconnect:
+            # we expect the connection to close, so this is not an error
+            break
+        except pymongo.errors.OperationFailure:
+            if trynum + 1 == numtries:
+                raise
+            time.sleep(5)
 
 
 def stopMongoReplicaSet(graceful=True, purgeFiles=True):

@@ -218,7 +218,7 @@ class System(Resource):
         .param('minimumAge', 'Restrict listing uploads to those that are at '
                'least this many days old.', required=False)
         .param('includeUntracked', 'Some assetstores can have partial uploads '
-               'that are no longer in the girder database.  If this is True, '
+               'that are no longer in the Girder database.  If this is True, '
                'include all of them (only filtered by assetstoreId) in the '
                'result list.  Default True.',
                required=False, dataType='boolean')
@@ -268,7 +268,7 @@ class System(Resource):
         .param('minimumAge', 'Restrict clearing uploads to those that are at '
                'least this many days old.', required=False)
         .param('includeUntracked', 'Some assetstores can have partial uploads '
-               'that are no longer in the girder database.  If this is True, '
+               'that are no longer in the Girder database.  If this is True, '
                'remove all of them (only filtered by assetstoreId).  Default '
                'True.',
                required=False, dataType='boolean')
@@ -301,7 +301,7 @@ class System(Resource):
             'restarted': datetime.datetime.utcnow()
         }
     restartServer.description = (
-        Description('Restart the girder REST server.')
+        Description('Restart the Girder REST server.')
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403))
 

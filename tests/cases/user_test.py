@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import datetime
 import re
 
 from .. import base
@@ -112,6 +113,20 @@ class UserTestCase(base.TestCase):
         # Try logging in without basic auth, should get 401
         resp = self.request(path='/user/authentication', method='GET')
         self.assertStatus(resp, 401)
+
+        # Bad authentication header
+        resp = self.request(
+            path='/user/authentication', method='GET',
+            additionalHeaders=[('Authorization', 'Basic Not-Valid-64')])
+        self.assertStatus(resp, 401)
+        self.assertEqual('Invalid HTTP Authorization header',
+                         resp.json['message'])
+        resp = self.request(
+            path='/user/authentication', method='GET',
+            additionalHeaders=[('Authorization', 'Basic NotValid')])
+        self.assertStatus(resp, 401)
+        self.assertEqual('Invalid HTTP Authorization header',
+                         resp.json['message'])
 
         # Login with unregistered email
         resp = self.request(path='/user/authentication', method='GET',
@@ -260,9 +275,9 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['admin'], True)
 
         # test admin flag as non-admin
-        params['admin'] = 'false'
-        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
-                            user=nonAdminUser, params=params)
+        params['admin'] = 'true'
+        resp = self.request(path='/user/{}'.format(nonAdminUser['_id']),
+                            method='PUT', user=nonAdminUser, params=params)
         self.assertStatus(resp, 403)
 
     def testDeleteUser(self):
@@ -422,6 +437,70 @@ class UserTestCase(base.TestCase):
         self.assertHasKeys(
             resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
+
+    def testTemporaryPassword(self):
+        self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
+                                      'user@user.com')
+        # Temporary password should require email param
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "Parameter 'email' is required.")
+        # Temporary password with an incorrect email
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={'email': 'bad_email@user.com'})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "That email is not registered.")
+        # Actually generate temporary access token
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={'email': 'user@user.com'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail()
+        # Pull out the auto-generated token from the email
+        search = re.search('<a href="(.*)">', msg)
+        link = search.group(1)
+        linkParts = link.split('/')
+        userId = linkParts[-3]
+        tokenId = linkParts[-1]
+        # Checking if a token is a valid temporary token should fail if the
+        # token is missing or doesn't match the user ID
+        path = '/user/password/temporary/' + userId
+        resp = self.request(path=path, method='GET', params={})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "Parameter 'token' is required.")
+        resp = self.request(path=path, method='GET',
+                            params={'token': 'not valid'})
+        self.assertStatus(resp, 403)
+        resp = self.request(path=path, method='GET', params={'token': tokenId})
+        self.assertStatusOk(resp)
+        user = resp.json['user']
+        # We should now be able to change the password
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': tokenId,
+            'new': 'another_password'
+        }, user=user)
+        self.assertStatusOk(resp)
+        # Artificially adjust the token to have expired.
+        token = self.model('token').load(tokenId, force=True, objectId=False)
+        token['expires'] = (datetime.datetime.utcnow() -
+                            datetime.timedelta(days=1))
+        self.model('token').save(token)
+        resp = self.request(path=path, method='GET', params={'token': tokenId})
+        self.assertStatus(resp, 403)
+        # Generate an email with a forwarded header
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+        resp = self.request(
+            path='/user/password/temporary', method='PUT',
+            params={'email': 'user@user.com'},
+            additionalHeaders=[('X-Forwarded-Host', 'anotherhost')])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail()
+        self.assertTrue('anotherhost' in msg)
 
     def testUserCreation(self):
         admin = self.model('user').createUser(

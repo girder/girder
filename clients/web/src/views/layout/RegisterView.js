@@ -14,24 +14,21 @@ girder.views.RegisterView = girder.View.extend({
                 this.$('.g-validation-failed-message').text('Passwords must match.');
                 return;
             }
-            girder.restRequest({
-                path: 'user',
-                type: 'POST',
-                data: {
-                    login: this.$('#g-login').val(),
-                    password: this.$('#g-password').val(),
-                    email: this.$('#g-email').val(),
-                    firstName: this.$('#g-firstName').val(),
-                    lastName: this.$('#g-lastName').val()
-                },
-                error: null // don't do default error behavior
-            }).done(_.bind(function (user) {
+
+            var user = new girder.models.UserModel({
+                login: this.$('#g-login').val(),
+                password: this.$('#g-password').val(),
+                email: this.$('#g-email').val(),
+                firstName: this.$('#g-firstName').val(),
+                lastName: this.$('#g-lastName').val()
+            });
+            user.on('g:saved', function () {
                 this.$el.modal('hide');
 
-                girder.currentUser = new girder.models.UserModel(user);
+                girder.currentUser = user;
                 girder.dialogs.handleClose('register', {replace: true});
                 girder.events.trigger('g:login');
-            }, this)).error(_.bind(function (err) {
+            }, this).on('g:error', function (err) {
                 var resp = err.responseJSON;
                 this.$('.g-validation-failed-message').text(resp.message);
                 if (resp.field) {
@@ -39,7 +36,7 @@ girder.views.RegisterView = girder.View.extend({
                     this.$('#g-' + resp.field).focus();
                 }
                 this.$('#g-register-button').removeClass('disabled');
-            }, this));
+            }, this).save();
 
             this.$('#g-register-button').addClass('disabled');
             this.$('.g-validation-failed-message').text('');

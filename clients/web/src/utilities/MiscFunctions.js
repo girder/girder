@@ -234,6 +234,16 @@ girder.restartServer._reloadWindow = function () {
     window.location.reload();
 };
 
+/**
+ * Transform markdown into HTML and render it into the given element.
+ *
+ * @param val The markdown text input.
+ * @param el The element to render the output HTML into.
+ */
+girder.renderMarkdown = function (val, el) {
+    $(el).html(markdown.toHTML(val));
+};
+
 (function () {
     var _pluginConfigRoutes = {};
 

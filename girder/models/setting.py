@@ -18,6 +18,7 @@
 ###############################################################################
 
 from collections import OrderedDict
+import cherrypy
 
 from ..constants import SettingDefault, SettingKey
 from .model_base import Model, ValidationException
@@ -130,6 +131,22 @@ class Setting(Model):
             raise ValidationException(
                 'Email from address must not be blank.', 'value')
 
+    def validateCoreEmailHost(self, doc):
+        if isinstance(doc['value'], basestring):
+            doc['value'] = doc['value'].strip()
+            return
+        raise ValidationException(
+            'Email host must be a string.', 'value')
+
+    def defaultCoreEmailHost(self):
+        if (cherrypy.request and cherrypy.request.local and
+                cherrypy.request.local.name):
+            host = '://'.join((cherrypy.request.scheme,
+                               cherrypy.request.local.name))
+            if cherrypy.request.local.port != 80:
+                host += ':{}'.format(cherrypy.request.local.port)
+            return host
+
     def validateCoreRegistrationPolicy(self, doc):
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('open', 'closed'):
@@ -211,7 +228,13 @@ class Setting(Model):
         :returns: The default value if the key is present in both SettingKey
                   and referenced in SettingDefault; otherwise None.
         """
-        default = SettingDefault.defaults.get(key, None)
+        default = None
+        if key in SettingDefault.defaults:
+            default = SettingDefault.defaults[key]
+        else:
+            funcName = 'default'+camelcase(key)
+            if callable(getattr(self, funcName, None)):
+                default = getattr(self, funcName)()
         return default
 
     def corsSettingsCacheClear(self):
