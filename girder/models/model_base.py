@@ -274,7 +274,12 @@ class Model(ModelImporter):
 
         event = events.trigger('.'.join(('model', self.name, 'remove')),
                                document)
-        if not event.defaultPrevented:
+        kwargsEvent = events.trigger(
+            '.'.join(('model', self.name, 'remove_with_kwargs')), {
+                'document': document,
+                'kwargs': kwargs
+            })
+        if not event.defaultPrevented and not kwargsEvent.defaultPrevented:
             return self.collection.remove({'_id': document['_id']})
 
     def removeWithQuery(self, query):

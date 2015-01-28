@@ -22,6 +22,7 @@ import json
 
 from .. import base
 
+from girder import events
 from girder.constants import AccessType
 from girder.models.notification import ProgressState
 
@@ -36,6 +37,7 @@ def tearDownModule():
 
 class FolderTestCase(base.TestCase):
     def setUp(self):
+        events.unbindAll()
         base.TestCase.setUp(self)
 
         users = ({
@@ -313,13 +315,23 @@ class FolderTestCase(base.TestCase):
                          ' or begin with a dollar sign.')
 
     def testDeleteFolder(self):
+        cbInfo = {}
+
+        # Hook into model deletion with kwargs event to test it
+        def cb(event):
+            cbInfo['kwargs'] = event.info['kwargs']
+            cbInfo['doc'] = event.info['document']
+
+        events.bind('model.folder.remove_with_kwargs', 'test', cb)
+
         # Requesting with no path should fail
         resp = self.request(path='/folder', method='DELETE', user=self.admin)
         self.assertStatus(resp, 400)
 
         # Grab one of the user's top level folders
         folders = self.model('folder').childFolders(
-            parent=self.admin, parentType='user', user=self.admin, limit=1)
+            parent=self.admin, parentType='user', user=self.admin, limit=1,
+            sort=[('name', -1)])
         folderResp = folders.next()
 
         # Add a subfolder and an item to that folder
@@ -358,6 +370,12 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(notifs[0]['data']['current'], 3)
         self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
                         datetime.timedelta(minutes=1))
+
+        # Make sure our event handler was called with expected args
+        self.assertTrue('kwargs' in cbInfo)
+        self.assertTrue('doc' in cbInfo)
+        self.assertTrue('progress' in cbInfo['kwargs'])
+        self.assertEqual(cbInfo['doc']['_id'], folderResp['_id'])
 
     def testLazyFieldComputation(self):
         """
