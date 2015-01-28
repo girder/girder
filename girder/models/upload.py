@@ -110,10 +110,10 @@ class Upload(Model):
                     folder={'_id': upload['parentId']})
             else:
                 uploadUser = self.model('user').load(
-                    id=upload['userId'], objectId=True, level=AccessType.READ)
-                item = self.model('item').load(id=upload['parentId'],
-                                               objectId=True, user=uploadUser,
-                                               level=AccessType.WRITE)
+                    id=upload['userId'], level=AccessType.READ, force=True)
+                item = self.model('item').load(
+                    id=upload['parentId'], user=uploadUser,
+                    level=AccessType.WRITE)
 
             file = self.model('file').createFile(
                 item=item, name=upload['name'], size=upload['size'],
