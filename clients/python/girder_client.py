@@ -80,22 +80,22 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, scheme="http", host="localhost", port=8080,
-                 apiRoot=None):
+    def __init__(self, host="localhost", port=8080,
+                 apiRoot=None, scheme="http"):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
         (HTTP Basic Auth).
 
-        :param scheme: A string containing the scheme for the Girder host,
-            the default value is 'http'; if you pass 'https' you likely want
-            to pass 443 for the port
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
         :param port: The port number on which to connect to Girder,
             the default value is 8080
         :param apiRoot: The path on the server corresponding to the root of the
             Girder REST API. If None is passed, assumes '/api/v1'.
+        :param scheme: A string containing the scheme for the Girder host,
+            the default value is 'http'; if you pass 'https' you likely want
+            to pass 443 for the port
         """
         if apiRoot is None:
             apiRoot = '/api/v1'

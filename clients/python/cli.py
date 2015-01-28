@@ -30,7 +30,7 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, dryrun=False, blacklist=[],
-                 scheme='http', host='localhost', port=8080, apiRoot=None):
+                 host='localhost', port=8080, apiRoot=None, scheme='http'):
         """initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance.
         :param username: username to authenticate to Girder instance.
@@ -39,17 +39,17 @@ class GirderCli(GirderClient):
         :param dryrun: boolean indicating whether to run the command or just
             perform a dryrun showing which files and folders will be uploaded.
         :param blacklist: list of filenames which will be ignored by upload.
-        :param scheme: scheme used to connect to Girder instance,
-            defaults to 'http'; if passing 'https' port should likely be 443.
         :param host: host used to connect to Girder instance,
             defaults to 'localhost'
         :param port: port used to connect to Girder instance,
             defaults to 8080
         :param apiRoot: The path on the server corresponding to the root of the
             Girder REST API. If None is passed, assumes '/api/v1'.
+        :param scheme: scheme used to connect to Girder instance,
+            defaults to 'http'; if passing 'https' port should likely be 443.
         """
-        GirderClient.__init__(self, scheme=scheme, host=host, port=port,
-                              apiRoot=apiRoot)
+        GirderClient.__init__(self, host=host, port=port,
+                              apiRoot=apiRoot, scheme=scheme)
         interactive = password is None
         self.authenticate(username, password, interactive=interactive)
         self.dryrun = dryrun
@@ -333,7 +333,7 @@ if __name__ == '__main__':
 
     g = GirderCli(args.username, args.password, bool(args.dryrun),
                   args.blacklist.split(','), host=args.host, port=args.port,
-                  apiRoot=args.api_root)
+                  apiRoot=args.api_root, scheme=args.scheme)
     if args.c == 'upload':
         g.upload(args.local_folder, args.parent_id, args.parent_type,
                  leaf_folders_as_items=args.leaf_folders_as_items,
