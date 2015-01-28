@@ -309,6 +309,7 @@ class Folder(AccessControlledModel):
             if progress:
                 progress.update(increment=1, message='Deleted item ' +
                                 item['name'])
+        # subsequent operations take a long time, so free the cursor's resources
         items.close()
 
         # Delete all child folders
@@ -537,6 +538,7 @@ class Folder(AccessControlledModel):
             'folderId': folder['_id']
         }, fields=(), limit=0)
         count += items.count()
+        # subsequent operations take a long time, so free the cursor's resources
         items.close()
 
         folders = self.find({
@@ -545,7 +547,6 @@ class Folder(AccessControlledModel):
         }, fields=(), limit=0, timeout=False)
         for subfolder in folders:
             count += self.subtreeCount(subfolder)
-        folders.close()
 
         return count
 

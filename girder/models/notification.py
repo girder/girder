@@ -219,5 +219,3 @@ class Notification(Model):
         cursor = self.find(q)
         for result in cursor:
             yield result
-
-        cursor.close()
