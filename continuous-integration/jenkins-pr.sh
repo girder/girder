@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Setup environment
+export JASMINE_TIMEOUT=15000
+
 # Start mongo
 sudo mongod --fork --logpath mongo.log
 
