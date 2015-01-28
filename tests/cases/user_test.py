@@ -605,3 +605,47 @@ class UserTestCase(base.TestCase):
 
         events.unbind('model.user.save', 'test')
         events.unbind('model.user.save.after', 'test')
+
+    def testPrivateUser(self):
+        """
+        Make sure private users behave correctly.
+        """
+        # Create an admin user
+        admin = self.model('user').createUser(
+            firstName='Admin', lastName='Admin', login='admin',
+            email='admin@admin.com', password='adminadmin')
+
+        # Register a private user (non-admin)
+        pvt = self.model('user').createUser(
+            firstName='Guy', lastName='Noir', login='guynoir',
+            email='guy.noir@email.com', password='guynoir', public=False)
+
+        self.assertEqual(pvt['public'], False)
+
+        folder = self.model('folder').childFolders(
+            parentType='user', parent=pvt).next()
+
+        # Private users should be able to upload files
+        resp = self.request(path='/item', method='POST', user=pvt, params={
+            'name': 'foo.txt',
+            'folderId': folder['_id']
+        })
+        self.assertStatusOk(resp)
+        itemId = resp.json['_id']
+
+        resp = self.request(
+            path='/file', method='POST', user=pvt, params={
+                'parentType': 'item',
+                'parentId': itemId,
+                'name': 'foo.txt',
+                'size': 5,
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+
+        fields = [('offset', 0), ('uploadId', resp.json['_id'])]
+        files = [('chunk', 'foo.txt', 'hello')]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=pvt, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['itemId'], itemId)
