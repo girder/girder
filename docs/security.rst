@@ -66,27 +66,31 @@ Database Injection Attacks
 --------------------------
 
 Girder defends against database injection attacks by using PyMongo as the only
-pathway between the application server and the database server. PyMongo--like
-most MongoDB client libraries build up a BSON object before sending the query
-to the database. This prevents most injection attacks. See the
+pathway between the application server and the database server. This protect
+against many injection vulnerabilities as described in the
 `MongoDB Documentation
-<http://docs.mongodb.org/manual/faq/developers/#how-does-mongodb-address-sql-or-query-injection>`_
-for more information.
+<http://docs.mongodb.org/manual/faq/developers/#how-does-mongodb-address-sql-or-query-injection>`_.
+Girder also uses a model layer to mediate and validate all interaction with
+the database. This ensures that for all database operations and structural
+attributes (collection name, operation type) are hardcoded and not modifiable
+by the client, while data attributes (stored content) are validated for proper
+form before being accepted from a client.
 
-Additionally, we strongly recommend running MongoDB with JavaScript disabled
-unless explicitly needed for your Girder-based application or plugin. Again,
-see the `MongoDB Documentation
-<http://docs.mongodb.org/manual/faq/developers/#javascript>`_
-for more information.
+Additionally, we strongly recommend configuring your MongoDB server with
+JavaScript disabled unless explicitly needed for your Girder-based
+application or plugin. Again, see the `MongoDB Documentation
+<http://docs.mongodb.org/manual/faq/developers/#javascript>`_ for more
+information.
 
 
 Session Management
 ------------------
 
 Girder uses session management performed through the Girder-Token header or
-through a token passed through a GET parameter. This token is passed through
-the cookie and expires after a configurable amount of time. In order to prevent
-session stealing, it is highly recommended to run Girder under HTTPS.
+through a token passed through a GET parameter. This token is provided to the
+client through the cookie and expires after a configurable amount of time. In
+order to prevent session stealing, it is highly recommended to run Girder
+under HTTPS.
 
 
 Cross-Site Scripting (XSS)
