@@ -29,7 +29,7 @@ script:
     - mkdir _build
     - cd _build
     - cmake ..
-    - ctest -VV -S ../cmake/travis_continuous.cmake || true
+    - JASMINE_TIMEOUT=15000 ctest -VV -S ../cmake/travis_continuous.cmake || true
     - if [ -f test_failed ] ; then false ; fi
     - cd ..
     - git fetch --unshallow
