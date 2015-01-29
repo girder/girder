@@ -129,5 +129,6 @@ database is stored as well as always connecting to Mongo using authenticated
 access. The volume containing any on-disk assetstores should also be encrypted
 to provide encryption of data at rest. We also recommend using a tool such as
 logrotate to enable the audit of girder logs in the event of a data breach.
-Finally, we recommend a regular backup of the Girder database, configuration,
-and assetstores. Disaster recovery is an important part of any security plan.
+Finally, we recommend a regular (and regularly tested) backup of the Girder
+database, configuration, and assetstores. Disaster recovery is an important
+part of any security plan.
