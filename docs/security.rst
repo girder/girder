@@ -60,3 +60,70 @@ Girder returns an error when a Cross-Origin request is made (one with the
 ``Origin`` header) that does not match the system configuration settings.
 Although most modern web browsers also enforce this, some additional security
 is added by enforcing it at the request level.
+
+
+Database Injection Attacks
+--------------------------
+
+Girder defends against database injection attacks by using PyMongo as the only
+pathway between the application server and the database server. PyMongo--like
+most MongoDB client libraries build up a BSON object before sending the query
+to the database. This prevents most injection attacks. See the
+`MongoDB Documentation
+<http://docs.mongodb.org/manual/faq/developers/#how-does-mongodb-address-sql-or-query-injection>`_
+for more information.
+
+Additionally, we strongly recommend running MongoDB with JavaScript disabled
+unless explicitly needed for your Girder-based application or plugin. Again,
+see the `MongoDB Documentation
+<http://docs.mongodb.org/manual/faq/developers/#javascript>`_
+for more information.
+
+
+Session Management
+------------------
+
+Girder uses session management performed through the Girder-Token header or
+through a token passed through a GET parameter. This token is passed through
+the cookie and expires after a configurable amount of time. In order to prevent
+session stealing, it is highly recommended to run Girder under HTTPS.
+
+
+Cross-Site Scripting (XSS)
+--------------------------
+
+In order to protect against XSS attacks, all input from users is sanitized
+before presentation of the content on each page. This is handled by the
+template system Girder uses (`Jade <http://jade-lang.com/>`_). This sanitizes
+user-provided content.
+
+
+Cross-Site Request Forgery (CSRF)
+---------------------------------
+
+To prevent CSRF attacks, Girder requires the Girder-Token parameter as a header
+for all state-changing requests. This token is taken from the user's cookie and
+then passed in the request as part of the Girder one-page application and other
+clients such that the cookie alone is not enough to form a valid request. A
+sensible CORS policy (discussed above) also helps mitigate this attack vector.
+
+
+Dependent Libraries
+------------------
+
+Another common attack vector is through libraries upon which girder depends
+such as CherryPy, Jade, PyMongo, etc. During development, and before releases
+we work to ensure our dependencies are up to date in order to get the latest
+security fixes.
+
+
+Notes on Secure Deployment
+--------------------------
+It is recommended that Girder be deployed using HTTPS as the only access
+method. Additionally, we recommend encrypting the volume where the Mongo
+database is stored as well as always connecting to Mongo using authenticated
+access. The volume containing any on-disk assetstores should also be encrypted
+to provide encryption of data at rest. We also recommend using a tool such as
+logrotate to enable the audit of girder logs in the event of a data breach.
+Finally, we recommend a regular backup of the Girder database, configuration,
+and assetstores. Disaster recovery is an important part of any security plan.
