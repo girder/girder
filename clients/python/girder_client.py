@@ -330,7 +330,7 @@ class GirderClient(object):
         }
         return self.put(path, params)
 
-    def file_chunker(self, filepath, filesize=None):
+    def _file_chunker(self, filepath, filesize=None):
         """
         Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
 
@@ -349,14 +349,14 @@ class GirderClient(object):
                 next_chunk_size = min(self.MAX_CHUNK_SIZE,
                                       filesize - startbyte)
 
-    def sha512_hasher(self, filepath):
+    def _sha512_hasher(self, filepath):
         """
         Returns sha512 hash of passed in file.
 
         :param filepath: path to file on disk.
         """
         hasher = hashlib.sha512()
-        for chunk, _ in self.file_chunker(filepath):
+        for chunk, _ in self._file_chunker(filepath):
             hasher.update(chunk)
         return hasher.hexdigest()
 
@@ -380,7 +380,7 @@ class GirderClient(object):
             if filename == item_file['name']:
                 file_id = item_file['_id']
                 if 'sha512' in item_file:
-                    if item_file['sha512'] == self.sha512_hasher(filepath):
+                    if item_file['sha512'] == self._sha512_hasher(filepath):
                         return (file_id, True)
                     else:
                         return (file_id, False)
@@ -443,7 +443,7 @@ class GirderClient(object):
                     'After creating an upload token for a new file, expected '
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in self.file_chunker(filepath, filesize):
+        for chunk, startbyte in self._file_chunker(filepath, filesize):
             parameters = {
                 'offset': startbyte,
                 'uploadId': uploadId
