@@ -249,39 +249,9 @@ class Item(Model):
         # get the non-filtered search result from Model.textSearch
         cursor = Model.textSearch(self, query=query, limit=0, sort=sort,
                                   filters=filters)
-
-        # list where we will store the filtered results
-        filtered = []
-
-        # cache dictionary mapping folderId's to read permission
-        folderCache = {}
-
-        # loop through all results in the non-filtered list
-        i = 0
-        for result in cursor:
-            # check if the folderId is cached
-            folderId = result['folderId']
-
-            if folderId not in folderCache:
-                # if the folderId is not cached check for read permission
-                # and set the cache
-                folder = self.model('folder').load(folderId, force=True)
-                folderCache[folderId] = self.model('folder').hasAccess(
-                    folder, user=user, level=AccessType.READ)
-
-            if folderCache[folderId] is True:
-                if i < offset:
-                    i += 1
-                    continue
-
-                filtered.append(result)
-
-                # once we have hit the requested limit, return
-                if len(filtered) >= limit:
-                    break
-
-        cursor.close()
-        return filtered
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def hasAccess(self, item, user=None, level=AccessType.READ):
         """

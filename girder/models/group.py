@@ -130,10 +130,9 @@ class Group(AccessControlledModel):
         # set afterward.
         cursor = self.find({}, limit=0, sort=sort)
 
-        for r in self.filterResultsByPermission(cursor=cursor, user=user,
-                                                level=AccessType.READ,
-                                                limit=limit, offset=offset):
-            yield r
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def listMembers(self, group, offset=0, limit=50, sort=None):
         """
