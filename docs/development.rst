@@ -142,7 +142,7 @@ developing quality software. When performing a code review, ask the following:
 1.  Is the continuous integration server happy with this?
 2.  Are there tests for this feature or bug fix?
 3.  Is this documented (for users and/or developers)?
-4.  Are the commits modular with good notes.
+4.  Are the commits modular with good notes?
 5.  Will this merge cleanly?
 6.  Does this break backward compatibility? Is that okay?
 7.  What are the security implications of this change? Does this open Girder up
