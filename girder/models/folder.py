@@ -309,6 +309,7 @@ class Folder(AccessControlledModel):
             if progress:
                 progress.update(increment=1, message='Deleted item ' +
                                 item['name'])
+        # subsequent operations take a long time, so free the cursor's resources
         items.close()
 
         # Delete all child folders
@@ -355,10 +356,8 @@ class Folder(AccessControlledModel):
         }
         q.update(filters)
 
-        cursor = self.model('item').find(
+        return self.model('item').find(
             q, limit=limit, offset=offset, sort=sort, **kwargs)
-        for item in cursor:
-            yield item
 
     def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
                      sort=None, filters=None, **kwargs):
@@ -396,10 +395,9 @@ class Folder(AccessControlledModel):
         # afterward.
         cursor = self.find(q, limit=0, sort=sort, **kwargs)
 
-        for r in self.filterResultsByPermission(cursor=cursor, user=user,
-                                                level=AccessType.READ,
-                                                limit=limit, offset=offset):
-            yield r
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def createFolder(self, parent, name, description='', parentType='folder',
                      public=None, creator=None, allowRename=False):
@@ -537,15 +535,14 @@ class Folder(AccessControlledModel):
             'folderId': folder['_id']
         }, fields=(), limit=0)
         count += items.count()
+        # subsequent operations take a long time, so free the cursor's resources
         items.close()
 
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
         }, fields=(), limit=0, timeout=False)
-        for subfolder in folders:
-            count += self.subtreeCount(subfolder)
-        folders.close()
+        count += sum(self.subtreeCount(subfolder) for subfolder in folders)
 
         return count
 

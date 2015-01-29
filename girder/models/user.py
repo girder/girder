@@ -178,7 +178,7 @@ class User(AccessControlledModel):
         :param limit: Result limit.
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
-        :returns: List of users.
+        :returns: Iterable of users.
         """
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
@@ -187,10 +187,9 @@ class User(AccessControlledModel):
         else:
             cursor = self.find({}, limit=0, sort=sort)
 
-        for r in self.filterResultsByPermission(cursor=cursor, user=user,
-                                                level=AccessType.READ,
-                                                limit=limit, offset=offset):
-            yield r
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def setPassword(self, user, password, save=True):
         """
@@ -293,6 +292,6 @@ class User(AccessControlledModel):
             'parentId': doc['_id'],
             'parentCollection': 'user'
         }, limit=0, timeout=False)
-        for folder in folders:
-            count += self.model('folder').subtreeCount(folder)
+        count += sum(self.model('folder').subtreeCount(folder)
+                     for folder in folders)
         return count

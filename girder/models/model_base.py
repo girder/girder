@@ -154,10 +154,7 @@ class Model(ModelImporter):
         """
         if not query:
             query = {}
-        cursor = self.collection.find(spec=query, skip=0, limit=1, **kwargs)
-        if cursor.count() == 0:
-            return None
-        return cursor.next()
+        return self.collection.find_one(query, **kwargs)
 
     def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
                    filters=None):
@@ -744,9 +741,9 @@ class AccessControlledModel(Model):
         cursor = Model.textSearch(
             self, query=query, filters=filters, limit=0, sort=sort,
             fields=fields)
-        return [r for r in self.filterResultsByPermission(
+        return self.filterResultsByPermission(
             cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)]
+            offset=offset)
 
 
 class AccessException(Exception):
