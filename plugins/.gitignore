@@ -3,6 +3,7 @@
 !celery_jobs/
 !geospatial/
 !google_analytics/
+!gravatar/
 !jobs/
 !jquery_widgets/
 !metadata_extractor/
