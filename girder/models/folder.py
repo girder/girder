@@ -48,20 +48,14 @@ class Folder(AccessControlledModel):
             'description': 1
         })
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            '_id', 'name', 'public', 'description', 'created', 'updated',
+            'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
+            'baseParentType', 'baseParentId'))
+
     def filter(self, folder, user):
-        """
-        Filter a folder document for display to the user.
-        """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated',
-                'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
-                'baseParentType', 'baseParentId']
-
-        filtered = self.filterDocument(folder, allow=keys)
-
-        filtered['_accessLevel'] = self.getAccessLevel(
-            folder, user)
-
-        return filtered
+        """Preserved override for kwarg backwards compatibility."""
+        return AccessControlledModel.filter(self, doc=folder, user=user)
 
     def validate(self, doc, allowRename=False):
         """

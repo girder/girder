@@ -40,21 +40,15 @@ class User(AccessControlledModel):
             'lastName': 1
         }, language='none')
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            '_id', 'login', 'public', 'firstName', 'lastName', 'admin',
+            'created'))
+        self.exposeFields(level=AccessType.ADMIN, fields=(
+            'size', 'email', 'groups', 'groupInvites'))
+
     def filter(self, user, currentUser):
-        if user is None:
-            return None
-
-        keys = ['_id', 'login', 'public', 'firstName', 'lastName', 'admin',
-                'created']
-
-        if self.hasAccess(user, currentUser, AccessType.ADMIN):
-            keys.extend(['size', 'email', 'groups', 'groupInvites'])
-
-        filtered = self.filterDocument(user, allow=keys)
-
-        filtered['_accessLevel'] = self.getAccessLevel(user, currentUser)
-
-        return filtered
+        """Preserved override for kwarg backwards compatibility."""
+        return AccessControlledModel.filter(self, doc=user, user=currentUser)
 
     def validate(self, doc):
         """

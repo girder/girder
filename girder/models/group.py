@@ -61,6 +61,9 @@ class Group(AccessControlledModel):
             'description': 1
         })
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            '_id', 'name', 'public', 'description', 'created', 'updated'))
+
     def filter(self, group, user, accessList=False, requests=False):
         """
         Filter a group document for display to the user.
@@ -75,26 +78,15 @@ class Group(AccessControlledModel):
         :type requests: bool
         :returns: The filtered group document.
         """
-        keys = ['_id', 'name', 'public', 'description', 'created', 'updated']
-
-        if requests:
-            keys.append('requests')
-
-        accessLevel = self.getAccessLevel(group, user)
+        filtered = AccessControlledModel.filter(self, doc=group, user=user)
 
         if accessList:
-            keys.append('access')
-
-        group = self.filterDocument(group, allow=keys)
-        group['_accessLevel'] = accessLevel
-
-        if accessList:
-            group['access'] = self.getFullAccessList(group)
+            filtered['access'] = self.getFullAccessList(group)
 
         if requests:
-            group['requests'] = self.getFullRequestList(group)
+            filtered['requests'] = self.getFullRequestList(group)
 
-        return group
+        return filtered
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
