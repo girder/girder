@@ -221,3 +221,32 @@ a ``file`` list with the changed file(s).  Each entry in this list includes a
 - ``fileRemoved``: a file was removed from the item.  The ``old`` parameter has
   a summary of the file information.  If this was the only item using this file
   data, the file is removed from the assetstore.
+
+Gravatar Portraits
+------------------
+
+This lightweight plugin makes all users' Gravatar image URLs available for use
+in clients. When enabled, user documents sent through the REST API will contain
+a new field ``gravatar_baseUrl`` if the value has been computed. If that field
+is not set on the user document, instead use the URL ``/user/:id/gravatar`` under
+the Girder API, which will compute and store the correct Gravatar URL, and then
+redirect to it. The next time that user document is sent over the REST API,
+it should contain the computed ``gravatar_baseUrl`` field.
+
+Javascript clients
+******************
+
+The Gravatar plugin's javascript code extends the Girder web client's ``girder.models.UserModel``
+by adding the ``getGravatarUrl(size)`` method that adheres to the above behavior
+internally. You can use it on any user model with the ``_id`` field set, as in the following example:
+
+.. code-block:: javascript
+
+    if (girder.currentUser) {
+        this.$('div.gravatar-portrait').css(
+            'background-image', 'url(' +
+            girder.currentUser.getGravatarUrl(36) + ')');
+    }
+
+.. note:: Gravatar images are always square; the ``size`` parameter refers to
+   the side length of the desired image in pixels.

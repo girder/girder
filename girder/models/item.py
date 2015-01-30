@@ -45,17 +45,13 @@ class Item(Model):
             'description': 1
         })
 
-    def filter(self, item):
-        """
-        Filter an item document for display to the user.
-        """
-        keys = ['_id', 'size', 'updated', 'description', 'created',
-                'meta', 'creatorId', 'folderId', 'name', 'baseParentType',
-                'baseParentId']
+        self.exposeFields(level=AccessType.READ, fields=(
+            '_id', 'size', 'updated', 'description', 'created', 'meta',
+            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
-        filtered = self.filterDocument(item, allow=keys)
-
-        return filtered
+    def filter(self, item, user=None):
+        """Preserved override for kwarg backwards compatibility."""
+        return Model.filter(self, doc=item, user=user)
 
     def _validateString(self, value):
         """

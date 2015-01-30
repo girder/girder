@@ -39,16 +39,13 @@ class Collection(AccessControlledModel):
             'description': 1
         })
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            '_id', 'name', 'description', 'public', 'created', 'updated',
+            'size'))
+
     def filter(self, collection, user=None):
-        """Helper to filter the collection model."""
-        filtered = self.filterDocument(
-            collection, allow=('_id', 'name', 'description', 'public',
-                               'created', 'updated', 'size'))
-
-        if user:
-            filtered['_accessLevel'] = self.getAccessLevel(collection, user)
-
-        return filtered
+        """Preserved override for kwarg backwards compatibility."""
+        return AccessControlledModel.filter(self, doc=collection, user=user)
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()

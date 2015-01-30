@@ -114,6 +114,7 @@ class AccessType:
     READ = 0
     WRITE = 1
     ADMIN = 2
+    SITE_ADMIN = 100
 
 
 class SettingKey:

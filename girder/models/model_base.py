@@ -42,6 +42,13 @@ class Model(ModelImporter):
         self._textIndex = None
         self._textLanguage = None
 
+        self._filterKeys = {
+            AccessType.READ: set(),
+            AccessType.WRITE: set(),
+            AccessType.ADMIN: set(),
+            AccessType.SITE_ADMIN: set()
+        }
+
         self.initialize()
 
         db_connection = getDbConnection()
@@ -63,6 +70,70 @@ class Model(ModelImporter):
             except pymongo.errors.OperationFailure:
                 print(
                     TerminalColor.warning('WARNING: Text search not enabled.'))
+
+    def exposeFields(self, level, fields):
+        """
+        Expose model fields to users with the given access level. Subclasses
+        should call this in their initialize method to declare what fields
+        should be exposed to what access levels if they are using the default
+        filter implementation in this class. Since filtered fields are sets,
+        this method is idempotent.
+
+        :param level: The required access level for the field.
+        :type level: AccessType
+        :param fields: A field or list of fields to expose for that level.
+        :type fields: str, list, or tuple
+        """
+        if isinstance(fields, basestring):
+            fields = (fields, )
+
+        self._filterKeys[level] = self._filterKeys[level].union(fields)
+
+    def hideFields(self, level, fields):
+        """
+        Hide a field, i.e. make sure it is not exposed via the default
+        filtering method. Since the filter uses a white list, it is only ever
+        necessary to call this for fields that were added previously with
+        exposeFields().
+
+        :param level: The access level to remove the fields from.
+        :type level: AccessType
+        :param fields: The field or fields to remove from the white list.
+        :type fields: str, list, or tuple
+        """
+        if isinstance(fields, basestring):
+            fields = (fields, )
+
+        self._filterKeys[level] = self._filterKeys[level].difference(fields)
+
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Filter this model for the given user. This is a default implementation
+        that assumes this model has no notion of access control, and simply
+        allows all keys under READ access level, and conditionally allows any
+        keys assigned to SITE_ADMIN level.
+
+        :param doc: The document of this model type to be filtered.
+        :type doc: dict or None
+        :param user: The current user for whom we are filtering.
+        :type user: dict or None
+        :param additionalKeys: Any additional keys that should be included in
+            the document for this call only.
+        :type additionalKeys: list, tuple, or None
+        :returns: The filtered document (dict).
+        """
+        if doc is None:
+            return None
+
+        keys = self._filterKeys[AccessType.READ]
+
+        if user and user.get('admin') is True:
+            keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+
+        if additionalKeys:
+            keys = keys.union(additionalKeys)
+
+        return self.filterDocument(doc, allow=tuple(keys))
 
     def ensureTextIndex(self, index, language='english'):
         """
@@ -365,6 +436,46 @@ class AccessControlledModel(Model):
     It also provides methods for setting access control policies on the
     resource.
     """
+
+    def filter(self, doc, user, additionalKeys=None):
+        """
+        Filter this model for the given user according to the user's access
+        level. Also adds the special _accessLevel field to the document to
+        indicate the user's highest access level. This filters a single document
+        that the user has at least read access to. For filtering a set of
+        documents, see filterResultsByPermission().
+
+        :param doc: The document of this model type to be filtered.
+        :type doc: dict or None
+        :param user: The current user for whom we are filtering.
+        :type user: dict or None
+        :param additionalKeys: Any additional keys that should be included in
+            the document for this call only.
+        :type additionalKeys: list, tuple, or None
+        :returns: The filtered document (dict).
+        """
+        if doc is None:
+            return None
+
+        keys = self._filterKeys[AccessType.READ]
+        level = self.getAccessLevel(doc, user)
+
+        if level >= AccessType.WRITE:
+            keys = keys.union(self._filterKeys[AccessType.WRITE])
+
+            if level >= AccessType.ADMIN:
+                keys = keys.union(self._filterKeys[AccessType.ADMIN])
+
+                if user.get('admin') is True:
+                    keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+
+        if additionalKeys:
+            keys = keys.union(additionalKeys)
+
+        filtered = self.filterDocument(doc, allow=tuple(keys))
+        filtered['_accessLevel'] = level
+
+        return filtered
 
     def _hasGroupAccess(self, perms, groupIds, level):
         """

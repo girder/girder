@@ -89,3 +89,18 @@ class ModelImporter(object):
             _loadModel(model, module, plugin)
 
         return _modelInstances[plugin][model]
+
+    @staticmethod
+    def registerModel(model, instance, plugin='_core'):
+        """
+        Use this method to manually register a model singleton instead of
+        having it automatically discovered.
+
+        :param model: The model name.
+        :type model: str
+        :param plugin: If a plugin model, pass the canonical plugin name.
+        :type plugin: str
+        :param instance: The model singleton instance.
+        :type instance: subclass of Model
+        """
+        _modelInstances[plugin][model] = instance
