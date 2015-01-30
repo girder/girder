@@ -66,15 +66,15 @@ Database Injection Attacks
 --------------------------
 
 Girder defends against database injection attacks by using PyMongo as the only
-pathway between the application server and the database server. This protect
+pathway between the application server and the database server. This protects
 against many injection vulnerabilities as described in the
 `MongoDB Documentation
 <http://docs.mongodb.org/manual/faq/developers/#how-does-mongodb-address-sql-or-query-injection>`_.
 Girder also uses a model layer to mediate and validate all interaction with
-the database. This ensures that for all database operations and structural
-attributes (collection name, operation type) are hardcoded and not modifiable
-by the client, while data attributes (stored content) are validated for proper
-form before being accepted from a client.
+the database. This ensures that for all database operations, structural
+attributes (collection name, operation type, etc.) are hardcoded and not
+modifiable by the client, while data attributes (stored content) are
+validated for proper form before being accepted from a client.
 
 Additionally, we strongly recommend configuring your MongoDB server with
 JavaScript disabled unless explicitly needed for your Girder-based
@@ -119,7 +119,7 @@ Another common attack vector is through libraries upon which girder depends
 such as Cherrypy, Jade, PyMongo, etc. Girder's library dependencies reference
 specific versions, ensuring that arbitrary upstream changes to libraries are
 not automatically accepted into Girder's environment. Conversely, during 
-development, and before releases we work to ensure our dependencies are up to
+development and before releases we work to ensure our dependencies are up to
 date in order to get the latest security fixes.
 
 
