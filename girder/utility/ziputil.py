@@ -43,7 +43,7 @@ try:
 except ImportError:  # pragma: no cover
     zlib = None
 
-__all__ = ['STORE', 'DEFLATE', 'ZipGenerator']
+__all__ = ('STORE', 'DEFLATE', 'ZipGenerator')
 
 
 Z64_LIMIT = (1 << 31) - 1

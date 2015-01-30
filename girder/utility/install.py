@@ -199,4 +199,4 @@ def install_plugin(source=None, force=False):
         shutil.rmtree(tmp)
     return found
 
-__all__ = ['install_plugin', 'install_web']
+__all__ = ('install_plugin', 'install_web')
