@@ -137,18 +137,24 @@ def setup(test=False, plugins=None, curConfig=None):
 class _StaticFileRoute(object):
     exposed = True
 
-    def __init__(self, path):
+    def __init__(self, path, contentType=None):
         self.path = os.path.abspath(path)
+        self.contentType = contentType
 
     def GET(self):
-        return cherrypy.lib.static.serve_file(self.path)
+        return cherrypy.lib.static.serve_file(self.path,
+                                              content_type=self.contentType)
 
 
-def staticFile(path):
+def staticFile(path, contentType=None):
     """
     Helper function to serve a static file. This should be bound as the route
     object, i.e. info['serverRoot'].route_name = staticFile('...')
 
     :param path: The path of the static file to serve from this route.
+    :type path: str
+    :param contentType: The MIME type of the static file. If set to None, the
+                        content type wll be guessed by the file extension of
+                        the 'path' argument.
     """
-    return _StaticFileRoute(path)
+    return _StaticFileRoute(path, contentType)

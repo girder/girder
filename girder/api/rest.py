@@ -268,6 +268,9 @@ def endpoint(fun):
                 # generator function for a streaming response.
                 cherrypy.response.stream = True
                 return val()
+            if isinstance(val, cherrypy.lib.file_generator):
+                # Don't do any post-processing of static files
+                return val
 
         except RestException as e:
             # Handle all user-error exceptions from the rest layer
