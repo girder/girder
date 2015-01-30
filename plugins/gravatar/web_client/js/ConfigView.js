@@ -1,5 +1,3 @@
-girder.exposePluginConfig('gravatar', 'plugins/gravatar/config');
-
 /**
 * Administrative configuration view.
 */

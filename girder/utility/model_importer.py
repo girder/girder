@@ -93,8 +93,8 @@ class ModelImporter(object):
     @staticmethod
     def registerModel(model, instance, plugin='_core'):
         """
-        Use this method to manually register a model singleton instead of having it
-        automatically discovered.
+        Use this method to manually register a model singleton instead of
+        having it automatically discovered.
 
         :param model: The model name.
         :type model: str
