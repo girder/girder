@@ -127,6 +127,7 @@ class WebClientTestCase(base.TestCase):
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
             hasJasmine = False
+            jasmineFinished = False
             for line in iter(task.stdout.readline, ''):
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
@@ -140,10 +141,12 @@ class WebClientTestCase(base.TestCase):
                     continue  # we don't want to print this
                 if 'Jasmine' in line:
                     hasJasmine = True
+                if 'Testing Finished' in line:
+                    jasmineFinished = True
                 sys.stdout.write(line)
                 sys.stdout.flush()
             returncode = task.wait()
-            if not retry and hasJasmine:
+            if not retry and hasJasmine and jasmineFinished:
                 break
             if not hasJasmine:
                 time.sleep(1)
