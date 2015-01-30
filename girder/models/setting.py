@@ -221,7 +221,7 @@ class Setting(Model):
 
     def getDefault(self, key):
         """
-        Retreive the system default for a value.
+        Retrieve the system default for a value.
 
         :param key: The key identifying the setting.
         :type key: str

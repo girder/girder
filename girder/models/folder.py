@@ -145,7 +145,7 @@ class Folder(AccessControlledModel):
     def getSizeRecursive(self, folder):
         """
         Calculate the total size of the folder by recursing into all of its
-        descendent folders.
+        descendant folders.
         """
         size = folder['size']
 
@@ -642,7 +642,7 @@ class Folder(AccessControlledModel):
         :param srcFolder: the original folder.
         :type srcFolder: dict
         :param newFolder: the new folder.
-        :type parent: dict
+        :type newFolder: dict
         :param creator: user representing the creator of the new folder.
         :type creator: dict
         :param progress: a progress context to record process on.

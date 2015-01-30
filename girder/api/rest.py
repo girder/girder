@@ -254,8 +254,8 @@ def endpoint(fun):
     def endpointDecorator(self, *args, **kwargs):
         # Note that the cyclomatic complexity of this function crosses our
         # flake8 configuration threshold.  Because it is largely exception
-        # handling, I think thta breaking it into smaller functions actually
-        # reduces readablity and maintainability.  To work around this, some
+        # handling, I think that breaking it into smaller functions actually
+        # reduces readability and maintainability.  To work around this, some
         # simple branches have been marked to be skipped in the cyclomatic
         # analysis.
         _setCommonCORSHeaders()

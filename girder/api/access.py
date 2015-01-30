@@ -25,7 +25,7 @@ from girder.api import rest
 
 def admin(fun):
     """
-    Functions that require administator access should be wrapped in this
+    Functions that require administrator access should be wrapped in this
     decorator.
     """
     @functools.wraps(fun)

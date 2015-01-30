@@ -146,7 +146,7 @@ class AbstractAssetstoreAdapter(object):
     def getChunkSize(self, chunk):
         """
         Given a chunk that is either a file-like object or a string, attempt to
-        determine its length.  If it is a filelike object, then this relies on
+        determine its length.  If it is a file-like object, then this relies on
         being able to use fstat.
         :param chunk: the chunk to get the size of
         :type chunk: a file-like object or a string

@@ -83,7 +83,7 @@ class Group(Resource):
         .param('sortdir', "1 for ascending, -1 for descending (default=1)",
                required=False, dataType='int')
         .param('exact', 'If true, only return exact name matches.  This is '
-               'case senstive.', required=False, dataType='boolean')
+               'case sensitive.', required=False, dataType='boolean')
         .errorResponse())
 
     @access.user

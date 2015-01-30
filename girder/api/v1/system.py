@@ -278,7 +278,7 @@ class System(Resource):
     @access.admin
     def restartServer(self, params):
         """
-        Restart the girder rest server.  This relaods everything, which is
+        Restart the girder rest server.  This reloads everything, which is
         currently necessary to enable or disable a plugin.
         """
         class Restart(cherrypy.process.plugins.Monitor):
