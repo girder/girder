@@ -91,9 +91,9 @@ def userUpdate(event):
     if 'email' in event.info['params']:
         user = ModelImporter.model('user').load(event.info['id'], force=True)
         if (user['email'] != event.info['params']['email'] and
-            user.get('gravatar_baseUrl')):
-                del user['gravatar_baseUrl']
-                ModelImporter.model('user').save(user)
+                user.get('gravatar_baseUrl')):
+            del user['gravatar_baseUrl']
+            ModelImporter.model('user').save(user)
 
 
 def load(info):

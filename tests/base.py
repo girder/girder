@@ -85,13 +85,17 @@ def stopServer():
     mockSmtp.stop()
 
 
-def dropTestDatabase():
+def dropTestDatabase(dropModels=True):
     """
     Call this to clear all contents from the test database. Also forces models
     to reload.
     """
     db_connection = getDbConnection()
-    model_importer.clearModels()  # Must clear the models to rebuild indices
+
+    if dropModels:
+        # Must clear the models to rebuild indices
+        model_importer.clearModels()
+
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
 
     if 'girder_test_' not in dbName:
@@ -124,7 +128,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
-    def setUp(self, assetstoreType=None):
+    def setUp(self, assetstoreType=None, dropModels=True):
         """
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
@@ -133,7 +137,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                                any other value, use a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
-        dropTestDatabase()
+        dropTestDatabase(dropModels=dropModels)
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore',
             os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
@@ -202,6 +206,22 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         for k in keys:
             self.assertTrue(k in obj, 'Object does not contain key "%s"' % k)
+
+    def assertRedirect(self, resp, url=None):
+        """
+        Assert that we were given an HTTP redirect response, and optionally
+        assert that you were redirected to a specific URL.
+
+        :param resp: The response object.
+        :param url: If you know the URL you expect to be redirected to, you
+            should pass it here.
+        :type url: str
+        """
+        self.assertStatus(resp, 303)
+        self.assertTrue('Location' in resp.headers)
+
+        if url:
+            self.assertEqual(url, resp.headers['Location'])
 
     def assertNotHasKeys(self, obj, keys):
         """
