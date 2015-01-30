@@ -257,7 +257,7 @@ class Setting(Model):
         * allowHeaders: a set of allowed headers.  This includes the headers
           which are always allowed by CORS.  There are always all lower case.
 
-        :returns settings: a dictionary as described above.
+        :returns: a dictionary as described above.
         """
         if self._corsSettingsCache is None:
             cors = {}

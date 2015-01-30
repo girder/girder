@@ -88,7 +88,7 @@ class UploadTestCase(base.TestCase):
                         initializes the upload, 1 uploads 1 chunk, etc.  False
                         to complete the upload.
         :param largeFile: if True, upload a file that is > 32Mb
-        :returns upload: the upload record which includes the upload id."""
+        :returns: the upload record which includes the upload id."""
         if not largeFile:
             chunk1 = Chunk1
             chunk2 = Chunk2

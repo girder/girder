@@ -169,7 +169,7 @@ class Item(Model):
         Recalculate the item size based on the files that are in it.  If this
         is different than the recorded size, propagate the changes.
         :param item: The item to recalculate the size of.
-        :returns size: the recalculated size in bytes
+        :returns: the recalculated size in bytes
         """
         size = 0
         for file in self.childFiles(item, limit=0, timeout=False):
