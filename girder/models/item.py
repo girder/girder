@@ -50,7 +50,7 @@ class Item(Model):
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
     def filter(self, item, user=None):
-        """Filter an item document for display to the user."""
+        """Preserved override for kwarg backwards compatibility."""
         return Model.filter(self, doc=item, user=user)
 
     def _validateString(self, value):

@@ -89,9 +89,9 @@ class Model(ModelImporter):
 
         self._filterKeys[level] = self._filterKeys[level].union(fields)
 
-    def redactFields(self, level, fields):
+    def hideFields(self, level, fields):
         """
-        Redact a field, i.e. make sure it is not exposed via the default
+        Hide a field, i.e. make sure it is not exposed via the default
         filtering method. Since the filter uses a white list, it is only ever
         necessary to call this for fields that were added previously with
         exposeFields().
