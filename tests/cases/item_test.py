@@ -625,9 +625,11 @@ class ItemTestCase(base.TestCase):
         item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
         item['folderId'] = 'not_a_folder'
         self.model('item').save(item, validate=False)
-        # break the size for item2
+        # break the size, baseParentId, and baseParentType for item2
         item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
         item['size'] += 1
+        item['baseParentType'] = 'collection'
+        item['baseParentId'] = ObjectId()
         self.model('item').save(item, validate=False)
         # Use the system check to repair this.  item1 should vanish, item2's
         # size should be fized.
@@ -641,6 +643,10 @@ class ItemTestCase(base.TestCase):
         self.assertIsNone(item)
         item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
         self.assertEqual(item['size'], len('foobar'))
+        self.assertEqual(item['baseParentType'],
+                         self.publicFolder['baseParentType'])
+        self.assertEqual(item['baseParentId'],
+                         self.publicFolder['baseParentId'])
 
     def testCookieAuth(self):
         """

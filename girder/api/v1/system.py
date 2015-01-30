@@ -358,6 +358,8 @@ class System(Resource):
             #   expected size
             # * check that all folders have a valid ancestor tree leading to a
             #   user or collection
+            # * check that all folders have the correct baseParentId and
+            #   baseParentType
             # * check that all groups contain valid users
             # * check that all resources validate
             # * for filesystem assetstores, find files that are not tracked.

@@ -471,7 +471,7 @@ class Item(Model):
         * verify - verify and fix existing items
 
         :param stage: which stage of the check to run.  See above.
-        :param progress: an option progress context to update.
+        :param progress: an optional progress context to update.
         :returns: numItems: number of items to check or processed,
                   numChanged: number of items changed.
         """
@@ -507,10 +507,22 @@ class Item(Model):
             if progress is not None:
                 progress.update(message='Checking items')
             for item in items:
+                itemCorrected = False
                 setResponseTimeLimit()
-                oldsize = item.get('size', 0)
-                newsize = self.recalculateSize(item)
-                if newsize != oldsize:
+                oldSize = item.get('size', 0)
+                newSize = self.recalculateSize(item)
+                if newSize != oldSize:
+                    itemCorrected = True
+                newBaseParent = self.parentsToRoot(item, force=True)[0]
+                if item['baseParentType'] != newBaseParent['type'] or \
+                   item['baseParentId'] != newBaseParent['object']['_id']:
+                    self.update(
+                        {'_id': item['_id']}, update={'$set': {
+                            'baseParentType': newBaseParent['type'],
+                            'baseParentId': newBaseParent['object']['_id']
+                        }})
+                    itemCorrected = True
+                if itemCorrected:
                     itemsCorrected += 1
                 if progress is not None:
                     itemsLeft -= 1
