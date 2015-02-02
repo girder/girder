@@ -90,7 +90,7 @@ girder.App = girder.View.extend({
 
     /**
      * Close any open dialog if we are already logged in.
-     * :returns loggedIn: true if we have a current user.
+     * :returns: true if we have a current user.
      */
     closeDialogIfUser: function () {
         if (girder.currentUser) {

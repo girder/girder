@@ -124,7 +124,7 @@ class Token(AccessControlledModel):
         :type token: dict
         :param scope: A scope or set of scopes that will be tested as a subset
             of the given token's allowed scopes.
-        :type scopes: str or list of str
+        :type scope: str or list of str
         """
         if isinstance(scope, basestring):
             scope = (scope,)

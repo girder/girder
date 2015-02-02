@@ -221,7 +221,7 @@ class Setting(Model):
 
     def getDefault(self, key):
         """
-        Retreive the system default for a value.
+        Retrieve the system default for a value.
 
         :param key: The key identifying the setting.
         :type key: str
@@ -257,7 +257,7 @@ class Setting(Model):
         * allowHeaders: a set of allowed headers.  This includes the headers
           which are always allowed by CORS.  There are always all lower case.
 
-        :returns settings: a dictionary as described above.
+        :returns: a dictionary as described above.
         """
         if self._corsSettingsCache is None:
             cors = {}

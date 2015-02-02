@@ -53,7 +53,7 @@ class Item(Resource):
 
         To search with full text search, pass the "text" parameter. To search
         by parent, (i.e. list child items in a folder) pass folderId. You can
-        also pass limit, offset, sort, and sortdir paramters.
+        also pass limit, offset, sort, and sortdir parameters.
 
         :param text: Pass this to perform a full-text search of items.
         :param folderId: Get child items of a particular folder.

@@ -162,7 +162,7 @@ class FileTestCase(base.TestCase):
                             params={'uploadId': uploadId})
         self.assertStatusOk(resp)
 
-        # Tryng to send too many bytes should fail
+        # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
         files = [('chunk', name, "extra_"+chunk2+"_bytes")]

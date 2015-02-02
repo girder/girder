@@ -35,7 +35,7 @@ def _objectToDict(obj):
     integer, float, or string is returned in the dictionary.
 
     :param obj: a python object or class.
-    :returns: objDict: a dictionary of values for the object.
+    :returns: a dictionary of values for the object.
     """
     return {key: getattr(obj, key) for key in dir(obj) if
             not key.startswith('_') and
@@ -159,7 +159,7 @@ def formatSize(sizeBytes):
     prefixes.
 
     :param sizeBytes: the size in bytes to format.
-    :returns formatedSize: the formatted size string.
+    :returns: the formatted size string.
     """
     suffixes = ['B', 'kB', 'MB', 'GB', 'TB']
     if sizeBytes < 20000:

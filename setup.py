@@ -25,10 +25,10 @@ from pkg_resources import parse_requirements
 
 
 class InstallWithOptions(install):
-    '''
+    """
     A custom install command that recognizes extra options
     to perform plugin and/or web client installation.
-    '''
+    """
 
     user_options = install.user_options + [
         ('plugins', None, 'Install default plugins.'),
@@ -45,11 +45,11 @@ class InstallWithOptions(install):
         self.web = None
 
     def run(self, *arg, **kw):
-        '''
+        """
         Runs the main installation, then installs optional
         components.  This will fail if (for whatever reason)
         the installation path is not in ``sys.path``.
-        '''
+        """
         install.run(self, *arg, **kw)
         if self.plugins:
             print 'Installing plugins'
@@ -59,10 +59,10 @@ class InstallWithOptions(install):
             self.girder_install('web')
 
     def girder_install(self, component):
-        '''
+        """
         Try to import girder_install to install
         optional components.
-        '''
+        """
         try:
             from girder.utility import install
         except ImportError:

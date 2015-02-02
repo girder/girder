@@ -114,7 +114,7 @@ class Item(Model):
         :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
-        :param force: If you explicity want to circumvent access
+        :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
         """
@@ -169,11 +169,11 @@ class Item(Model):
         Recalculate the item size based on the files that are in it.  If this
         is different than the recorded size, propagate the changes.
         :param item: The item to recalculate the size of.
-        :returns size: the recalculated size in bytes
+        :returns: the recalculated size in bytes
         """
         size = 0
         for file in self.childFiles(item, limit=0, timeout=False):
-            # We could add a recalcuateSize to the file model, in which case
+            # We could add a recalculateSize to the file model, in which case
             # this would be:
             # size += self.model('file').recalculateSize(file)
             size += file.get('size', 0)

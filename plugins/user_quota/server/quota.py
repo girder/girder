@@ -40,8 +40,7 @@ def ValidateSizeQuota(value):
 
     :param value: the proposed value.
     :return value: the validated value: either None or an integer
-    :return err: None if no error occurred, otherwise a recommended error
-                 message.
+    :return: None if no error occurred, otherwise a recommended error message.
     """
     if value is None or value == '' or value == 0:
         return None, None
@@ -81,7 +80,7 @@ class QuotaPolicy(Resource):
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
         :param params: the query parameters.  'policy' is required and used.
-        :return resource: the updated resource document.
+        :return: the updated resource document.
         """
         self.requireParams(('policy', ), params)
         policy = self._validatePolicy(params['policy'])
@@ -95,9 +94,9 @@ class QuotaPolicy(Resource):
         """Validate the fallbackAssetstore parameter.
 
         :param value: the proposed value.
-        :returns value: the validated value: either None or 'current' to use
-                        the current assetstore, 'none' to disable a fallback
-                        assetstore, or an assetstore ID.
+        :returns: the validated value: either None or 'current' to use the
+                  current assetstore, 'none' to disable a fallback assetstore,
+                  or an assetstore ID.
         """
         if not value or value == 'current':
             return None
@@ -117,7 +116,8 @@ class QuotaPolicy(Resource):
         """Validate the fileSizeQuota parameter.
 
         :param value: the proposed value.
-        :returns value: the validated value: either None or an integer
+        :returns: the validated value
+        :rtype: None or int
         """
         (value, err) = ValidateSizeQuota(value)
         if err:
@@ -128,8 +128,8 @@ class QuotaPolicy(Resource):
         """Validate the preferredAssetstore parameter.
 
         :param value: the proposed value.
-        :returns value: the validated value: either None or 'current' to use
-                        the current assetstore or an assetstore ID.
+        :returns: the validated value: either None or 'current' to use the
+                  current assetstore or an assetstore ID.
         """
         if not value or value == 'current':
             return None
@@ -146,7 +146,8 @@ class QuotaPolicy(Resource):
         """Validate the useQuotaDefault parameter.
 
         :param value: the proposed value.
-        :returns value: the validated value: either True, False, or None.
+        :returns: the validated value
+        :rtype: None or bool
         """
         if str(value).lower() in ('none', 'true', 'yes', '1'):
             return True
@@ -163,7 +164,7 @@ class QuotaPolicy(Resource):
 
         :param policy: json object to validate.  This may also be a python
                            dictionary as if the JSON was already decoded.
-        :returns policyDict: a validate policy dictionary.
+        :returns: a validate policy dictionary.
         """
         if not isinstance(policy, dict):
             try:
@@ -239,9 +240,9 @@ class QuotaPolicy(Resource):
                                disallow the assetstore, or an assetstore ID to
                                check if that assetstore exists and is nominally
                                available.
-        :returns assetstore: None to use the current assetstore, False to
-                             indicate no assetstore is allowed, or an
-                             assetstore document of an allowed assetstore.
+        :returns: None to use the current assetstore, False to indicate no
+                  assetstore is allowed, or an assetstore document of an
+                  allowed assetstore.
         """
         if assetstoreSpec is None:
             return None
@@ -263,9 +264,9 @@ class QuotaPolicy(Resource):
         :param model: the initial model type.  Could be file, item, folder,
                       user, or collection.
         :param resource: the initial resource document.
-        :return model: the base model type, either 'user' or 'collection'.
-        :return resource: the base resource document or the id of that
-                          document.
+        :return: A pair ('model', 'resource'), where 'model' is the base model
+                 type, either 'user' or 'collection'., and 'resource' is the
+                 base resource document or the id of that document.
         """
         if isinstance(resource, (basestring, ObjectId)):
             resource = self.model(model).load(id=resource, force=True)
@@ -323,8 +324,8 @@ class QuotaPolicy(Resource):
 
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
-        :return quota: the fileSizeQuota.  None for no quota (unlimited),
-                       otherwise a positive integer.
+        :return: the fileSizeQuota.  None for no quota (unlimited), otherwise
+                 a positive integer.
         """
         useDefault = resource[QUOTA_FIELD].get('useQuotaDefault', True)
         quota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
@@ -346,9 +347,8 @@ class QuotaPolicy(Resource):
         Check if an upload will fit within a quota restriction.
 
         :param upload: an upload document.
-        :returns quotaInfo: None if the upload is allowed, otherwise a
-                            dictionary of information about the quota
-                            restriction.
+        :returns: None if the upload is allowed, otherwise a dictionary of
+                  information about the quota restriction.
         """
         origSize = 0
         if 'fileId' in upload:

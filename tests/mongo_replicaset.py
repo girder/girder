@@ -52,7 +52,7 @@ def getMongoClient(uri, init=False, timeout=30):
     :param init: if set and a client connection is requested, initiate the
                  replica set with this configuration.
     :param timeout: timeout in seconds.
-    :returns client: the client connection.
+    :returns: the client connection.
     """
     if isinstance(uri, int):
         uri = 'mongodb://localhost:%d/admin' % Config[uri]['port']
@@ -217,8 +217,8 @@ def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
                    state can be any value within that tuple.
     :param timeout: timeout in seconds.
     :param verbose: verbosity for logging.
-    :returns client: the client connection.
-    :returns stat: current status of the replica set.
+    :returns: the client connection.
+    :returns: current status of the replica set.
     """
     stat = None
     starttime = time.time()

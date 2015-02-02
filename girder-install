@@ -16,10 +16,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-'''
+"""
 This script provides a simple interface for installing optional components
 for girder.  Try `girder-install --help` for more information.
-'''
+"""
 
 import sys
 import os
@@ -49,9 +49,9 @@ version = constants.VERSION['apiVersion']
 
 
 def handle_web(parser):
-    '''
+    """
     Handles the object returned by argparse for the `web` command.
-    '''
+    """
     result = install_web(parser.source, parser.force)
     if not result:
         sys.stderr.write(
@@ -63,9 +63,9 @@ def handle_web(parser):
 
 
 def handle_plugin(parser):
-    '''
+    """
     Handles the object returned by argparse for the `plugin` command.
-    '''
+    """
     result = install_plugin(parser.source, parser.force)
     if not len(result):
         sys.stderr.write(
@@ -78,37 +78,37 @@ def handle_plugin(parser):
 
 
 def print_version(parser):
-    '''
+    """
     Prints the girder version number.
-    '''
+    """
     print version
 
 
 def print_plugin_path(parser):
-    '''
+    """
     Prints the configured plugin path.
-    '''
+    """
     print pluginDir
 
 
 def print_web_root(parser):
-    '''
+    """
     Prints the static web root.
-    '''
+    """
     print webRoot
 
 
 def main(args):
-    '''
+    """
     Main function that parses the argument list and delagates to the correct function
     using the argparse package.
-    '''
+    """
     parser = argparse.ArgumentParser(
-        description='Install optional Girder components.  To get help for a subcommand, ' +
+        description='Install optional Girder components.  To get help for a subcommand, '
                     'try "{} <command> -h"'.format(args[0]),
-        epilog='This script supports installing from a url, a tarball, ' +
-               'or a local path.  When installing with no sources specified, it will install ' +
-               'from the main Girder repository corresponding to the Girder release ' +
+        epilog='This script supports installing from a url, a tarball, '
+               'or a local path.  When installing with no sources specified, it will install '
+               'from the main Girder repository corresponding to the Girder release '
                'currently installed.'
     )
 
@@ -149,14 +149,14 @@ def main(args):
 
     plugin.add_argument(
         '-s', '--source',
-        help='A directory, tarball, or url to a tarball containing one or more ' +
+        help='A directory, tarball, or url to a tarball containing one or more '
              'plugins.  Defaults to installing all plugins in the Girder repository'
     )
 
     web.add_argument(
         '-s', '--source',
-        help='A directory, tarball, or url to a tarball containing client ' +
-             'side content.  Defaults to installing client libraries from the ' +
+        help='A directory, tarball, or url to a tarball containing client '
+             'side content.  Defaults to installing client libraries from the '
              'currently installed Girder release.'
     )
 
