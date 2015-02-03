@@ -6,6 +6,6 @@
           | #{percentText}
         .progress-left
           | #{timeLeftText}
-  .g-task-progress-title= progress.data.title
+  .g-task-progress-title(title="#{progress.data.title}")= progress.data.title
 .g-task-progress-bottom
   .g-task-progress-message= progress.data.message
