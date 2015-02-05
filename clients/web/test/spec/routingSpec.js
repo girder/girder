@@ -14,10 +14,12 @@ function _getFirstId(collection, ids, key, fetchParamsFunc)
 {
     var coll;
     runs(function () {
+        /* jshint -W055 */
         coll = new collection();
         var params;
-        if (fetchParamsFunc)
+        if (fetchParamsFunc) {
             params = fetchParamsFunc(coll);
+        }
         coll.fetch(params);
     });
     waitsFor(function () {
@@ -374,6 +376,23 @@ describe('Test routing paths', function () {
         girderTest.testRoute('assetstores?dialog=assetstoreedit&dialogid=' +
                              ids.assetstore, true, function () {
             return $('.modal-title').text() === 'Edit assetstore';
+        });
+    });
+});
+
+describe('Test internal javascript functions', function () {
+    it('check parseQueryString', function () {
+        runs(function () {
+            var testVals = [
+                {plain: 'strings'},
+                {altchar: 'a~`!@#$%^&*()_+{}|[]\\:";\'<>?,./'}
+            ];
+            for (var i = 0; i < testVals.length; i += 1) {
+                var encode = $.param(testVals[i]);
+                console.log($.param(testVals[i]));
+                console.log($.param(girder.parseQueryString($.param(testVals[i]))));
+                expect($.param(girder.parseQueryString(encode))).toBe(encode);
+            }
         });
     });
 });
