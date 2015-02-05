@@ -136,22 +136,13 @@ girder.getModelClassByName = function (name) {
 girder.parseQueryString = function (queryString) {
     var params = {};
     if (queryString) {
-        _.each(
-            _.map(decodeURI(queryString).split(/&/g), function (el, i) {
-                var aux = el.split('='), o = {};
-                if (aux.length >= 1) {
-                    var val;
-                    if (aux.length === 2) {
-                        val = aux[1];
-                    }
-                    o[aux[0]] = val;
-                }
-                return o;
-            }),
-            function (o) {
-                _.extend(params, o);
+        _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el, i) {
+            var aux = el.split('='), o = {}, val;
+            if (aux.length > 1) {
+                val = decodeURIComponent(el.substr(aux[0].length + 1));
             }
-        );
+            params[decodeURIComponent(aux[0])] = val;
+        });
     }
     return params;
 };
