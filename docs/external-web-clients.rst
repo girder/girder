@@ -56,12 +56,12 @@ be set before performing any Girder API calls:
 
     $(document).ready(function () {
         girder.apiRoot = '/girder/api/v1';
-        girder.handleRouting = false;
+        girder.router.enabled(false);
 
         // Your app code here
     });
 
-Note that ``girder.handleRouting`` must be set to false to disable URL routing
+Note that ``girder.router.enabled(false)`` must be set to false to disable URL routing
 behavior specific to the full Girder web application.
 
 Using Girder Register and Login UI
