@@ -344,8 +344,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Test init for a single-chunk upload
-        folders = self.model('folder').childFolders(
-            self.admin, 'user', user=self.admin)
+        folders = self.model('folder').childFolders(self.admin, 'user')
         parentFolder = folders.next()
         params = {
             'parentType': 'folder',
@@ -480,7 +479,7 @@ class AssetstoreTestCase(base.TestCase):
             zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
             self.assertTrue(zip.testzip() is None)
 
-            extracted = zip.read('Private/My File.txt')
+            extracted = zip.read('Public/My File.txt')
             self.assertEqual(extracted, 'dummy file contents')
 
         # Create the file key in the moto s3 store so that we can test that it
