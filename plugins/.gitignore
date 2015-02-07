@@ -10,4 +10,5 @@
 !mongo_search/
 !oauth/
 !provenance/
+!user_quota/
 !vega/
