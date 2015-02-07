@@ -17,10 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import httmock
+import io
 import json
 import moto
 import os
 import time
+import zipfile
 
 from .. import base
 from .. import mock_s3
@@ -343,9 +346,10 @@ class AssetstoreTestCase(base.TestCase):
         # Test init for a single-chunk upload
         folders = self.model('folder').childFolders(
             self.admin, 'user', user=self.admin)
+        parentFolder = folders.next()
         params = {
             'parentType': 'folder',
-            'parentId': folders.next()['_id'],
+            'parentId': parentFolder['_id'],
             'name': 'My File.txt',
             'size': 1024,
             'mimeType': 'text/plain'
@@ -459,6 +463,25 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 303)
         self.assertTrue(resp.headers['Location'].startswith(
             'https://s3.amazonaws.com/bucketname/foo/bar/'))
+
+        # Test download as part of a streaming zip
+        @httmock.all_requests
+        def s3_pipe_mock(url, request):
+            if url.netloc == 's3.amazonaws.com' and url.scheme == 'https':
+                return 'dummy file contents'
+            else:
+                raise Exception('Unexpected url {}'.format(url))
+
+        with httmock.HTTMock(s3_pipe_mock):
+            resp = self.request(
+                '/folder/{}/download'.format(parentFolder['_id']),
+                method='GET', user=self.admin, isJson=False)
+            self.assertStatusOk(resp)
+            zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+            self.assertTrue(zip.testzip() is None)
+
+            extracted = zip.read('Private/My File.txt')
+            self.assertEqual(extracted, 'dummy file contents')
 
         # Create the file key in the moto s3 store so that we can test that it
         # gets deleted.
