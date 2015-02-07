@@ -38,7 +38,6 @@ girder.Router = Backbone.Router.extend({
     }
 });
 
-
 girder.router = new girder.Router();
 
 // When the back button is pressed, we want to close open modals.
