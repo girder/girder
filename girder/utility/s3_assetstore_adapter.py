@@ -22,6 +22,7 @@ import boto.s3.connection
 import cherrypy
 import json
 import re
+import requests
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -208,6 +209,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True):
+        """
+        When downloading a single file with HTTP, we redirect to S3. Otherwise,
+        e.g. when downloading as part of a zip stream, we connect to S3 and
+        pipe the bytes from S3 through the server to the user agent.
+        """
         if headers:
             if file['size'] > 0:
                 url = self._botoGenerateUrl(key=file['s3Key'])
@@ -222,13 +228,16 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 def stream():
                     yield ''
                 return stream
-        else:  # Can't really support archive file downloading for S3 files
+        else:
             def stream():
                 if file['size'] > 0:
-                    url = self._botoGenerateUrl(key=file['s3Key'])
-                    yield '==S3==\n{}'.format(url)
+                    pipe = requests.get(
+                        self._botoGenerateUrl(key=file['s3Key']), stream=True)
+                    for chunk in pipe.iter_content(chunk_size=65536):
+                        if chunk:
+                            yield chunk
                 else:
-                    yield '==S3==\n'
+                    yield ''
             return stream
 
     def deleteFile(self, file):
