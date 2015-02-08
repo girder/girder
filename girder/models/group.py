@@ -311,8 +311,9 @@ class Group(AccessControlledModel):
         self._deleteRequest(group, user)
 
         # Remove any outstanding invitations for this group
-        l = lambda inv: not inv['groupId'] == group['_id']
-        user['groupInvites'] = filter(l, user.get('groupInvites', []))
+        user['groupInvites'] = filter(
+            lambda inv: not inv['groupId'] == group['_id'],
+            user.get('groupInvites', []))
         self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
