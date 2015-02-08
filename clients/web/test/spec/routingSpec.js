@@ -396,3 +396,25 @@ describe('Test internal javascript functions', function () {
         });
     });
 });
+
+describe('Test disabling the router at runtime', function () {
+    var router = Backbone.Router.prototype;
+
+    beforeEach(function () {
+        spyOn(router, 'navigate');
+    });
+
+    it('router should be enabled by default', function () {
+        girder.router.navigate('collections', {trigger: true});
+
+        expect(router.navigate).toHaveBeenCalled();
+    });
+
+    it('disabling router should make navigate() a no-op', function () {
+        girder.router.enabled(false);
+
+        girder.router.navigate('users', {trigger: true});
+
+        expect(router.navigate).not.toHaveBeenCalled();
+    });
+});
