@@ -192,6 +192,9 @@ girder.views.QuotaPolicies = girder.View.extend({
 
     capacityChart: function (view, el) {
         var quota = view.model.get('quotaPolicy').fileSizeQuota;
+        if (view.model.get('quotaPolicy').useQuotaDefault !== false) {
+            quota = view.model.get('defaultQuota');
+        }
         if (!quota) {
             $(el).addClass('g-no-chart');
             return;
@@ -233,6 +236,9 @@ girder.views.QuotaPolicies = girder.View.extend({
 
     capacityString: function () {
         var quota = this.model.get('quotaPolicy').fileSizeQuota;
+        if (this.model.get('quotaPolicy').useQuotaDefault !== false) {
+            quota = this.model.get('defaultQuota');
+        }
         if (!quota) {
             return 'Unlimited';
         }

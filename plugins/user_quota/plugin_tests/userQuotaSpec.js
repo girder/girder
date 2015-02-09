@@ -33,7 +33,7 @@ function _goToCollection(collection) {
     if (collection) {
         runs(function () {
             $('a.g-collection-link').has('b:contains(' + collection +
-                                         ')').click()
+                                         ')').click();
         });
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
@@ -73,7 +73,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
     }, 'the cancel button to appear');
     waitsFor(function () {
         return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
-    }, 'the chart to be determined');
+    }, 'the chart to be determined (' + hasChart + ' ' + capacity + ')');
     runs(function () {
         expect($("#g-sizeValue").length).toBe(1);
         /* The change() call should automatically set the custom quota radio
@@ -82,8 +82,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         $('.g-save-policies').click();
     });
     waitsFor(function () {
-        return $('.g-validation-failed-message').text()
-            indexOf('Invalid fileSizeQuota') >= 0;
+        return $('.g-validation-failed-message').text().indexOf('Invalid quota') >= 0;
     }, 'an error message to appear');
     runs(function () {
         $("#g-sizeValue").val(capacity ? capacity : '');
@@ -202,7 +201,7 @@ describe('test the user quota plugin', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('input.g-sizeValue').length > 0
+            return $('input.g-sizeValue').length > 0;
         }, 'quota default settings to be shown');
         runs(function () {
             $('input.g-sizeValue[model=user]').val('abc');
@@ -262,7 +261,7 @@ describe('test the user quota plugin', function () {
         runs(function () {
             userDialogRoute = window.location.hash;
         });
-        _testQuotaDialogAsAdmin(false, 2048);
+        _testQuotaDialogAsAdmin(true, 2048);
     });
     it('test routes', function () {
         girderTest.testRoute(collectionDialogRoute, true, function () {
@@ -274,13 +273,13 @@ describe('test the user quota plugin', function () {
         girderTest.testRoute(userDialogRoute, true, function () {
             return $(".g-quota-capacity").length == 1;
         });
-        runs(function() {
+        runs(function () {
             $('a[data-dismiss="modal"]').click();
         });
         girderTest.waitForLoad();
     });
     it('upload', function () {
-        runs(function() {
+        runs(function () {
             $('a.g-folder-list-link').eq(0).click();
         });
         girderTest.waitForLoad();
@@ -290,8 +289,10 @@ describe('test the user quota plugin', function () {
         girderTest.testUpload(2048);
         girderTest.testUpload(2048, 'abort', 'file storage quota');
         runs(function () {
-            window.callPhantom({action: 'uploadCleanup',
-                                suffix: girderTest._uploadSuffix});
+            window.callPhantom({
+                action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix
+            });
         });
     });
     it('check that user2 can view but not set quota', function () {
