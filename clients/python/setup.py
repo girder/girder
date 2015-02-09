@@ -17,11 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
-import sys
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 from pkg_resources import parse_requirements
 
 
