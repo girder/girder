@@ -297,6 +297,7 @@ class GirderCli(GirderClient):
         if empty:
             print 'No matching files: ' + file_pattern
 
+
 def main():
     parser = argparse.ArgumentParser(
         description='Perform common Girder CLI operations.')
