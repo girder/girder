@@ -1,6 +1,6 @@
 $(document).ready(function () {
     girder.apiRoot = '/girder/api/v1';
-    girder.handleRouting = false;
+    girder.router.enabled(false);
 
     $('#login').click(function () {
         var loginView = new girder.views.LoginView({

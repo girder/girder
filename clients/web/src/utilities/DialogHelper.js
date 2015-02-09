@@ -23,7 +23,7 @@ girder.dialogs = {
     },
 
     handleClose: function (name, options, nameId) {
-        if (!girder.handleRouting) {
+        if (!girder.router.enabled()) {
             return;
         }
         var curRoute = Backbone.history.fragment,
@@ -43,7 +43,7 @@ girder.dialogs = {
     },
 
     handleOpen: function (name, options, nameId) {
-        if (!girder.handleRouting) {
+        if (!girder.router.enabled()) {
             return;
         }
         var curRoute = Backbone.history.fragment,
