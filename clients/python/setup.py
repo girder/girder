@@ -60,5 +60,9 @@ setup(
     packages=find_packages(exclude=('tests.*', 'tests')),
     install_requires=reqs,
     zip_safe=False,
-    scripts=['girder-cli']
+    entry_points={
+        'console_scripts': [
+            'girder-cli = girder_client.cli:main'
+        ]
+    }
 )
