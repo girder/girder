@@ -297,7 +297,7 @@ class GirderCli(GirderClient):
         if empty:
             print 'No matching files: ' + file_pattern
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Perform common Girder CLI operations.')
     parser.add_argument(
@@ -345,3 +345,7 @@ if __name__ == '__main__':
             g.downloadFolderRecursive(args.parent_id, args.local_folder)
     else:
         print 'No implementation for command %s' % args.c
+
+
+if __name__ == '__main__':
+    main()

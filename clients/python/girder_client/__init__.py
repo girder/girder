@@ -81,8 +81,8 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, host="localhost", port=8080,
-                 apiRoot=None, scheme="http"):
+    def __init__(self, host="localhost", port=8080, apiRoot=None,
+                 scheme="http"):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
