@@ -68,17 +68,21 @@ girder.views.AccessWidget = girder.View.extend({
             }));
         }, this);
 
-        this.$('.g-action-remove-access').tooltip({
-            placement: 'bottom',
-            animation: false,
-            delay: {show: 100}
-        });
+        this._makeTooltips();
 
         this.searchWidget.setElement(this.$('.g-search-field-container')).render();
 
         this.privacyChanged();
 
         return this;
+    },
+
+    _makeTooltips: function () {
+        this.$('.g-action-remove-access').tooltip({
+            placement: 'bottom',
+            animation: false,
+            delay: {show: 100}
+        });
     },
 
     /**
@@ -96,8 +100,8 @@ girder.views.AccessWidget = girder.View.extend({
 
     _addUserEntry: function (entry) {
         var exists = false;
-        _.every(this.model.get('access').users, function (user) {
-            if (user.id === entry.id) {
+        _.every(this.$('.g-user-access-entry'), function (el) {
+            if ($(el).attr('resourceid') === entry.id) {
                 exists = true;
             }
             return !exists;
@@ -116,14 +120,16 @@ girder.views.AccessWidget = girder.View.extend({
                         level: girder.AccessType.READ
                     }
                 }));
+
+                this._makeTooltips();
             }, this).fetch();
         }
     },
 
     _addGroupEntry: function (entry) {
         var exists = false;
-        _.every(this.model.get('access').groups, function (group) {
-            if (group.id === entry.id) {
+        _.every(this.$('.g-group-access-entry'), function (el) {
+            if ($(el).attr('resourceid') === entry.id) {
                 exists = true;
             }
             return !exists;
@@ -142,6 +148,8 @@ girder.views.AccessWidget = girder.View.extend({
                         level: girder.AccessType.READ
                     }
                 }));
+
+                this._makeTooltips();
             }, this).fetch();
         }
     },
