@@ -128,6 +128,7 @@ class ZipGenerator(object):
 
         self.files = []
         self.compression = compression
+        self.useCRC = True
         self.rootPath = str(rootPath)
         self.offset = 0
 
@@ -167,7 +168,8 @@ class ZipGenerator(object):
             if not buf:
                 break
             fileSize += len(buf)
-            crc = binascii.crc32(buf, crc)
+            if self.useCRC:
+                crc = binascii.crc32(buf, crc)
             if compressor:
                 buf = compressor.compress(buf)
                 compressSize += len(buf)
