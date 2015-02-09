@@ -251,7 +251,7 @@ class ZipGenerator(object):
             size = min(size, 0xFFFFFFFF)
             offsetVal = min(offsetVal, 0xFFFFFFFF)
 
-        endrec = struct.pack(b'<4s4H2lH', b'PK\005\006', 0, 0, count, count,
+        endrec = struct.pack(b'<4s4H2LH', b'PK\005\006', 0, 0, count, count,
                              size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 
