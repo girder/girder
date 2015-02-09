@@ -677,8 +677,9 @@ class AccessControlledModel(Model):
 
         for grp in acList['groups']:
             grpDoc = self.model('group').load(
-                grp['id'], force=True, fields=['name'])
+                grp['id'], force=True, fields=['name', 'description'])
             grp['name'] = grpDoc['name']
+            grp['description'] = grpDoc['description']
 
         return acList
 
