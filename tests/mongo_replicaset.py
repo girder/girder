@@ -57,6 +57,7 @@ def getMongoClient(uri, init=False, timeout=30):
     if isinstance(uri, int):
         uri = 'mongodb://localhost:%d/admin' % Config[uri]['port']
     starttime = time.time()
+    client = None
     while time.time() < starttime + timeout:
         try:
             client = pymongo.MongoClient(uri)
