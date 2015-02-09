@@ -71,5 +71,9 @@ def restore(data):
     return checksum
 
 
-serializeHex = lambda o: binascii.b2a_hex(serialize(o))
-restoreHex = lambda d: restore(binascii.a2b_hex(d))
+def serializeHex(o):
+    return binascii.b2a_hex(serialize(o))
+
+
+def restoreHex(d):
+    return restore(binascii.a2b_hex(d))
