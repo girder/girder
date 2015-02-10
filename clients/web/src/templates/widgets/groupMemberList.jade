@@ -30,3 +30,7 @@
           if level >= accessType.WRITE
             a.g-group-member-remove(title="Remove user from the group")
               i.icon-block
+    if (!members.length)
+      .g-member-list-empty
+        i.icon-info-circled
+        |  There are no members in this group.

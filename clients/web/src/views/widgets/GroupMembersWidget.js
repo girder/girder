@@ -47,6 +47,14 @@ girder.views.GroupMembersWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.model = settings.group;
+        this.modsAndAdmins = [];
+        var view = this;
+        _.each(settings.admins, function (user) {
+            view.modsAndAdmins.push(user.id);
+        });
+        _.each(settings.moderators, function (user) {
+            view.modsAndAdmins.push(user.id);
+        });
         this.membersColl = new girder.collections.UserCollection();
         this.membersColl.altUrl =
             'group/' + this.model.get('_id') + '/member';
@@ -56,9 +64,16 @@ girder.views.GroupMembersWidget = girder.View.extend({
     },
 
     render: function () {
+        var members = [];
+        for (var i = 0; i < this.membersColl.models.length; i += 1) {
+            var member = this.membersColl.models[i];
+            if ($.inArray(member.id, this.modsAndAdmins) < 0) {
+                members.push(member);
+            }
+        }
         this.$el.html(girder.templates.groupMemberList({
             group: this.model,
-            members: this.membersColl.models,
+            members: members,
             level: this.model.get('_accessLevel'),
             accessType: girder.AccessType
         }));

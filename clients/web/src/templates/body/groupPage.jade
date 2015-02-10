@@ -1,38 +1,39 @@
 .g-group-header
   .btn-group.pull-right
-    button.g-group-actions-button.btn.btn-default.dropdown-toggle(
-        data-toggle="dropdown", title="Group actions")
-        i.icon-users
-        |  Actions
-        i.icon-down-dir
-    ul.g-group-actions-menu.dropdown-menu.pull-right(role="menu")
-      if (isMember)
-        li(role="presentation")
-          a.g-group-leave(role="menuitem")
-            i.icon-block
-            | Leave group
-      else if (isInvited)
-        li(role="presentation")
-          a.g-group-join(role="menuitem")
-            i.icon-login
-            | Join group
-      else if (girder.currentUser)
-        li(role="presentation")
-          a.g-group-request-invite(role="menuitem")
-            i.icon-export
-            | Request membership
-      if (group.get('_accessLevel') >= girder.AccessType.WRITE)
-        li.divider(role="presentation")
-        li(role="presentation")
-          a.g-edit-group(role="menuitem")
-            i.icon-edit
-            | Edit group
-      if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
-        li.divider(role="presentation")
-        li(role="presentation")
-          a.g-group-delete(role="menuitem")
-            i.icon-trash
-            | Delete group
+    if (isMember || isInvited || girder.currentUser || group.get('_accessLevel') >= girder.AccessType.ADMIN)
+      button.g-group-actions-button.btn.btn-default.dropdown-toggle(
+          data-toggle="dropdown", title="Group actions")
+          i.icon-users
+          |  Actions
+          i.icon-down-dir
+      ul.g-group-actions-menu.dropdown-menu.pull-right(role="menu")
+        if (isMember)
+          li(role="presentation")
+            a.g-group-leave(role="menuitem")
+              i.icon-block
+              | Leave group
+        else if (isInvited)
+          li(role="presentation")
+            a.g-group-join(role="menuitem")
+              i.icon-login
+              | Join group
+        else if (girder.currentUser)
+          li(role="presentation")
+            a.g-group-request-invite(role="menuitem")
+              i.icon-export
+              | Request membership
+        if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-edit-group(role="menuitem")
+              i.icon-edit
+              | Edit group
+        if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-group-delete(role="menuitem")
+              i.icon-trash
+              | Delete group
 
   .g-group-name.g-body-title #{group.get('name')}
   .g-group-description.g-body-subtitle #{group.get('description')}
@@ -76,12 +77,13 @@ ul.g-group-tabs.nav.nav-tabs
     a(href="#g-group-tab-pending", data-toggle="tab", name="pending")
       i.icon-inbox
       | Pending
+      #g-group-tab-pending-status
 
 .tab-content
   #g-group-tab-roles.tab-pane.active
-    .g-group-members-container
-    .g-group-mods-container
     .g-group-admins-container
+    .g-group-mods-container
+    .g-group-members-container
   #g-group-tab-pending.tab-pane
     .g-group-requests-container
       .g-group-requests-header.g-group-list-header

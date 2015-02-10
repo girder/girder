@@ -3,8 +3,26 @@
  */
 girder.views.GroupAdminsWidget = girder.View.extend({
     events: {
-        'click .g-group-admin-demote': function (e) {
-            var li = $(e.currentTarget).parents('li');
+        'click .g-demote-moderator': function (e) {
+            var li = $(e.currentTarget).parents('.g-group-admins>li');
+            var userid = li.attr('userid');
+            var view = this;
+
+            girder.confirm({
+                text: 'Are you sure you want to demote <b>' +
+                    _.escape(li.attr('username')) + '</b> to a moderator?',
+                escapedHtml: true,
+                confirmCallback: function () {
+                    var user = new girder.models.UserModel({_id: userid});
+                    view.model.off('g:promoted').on('g:promoted', function () {
+                        this.trigger('g:moderatorAdded');
+                    }, view).promoteUser(user, girder.AccessType.WRITE);
+                }
+            });
+        },
+
+        'click .g-demote-member': function (e) {
+            var li = $(e.currentTarget).parents('.g-group-admins>li');
             var view = this;
 
             girder.confirm({
@@ -13,6 +31,21 @@ girder.views.GroupAdminsWidget = girder.View.extend({
                 escapedHtml: true,
                 confirmCallback: function () {
                     view.trigger('g:demoteUser', li.attr('userid'));
+                }
+            });
+        },
+
+        'click a.g-group-admin-remove': function (e) {
+            var view = this;
+            var li = $(e.currentTarget).parents('li');
+
+            girder.confirm({
+                text: 'Are you sure you want to remove <b> ' +
+                    _.escape(li.attr('username')) +
+                    '</b> from this group?',
+                escapedHtml: true,
+                confirmCallback: function () {
+                    view.trigger('g:removeMember', li.attr('userid'));
                 }
             });
         },
