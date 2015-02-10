@@ -15,6 +15,37 @@ girder.views.FileListWidget = girder.View.extend({
         'click a.g-update-info': function (e) {
             var cid = $(e.currentTarget).parent().attr('file-cid');
             this.editFileDialog(cid);
+        },
+
+        'click a.g-delete-file': function (e) {
+            var cid = $(e.currentTarget).parent().attr('file-cid');
+            var file = this.collection.get(cid);
+
+            girder.confirm({
+                text: 'Are you sure you want to delete the file <b>' +
+                      file.escape('name') + '</b>?',
+                yesText: 'Delete',
+                escapedHtml: true,
+                confirmCallback: _.bind(function () {
+                    file.once('g:deleted', function () {
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            type: 'success',
+                            text: 'File deleted.',
+                            timeout: 4000
+                        });
+
+                        this.render();
+                    }, this).once('g:error', function () {
+                        girder.events.trigger('g:alert', {
+                            icon: 'cancel',
+                            text: 'Failed to delete file.',
+                            type: 'danger',
+                            timeout: 4000
+                        });
+                    }).destroy();
+                }, this)
+            });
         }
     },
 
@@ -51,12 +82,15 @@ girder.views.FileListWidget = girder.View.extend({
         this.fileEdit = settings.fileEdit;
         this.checked = [];
         this.collection = new girder.collections.FileCollection();
-        this.collection.resourceName = 'item/' + settings.itemId + '/files';
+        this.collection.resourceName = 'item/' +
+            (settings.itemId || settings.item.get('_id')) + '/files';
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.trigger('g:changed');
             this.render();
         }, this).fetch();
+
+        this.parentItem = settings.item;
     },
 
     render: function () {
@@ -64,7 +98,8 @@ girder.views.FileListWidget = girder.View.extend({
         this.$el.html(girder.templates.fileList({
             files: this.collection.models,
             hasMore: this.collection.hasNextPage(),
-            girder: girder
+            girder: girder,
+            parentItem: this.parentItem
         }));
 
         this.$('.g-file-actions-container a[title]').tooltip({

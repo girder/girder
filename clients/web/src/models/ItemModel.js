@@ -2,18 +2,28 @@ girder.models.ItemModel = girder.Model.extend({
     resourceName: 'item',
 
     /**
-     * Get the access level of the item and pass it to the callback
-     * function passed in as a parameter.
+     * Get the access level of the item if it is set. Takes an optional callback
+     * to be called once the access level is fetched (or immediately if it has
+     * already been fetched).
      */
     getAccessLevel: function (callback) {
+        callback = callback || function () {};
+
+        if (this.has('_accessLevel')) {
+            callback(this.get('_accessLevel'));
+            return this.get('_accessLevel');
+        }
         if (this.parent && this.parent.getAccessLevel()) {
-            callback(this.parent.getAccessLevel());
+            this.set('_accessLevel', this.parent.getAccessLevel());
+            callback(this.get('_accessLevel'));
+            return this.get('_accessLevel');
         } else {
             this.parent = new girder.models.FolderModel();
             this.parent.set({
                 _id: this.get('folderId')
-            }).on('g:fetched', function () {
-                callback(this.parent.getAccessLevel());
+            }).once('g:fetched', function () {
+                this.set('_accessLevel', this.parent.getAccessLevel());
+                callback(this.get('_accessLevel'));
             }, this).fetch();
         }
     },
