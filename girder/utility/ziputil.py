@@ -128,6 +128,7 @@ class ZipGenerator(object):
 
         self.files = []
         self.compression = compression
+        self.useCRC = True
         self.rootPath = str(rootPath)
         self.offset = 0
 
@@ -167,7 +168,8 @@ class ZipGenerator(object):
             if not buf:
                 break
             fileSize += len(buf)
-            crc = binascii.crc32(buf, crc)
+            if self.useCRC:
+                crc = binascii.crc32(buf, crc)
             if compressor:
                 buf = compressor.compress(buf)
                 compressSize += len(buf)
@@ -251,7 +253,7 @@ class ZipGenerator(object):
             size = min(size, 0xFFFFFFFF)
             offsetVal = min(offsetVal, 0xFFFFFFFF)
 
-        endrec = struct.pack(b'<4s4H2lH', b'PK\005\006', 0, 0, count, count,
+        endrec = struct.pack(b'<4s4H2LH', b'PK\005\006', 0, 0, count, count,
                              size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 

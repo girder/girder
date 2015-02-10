@@ -522,3 +522,26 @@ class ResourceTestCase(base.TestCase):
                 'parentId': str(self.adminPublicFolder['_id'])
             }, isJson=False)
         self.assertStatus(resp, 400)
+
+    def testZipUtil(self):
+        # Exercise the large zip file code
+
+        def genEmptyFile(fileLength, chunkSize=65536):
+            chunk = '\0' * chunkSize
+
+            def genEmptyData():
+                for val in xrange(0, fileLength, chunkSize):
+                    yield chunk
+
+            return genEmptyData
+
+        zip = girder.utility.ziputil.ZipGenerator()
+        # Most of the time in generating a zip file is spent in CRC
+        # calculation.  We turn it off so that we can perform tests in a timely
+        # fashion.
+        zip.useCRC = False
+        for data in zip.addFile(
+                genEmptyFile(6 * 1024 * 1024 * 1024), 'bigfile'):
+            pass
+        footer = zip.footer()
+        self.assertEqual(footer[-6:], '\xFF\xFF\xFF\xFF\x00\x00')
