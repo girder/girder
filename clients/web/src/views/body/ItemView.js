@@ -54,9 +54,9 @@
                     }).off('g:error').on('g:error', function () {
                         page.render();
                         girder.events.trigger('g:alert', {
-                            icon: 'info',
+                            icon: 'cancel',
                             text: 'Failed to delete item.',
-                            type: 'warning',
+                            type: 'danger',
                             timeout: 4000
                         });
                     });
@@ -69,7 +69,6 @@
             // it. TODO: load the page and adjust only the action menu once
             // the access level is fetched.
             this.model.getAccessLevel(_.bind(function (accessLevel) {
-
                 this.$el.html(girder.templates.itemPage({
                     item: this.model,
                     accessLevel: accessLevel,
@@ -85,7 +84,7 @@
 
                 this.fileListWidget = new girder.views.FileListWidget({
                     el: this.$('.g-item-files-container'),
-                    itemId: this.model.get('_id'),
+                    item: this.model,
                     fileEdit: this.fileEdit,
                     upload: this.upload,
                     parentView: this
