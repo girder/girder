@@ -97,7 +97,7 @@
                     girder: girder
                 }));
 
-                this.$('.g-item-actions-button').tooltip({
+                this.$('.g-item-actions-button,.g-upload-into-item').tooltip({
                     container: 'body',
                     placement: 'left',
                     animation: false,

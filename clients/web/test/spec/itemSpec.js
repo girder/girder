@@ -187,14 +187,6 @@ describe('Test item creation, editing, and deletion', function () {
 
         // Upload a file into the item
         waitsFor(function () {
-            return $('.g-item-actions-button:visible').length === 1;
-        }, 'the item actions button to appear');
-
-        runs(function () {
-            $('.g-item-actions-button').click();
-        });
-
-        waitsFor(function () {
             return $('.g-upload-into-item:visible').length === 1;
         }, 'the upload files to item action to appear');
 
