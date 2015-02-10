@@ -6,7 +6,8 @@
     girder.views.ItemView = girder.View.extend({
         events: {
             'click .g-edit-item': 'editItem',
-            'click .g-delete-item': 'deleteItem'
+            'click .g-delete-item': 'deleteItem',
+            'click .g-upload-into-item': 'uploadIntoItem'
         },
 
         initialize: function (settings) {
@@ -22,6 +23,27 @@
             } else {
                 console.error('Implement fetch then render item');
             }
+        },
+
+        uploadIntoItem: function () {
+            new girder.views.UploadWidget({
+                el: $('#g-dialog-container'),
+                parent: this.model,
+                parentType: 'item',
+                parentView: this
+            }).on('g:uploadFinished', function () {
+                girder.dialogs.handleClose('upload');
+                this.upload = false;
+
+                girder.events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Files added.',
+                    type: 'success',
+                    timeout: 4000
+                });
+
+                this.fileListWidget.collection.fetch(null, true);
+            }, this).render();
         },
 
         editItem: function () {
