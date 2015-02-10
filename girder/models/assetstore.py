@@ -112,15 +112,12 @@ class Assetstore(Model):
         :returns: List of users.
         """
         cursor = self.find({}, limit=limit, offset=offset, sort=sort)
-        assetstores = []
         for assetstore in cursor:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             assetstore['capacity'] = adapter.capacityInfo()
             assetstore['hasFiles'] = (self.model('file').findOne(
                 {'assetstoreId': assetstore['_id']}) is not None)
-            assetstores.append(assetstore)
-
-        return assetstores
+            yield assetstore
 
     def createFilesystemAssetstore(self, name, root):
         return self.save({

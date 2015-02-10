@@ -223,8 +223,8 @@ class Item(Resource):
     def getFiles(self, item, params):
         """Get a page of files in an item."""
         limit, offset, sort = self.getPagingParameters(params, 'name')
-        return [file for file in self.model('item').childFiles(
-                item=item, limit=limit, offset=offset, sort=sort)]
+        return list(self.model('item').childFiles(item=item, limit=limit,
+                                                  offset=offset, sort=sort))
     getFiles.description = (
         Description('Get the files within an item.')
         .responseClass('File')
@@ -246,8 +246,7 @@ class Item(Resource):
         """
         offset = int(params.get('offset', 0))
         user = self.getCurrentUser()
-        files = [file for file in self.model('item').childFiles(
-                 item=item, limit=2)]
+        files = list(self.model('item').childFiles(item=item, limit=2))
         format = params.get('format', '')
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format.')

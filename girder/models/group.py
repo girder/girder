@@ -84,7 +84,7 @@ class Group(AccessControlledModel):
             filtered['access'] = self.getFullAccessList(group)
 
         if requests:
-            filtered['requests'] = self.getFullRequestList(group)
+            filtered['requests'] = list(self.getFullRequestList(group))
 
         return filtered
 
@@ -178,16 +178,9 @@ class Group(AccessControlledModel):
         :param sort: Sort parameter for the find query.
         :returns: List of user documents.
         """
-        q = {
-            'groups': group['_id']
-        }
-        cursor = self.model('user').find(
-            q, offset=offset, limit=limit, sort=sort)
-        users = []
-        for user in cursor:
-            users.append(user)
-
-        return users
+        return self.model('user').find(
+            {'groups': group['_id']},
+            offset=offset, limit=limit, sort=sort)
 
     def addUser(self, group, user, level=AccessType.READ):
         """
@@ -288,13 +281,10 @@ class Group(AccessControlledModel):
         :param offset: Offset into the results.
         :param sort: The sort field.
         """
-        cursor = self.model('user').find(
+        return self.model('user').find(
             {'groupInvites.groupId': group['_id']},
-            limit=limit, offset=offset, sort=sort, fields=[
-                '_id', 'firstName', 'lastName', 'login'
-            ])
-
-        return [result for result in cursor]
+            limit=limit, offset=offset, sort=sort,
+            fields=['_id', 'firstName', 'lastName', 'login'])
 
     def removeUser(self, group, user):
         """
@@ -379,18 +369,14 @@ class Group(AccessControlledModel):
         :param group: The group to get requests for.
         :type group: dict
         """
-        reqList = []
-
         for userId in group.get('requests', []):
             user = self.model('user').load(
                 userId, force=True, fields=['firstName', 'lastName', 'login'])
-            reqList.append({
+            yield {
                 'id': userId,
                 'login': user['login'],
                 'name': '{} {}'.format(user['firstName'], user['lastName'])
-            })
-
-        return reqList
+            }
 
     def hasAccess(self, doc, user=None, level=AccessType.READ):
         """

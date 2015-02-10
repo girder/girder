@@ -252,7 +252,8 @@ class GroupTestCase(base.TestCase):
         self.assertFalse(self.model('group').hasAccess(
             privateGroup, self.users[1], AccessType.READ))
 
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
+        self.assertEqual(
+            len(list(self.model('group').getMembers(privateGroup))), 1)
 
         # Invite user 1 to join the private group as member
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
@@ -288,7 +289,8 @@ class GroupTestCase(base.TestCase):
         # User 1 should now be able to see the group, but should not be in it.
         self.assertTrue(self.model('group').hasAccess(
             privateGroup, self.users[1], AccessType.READ))
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
+        self.assertEqual(
+            len(list(self.model('group').getMembers(privateGroup))), 1)
 
         # Removing user 1 from the group before they join it should remove the
         # invitation.
@@ -441,12 +443,14 @@ class GroupTestCase(base.TestCase):
 
         # User 0 should be able to remove user 1
         params['userId'] = self.users[1]['_id']
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 2)
+        self.assertEqual(
+            len(list(self.model('group').getMembers(privateGroup))), 2)
         resp = self.request(
             path='/group/%s/member' % privateGroup['_id'], user=self.users[0],
             method='DELETE', params=params)
         self.assertStatusOk(resp)
-        self.assertEqual(len(self.model('group').getMembers(privateGroup)), 1)
+        self.assertEqual(
+            len(list(self.model('group').getMembers(privateGroup))), 1)
 
         # User 0 should be able to delete the group
         self.users[0] = self.model('user').load(
