@@ -171,11 +171,10 @@ describe('Test item creation, editing, and deletion', function () {
 
     it('Edit files', function () {
         var fileId1;
-        /* If we add the ability to the UI to upload files to the item, this
-         * should be changed */
+
         runs(function() {
             var id = window.location.hash.split('/')[1].split('?')[0];
-            /* Create two files */
+            /* Create a link file */
             girder.restRequest({
                 path: 'file', type: 'POST',
                 data: {parentType: 'item', parentId: id, name: 'File 1',
@@ -183,14 +182,48 @@ describe('Test item creation, editing, and deletion', function () {
                 },
                 async: false
             });
-            girder.restRequest({
-                path: 'file', type: 'POST',
-                data: {parentType: 'item', parentId: id, name: 'File 2',
-                       linkUrl: 'http://nowhere.com/file2'
-                },
-                async: false
-            });
         });
+        girderTest.waitForLoad();
+
+        // Upload a file into the item
+        waitsFor(function () {
+            return $('.g-item-actions-button:visible').length === 1;
+        }, 'the item actions button to appear');
+
+        runs(function () {
+            $('.g-item-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-upload-into-item:visible').length === 1;
+        }, 'the upload files to item action to appear');
+
+        runs(function () {
+            $('.g-upload-into-item').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            _prepareTestUpload();
+            girderTest._uploadDataExtra = 0;
+            girderTest.sendFile('clients/web/test/testFile.txt');
+        });
+
+        waitsFor(function () {
+            return $('.g-overall-progress-message i.icon-ok').length > 0;
+        }, 'the filesChanged event to happen');
+
+        runs(function () {
+            $('#g-files').parent().addClass('hide');
+            $('.g-start-upload').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal-content:visible').length === 0 &&
+                   $('.g-file-list-entry').length === 2;
+        }, 'the upload to finish');
+        girderTest.waitForLoad();
+
         /* Easy way to reload the item page */
         _editItem('button.g-save-item', 'Save');
         /* Try to edit each file in turn.  They must have different ids */

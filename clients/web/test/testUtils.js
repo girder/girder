@@ -681,6 +681,19 @@ function _prepareTestUpload() {
     girderTest._preparedTestUpload = true;
 }
 
+girderTest.sendFile = function (uploadItem) {
+    // Incantation that causes the phantom environment to send us a File.
+    $('#g-files').parent().removeClass('hide');
+    var params = {action: 'uploadFile', selector: '#g-files',
+                  suffix: girderTest._uploadSuffix};
+    if (uploadItem === parseInt(uploadItem)) {
+        params.size = uploadItem;
+    } else {
+        params.path = uploadItem;
+    }
+    girderTest._uploadData = window.callPhantom(params);
+};
+
 /* Upload a file and make sure it lands properly.
  * @param uploadItem: either the path to the file to upload or an integer to
  *                    create and upload a temporary file of that size.
@@ -715,16 +728,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
         else
             girderTest._uploadDataExtra = 0;
 
-        // Incantation that causes the phantom environment to send us a File.
-        $('#g-files').parent().removeClass('hide');
-        var params = {action: 'uploadFile', selector: '#g-files',
-                      suffix: girderTest._uploadSuffix};
-        if (uploadItem === parseInt(uploadItem)) {
-            params.size = uploadItem;
-        } else {
-            params.path = uploadItem;
-        }
-        girderTest._uploadData = window.callPhantom(params);
+        girderTest.sendFile(uploadItem);
     });
 
     waitsFor(function () {
