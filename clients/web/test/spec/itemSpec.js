@@ -247,6 +247,26 @@ describe('Test item creation, editing, and deletion', function () {
             $('button.g-save-file').click();
         });
         girderTest.waitForLoad();
+
+        // Delete the file
+        var fileListLength;
+        runs(function () {
+            fileListLength = $('.g-file-list-entry').length;
+            $('.g-file-actions-container:first .g-delete-file').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal-body').text().indexOf('Are you sure you want to delete the file') !== -1;
+        }, 'the deletion confirmation prompt to appear');
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-file-list-entry').length === fileListLength - 1;
+        }, 'file to be removed from the list');
     });
 
     it('Delete the item', function () {
