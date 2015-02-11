@@ -603,11 +603,11 @@ class GirderClient(object):
         that of the ancestor folder.
 
         :param ancestorFolderId: Id of the Girder folder to copy access
-        control from, to all of its descendant folders.
+            control from, to all of its descendant folders.
         :param access: Dictionary Access control target, if None, will take
-        existing access control of ancestor folder
+            existing access control of ancestor folder
         :param public: Boolean public value target, if None, will take existing
-        public value of ancestor folder
+            public value of ancestor folder
         """
         offset = 0
 
