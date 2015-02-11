@@ -176,12 +176,12 @@ class Folder(AccessControlledModel):
             folder['meta'] = {}
 
         # Add new metadata to existing metadata
-        folder['meta'].update(metadata.items())
+        folder['meta'].update(metadata.iteritems())
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in folder['meta'].iteritems() if v is None]
-        for key in toDelete:
-            del folder['meta'][key]
+        folder['meta'] = {k: v
+                          for k, v in folder['meta'].iteritems()
+                          if v is not None}
 
         folder['updated'] = datetime.datetime.utcnow()
 

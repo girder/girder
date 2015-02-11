@@ -147,7 +147,7 @@ class Group(Resource):
     @loadmodel(model='group', level=AccessType.READ)
     def getGroupInvitations(self, group, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
-        return self.model('group').getInvites(group, limit, offset, sort)
+        return list(self.model('group').getInvites(group, limit, offset, sort))
     getGroupInvitations.description = (
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
@@ -222,8 +222,8 @@ class Group(Resource):
         """
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
 
-        return [g for g in self.model('group').listMembers(
-            group, offset=offset, limit=limit, sort=sort)]
+        return list(self.model('group').listMembers(
+            group, offset=offset, limit=limit, sort=sort))
     listMembers.description = (
         Description('List members of a group.')
         .param('id', 'The ID of the group.', paramType='path')

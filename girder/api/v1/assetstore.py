@@ -46,8 +46,8 @@ class Assetstore(Resource):
         """
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
-        return self.model('assetstore').list(
-            offset=offset, limit=limit, sort=sort)
+        return list(self.model('assetstore').list(
+            offset=offset, limit=limit, sort=sort))
     find.description = (
         Description('List assetstores.')
         .param('limit', "Result set size limit (default=50).", required=False,

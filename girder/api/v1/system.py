@@ -192,19 +192,18 @@ class System(Resource):
     @access.admin
     def getPartialUploads(self, params):
         limit, offset, sort = self.getPagingParameters(params, 'updated')
-        uploadList = self.model('upload').list(filters=params, limit=limit,
-                                               offset=offset, sort=sort)
-        resultList = [upload for upload in uploadList]
+        uploadList = list(self.model('upload').list(
+            filters=params, limit=limit, offset=offset, sort=sort))
         untracked = self.boolParam('includeUntracked', params, default=True)
-        if untracked and (limit == 0 or len(resultList) < limit):
+        if untracked and (limit == 0 or len(uploadList) < limit):
             assetstoreId = params.get('assetstoreId', None)
             untrackedList = self.model('upload').untrackedUploads('list',
                                                                   assetstoreId)
             if limit == 0:
-                resultList += untrackedList
-            elif len(resultList) < limit:
-                resultList += untrackedList[:limit-len(resultList)]
-        return resultList
+                uploadList += untrackedList
+            elif len(uploadList) < limit:
+                uploadList += untrackedList[:limit-len(uploadList)]
+        return uploadList
     getPartialUploads.description = (
         Description('Get a list of uploads that have not been finished.')
         .notes("Must be a system administrator to call this.")
@@ -234,11 +233,10 @@ class System(Resource):
 
     @access.admin
     def discardPartialUploads(self, params):
-        uploadList = self.model('upload').list(filters=params, limit=0)
+        uploadList = list(self.model('upload').list(filters=params, limit=0))
         # Move the results to list that isn't a cursor so we don't have to have
         # the cursor sitting around while we work on the data.
-        resultList = [upload for upload in uploadList]
-        for upload in resultList:
+        for upload in uploadList:
             try:
                 self.model('upload').cancelUpload(upload)
             except OSError as exc:
@@ -250,9 +248,9 @@ class System(Resource):
         untracked = self.boolParam('includeUntracked', params, default=True)
         if untracked:
             assetstoreId = params.get('assetstoreId', None)
-            resultList += self.model('upload').untrackedUploads('delete',
+            uploadList += self.model('upload').untrackedUploads('delete',
                                                                 assetstoreId)
-        return resultList
+        return uploadList
     discardPartialUploads.description = (
         Description('Discard uploads that have not been finished.')
         .notes("""Must be a system administrator to call this. This frees

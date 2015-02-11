@@ -54,12 +54,12 @@ class ResourceExt(Resource):
         if hasattr(model, 'filterResultsByPermission'):
             cursor = model.find(
                 query, fields=allowed[coll] + ['public', 'access'], limit=0)
-            return [r for r in model.filterResultsByPermission(
+            return list(model.filterResultsByPermission(
                 cursor, user=self.getCurrentUser(), level=AccessType.READ,
-                limit=limit, offset=offset, removeKeys=('public', 'access'))]
+                limit=limit, offset=offset, removeKeys=('public', 'access')))
         else:
-            return [r for r in model.find(query, fields=allowed[coll],
-                                          limit=limit, offset=offset)]
+            return list(model.find(query, fields=allowed[coll], limit=limit,
+                                   offset=offset))
 
     mongoSearch.description = (
         Description('Run any search against a set of mongo collections.')
