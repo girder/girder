@@ -271,6 +271,14 @@ To avoid name collisions, convention dictates that mail templates within your
 plugin should be prefixed by your plugin name, e.g.,
 ``my_plugin.my_template.mako``.
 
+If you want to send email to all of the site administrators, there is a
+convenience keyword argument for that. Rather than setting the ``to`` field,
+pass ``toAdmins=True``.
+
+.. code-block:: python
+
+    mail_utils.sendEmail(toAdmins=True, subject='...', text='...')
+
 .. note:: All emails are sent as rich text (``text/html`` MIME type).
 
 Logging a Message
