@@ -161,6 +161,14 @@ class User(AccessControlledModel):
             progress.update(increment=1, message='Deleted user ' +
                             user['login'])
 
+    def getAdmins(self):
+        """
+        Helper to return a cursor of all site-admin users. The number of site
+        admins is assumed to be small enough that we will not need to page the
+        results for now.
+        """
+        return self.find({'admin': True}, limit=0)
+
     def search(self, text=None, user=None, limit=50, offset=0, sort=None):
         """
         List all users. Since users are access-controlled, this will filter

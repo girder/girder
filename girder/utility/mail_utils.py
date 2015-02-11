@@ -53,25 +53,40 @@ def renderTemplate(name, params=None):
     return template.render(**params)
 
 
-def sendEmail(to, subject, text):
+def sendEmail(to=None, subject=None, text=None, toAdmins=False):
     """
     Send an email. This builds the appropriate email object and then triggers
     an asynchronous event to send the email (handled in _sendmail).
 
-    :param to: The recipient's email address.
-    :type to: str
+    :param to: The recipient's email address, or a list of addresses.
+    :type to: str, list/tuple, or None
     :param subject: The subject line of the email.
     :type subject: str
     :param text: The body of the email.
     :type text: str
+    :param toAdmins: To send an email to all site administrators, set this
+        to True, which will override any "to" argument that was passed.
+    :type toAdmins: bool
     """
+    if toAdmins:
+        to = [u['email'] for u in ModelImporter.model('user').getAdmins()]
+    elif isinstance(to, basestring):
+        to = (to,)
+
+    if not isinstance(to, (list, tuple)):
+        raise Exception('You must specify a "to" address or list of addresses '
+                        'or set toAdmins=True when calling sendEmail.')
+
     msg = MIMEText(text, 'html')
-    msg['Subject'] = subject
-    msg['To'] = to
-    msg['From'] = ModelImporter().model('setting').get(
+    msg['Subject'] = subject or '[no subject]'
+    msg['To'] = ', '.join(to)
+    msg['From'] = ModelImporter.model('setting').get(
         SettingKey.EMAIL_FROM_ADDRESS, 'no-reply@girder.org')
 
-    events.daemon.trigger('_sendmail', info=msg)
+    events.daemon.trigger('_sendmail', info={
+        'message': msg,
+        'recipients': to
+    })
 
 
 def addTemplateDirectory(dir):
@@ -86,13 +101,15 @@ def addTemplateDirectory(dir):
 
 
 def _sendmail(event):
-    msg = event.info
+    msg = event.info['message']
     smtpHost = ModelImporter().model('setting').get(SettingKey.SMTP_HOST,
                                                     'localhost')
     logger.info('Sending email to %s through %s', msg['To'], smtpHost)
+
     s = smtplib.SMTP(smtpHost)
-    s.sendmail(msg['From'], (msg['To'],), msg.as_string())
+    s.sendmail(msg['From'], event.info['recipients'], msg.as_string())
     s.quit()
+
     logger.info('Sent email to %s', msg['To'])
 
 
