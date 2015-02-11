@@ -17,7 +17,6 @@ ul.g-file-list
             i.icon-edit
           a.g-update-contents(title="Replace file contents")
             i.icon-upload
-        if parentItem && parentItem.get('_accessLevel') >= girder.AccessType.ADMIN
           a.g-delete-file(title="Delete file")
             i.icon-cancel
   if (hasMore)
