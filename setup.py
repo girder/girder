@@ -121,5 +121,10 @@ setup(
     scripts=['girder-install'],
     cmdclass={
         'install': InstallWithOptions
+    },
+    entry_points={
+        'console_scripts': [
+            'girder-server = girder.__main__:main'
+        ]
     }
 )
