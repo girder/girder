@@ -207,3 +207,53 @@ The recommended process for generating a new release is described here.
 9.  Finally, upload the release to PyPI with the following command: ::
 
         python setup.py sdist upload
+
+Releasing the python client package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Whenever the main Girder package is released, the python client package should also
+be versioned and released if is has changed since the last Girder release or the last
+time it was released. Normal semantic versioning is not in use for the python client
+package because its version is partially dependent on the Girder server package
+version. The rules for versioning the python client package are as follows:
+
+* The major version of the python client should be the same as the major version
+  of the Girder server package, assuming it is compatible with the server API.
+* The minor version should be incremented if there is any change in backward
+  compatibility within the python client API, or if significant new features
+  are added.
+* If the release only includes bug fixes or minor enhancements, just increment
+  the patch version token.
+
+The process for releasing the python client is as follows:
+
+1.  Set the version number inside ``clients/python/setup.py`` according to the
+    above rules. It is set in the line near the top of the file that looks like
+    ``CLIENT_VERSION = 'x.y.z'``
+
+2.  Change to the ``clients/python`` directory of the source tree and build the
+    package using the following commands.
+
+    .. code-block:: bash
+
+        cd clients/python
+        python setup.py sdist --dist-dir .
+
+3.  That should have created the package tarball as ``girder-client-<version>.tar.gz``.
+    Install it locally in a virtualenv and ensure that you can call the ``girder-cli``
+    executable.
+
+    .. code-block:: bash
+
+        mkdir test && cd test
+        virtualenv release
+        source release/bin/activate
+        pip install ../girder-client-<version>.tar.gz
+        girder-cli
+
+4.  Go back to the ``clients/python`` directory and upload the package to pypi:
+
+    .. code-block:: bash
+
+        cd ..
+        python setup.py sdist upload

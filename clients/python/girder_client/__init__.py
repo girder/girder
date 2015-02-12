@@ -49,21 +49,22 @@ class AuthenticationError(RuntimeError):
 
 class GirderClient(object):
     """
-    A class for interacting with the Girder RESTful API. Some simple examples of
-    how to use this class follow:
+    A class for interacting with the girder restful api.
+    Some simple examples of how to use this class follow:
 
     .. code-block:: python
 
-        client = GirderClient('myhost', 9000)
+        client = GirderClient('myhost', 8080)
         client.authenticate('myname', 'mypass')
 
-        itemId = client.createitem(folderId, 'an item name', 'a description')
-        client.addMetadataToItem(itemId, {'metadatakey': 'metadatavalue'})
-        client.uploadFileToItem(itemId, 'path/to/your/file.txt')
+        folder_id = '53b714308926486402ac5aba'
+        item = client.createItem(folder_id, 'an item name', 'a description')
+        client.addMetadataToItem(item['_id'], {'metadatakey': 'metadatavalue'})
+        client.uploadFileToItem(item['_id'], 'path/to/your/file.txt')
 
-        r1 = client.getItem('52e935037bee0436e29a7130')
+        r1 = client.getItem(item['_id'])
         r2 = client.sendRestRequest('GET', 'item',
-            {'folderId': '52e97b2b7bee0436e29a7142', 'sortdir': '-1' })
+            {'folderId': folder_id, 'sortdir': '-1' })
         r3 = client.sendRestRequest('GET', 'resource/search',
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
@@ -80,7 +81,8 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, host="localhost", port=8080, apiRoot=None):
+    def __init__(self, host="localhost", port=8080, apiRoot=None,
+                 scheme="http"):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -88,18 +90,23 @@ class GirderClient(object):
 
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
-        :param port: A number containing the port on which to connect to Girder,
+        :param port: The port number on which to connect to Girder,
             the default value is 8080
         :param apiRoot: The path on the server corresponding to the root of the
             Girder REST API. If None is passed, assumes '/api/v1'.
+        :param scheme: A string containing the scheme for the Girder host,
+            the default value is 'http'; if you pass 'https' you likely want
+            to pass 443 for the port
         """
         if apiRoot is None:
             apiRoot = '/api/v1'
 
+        self.scheme = scheme
         self.host = host
         self.port = port
 
-        self.urlBase = 'http://' + self.host + ':' + str(self.port) + apiRoot
+        self.urlBase = self.scheme + '://' + self.host + ':' + str(self.port) \
+            + apiRoot
 
         if self.urlBase[-1] != '/':
             self.urlBase += '/'
@@ -145,7 +152,7 @@ class GirderClient(object):
         raised, otherwise a JSON object is returned with the Girder response.
 
         This is a convenience method to use when making basic requests that do
-        not involve multipart file data which might need to be specially encoded
+        not involve multipart file data that might need to be specially encoded
         or handled differently.
 
         :param method: One of 'GET', 'POST', 'PUT', or 'DELETE'
@@ -204,11 +211,15 @@ class GirderClient(object):
             raise Exception('Error, expected the returned '+path+' object to'
                             'have an "_id" field')
 
-    def getResource(self, path, id):
+    def getResource(self, path, id, property=None):
         """
-        Loads a resource by id or None if no resource is returned.
+        Loads a resource or resource property of property is not None
+        by id or None if no resource is returned.
         """
-        return self.get(path + '/' + id)
+        if property is not None:
+            return self.get(path + '/' + id + '/' + property)
+        else:
+            return self.get(path + '/' + id)
 
     def listResource(self, path, params):
         """
@@ -292,7 +303,34 @@ class GirderClient(object):
         }
         return self.listResource(path, params)
 
-    def file_chunker(self, filepath, filesize=None):
+    def getFolderAccess(self, folderId):
+        """
+        Retrieves a folder's access by its ID.
+
+        :param folderId: A string containing the ID of the folder to retrieve
+            access for from Girder.
+        """
+        path = 'folder'
+        property = 'access'
+        return self.getResource(path, folderId, property)
+
+    def setFolderAccess(self, folderId, access, public):
+        """
+        Sets the passed in access control document along with the public value
+        to the target folder.
+
+        :param folderId: Id of the target folder.
+        :param access: JSON document specifying access control.
+        :param public: Boolean specificying the public value.
+        """
+        path = 'folder/' + folderId + '/access'
+        params = {
+            'access': access,
+            'public': public
+        }
+        return self.put(path, params)
+
+    def _file_chunker(self, filepath, filesize=None):
         """
         Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
 
@@ -311,14 +349,14 @@ class GirderClient(object):
                 next_chunk_size = min(self.MAX_CHUNK_SIZE,
                                       filesize - startbyte)
 
-    def sha512_hasher(self, filepath):
+    def _sha512_hasher(self, filepath):
         """
         Returns sha512 hash of passed in file.
 
         :param filepath: path to file on disk.
         """
         hasher = hashlib.sha512()
-        for chunk, _ in self.file_chunker(filepath):
+        for chunk, _ in self._file_chunker(filepath):
             hasher.update(chunk)
         return hasher.hexdigest()
 
@@ -342,7 +380,7 @@ class GirderClient(object):
             if filename == item_file['name']:
                 file_id = item_file['_id']
                 if 'sha512' in item_file:
-                    if item_file['sha512'] == self.sha512_hasher(filepath):
+                    if item_file['sha512'] == self._sha512_hasher(filepath):
                         return (file_id, True)
                     else:
                         return (file_id, False)
@@ -402,10 +440,10 @@ class GirderClient(object):
                 uploadId = obj['_id']
             else:
                 raise Exception(
-                    'After creating an upload token for a new file, expected an'
-                    ' object with an id. Got instead: ' + json.dumps(obj))
+                    'After creating an upload token for a new file, expected '
+                    'an object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in self.file_chunker(filepath, filesize):
+        for chunk, startbyte in self._file_chunker(filepath, filesize):
             parameters = {
                 'offset': startbyte,
                 'uploadId': uploadId
@@ -554,4 +592,45 @@ class GirderClient(object):
 
             offset += len(items)
             if len(items) < 50:
+                break
+
+    def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
+                                      public=None):
+        """
+        Take the access control and public value of a folder and recursively
+        copy that access control and public value to all folder descendants,
+        replacing any existing access control on the descendant folders with
+        that of the ancestor folder.
+
+        :param ancestorFolderId: Id of the Girder folder to copy access
+            control from, to all of its descendant folders.
+        :param access: Dictionary Access control target, if None, will take
+            existing access control of ancestor folder
+        :param public: Boolean public value target, if None, will take existing
+            public value of ancestor folder
+        """
+        offset = 0
+
+        if public is None:
+            public = self.getFolder(ancestorFolderId)['public']
+
+        if access is None:
+            access = self.getFolderAccess(ancestorFolderId)
+
+        while True:
+            self.setFolderAccess(ancestorFolderId, json.dumps(access), public)
+
+            folders = self.get('folder', parameters={
+                'limit': 50,
+                'offset': offset,
+                'parentType': 'folder',
+                'parentId': ancestorFolderId
+            })
+
+            for folder in folders:
+                self.inheritAccessControlRecursive(folder['_id'], access,
+                                                   public)
+
+            offset += len(folders)
+            if len(folders) < 50:
                 break
