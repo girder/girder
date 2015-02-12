@@ -2,8 +2,21 @@
 
 virtualenv_pip="${1}"
 PROJECT_SOURCE_DIR="${2}"
+virtualenv_activate="${3}"
 unset PYTHONPATH
 
 "${virtualenv_pip}" uninstall girder > /dev/null
 "${virtualenv_pip}" install -U "${PROJECT_SOURCE_DIR}"/girder-[0-9].[0-9]*.tar.gz > /dev/null
-exit $?
+if [ $? -ne 0 ]; then
+    echo "Error during pip install girder package"
+    exit 1
+fi
+
+source "${virtualenv_activate}"
+which girder-server
+if [ $? -ne 0 ]; then
+    echo "Error: girder-server not found on the executable path"
+    exit 1
+fi
+
+exit 0

@@ -72,7 +72,15 @@ To run the server, first make sure the Mongo daemon is running. To manually star
 
     mongod &
 
-Then, just run: ::
+If you installed with pip, you will have the ``girder-server`` executable on your
+path and can simply call ::
+
+    girder-server
+
+**- or -**
+
+If you checked out the source tree, you can start the server with the
+following command, which will have identical behavior: ::
 
     python -m girder
 

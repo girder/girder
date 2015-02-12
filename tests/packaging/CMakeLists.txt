@@ -31,7 +31,10 @@ add_test(
 add_test(
   NAME packaging_install
   WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/pip_install_girder.sh" "${virtualenv_pip}" "${PROJECT_SOURCE_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/pip_install_girder.sh"
+          "${virtualenv_pip}"
+          "${PROJECT_SOURCE_DIR}"
+          "${virtualenv_activate}"
 )
 
 set_property(TEST packaging_install

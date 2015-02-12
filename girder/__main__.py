@@ -23,7 +23,7 @@ import argparse  # pragma: no cover
 from girder.utility import server  # pragma: no cover
 
 
-if __name__ == '__main__':  # pragma: no cover
+def main():
     parser = argparse.ArgumentParser(
         description='Girder: High Performance Data Management.')
     parser.add_argument("-t", "--testing", help="run in testing mode",
@@ -41,3 +41,7 @@ if __name__ == '__main__':  # pragma: no cover
 
     cherrypy.engine.start()
     cherrypy.engine.block()
+
+
+if __name__ == '__main__':  # pragma: no cover
+    main()
