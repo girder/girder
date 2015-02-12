@@ -29,6 +29,22 @@ from girder.constants import SettingKey, ROOT_DIR
 from .model_importer import ModelImporter
 
 
+def getEmailUrlPrefix():
+    """
+    Return the URL prefix for links back to the server. This is the link to the
+    server root, so Girder-level path information and any query parameters or
+    fragment value should be appended to this value.
+    """
+    host = ModelImporter.model('setting').get(SettingKey.EMAIL_HOST, '')
+    if not host:
+        host = '://'.join((cherrypy.request.scheme,
+                           cherrypy.request.local.name))
+        if cherrypy.request.local.port != 80:
+            host += ':{}'.format(cherrypy.request.local.port)
+
+    return host
+
+
 def renderTemplate(name, params=None):
     """
     Renders one of the HTML mail templates located in girder/mail_templates.
@@ -41,14 +57,9 @@ def renderTemplate(name, params=None):
     if not params:
         params = {}
 
-    host = ModelImporter().model('setting').get(SettingKey.EMAIL_HOST, '')
-    if not host:
-        host = '://'.join((cherrypy.request.scheme,
-                           cherrypy.request.local.name))
-        if cherrypy.request.local.port != 80:
-            host += ':{}'.format(cherrypy.request.local.port)
+    if 'host' not in params:
+        params['host'] = getEmailUrlPrefix()
 
-    params['host'] = host
     template = _templateLookup.get_template(name)
     return template.render(**params)
 
@@ -102,8 +113,8 @@ def addTemplateDirectory(dir):
 
 def _sendmail(event):
     msg = event.info['message']
-    smtpHost = ModelImporter().model('setting').get(SettingKey.SMTP_HOST,
-                                                    'localhost')
+    smtpHost = ModelImporter.model('setting').get(SettingKey.SMTP_HOST,
+                                                  'localhost')
     logger.info('Sending email to %s through %s', msg['To'], smtpHost)
 
     s = smtplib.SMTP(smtpHost)
