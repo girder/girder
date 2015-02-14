@@ -100,10 +100,7 @@ class WebClientTestCase(base.TestCase):
         # ahead of time.  This still allows tests to be run in parallel, since
         # nothing should be stored in this db
         base.dropGridFSDatabase('girder_webclient_gridfs')
-        plugins = os.environ.get('ENABLED_PLUGINS', '')
-        if plugins:
-            self.model('setting').set(SettingKey.PLUGINS_ENABLED,
-                                      plugins.split())
+
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
     def testWebClientSpec(self):

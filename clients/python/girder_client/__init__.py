@@ -182,6 +182,7 @@ class GirderClient(object):
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code == 200:
             return result.json()
+        # TODO handle 300-level status (follow redirect?)
         else:
             print 'Showing result before raising exception:'
             print result.text
@@ -200,7 +201,7 @@ class GirderClient(object):
     def delete(self, path, parameters=None):
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def createResource(self, path,  params):
+    def createResource(self, path, params):
         """
         Creates and returns a resource.
         """
@@ -211,15 +212,18 @@ class GirderClient(object):
             raise Exception('Error, expected the returned '+path+' object to'
                             'have an "_id" field')
 
-    def getResource(self, path, id, property=None):
+    def getResource(self, path, id=None, property=None):
         """
         Loads a resource or resource property of property is not None
         by id or None if no resource is returned.
         """
+        route = path
+        if id is not None:
+            route += '/%s' % id
         if property is not None:
-            return self.get(path + '/' + id + '/' + property)
-        else:
-            return self.get(path + '/' + id)
+            route += '/%s' % property
+
+        return self.get(route)
 
     def listResource(self, path, params):
         """
