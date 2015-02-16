@@ -172,7 +172,7 @@ class Item(Model):
         :returns: the recalculated size in bytes
         """
         size = 0
-        for file in self.childFiles(item, timeout=False):
+        for file in self.childFiles(item):
             # We could add a recalculateSize to the file model, in which case
             # this would be:
             # size += self.model('file').recalculateSize(file)
@@ -445,7 +445,7 @@ class Item(Model):
                     (includeMetadata and len(doc.get('meta', {})))):
                 path = os.path.join(path, doc['name'])
         metadataFile = "girder-item-metadata.json"
-        for file in self.childFiles(item=doc, timeout=False):
+        for file in self.childFiles(item=doc):
             if file['name'] == metadataFile:
                 metadataFile = None
             yield (os.path.join(path, file['name']),
@@ -470,17 +470,16 @@ class Item(Model):
                   numChanged: number of items changed.
         """
         if stage == 'count':
-            numItems = self.find(limit=1, timeout=False).count()
+            numItems = self.find(limit=1).count()
             return numItems, 0
         elif stage == 'remove':
             # Check that all items are in existing folders.  Any that are not
             # can be deleted.  Perhaps we should put them in a lost+found
             # instead
             folderIds = self.model('folder').collection.distinct('_id')
-            lostItems = self.find(
-                timeout=False,
-                query={'$or': [{'folderId': {'$nin': folderIds}},
-                               {'folderId': {'$exists': False}}]})
+            lostItems = self.find({
+                '$or': [{'folderId': {'$nin': folderIds}},
+                        {'folderId': {'$exists': False}}]})
             numItems = itemsLeft = lostItems.count()
             if numItems:
                 if progress is not None:
@@ -495,7 +494,7 @@ class Item(Model):
             return numItems, numItems
         elif stage == 'verify':
             # Check items sizes
-            items = self.find(timeout=False)
+            items = self.find()
             numItems = itemsLeft = items.count()
             itemsCorrected = 0
             if progress is not None:
