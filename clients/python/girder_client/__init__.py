@@ -136,12 +136,13 @@ class GirderClient(object):
             raise Exception('A user name and password are required')
 
         authResponse = requests.get(self.urlBase + 'user/authentication',
-                                    auth=(username, password)).json()
+                                    auth=(username, password))
 
-        if 'authToken' not in authResponse:
+        resp = authResponse.json()
+        if 'authToken' not in resp:
             raise AuthenticationError()
 
-        self.token = authResponse['authToken']['token']
+        self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
                         files=None):
