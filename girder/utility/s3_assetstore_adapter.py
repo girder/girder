@@ -357,9 +357,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         for upload in knownUploads:
             if ('s3' in upload and 'uploadId' in upload['s3'] and
                     'key' in upload['s3']):
-                if (multipartUpload.id == upload['s3']['uploadId']
-                        and multipartUpload.key_name ==
-                        upload['s3']['key']):
+                if (multipartUpload.id == upload['s3']['uploadId'] and
+                        multipartUpload.key_name == upload['s3']['key']):
                     return True
         return False
 

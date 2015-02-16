@@ -130,8 +130,9 @@ class AssetstoreTestCase(base.TestCase):
         self.model('assetstore').save(assetstore, validate=False)
         assetstoresAfter = list(self.model('assetstore').list())
         self.assertEqual(len(assetstoresBefore), len(assetstoresAfter))
-        self.assertIsNone([store for store in assetstoresAfter if store['_id']
-                           == assetstore['_id']][0]['capacity']['free'])
+        self.assertIsNone([
+            store for store in assetstoresAfter
+            if store['_id'] == assetstore['_id']][0]['capacity']['free'])
         # restore the original root
         assetstore['root'] = oldroot
         self.model('assetstore').save(assetstore, validate=False)
