@@ -188,8 +188,8 @@ class Item(Model):
 
     def childFiles(self, item, limit=0, offset=0, sort=None, **kwargs):
         """
-        Generator function that yields child files in the item.  Passes any
-        kwargs to the find function.
+        Returns child files of the item.  Passes any kwargs to the find
+        function.
 
         :param item: The parent item.
         :param limit: Result limit.
@@ -200,10 +200,8 @@ class Item(Model):
             'itemId': item['_id']
         }
 
-        cursor = self.model('file').find(
+        return self.model('file').find(
             q, limit=limit, offset=offset, sort=sort, **kwargs)
-        for file in cursor:
-            yield file
 
     def remove(self, item, **kwargs):
         """
