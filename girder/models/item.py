@@ -172,7 +172,7 @@ class Item(Model):
         :returns: the recalculated size in bytes
         """
         size = 0
-        for file in self.childFiles(item, limit=0, timeout=False):
+        for file in self.childFiles(item, timeout=False):
             # We could add a recalculateSize to the file model, in which case
             # this would be:
             # size += self.model('file').recalculateSize(file)
@@ -186,7 +186,7 @@ class Item(Model):
             self.propagateSizeChange(item, delta)
         return size
 
-    def childFiles(self, item, limit=50, offset=0, sort=None, **kwargs):
+    def childFiles(self, item, limit=0, offset=0, sort=None, **kwargs):
         """
         Generator function that yields child files in the item.  Passes any
         kwargs to the find function.
@@ -216,7 +216,7 @@ class Item(Model):
         # Delete all files in this item
         files = self.model('file').find({
             'itemId': item['_id']
-        }, limit=0)
+        })
         for file in files:
             fileKwargs = kwargs.copy()
             fileKwargs.pop('updateItemSize', None)
@@ -226,14 +226,14 @@ class Item(Model):
         uploads = self.model('upload').find({
             'parentId': item['_id'],
             'parentType': 'item'
-        }, limit=0)
+        })
         for upload in uploads:
             self.model('upload').remove(upload, **kwargs)
 
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to filter items by permissions
@@ -243,7 +243,7 @@ class Item(Model):
             filters = {}
 
         # get the non-filtered search result from Model.textSearch
-        cursor = Model.textSearch(self, query=query, limit=0, sort=sort,
+        cursor = Model.textSearch(self, query=query, sort=sort,
                                   filters=filters)
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
@@ -417,7 +417,7 @@ class Item(Model):
         # Give listeners a chance to change things
         events.trigger('model.item.copy.prepare', (srcItem, newItem))
         # copy files
-        for file in self.childFiles(item=srcItem, limit=0):
+        for file in self.childFiles(item=srcItem):
             self.model('file').copyFile(file, creator=creator, item=newItem)
         events.trigger('model.item.copy.after', newItem)
         return self.filter(newItem)
@@ -447,7 +447,7 @@ class Item(Model):
                     (includeMetadata and len(doc.get('meta', {})))):
                 path = os.path.join(path, doc['name'])
         metadataFile = "girder-item-metadata.json"
-        for file in self.childFiles(item=doc, limit=0, timeout=False):
+        for file in self.childFiles(item=doc, timeout=False):
             if file['name'] == metadataFile:
                 metadataFile = None
             yield (os.path.join(path, file['name']),
@@ -480,7 +480,7 @@ class Item(Model):
             # instead
             folderIds = self.model('folder').collection.distinct('_id')
             lostItems = self.find(
-                limit=0, timeout=False,
+                timeout=False,
                 query={'$or': [{'folderId': {'$nin': folderIds}},
                                {'folderId': {'$exists': False}}]})
             numItems = itemsLeft = lostItems.count()
@@ -497,7 +497,7 @@ class Item(Model):
             return numItems, numItems
         elif stage == 'verify':
             # Check items sizes
-            items = self.find(limit=0, timeout=False)
+            items = self.find(timeout=False)
             numItems = itemsLeft = items.count()
             itemsCorrected = 0
             if progress is not None:
