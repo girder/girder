@@ -44,7 +44,7 @@ class Job(AccessControlledModel):
 
         return job
 
-    def list(self, user=None, limit=50, offset=0, sort=None, currentUser=None):
+    def list(self, user=None, limit=0, offset=0, sort=None, currentUser=None):
         """
         List a page of jobs for a given user.
 
@@ -56,7 +56,7 @@ class Job(AccessControlledModel):
         :param currentUser: User for access filtering.
         """
         userId = user['_id'] if user else None
-        cursor = self.find({'userId': userId}, limit=0, sort=sort)
+        cursor = self.find({'userId': userId}, sort=sort)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=currentUser,
                                                 level=AccessType.READ,

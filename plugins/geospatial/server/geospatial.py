@@ -540,7 +540,7 @@ class GeospatialItem(Resource):
         :rtype : list[dict[str, unknown]]
         """
         user = self.getCurrentUser()
-        cursor = self.model('item').find(query, limit=0, sort=sort)
+        cursor = self.model('item').find(query, sort=sort)
 
         return [self._filter(result) for result in
                 self.model('item')

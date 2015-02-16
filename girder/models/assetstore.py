@@ -102,7 +102,7 @@ class Assetstore(Model):
                 first['current'] = True
                 self.save(first)
 
-    def list(self, limit=50, offset=0, sort=None):
+    def list(self, limit=0, offset=0, sort=None):
         """
         List all assetstores.
 

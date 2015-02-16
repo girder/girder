@@ -82,7 +82,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': collection['_id'],
             'parentCollection': 'collection'
-        }, limit=0)
+        })
         for folder in folders:
             self.model('folder').remove(folder, progress=progress, **kwargs)
 
@@ -92,11 +92,11 @@ class Collection(AccessControlledModel):
             progress.update(increment=1, message='Deleted collection ' +
                             collection['name'])
 
-    def list(self, user=None, limit=50, offset=0, sort=None):
+    def list(self, user=None, limit=0, offset=0, sort=None):
         """
         Search for collections with full text search.
         """
-        cursor = self.find({}, limit=0, sort=sort)
+        cursor = self.find({}, sort=sort)
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)
@@ -185,7 +185,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
-        }, limit=0, timeout=False)
+        }, timeout=False)
         for folder in folders:
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
@@ -202,7 +202,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
-        }, limit=0, timeout=False)
+        }, timeout=False)
         count += sum(self.model('folder').subtreeCount(folder)
                      for folder in folders)
         return count

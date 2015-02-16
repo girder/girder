@@ -53,7 +53,7 @@ class ResourceExt(Resource):
         model = ModelImporter().model(coll)
         if hasattr(model, 'filterResultsByPermission'):
             cursor = model.find(
-                query, fields=allowed[coll] + ['public', 'access'], limit=0)
+                query, fields=allowed[coll] + ['public', 'access'])
             return list(model.filterResultsByPermission(
                 cursor, user=self.getCurrentUser(), level=AccessType.READ,
                 limit=limit, offset=offset, removeKeys=('public', 'access')))
