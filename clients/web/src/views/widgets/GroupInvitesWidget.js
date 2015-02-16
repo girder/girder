@@ -16,6 +16,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
                     view.group.off('g:removed').on('g:removed', function () {
                         view.collection.remove(user);
                         view.render();
+                        view.parentView.render();
                     }).removeMember(user.get('_id'));
                 }
             });
