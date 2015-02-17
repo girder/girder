@@ -210,7 +210,7 @@ class Folder(AccessControlledModel):
             'parentId': folderId,
             'parentCollection': 'folder'
         }
-        for child in self.find(q, timeout=False):
+        for child in self.find(q):
             self._updateDescendants(
                 child['_id'], updateQuery)
 
@@ -296,7 +296,7 @@ class Folder(AccessControlledModel):
         # Delete all child items
         items = self.model('item').find({
             'folderId': folder['_id']
-        }, timeout=False)
+        })
         for item in items:
             setResponseTimeLimit()
             self.model('item').remove(item, progress=progress, **kwargs)
@@ -310,7 +310,7 @@ class Folder(AccessControlledModel):
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, timeout=False)
+        })
         for subfolder in folders:
             self.remove(subfolder, progress=progress, **kwargs)
         folders.close()
@@ -535,7 +535,7 @@ class Folder(AccessControlledModel):
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=(), timeout=False)
+        }, fields=())
         count += sum(self.subtreeCount(subfolder) for subfolder in folders)
 
         return count
@@ -559,13 +559,13 @@ class Folder(AccessControlledModel):
             path = os.path.join(path, doc['name'])
         metadataFile = "girder-folder-metadata.json"
         for sub in self.childFolders(parentType='folder', parent=doc,
-                                     user=user, timeout=False):
+                                     user=user):
             if sub['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
-        for item in self.childItems(folder=doc, timeout=False):
+        for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.model('item').fileList(
@@ -663,7 +663,7 @@ class Folder(AccessControlledModel):
         # Give listeners a chance to change things
         events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
         # copy items
-        for item in self.childItems(folder=srcFolder, timeout=False):
+        for item in self.childItems(folder=srcFolder):
             setResponseTimeLimit()
             self.model('item').copyItem(item, creator, folder=newFolder)
             if progress:
@@ -671,7 +671,7 @@ class Folder(AccessControlledModel):
                                 item['name'])
         # copy subfolders
         for sub in self.childFolders(parentType='folder', parent=srcFolder,
-                                     user=creator, timeout=False):
+                                     user=creator):
             if firstFolder and firstFolder['_id'] == sub['_id']:
                 continue
             self.copyFolder(sub, parent=newFolder, parentType='folder',

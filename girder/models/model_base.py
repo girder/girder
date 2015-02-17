@@ -208,7 +208,7 @@ class Model(ModelImporter):
             query = {}
 
         return self.collection.find(
-            spec=query, skip=offset, limit=limit, **kwargs)
+            spec=query, skip=offset, limit=limit, timeout=False, **kwargs)
 
     def findOne(self, query=None, **kwargs):
         """

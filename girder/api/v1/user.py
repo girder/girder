@@ -307,7 +307,7 @@ class User(Resource):
         self.requireParams('email', params)
         email = params['email'].lower().strip()
 
-        users = self.model('user').find({'email': email}, timeout=False)
+        users = self.model('user').find({'email': email})
 
         if not users.count():
             raise RestException('That email is not registered.')

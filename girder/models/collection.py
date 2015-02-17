@@ -185,7 +185,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
-        }, timeout=False)
+        })
         for folder in folders:
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
@@ -202,7 +202,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
-        }, timeout=False)
+        })
         count += sum(self.model('folder').subtreeCount(folder)
                      for folder in folders)
         return count
