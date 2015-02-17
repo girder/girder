@@ -18,7 +18,7 @@
 ###############################################################################
 
 from .. import base
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 
 
 def setUpModule():
@@ -33,10 +33,11 @@ class GroupTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        # Create a set of users so we can work with these groups
+        # Create a set of users so we can work with these groups.  User 0 is
+        # an admin
         self.users = [self.model('user').createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
-            for num in [0, 1, 2]]
+            for num in [0, 1, 2, 3, 4, 5]]
 
     def testDirectAdd(self):
         """
@@ -135,6 +136,18 @@ class GroupTestCase(base.TestCase):
             user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], 'private')
+
+        # The same rules apply to the group access points
+        resp = self.request(
+            path='/group/%s/access' % publicGroup['_id'], method='GET')
+        self.assertStatusOk(resp)
+        resp = self.request(
+            path='/group/%s/access' % privateGroup['_id'], method='GET')
+        self.assertStatus(resp, 401)
+        resp = self.request(
+            path='/group/%s/access' % privateGroup['_id'], method='GET',
+            user=self.users[0])
+        self.assertStatusOk(resp)
 
         # Test listing all groups
         privateGroup2 = self.model('group').createGroup(
@@ -469,3 +482,80 @@ class GroupTestCase(base.TestCase):
         self.users[0] = self.model('user').load(
             self.users[0]['_id'], force=True)
         self.assertEqual(len(self.users[0]['groups']), 1)
+
+    def testGroupAddAllow(self):
+        """
+        Test letting group admins and mods ability to add users directly to
+        groups.
+        """
+        policy = {
+            'never': {
+                'default': [0],
+                'no': [0],
+                'yesadmin': [0],
+                'yesmod': [0],
+            },
+            'noadmin': {
+                'default': [0],
+                'no': [0],
+                'yesadmin': [0, 1],
+                'yesmod': [0, 1],
+            },
+            'nomod': {
+                'default': [0],
+                'no': [0],
+                'yesadmin': [0, 1],
+                'yesmod': [0, 1, 2],
+            },
+            'yesadmin': {
+                'default': [0, 1],
+                'no': [0],
+                'yesadmin': [0, 1],
+                'yesmod': [0, 1],
+            },
+            'yesmod': {
+                'default': [0, 1, 2],
+                'no': [0],
+                'yesadmin': [0, 1],
+                'yesmod': [0, 1, 2],
+            },
+        }
+        # We want the group to have user 1 as a group admin, user 2 as a group
+        # moderator, and user 3 as a group member.  user 0 is a sys admin, and
+        # user 4 is not part of the group.  User 5 is the user who is added to
+        # the group.
+        group = self.model('group').createGroup('public ', self.users[0],
+                                                public=True)
+        for user in [1, 2, 3]:
+            resp = self.request(
+                path='/group/{}/invitation'.format(group['_id']),
+                params={
+                    'force': 'true',
+                    'userId': self.users[user]['_id'],
+                    'level': 3 - user
+                }, method='POST', user=self.users[0])
+            self.assertStatusOk(resp)
+        resp = self.request(
+            path='/group/%s/member' % group['_id'], user=self.users[0],
+            method='DELETE', params={'userId': self.users[0]['_id']})
+        self.assertStatusOk(resp)
+        for systemSetting in policy:
+            self.model('setting').set(SettingKey.ADD_TO_GROUP_POLICY,
+                                      systemSetting)
+            for groupSetting in policy[systemSetting]:
+                resp = self.request(
+                    path='/group/%s' % group['_id'], user=self.users[0],
+                    method='PUT', params={'addAllowed': groupSetting})
+                self.assertStatusOk(resp)
+                for user in xrange(5):
+                    resp = self.request(
+                        path='/group/{}/invitation'.format(group['_id']),
+                        params={
+                            'force': 'true',
+                            'userId': self.users[5]['_id'],
+                        }, method='POST', user=self.users[user])
+                    if user in policy[systemSetting][groupSetting]:
+                        self.assertStatusOk(resp)
+                    else:
+                        self.assertStatus(resp, 403)
+        self.model('setting').unset(SettingKey.ADD_TO_GROUP_POLICY)

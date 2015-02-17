@@ -22,7 +22,7 @@
               .g-invite-as-member.btn.btn-primary
                 i.icon-mail
                 |  Invite as member
-              if isAdmin
+              if mayAdd
                 .g-add-as-member.btn.btn-warning.g-add-user-button
                   i.icon-plus
                   | Add as member
@@ -40,7 +40,7 @@
                 .g-invite-as-moderator.btn.btn-primary
                   i.icon-mail
                   |  Invite as moderator
-                if isAdmin
+                if mayAdd
                   .g-add-as-moderator.btn.btn-warning.g-add-user-button
                     i.icon-plus
                     | Add as moderator
@@ -60,7 +60,7 @@
                 .g-invite-as-admin.btn.btn-primary
                   i.icon-mail
                   |  Invite as administrator
-                if isAdmin
+                if mayAdd
                   .g-add-as-admin.btn.btn-warning.g-add-user-button
                     i.icon-plus
                     | Add as administrator

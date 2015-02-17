@@ -62,7 +62,8 @@ class Group(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'public', 'description', 'created', 'updated'))
+            '_id', 'name', 'public', 'description', 'created', 'updated',
+            'addAllowed'))
 
     def filter(self, group, user, accessList=False, requests=False):
         """

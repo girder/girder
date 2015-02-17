@@ -132,6 +132,7 @@ class SettingKey:
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
+    ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
 
 
 class SettingDefault:
@@ -150,10 +151,11 @@ class SettingDefault:
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
-            'Content-Type, Cookie, Girder-Token'
+            'Content-Type, Cookie, Girder-Token',
             # An apache server using reverse proxy would also need
             #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
             #  X-Forwarded-Host, Remote-Addr
+        SettingKey.ADD_TO_GROUP_POLICY: 'never',
     }
 
 

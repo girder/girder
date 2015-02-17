@@ -11,6 +11,9 @@ girder.views.EditGroupWidget = girder.View.extend({
                 description: this.$('#g-description').val(),
                 public: this.$('#g-access-public').is(':checked')
             };
+            if (this.$('#g-add-to-group').length) {
+                fields.addAllowed = this.$('#g-add-to-group').val();
+            }
 
             if (this.model) {
                 this.updateGroup(fields);
@@ -27,14 +30,27 @@ girder.views.EditGroupWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.model = settings.model || null;
+
     },
 
     render: function () {
         var view = this;
         var pub = this.model ? this.model.get('public') : false;
+        var groupAddAllowed;
+        var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
+        if (girder.currentUser.get('admin')) {
+            if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
+                groupAddAllowed = 'mod';
+            } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
+                groupAddAllowed = 'admin';
+            }
+        }
         var modal = this.$el.html(girder.templates.editGroupWidget({
             group: this.model,
-            public: pub
+            public: pub,
+            addToGroupPolicy: addToGroupPolicy,
+            groupAddAllowed: groupAddAllowed,
+            addAllowed: this.model ? this.model.get('addAllowed') : false
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.model) {

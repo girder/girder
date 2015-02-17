@@ -79,6 +79,14 @@ class Setting(Model):
 
         doc['value'] = list(doc['value'])
 
+    def validateCoreAddToGroupPolicy(self, doc):
+        doc['value'] = doc['value'].lower()
+        if doc['value'] not in ('never', 'noadmin', 'nomod', 'yesadmin',
+                                'yesmod', ''):
+            raise ValidationException(
+                'Add to group policy must be one of "never", "noadmin", '
+                '"nomod", "yesadmin", or "yesmod".', 'value')
+
     def validateCoreCookieLifetime(self, doc):
         try:
             doc['value'] = int(doc['value'])
