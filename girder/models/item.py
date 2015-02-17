@@ -296,7 +296,8 @@ class Item(Model):
         filteredCursor = itertools.ifilter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
-                del result[key]
+                if key in result:
+                    del result[key]
             yield result
 
     def createItem(self, name, creator, folder, description=''):

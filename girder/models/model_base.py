@@ -837,7 +837,8 @@ class AccessControlledModel(Model):
         filteredCursor = itertools.ifilter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
-                del result[key]
+                if key in result:
+                    del result[key]
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
