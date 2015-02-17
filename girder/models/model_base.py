@@ -17,6 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+import functools
+import itertools
+
 import pymongo
 
 from girder.external.mongodb_proxy import MongoProxy
@@ -821,23 +824,21 @@ class AccessControlledModel(Model):
         :param level: The access level.
         :type level: AccessType
         :param limit: The max size of the result set.
+        :type limit: int
         :param offset: The offset into the result set.
+        :type offset: int
         :param removeKeys: List of keys that should be removed from each
                            matching document.
         :type removeKeys: list
         """
-        count = skipped = 0
-        for result in cursor:
-            if self.hasAccess(result, user=user, level=level):
-                if skipped < offset:
-                    skipped += 1
-                else:
-                    for key in removeKeys:
-                        del result[key]
-                    yield result
-                    count += 1
-            if count == limit:
-                break
+        hasAccess = functools.partial(self.hasAccess, user=user, level=level)
+
+        endIndex = offset + limit if limit else None
+        filteredCursor = itertools.ifilter(hasAccess, cursor)
+        for result in itertools.islice(filteredCursor, offset, endIndex):
+            for key in removeKeys:
+                del result[key]
+            yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
                    sort=None, fields=None):
