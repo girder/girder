@@ -17,8 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import sys
 import json
+import sys
+
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 from pkg_resources import parse_requirements
@@ -113,7 +114,9 @@ setup(
     package_data={
         'girder': [
             'girder-version.json',
-            'conf/girder.dist.cfg'
+            'conf/girder.dist.cfg',
+            'mail_templates/*.mako',
+            'mail_templates/**/*.mako'
         ]
     },
     install_requires=reqs,
