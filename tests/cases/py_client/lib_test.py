@@ -18,6 +18,7 @@
 ###############################################################################
 
 import girder_client
+import json
 import mock
 import os
 
@@ -73,9 +74,54 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with mock.patch('getpass.getpass', return_value='password'):
-            client.authenticate(username=user['login'], interactive=True)
+        with mock.patch('girder_client.rawInput', return_value=user['login']),\
+                mock.patch('getpass.getpass', return_value='password'):
+            client.authenticate(interactive=True)
 
         # /user/me should now return our user info
         user = client.getResource('user/me')
         self.assertEqual(user['login'], 'mylogin')
+
+        # Test HTTP error case
+        flag = False
+        try:
+            client.getResource('user/badId')
+        except girder_client.HttpError as e:
+            self.assertEqual(e.status, 400)
+            self.assertEqual(e.method, 'GET')
+            resp = json.loads(e.responseText)
+            self.assertEqual(resp['type'], 'validation')
+            self.assertEqual(resp['field'], 'id')
+            self.assertEqual(resp['message'], 'Invalid ObjectId: badId')
+            flag = True
+
+        self.assertTrue(flag)
+
+        # Test some folder routes
+        folders = client.listFolder(
+            parentId=user['_id'], parentFolderType='user')
+        self.assertEqual(len(folders), 2)
+
+        privateFolder = publicFolder = None
+        for folder in folders:
+            if folder['name'] == 'Public':
+                publicFolder = folder
+            elif folder['name'] == 'Private':
+                privateFolder = folder
+
+        self.assertNotEqual(privateFolder, None)
+        self.assertNotEqual(publicFolder, None)
+
+        self.assertEqual(client.getFolder(privateFolder['_id']), privateFolder)
+
+        acl = client.getFolderAccess(privateFolder['_id'])
+        self.assertIn('users', acl)
+        self.assertIn('groups', acl)
+
+        client.setFolderAccess(privateFolder['_id'], json.dumps(acl),
+                               public=False)
+        self.assertEqual(acl, client.getFolderAccess(privateFolder['_id']))
+
+        # Test recursive ACL propagation (not very robust test yet)
+        subfolder = client.createFolder(privateFolder['_id'], name='Subfolder')
+        client.inheritAccessControlRecursive(privateFolder['_id'])

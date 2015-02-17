@@ -89,6 +89,8 @@ class PythonCliTestCase(base.TestCase):
         self.user = self.model('user').createUser(
             firstName='First', lastName='Last', login='mylogin',
             password='password', email='email@email.com')
+        self.publicFolder = self.model('folder').childFolders(
+            parentType='user', parent=self.user, user=None, limit=1).next()
 
         self.downloadDir = os.path.join(
             os.path.dirname(__file__), '_testDownload')
@@ -109,11 +111,8 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
 
     def testUploadDownload(self):
-        publicFolder = self.model('folder').childFolders(
-            parentType='user', parent=self.user, user=None).next()
-
         localDir = os.path.dirname(__file__)
-        args = ('-c', 'upload', str(publicFolder['_id']), localDir)
+        args = ['-c', 'upload', str(self.publicFolder['_id']), localDir]
         flag = False
         try:
             invokeCli(args)
@@ -122,6 +121,14 @@ class PythonCliTestCase(base.TestCase):
 
         self.assertTrue(flag)
 
+        # Test dry-run and blacklist options
+
+        ret = invokeCli(args + ['--dryrun', '--blacklist=cli_test.py'],
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Ignoring file cli_test.py as it is blacklisted',
+                      ret['stdout'])
+
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn(
@@ -129,7 +136,7 @@ class PythonCliTestCase(base.TestCase):
         self.assertIn('Uploading Item from cli_test.py', ret['stdout'])
 
         subfolder = self.model('folder').childFolders(
-            parent=publicFolder, parentType='folder').next()
+            parent=self.publicFolder, parentType='folder', limit=1).next()
         self.assertEqual(subfolder['name'], 'py_client')
 
         items = list(self.model('folder').childItems(folder=subfolder))
@@ -144,3 +151,27 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
         for downloaded in os.listdir(downloadDir):
             self.assertIn(downloaded, toUpload)
+
+        # Download again to same location, we should not get errors
+        ret = invokeCli(('-c', 'download', str(subfolder['_id']), downloadDir),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertEqual(ret['stderr'], '')
+
+    def testLeafFoldersAsItems(self):
+        localDir = os.path.dirname(__file__)
+        args = ['-c', 'upload', str(self.publicFolder['_id']), localDir,
+                '--leaf-folders-as-items']
+
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn(
+            'Creating Item from folder tests/cases/py_client', ret['stdout'])
+        self.assertIn('Adding file __init__.py', ret['stdout'])
+
+        # Test re-use existing case
+        args.append('--reuse')
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('File cli_test.py already exists in parent Item',
+                      ret['stdout'])

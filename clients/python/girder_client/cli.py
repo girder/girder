@@ -70,8 +70,8 @@ class GirderCli(GirderClient):
             if child['name'] == folder_name:
                 folder = child
         if folder is None:
-            folder = self.createFolder(parent_id, parent_type,
-                                       folder_name, description='')
+            folder = self.createFolder(
+                parent_id, folder_name, parentType=parent_type)
         return folder
 
     def _has_only_files(self, local_folder):
@@ -310,4 +310,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main()  # pragma: no cover
