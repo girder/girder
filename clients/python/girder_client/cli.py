@@ -54,34 +54,6 @@ class GirderCli(GirderClient):
         self.authenticate(username, password, interactive=interactive)
         self.dryrun = dryrun
         self.blacklist = blacklist
-        self.item_upload_callbacks = []
-        self.folder_upload_callbacks = []
-
-    def add_folder_upload_callback(self, callback):
-        """Saves a passed in callback function that will be called after each
-        folder has completed.  Multiple callback functions can be added, they
-        will be called in the order they were added by calling this function.
-        Callback functions will be called after a folder in Girder is created
-        and all subfolders and items for that folder have completed uploading.
-        Callback functions should take two parameters:
-            - the folder in girder
-            - the full path to the local folder
-        :param callback: callback function to be called
-        """
-        self.folder_upload_callbacks.append(callback)
-
-    def add_item_upload_callback(self, callback):
-        """Saves a passed in callback function that will be called after each
-        item has completed.  Multiple callback functions can be added, they
-        will be called in the order they were added by calling this function.
-        Callback functions will be called after an item in Girder is created
-        and all files for that item have been uploaded.  Callback functions
-        should take two parameters:
-            - the item in girder
-            - the full path to the local folder or file comprising the item
-        :param callback: callback function to be called
-        """
-        self.item_upload_callbacks.append(callback)
 
     def _load_or_create_folder(self, local_folder, parent_id, parent_type):
         """Returns a folder in Girder with the same name as the passed in
@@ -158,9 +130,6 @@ class GirderCli(GirderClient):
             self._upload_file_to_item(
                 local_file, current_item['_id'], file_path)
 
-            for callback in self.item_upload_callbacks:
-                callback(current_item, file_path)
-
     def _upload_folder_as_item(self, local_folder, parent_folder_id,
                                reuse_existing=False):
         """Take a folder and use its base name as the name of a new item. Then,
@@ -190,10 +159,6 @@ class GirderCli(GirderClient):
 
             if not self.dryrun:
                 self._upload_file_to_item(current_file, item['_id'], filepath)
-
-        if not self.dryrun:
-            for callback in self.item_upload_callbacks:
-                callback(item, local_folder)
 
     def _upload_folder_recursive(self, local_folder, parent_id, parent_type,
                                  leaf_folders_as_items=False,
@@ -251,10 +216,6 @@ class GirderCli(GirderClient):
                 else:
                     self._upload_as_item(
                         entry, folder['_id'], full_entry, reuse_existing)
-
-            if not self.dryrun:
-                for callback in self.folder_upload_callbacks:
-                    callback(folder, local_folder)
 
     def upload(self, file_pattern, parent_id, parent_type='folder',
                leaf_folders_as_items=False, reuse_existing=False):

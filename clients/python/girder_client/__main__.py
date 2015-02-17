@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder_client import cli
+from girder_client import cli  # pragma: no cover
 
 
-cli.main()
+cli.main()  # pragma: no cover

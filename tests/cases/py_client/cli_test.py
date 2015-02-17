@@ -21,6 +21,7 @@ import contextlib
 import girder_client.cli
 import mock
 import os
+import shutil
 import sys
 
 # Need to set the environment variable before importing girder
@@ -46,7 +47,7 @@ class SysExitException(Exception):
     pass
 
 
-def invokeCli(argv, username, password):
+def invokeCli(argv, username='', password=''):
     """
     Invoke the girder python client CLI with a set of arguments.
     """
@@ -81,7 +82,64 @@ def tearDownModule():
 
 class PythonCliTestCase(base.TestCase):
 
-    def testCliUpload(self):
-        self.model('user').createUser(firstName='First', lastName='Last',
-            login='mylogin', password='mypassword', email='a@abc.com')
-        print invokeCli((), username='mylogin', password='mypassword')['stderr']
+    def setUp(self):
+        base.TestCase.setUp(self)
+
+        self.user = self.model('user').createUser(
+            firstName='First', lastName='Last', login='mylogin',
+            password='password', email='email@email.com')
+
+        self.downloadDir = os.path.join(
+            os.path.dirname(__file__), '_testDownload')
+        shutil.rmtree(self.downloadDir, ignore_errors=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.downloadDir, ignore_errors=True)
+
+        base.TestCase.tearDown(self)
+
+    def testCliHelp(self):
+        ret = invokeCli(())
+        self.assertIn('error: too few arguments', ret['stderr'])
+        self.assertNotEqual(ret['exitVal'], 0)
+
+        ret = invokeCli(('-h',))
+        self.assertIn('usage: girder-client', ret['stdout'])
+        self.assertEqual(ret['exitVal'], 0)
+
+    def testUploadDownload(self):
+        publicFolder = self.model('folder').childFolders(
+            parentType='user', parent=self.user, user=None).next()
+
+        localDir = os.path.dirname(__file__)
+        args = ('-c', 'upload', str(publicFolder['_id']), localDir)
+        flag = False
+        try:
+            invokeCli(args)
+        except girder_client.AuthenticationError:
+            flag = True
+
+        self.assertTrue(flag)
+
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn(
+            'Creating Folder from tests/cases/py_client', ret['stdout'])
+        self.assertIn('Uploading Item from cli_test.py', ret['stdout'])
+
+        subfolder = self.model('folder').childFolders(
+            parent=publicFolder, parentType='folder').next()
+        self.assertEqual(subfolder['name'], 'py_client')
+
+        items = list(self.model('folder').childItems(folder=subfolder))
+
+        toUpload = list(os.listdir(localDir))
+        self.assertEqual(len(toUpload), len(items))
+
+        downloadDir = os.path.join(localDir, '_testDownload')
+
+        ret = invokeCli(('-c', 'download', str(subfolder['_id']), downloadDir),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        for downloaded in os.listdir(downloadDir):
+            self.assertIn(downloaded, toUpload)
