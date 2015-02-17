@@ -123,5 +123,5 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(acl, client.getFolderAccess(privateFolder['_id']))
 
         # Test recursive ACL propagation (not very robust test yet)
-        subfolder = client.createFolder(privateFolder['_id'], name='Subfolder')
+        client.createFolder(privateFolder['_id'], name='Subfolder')
         client.inheritAccessControlRecursive(privateFolder['_id'])
