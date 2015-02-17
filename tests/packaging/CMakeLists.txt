@@ -45,6 +45,7 @@ add_test(
           "${virtualenv_pip}"
           "${PROJECT_SOURCE_DIR}"
           "${virtualenv_activate}"
+          "${virtualenv_dir}"
 )
 
 set_property(TEST packaging_install
