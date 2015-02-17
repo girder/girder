@@ -30,6 +30,7 @@ os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')  # noqa
 from tests import base
 from StringIO import StringIO
 
+
 @contextlib.contextmanager
 def captureOutput():
     oldout, olderr = sys.stdout, sys.stderr
@@ -52,7 +53,7 @@ def invokeCli(argv, username='', password=''):
     Invoke the girder python client CLI with a set of arguments.
     """
     argsList = ['girder-client', '--port', os.environ['GIRDER_PORT'],
-                '--username', username, '--password', password]  + list(argv)
+                '--username', username, '--password', password] + list(argv)
     exitVal = 0
     with mock.patch.object(sys, 'argv', argsList),\
             mock.patch('sys.exit', side_effect=SysExitException) as exit,\
