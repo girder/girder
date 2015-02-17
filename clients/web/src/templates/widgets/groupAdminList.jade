@@ -1,4 +1,4 @@
-.g-group-admins-header.g-group-list-header
+.g-group-admins-header.g-group-list-header(title="Group administrators can edit group properties and can add, invite, and remove group members, moderators, and administrators.")
   i.icon-star
   |  Administrators
 
@@ -11,8 +11,20 @@
           |  #{userAccess.name} (#{userAccess.login})
         .g-group-member-controls.pull-right
           if level >= accessType.ADMIN
-            a.g-group-admin-demote(title="Demote to member")
-              i.icon-down-big
+            span.dropdown
+              a.g-group-admin-demote.dropdown-toggle(title="Demote user",
+                data-toggle="dropdown")
+                i.icon-down-big
+                i.icon-down-dir
+              ul.dropdown-menu.pull-right(role="menu")
+                li(role="presentation"): a.g-demote-moderator(role="menuitem")
+                  i.icon-minus
+                  | Demote to moderator
+                li(role="presentation"): a.g-demote-member(role="menuitem")
+                  i.icon-minus
+                  | Demote to member
+            a.g-group-admin-remove(title="Remove user from the group")
+              i.icon-block
     if (!admins.length)
       .g-member-list-empty
         i.icon-info-circled

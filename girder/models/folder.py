@@ -154,7 +154,7 @@ class Folder(AccessControlledModel):
             'parentCollection': 'folder'
         }
 
-        for child in self.find(q, limit=0):
+        for child in self.find(q):
             size += self.getSizeRecursive(child)
 
         return size
@@ -210,7 +210,7 @@ class Folder(AccessControlledModel):
             'parentId': folderId,
             'parentCollection': 'folder'
         }
-        for child in self.find(q, limit=0, timeout=False):
+        for child in self.find(q, timeout=False):
             self._updateDescendants(
                 child['_id'], updateQuery)
 
@@ -296,7 +296,7 @@ class Folder(AccessControlledModel):
         # Delete all child items
         items = self.model('item').find({
             'folderId': folder['_id']
-        }, limit=0, timeout=False)
+        }, timeout=False)
         for item in items:
             setResponseTimeLimit()
             self.model('item').remove(item, progress=progress, **kwargs)
@@ -310,7 +310,7 @@ class Folder(AccessControlledModel):
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, limit=0, timeout=False)
+        }, timeout=False)
         for subfolder in folders:
             self.remove(subfolder, progress=progress, **kwargs)
         folders.close()
@@ -319,7 +319,7 @@ class Folder(AccessControlledModel):
         uploads = self.model('upload').find({
             'parentId': folder['_id'],
             'parentType': 'folder'
-        }, limit=0)
+        })
         for upload in uploads:
             self.model('upload').remove(upload, progress=progress, **kwargs)
         uploads.close()
@@ -330,7 +330,7 @@ class Folder(AccessControlledModel):
             progress.update(increment=1, message='Deleted folder ' +
                             folder['name'])
 
-    def childItems(self, folder, limit=50, offset=0, sort=None, filters=None,
+    def childItems(self, folder, limit=0, offset=0, sort=None, filters=None,
                    **kwargs):
         """
         Generator function that yields child items in a folder.  Passes any
@@ -353,7 +353,7 @@ class Folder(AccessControlledModel):
         return self.model('item').find(
             q, limit=limit, offset=offset, sort=sort, **kwargs)
 
-    def childFolders(self, parent, parentType, user=None, limit=50, offset=0,
+    def childFolders(self, parent, parentType, user=None, limit=0, offset=0,
                      sort=None, filters=None, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
@@ -387,7 +387,7 @@ class Folder(AccessControlledModel):
 
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
-        cursor = self.find(q, limit=0, sort=sort, **kwargs)
+        cursor = self.find(q, sort=sort, **kwargs)
 
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
@@ -527,7 +527,7 @@ class Folder(AccessControlledModel):
 
         items = self.model('item').find({
             'folderId': folder['_id']
-        }, fields=(), limit=0)
+        }, fields=())
         count += items.count()
         # subsequent operations take a long time, so free the cursor's resources
         items.close()
@@ -535,7 +535,7 @@ class Folder(AccessControlledModel):
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=(), limit=0, timeout=False)
+        }, fields=(), timeout=False)
         count += sum(self.subtreeCount(subfolder) for subfolder in folders)
 
         return count
@@ -559,13 +559,13 @@ class Folder(AccessControlledModel):
             path = os.path.join(path, doc['name'])
         metadataFile = "girder-folder-metadata.json"
         for sub in self.childFolders(parentType='folder', parent=doc,
-                                     user=user, limit=0, timeout=False):
+                                     user=user, timeout=False):
             if sub['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
-        for item in self.childItems(folder=doc, limit=0, timeout=False):
+        for item in self.childItems(folder=doc, timeout=False):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.model('item').fileList(
@@ -663,7 +663,7 @@ class Folder(AccessControlledModel):
         # Give listeners a chance to change things
         events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
         # copy items
-        for item in self.childItems(folder=srcFolder, limit=0, timeout=False):
+        for item in self.childItems(folder=srcFolder, timeout=False):
             setResponseTimeLimit()
             self.model('item').copyItem(item, creator, folder=newFolder)
             if progress:
@@ -671,7 +671,7 @@ class Folder(AccessControlledModel):
                                 item['name'])
         # copy subfolders
         for sub in self.childFolders(parentType='folder', parent=srcFolder,
-                                     user=creator, limit=0, timeout=False):
+                                     user=creator, timeout=False):
             if firstFolder and firstFolder['_id'] == sub['_id']:
                 continue
             self.copyFolder(sub, parent=newFolder, parentType='folder',

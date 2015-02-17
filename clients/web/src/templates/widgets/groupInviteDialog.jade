@@ -27,25 +27,25 @@
                   i.icon-plus
                   | Add as member
 
-        .panel.panel-default
-          .panel-heading: .panel-title
-            a(data-toggle="collapse", data-parent="#g-invite-role-container",
-              href="#g-invite-role-moderator") Invite as moderator
-          #g-invite-role-moderator.panel-collapse.collapse
-            .panel-body
-              p.
-                Group moderators are members of the group who are also granted
-                the power to add and remove users from the group, and edit
-                group properties.
-              .g-invite-as-moderator.btn.btn-primary
-                i.icon-mail
-                |  Invite as moderator
-              if isAdmin
-                .g-add-as-moderator.btn.btn-warning.g-add-user-button
-                  i.icon-plus
-                  | Add as moderator
+        if (level >= accessType.ADMIN)
+          .panel.panel-default
+            .panel-heading: .panel-title
+              a(data-toggle="collapse", data-parent="#g-invite-role-container",
+                href="#g-invite-role-moderator") Invite as moderator
+            #g-invite-role-moderator.panel-collapse.collapse
+              .panel-body
+                p.
+                  Group moderators are members of the group who are also
+                  granted the power to add and remove users from the group.
+                .g-invite-as-moderator.btn.btn-primary
+                  i.icon-mail
+                  |  Invite as moderator
+                if isAdmin
+                  .g-add-as-moderator.btn.btn-warning.g-add-user-button
+                    i.icon-plus
+                    | Add as moderator
 
-        if (level > accessType.WRITE)
+        if (level >= accessType.ADMIN)
           .panel.panel-default
             .panel-heading: .panel-title
               a(data-toggle="collapse", data-parent="#g-invite-role-container",

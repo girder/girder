@@ -108,7 +108,7 @@ class Group(AccessControlledModel):
 
         return doc
 
-    def list(self, user=None, limit=50, offset=0, sort=None):
+    def list(self, user=None, limit=0, offset=0, sort=None):
         """
         Search for groups or simply list all visible groups.
 
@@ -120,13 +120,13 @@ class Group(AccessControlledModel):
         """
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.
-        cursor = self.find({}, limit=0, sort=sort)
+        cursor = self.find({}, sort=sort)
 
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)
 
-    def listMembers(self, group, offset=0, limit=50, sort=None):
+    def listMembers(self, group, offset=0, limit=0, sort=None):
         """
         List members of the group, with names, ids, and logins.
         """
@@ -168,7 +168,7 @@ class Group(AccessControlledModel):
         # Finally, delete the document itself
         AccessControlledModel.remove(self, group)
 
-    def getMembers(self, group, offset=0, limit=50, sort=None):
+    def getMembers(self, group, offset=0, limit=0, sort=None):
         """
         Return the list of all users who belong to this group.
 
@@ -271,7 +271,7 @@ class Group(AccessControlledModel):
 
         return self.model('user').save(user, validate=False)
 
-    def getInvites(self, group, limit=50, offset=0, sort=None):
+    def getInvites(self, group, limit=0, offset=0, sort=None):
         """
         Return a page of outstanding invitations to a group. This is simply
         a list of users invited to the group currently.

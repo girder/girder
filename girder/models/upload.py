@@ -208,7 +208,7 @@ class Upload(Model):
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
-    def list(self, limit=50, offset=0, sort=None, filters=None):
+    def list(self, limit=0, offset=0, sort=None, filters=None):
         """
         Search for uploads or simply list all visible uploads.
 
@@ -271,9 +271,9 @@ class Upload(Model):
         :returns: a list of items that were removed or could be removed.
         """
         results = []
-        knownUploads = list(self.list(limit=0))
+        knownUploads = list(self.list())
         # Iterate through all assetstores
-        for assetstore in self.model('assetstore').list(limit=0):
+        for assetstore in self.model('assetstore').list():
             if assetstoreId and assetstoreId != assetstore['_id']:
                 continue
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)

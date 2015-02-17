@@ -233,7 +233,7 @@ class System(Resource):
 
     @access.admin
     def discardPartialUploads(self, params):
-        uploadList = list(self.model('upload').list(filters=params, limit=0))
+        uploadList = list(self.model('upload').list(filters=params))
         # Move the results to list that isn't a cursor so we don't have to have
         # the cursor sitting around while we work on the data.
         for upload in uploadList:

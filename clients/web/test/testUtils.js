@@ -289,7 +289,6 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
  * metadata editing options.
  */
 girderTest.testMetadata = function () {
-    function _editMetadata(origKey, key, value, action, errorMessage)
     /* Add metadata and check that the value is actually set for the item.
      * :param origKey: null to create a new metadata item.  Otherwise, edit the
      *                 metadata item with this key.
@@ -301,11 +300,10 @@ girderTest.testMetadata = function () {
      * :param errorMessage: if present, expect an information message with
      *                      regex.
      */
-    {
+    function _editMetadata(origKey, key, value, action, errorMessage) {
         var expectedNum, elem;
 
-        if (origKey === null)
-        {
+        if (origKey === null) {
             waitsFor(function () {
                 return $('.g-widget-metadata-add-button:visible').length === 1;
             }, 'the add metadata button to appear');
@@ -313,11 +311,9 @@ girderTest.testMetadata = function () {
                 expectedNum = $(".g-widget-metadata-row").length;
                 $('.g-widget-metadata-add-button:visible').click();
             });
-        }
-        else
-        {
+        } else {
             runs(function () {
-                elem = $('.g-widget-metadata-key:contains("'+origKey+'")').closest('.g-widget-metadata-row');
+                elem = $('.g-widget-metadata-key:contains("' + origKey + '")').closest('.g-widget-metadata-row');
                 expect(elem.length).toBe(1);
                 expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
                 expectedNum = $(".g-widget-metadata-row").length;
@@ -349,7 +345,7 @@ girderTest.testMetadata = function () {
             });
             waitsFor(function () {
                 return $('.alert').text().match(errorMessage);
-            }, 'alert with "'+errorMessage+'" to appear');
+            }, 'alert with "' + errorMessage + '" to appear');
         }
         switch (action)
         {
@@ -392,7 +388,7 @@ girderTest.testMetadata = function () {
         runs(function () {
             expect($(".g-widget-metadata-row").length).toBe(expectedNum);
             if (action === 'save') {
-                expect(elem.text()).toBe(key+value);
+                expect(elem.text()).toBe(key + value);
             }
         });
     }
@@ -402,8 +398,8 @@ girderTest.testMetadata = function () {
         _editMetadata(null, 'simple_key', 'duplicate_key_should_fail', 'cancel', /.*simple_key is already a metadata key/);
         _editMetadata(null, '', 'no_key', 'cancel', /.*A key is required for all metadata/);
         _editMetadata(null, 'cancel_me', 'this will be cancelled', 'cancel');
-        _editMetadata(null, 'long_key', 'long_value'+new Array(2048).join('-'));
-        _editMetadata(null, 'json_key', JSON.stringify({'sample_json': 'value'}));
+        _editMetadata(null, 'long_key', 'long_value' + new Array(2048).join('-'));
+        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}));
         _editMetadata(null, 'unicode_key\u00A9\uD834\uDF06', 'unicode_value\u00A9\uD834\uDF06');
         _editMetadata('simple_key', null, 'new_value', 'cancel');
         _editMetadata('long_key', 'json_key', null, 'cancel', /.*json_key is already a metadata key/);
@@ -419,10 +415,10 @@ girderTest.testMetadata = function () {
  * called on dialogs.
  */
 girderTest.waitForLoad = function (desc) {
-    desc = desc?' ('+desc+')':'';
-    waitsFor(function() {
+    desc = desc ? ' (' + desc + ')' : '';
+    waitsFor(function () {
         return $('#g-dialog-container:visible').length === 0;
-    }, 'for the dialog container to be hidden'+desc);
+    }, 'for the dialog container to be hidden' + desc);
     /* It is faster to wait to make sure a dialog is being hidden than to wait
      * for it to be fully gone.  It is probably more reliable, too.  This had
      * been:
@@ -439,20 +435,20 @@ girderTest.waitForLoad = function (desc) {
             return false;
         }
         return !$('.modal').data('bs.modal').$backdrop;
-    }, 'for any modal dialog to be hidden'+desc);
+    }, 'for any modal dialog to be hidden' + desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
-    }, 'rest requests to finish'+desc);
-    waitsFor(function() {
+    }, 'rest requests to finish' + desc);
+    waitsFor(function () {
         return $('.g-loading-block').length === 0;
-    }, 'all blocks to finish loading'+desc);
+    }, 'all blocks to finish loading' + desc);
 };
 
 /**
  * Wait for a dialog to be visible.
  */
 girderTest.waitForDialog = function (desc) {
-    desc = desc?' ('+desc+')':'';
+    desc = desc ? ' (' + desc + ')' : '';
     /* It is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
     waitsFor(function() {
@@ -464,10 +460,10 @@ girderTest.waitForDialog = function (desc) {
         return $('.modal').data('bs.modal') &&
                $('.modal').data('bs.modal').isShown === true &&
                $('#g-dialog-container:visible').length > 0;
-    }, 'a dialog to fully render'+desc);
+    }, 'a dialog to fully render' + desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
-    }, 'dialog rest requests to finish'+desc);
+    }, 'dialog rest requests to finish' + desc);
 };
 
 /**
@@ -479,12 +475,12 @@ girderTest.addCoveredScript = function (url) {
         blanket.utils.cache[url] = {};
         blanket.utils.attachScript({url:url}, function (content) {
             blanket.instrument({inputFile: content, inputFileName: url},
-                               function (instrumented) {
-                blanket.utils.cache[url].loaded = true;
-                blanket.utils.blanketEval(instrumented);
-                blanket.requiringFile(url, true);
-            });
-       });
+                function (instrumented) {
+                    blanket.utils.cache[url].loaded = true;
+                    blanket.utils.blanketEval(instrumented);
+                    blanket.requiringFile(url, true);
+                });
+        });
     } else {
         $('<script/>', {src: url}).appendTo('head');
     }
@@ -550,12 +546,14 @@ girderTest.folderAccessControl = function (current, action) {
     waitsFor(function () {
         switch (action) {
             case 'private':
-                if (!$('.radio.g-selected').text().match("Private").length)
+                if (!$('.radio.g-selected').text().match("Private").length) {
                     return false;
+                }
                 break;
             case 'public':
-                if (!$('.radio.g-selected').text().match("Public").length)
+                if (!$('.radio.g-selected').text().match("Public").length) {
                     return false;
+                }
                 break;
         }
         return $('.g-save-access-list:visible').is(':enabled');
@@ -572,7 +570,6 @@ girderTest.folderAccessControl = function (current, action) {
     }, 'access dialog to be hidden');
 };
 
-girderTest.testRoute = function (route, hasDialog, testFunc)
 /* Test going to a particular route, waiting for the dialog or page to load
  *  fully, and then testing that we have what we expect.
  * Enter: route: the hash url fragment to go to.
@@ -581,8 +578,8 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
  *                  this is not specified, just navigate to the specified
  *                  route.
  */
-{
-    runs(function() {
+girderTest.testRoute = function (route, hasDialog, testFunc) {
+    runs(function () {
         if (route.indexOf('#') === 0) {
             route = route.substr(1);
         }
@@ -592,12 +589,12 @@ girderTest.testRoute = function (route, hasDialog, testFunc)
      * our time slice. */
     waits(1);
     if (hasDialog) {
-        girderTest.waitForDialog('route: '+route);
+        girderTest.waitForDialog('route: ' + route);
     } else {
-        girderTest.waitForLoad('route: '+route);
+        girderTest.waitForLoad('route: ' + route);
     }
     if (testFunc) {
-        waitsFor(testFunc, 'route: '+route);
+        waitsFor(testFunc, 'route: ' + route);
         runs(function () {
             expect(testFunc()).toBe(true);
         });
@@ -614,7 +611,7 @@ girderTest.getCallbackSuffix = function () {
         girderTest._uploadSuffix = hostport[1];
     }
     return girderTest._uploadSuffix;
-}
+};
 
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
@@ -631,8 +628,9 @@ function _prepareTestUpload() {
     (function (impl) {
         FormData.prototype.append = function (name, value, filename) {
             this.vals = this.vals || {};
-            if (filename)
-                this.vals[name+'_filename'] = value;
+            if (filename) {
+                this.vals[name + '_filename'] = value;
+            }
             this.vals[name] = value;
             impl.call(this, name, value, filename);
         };
@@ -648,7 +646,7 @@ function _prepareTestUpload() {
                 /* Note that this appears to fail if _uploadData contains
                  * certain characters, such as LF. */
                 if (girderTest._uploadData.length &&
-                        girderTest._uploadData.length==len &&
+                        girderTest._uploadData.length == len &&
                         !girderTest._uploadDataExtra) {
                     newdata.append('chunk', girderTest._uploadData);
                 } else {
@@ -656,8 +654,7 @@ function _prepareTestUpload() {
                         len + 1 + girderTest._uploadDataExtra).join('-'));
                 }
                 data = newdata;
-            }
-            else if (data && data instanceof Blob) {
+            } else if (data && data instanceof Blob) {
                 if (girderTest._uploadDataExtra) {
                     /* Our mock S3 server will take extra data, so break it
                      * by adding a faulty copy header.  This will throw an
@@ -665,7 +662,7 @@ function _prepareTestUpload() {
                     this.setRequestHeader('x-amz-copy-source', 'bad_value');
                 }
                 if (girderTest._uploadData.length &&
-                        girderTest._uploadData.length==data.size &&
+                        girderTest._uploadData.length == data.size &&
                         !girderTest._uploadDataExtra) {
                     data = girderTest._uploadData;
                 } else {
@@ -706,7 +703,7 @@ girderTest.sendFile = function (uploadItem) {
 girderTest.testUpload = function (uploadItem, needResume, error) {
     var orig_len;
 
-    _prepareTestUpload()
+    _prepareTestUpload();
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -723,10 +720,11 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
     }, 'the upload dialog to appear');
 
     runs(function () {
-        if (needResume)
+        if (needResume) {
             girderTest._uploadDataExtra = 1024 * 20;
-        else
+        } else {
             girderTest._uploadDataExtra = 0;
+        }
 
         girderTest.sendFile(uploadItem);
     });
@@ -763,10 +761,25 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     waitsFor(function () {
         return $('.modal-content:visible').length === 0 &&
-               $('.g-item-list-entry').length === orig_len+1;
+               $('.g-item-list-entry').length === orig_len + 1;
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
-    window.callPhantom({action: 'uploadCleanup',
-                        suffix: girderTest._uploadSuffix});
+    window.callPhantom(
+        {action: 'uploadCleanup',
+        suffix: girderTest._uploadSuffix});
+};
+
+/* Wait for a dialog to be present with a confirm button, then select the
+ * confirm button and wait for teh dialog to be hidden.
+ */
+girderTest.confirmDialog = function () {
+    girderTest.waitForDialog('wait for confirmation');
+    waitsFor(function () {
+        return $('#g-confirm-button:visible').length > 0;
+    }, 'confirmation to appear');
+    runs(function () {
+        $('#g-confirm-button').click();
+    });
+    girderTest.waitForLoad();
 };

@@ -151,7 +151,7 @@ class User(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': user['_id'],
             'parentCollection': 'user'
-        }, limit=0)
+        })
         for folder in folders:
             self.model('folder').remove(folder, progress=progress, **kwargs)
 
@@ -167,9 +167,9 @@ class User(AccessControlledModel):
         admins is assumed to be small enough that we will not need to page the
         results for now.
         """
-        return self.find({'admin': True}, limit=0)
+        return self.find({'admin': True})
 
-    def search(self, text=None, user=None, limit=50, offset=0, sort=None):
+    def search(self, text=None, user=None, limit=0, offset=0, sort=None):
         """
         List all users. Since users are access-controlled, this will filter
         them by access policy.
@@ -185,9 +185,9 @@ class User(AccessControlledModel):
         # Perform the find; we'll do access-based filtering of the result set
         # afterward.
         if text is not None:
-            cursor = self.textSearch(text, limit=0, sort=sort)
+            cursor = self.textSearch(text, sort=sort)
         else:
-            cursor = self.find({}, limit=0, sort=sort)
+            cursor = self.find({}, sort=sort)
 
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
@@ -277,7 +277,7 @@ class User(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'user'
-        }, limit=0, timeout=False)
+        }, timeout=False)
         for folder in folders:
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
@@ -293,7 +293,7 @@ class User(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'user'
-        }, limit=0, timeout=False)
+        }, timeout=False)
         count += sum(self.model('folder').subtreeCount(folder)
                      for folder in folders)
         return count

@@ -187,7 +187,7 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query=None, offset=0, limit=50, **kwargs):
+    def find(self, query=None, offset=0, limit=0, **kwargs):
         """
         Search the collection by a set of parameters. Passes any kwargs
         through to the underlying pymongo.collection.find function.
@@ -227,7 +227,7 @@ class Model(ModelImporter):
             query = {}
         return self.collection.find_one(query, **kwargs)
 
-    def textSearch(self, query, offset=0, limit=50, sort=None, fields=None,
+    def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
                    filters=None):
         """
         Perform a full-text search against the text index for this collection.
@@ -839,7 +839,7 @@ class AccessControlledModel(Model):
             if count == limit:
                 break
 
-    def textSearch(self, query, user=None, filters=None, limit=50, offset=0,
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
                    sort=None, fields=None):
         """
         Custom override of Model.textSearch to also force permission-based
@@ -851,8 +851,7 @@ class AccessControlledModel(Model):
             filters = {}
 
         cursor = Model.textSearch(
-            self, query=query, filters=filters, limit=0, sort=sort,
-            fields=fields)
+            self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
             cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)
