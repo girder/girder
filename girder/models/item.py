@@ -19,6 +19,7 @@
 
 import copy
 import datetime
+import itertools
 import json
 import os
 
@@ -261,26 +262,43 @@ class Item(Model):
         This method is provided as a convenience for filtering a result cursor
         of items by permissions, based on the parent folder. The results in
         the cursor must contain the folderId field.
+
+        :param cursor: The database cursor object from "find()".
+        :param user: The user to check policies against.
+        :param level: The access level.
+        :type level: AccessType
+        :param limit: The max size of the result set.
+        :type limit: int
+        :param offset: The offset into the result set.
+        :type offset: int
+        :param removeKeys: List of keys that should be removed from each
+                           matching document.
+        :type removeKeys: list
+
         """
         # Cache mapping folderIds -> access granted (bool)
-        folderCache = {}
-        count = skipped = 0
-        for result in cursor:
-            folderId = result['folderId']
+        folderAccessCache = {}
 
-            if folderId not in folderCache:
+        def hasAccess(_result):
+            folderId = _result['folderId']
+
+            # check if the folderId is cached
+            if folderId not in folderAccessCache:
+                # if the folderId is not cached, check for permission "level"
+                # and set the cache
                 folder = self.model('folder').load(folderId, force=True)
-                folderCache[folderId] = self.model('folder').hasAccess(
+                folderAccessCache[folderId] = self.model('folder').hasAccess(
                     folder, user=user, level=level)
 
-            if folderCache[folderId] is True:
-                if skipped < offset:
-                    skipped += 1
-                else:
-                    yield result
-                    count += 1
-            if count == limit:
-                    break
+            return folderAccessCache[folderId]
+
+        endIndex = offset + limit if limit else None
+        filteredCursor = itertools.ifilter(hasAccess, cursor)
+        for result in itertools.islice(filteredCursor, offset, endIndex):
+            for key in removeKeys:
+                if key in result:
+                    del result[key]
+            yield result
 
     def createItem(self, name, creator, folder, description=''):
         """
