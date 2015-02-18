@@ -140,7 +140,9 @@ def getStatus(mode='basic', user=None):
                                             connDict['type'])
             connections.append(connDict)
         status['connections'] = connections
-        status['ioCounters'] = _objectToDict(process.io_counters())
+        if hasattr(process, 'io_counters'):
+            status['ioCounters'] = _objectToDict(process.io_counters())
+
 
         status['cherrypyThreads'] = {}
         for threadId in cherrypy.tools.status.seenThreads:
