@@ -43,6 +43,74 @@ def _objectToDict(obj):
                        (int, long, float, basestring, tuple))}
 
 
+def _computeSlowStatus(process, status, db):
+    status['diskPartitions'] = [_objectToDict(part) for part in
+                                psutil.disk_partitions()]
+    try:
+        # This fails in travis's environment, so guard it
+        status['diskIO'] = _objectToDict(psutil.disk_io_counters())
+    except Exception:
+        pass
+    # Report on the disk usage where the script is located
+    if hasattr(girder, '__file__'):
+        status['girderPath'] = os.path.abspath(girder.__file__)
+        status['girderDiskUsage'] = _objectToDict(
+            psutil.disk_usage(status['girderPath']))
+    # Report where our logs are and how much space is available for them
+    status['logs'] = []
+    for handler in logger.handlers:
+        try:
+            logInfo = {'path': handler.baseFilename}
+            logInfo['diskUsage'] = _objectToDict(
+                psutil.disk_usage(logInfo['path']))
+            status['logs'].append(logInfo)
+        except Exception:
+            # If we can't read information about the log, don't throw an
+            # exception
+            pass
+    status['mongoDbStats'] = db.command('dbStats')
+    try:
+        # I don't know if this will work with a sharded database, so guard
+        # it and don't throw an exception
+        status['mongoDbPath'] = getDbConnection().admin.command(
+            'getCmdLineOpts')['parsed']['storage']['dbPath']
+        status['mongoDbDiskUsage'] = _objectToDict(
+            psutil.disk_usage(status['mongoDbPath']))
+    except Exception:
+        pass
+
+    status['processDirectChildrenCount'] = len(process.children())
+    status['processAllChildrenCount'] = len(process.children(True))
+    status['openFiles'] = [_objectToDict(file) for file in
+                           process.open_files()]
+    # I'd rather see textual names for the family and type of connections,
+    # so make a lookup table for them
+    connFamily = {getattr(socket, key): key for key in dir(socket)
+                  if key.startswith('AF_')}
+    connType = {getattr(socket, key): key for key in dir(socket)
+                if key.startswith('SOCK_')}
+    connections = []
+    for conn in process.connections():
+        connDict = _objectToDict(conn)
+        connDict.pop('raddr', None)
+        connDict.pop('laddr', None)
+        connDict['family'] = connFamily.get(connDict['family'],
+                                            connDict['family'])
+        connDict['type'] = connType.get(connDict['type'], connDict['type'])
+        connections.append(connDict)
+    status['connections'] = connections
+    if hasattr(process, 'io_counters'):
+        status['ioCounters'] = _objectToDict(process.io_counters())
+
+    status['cherrypyThreads'] = {}
+    for threadId in cherrypy.tools.status.seenThreads:
+        info = cherrypy.tools.status.seenThreads[threadId].copy()
+        if 'end' in info:
+            info['duration'] = info['end'] - info['start']
+            info['idle'] = time.time() - info['end']
+        status['cherrypyThreads'][threadId] = info
+
+
 def getStatus(mode='basic', user=None):
     """
     Get a dictionary of status information regarding the girder server.
@@ -84,74 +152,7 @@ def getStatus(mode='basic', user=None):
         status['cherrypyThreadPoolSize'] = cherrypy.server.thread_pool
 
     if mode == 'slow' and isAdmin:
-        status['diskPartitions'] = [_objectToDict(part) for part in
-                                    psutil.disk_partitions()]
-        try:
-            # This fails in travis's environment, so guard it
-            status['diskIO'] = _objectToDict(psutil.disk_io_counters())
-        except Exception:
-            pass
-        # Report on the disk usage where the script is located
-        if hasattr(girder, '__file__'):
-            status['girderPath'] = os.path.abspath(girder.__file__)
-            status['girderDiskUsage'] = _objectToDict(
-                psutil.disk_usage(status['girderPath']))
-        # Report where our logs are and how much space is available for them
-        status['logs'] = []
-        for handler in logger.handlers:
-            try:
-                logInfo = {'path': handler.baseFilename}
-                logInfo['diskUsage'] = _objectToDict(
-                    psutil.disk_usage(logInfo['path']))
-                status['logs'].append(logInfo)
-            except Exception:
-                # If we can't read information about the log, don't throw an
-                # exception
-                pass
-        status['mongoDbStats'] = db.command('dbStats')
-        try:
-            # I don't know if this will work with a sharded database, so guard
-            # it and don't throw an exception
-            status['mongoDbPath'] = getDbConnection().admin.command(
-                'getCmdLineOpts')['parsed']['storage']['dbPath']
-            status['mongoDbDiskUsage'] = _objectToDict(
-                psutil.disk_usage(status['mongoDbPath']))
-        except Exception:
-            pass
-
-        status['processDirectChildrenCount'] = len(process.children())
-        status['processAllChildrenCount'] = len(process.children(True))
-        status['openFiles'] = [_objectToDict(file) for file in
-                               process.open_files()]
-        # I'd rather see textual names for the family and type of connections,
-        # so make a lookup table for them
-        connFamily = {getattr(socket, key): key for key in dir(socket)
-                      if key.startswith('AF_')}
-        connType = {getattr(socket, key): key for key in dir(socket)
-                    if key.startswith('SOCK_')}
-        connections = []
-        for conn in process.connections():
-            connDict = _objectToDict(conn)
-            connDict.pop('raddr', None)
-            connDict.pop('laddr', None)
-            connDict['family'] = connFamily.get(connDict['family'],
-                                                connDict['family'])
-            connDict['type'] = connType.get(connDict['type'],
-                                            connDict['type'])
-            connections.append(connDict)
-        status['connections'] = connections
-        if hasattr(process, 'io_counters'):
-            status['ioCounters'] = _objectToDict(process.io_counters())
-
-
-        status['cherrypyThreads'] = {}
-        for threadId in cherrypy.tools.status.seenThreads:
-            info = cherrypy.tools.status.seenThreads[threadId].copy()
-            if 'end' in info:
-                info['duration'] = info['end'] - info['start']
-                info['idle'] = time.time() - info['end']
-            status['cherrypyThreads'][threadId] = info
-
+        _computeSlowStatus(process, status, db)
     return status
 
 
