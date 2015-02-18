@@ -36,6 +36,8 @@ add_python_test(token)
 add_python_test(user)
 add_python_test(webroot)
 
+add_python_test(py_client.cli BIND_SERVER)
+add_python_test(py_client.lib BIND_SERVER)
 
 add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
 add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)

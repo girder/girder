@@ -29,6 +29,14 @@ import requests
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 
+def rawInput(prompt):
+    """
+    We don't have the ability to mock raw_input since it is a builtin, so we
+    wrap it here so it can be mocked to simulate user input.
+    """
+    return raw_input(prompt)  # pragma: no cover
+
+
 def _safeMakedirs(path):
     """
     Wraps os.makedirs in such a way that it will not raise exceptions if the
@@ -40,11 +48,24 @@ def _safeMakedirs(path):
         os.makedirs(path)
     except OSError as exception:
         if exception.errno != errno.EEXIST:
-            raise
+            raise  # pragma: no cover
 
 
 class AuthenticationError(RuntimeError):
     pass
+
+
+class HttpError(Exception):
+    """
+    Raised if the server returns an error status code from a request.
+    """
+    def __init__(self, status, text, url, method):
+        Exception.__init__(self, 'HTTP error {}: {} {}'.format(
+                           status, method, url))
+        self.status = status
+        self.responseText = text
+        self.url = url
+        self.method = method
 
 
 class GirderClient(object):
@@ -129,19 +150,20 @@ class GirderClient(object):
         """
         if interactive:
             if username is None:
-                username = raw_input('Login or email: ')
+                username = rawInput('Login or email: ')
             password = getpass.getpass('Password for %s: ' % username)
 
         if username is None or password is None:
             raise Exception('A user name and password are required')
 
         authResponse = requests.get(self.urlBase + 'user/authentication',
-                                    auth=(username, password)).json()
+                                    auth=(username, password))
 
-        if 'authToken' not in authResponse:
+        resp = authResponse.json()
+        if 'authToken' not in resp:
             raise AuthenticationError()
 
-        self.token = authResponse['authToken']['token']
+        self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
                         files=None):
@@ -182,11 +204,11 @@ class GirderClient(object):
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code == 200:
             return result.json()
+        # TODO handle 300-level status (follow redirect?)
         else:
-            print 'Showing result before raising exception:'
-            print result.text
-            raise Exception('Request: ' + result.url + ', return code: ' +
-                            str(result.status_code))
+            raise HttpError(
+                status=result.status_code, url=result.url, method=method,
+                text=result.text)
 
     def get(self, path, parameters=None):
         return self.sendRestRequest('GET', path, parameters)
@@ -200,26 +222,24 @@ class GirderClient(object):
     def delete(self, path, parameters=None):
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def createResource(self, path,  params):
+    def createResource(self, path, params):
         """
         Creates and returns a resource.
         """
-        obj = self.post(path, params)
-        if '_id' in obj:
-            return obj
-        else:
-            raise Exception('Error, expected the returned '+path+' object to'
-                            'have an "_id" field')
+        return self.post(path, params)
 
-    def getResource(self, path, id, property=None):
+    def getResource(self, path, id=None, property=None):
         """
         Loads a resource or resource property of property is not None
         by id or None if no resource is returned.
         """
+        route = path
+        if id is not None:
+            route += '/%s' % id
         if property is not None:
-            return self.get(path + '/' + id + '/' + property)
-        else:
-            return self.get(path + '/' + id)
+            route += '/%s' % property
+
+        return self.get(route)
 
     def listResource(self, path, params):
         """
@@ -231,13 +251,12 @@ class GirderClient(object):
         """
         Creates and returns an item.
         """
-        path = 'item'
         params = {
             'folderId': parentFolderId,
             'name': name,
             'description': description
         }
-        return self.createResource(path, params)
+        return self.createResource('item', params)
 
     def getItem(self, itemId):
         """
@@ -246,8 +265,7 @@ class GirderClient(object):
         :param itemId: A string containing the ID of the item to retrieve from
             Girder.
         """
-        path = 'item'
-        return self.getResource(path, itemId)
+        return self.getResource('item', itemId)
 
     def listItem(self, folderId, text=None):
         """
@@ -256,28 +274,26 @@ class GirderClient(object):
         :param folderId: the parent folder's ID.
         :param text: query for full text search of items, optional.
         """
-        path = 'item'
         params = {
             'folderId': folderId,
         }
         if text is not None:
             params['text'] = text
-        return self.listResource(path, params)
+        return self.listResource('item', params)
 
-    def createFolder(self, parentId, parentType, name, description):
+    def createFolder(self, parentId, name, description='', parentType='folder'):
         """
         Creates and returns an folder
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
-        path = 'folder'
         params = {
             'parentId': parentId,
             'parentType': parentType,
             'name': name,
             'description': description
         }
-        return self.createResource(path, params)
+        return self.createResource('folder', params)
 
     def getFolder(self, folderId):
         """
@@ -286,8 +302,7 @@ class GirderClient(object):
         :param folderId: A string containing the ID of the folder to retrieve
             from Girder.
         """
-        path = 'folder'
-        return self.getResource(path, folderId)
+        return self.getResource('folder', folderId)
 
     def listFolder(self, parentId, parentFolderType='folder'):
         """
@@ -296,12 +311,11 @@ class GirderClient(object):
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
         """
-        path = 'folder'
         params = {
             'parentId': parentId,
             'parentType': parentFolderType
         }
-        return self.listResource(path, params)
+        return self.listResource('folder', params)
 
     def getFolderAccess(self, folderId):
         """
@@ -310,9 +324,7 @@ class GirderClient(object):
         :param folderId: A string containing the ID of the folder to retrieve
             access for from Girder.
         """
-        path = 'folder'
-        property = 'access'
-        return self.getResource(path, folderId, property)
+        return self.getResource('folder', folderId, 'access')
 
     def setFolderAccess(self, folderId, access, public):
         """

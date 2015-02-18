@@ -28,7 +28,7 @@ os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')  # noqa
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
-from girder.constants import ROOT_DIR, SettingKey
+from girder.constants import ROOT_DIR
 from girder.utility.progress import ProgressContext
 from . import base
 
@@ -100,10 +100,7 @@ class WebClientTestCase(base.TestCase):
         # ahead of time.  This still allows tests to be run in parallel, since
         # nothing should be stored in this db
         base.dropGridFSDatabase('girder_webclient_gridfs')
-        plugins = os.environ.get('ENABLED_PLUGINS', '')
-        if plugins:
-            self.model('setting').set(SettingKey.PLUGINS_ENABLED,
-                                      plugins.split())
+
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
     def testWebClientSpec(self):
