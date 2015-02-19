@@ -153,6 +153,18 @@ def requireAdmin(user):
         raise AccessException('Administrator access required.')
 
 
+def getBodyJson():
+    """
+    For requests that are expected to contain a JSON body, this returns the
+    parsed value, or raises a :class:`girder.api.rest.RestException` for
+    invalid JSON.
+    """
+    try:
+        return json.load(cherrypy.request.body)
+    except ValueError:
+        raise RestException('Invalid JSON passed in request body.')
+
+
 class loadmodel(object):
     """
     This is a decorator that can be used to load a model based on an ID param.
@@ -740,6 +752,12 @@ class Resource(ModelImporter):
         :type scope: str or list of str
         """
         ensureTokenScopes(getCurrentToken(), scope)
+
+    def getBodyJson(self):
+        """
+        Bound wrapper for :func:`girder.api.rest.getBodyJson`.
+        """
+        return getBodyJson()
 
     def getCurrentToken(self):
         """
