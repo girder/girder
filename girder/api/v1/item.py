@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import json
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -176,10 +175,7 @@ class Item(Resource):
     @access.user
     @loadmodel(model='item', level=AccessType.WRITE)
     def setMetadata(self, item, params):
-        try:
-            metadata = json.load(cherrypy.request.body)
-        except ValueError:
-            raise RestException('Invalid JSON passed in request body.')
+        metadata = self.getBodyJson()
 
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:

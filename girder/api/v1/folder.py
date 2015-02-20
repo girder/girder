@@ -302,10 +302,7 @@ class Folder(Resource):
     @access.user
     @loadmodel(model='folder', level=AccessType.WRITE)
     def setMetadata(self, folder, params):
-        try:
-            metadata = json.load(cherrypy.request.body)
-        except ValueError:
-            raise RestException('Invalid JSON passed in request body.')
+        metadata = self.getBodyJson()
 
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
