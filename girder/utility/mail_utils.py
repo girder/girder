@@ -107,9 +107,9 @@ def addTemplateDirectory(dir, prepend=False):
 
     :param dir: The directory to add to the template lookup path.
     :type dir: str
-    :prepend: If True, adds this directory at the beginning of the path so that
-        it will override any existing templates with the same name. Otherwise
-        appends to the end of the lookup path.
+    :param prepend: If True, adds this directory at the beginning of the path so
+        that it will override any existing templates with the same name.
+        Otherwise appends to the end of the lookup path.
     :type prepend: bool
     """
     idx = 0 if prepend else len(_templateLookup.directories)
