@@ -37,7 +37,7 @@ class GroupTestCase(base.TestCase):
         # an admin
         self.users = [self.model('user').createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
-            for num in [0, 1, 2, 3, 4, 5]]
+            for num in xrange(6)]
 
     def testDirectAdd(self):
         """
