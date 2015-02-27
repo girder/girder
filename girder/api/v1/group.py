@@ -20,7 +20,7 @@
 from ..describe import Description
 from ..rest import Resource, loadmodel
 from girder.models.model_base import AccessException
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 from girder.utility import mail_utils
 from girder.api import access
 
@@ -122,7 +122,11 @@ class Group(Resource):
     @loadmodel(model='group', level=AccessType.READ)
     def getGroup(self, group, params):
         user = self.getCurrentUser()
-        return self.model('group').filter(group, user)
+        group = self.model('group').filter(group, user)
+        # Add in the current setting for adding to groups
+        group['_addToGroupPolicy'] = self.model('setting').get(
+            SettingKey.ADD_TO_GROUP_POLICY)
+        return group
     getGroup.description = (
         Description('Get a group by ID.')
         .responseClass('Group')
@@ -168,12 +172,16 @@ class Group(Resource):
     def updateGroup(self, group, params):
         user = self.getCurrentUser()
 
-        public = self.boolParam('public', params, default=False)
-        self.model('group').setPublic(group, public)
+        if 'public' in params:
+            public = self.boolParam('public', params, default=False)
+            self.model('group').setPublic(group, public)
 
         group['name'] = params.get('name', group['name']).strip()
         group['description'] = params.get(
             'description', group['description']).strip()
+        if 'addAllowed' in params:
+            self.requireAdmin(user)
+            group['addAllowed'] = params.get('addAllowed')
 
         group = self.model('group').updateGroup(group)
         return self.model('group').filter(group, user)
@@ -184,6 +192,10 @@ class Group(Resource):
         .param('description', 'Description for the group.', required=False)
         .param('public', 'Whether the group should be publicly visible',
                dataType='boolean')
+        .param('addAllowed', 'Can admins or moderators directly add members '
+               'to this group?  Only system administrators are allowed to '
+               'set this field', required=False,
+               enum=['default', 'no', 'yesmod', 'yesadmin'])
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403))
 
@@ -251,7 +263,25 @@ class Group(Resource):
             id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
         if force:
-            self.requireAdmin(user)
+            if not user.get('admin', False):
+                mustBeAdmin = True
+                addPolicy = self.model('setting').get(
+                    SettingKey.ADD_TO_GROUP_POLICY)
+                addGroup = group.get('addAllowed', 'default')
+                if addGroup not in ['no', 'yesadmin', 'yesmod']:
+                    addGroup = addPolicy
+                if (self.model('group').hasAccess(
+                        group, user, AccessType.ADMIN) and
+                        ('mod' in addPolicy or 'admin' in addPolicy) and
+                        addGroup.startswith('yes')):
+                    mustBeAdmin = False
+                elif (self.model('group').hasAccess(
+                        group, user, AccessType.WRITE) and
+                        'mod' in addPolicy and
+                        addGroup == 'yesmod'):
+                    mustBeAdmin = False
+                if mustBeAdmin:
+                    self.requireAdmin(user)
             self.model('group').addUser(group, userToInvite, level=level)
         else:
             # Can only invite into access levels that you yourself have

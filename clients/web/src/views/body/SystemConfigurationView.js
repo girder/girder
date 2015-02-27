@@ -49,7 +49,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.upload_minimum_chunk_size',
             'core.cors.allow_origin',
             'core.cors.allow_methods',
-            'core.cors.allow_headers'
+            'core.cors.allow_headers',
+            'core.add_to_group_policy'
         ];
         this.settingsKeys = keys;
         girder.restRequest({

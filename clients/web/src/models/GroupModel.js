@@ -149,5 +149,42 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
+    },
+
+    /* Check if the current user has the authority in this group to directly
+     * add members.
+     *
+     * @returns: true if adding members is allowed.
+     */
+    mayAddMembers: function () {
+        if (girder.currentUser.get('admin')) {
+            return true;
+        }
+        var groupAddAllowed;
+        var addToGroupPolicy = this.get('_addToGroupPolicy');
+        if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
+            groupAddAllowed = 'mod';
+        } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
+            groupAddAllowed = 'admin';
+        } else {
+            return false;
+        }
+        var addAllowed = this.get('addAllowed') || '';
+        if (addAllowed === 'no' || (addToGroupPolicy.substr(0, 3) !== 'yes' &&
+                addAllowed.substr(0, 3) !== 'yes')) {
+            return false;
+        }
+        if (addAllowed === 'yesadmin') {
+            groupAddAllowed = 'admin';
+        }
+        if (groupAddAllowed === 'admin' &&
+                this.get('_accessLevel') >= girder.AccessType.ADMIN) {
+            return true;
+        }
+        if (groupAddAllowed === 'mod' &&
+                this.get('_accessLevel') >= girder.AccessType.WRITE) {
+            return true;
+        }
+        return false;
     }
 });

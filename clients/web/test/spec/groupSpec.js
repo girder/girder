@@ -16,8 +16,10 @@ $(function () {
  * @param name: name to search for.
  * @param level: 'member', 'moderator', or 'admin'.
  * @param action: 'invite' or 'add.
+ * @param check: if true or false, assert if the action exists, then cancel the
+ *               dialog.
  */
-function _invite(name, level, action) {
+function _invite(name, level, action, check) {
     // Search for the named user in user search box
     runs(function () {
         $('.g-group-invite-container input.g-search-field')
@@ -37,20 +39,103 @@ function _invite(name, level, action) {
     });
     girderTest.waitForDialog();
     waitsFor(function () {
-        return $('.g-add-as-member.btn-warning').length === 1;
-    }, 'invitation dialog to appear with direct add button');
+        return $('.g-invite-as-member.btn').length === 1;
+    }, 'invitation dialog to appear with invite button');
     runs(function () {
         var sel = 'member';
         switch (level) {
             case 'moderator': sel = 'moderator'; break;
-            case 'admin': sel = 'administrarot'; break;
+            case 'admin': sel = 'administrator'; break;
         }
-        $('.panel-title:contains("Invite as ' + sel + '") a').click();
+        if (sel !== 'member') {
+            $('.panel-title:contains("Invite as ' + sel + '") a').click();
+        }
     });
     runs(function () {
-        $('.g-' + action + '-as-' + level).click();
+        if (check === true) {
+            expect($('.g-' + action + '-as-' + level).length).toBe(1);
+            $('.modal-footer a').click();
+        } else if (check === false) {
+            expect($('.g-' + action + '-as-' + level).length).toBe(0);
+            expect($('.g-invite-as-' + level).length).toBe(1);
+            $('.modal-footer a').click();
+        } else {
+            $('.g-' + action + '-as-' + level).click();
+        }
     });
     girderTest.waitForLoad();
+}
+
+/* Test if a combination of user and add-to-group policy has the expected
+ * ability to directly add members.
+ *
+ * @param policy: a dictionary of user, setting, and mayAdd.  user is the name
+ *                of the user to test, setting is the value for the policy, and
+ *                mayAdd is either null (no invitation dialog), or a boolean
+ *                (true if direct adds are allowed).
+ * @param curUser: the current logged in user.
+ * @param curSetting: the current policy setting.
+ */
+function _testDirectAdd(policy, curUser, curSetting) {
+    if (curSetting != policy.setting) {
+        if (curUser != 'admin') {
+            girderTest.logout()();
+            girderTest.login('admin', 'Admin', 'Admin',
+                             'adminpassword!')();
+            curUser = 'admin';
+        }
+        runs(function () {
+            var resp = girder.restRequest({
+                path: 'system/setting',
+                type: 'PUT',
+                data: {
+                    key: 'core.add_to_group_policy',
+                    value: policy.setting
+                },
+                async: false
+            });
+        });
+        /* Navigate away and back to make the group reload unless we are going
+         * to change users */
+        if (curUser === policy.user) {
+            girderTest.goToGroupsPage()();
+            waitsFor(function () {
+                return $('.g-group-list-entry').length === 2 &&
+                       $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
+            }, 'the two groups to show up');
+            runs(function () {
+                $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+            });
+            waitsFor(function () {
+                return $('.g-group-name').text() === 'pubGroup' &&
+                       $('.g-group-members>li').length === 1 &&
+                       $('.g-group-mods>li').length === 1 &&
+                       $('.g-group-admins>li').length === 2;
+            }, 'the group page to load');
+        }
+    }
+    if (curUser != policy.user) {
+        girderTest.logout()();
+        if (policy.user === 'admin') {
+            girderTest.login('admin', 'Admin', 'Admin',
+                             'adminpassword!')();
+        } else {
+            girderTest.login(
+                'user' + policy.user, 'User' + policy.user, 'User',
+                'password!')();
+        }
+        curUser = policy.user;
+    }
+    /* If the invite search field exists or we think it should,
+     * test that the add button exists as we expect */
+    if (policy.mayAdd === null) {
+        runs(function () {
+            expect($('.g-group-invite-container input.g-search-field').length
+                ).toBe(0);
+        });
+    } else {
+        _invite('admin', 'member', 'add', policy.mayAdd);
+    }
 }
 
 describe('Test group actions', function () {
@@ -297,5 +382,77 @@ describe('Test group actions', function () {
         });
         girderTest.confirmDialog();
         _invite('admin', 'admin', 'add');
+    });
+
+    it('check ability to directly add users to groups', function () {
+        var policyTest = [
+            {setting: 'never', user: 1, mayAdd: false},
+            {setting: 'nomod', user: 1, mayAdd: false},
+            {setting: 'yesadmin', user: 1, mayAdd: true},
+            {setting: 'yesadmin', user: 2, mayAdd: false},
+            {setting: 'yesadmin', user: 3, mayAdd: null},
+            {setting: 'yesmod', user: 2, mayAdd: true},
+            {setting: 'never', user: 'admin', mayAdd: true},
+            {setting: 'nomod', user: 'admin', mayAdd: true}
+        ];
+        /* Add a bunch of users to facilitate testing */
+        runs(function () {
+            for (var i = 1; i <= 3; i += 1) {
+                girderTest.logout()();
+                girderTest.createUser('user' + i, 'user' + i + '@email.com',
+                                      'User' + i, 'User', 'password!')();
+            }
+        });
+        /* Use the admin user to force-add certain users to the group */
+        runs(function () {
+            girderTest.logout()();
+            girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+            girderTest.goToGroupsPage()();
+            waitsFor(function () {
+                return $('.g-group-list-entry').length === 2 &&
+                       $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
+            }, 'the two groups to show up');
+            runs(function () {
+                $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+            });
+            waitsFor(function () {
+                return $('.g-group-name').text() === 'pubGroup' &&
+                       $('.g-group-members .g-member-list-empty').length === 1 &&
+                       $('.g-group-mods .g-member-list-empty').length === 1 &&
+                       $('.g-group-admins').length === 1;
+            }, 'the group page to load');
+            _invite('user1', 'admin', 'add');
+            _invite('user2', 'moderator', 'add');
+            _invite('user3', 'member', 'add');
+        });
+        var curUser = 'admin', curSetting = 'never';
+        for (var i = 0; i < policyTest.length; i += 1) {
+            var policy = policyTest[i];
+            _testDirectAdd(policy, curUser, curSetting);
+            curUser = policy.user;
+            curSetting = policy.setting;
+        }
+        /* Open and save the group to test that the add-to-group control is
+         * shown */
+        waitsFor(function () {
+            return $('.g-group-actions-button:visible').length === 1;
+        }, 'the group actions button to appear');
+        runs(function () {
+            $('.g-group-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-edit-group:visible').length === 1;
+        }, 'the group edit action to appear');
+        runs(function () {
+            $('.g-edit-group').click();
+        });
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('#g-add-to-group').length === 1;
+        }, 'the add-to-group control to appear');
+        runs(function () {
+            $('button.btn-primary').click();
+        });
+        girderTest.waitForLoad();
     });
 });

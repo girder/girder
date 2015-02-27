@@ -157,7 +157,7 @@ girder.views.InviteUserDialog = girder.View.extend({
             user: this.user,
             level: this.group.get('_accessLevel'),
             accessType: girder.AccessType,
-            isAdmin: girder.currentUser.get('admin')
+            mayAdd: this.group.mayAddMembers()
         })).girderModal(this);
 
         return this;
