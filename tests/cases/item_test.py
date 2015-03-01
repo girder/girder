@@ -700,7 +700,7 @@ class ItemTestCase(base.TestCase):
                      body=json.dumps(metadata), type='application/json')
 
         self._testUploadFileToItem(items[0],
-                                  'file_0',
+                                   'file_0',
                                    self.users[0],
                                    'foo')
         self._testUploadFileToItem(items[0],
@@ -713,7 +713,7 @@ class ItemTestCase(base.TestCase):
                                    'baz')
         item_ids = [item['_id'] for item in items]
         payload = {
-            'name' : 'merged_item',
+            'name': 'merged_item',
             'ids': item_ids
         }
 
