@@ -540,3 +540,77 @@ class Item(Model):
                     progress.update(increment=1, message='Checking items (%d '
                                     'left)' % itemsLeft)
             return numItems, itemsCorrected
+
+    def mergeItems(self, ids, creator, name=None, folder=None,
+                   description=None,  progress=None):
+        """
+        Merge several items into one containing the union of files and
+        metadata.
+
+        :param ids: the ids of items to merge.
+        :type ids: list
+        :param creator: the user who will own the merged item.
+        :param name: The name of the new item.  None to take the first item's
+                name
+        :type name: str
+        :param folder: The parent folder of the new item.  None to store in the
+                same folder as the first item.
+        :param description: Description for the new item.  None to copy the
+                description from the first item
+        :type description: str
+        :param progress: a progress context to record process on.
+        :type progress: girder.utility.progress.ProgressContext or None.
+        :returns: the new item.
+        """
+        items = [self.load(key, user=creator) for key in ids]
+
+        if len(items) == 0:
+            raise GirderException('No items selected to merge',
+                                  'girder.models.item.merge-empty')
+        firstItem = items[0]
+        if name is None:
+            name = firstItem['name']
+        if folder is None:
+            folder = self.model('folder').load(firstItem['folderId'],
+                                               user=creator)
+        if description is None:
+            description = firstItem['description']
+        newItem = self.createItem(
+            folder=folder, name=name, creator=creator, description=description)
+        events.trigger('model.item.merge.prepare', items)
+        itemsLeft = len(items)
+        for item in items:
+            if progress:
+                progress.update(increment=1, message='Merging items '
+                                '(%d left)' % itemsLeft)
+            # move metadata
+            if 'meta' in item:
+                if 'meta' in newItem:
+                    newItem['meta'] = dict(
+                        newItem['meta'].items() + item['meta'].items())
+                else:
+                    newItem['meta'] = item['meta']
+            # move other keys
+            filteredItem = self.filter(item)
+            for key in item:
+                if key not in filteredItem and key not in newItem:
+                    newItem[key] = copy.deepcopy(item[key])
+            # move files
+            for file in self.childFiles(item=item):
+                file['itemId'] = newItem['_id']
+                self.model('file').save(file)
+            # move uploads
+            uploads = self.model('upload').find({
+                'parentId': item['_id'],
+                'parentType': 'item'
+            })
+            for upload in uploads:
+                upload['parentId'] = newItem['_id']
+                self.model('upload').save(upload)
+            self.remove(item)
+            itemsLeft -= 1
+        self.recalculateSize(newItem)
+        newItem = self.save(newItem)
+
+        events.trigger('model.item.merge.after', newItem)
+        return self.filter(newItem)
