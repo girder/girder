@@ -545,3 +545,71 @@ class ResourceTestCase(base.TestCase):
             pass
         footer = zip.footer()
         self.assertEqual(footer[-6:], '\xFF\xFF\xFF\xFF\x00\x00')
+
+    def testMerge(self):
+        self._createFiles()
+
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        self.request(path='/item/{}/metadata'.format(self.items[0]['_id']),
+                     method='PUT', user=self.admin,
+                     body=json.dumps(metadata), type='application/json')
+
+        metadata = {
+            'my': 'test',
+            'test': 3
+        }
+        self.request(path='/item/{}/metadata'.format(self.items[1]['_id']),
+                     method='PUT', user=self.admin,
+                     body=json.dumps(metadata), type='application/json')
+
+        item_ids = [str(item['_id']) for item in self.items]
+        payload = {
+            'item': item_ids
+        }
+        params = {
+            'resources': json.dumps(payload),
+            'name': 'merged_item',
+            'parentType': 'folder',
+            'parentId': self.adminPublicFolder['_id']
+        }
+
+        # Test no perms
+        resp = self.request(path='/resource/merge',
+                            method='PUT',
+                            user=self.user,
+                            params=params)
+        self.assertStatus(resp, 403)
+
+        # Test typical case
+        resp = self.request(path='/resource/merge',
+                            method='PUT',
+                            user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        result_metadata = {
+            'foo': 'bar',
+            'my': 'test',
+            'test': 3,
+            'x': 'y',
+            'key': 'value',
+        }
+        merged_item = resp.json
+        resp = self.request(path='/item/{}/files'.format(merged_item['_id']),
+                            method='GET', user=self.admin)
+        files = resp.json
+        self.assertEqual(merged_item['_id'], files[0]['itemId'])
+        self.assertEqual(merged_item['_id'], files[1]['itemId'])
+        self.assertEqual(merged_item['_id'], files[2]['itemId'])
+        self.assertEqual(merged_item['meta'], result_metadata)
+        self.assertEqual(merged_item['name'], 'merged_item')
+        self.assertNotEqual(merged_item['updated'], self.items[0]['updated'])
+
+        resp = self.request(path='/item/merge',
+                            method='POST',
+                            user=self.admin,
+                            body=json.dumps(payload),
+                            type='application/json')
+        self.assertStatus(resp, 400)

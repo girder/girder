@@ -24,7 +24,6 @@ from ..rest import Resource, RestException, loadmodel
 from girder.utility import ziputil
 from girder.constants import AccessType
 from girder.api import access
-from girder.utility.progress import ProgressContext
 
 
 class Item(Resource):
@@ -41,7 +40,6 @@ class Item(Resource):
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
-        self.route('POST', ('merge',), self.mergeItems)
 
     @access.public
     def find(self, params):
@@ -320,49 +318,4 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original item.', 403)
-        .errorResponse('Write access was denied on the parent folder.', 403))
-
-    @access.user
-    def mergeItems(self, params):
-        """
-        Merge multiple items into a single item. The params are passed as
-        JSON in the request body.
-
-        :param folderId: The _id of the parent folder for the new item.
-        :type folderId: str
-        :param name: The name of the item to create.
-        :param description: Item description.
-        """
-        user = self.getCurrentUser()
-        doc = self.getBodyJson()
-        ids = doc['ids']
-        firstItem = self.model('item').load(id=ids[0], user=user)
-        if firstItem is None:
-            raise RestException('One or more of the items to merge was '
-                                'not found.')
-        name = doc.get('name', firstItem['name'])
-        folderId = doc.get('folderId', firstItem['folderId'])
-        folder = self.model('folder').load(id=folderId, user=user,
-                                           level=AccessType.WRITE, exc=True)
-        description = doc.get('description', firstItem['description'])
-        progress = doc.get('progress', False)
-        with ProgressContext(progress, user=user,
-                             title=u'Merging items into '.format(name),
-                             message='Merging...') as ctx:
-            # Don't do the subtree count if we weren't asked for progress
-            if progress:
-                ctx.update(total=len(ids))
-            newItem = self.model('item').mergeItems(ids, user, name=name,
-                                                    folder=folder,
-                                                    description=description,
-                                                    progress=None)
-        return newItem
-    mergeItems.description = (
-        Description('Merge multiple items into a single item')
-        .responseClass('Item')
-        .param('body', 'A JSON object containing a list of the item ids to '
-               'merge as well as optionally a name and description for the '
-               'new item. A progress field can aslo be passed as part of the '
-               'object.', paramType='body')
-        .errorResponse('Admin access was denied on an item.', 403)
         .errorResponse('Write access was denied on the parent folder.', 403))
