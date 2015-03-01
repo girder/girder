@@ -674,3 +674,83 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/download'.format(item['_id']),
                             cookie='girderToken=invalid_token')
         self.assertStatus(resp, 401)
+
+    def testItemMerge(self):
+        """
+        Test merging items.
+        """
+        items = []
+        items.append(self._createItem(self.privateFolder['_id'],
+                                      'to_merge_0', '', self.users[0]))
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        self.request(path='/item/{}/metadata'.format(items[0]['_id']),
+                     method='PUT', user=self.users[0],
+                     body=json.dumps(metadata), type='application/json')
+        items.append(self._createItem(self.privateFolder['_id'],
+                                      'to_merge_1', '', self.users[0]))
+        metadata = {
+            'my': 'test',
+            'test': 3
+        }
+        self.request(path='/item/{}/metadata'.format(items[1]['_id']),
+                     method='PUT', user=self.users[0],
+                     body=json.dumps(metadata), type='application/json')
+
+        self._testUploadFileToItem(items[0],
+                                  'file_0',
+                                   self.users[0],
+                                   'foo')
+        self._testUploadFileToItem(items[0],
+                                   'file_1',
+                                   self.users[0],
+                                   'bar')
+        self._testUploadFileToItem(items[1],
+                                   'file_2',
+                                   self.users[0],
+                                   'baz')
+        item_ids = [item['_id'] for item in items]
+        payload = {
+            'name' : 'merged_item',
+            'ids': item_ids
+        }
+
+        # Test no perms
+        resp = self.request(path='/item/merge',
+                            method='POST',
+                            user=self.users[1],
+                            body=json.dumps(payload),
+                            type='application/json')
+        self.assertStatus(resp, 403)
+
+        # Test typical case
+        resp = self.request(path='/item/merge',
+                            method='POST',
+                            user=self.users[0],
+                            body=json.dumps(payload),
+                            type='application/json')
+        self.assertStatusOk(resp)
+        result_metadata = {
+            'foo': 'bar',
+            'my': 'test',
+            'test': 3
+        }
+        merged_item = resp.json
+        resp = self.request(path='/item/{}/files'.format(merged_item['_id']),
+                            method='GET', user=self.users[0])
+        files = resp.json
+        self.assertEqual(merged_item['_id'], files[0]['itemId'])
+        self.assertEqual(merged_item['_id'], files[1]['itemId'])
+        self.assertEqual(merged_item['_id'], files[2]['itemId'])
+        self.assertEqual(merged_item['meta'], result_metadata)
+        self.assertEqual(merged_item['name'], 'merged_item')
+        self.assertNotEqual(merged_item['updated'], items[0]['updated'])
+
+        resp = self.request(path='/item/merge',
+                            method='POST',
+                            user=self.users[0],
+                            body=json.dumps(payload),
+                            type='application/json')
+        self.assertStatus(resp, 400)
