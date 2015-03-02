@@ -1,12 +1,21 @@
 $navWidth = 180px
 $minHeight = 500px
+$headerHeight = 52px
+$headerZ = 50
 
 #g-global-nav-container
-  float left
+  position fixed
+  top $headerHeight
   width $navWidth
 
+#g-app-header-container
+  position fixed
+  top 0
+  width 100%
+  z-index $headerZ
+
 #g-app-body-container
-  padding 10px
+  padding 10px + $headerHeight 10px 10px 10px
   margin-left $navWidth + 1px
   min-height $minHeight
 
@@ -43,7 +52,7 @@ $minHeight = 500px
   right 10px
   bottom 0
   width 400px
-  z-index 10
+  z-index $headerZ + 1
 
 .modal-body p
   overflow hidden
@@ -51,8 +60,10 @@ $minHeight = 500px
 
 @media (max-width: 720px)
   #g-global-nav-container
-    float none
     width 100%
+    position static
+    margin-top $headerHeight
 
   #g-app-body-container
     margin-left 0
+    padding 10px
