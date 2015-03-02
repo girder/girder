@@ -121,7 +121,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     mailTemplatesDir = os.path.join(pluginDir, 'server', 'mail_templates')
     if os.path.isdir(mailTemplatesDir):
         # If the plugin has mail templates, add them to the lookup path
-        mail_utils.addTemplateDirectory(mailTemplatesDir)
+        mail_utils.addTemplateDirectory(mailTemplatesDir, prepend=True)
 
     moduleName = '.'.join((ROOT_PLUGINS_PACKAGE, name))
 

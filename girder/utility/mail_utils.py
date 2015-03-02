@@ -100,15 +100,20 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False):
     })
 
 
-def addTemplateDirectory(dir):
+def addTemplateDirectory(dir, prepend=False):
     """
     Adds a directory to the search path for mail templates. This is useful
     for plugins that have their own set of mail templates.
 
     :param dir: The directory to add to the template lookup path.
     :type dir: str
+    :param prepend: If True, adds this directory at the beginning of the path so
+        that it will override any existing templates with the same name.
+        Otherwise appends to the end of the lookup path.
+    :type prepend: bool
     """
-    _templateLookup.directories.append(dir)
+    idx = 0 if prepend else len(_templateLookup.directories)
+    _templateLookup.directories.insert(idx, dir)
 
 
 def _sendmail(event):

@@ -17,12 +17,20 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 from .. import base
 from girder.constants import SettingKey
-from girder.utility import mail_utils
+from girder.utility import config, mail_utils
 
 
 def setUpModule():
+    pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                              'test_plugins')
+    conf = config.getConfig()
+    conf['plugins'] = {'plugin_directory': pluginRoot}
+    base.enabledPlugins.append('mail_test')
+
     base.startServer()
 
 
@@ -79,3 +87,13 @@ class MailTestCase(base.TestCase):
                 'addresses or set toAdmins=True when calling sendEmail.')
 
         self.assertEqual(x, 1)
+
+    def testPluginTemplates(self):
+        val = 'OVERRIDE CORE FOOTER'
+        self.assertEqual(mail_utils.renderTemplate('_footer.mako').strip(), val)
+
+        # Make sure it also works from in-mako import statements
+        content = mail_utils.renderTemplate('temporaryAccess.mako', {
+            'url': 'x'
+        })
+        self.assertTrue(val in content)
