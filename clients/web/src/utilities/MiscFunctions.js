@@ -232,7 +232,7 @@ girder.restartServer._reloadWindow = function () {
  * @param el The element to render the output HTML into.
  */
 girder.renderMarkdown = function (val, el) {
-    $(el).html(markdown.toHTML(val));
+    $(el).html(marked(val));
 };
 
 (function () {
