@@ -226,13 +226,19 @@ girder.restartServer._reloadWindow = function () {
 };
 
 /**
- * Transform markdown into HTML and render it into the given element.
+ * Transform markdown into HTML and render it into the given element. If no
+ * element is provided, simply returns the HTML.
  *
  * @param val The markdown text input.
- * @param el The element to render the output HTML into.
+ * @param el The element to render the output HTML into, or falsy to simply
+ *        return the HTML value.
  */
 girder.renderMarkdown = function (val, el) {
-    $(el).html(marked(val));
+    if (el) {
+        $(el).html(marked(val));
+    } else {
+        return marked(val);
+    }
 };
 
 (function () {
