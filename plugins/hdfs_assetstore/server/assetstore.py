@@ -17,6 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+import posixpath
+
 from girder.models.model_base import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from snakebite.client import Client as HdfsClient
@@ -60,3 +63,41 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'free': info['capacity'] - info['used'],
             'total': info['capacity']
         }
+
+    def downloadFile(self, file, offset=0, headers=True):
+        if headers:
+            mimeType = file.get('mimeType')
+            if not mimeType:
+                mimeType = 'application/octet-stream'
+            cherrypy.response.headers['Content-Type'] = mimeType
+            cherrypy.response.headers['Content-Length'] = file['size'] - offset
+            cherrypy.response.headers['Content-Disposition'] = \
+                'attachment; filename="%s"' % file['name']
+
+        if file['hdfs'].get('imported'):
+            path = file['hdfs']['path']
+        else:
+            path = posixpath.join(self.assetstore['hdfs']['path'],
+                                  file['hdfs']['path'])
+
+        def stream():
+            skipped = 0
+            fileStream = self.client.cat([path]).next()
+            for chunk in fileStream:
+                if skipped < offset:
+                    if skipped + len(chunk) <= offset:
+                        skipped += len(chunk)
+                    else:
+                        yield chunk[offset - skipped:]
+                        skipped = offset
+                else:
+                    yield chunk
+        return stream
+
+    def deleteFile(self, file):
+        """
+        Only deletes the file if it is managed (i.e. not an imported file).
+        """
+        if not file['hdfs'].get('imported'):
+            self.client.delete([posixpath.join(self.assetstore['hdfs']['path'],
+                                  file['hdfs']['path'])])
