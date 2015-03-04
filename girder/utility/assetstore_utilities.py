@@ -24,28 +24,37 @@ from girder.constants import AssetstoreType
 from girder import events
 
 
-def getAssetstoreAdapter(assetstore):
+def getAssetstoreAdapter(assetstore, instance=True):
     """
     This is a factory method that will return the appropriate assetstore adapter
     for the specified assetstore. The returned object will conform to
     the interface of the AbstractAssetstoreAdapter.
+
     :param assetstore: The assetstore document used to instantiate the adapter.
     :type assetstore: dict
+
     :returns: An adapter descending from AbstractAssetstoreAdapter
     """
-    if assetstore['type'] == AssetstoreType.FILESYSTEM:
-        assetstoreAdapter = FilesystemAssetstoreAdapter(assetstore)
-    elif assetstore['type'] == AssetstoreType.GRIDFS:
-        assetstoreAdapter = GridFsAssetstoreAdapter(assetstore)
-    elif assetstore['type'] == AssetstoreType.S3:
-        assetstoreAdapter = S3AssetstoreAdapter(assetstore)
+    cls = None
+    storeType = assetstore['type']
+
+    if storeType == AssetstoreType.FILESYSTEM:
+        cls = FilesystemAssetstoreAdapter
+    elif storeType == AssetstoreType.GRIDFS:
+        cls = GridFsAssetstoreAdapter
+    elif storeType == AssetstoreType.S3:
+        cls = S3AssetstoreAdapter
     else:
         e = events.trigger('assetstore.adapter.get', assetstore)
         if len(e.responses) > 0:
-            return e.responses[-1]
-        raise Exception('No AssetstoreAdapter for type: ' + assetstore['type'])
+            cls = e.responses[-1]
+        else:
+            raise Exception('No AssetstoreAdapter for type: %s.' % storeType)
 
-    return assetstoreAdapter
+    if instance:
+        return cls(assetstore)
+    else:
+        return cls
 
 
 def fileIndexFields():

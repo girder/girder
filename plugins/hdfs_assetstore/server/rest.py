@@ -20,6 +20,7 @@
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, loadmodel
+from girder.constants import AssetstoreType
 from snakebite.client import Client as HdfsClient
 
 
@@ -53,7 +54,8 @@ class HdfsAssetstoreResource(Resource):
             use_trash=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
                              title='Importing data from HDFS') as ctx:
-            self._importData(parentType, parent, assetstore, client, path, ctx)
+            self._importData(
+                parentType, parent, assetstore, client, params['path'], ctx)
     importData.description = (
         Description('Import a data hierarchy from an HDFS instance.')
         .notes('Only site administrators may use this endpoint.')
@@ -63,6 +65,8 @@ class HdfsAssetstoreResource(Resource):
                'hierarchy under which to import the files.')
         .param('parentType', 'The type of the parent object to import into.',
                enum=('folder', 'user', 'collection'), required=False)
+        .param('path', 'Root of the directory structure (relative to the root '
+               'of the HDFS) to import.')
         .param('progress', 'Whether to record progress on this operation ('
                'default=False)', required=False, dataType='boolean')
         .errorResponse()
@@ -70,7 +74,17 @@ class HdfsAssetstoreResource(Resource):
 
     @access.admin
     def createAssetstore(self, params):
-        pass  # TODO implement creation
+        self.requireParams(('name', 'host', 'port', 'path'), params)
+
+        return self.model('assetstore').save({
+            'type': AssetstoreType.HDFS,
+            'name': params['name'],
+            'hdfs': {
+                'host': params['host'],
+                'port': params['port'],
+                'path': params['path']
+            }
+        })
     createAssetstore.description = (
         Description('Create a new HDFS assetstore.')
         .responseClass('Assetstore')

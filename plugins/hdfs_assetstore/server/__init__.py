@@ -27,7 +27,7 @@ def getAssetstore(event):
     assetstore = event.info
     if assetstore['type'] == AssetstoreType.HDFS:
         event.stopPropagation()
-        event.addResponse(HdfsAssetstoreAdapter(assetstore))
+        event.addResponse(HdfsAssetstoreAdapter)
 
 
 def load(info):

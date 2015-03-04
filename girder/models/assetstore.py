@@ -51,12 +51,8 @@ class Assetstore(Model):
             raise ValidationException('Name must not be empty.', 'name')
 
         # Adapter classes validate each type internally
-        if doc['type'] == AssetstoreType.FILESYSTEM:
-            FilesystemAssetstoreAdapter.validateInfo(doc)
-        elif doc['type'] == AssetstoreType.GRIDFS:
-            GridFsAssetstoreAdapter.validateInfo(doc)
-        elif doc['type'] == AssetstoreType.S3:
-            S3AssetstoreAdapter.validateInfo(doc)
+        adapter = assetstore_utilities.getAssetstoreAdapter(doc, instance=False)
+        adapter.validateInfo(doc)
 
         # If no current assetstore exists yet, set this one as the current.
         current = self.findOne({'current': True}, fields=['_id'])

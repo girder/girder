@@ -17,9 +17,46 @@
 #  limitations under the License.
 ###############################################################################
 
+from girder.models.model_base import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from snakebite.client import Client as HdfsClient
 
 
 class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
-    pass  # TODO implement
+    def __init__(self, assetstore):
+        self.asserstore = assetstore
+        self.client = self._getClient(assetstore)
+
+    @staticmethod
+    def _getClient(assetstore):
+        return HdfsClient(
+            host=assetstore['hdfs']['host'], port=assetstore['hdfs']['port'],
+            use_trash=False)
+
+    @staticmethod
+    def validateInfo(doc):
+        """
+        Ensures we have the necessary information to connect to HDFS instance,
+        and uses snakebite to actually connect to it.
+        """
+        info = doc.get('hdfs', {})
+        for field in ('host', 'port', 'path'):
+            if field not in info:
+                raise ValidationException('Missing %s field.' % field)
+        info['port'] = int(info['port'])
+
+        try:
+            client = HdfsAssetstoreAdapter._getClient(doc)
+            client.serverdefaults()
+        except:
+            raise ValidationException('Could not connect to HDFS at %s:%d.' %
+                                      (info['host'], info['port']))
+
+        return doc
+
+    def capacityInfo(self):
+        info = self.client.df()
+        return {
+            'free': info['capacity'] - info['used'],
+            'total': info['capacity']
+        }
