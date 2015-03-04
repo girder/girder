@@ -20,6 +20,8 @@
 from girder import events
 from girder.constants import AssetstoreType
 from .assetstore import HdfsAssetstoreAdapter
+from .rest import HdfsAssetstoreResource
+
 
 def getAssetstore(event):
     assetstore = event.info
@@ -31,3 +33,5 @@ def getAssetstore(event):
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
     events.bind('assetstore.adapter.get', 'hdfs_assetstore', getAssetstore)
+
+    info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()
