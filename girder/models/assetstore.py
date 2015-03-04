@@ -22,10 +22,6 @@ import pymongo
 
 from .model_base import Model, ValidationException, GirderException
 from girder.utility import assetstore_utilities
-from girder.utility.filesystem_assetstore_adapter import\
-    FilesystemAssetstoreAdapter
-from girder.utility.gridfs_assetstore_adapter import GridFsAssetstoreAdapter
-from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter
 from girder.constants import AssetstoreType
 
 

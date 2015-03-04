@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, loadmodel
 from girder.constants import AssetstoreType
+from girder.utility.progress import ProgressContext
 from snakebite.client import Client as HdfsClient
 
 
