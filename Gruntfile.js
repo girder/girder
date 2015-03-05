@@ -224,6 +224,13 @@ module.exports = function (grunt) {
                     ]
                 }
             },
+            util: {
+                files: {
+                    'clients/web/static/built/util.min.js': [
+                        'clients/web/src/util.js'
+                    ]
+                }
+            },
             libs: {
                 files: {
                     'clients/web/static/built/libs.min.js': [
@@ -490,6 +497,7 @@ module.exports = function (grunt) {
         'jade',
         'version-info',
         'uglify:app',
+        'uglify:util',
         'shell:readServerConfig',
         'test-env-html'
     ]);
