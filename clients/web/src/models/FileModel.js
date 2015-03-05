@@ -19,6 +19,52 @@ girder.models.FileModel = girder.Model.extend({
     },
 
     /**
+     * Upload data to a new file in a given container
+     * @param Model A constructor for the parent model (either FolderModel or ItemModel).
+     * @param model The parent model to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    _uploadToContainer: function (Model, model, data, name, type) {
+        if (_.isString(model)) {
+            model = new Model({
+                _id: model
+            });
+        }
+
+        if (_.isString(data)) {
+            data = new Blob([data]);
+            data.name = name;
+            data.type = type;
+        }
+
+        this.upload(model, data);
+    },
+
+    /**
+     * Upload data to a new file in a given folder
+     * @param parentFolder The parent folder to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    uploadToFolder: function (parentFolder, data, name, type) {
+        this._uploadToContainer(girder.models.FolderModel, parentFolder, data, name, type);
+    },
+
+    /**
+     * Upload data to a new file in a given folder
+     * @param parentItem The parent item to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    uploadToItem: function (parentItem, data, name, type) {
+        this._uploadToContainer(girder.models.ItemModel, parentItem, data, name, type);
+    },
+
+    /**
      * Upload a file. Handles uploading into all of the core assetstore types.
      * @param parentModel The parent folder or item to upload into.
      * @param file The browser File object to be uploaded.
