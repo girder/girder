@@ -6,14 +6,18 @@ girder.models.FileModel = girder.Model.extend({
      * Upload into an existing file object (i.e. this model) to change its
      * contents. This does not change the name or MIME type of the existing
      * file.
-     * @param file The browser File object to be uploaded.
+     * @param data A browser File object, browser Blob object, or raw data to be uploaded.
      */
-    updateContents: function (file) {
-        this.upload(null, file, {
+    updateContents: function (data) {
+        if (_.isString(data)) {
+            data = new Blob([data]);
+        }
+
+        this.upload(null, data, {
             path: 'file/' + this.get('_id') + '/contents',
             type: 'PUT',
             data: {
-                size: file.size
+                size: data.size
             }
         });
     },
