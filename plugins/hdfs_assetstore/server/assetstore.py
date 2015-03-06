@@ -18,8 +18,13 @@
 ###############################################################################
 
 import cherrypy
+import os
 import posixpath
+import pwd
+import requests
+import uuid
 
+from girder import logger
 from girder.models.model_base import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from snakebite.client import Client as HdfsClient
@@ -27,14 +32,33 @@ from snakebite.client import Client as HdfsClient
 
 class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
     def __init__(self, assetstore):
-        self.asserstore = assetstore
+        self.assetstore = assetstore
         self.client = self._getClient(assetstore)
+
+    @staticmethod
+    def _getHdfsUser(assetstore):
+        """
+        If the given assetstore has an effective user specified, this returns
+        it. Otherwise returns the current user.
+        """
+        return assetstore['hdfs'].get('user') or pwd.getpwuid(os.getuid())[0]
 
     @staticmethod
     def _getClient(assetstore):
         return HdfsClient(
             host=assetstore['hdfs']['host'], port=assetstore['hdfs']['port'],
-            use_trash=False)
+            use_trash=False,
+            effective_user=HdfsAssetstoreAdapter._getHdfsUser(assetstore)
+        )
+
+    def _absPath(self, doc):
+        """
+        Return the absolute path in HDFS for a given file or upload.
+
+        :param doc: The file or upload document.
+        """
+        return posixpath.join(
+            self.assetstore['hdfs']['path'], doc['hdfs']['path'])
 
     @staticmethod
     def validateInfo(doc):
@@ -43,9 +67,14 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         and uses snakebite to actually connect to it.
         """
         info = doc.get('hdfs', {})
-        for field in ('host', 'port', 'path'):
+        for field in ('host', 'port', 'path', 'webHdfsPort', 'user'):
             if field not in info:
                 raise ValidationException('Missing %s field.' % field)
+
+        if not info['webHdfsPort']:
+            info['webHdfsPort'] = 50070
+
+        info['webHdfsPort'] = int(info['webHdfsPort'])
         info['port'] = int(info['port'])
 
         try:
@@ -54,6 +83,10 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         except:
             raise ValidationException('Could not connect to HDFS at %s:%d.' %
                                       (info['host'], info['port']))
+
+        # TODO test connection to webHDFS? Not now since it's not required
+
+        # TODO mkdirs for assetstore root if it doesn't exist yet
 
         return doc
 
@@ -77,8 +110,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         if file['hdfs'].get('imported'):
             path = file['hdfs']['path']
         else:
-            path = posixpath.join(self.assetstore['hdfs']['path'],
-                                  file['hdfs']['path'])
+            path = self._absPath(file)
 
         def stream():
             skipped = 0
@@ -99,5 +131,82 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Only deletes the file if it is managed (i.e. not an imported file).
         """
         if not file['hdfs'].get('imported'):
-            self.client.delete([posixpath.join(self.assetstore['hdfs']['path'],
-                                  file['hdfs']['path'])])
+            res = self.client.delete([self._absPath(file)]).next()
+            if not res['result']:
+                raise Exception('Failed to delete HDFS file %s: %s' % (
+                    res['path'], res.get('error')))
+
+    def initUpload(self, upload):
+        uid = uuid.uuid4().hex
+        relPath = posixpath.join(uid[0:2], uid[2:4], uid)
+
+        upload['hdfs'] = {
+            'path': relPath
+        }
+        absPath = self._absPath(upload)
+        parentDir = posixpath.dirname(absPath)
+
+        if not self.client.test(parentDir, exists=True, directory=True):
+            res = self.client.mkdir([posixpath.dirname(absPath)],
+                                    create_parent=True).next()
+            if not res['result']:
+                raise Exception(res['error'])
+
+        if self.client.test(absPath, exists=True):
+            raise Exception('File already exists: %s.' % absPath)
+
+        res = self.client.touchz([absPath]).next()
+        if not res['result']:
+            raise Exception(res['error'])
+
+        return upload
+
+    def uploadChunk(self, upload, chunk):
+        # For now, we use webhdfs when writing files since the process of
+        # implementing the append operation ourselves with protobuf is too
+        # expensive. If snakebite adds support for append in future releases,
+        # we should use that instead.
+        url = ('http://%s:%d/webhdfs/v1%s?op=APPEND&namenoderpcaddress=%s:%d'
+               '&user.name=%s')
+        url %= (
+            self.assetstore['hdfs']['host'],
+            self.assetstore['hdfs']['webHdfsPort'],
+            self._absPath(upload),
+            self.assetstore['hdfs']['host'],
+            self.assetstore['hdfs']['port'],
+            self._getHdfsUser(self.assetstore)
+        )
+
+        resp = requests.post(url, allow_redirects=False)
+
+        try:
+            resp.raise_for_status()
+        except:
+            logger.exception('HDFS response: ' + resp.text)
+            raise Exception('Error appending to HDFS, see log for details.')
+
+        if resp.status_code != 307:
+            raise Exception('Expected 307 redirection to data node, instead '
+                            'got %d: %s' % (resp.status_code, resp.text))
+
+        resp = requests.post(resp.headers['Location'], data=chunk)
+        chunk.close()
+        try:
+            resp.raise_for_status()
+        except:
+            logger.exception('HDFS response: ' + resp.text)
+            raise Exception('Error appending to HDFS, see log for details.')
+
+        upload['received'] += int(resp.request.headers['Content-Length'])
+
+        try:
+            resp.raise_for_status()
+        except:
+            logger.exception('HDFS response: ' + resp.text)
+            raise Exception('Error appending to HDFS, see log for details.')
+
+        return upload
+
+    def finalizeUpload(self, upload, file):
+        file['hdfs'] = upload['hdfs']
+        return file

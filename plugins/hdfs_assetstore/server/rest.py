@@ -136,7 +136,9 @@ class HdfsAssetstoreResource(Resource):
             'hdfs': {
                 'host': params['host'],
                 'port': params['port'],
-                'path': params['path']
+                'path': params['path'],
+                'webHdfsPort': params.get('webHdfsPort'),
+                'user': params.get('effectiveUser')
             }
         })
     createAssetstore.description = (
@@ -146,6 +148,10 @@ class HdfsAssetstoreResource(Resource):
         .param('name', 'Unique name for the assetstore.')
         .param('host', 'The HDFS hostname.')
         .param('port', 'The HDFS port for the name node.', dataType='integer')
+        .param('webHdfsPort', 'The WebHDFS port (default=50075).',
+               dataType='integer', required=False)
+        .param('effectiveUser', 'The effective user to use when calling HDFS '
+               'RPCs. Defaults to current user.', required=False)
         .param('path', 'Path in the HDFS under which to store new files.')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
