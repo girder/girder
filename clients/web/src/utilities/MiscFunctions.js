@@ -233,13 +233,16 @@ girder.restartServer._reloadWindow = function () {
  * @param el The element to render the output HTML into, or falsy to simply
  *        return the HTML value.
  */
-girder.renderMarkdown = function (val, el) {
-    if (el) {
-        $(el).html(marked(val));
-    } else {
-        return marked(val);
-    }
-};
+girder.renderMarkdown = (function () {
+    marked.setOptions({ sanitize: true });
+    return function (val, el) {
+        if (el) {
+            $(el).html(marked(val));
+        } else {
+            return marked(val);
+        }
+    };
+}());
 
 (function () {
     var _pluginConfigRoutes = {};
