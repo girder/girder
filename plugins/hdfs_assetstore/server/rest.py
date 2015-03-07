@@ -148,7 +148,7 @@ class HdfsAssetstoreResource(Resource):
         .param('name', 'Unique name for the assetstore.')
         .param('host', 'The HDFS hostname.')
         .param('port', 'The HDFS port for the name node.', dataType='integer')
-        .param('webHdfsPort', 'The WebHDFS port (default=50075).',
+        .param('webHdfsPort', 'The WebHDFS port (default=50070).',
                dataType='integer', required=False)
         .param('effectiveUser', 'The effective user to use when calling HDFS '
                'RPCs. Defaults to current user.', required=False)
