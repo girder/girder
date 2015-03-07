@@ -1,5 +1,5 @@
-Girder: Data management platform
-================================
+Girder: A data management platform
+==================================
 
 What is Girder?
 ---------------
@@ -20,14 +20,14 @@ requirements:
     key-value stores, and Hadoop Distributed Filesystems (HDFS).
 
 
-* **User management (authentication)**
+* **User management & authentication**
     Girder also includes everything needed for pluggable user management and
     authentication out of the box and adheres to best practices in web security.
     The system can be configured to securely store credentials itself, or defer
     to third-party authentication services such as OAuth or LDAP.
 
-* **Access control (authorization)**
-    Girder supports a simple access control architecture that allows both user-based
+* **Authorization management**
+    Girder supports a simple access control scheme that allows both user-based
     and role-based access control on resources managed in the system. The project
     has undergone rigorous security audits and has extensive automated testing
     to exercise authorization behavior and ensure correctness.
@@ -40,9 +40,35 @@ https://github.com/girder/girder.
 The architecture
 ----------------
 
-As mentioned above, Girder is both a standalone application and a platform.
+Girder's server-side architecture is focused around the construction of RESTful
+web APIs to afford minimal coupling between the backend services and the
+frontend clients. This decoupling allows multiple clients all to use the same
+server-side interface. While Girder does contain its own single-page javascript
+web application, the system can be used by any HTML-aware client, either inside
+or outside of the web browser environment. Girder can even be run without its
+front-end application present at all, only serving the web API routes.
 
-mention Rest API, written in python, plugin system, single-page app, etc.
+The web API is mostly used to interact with resources that are represented by **models**
+in the system. Models internally interact with a Mongo database to store and
+retrieve persistent records. The models contain methods for creating, changing,
+retrieving, and deleting those records.
+
+The primary method of customizing and extending Girder is via the development of
+**plugins**, the process of which is described in the :doc:`plugin-development`
+section of this documentation. Plugins can be turned on or off on a single
+Girder instance to control its functionality dynamically. The extent to which plugins are
+allowed to modify and extend the core system behavior is nearly limitless; they
+can add new REST routes, modify or remove existing ones, serve up a different
+web application from the server root, hook into various events related to models
+or specific API calls, override authentication behavior to support new authentication
+services or protocols, add a new backend storage engine for file storage, interact
+with a completely different DBMS to persist system records -- really almost anything
+can be added or changed with plugins.
+
+Plugins are self-contained in their own directory, therefore they can live in
+their own separate repository and can simply be dropped into an existing Girder
+installation to install them. The Girder repository contains several generally
+useful plugins out of the box, which are described in the :doc:`plugins` section.
 
 .. toctree::
    :maxdepth: 2
