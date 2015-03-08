@@ -1,14 +1,13 @@
-Girder: A data management platform
+Girder: a data management platform
 ==================================
 
 What is Girder?
 ---------------
 
 Girder is a free and open source web-based **data management platform**. What does
-that mean? Girder is both a standalone application as well as a platform on top of
-which new web services can be quickly and easily constructed. It's meant to be a
-building block of web-based applications that have some or all of the following
-requirements:
+that mean? Girder is both a standalone application and a platform for building new web
+services. It's meant to enable quick and easy construction of web applications
+that have some or all of the following requirements:
 
 * **Data organization and dissemination**
     Many web applications need to manage data that are dynamically provided by
@@ -18,7 +17,6 @@ requirements:
     and proxy data from heterogeneous backend storage engines through a single RESTful
     web API, including local filesystems, MongoDB databases, Amazon S3-compliant
     key-value stores, and Hadoop Distributed Filesystems (HDFS).
-
 
 * **User management & authentication**
     Girder also includes everything needed for pluggable user management and
@@ -55,20 +53,22 @@ retrieving, and deleting those records.
 
 The primary method of customizing and extending Girder is via the development of
 **plugins**, the process of which is described in the :doc:`plugin-development`
-section of this documentation. Plugins can be turned on or off on a single
-Girder instance to control its functionality dynamically. The extent to which plugins are
-allowed to modify and extend the core system behavior is nearly limitless; they
-can add new REST routes, modify or remove existing ones, serve up a different
-web application from the server root, hook into various events related to models
-or specific API calls, override authentication behavior to support new authentication
-services or protocols, add a new backend storage engine for file storage, interact
-with a completely different DBMS to persist system records -- really almost anything
-can be added or changed with plugins.
+section of this documentation. Plugins can, for example, add new REST routes,
+modify or remove existing ones, serve up a different web application from the server
+root, hook into model lifecycle events or specific API calls, override authentication
+behavior to support new authentication services or protocols, add a new backend
+storage engine for file storage, or even interact with a completely different DBMS
+to persist system records -- the extent to which plugins are allowed to modify and
+extend the core system behavior is nearly limitless.
 
-Plugins are self-contained in their own directory, therefore they can live in
-their own separate repository and can simply be dropped into an existing Girder
-installation to install them. The Girder repository contains several generally
+Plugins are self-contained in their own directory within the Girder source tree.
+Therefore they can reside in their own separate source repository, and are installed
+by simply copying the plugin source tree under an existing Girder installation's
+`plugins` directory. The Girder repository contains several generally
 useful plugins out of the box, which are described in the :doc:`plugins` section.
+
+Table of contents
+-----------------
 
 .. toctree::
    :maxdepth: 2
@@ -78,7 +78,7 @@ useful plugins out of the box, which are described in the :doc:`plugins` section
    developer-docs
    plugins
 
-API Index
+API index
 ---------
 
 * :ref:`genindex`
