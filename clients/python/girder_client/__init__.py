@@ -156,8 +156,11 @@ class GirderClient(object):
         if username is None or password is None:
             raise Exception('A user name and password are required')
 
-        authResponse = requests.get(self.urlBase + 'user/authentication',
-                                    auth=(username, password))
+        url = self.urlBase + 'user/authentication'
+        authResponse = requests.get(url, auth=(username, password))
+
+        if authResponse.status_code == 404:
+            raise HttpError(404, authResponse.text, url, "GET")
 
         resp = authResponse.json()
         if 'authToken' not in resp:
