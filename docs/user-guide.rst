@@ -20,6 +20,8 @@ have suggestions or questions about this documentation, feel free to contact us
 
 Girder specific entities will be ``formatted like this``.
 
+.. _concepts:
+
 Concepts
 ========
 
