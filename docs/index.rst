@@ -49,7 +49,8 @@ front-end application present at all, only serving the web API routes.
 The web API is mostly used to interact with resources that are represented by **models**
 in the system. Models internally interact with a Mongo database to store and
 retrieve persistent records. The models contain methods for creating, changing,
-retrieving, and deleting those records.
+retrieving, and deleting those records. The semantics of the core Girder model
+types are described in the :ref:`concepts` section of the user guide.
 
 The primary method of customizing and extending Girder is via the development of
 **plugins**, the process of which is described in the :doc:`plugin-development`
@@ -66,6 +67,7 @@ Therefore they can reside in their own separate source repository, and are insta
 by simply copying the plugin source tree under an existing Girder installation's
 `plugins` directory. The Girder repository contains several generally
 useful plugins out of the box, which are described in the :doc:`plugins` section.
+
 
 Table of contents
 -----------------
