@@ -49,7 +49,7 @@ front-end application present at all, only serving the web API routes.
 The web API is mostly used to interact with resources that are represented by **models**
 in the system. Models internally interact with a Mongo database to store and
 retrieve persistent records. The models contain methods for creating, changing,
-retrieving, and deleting those records. The semantics of the core Girder model
+retrieving, and deleting those records. The core Girder model
 types are described in the :ref:`concepts` section of the user guide.
 
 The primary method of customizing and extending Girder is via the development of
