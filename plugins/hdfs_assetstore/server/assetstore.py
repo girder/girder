@@ -197,7 +197,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             logger.exception('HDFS response: ' + resp.text)
             raise Exception('Error appending to HDFS, see log for details.')
 
-        upload['received'] += int(resp.request.headers['Content-Length'])
+        upload['received'] = self.requestOffset(upload)
 
         try:
             resp.raise_for_status()
@@ -210,3 +210,14 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
     def finalizeUpload(self, upload, file):
         file['hdfs'] = upload['hdfs']
         return file
+
+    def cancelUpload(self, upload):
+        absPath = self._absPath(upload)
+        if self.client.test(absPath, exists=True):
+            res = self.client.delete([absPath]).next()
+            if not res['result']:
+                raise Exception('Failed to delete HDFS file %s: %s' % (
+                    res['path'], res.get('error')))
+
+    def requestOffset(self, upload):
+        return self.client.stat([self._absPath(upload)])['length']
