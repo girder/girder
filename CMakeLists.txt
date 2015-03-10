@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-project(Girder)
+project(Girder NONE)
 
 include(CTest)
 enable_testing()
