@@ -28,6 +28,21 @@ girder.wrap(girder.views.AssetstoresView, 'render', function (render) {
 });
 
 /**
+ * Add UI for creating new HDFS assetstore.
+ */
+girder.wrap(girder.views.NewAssetstoreWidget, 'render', function (render) {
+    render.call(this);
+
+    this.$('#g-assetstore-accordion').append(girder.templates.hdfs_assetstore_create());
+});
+
+girder.views.NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = function (e) {
+    e.preventDefault();
+
+    // TODO create assetstore, trigger g:created
+};
+
+/**
  * Adds HDFS-specific fields to the edit dialog.
  */
 girder.wrap(girder.views.EditAssetstoreWidget, 'render', function (render) {
