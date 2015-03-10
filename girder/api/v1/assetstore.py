@@ -19,6 +19,7 @@
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
+from girder import events
 from girder.constants import AssetstoreType
 from girder.api import access
 
@@ -140,6 +141,13 @@ class Assetstore(Resource):
             assetstore['accessKeyId'] = params['accessKeyId']
             assetstore['secret'] = params['secret']
             assetstore['service'] = params.get('service', '')
+        else:
+            event = events.trigger('assetstore.update', info={
+                'assetstore': assetstore,
+                'params': params
+            })
+            if event.defaultPrevented:
+                return
         return self.model('assetstore').save(assetstore)
     updateAssetstore.description = (
         Description('Update an existing assetstore.')

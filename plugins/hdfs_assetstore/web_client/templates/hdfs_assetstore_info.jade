@@ -1,0 +1,20 @@
+- var hdfsInfo = assetstore.get('hdfs') || {}
+
+div
+  b Type:
+  span.g-assetstore-type  HDFS
+div
+  b Host:
+  span  #{hdfsInfo.host}
+div
+  b Port:
+  span  #{hdfsInfo.port}
+div
+  b WebHDFS port:
+  span  #{hdfsInfo.webHdfsPort || 50070}
+div
+  b Root path:
+  span  #{hdfsInfo.path}
+div
+  b Effective user:
+  span  #{hdfsInfo.user || '<current user>'}

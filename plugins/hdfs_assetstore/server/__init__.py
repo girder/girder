@@ -19,6 +19,7 @@
 
 from girder import events
 from girder.constants import AssetstoreType
+from girder.utility.model_importer import ModelImporter
 from .assetstore import HdfsAssetstoreAdapter
 from .rest import HdfsAssetstoreResource
 
@@ -30,8 +31,23 @@ def getAssetstore(event):
         event.addResponse(HdfsAssetstoreAdapter)
 
 
+def updateAssetstore(event):
+    params = event.info['params']
+    assetstore = event.info['assetstore']
+
+    if assetstore['type'] == AssetstoreType.HDFS:
+        assetstore['hdfs'] = {
+            'host': params['hdfsHost'],
+            'port': params['hdfsPort'],
+            'path': params['hdfsPath'],
+            'webHdfsPort': params.get('webHdfsPort'),
+            'user': params.get('hdfsUser')
+        }
+
+
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
     events.bind('assetstore.adapter.get', 'hdfs_assetstore', getAssetstore)
+    events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
 
     info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()
