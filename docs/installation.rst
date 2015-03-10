@@ -40,6 +40,7 @@ Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
 
     git clone https://github.com/girder/girder.git
+    cd girder
 
 To run the server, you must install some external Python package
 dependencies: ::
