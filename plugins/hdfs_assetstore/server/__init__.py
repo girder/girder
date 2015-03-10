@@ -18,6 +18,8 @@
 ###############################################################################
 
 from girder import events
+from girder.api import rest
+from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
 from girder.utility.model_importer import ModelImporter
 from .assetstore import HdfsAssetstoreAdapter
@@ -46,6 +48,8 @@ def updateAssetstore(event):
 
 
 def createAssetstore(event):
+    rest.requireAdmin(rest.getCurrentUser())
+
     params = event.info['params']
 
     if params.get('type') == AssetstoreType.HDFS:
@@ -68,5 +72,17 @@ def load(info):
     events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
     events.bind('rest.post.assetstore.before', 'hdfs_assetstore',
                 createAssetstore)
+
+    (Assetstore.createAssetstore.description
+        .param('host', 'The namenode host (for HDFS type).', required=False)
+        .param('port', 'The namenode RPC port (for HDFS type).', required=False)
+        .param('path', 'Absolute path under which new files will be stored ('
+               'for HDFS type).', required=False)
+        .param('user', 'The effective user to use when calling HDFS RPCs (for '
+               'HDFS type). Default is current user.', required=False)
+        .param('webHdfsPort', 'WebHDFS port for the namenode. You must enable '
+               'WebHDFS on your Hadoop cluster if you want to write new files '
+               'to the assetstore (for HDFS type).', required=False))
+
 
     info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()
