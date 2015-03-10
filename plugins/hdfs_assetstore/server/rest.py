@@ -32,7 +32,6 @@ class HdfsAssetstoreResource(Resource):
     def __init__(self):
         self.resourceName = 'hdfs_assetstore'
         self.route('PUT', (':id', 'import'), self.importData)
-        self.route('POST', (), self.createAssetstore)
 
         self.folderModel = self.model('folder')  # Save to avoid many lookups
         self.itemModel = self.model('item')
@@ -123,35 +122,5 @@ class HdfsAssetstoreResource(Resource):
                'of the HDFS) to import.')
         .param('progress', 'Whether to record progress on this operation ('
                'default=False)', required=False, dataType='boolean')
-        .errorResponse()
-        .errorResponse('You are not an administrator.', 403))
-
-    @access.admin
-    def createAssetstore(self, params):
-        self.requireParams(('name', 'host', 'port', 'path'), params)
-
-        return self.model('assetstore').save({
-            'type': AssetstoreType.HDFS,
-            'name': params['name'],
-            'hdfs': {
-                'host': params['host'],
-                'port': params['port'],
-                'path': params['path'],
-                'webHdfsPort': params.get('webHdfsPort'),
-                'user': params.get('effectiveUser')
-            }
-        })
-    createAssetstore.description = (
-        Description('Create a new HDFS assetstore.')
-        .responseClass('Assetstore')
-        .notes('You must be an administrator to call this.')
-        .param('name', 'Unique name for the assetstore.')
-        .param('host', 'The HDFS hostname.')
-        .param('port', 'The HDFS port for the name node.', dataType='integer')
-        .param('webHdfsPort', 'The WebHDFS port (default=50070).',
-               dataType='integer', required=False)
-        .param('effectiveUser', 'The effective user to use when calling HDFS '
-               'RPCs. Defaults to current user.', required=False)
-        .param('path', 'Path in the HDFS under which to store new files.')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))

@@ -74,8 +74,12 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not info['webHdfsPort']:
             info['webHdfsPort'] = 50070
 
-        info['webHdfsPort'] = int(info['webHdfsPort'])
-        info['port'] = int(info['port'])
+        try:
+            info['webHdfsPort'] = int(info['webHdfsPort'])
+            info['port'] = int(info['port'])
+        except ValueError:
+            raise ValidationException('Port values must be numeric.',
+                                      field='port')
 
         try:
             client = HdfsAssetstoreAdapter._getClient(doc)
@@ -86,7 +90,13 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         # TODO test connection to webHDFS? Not now since it's not required
 
-        # TODO mkdirs for assetstore root if it doesn't exist yet
+        if not posixpath.isabs(info['path']):
+            raise ValidationException('Path must be absolute.', field='path')
+
+        if not client.test(info['path'], exists=True, directory=True):
+            res = client.mkdir([info['path']], create_parent=True).next()
+            if not res['result']:
+                raise ValidationException(res['error'], field='path')
 
         return doc
 

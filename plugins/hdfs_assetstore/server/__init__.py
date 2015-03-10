@@ -45,9 +45,28 @@ def updateAssetstore(event):
         }
 
 
+def createAssetstore(event):
+    params = event.info['params']
+
+    if params.get('type') == AssetstoreType.HDFS:
+        event.addResponse(ModelImporter.model('assetstore').save({
+            'type': AssetstoreType.HDFS,
+            'name': params.get('name'),
+            'hdfs': {
+                'host': params.get('host'),
+                'port': params.get('port'),
+                'path': params.get('path'),
+                'webHdfsPort': params.get('webHdfsPort'),
+                'user': params.get('effectiveUser')
+            }
+        }))
+        event.preventDefault()
+
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
     events.bind('assetstore.adapter.get', 'hdfs_assetstore', getAssetstore)
     events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
+    events.bind('rest.post.assetstore.before', 'hdfs_assetstore',
+                createAssetstore)
 
     info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()

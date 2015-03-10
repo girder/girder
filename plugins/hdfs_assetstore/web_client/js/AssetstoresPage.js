@@ -37,9 +37,15 @@ girder.wrap(girder.views.NewAssetstoreWidget, 'render', function (render) {
 });
 
 girder.views.NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = function (e) {
-    e.preventDefault();
-
-    // TODO create assetstore, trigger g:created
+    this.createAssetstore(e, this.$('#g-new-hdfs-error'), {
+        type: girder.AssetstoreType.HDFS,
+        name: this.$('#g-new-hdfs-name').val(),
+        path: this.$('#g-new-hdfs-path').val(),
+        effectiveUser: this.$('#g-new-hdfs-user').val(),
+        host: this.$('#g-new-hdfs-host').val(),
+        port: this.$('#g-new-hdfs-port').val(),
+        webHdfsPort: this.$('#g-new-webhdfs-port').val()
+    });
 };
 
 /**
