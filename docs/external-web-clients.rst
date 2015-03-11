@@ -91,14 +91,14 @@ In your JavaScript, perform callbacks such as the following:
 
     $('#login').click(function () {
         var loginView = new girder.views.LoginView({
-            el: this.$('#dialog-container')
+            el: $('#dialog-container')
         });
         loginView.render();
     });
 
     $('#register').click(function () {
         var registerView = new girder.views.RegisterView({
-            el: this.$('#dialog-container')
+            el: $('#dialog-container')
         });
         registerView.render();
     });
@@ -114,32 +114,33 @@ In your JavaScript, perform callbacks such as the following:
     });
 
     girder.events.on('g:login', function () {
+        console.log("g:login");
         if (girder.currentUser) {
             $("#login").addClass("hidden");
             $("#register").addClass("hidden");
             $("#name").removeClass("hidden");
             $("#logout").removeClass("hidden");
-            $("#name").text("Logged in as " + girder.currentUser.get('firstName') + " " +
-                            girder.currentUser.get('lastName'));
+            $("#name").text(girder.currentUser.get('firstName') + " " + girder.currentUser.get('lastName'));
 
-            // Do anything else you would like to do on login.
+            // Do anything else you'd like to do on login.
         } else {
             $("#login").removeClass("hidden");
             $("#register").removeClass("hidden");
             $("#name").addClass("hidden");
             $("#logout").addClass("hidden");
 
-            // Do anything else you would like to do on logout.
+            // Do anything else you'd like to do on logout.
         }
     });
 
-    // Check who is logged in initially.
+    // Check for who is logged in initially
     girder.restRequest({
         path: 'user/authentication',
         error: null
-    }).done(function () {
+    }).done(function (resp) {
+        girder.currentUser = new girder.models.UserModel(resp.user);
         girder.events.trigger('g:login');
     });
-
+    
 You can find an example minimal application using Girder's login and register
 dialogs in the source tree at **/clients/web-external**.
