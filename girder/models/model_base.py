@@ -210,8 +210,11 @@ class Model(ModelImporter):
         if not query:
             query = {}
 
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = False
+
         return self.collection.find(
-            spec=query, skip=offset, limit=limit, timeout=False, **kwargs)
+            spec=query, skip=offset, limit=limit, **kwargs)
 
     def findOne(self, query=None, **kwargs):
         """
