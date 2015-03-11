@@ -6,6 +6,9 @@ Girder |build-status| |docs-status| |license-badge| |gitter-badge|
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.org.
 
+For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum 
+<https://gitter.im/girder/girder>`_.
+
 .. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
     :target: https://travis-ci.org/girder/girder
     :alt: Build Status
