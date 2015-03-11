@@ -66,6 +66,7 @@ def createAssetstore(event):
         }))
         event.preventDefault()
 
+
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
     events.bind('assetstore.adapter.get', 'hdfs_assetstore', getAssetstore)
@@ -83,6 +84,5 @@ def load(info):
         .param('webHdfsPort', 'WebHDFS port for the namenode. You must enable '
                'WebHDFS on your Hadoop cluster if you want to write new files '
                'to the assetstore (for HDFS type).', required=False))
-
 
     info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()

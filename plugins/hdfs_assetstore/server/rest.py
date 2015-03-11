@@ -22,7 +22,6 @@ import posixpath
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, loadmodel, RestException
-from girder.constants import AssetstoreType
 from girder.utility.progress import ProgressContext
 from snakebite.client import Client as HdfsClient
 from snakebite.errors import FileNotFoundException
@@ -96,7 +95,6 @@ class HdfsAssetstoreResource(Resource):
                                              exc=True)
 
         progress = self.boolParam('progress', params, default=False)
-        hdfsInfo = assetstore['hdfs']
         client = HdfsClient(
             host=assetstore['hdfs']['host'], port=assetstore['hdfs']['port'],
             use_trash=False)
@@ -113,7 +111,7 @@ class HdfsAssetstoreResource(Resource):
         Description('Import a data hierarchy from an HDFS instance.')
         .notes('Only site administrators may use this endpoint.')
         .param('id', 'The ID of the assetstore representing the HDFS instance.',
-                paramType='path')
+               paramType='path')
         .param('parentId', 'The ID of the parent object in the Girder data '
                'hierarchy under which to import the files.')
         .param('parentType', 'The type of the parent object to import into.',
