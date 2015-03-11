@@ -46,7 +46,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     def validateInfo(doc):
         """
         Makes sure the root field is a valid absolute path and is writeable.
+        It also conveniently update the root field replacing the initial
+        component by the user home directory running the server if it matches
+        ``~`` or ``~user``.
         """
+        doc['root'] = os.path.expanduser(doc['root'])
+
         if not os.path.isabs(doc['root']):
             raise ValidationException('You must provide an absolute path '
                                       'for the root directory.', 'root')
