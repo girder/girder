@@ -7,11 +7,11 @@ Girder maintains data security through a variety of mechanisms.
 Default Authorization
 ---------------------
 
-Internally, endpoints default to requiring adminitrator permissions in order to
+Internally, endpoints default to requiring administrator permissions in order to
 use them.  This means that, for example, when writing a plugin, a developer
 must consciously choose to allow non-administrator access.  Basic
 administrator, user, or token access restrictions are applied before any other
-enpoint code is executed.
+endpoint code is executed.
 
 
 CORS (Cross-Origin Resource Sharing)
