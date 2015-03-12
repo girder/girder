@@ -19,8 +19,18 @@
 
 import cherrypy  # pragma: no cover
 import argparse  # pragma: no cover
+import os  # pragma: no cover
 
-from girder.utility import server  # pragma: no cover
+try:  # pragma: no cover
+    from girder.utility import server
+except ImportError:
+    # Update python path to ensure server respawning works. See #732
+    source_root_dir = os.path.join(os.path.dirname(__file__), '..')
+    import sys
+    cherrypy.engine.log("[Girder] Appending source root dir to 'sys.path': %s"
+                        % source_root_dir)
+    sys.path.append(source_root_dir)
+    from girder.utility import server
 
 
 def main():
