@@ -17,13 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+from .assetstore import HdfsAssetstoreAdapter
+from .rest import HdfsAssetstoreResource
 from girder import events
 from girder.api import rest
 from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
 from girder.utility.model_importer import ModelImporter
-from .assetstore import HdfsAssetstoreAdapter
-from .rest import HdfsAssetstoreResource
 
 
 def getAssetstore(event):
