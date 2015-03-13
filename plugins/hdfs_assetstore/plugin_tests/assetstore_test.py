@@ -17,9 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
+import httmock
 import os
-import sys
 import shutil
+import sys
 
 from girder.constants import AssetstoreType
 from tests import base
@@ -105,6 +106,45 @@ class MockSnakebiteClient(object):
             with open(self._convertPath(path), 'rb') as f:
                 yield f.read()
 
+    def touchz(self, paths, **kwargs):
+        for path in paths:
+            absPath = self._convertPath(path)
+            with open(absPath, 'a'):
+                os.utime(absPath, None)
+                yield {
+                    'path': path,
+                    'result': True
+                }
+
+    def stat(self, paths):
+        # The weirdness of this method signature vs. return value reflects
+        # the weirdness of the actual version in the snakebite client.
+        for path in paths:
+            absPath = self._convertPath(path)
+            if os.path.isfile(absPath):
+                return {
+                    'file_type': 'f',
+                    'length': long(os.stat(absPath).st_size),
+                    'path': path
+                }
+            elif os.path.isdir(absPath):
+                return {
+                    'file_type': 'd',
+                    'length': 0L,
+                    'path': path
+                }
+            else:
+                raise Exception('Not found: ' + path)
+
+    def delete(self, paths, **kwargs):
+        for path in paths:
+            os.unlink(self._convertPath(path))
+            yield {
+                'path': path,
+                'result': True
+            }
+
+
 # This seems to be the most straightforward way to mock the object globally
 # such that it is also mocked in the request context. mock.patch was not
 # sufficient in my initial experiments.
@@ -166,7 +206,6 @@ class HdfsAssetstoreTest(base.TestCase):
         assetstore = resp.json
 
         # Test updating of the assetstore
-        params['port'] = 9001
         resp = self.request(path='/assetstore/' + str(assetstore['_id']),
                             method='PUT', user=self.admin, params={
                                 'name': 'test assetstore',
@@ -178,6 +217,16 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
                          'Could not connect to HDFS at localhost:9001.')
+
+        resp = self.request(path='/assetstore/' + str(assetstore['_id']),
+                            method='PUT', user=self.admin, params={
+                                'name': 'test update',
+                                'hdfsHost': 'localhost',
+                                'hdfsPath': '/test',
+                                'hdfsPort': 9000,
+                                'current': True
+                            })
+        self.assertStatusOk(resp)
 
         path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
         params = {
@@ -243,3 +292,81 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(None, self.model('file').load(file['_id']))
         self.assertTrue(os.path.isfile(helloTxtPath))
+
+        chunk1, chunk2 = ('test', 'upload')
+        # Init upload
+        resp = self.request(
+            path='/file', method='POST', user=self.admin, params={
+                'parentType': 'item',
+                'parentId': helloItem['_id'],
+                'name': 'testUpload.txt',
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        upload = resp.json
+        absPath = os.path.join(
+            _mockRoot, assetstore['hdfs']['path'][1:],
+            upload['hdfs']['path'])
+
+        # Temp file should be created
+        self.assertEqual(upload['assetstoreId'], str(assetstore['_id']))
+        self.assertFalse(upload['hdfs'].get('imported', False))
+        self.assertTrue(os.path.isfile(absPath))
+
+        # Test uploading to this assetstore
+        @httmock.all_requests
+        def webHdfsMock(url, request):
+            if '50070' in url.netloc:
+                # First request, we must issue a redirect to data node
+                return {
+                    'status_code': 307,
+                    'headers': {
+                        'Location': 'http://localhost:50075/foo'
+                    }
+                }
+            elif url.netloc == 'localhost:50075':
+                # Write the contents
+                with open(absPath, 'a') as f:
+                    f.write(request.body.read())
+                return {
+                    'status_code': 200
+                }
+            else:
+                raise Exception('Unexpected request: ' + repr(url))
+
+        with httmock.HTTMock(webHdfsMock):
+            # Upload first chunk
+            fields = [('offset', 0), ('uploadId', upload['_id'])]
+            files = [('chunk', 'testUpload.txt', chunk1)]
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.admin, fields=fields, files=files)
+            self.assertStatusOk(resp)
+
+            # Get the offset (simulating resume)
+            upload = resp.json
+            self.assertEqual(upload['received'], len(chunk1))
+            resp = self.request('/file/offset', user=self.admin, params={
+                'uploadId': upload['_id']
+            })
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['offset'], len(chunk1))
+
+            fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
+            files = [('chunk', 'testUpload.txt', chunk2)]
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.admin, fields=fields, files=files)
+            self.assertStatusOk(resp)
+            file = resp.json
+
+        # Download the file
+        resp = self.request('/file/{}/download'.format(file['_id']),
+                            isJson=False, user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.collapse_body(), chunk1 + chunk2)
+
+        # Delete the file, should remove the underlying file on disk
+        resp = self.request('/file/' + str(file['_id']), method='DELETE',
+                            user=self.admin)
+        self.assertEqual(None, self.model('file').load(file['_id']))
+        self.assertFalse(os.path.exists(absPath))
