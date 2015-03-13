@@ -51,6 +51,12 @@ class MockSnakebiteClient(object):
         if self.port != 9000:
             raise Exception('Failed to connect to HDFS.')
 
+    def df(self):
+        return {
+            'used': 100L,
+            'capacity': 1000L
+        }
+
     def test(self, path, exists=False, directory=False, **kwargs):
         path = self._convertPath(path)
         if directory:
@@ -227,6 +233,15 @@ class HdfsAssetstoreTest(base.TestCase):
                                 'current': True
                             })
         self.assertStatusOk(resp)
+
+        # Test the capacity info
+        resp = self.request(path='/assetstore/' + str(assetstore['_id']),
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['capacity'], {
+            'free': 900,
+            'total': 1000
+        })
 
         path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
         params = {

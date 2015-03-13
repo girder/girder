@@ -105,11 +105,20 @@ class Assetstore(Model):
         """
         cursor = self.find({}, limit=limit, offset=offset, sort=sort)
         for assetstore in cursor:
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            assetstore['capacity'] = adapter.capacityInfo()
-            assetstore['hasFiles'] = (self.model('file').findOne(
-                {'assetstoreId': assetstore['_id']}) is not None)
+            self.addComputedInfo(assetstore)
             yield assetstore
+
+    def addComputedInfo(self, assetstore):
+        """
+        Add all runtime-computed properties about an assetstore to its document.
+
+        :param assetstore: The assetstore object.
+        :type assetstore: dict
+        """
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        assetstore['capacity'] = adapter.capacityInfo()
+        assetstore['hasFiles'] = (self.model('file').findOne(
+            {'assetstoreId': assetstore['_id']}) is not None)
 
     def createFilesystemAssetstore(self, name, root):
         return self.save({

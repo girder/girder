@@ -39,6 +39,7 @@ class Assetstore(Resource):
     @access.admin
     @loadmodel(model='assetstore')
     def getAssetstore(self, assetstore, params):
+        self.model('assetstore').addComputedInfo(assetstore)
         return assetstore
     getAssetstore.description = (
         Description('Get information about an assetstore.')
