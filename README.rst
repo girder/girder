@@ -1,10 +1,13 @@
-Girder |build-status| |docs-status| |license-badge|
-===================================================
+Girder |build-status| |docs-status| |license-badge| |gitter-badge|
+==================================================================
 
-*High-Performance Data Management Platform*
+*Data Management Platform*
 
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.org.
+
+For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum 
+<https://gitter.im/girder/girder>`_.
 
 .. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
     :target: https://travis-ci.org/girder/girder
@@ -17,3 +20,7 @@ https://girder.readthedocs.org.
 .. |license-badge| image:: https://pypip.in/license/girder/badge.png
     :target: https://pypi.python.org/pypi/girder
     :alt: License
+
+.. |gitter-badge| image:: https://badges.gitter.im/Join Chat.svg
+    :target: https://gitter.im/girder/girder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+    :alt: Gitter Chat

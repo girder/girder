@@ -231,7 +231,7 @@ module.exports = function (grunt) {
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
-                        'node_modules/markdown/lib/markdown.js',
+                        'node_modules/marked/lib/marked.js',
                         'clients/web/lib/js/d3.js',
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
