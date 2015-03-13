@@ -71,6 +71,37 @@ class MockSnakebiteClient(object):
                 'result': True
             }
 
+    def ls(self, paths, **kwargs):
+        for path in paths:
+            absPath = self._convertPath(path)
+            if not os.path.exists(absPath):
+                raise FileNotFoundException('Not found: ' + absPath)
+            elif os.path.isfile(absPath):
+                yield {
+                    'file_type': 'f',
+                    'length': long(os.stat(absPath).st_size),
+                    'path': path
+                }
+            else:
+                for i in os.listdir(absPath):
+                    itemPath = os.path.join(absPath, i)
+                    if os.path.isfile(itemPath):
+                        yield {
+                            'file_type': 'f',
+                            'length': long(os.stat(itemPath).st_size),
+                            'path': os.path.join(path, i)
+                        }
+                    else:
+                        yield {
+                            'file_type': 'd',
+                            'length': 0L,
+                            'path': os.path.join(path, i)
+                        }
+
+    def cat(self, paths, **kwargs):
+        for path in paths:
+            with open(self._convertPath(path), 'rb') as f:
+                yield f.read()
 
 # This seems to be the most straightforward way to mock the object globally
 # such that it is also mocked in the request context. mock.patch was not
@@ -101,7 +132,6 @@ class HdfsAssetstoreTest(base.TestCase):
             admin=True
         )
 
-
         shutil.rmtree(os.path.join(_mockRoot, 'test'), ignore_errors=True)
 
     def testAssetstore(self):
@@ -113,10 +143,79 @@ class HdfsAssetstoreTest(base.TestCase):
             'path': '/test'
         }
 
+        # Make sure admin access required
         resp = self.request(path='/assetstore', method='POST', params=params)
         self.assertStatus(resp, 401)
 
+        # Create the assetstore
         self.assertFalse(os.path.isdir(os.path.join(_mockRoot, 'test')))
         resp = self.request(path='/assetstore', method='POST', params=params,
                             user=self.admin)
         self.assertTrue(os.path.isdir(os.path.join(_mockRoot, 'test')))
+        self.assertStatusOk(resp)
+        assetstore = resp.json
+
+        path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
+        params = {
+            'progress': 'true',
+            'parentType': 'user',
+            'parentId': self.admin['_id'],
+            'path': 'bad path'
+        }
+
+        # Make sure only admins can import
+        resp = self.request(path=path, method='PUT', params=params)
+        self.assertStatus(resp, 401)
+
+        # Test importing a nonexistent path
+        resp = self.request(path=path, method='PUT', params=params,
+                            user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'File not found: bad path.')
+
+        params['path'] = '/'
+
+        # Import a hierarchy into the admin user's root dir
+        resp = self.request(path=path, method='PUT', params=params,
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        folders = list(self.model('folder').childFolders(
+            parentType='user', parent=self.admin, user=self.admin))
+
+        # Make sure the hierarchy got imported
+        folder = None
+        for folder in folders:
+            if folder['name'] == 'to_import':
+                break
+        self.assertTrue(folder is not None)
+
+        items = list(self.model('folder').childItems(
+            folder=folder, user=self.admin))
+        self.assertEqual(len(items), 2)
+
+        for item in items:
+            if item['name'] == 'hello.txt':
+                helloItem = item
+            elif item['name'] == 'world.txt':
+                pass
+            else:
+                raise Exception('Unexpected item name: ' + item['name'])
+
+        file = self.model('item').childFiles(
+            item=helloItem, user=self.admin).next()
+
+        # Download the file
+        resp = self.request(path='/file/{}/download'.format(file['_id']),
+                            user=self.admin, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.collapse_body().strip(), 'hello')
+
+        helloTxtPath = os.path.join(_mockRoot, 'to_import', 'hello.txt')
+
+        # Deleting an imported file should not delete the backing HDFS file
+        self.assertTrue(os.path.isfile(helloTxtPath))
+        resp = self.request(path='/file/' + str(file['_id']), method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(None, self.model('file').load(file['_id']))
+        self.assertTrue(os.path.isfile(helloTxtPath))
