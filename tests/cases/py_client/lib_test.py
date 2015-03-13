@@ -125,3 +125,48 @@ class PythonClientTestCase(base.TestCase):
         # Test recursive ACL propagation (not very robust test yet)
         client.createFolder(privateFolder['_id'], name='Subfolder')
         client.inheritAccessControlRecursive(privateFolder['_id'])
+
+    def testUploadCallbacks(self):
+        callbackUser = self.model('user').createUser(
+            firstName='Callback', lastName='Last', login='callback',
+            password='password', email='Callback@email.com')
+        callbackPublicFolder = self.model('folder').childFolders(
+            parentType='user', parent=callbackUser, user=None, limit=1).next()
+        callback_counts = {'folder': 0, 'item': 0}
+        folders = {}
+        items = {}
+        localDir = os.path.dirname(__file__)
+        folders[localDir] = False
+        folder_count = 1     # 1 for localDir
+        item_count = 0
+        for root, dirs, files in os.walk(localDir):
+            for name in files:
+                items[os.path.join(root, name)] = False
+                item_count += 1
+            for name in dirs:
+                folders[os.path.join(root, name)] = False
+                folder_count += 1
+
+        def folder_callback(folder, filepath):
+            self.assertIn(filepath, folders.keys())
+            folders[filepath] = True
+            callback_counts['folder'] += 1
+
+        def item_callback(item, filepath):
+            self.assertIn(filepath, items.keys())
+            items[filepath] = True
+            callback_counts['item'] += 1
+
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        client.authenticate('callback', 'password')
+
+        client.add_folder_upload_callback(folder_callback)
+        client.add_item_upload_callback(item_callback)
+        client.upload(localDir, callbackPublicFolder['_id'])
+
+        # make sure counts are the same (callbacks not called more than once)
+        # and that all folders and files have callbacks called on them
+        self.assertEqual(folder_count, callback_counts['folder'])
+        self.assertEqual(item_count, callback_counts['item'])
+        self.assertTrue(all(items.values()))
+        self.assertTrue(all(folders.values()))
