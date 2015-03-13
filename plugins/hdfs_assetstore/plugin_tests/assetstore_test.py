@@ -36,8 +36,9 @@ class MockSnakebiteClient(object):
     with an HDFS instance. This uses the `mock_fs` directory as the root of
     the mock filesystem for easy management of the test dataset.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, port=None, **kwargs):
         self.root = _mockRoot
+        self.port = port
 
     def _convertPath(self, path):
         if path[0] == '/':
@@ -46,7 +47,8 @@ class MockSnakebiteClient(object):
         return os.path.join(self.root, path)
 
     def serverdefaults(self):
-        pass
+        if self.port != 9000:
+            raise Exception('Failed to connect to HDFS.')
 
     def test(self, path, exists=False, directory=False, **kwargs):
         path = self._convertPath(path)
@@ -139,13 +141,21 @@ class HdfsAssetstoreTest(base.TestCase):
             'type': AssetstoreType.HDFS,
             'name': 'test assetstore',
             'host': 'localhost',
-            'port': 9000,
+            'port': 'bad value',
             'path': '/test'
         }
 
         # Make sure admin access required
         resp = self.request(path='/assetstore', method='POST', params=params)
         self.assertStatus(resp, 401)
+
+        # Test assetstore validation
+        resp = self.request(path='/assetstore', method='POST', params=params,
+                            user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['field'], 'port')
+
+        params['port'] = 9000
 
         # Create the assetstore
         self.assertFalse(os.path.isdir(os.path.join(_mockRoot, 'test')))
@@ -154,6 +164,20 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(_mockRoot, 'test')))
         self.assertStatusOk(resp)
         assetstore = resp.json
+
+        # Test updating of the assetstore
+        params['port'] = 9001
+        resp = self.request(path='/assetstore/' + str(assetstore['_id']),
+                            method='PUT', user=self.admin, params={
+                                'name': 'test assetstore',
+                                'hdfsHost': 'localhost',
+                                'hdfsPath': '/test',
+                                'hdfsPort': 9001,
+                                'current': True
+                            })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Could not connect to HDFS at localhost:9001.')
 
         path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
         params = {
