@@ -68,6 +68,8 @@ $(function () {
 });
 
 describe('Create a data hierarchy', function () {
+    var folder;
+
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -690,6 +692,34 @@ describe('Create a data hierarchy', function () {
         });
     });
 
+    it('logout from second user', girderTest.logout('logout from second user'));
+});
+
+describe('Test FileModel static upload functions', function () {
+    var folder;
+
+    it('test prep - register a user', girderTest.createUser('dbowman',
+                                                            'dbowman@nasa.gov',
+                                                            'David',
+                                                            'Bowman',
+                                                            'jupiter'));
+
+    it('test prep - create top level folder', function () {
+        runs(function () {
+            var _folder = new girder.models.FolderModel({
+                parentType: 'user',
+                parentId: girder.currentUser.get('_id'),
+                name: 'top level folder'
+            }).on('g:saved', function () {
+                folder = _folder;
+            }).save();
+        });
+
+        waitsFor(function () {
+            return !!folder && folder.get('_id');
+        }, 'folder creation');
+    });
+
     window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
     window.Blob = function (data) {
         var builder = new BlobBuilder();
@@ -698,4 +728,66 @@ describe('Create a data hierarchy', function () {
         });
         return builder.getBlob();
     };
+
+    it('test FileModel.uploadToFolder()', function () {
+        var ok = false, text, filename, speech;
+
+        filename = 'hal.txt';
+
+        // TODO: replace this with the "correct" mechanism for handling text
+        // with Jasmine (cc @manthey).
+        girderTest._uploadData = speech = "Just what do you think you're doing, Dave?";
+
+        runs(function () {
+            var file = new girder.models.FileModel();
+            file.uploadToFolder(folder.get('_id'), speech, 'hal.txt', 'text/plain');
+            file.on('g:upload.complete', function () {
+                ok = true;
+            });
+        });
+
+        waitsFor(function () {
+            return ok;
+        });
+
+        runs(function () {
+            var item;
+
+            item = girder.restRequest({
+                path: '/item',
+                type: 'GET',
+                data: {
+                    folderId: folder.get("_id"),
+                    text: 'hal.txt',
+                },
+                async: false
+            });
+
+            item = item && item.responseJSON && item.responseJSON[0];
+
+            file = girder.restRequest({
+                path: '/item/' + item._id + '/files',
+                type: 'GET',
+                async: false
+            });
+
+            file = file && file.responseJSON && file.responseJSON[0];
+
+            if (file) {
+                resp = girder.restRequest({
+                    path: '/file/' + file._id + '/download',
+                    type: 'GET',
+                    async: false
+                });
+
+                text = resp.responseText;
+            }
+        });
+
+        waitsFor(function () {
+            return file.name === filename && text === speech;
+        });
+    });
+
+    it('logout from test account', girderTest.logout('logout from test account'));
 });
