@@ -3,7 +3,9 @@ girder.App = girder.View.extend({
         girder.restRequest({
             path: 'user/me'
         }).done(_.bind(function (user) {
-            girder.eventStream = new girder.EventStream();
+            girder.eventStream = new girder.EventStream({
+                timeout: girder.sseTimeout || null
+            });
 
             this.headerView = new girder.views.LayoutHeaderView({
                 parentView: this
