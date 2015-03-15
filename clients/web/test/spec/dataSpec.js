@@ -689,4 +689,13 @@ describe('Create a data hierarchy', function () {
             $('#g-app-body-container').click();
         });
     });
+
+    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
+    window.Blob = function (data) {
+        var builder = new BlobBuilder();
+        _.each(data, function (d) {
+            builder.append(d);
+        });
+        return builder.getBlob();
+    };
 });
