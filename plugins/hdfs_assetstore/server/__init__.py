@@ -20,7 +20,7 @@
 from .assetstore import HdfsAssetstoreAdapter
 from .rest import HdfsAssetstoreResource
 from girder import events
-from girder.api import rest
+from girder.api import access
 from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
 from girder.utility.model_importer import ModelImporter
@@ -47,9 +47,8 @@ def updateAssetstore(event):
         }
 
 
+@access.admin
 def createAssetstore(event):
-    rest.requireAdmin(rest.getCurrentUser())
-
     params = event.info['params']
 
     if params.get('type') == AssetstoreType.HDFS:
