@@ -740,7 +740,7 @@ describe('Test FileModel static upload functions', function () {
 
         runs(function () {
             var file = new girder.models.FileModel();
-            file.uploadToFolder(folder.get('_id'), speech, 'hal.txt', 'text/plain');
+            file.uploadToFolder(folder.get('_id'), speech, filename, 'text/plain');
             file.on('g:upload.complete', function () {
                 ok = true;
             });
@@ -758,7 +758,7 @@ describe('Test FileModel static upload functions', function () {
                 type: 'GET',
                 data: {
                     folderId: folder.get("_id"),
-                    text: 'hal.txt',
+                    text: filename,
                 },
                 async: false
             });
