@@ -65,7 +65,7 @@ _.extend(girder, {
             dataType: 'json',
             type: 'GET',
 
-            error: function (error) {
+            error: function (error, status) {
                 var info;
                 if (error.status === 401) {
                     girder.events.trigger('g:loginUi');
@@ -92,6 +92,15 @@ _.extend(girder, {
                         type: 'warning',
                         timeout: 5000,
                         icon: 'info'
+                    };
+                } else if (status === "parsererror") {
+                    info = {
+                        text: 'A parser error occurred while communicating with the ' +
+                              'server (did you use the correct value for `dataType`?). ' +
+                              'Details have been logged in the console.',
+                        type: 'danger',
+                        timeout: 5000,
+                        icon: 'attention'
                     };
                 } else {
                     info = {
