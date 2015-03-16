@@ -10,14 +10,16 @@ form.g-hdfs-import-form
     label(for="g-hdfs-import-path") Import path (file or directory)
     input.form-control.input-sm#g-hdfs-import-path(type="text")
   .form-group
-    label(for="g-hdfs-import-dest-id") Destination ID
-    input.form-control.input-sm#g-hdfs-import-dest-id(type="text")
-  .form-group
     label(for="g-hdfs-import-dest-type") Destination type
     select.form-control#g-hdfs-import-dest-type
       option(value="folder") Folder
       option(value="user") User
       option(value="collection") Collection
+  .form-group
+    label(for="g-hdfs-import-dest-id") Destination ID
+    input.form-control.input-sm#g-hdfs-import-dest-id(
+      type="text"
+      placeholder="Existing folder, user, or collection ID to use as the destination")
   .g-validation-failed-message
   button.g-submit-hdfs-import.btn.btn-success(type="submit")
     i.icon-link-ext
