@@ -777,6 +777,7 @@ describe('Test FileModel static upload functions', function () {
                 resp = girder.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
+                    dataType: 'text',
                     async: false
                 });
 
