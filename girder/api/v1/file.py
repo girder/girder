@@ -142,7 +142,7 @@ class File(Resource):
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
 
-        if type(offset) in (int, long):
+        if isinstance(offset, (int, long)):
             upload['received'] = offset
             self.model('upload').save(upload)
             return {'offset': offset}

@@ -32,7 +32,10 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
     :param assetstore: The assetstore document used to instantiate the adapter.
     :type assetstore: dict
-
+    :param instance: Whether to return an instance of the adapter or the class.
+        If you are performing validation, set this to False to avoid throwing
+        unwanted exceptions during instantiation.
+    :type instance: bool
     :returns: An adapter descending from AbstractAssetstoreAdapter
     """
     cls = None
