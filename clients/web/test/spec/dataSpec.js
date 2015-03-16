@@ -696,7 +696,7 @@ describe('Create a data hierarchy', function () {
 });
 
 describe('Test FileModel static upload functions', function () {
-    var folder;
+    var folder, item;
 
     it('test prep - register a user', girderTest.createUser('dbowman',
                                                             'dbowman@nasa.gov',
@@ -718,6 +718,21 @@ describe('Test FileModel static upload functions', function () {
         waitsFor(function () {
             return !!folder && folder.get('_id');
         }, 'folder creation');
+    });
+
+    it('test prep - create item', function () {
+        runs(function () {
+            var _item = new girder.models.ItemModel({
+                folderId: folder.get('_id'),
+                name: 'an item'
+            }).on('g:saved', function () {
+                item = _item;
+            }).save();
+        });
+
+        waitsFor(function () {
+            return !!item;
+        }, 'item creation');
     });
 
     window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
@@ -767,6 +782,53 @@ describe('Test FileModel static upload functions', function () {
 
             file = girder.restRequest({
                 path: '/item/' + item._id + '/files',
+                type: 'GET',
+                async: false
+            });
+
+            file = file && file.responseJSON && file.responseJSON[0];
+
+            if (file) {
+                resp = girder.restRequest({
+                    path: '/file/' + file._id + '/download',
+                    type: 'GET',
+                    dataType: 'text',
+                    async: false
+                });
+
+                text = resp.responseText;
+            }
+        });
+
+        waitsFor(function () {
+            return file.name === filename && text === speech;
+        });
+    });
+
+    it('test FileModel.uploadToItem()', function () {
+        var ok = false, text, filename, speech, file;
+
+        filename = 'dave.txt';
+
+        // TODO: replace this with the "correct" mechanism for handling text
+        // with Jasmine (cc @manthey).
+        girderTest._uploadData = speech = "Open the pod bay doors, HAL.";
+
+        runs(function () {
+            var file = new girder.models.FileModel();
+            file.uploadToItem(item.get('_id'), speech, filename, 'text/plain');
+            file.on('g:upload.complete', function () {
+                ok = true;
+            });
+        });
+
+        waitsFor(function () {
+            return ok;
+        });
+
+        runs(function () {
+            file = girder.restRequest({
+                path: '/item/' + item.get('_id') + '/files',
                 type: 'GET',
                 async: false
             });
