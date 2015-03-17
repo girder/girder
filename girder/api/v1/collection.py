@@ -141,7 +141,8 @@ class Collection(Resource):
             'description', collection['description']).strip()
 
         collection = self.model('collection').updateCollection(collection)
-        return self.model('collection').filter(collection)
+        return self.model('collection').filter(
+            collection, self.getCurrentUser())
     updateCollection.description = (
         Description('Edit a collection by ID.')
         .responseClass('Collection')
