@@ -39,11 +39,12 @@ def updateAssetstore(event):
 
     if assetstore['type'] == AssetstoreType.HDFS:
         assetstore['hdfs'] = {
-            'host': params['hdfsHost'],
-            'port': params['hdfsPort'],
-            'path': params['hdfsPath'],
-            'webHdfsPort': params.get('webHdfsPort'),
-            'user': params.get('hdfsUser')
+            'host': params.get('hdfsHost', assetstore['hdfs']['host']),
+            'port': params.get('hdfsPort', assetstore['hdfs']['port']),
+            'path': params.get('hdfsPath', assetstore['hdfs']['path']),
+            'webHdfsPort': params.get('webHdfsPort',
+                                      assetstore['hdfs'].get('webHdfsPort')),
+            'user': params.get('hdfsUser', assetstore['hdfs'].get('user'))
         }
 
 
@@ -79,7 +80,8 @@ def load(info):
         .param('path', 'Absolute path under which new files will be stored ('
                'for HDFS type).', required=False)
         .param('user', 'The effective user to use when calling HDFS RPCs (for '
-               'HDFS type). Default is current user.', required=False)
+               'HDFS type). This defaults to whatever system username the '
+               'Girder server process is running under.', required=False)
         .param('webHdfsPort', 'WebHDFS port for the namenode. You must enable '
                'WebHDFS on your Hadoop cluster if you want to write new files '
                'to the assetstore (for HDFS type).', required=False))
