@@ -227,9 +227,16 @@ receive the same kwargs as the default route handler in the event's info.
 Just like the before REST call event, but this is fired after the default
 handler has already executed and returned its value. That return value is
 also passed in the event.info for possible alteration by the receiving handler.
-The identifier for this event is, e.g., ``rest.get.item/:id.after``. You may
-alter the existing return value or override it completely using
-``preventDefault`` and ``addResponse`` on the event.
+The identifier for this event is, e.g., ``rest.get.item/:id.after``.
+
+You may alter the existing return value, for example adding an additional property ::
+
+    event.info['returnVal']['myProperty'] = 'myPropertyValue'
+
+or override it completely using ``preventDefault`` and ``addResponse`` on the event ::
+
+    event.addResponse(myReplacementResponse)
+    event.preventDefault()
 
 *  **Before model save**
 
