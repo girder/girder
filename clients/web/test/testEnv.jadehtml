@@ -22,6 +22,7 @@ html(lang="en")
         var consoleReporter = new jasmine.ConsoleReporter();
         window.jasmine_phantom_reporter = consoleReporter;
         jasmineEnv.addReporter(consoleReporter);
+        girder.sseTimeout = 10;
         if (window.blanket) {
             window.blanket.options('timeout', 3000);
         }
