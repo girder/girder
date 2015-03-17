@@ -745,7 +745,7 @@ describe('Test FileModel static upload functions', function () {
     };
 
     it('test FileModel.uploadToFolder()', function () {
-        var ok = false, text, filename, speech;
+        var ok = false, text, filename, speech, fileModel, file;
 
         filename = 'hal.txt';
 
@@ -754,16 +754,13 @@ describe('Test FileModel static upload functions', function () {
         girderTest._uploadData = speech = "Just what do you think you're doing, Dave?";
 
         runs(function () {
-            var file = new girder.models.FileModel();
-            file.uploadToFolder(folder.get('_id'), speech, filename, 'text/plain');
-            file.on('g:upload.complete', function () {
-                ok = true;
-            });
+            fileModel = new girder.models.FileModel();
+            fileModel.uploadToFolder(folder.get('_id'), speech, filename, 'text/plain');
         });
 
         waitsFor(function () {
-            return ok;
-        });
+            return !fileModel.isNew();
+        }, "file model to become valid");
 
         runs(function () {
             var item;
@@ -801,12 +798,12 @@ describe('Test FileModel static upload functions', function () {
         });
 
         waitsFor(function () {
-            return file.name === filename && text === speech;
+            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
         });
     });
 
     it('test FileModel.uploadToItem()', function () {
-        var ok = false, text, filename, speech, file;
+        var ok = false, text, filename, speech, file, fileModel;
 
         filename = 'dave.txt';
 
@@ -815,15 +812,12 @@ describe('Test FileModel static upload functions', function () {
         girderTest._uploadData = speech = "Open the pod bay doors, HAL.";
 
         runs(function () {
-            var file = new girder.models.FileModel();
-            file.uploadToItem(item.get('_id'), speech, filename, 'text/plain');
-            file.on('g:upload.complete', function () {
-                ok = true;
-            });
+            fileModel = new girder.models.FileModel();
+            fileModel.uploadToItem(item.get('_id'), speech, filename, 'text/plain');
         });
 
         waitsFor(function () {
-            return ok;
+            return !fileModel.isNew();
         });
 
         runs(function () {
@@ -848,7 +842,7 @@ describe('Test FileModel static upload functions', function () {
         });
 
         waitsFor(function () {
-            return file.name === filename && text === speech;
+            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
         });
     });
 

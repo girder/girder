@@ -68,7 +68,7 @@
                         },
                         error: null
                     }).done(_.bind(function (resp) {
-                        this.trigger('g:upload.complete');
+                        this.trigger('g:upload.complete', resp);
                     }, handler)).error(_.bind(function (resp) {
                         var msg;
 
@@ -282,7 +282,7 @@
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    handler.trigger('g:upload.complete');
+                    handler.trigger('g:upload.complete', xhr.response);
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +

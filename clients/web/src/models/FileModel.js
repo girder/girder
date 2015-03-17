@@ -102,6 +102,7 @@ girder.models.FileModel = girder.Model.extend({
                 });
                 this.uploadHandler.on({
                     'g:upload.complete': function (params) {
+                        this.set(params);
                         this.trigger('g:upload.complete', params);
                         this.uploadHandler = null;
                     },
@@ -131,6 +132,7 @@ girder.models.FileModel = girder.Model.extend({
                 this._uploadChunk(file, upload._id);
             } else {
                 // Empty file, so we are done
+                this.set(upload);
                 this.trigger('g:upload.complete');
             }
         }, this)).error(_.bind(function (resp) {
@@ -221,7 +223,7 @@ girder.models.FileModel = girder.Model.extend({
             data: fd,
             contentType: false,
             processData: false,
-            success: function () {
+            success: function (resp) {
                 model.trigger('g:upload.chunkSent', {
                     bytes: endByte - model.startByte
                 });
@@ -229,6 +231,7 @@ girder.models.FileModel = girder.Model.extend({
                 if (endByte === file.size) {
                     model.startByte = 0;
                     model.resumeInfo = null;
+                    model.set(resp);
                     model.trigger('g:upload.complete');
                 } else {
                     model.startByte = endByte;
