@@ -282,7 +282,7 @@
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    handler.trigger('g:upload.complete', xhr.response);
+                    handler.trigger('g:upload.complete', $.parseJSON(xhr.responseText));
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +
