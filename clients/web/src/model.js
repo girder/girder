@@ -4,7 +4,7 @@
  */
 girder.Model = Backbone.Model.extend({
     resourceName: null,
-    idAttribute: "_id",
+    idAttribute: '_id',
 
     /**
      * Get the name for this resource. By default, just the name attribute.
