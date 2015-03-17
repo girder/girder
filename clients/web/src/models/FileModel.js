@@ -3,10 +3,9 @@ girder.models.FileModel = girder.Model.extend({
     resumeInfo: null,
 
     _wrapData: function (data) {
-        var datatype = data.toString(),
-            wrapped = data;
+        var wrapped = data;
 
-        if (datatype !== "[object Blob]" && datatype !== "[object File]") {
+        if (!(data instanceof Blob)) {
             if (!_.isArray(data)) {
                 wrapped = [data];
             }
