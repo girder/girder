@@ -282,7 +282,8 @@
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    handler.trigger('g:upload.complete', $.parseJSON(xhr.responseText));
+                    delete resp.s3FinalizeRequest;
+                    handler.trigger('g:upload.complete', resp);
                 } else {
                     handler.trigger('g:upload.error', {
                         message: 'Error occurred uploading to S3 (' +
