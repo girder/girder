@@ -93,7 +93,7 @@ _.extend(girder, {
                         timeout: 5000,
                         icon: 'info'
                     };
-                } else if (status === "parsererror") {
+                } else if (status === 'parsererror') {
                     info = {
                         text: 'A parser error occurred while communicating with the ' +
                               'server (did you use the correct value for `dataType`?). ' +
