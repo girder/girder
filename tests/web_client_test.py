@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import socket
 import subprocess
 import sys
 import time
@@ -36,6 +37,13 @@ testServer = None
 
 
 def setUpModule():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    girder_port = int(os.environ['GIRDER_PORT'])
+    result = sock.connect_ex(('127.0.0.1', girder_port))
+    if result == 0:
+        sys.stderr.write('ERROR: Port %d already in use, perhaps a hung test?'
+                         % (girder_port))
+
     global testServer
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
