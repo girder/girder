@@ -21,59 +21,6 @@ girder.models.UserModel = girder.Model.extend({
         }, this));
     },
 
-    // Attempts to log a user in, modifying the model to reflect that user if
-    // successful; has no effect otherwise.
-    login: function (username, password, success, error) {
-        var auth = "Basic " + window.btoa(username + ":" + password),
-            successC,
-            errorC;
-
-        successC = _.bind(function (resp) {
-            this.set(resp.user);
-            if (success) {
-                success(this);
-            }
-        }, this);
-
-        errorC = _.bind(function (resp) {
-            if (error) {
-                error(this, resp);
-            }
-        }, this);
-
-        girder.restRequest({
-            method: "GET",
-            path: "/user/authentication",
-            headers: {
-                Authorization: auth
-            }
-        }).then(successC, errorC);
-    },
-
-    // Log out the currently logged in user.  On success, clears the model.
-    logout: function (success, error) {
-        var successC,
-            errorC;
-
-        successC = _.bind(function () {
-            this.clear();
-            if (success) {
-                success(this);
-            }
-        }, this);
-
-        errorC = _.bind(function (resp) {
-            if (error) {
-                error(this, resp);
-            }
-        }, this);
-
-        girder.restRequest({
-            method: "DELETE",
-            path: "/user/authentication"
-        }).then(successC, errorC);
-    },
-
     name: function () {
         return this.get('firstName') + ' ' + this.get('lastName');
     },
