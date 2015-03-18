@@ -2,6 +2,9 @@
 girder.dialogs = {
 
     splitRoute: function (route) {
+        if (!girder.router.enabled()) {
+            return {base: '', dialogName: ''};
+        }
         var firstIndex = route.indexOf('?'),
             lastIndex = route.lastIndexOf('?'),
             dialogName,
