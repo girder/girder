@@ -234,14 +234,20 @@ girder.restartServer._reloadWindow = function () {
  *        return the HTML value.
  */
 girder.renderMarkdown = (function () {
-    marked.setOptions({ sanitize: true });
-    return function (val, el) {
-        if (el) {
-            $(el).html(marked(val));
-        } else {
-            return marked(val);
-        }
-    };
+    if (window.marked) {
+        marked.setOptions({ sanitize: true });
+        return function (val, el) {
+            if (el) {
+                $(el).html(marked(val));
+            } else {
+                return marked(val);
+            }
+        };
+    } else {
+        return function () {
+            throw new Error('You must include the marked library to call this function');
+        };
+    }
 }());
 
 (function () {
