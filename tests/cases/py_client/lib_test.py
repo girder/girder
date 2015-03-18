@@ -52,7 +52,8 @@ class PythonClientTestCase(base.TestCase):
             f.close()
 
         # make some temp dirs and files
-        self.libTestDir = os.path.join('/tmp', '_libTestDir')
+        self.libTestDir = os.path.join(os.path.dirname(__file__),
+                                       '_libTestDir')
         os.mkdir(self.libTestDir)
         writeFile(self.libTestDir)
         for subDir in range(0, 3):
