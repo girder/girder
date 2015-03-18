@@ -21,14 +21,21 @@ function(javascript_tests_init)
 endfunction()
 
 function(add_javascript_style_test name input)
+  set(working_dir "${PROJECT_SOURCE_DIR}/clients/web")
+  if(NOT IS_ABSOLUTE ${input})
+    set(input ${working_dir}/${input})
+  endif()
+  if(NOT EXISTS ${input})
+    message(FATAL_ERROR "Failed to add javascript style tests."
+                        "Directory '${input}' does not exist.")
+  endif()
   add_test(
     NAME "jshint_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
+    WORKING_DIRECTORY ${input}
     COMMAND "${JSHINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jshint.cfg" "${input}"
   )
   add_test(
     NAME "jsstyle_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
     COMMAND "${JSSTYLE_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg" "${input}"
   )
 endfunction()
