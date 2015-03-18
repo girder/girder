@@ -68,6 +68,8 @@ $(function () {
 });
 
 describe('Create a data hierarchy', function () {
+    var folder;
+
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -689,4 +691,160 @@ describe('Create a data hierarchy', function () {
             $('#g-app-body-container').click();
         });
     });
+
+    it('logout from second user', girderTest.logout('logout from second user'));
+});
+
+describe('Test FileModel static upload functions', function () {
+    var folder, item;
+
+    it('test prep - register a user', girderTest.createUser('dbowman',
+                                                            'dbowman@nasa.gov',
+                                                            'David',
+                                                            'Bowman',
+                                                            'jupiter'));
+
+    it('test prep - create top level folder', function () {
+        runs(function () {
+            var _folder = new girder.models.FolderModel({
+                parentType: 'user',
+                parentId: girder.currentUser.get('_id'),
+                name: 'top level folder'
+            }).on('g:saved', function () {
+                folder = _folder;
+            }).save();
+        });
+
+        waitsFor(function () {
+            return !!folder && folder.get('_id');
+        }, 'folder creation');
+    });
+
+    it('test prep - create item', function () {
+        runs(function () {
+            var _item = new girder.models.ItemModel({
+                folderId: folder.get('_id'),
+                name: 'an item'
+            }).on('g:saved', function () {
+                item = _item;
+            }).save();
+        });
+
+        waitsFor(function () {
+            return !!item;
+        }, 'item creation');
+    });
+
+    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
+    window.Blob = function (data) {
+        var builder = new BlobBuilder();
+        _.each(data, function (d) {
+            builder.append(d);
+        });
+        return builder.getBlob();
+    };
+
+    it('test FileModel.uploadToFolder()', function () {
+        var ok = false, text, filename, speech, fileModel, file;
+
+        filename = 'hal.txt';
+
+        // TODO: replace this with the "correct" mechanism for handling text
+        // with Jasmine (cc @manthey).
+        girderTest._uploadData = speech = "Just what do you think you're doing, Dave?";
+
+        runs(function () {
+            fileModel = new girder.models.FileModel();
+            fileModel.uploadToFolder(folder.get('_id'), speech, filename, 'text/plain');
+        });
+
+        waitsFor(function () {
+            return !fileModel.isNew();
+        }, "file model to become valid");
+
+        runs(function () {
+            var item;
+
+            item = girder.restRequest({
+                path: '/item',
+                type: 'GET',
+                data: {
+                    folderId: folder.get("_id"),
+                    text: filename,
+                },
+                async: false
+            });
+
+            item = item && item.responseJSON && item.responseJSON[0];
+
+            file = girder.restRequest({
+                path: '/item/' + item._id + '/files',
+                type: 'GET',
+                async: false
+            });
+
+            file = file && file.responseJSON && file.responseJSON[0];
+
+            if (file) {
+                resp = girder.restRequest({
+                    path: '/file/' + file._id + '/download',
+                    type: 'GET',
+                    dataType: 'text',
+                    async: false
+                });
+
+                text = resp.responseText;
+            }
+        });
+
+        waitsFor(function () {
+            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
+        });
+    });
+
+    it('test FileModel.uploadToItem()', function () {
+        var ok = false, text, filename, speech, file, fileModel;
+
+        filename = 'dave.txt';
+
+        // TODO: replace this with the "correct" mechanism for handling text
+        // with Jasmine (cc @manthey).
+        girderTest._uploadData = speech = "Open the pod bay doors, HAL.";
+
+        runs(function () {
+            fileModel = new girder.models.FileModel();
+            fileModel.uploadToItem(item.get('_id'), speech, filename, 'text/plain');
+        });
+
+        waitsFor(function () {
+            return !fileModel.isNew();
+        });
+
+        runs(function () {
+            file = girder.restRequest({
+                path: '/item/' + item.get('_id') + '/files',
+                type: 'GET',
+                async: false
+            });
+
+            file = file && file.responseJSON && file.responseJSON[0];
+
+            if (file) {
+                resp = girder.restRequest({
+                    path: '/file/' + file._id + '/download',
+                    type: 'GET',
+                    dataType: 'text',
+                    async: false
+                });
+
+                text = resp.responseText;
+            }
+        });
+
+        waitsFor(function () {
+            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
+        });
+    });
+
+    it('logout from test account', girderTest.logout('logout from test account'));
 });
