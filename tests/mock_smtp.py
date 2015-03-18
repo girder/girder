@@ -70,7 +70,7 @@ class MockSmtpReceiver(object):
         exit.
         """
         while len(asyncore.socket_map):
-            asyncore.loop(timeout=1, use_poll=True)
+            asyncore.loop(timeout=0.5, use_poll=True)
 
     def stop(self):
         """Stop the mock STMP server"""

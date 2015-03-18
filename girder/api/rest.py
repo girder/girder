@@ -619,7 +619,7 @@ class Resource(ModelImporter):
                 eventPrefix = '.'.join(('rest', method, routeStr))
 
                 event = events.trigger('.'.join((eventPrefix, 'before')),
-                                       kwargs)
+                                       kwargs, pre=self._defaultAccess)
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
@@ -867,10 +867,17 @@ class Resource(ModelImporter):
     def PATCH(self, path, params):
         return self.handleRoute('PATCH', path, params)
 
-    def _defaultAccess(self, fun):
+    @staticmethod
+    def _defaultAccess(handler, **kwargs):
         """
-        If a function wasn't wrapped by one of the security decorators, check
-        the default access rights (admin required).
+        This is the pre-event handler callback for the events that are triggered
+        before default handling of a REST request. Since such an event handler
+        could accidentally circumvent the access level of the default handler,
+        we enforce that handlers of these event types must also specify their
+        own access level, or else default to the strictest level (admin) just
+        like the core route handlers. This allows plugins to potentially
+        override the default level, but makes sure they don't accidentally lower
+        the access level for a given route.
         """
-        if not hasattr(fun, 'accessLevel'):
-            self.requireAdmin(self.getCurrentUser())
+        if not hasattr(handler, 'accessLevel'):
+            requireAdmin(getCurrentUser())

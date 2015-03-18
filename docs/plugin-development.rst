@@ -222,6 +222,15 @@ default behavior using ``preventDefault`` and ``addResponse``. The identifiers
 for these events are of the form ``rest.get.item/:id.before``. They
 receive the same kwargs as the default route handler in the event's info.
 
+Since handlers of this event run prior to the normal access level check of the
+underlying route handler, they are bound by the same access level rules as route
+handlers; they must be decorated by one of the functions in `girder.api.access`.
+If you do not decorate them with one, they will default to requiring administrator
+access. This is to prevent accidental reduction of security by plugin developers.
+You may change the access level of the route in your handler, but you will
+need to do so explicitly by declaring a different decorator than the underlying
+route handler.
+
 *  **After REST call**
 
 Just like the before REST call event, but this is fired after the default

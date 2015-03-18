@@ -25,6 +25,8 @@ class AbstractAssetstoreAdapter(object):
     """
     This defines the interface to be used by all assetstore adapters.
     """
+    def __init__(self, assetstore):
+        self.assetstore = assetstore
 
     @staticmethod
     def validateInfo(doc):
@@ -55,7 +57,7 @@ class AbstractAssetstoreAdapter(object):
         return {
             'free': None,
             'total': None
-        }  # pragma: no cover
+        }
 
     def initUpload(self, upload):
         """
