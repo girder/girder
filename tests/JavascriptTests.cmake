@@ -31,6 +31,7 @@ function(add_javascript_style_test name input)
   endif()
   add_test(
     NAME "jshint_${name}"
+    WORKING_DIRECTORY ${input}
     COMMAND "${JSHINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jshint.cfg" "${input}"
   )
   add_test(
