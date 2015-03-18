@@ -21,15 +21,30 @@ function(javascript_tests_init)
 endfunction()
 
 function(add_javascript_style_test name input)
+  set(_args JSHINT_CONFIG JSSTYLE_CONFIG)
+  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  if(fn_JSHINT_CONFIG)
+    set(jshint_cfg ${fn_JSHINT_CONFIG})
+  else()
+    set(jshint_cfg "${PROJECT_SOURCE_DIR}/tests/jshint.cfg")
+  endif()
+
+  if(fn_JSSTYLE_CONFIG)
+    set(jsstyle_cfg ${fn_JSSTYLE_CONFIG})
+  else()
+    set(jsstyle_cfg "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg")
+  endif()
+
   add_test(
     NAME "jshint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
-    COMMAND "${JSHINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jshint.cfg" "${input}"
+    COMMAND "${JSHINT_EXECUTABLE}" --config ${jshint_cfg} "${input}"
   )
   add_test(
     NAME "jsstyle_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
-    COMMAND "${JSSTYLE_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg" "${input}"
+    COMMAND "${JSSTYLE_EXECUTABLE}" --config ${jsstyle_cfg} "${input}"
   )
 endfunction()
 
