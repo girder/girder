@@ -1,0 +1,6 @@
+{
+    "predef"        : [         // Extra globals.
+        "process",
+        "require"
+    ]
+}
