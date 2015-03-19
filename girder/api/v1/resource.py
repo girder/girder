@@ -40,6 +40,7 @@ class Resource(BaseResource):
         self.route('GET', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
         self.route('POST', ('copy',), self.copyResources)
+        self.route('PUT', ('merge',), self.mergeResources)
         self.route('DELETE', (), self.delete)
 
     @access.public
@@ -254,11 +255,15 @@ class Resource(BaseResource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the resource.', 403))
 
-    def _prepareMoveOrCopy(self, params):
+    def _prepareMoveCopyOrMerge(self, params, operation='movecopy'):
         user = self.getCurrentUser()
         resources = self._validateResourceSet(params, ('folder', 'item'))
         parentType = params['parentType'].lower()
-        if parentType not in ('user', 'collection', 'folder'):
+        if operation == 'merge':
+            parentTypes = ('folder',)
+        else:
+            parentTypes = ('user', 'collection', 'folder')
+        if parentType not in parentTypes:
             raise RestException('Invalid parentType.')
         if ('item' in resources and len(resources['item']) > 0 and
                 parentType != 'folder'):
@@ -276,7 +281,7 @@ class Resource(BaseResource):
         function.
         """
         user, resources, parent, parentType, progress = \
-            self._prepareMoveOrCopy(params)
+            self._prepareMoveCopyOrMerge(params)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(progress, user=user, title='Moving resources',
                              message='Calculating requirements...',
@@ -324,7 +329,7 @@ class Resource(BaseResource):
         function.
         """
         user, resources, parent, parentType, progress = \
-            self._prepareMoveOrCopy(params)
+            self._prepareMoveCopyOrMerge(params)
         total = len(resources.get('item', []))
         if 'folder' in resources:
             model = self._getResourceModel('folder')
@@ -361,6 +366,58 @@ class Resource(BaseResource):
         .param('parentType', 'Parent type for the new parent of these '
                'resources.')
         .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('Resource type not supported.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('ID was invalid.'))
+
+    @access.user
+    def mergeResources(self, params):
+        """
+        Merge the selected resources to a new parent folder. Only folder and
+        item resources can be moved with this function.
+        """
+        user, resources, parent, parentType, progress = \
+            self._prepareMoveCopyOrMerge(params, operation='merge')
+        name = params.get('name')
+        description = params.get('description', '')
+        total = sum([len(resources[key]) for key in resources])
+        with ProgressContext(progress, user=user, title='Moving resources',
+                             message='Calculating requirements...',
+                             total=total) as ctx:
+            for kind in resources:
+                model = self._getResourceModel(kind)
+                toBeMerged = {
+                    'item': [],
+                    'folder': []
+                }
+                for id in resources[kind]:
+                    doc = model.load(id=id, user=user, level=AccessType.WRITE)
+                    if not doc:
+                        raise RestException('Resource %s %s not found.' %
+                                            (kind, id))
+                    if kind in ('item', 'folder'):
+                        toBeMerged[kind].append(doc)
+            return self.model('item').merge(toBeMerged, user, parent, name,
+                                            description, ctx)
+
+    mergeResources.description = (
+        Description('Merge a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to move.  Each type '
+               'is a list of ids.  Only folders and items may be specified.  '
+               'For example: {"item": [(item id 1), (item id2)], "folder": '
+               '[(folder id 1)]}.')
+        .param('parentType', 'Parent type for the new parent of these'
+               'resources.')
+        .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('name', 'The name of the new item to be created')
+        .param('description',
+               'The description of the new item to be created.',
+               required=False)
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
         .errorResponse('Unsupport or unknown resource type.')
