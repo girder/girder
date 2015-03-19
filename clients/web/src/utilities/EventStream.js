@@ -6,7 +6,13 @@
      * 'g:event.<type>' where <type> is the value of the event type field.
      * Listeners can bind to specific event types on the channel.
      */
-    girder.EventStream = function () {
+    girder.EventStream = function (settings) {
+        var defaults = {
+            timeout: null
+        };
+
+        this.settings = _.extend(defaults, settings);
+
         return _.extend(this, Backbone.Events);
     };
 
@@ -14,10 +20,14 @@
 
     prototype.open = function () {
         if (window.EventSource) {
-            this._eventSource = new window.EventSource(
-                girder.apiRoot + '/notification/stream');
+            var stream = this,
+                url = girder.apiRoot + '/notification/stream';
 
-            var stream = this;
+            if (this.settings.timeout) {
+                url += '?timeout=' + this.settings.timeout;
+            }
+
+            this._eventSource = new window.EventSource(url);
 
             this._eventSource.onmessage = function (e) {
                 var obj;
@@ -29,7 +39,6 @@
                     return;
                 }
                 stream.trigger('g:event.' + obj.type, obj);
-
             };
         } else {
             console.error('EventSource is not supported on this platform.');

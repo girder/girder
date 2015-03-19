@@ -54,8 +54,6 @@ def startServer(mock=True, mockS3=False):
     """
     server = setupServer(test=True, plugins=enabledPlugins)
 
-    # Make server quiet (won't announce start/stop or requests)
-    cherrypy.config.update({'environment': 'embedded'})
     # Log all requests if we asked to do so
     if 'cherrypy' in os.environ.get('EXTRADEBUG', '').split():
         cherrypy.config.update({'log.screen': True})
@@ -67,6 +65,9 @@ def startServer(mock=True, mockS3=False):
         cherrypy.server.unsubscribe()
 
     cherrypy.engine.start()
+
+    # Make server quiet (won't announce start/stop or requests)
+    cherrypy.config.update({'environment': 'embedded'})
 
     mockSmtp.start()
     if mockS3:

@@ -58,7 +58,78 @@ describe('Test collection actions', function () {
     it('create another collection',
         girderTest.createCollection('collName1', 'coll Desc 1'));
 
+    it('change collection description', function () {
+
+        waitsFor(function () {
+            return $('.g-collection-actions-button:visible').is(':enabled');
+        }, 'collection actions link to appear');
+
+        runs(function () {
+            $('.g-collection-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $(".g-edit-collection").is(':visible');
+        }, 'edit collection menu item to appear');
+
+        runs(function () {
+            $('.g-edit-collection').click();
+        });
+        girderTest.waitForDialog();
+
+        waitsFor(function () {
+            return $("#g-description").is(':visible');
+        }, 'description text area to appear');
+
+        runs(function () {
+            $('#g-description').val('New Description');
+            $('.g-save-collection').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal').data('bs.modal').isShown === false &&
+                   $('#g-dialog-container:visible').length == 0;
+        }, 'dialog to fully disappear');
+        waitsFor(function () {
+            return girder.numberOutstandingRestRequests() === 0;
+        }, 'dialog rest requests to finish');
+
+        waitsFor(function () {
+            return $('.g-collection-description').text().match('New Description');
+        }, 'description to be updated to new text');
+
+        waitsFor(function () {
+            return $('.g-collection-actions-button:visible').is(':enabled');
+        }, 'collection actions link to appear');
+
+        runs(function () {
+            $('.g-collection-actions-button').click();
+        });
+
+        waitsFor(function () {
+            return $(".g-edit-collection").is(':visible');
+        }, 'ensure edit collection menu item continues to appear');
+
+    });
+
+
     it('make new collection public', function () {
+
+        runs(function () {
+            $("a.g-nav-link[g-target='collections']").click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-button:visible').length > 0;
+        }, 'navigate to collections page');
+
+        waitsFor(function () {
+            return $('.g-collection-list-entry').length === 2;
+        }, 'collection list to appear');
+
+        runs(function () {
+            $('.g-collection-link:last').click();
+        });
 
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');

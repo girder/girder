@@ -222,14 +222,30 @@ default behavior using ``preventDefault`` and ``addResponse``. The identifiers
 for these events are of the form ``rest.get.item/:id.before``. They
 receive the same kwargs as the default route handler in the event's info.
 
+Since handlers of this event run prior to the normal access level check of the
+underlying route handler, they are bound by the same access level rules as route
+handlers; they must be decorated by one of the functions in `girder.api.access`.
+If you do not decorate them with one, they will default to requiring administrator
+access. This is to prevent accidental reduction of security by plugin developers.
+You may change the access level of the route in your handler, but you will
+need to do so explicitly by declaring a different decorator than the underlying
+route handler.
+
 *  **After REST call**
 
 Just like the before REST call event, but this is fired after the default
 handler has already executed and returned its value. That return value is
 also passed in the event.info for possible alteration by the receiving handler.
-The identifier for this event is, e.g., ``rest.get.item/:id.after``. You may
-alter the existing return value or override it completely using
-``preventDefault`` and ``addResponse`` on the event.
+The identifier for this event is, e.g., ``rest.get.item/:id.after``.
+
+You may alter the existing return value, for example adding an additional property ::
+
+    event.info['returnVal']['myProperty'] = 'myPropertyValue'
+
+or override it completely using ``preventDefault`` and ``addResponse`` on the event ::
+
+    event.addResponse(myReplacementResponse)
+    event.preventDefault()
 
 *  **Before model save**
 

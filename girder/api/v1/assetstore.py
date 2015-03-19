@@ -19,6 +19,7 @@
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
+from girder import events
 from girder.constants import AssetstoreType
 from girder.api import access
 
@@ -30,9 +31,21 @@ class Assetstore(Resource):
     def __init__(self):
         self.resourceName = 'assetstore'
         self.route('GET', (), self.find)
+        self.route('GET', (':id',), self.getAssetstore)
         self.route('POST', (), self.createAssetstore)
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
+
+    @access.admin
+    @loadmodel(model='assetstore')
+    def getAssetstore(self, assetstore, params):
+        self.model('assetstore').addComputedInfo(assetstore)
+        return assetstore
+    getAssetstore.description = (
+        Description('Get information about an assetstore.')
+        .param('id', 'The assetstore ID.', paramType='path')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403))
 
     @access.admin
     def find(self, params):
@@ -140,6 +153,13 @@ class Assetstore(Resource):
             assetstore['accessKeyId'] = params['accessKeyId']
             assetstore['secret'] = params['secret']
             assetstore['service'] = params.get('service', '')
+        else:
+            event = events.trigger('assetstore.update', info={
+                'assetstore': assetstore,
+                'params': params
+            })
+            if event.defaultPrevented:
+                return
         return self.model('assetstore').save(assetstore)
     updateAssetstore.description = (
         Description('Update an existing assetstore.')

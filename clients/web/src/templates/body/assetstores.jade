@@ -11,54 +11,56 @@
   each assetstore in assetstores
     .g-assetstore-container.panel.panel-default(class=assetstore.get('current')? 'g-assetstore-current' : undefined)
       .panel-body
-        div
-          b Name:
-          span.g-assetstore-name  #{assetstore.get('name')}
-          if assetstore.get('current')
-            span.g-assetstore-current-text
-              |  (Current assetstore)
-        if assetstore.get('type') == types.FILESYSTEM
+        .g-assetstore-info-section(assetstore-type="#{assetstore.get('type')}" cid="#{assetstore.cid}")
           div
-            b Type:
-            span.g-assetstore-type  Filesystem
-          div
-            b Root path:
-            span.g-assetstore-root  #{assetstore.get('root')}
-        else if assetstore.get('type') == types.GRIDFS
-          div
-            b Type:
-            span.g-assetstore-type  GridFS
-          div
-            b Database name:
-            span.g-assetstore-root  #{assetstore.get('db')}
-          if assetstore.get('mongohost')
+            b Name:
+            span.g-assetstore-name  #{assetstore.get('name')}
+            if assetstore.get('current')
+              span.g-assetstore-current-text
+                |  (Current assetstore)
+          if assetstore.get('type') == types.FILESYSTEM
             div
-              b Mongo Host URI:
-              span.g-assetstore-mongohost  #{assetstore.get('mongohost')}
-            if assetstore.get('replicaset')
+              b Type:
+              span.g-assetstore-type  Filesystem
+            div
+              b Root path:
+              span.g-assetstore-root  #{assetstore.get('root')}
+          else if assetstore.get('type') == types.GRIDFS
+            div
+              b Type:
+              span.g-assetstore-type  GridFS
+            div
+              b Database name:
+              span.g-assetstore-root  #{assetstore.get('db')}
+            if assetstore.get('mongohost')
               div
-                b Replica Set:
-                span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
-        else if assetstore.get('type') == types.S3
-          div
-            b Type:
-            span.g-assetstore-type  S3
-          div
-            b Bucket:
-            span.g-assetstore-bucket  #{assetstore.get('bucket')}
-          if assetstore.get('prefix')
+                b Mongo Host URI:
+                span.g-assetstore-mongohost  #{assetstore.get('mongohost')}
+              if assetstore.get('replicaset')
+                div
+                  b Replica Set:
+                  span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
+          else if assetstore.get('type') == types.S3
             div
-              b Path prefix:
-              span.g-assetstore-prefix  #{assetstore.get('prefix')}
-          div
-            b Access key ID:
-            span.g-access-key-id  #{assetstore.get('accessKeyId')}
-          div
-            b Secret access key:
-            span.g-secret-key  #{assetstore.get('secret')}
-          div
-            b Service:
-            span.g-service-key  #{assetstore.get('service')}
+              b Type:
+              span.g-assetstore-type  S3
+            div
+              b Bucket:
+              span.g-assetstore-bucket  #{assetstore.get('bucket')}
+            if assetstore.get('prefix')
+              div
+                b Path prefix:
+                span.g-assetstore-prefix  #{assetstore.get('prefix')}
+            div
+              b Access key ID:
+              span.g-access-key-id  #{assetstore.get('accessKeyId')}
+            div
+              b Secret access key:
+              span.g-secret-key  #{assetstore.get('secret')}
+            div
+              b Service:
+              span.g-service-key  #{assetstore.get('service')}
+
         if assetstore.capacityKnown()
           div
             b Capacity:

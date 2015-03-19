@@ -22,10 +22,6 @@ import pymongo
 
 from .model_base import Model, ValidationException, GirderException
 from girder.utility import assetstore_utilities
-from girder.utility.filesystem_assetstore_adapter import\
-    FilesystemAssetstoreAdapter
-from girder.utility.gridfs_assetstore_adapter import GridFsAssetstoreAdapter
-from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter
 from girder.constants import AssetstoreType
 
 
@@ -51,12 +47,8 @@ class Assetstore(Model):
             raise ValidationException('Name must not be empty.', 'name')
 
         # Adapter classes validate each type internally
-        if doc['type'] == AssetstoreType.FILESYSTEM:
-            FilesystemAssetstoreAdapter.validateInfo(doc)
-        elif doc['type'] == AssetstoreType.GRIDFS:
-            GridFsAssetstoreAdapter.validateInfo(doc)
-        elif doc['type'] == AssetstoreType.S3:
-            S3AssetstoreAdapter.validateInfo(doc)
+        adapter = assetstore_utilities.getAssetstoreAdapter(doc, instance=False)
+        adapter.validateInfo(doc)
 
         # If no current assetstore exists yet, set this one as the current.
         current = self.findOne({'current': True}, fields=['_id'])
@@ -113,11 +105,20 @@ class Assetstore(Model):
         """
         cursor = self.find({}, limit=limit, offset=offset, sort=sort)
         for assetstore in cursor:
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            assetstore['capacity'] = adapter.capacityInfo()
-            assetstore['hasFiles'] = (self.model('file').findOne(
-                {'assetstoreId': assetstore['_id']}) is not None)
+            self.addComputedInfo(assetstore)
             yield assetstore
+
+    def addComputedInfo(self, assetstore):
+        """
+        Add all runtime-computed properties about an assetstore to its document.
+
+        :param assetstore: The assetstore object.
+        :type assetstore: dict
+        """
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        assetstore['capacity'] = adapter.capacityInfo()
+        assetstore['hasFiles'] = (self.model('file').findOne(
+            {'assetstoreId': assetstore['_id']}) is not None)
 
     def createFilesystemAssetstore(self, name, root):
         return self.save({

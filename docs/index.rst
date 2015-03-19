@@ -42,7 +42,7 @@ Girder's server-side architecture is focused around the construction of RESTful
 web APIs to afford minimal coupling between the backend services and the
 frontend clients. This decoupling allows multiple clients all to use the same
 server-side interface. While Girder does contain its own single-page javascript
-web application, the system can be used by any HTML-aware client, either inside
+web application, the system can be used by any HTTP-capable client, either inside
 or outside of the web browser environment. Girder can even be run without its
 front-end application present at all, only serving the web API routes.
 

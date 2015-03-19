@@ -202,7 +202,7 @@ def unbindAll():
     _mapping = {}
 
 
-def trigger(eventName, info=None):
+def trigger(eventName, info=None, pre=None):
     """
     Fire an event with the given name. All listeners bound on that name will be
     called until they are exhausted or one of the handlers calls the
@@ -210,13 +210,20 @@ def trigger(eventName, info=None):
 
     :param eventName: The name that identifies the event.
     :type eventName: str
-    :param info: The info argument to pass to the handler function. The
-                 type of this argument is opaque, and can be anything.
+    :param info: The info argument to pass to the handler function. The type of
+        this argument is opaque, and can be anything.
+    :param pre: A function that will be executed prior to the handler being
+        executed. It will receive a dict with a "handler" key, (the function),
+        "info" key (the info arg to this function), and "eventName" and
+        "handlerName" values.
     """
     global _mapping
     e = Event(eventName, info)
     for handlerName, handler in _mapping.get(eventName, {}).iteritems():
         e.currentHandlerName = handlerName
+        if pre is not None:
+            pre(info=info, handler=handler, eventName=eventName,
+                handlerName=handlerName)
         handler(e)
 
         if e.propagate is False:
