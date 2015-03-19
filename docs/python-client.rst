@@ -114,6 +114,36 @@ id `54b43e9b8926486c0c06cb4f` and copy those to all of the descendant Folders
     gc.authenticate('username', 'password')
     gc.inheritAccessControlRecursive('54b43e9b8926486c0c06cb4f')
 
+Set callbacks for Folder and Item uploads
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have a function you would like called upon the completion of an Item
+or Folder upload, you would do the following.
+
+N.B. The Item callbacks are called after the Item is created and all Files are uploaded to the Item.  The Folder callbacks are called after the Folder is created and all child Folders and Items are uploaded to the Folder.
+
+
+.. code-block:: python
+
+    import girder_client
+    gc = girder_client.GirderClient()
+
+    def folder_callback(folder, filepath):
+        # assume we have a folder_metadata dict that has
+        # filepath: metadata_dict_for_folder
+        gc.addMetadataToFolder(folder['_id'], folder_metadata[filepath])
+
+    def item_callback(item, filepath):
+        # assume we have an item_metadata dict that has
+        # filepath: metadata_dict_for_item
+        gc.addMetadataToItem(item['_id'], item_metadata[filepath])
+
+    gc.authenticate('username', 'password')
+    gc.add_folder_upload_callback(folder_callback)
+    gc.add_item_upload_callback(item_callback)
+    gc.upload(local_folder, parent_id)
+
+
 Further Examples and Function Level Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

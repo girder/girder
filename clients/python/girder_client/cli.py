@@ -18,8 +18,6 @@
 ###############################################################################
 
 import argparse
-import glob
-import os
 from girder_client import GirderClient
 
 
@@ -29,7 +27,7 @@ class GirderCli(GirderClient):
     RESTful api, specifically for performing uploads into a Girder instance.
     """
 
-    def __init__(self, username, password, dryrun=False, blacklist=[],
+    def __init__(self, username, password, dryrun, blacklist,
                  host='localhost', port=8080, apiRoot=None, scheme='http'):
         """initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance.
@@ -49,214 +47,10 @@ class GirderCli(GirderClient):
             defaults to 'http'; if passing 'https' port should likely be 443.
         """
         GirderClient.__init__(self, host=host, port=port,
-                              apiRoot=apiRoot, scheme=scheme)
+                              apiRoot=apiRoot, scheme=scheme, dryrun=dryrun,
+                              blacklist=blacklist)
         interactive = password is None
         self.authenticate(username, password, interactive=interactive)
-        self.dryrun = dryrun
-        self.blacklist = blacklist
-
-    def _load_or_create_folder(self, local_folder, parent_id, parent_type):
-        """Returns a folder in Girder with the same name as the passed in
-        local_folder under the parent_id, creating a new Girder folder
-        if need be or returning an existing folder with that name.
-        :param local_folder: full path to the local folder
-        :param parent_id: id of parent in Girder
-        :param parent_type: one of (collection, folder, user)
-        """
-        child_folders = self.listFolder(parent_id, parent_type)
-        folder_name = os.path.basename(local_folder)
-        folder = None
-        for child in child_folders:
-            if child['name'] == folder_name:
-                folder = child
-        if folder is None:
-            folder = self.createFolder(
-                parent_id, folder_name, parentType=parent_type)
-        return folder
-
-    def _has_only_files(self, local_folder):
-        """Returns whether a folder has only files. This will be false if the
-        folder contains any subdirectories.
-        :param local_folder: full path to the local folder
-        """
-        return not any(os.path.isdir(os.path.join(local_folder, entry))
-                       for entry in os.listdir(local_folder))
-
-    def _create_or_reuse_item(self, local_file, parent_folder_id,
-                              reuse_existing=False):
-        """Create an item from the local_file in the parent_folder
-        :param local_file: full path to a file on the local file system
-        :param parent_folder_id: id of parent folder in Girder
-        :param reuse_existing: boolean indicating whether to accept an existing
-            item of the same name in the same location, or create a new one.
-        """
-        local_item_name = os.path.basename(local_file)
-        item = None
-        if reuse_existing:
-            children = self.listItem(parent_folder_id, local_item_name)
-            for child in children:
-                if child['name'] == local_item_name:
-                    item = child
-                    break
-
-        if item is None:
-            item = self.createItem(parent_folder_id, local_item_name,
-                                   description='')
-
-        return item
-
-    def _upload_file_to_item(self, local_file, parent_item_id, file_path):
-        """Helper function to upload a file to an item
-        :param local_file: name of local file to upload
-        :param parent_item_id: id of parent item in Girder to add file to
-        :param file_path: full path to the file
-        """
-        self.uploadFileToItem(parent_item_id, file_path)
-
-    def _upload_as_item(self, local_file, parent_folder_id, file_path,
-                        reuse_existing=False):
-        """Function for doing an upload of a file as an item.
-        :param local_file: name of local file to upload
-        :param parent_folder_id: id of parent folder in Girder
-        :param file_path: full path to the file
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
-        """
-        print 'Uploading Item from %s' % local_file
-        if not self.dryrun:
-            current_item = self._create_or_reuse_item(
-                local_file, parent_folder_id, reuse_existing)
-            self._upload_file_to_item(
-                local_file, current_item['_id'], file_path)
-
-    def _upload_folder_as_item(self, local_folder, parent_folder_id,
-                               reuse_existing=False):
-        """Take a folder and use its base name as the name of a new item. Then,
-        upload its containing files into the new item as bitstreams.
-        :param local_folder: The path to the folder to be uploaded.
-        :param parent_folder_id: Id of the destination folder for the new item.
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
-        """
-        print 'Creating Item from folder %s' % local_folder
-        if not self.dryrun:
-            item = self._create_or_reuse_item(local_folder, parent_folder_id,
-                                              reuse_existing)
-
-        subdircontents = sorted(os.listdir(local_folder))
-        # for each file in the subdir, add it to the item
-        filecount = len(subdircontents)
-        for (ind, current_file) in enumerate(subdircontents):
-            filepath = os.path.join(local_folder, current_file)
-            if current_file in self.blacklist:
-                if self.dryrun:
-                    print "Ignoring file %s as blacklisted" % current_file
-                continue
-            print 'Adding file %s, (%d of %d) to Item' % (current_file,
-                                                          ind + 1, filecount)
-
-            if not self.dryrun:
-                self._upload_file_to_item(current_file, item['_id'], filepath)
-
-    def _upload_folder_recursive(self, local_folder, parent_id, parent_type,
-                                 leaf_folders_as_items=False,
-                                 reuse_existing=False):
-        """Function to recursively upload a folder and all of its descendants.
-        :param local_folder: full path to local folder to be uploaded
-        :param parent_id: id of parent in Girder,
-            where new folder will be added
-        :param parent_type: one of (collection, folder, user)
-        :param leaf_folders_as_items: whether leaf folders should have all
-        files uploaded as single items
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
-        """
-        if leaf_folders_as_items and self._has_only_files(local_folder):
-            if parent_type != 'folder':
-                raise Exception(
-                    ('Attempting to upload a folder as an item under a %s. '
-                        % parent_type) + 'Items can only be added to folders.')
-            else:
-                self._upload_folder_as_item(local_folder, parent_id,
-                                            reuse_existing)
-        else:
-            filename = os.path.basename(local_folder)
-            if filename in self.blacklist:
-                if self.dryrun:
-                    print "Ignoring file %s as it is blacklisted" % filename
-                return
-
-            print 'Creating Folder from %s' % local_folder
-            if self.dryrun:
-                # create a dryrun placeholder
-                folder = {'_id': 'dryrun'}
-            else:
-                folder = self._load_or_create_folder(
-                    local_folder, parent_id, parent_type)
-
-            for entry in sorted(os.listdir(local_folder)):
-                if entry in self.blacklist:
-                    if self.dryrun:
-                        print "Ignoring file %s as it is blacklisted" % entry
-                    continue
-                full_entry = os.path.join(local_folder, entry)
-                if os.path.islink(full_entry):
-                    # os.walk skips symlinks by default
-                    print "Skipping file %s as it is a symlink" % entry
-                    continue
-                elif os.path.isdir(full_entry):
-                    # At this point we should have an actual folder, so can
-                    # pass that as the parent_type
-                    self._upload_folder_recursive(
-                        full_entry, folder['_id'], 'folder',
-                        leaf_folders_as_items, reuse_existing)
-                else:
-                    self._upload_as_item(
-                        entry, folder['_id'], full_entry, reuse_existing)
-
-    def upload(self, file_pattern, parent_id, parent_type='folder',
-               leaf_folders_as_items=False, reuse_existing=False):
-        """Upload a pattern of files.
-
-        This will recursively walk down every tree in the file pattern to
-        create a hierarchy on the server under the parent_id.
-
-        :param file_pattern: a glob pattern for files that will be uploaded,
-        recursively copying any file folder structures
-        :param parent_id: id of the parent in girder
-        :param parent_type: one of (collection, folder, user) default of folder
-        :param leaf_folders_as_items: whether leaf folders should have all
-        files uploaded as single items
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item of the same name in the same location, or create a new one instead
-        """
-        empty = True
-        for current_file in glob.iglob(file_pattern):
-            empty = False
-            current_file = os.path.normpath(current_file)
-            filename = os.path.basename(current_file)
-            if filename in self.blacklist:
-                if self.dryrun:
-                    print "Ignoring file %s as it is blacklisted" % filename
-                continue
-            if os.path.isfile(current_file):
-                if parent_type != 'folder':
-                    raise Exception(('Attempting to upload an item under a %s.'
-                                    % parent_type) +
-                                    ' Items can only be added to folders.')
-                else:
-                    self._upload_as_item(
-                        os.path.basename(current_file), parent_id,
-                        current_file, reuse_existing)
-            else:
-                self._upload_folder_recursive(
-                    current_file, parent_id, parent_type,
-                    leaf_folders_as_items, reuse_existing)
-        if empty:
-            print 'No matching files: ' + file_pattern
 
 
 def main():
