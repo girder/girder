@@ -2,20 +2,81 @@ girder.models.FileModel = girder.Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
+    _wrapData: function (data) {
+        var wrapped = data;
+
+        if (!(data instanceof Blob)) {
+            if (!_.isArray(data)) {
+                wrapped = [data];
+            }
+            wrapped = new Blob(wrapped);
+        }
+
+        return wrapped;
+    },
+
     /**
      * Upload into an existing file object (i.e. this model) to change its
      * contents. This does not change the name or MIME type of the existing
      * file.
-     * @param file The browser File object to be uploaded.
+     * @param data A browser File object, browser Blob object, or raw data to be uploaded.
      */
-    updateContents: function (file) {
-        this.upload(null, file, {
+    updateContents: function (data) {
+        data = this._wrapData(data);
+
+        this.upload(null, data, {
             path: 'file/' + this.get('_id') + '/contents',
             type: 'PUT',
             data: {
-                size: file.size
+                size: data.size
             }
         });
+    },
+
+    /**
+     * Upload data to a new file in a given container
+     * @param Model A constructor for the parent model (either FolderModel or ItemModel).
+     * @param model The parent model to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    _uploadToContainer: function (Model, model, data, name, type) {
+        var datatype = data.toString();
+
+        if (_.isString(model)) {
+            model = new Model({
+                _id: model
+            });
+        }
+
+        data = this._wrapData(data);
+        data.name = name;
+        data.type = type;
+
+        this.upload(model, data);
+    },
+
+    /**
+     * Upload data to a new file in a given folder
+     * @param parentFolder The parent folder to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    uploadToFolder: function (parentFolder, data, name, type) {
+        this._uploadToContainer(girder.models.FolderModel, parentFolder, data, name, type);
+    },
+
+    /**
+     * Upload data to a new file in a given folder
+     * @param parentItem The parent item to upload to, or a string containing the id thereof.
+     * @param data The data to upload - either a string, File object, or Blob object.
+     * @param name The name of the file to create (optional if data is a File).
+     * @param type The mime type of the file (optional).
+     */
+    uploadToItem: function (parentItem, data, name, type) {
+        this._uploadToContainer(girder.models.ItemModel, parentItem, data, name, type);
     },
 
     /**
@@ -52,6 +113,7 @@ girder.models.FileModel = girder.Model.extend({
                 });
                 this.uploadHandler.on({
                     'g:upload.complete': function (params) {
+                        this.set(params);
                         this.trigger('g:upload.complete', params);
                         this.uploadHandler = null;
                     },
@@ -81,6 +143,7 @@ girder.models.FileModel = girder.Model.extend({
                 this._uploadChunk(file, upload._id);
             } else {
                 // Empty file, so we are done
+                this.set(upload);
                 this.trigger('g:upload.complete');
             }
         }, this)).error(_.bind(function (resp) {
@@ -171,7 +234,7 @@ girder.models.FileModel = girder.Model.extend({
             data: fd,
             contentType: false,
             processData: false,
-            success: function () {
+            success: function (resp) {
                 model.trigger('g:upload.chunkSent', {
                     bytes: endByte - model.startByte
                 });
@@ -179,6 +242,7 @@ girder.models.FileModel = girder.Model.extend({
                 if (endByte === file.size) {
                     model.startByte = 0;
                     model.resumeInfo = null;
+                    model.set(resp);
                     model.trigger('g:upload.complete');
                 } else {
                     model.startByte = endByte;
