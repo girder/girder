@@ -735,6 +735,7 @@ describe('Test FileModel static upload functions', function () {
         }, 'item creation');
     });
 
+    var oldPrototype = window.Blob.prototype;
     window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
     window.Blob = function (data) {
         var builder = new BlobBuilder();
@@ -743,6 +744,7 @@ describe('Test FileModel static upload functions', function () {
         });
         return builder.getBlob();
     };
+    window.Blob.prototype = oldPrototype;
 
     it('test FileModel.uploadToFolder()', function () {
         var ok = false, text, filename, speech, fileModel, file;
