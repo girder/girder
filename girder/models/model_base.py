@@ -418,6 +418,8 @@ class Model(ModelImporter):
         if '_textScore' in doc:
             out['_textScore'] = doc['_textScore']
 
+        out['_modelType'] = self.name
+
         return out
 
     def subtreeCount(self, doc):
