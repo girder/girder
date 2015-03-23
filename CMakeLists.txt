@@ -24,7 +24,7 @@ set(JSON_CONFIG_MERGE_SCRIPT ${PROJECT_SOURCE_DIR}/scripts/json_config_merge.js)
 set(JSON_CONFIG_EXPAND_RELPATHS_SCRIPT ${PROJECT_SOURCE_DIR}/scripts/json_config_expand_relpaths.js)
 
 if(JAVASCRIPT_STYLE_TESTS)
-  find_program(NODEJS_EXECUTABLE nodejs)
+  find_program(NODEJS_EXECUTABLE NAMES nodejs node)
   if(NOT NODEJS_EXECUTABLE)
     message(FATAL_ERROR "'nodejs' executable couldn't be found.\n"
                         "Consider reconfiguring passing -DNODEJS_EXECUTABLE:FILEPATH=/path/to/nodejs")
