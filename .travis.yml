@@ -4,8 +4,8 @@ sudo: false
 
 # Build matrix
 env:
-    - MONGO_SOURCE=mongodb-linux-x86_64-2.6.8.tgz
-    - MONGO_SOURCE=mongodb-linux-x86_64-3.0.1.tgz
+    - MONGO_VERSION=2.6.8 DEPLOY=true
+    - MONGO_VERSION=3.0.1
 
 compiler:
     - gcc
@@ -16,7 +16,7 @@ before_install:
     #- python scripts/vmtest.py
 
     - pushd "${HOME}"
-    - curl "https://fastdl.mongodb.org/linux/${MONGO_SOURCE}" | gunzip -c | tar x
+    - curl "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGO_SOURCE}.tgz" | gunzip -c | tar x
     - cd mongodb-*/bin && export PATH="${PWD}:${PATH}"
     - popd
     - mkdir /tmp/db
@@ -55,3 +55,4 @@ deploy:
     on:
         repo: girder/girder
         branch: master
+        condition: "$DEPLOY = true"
