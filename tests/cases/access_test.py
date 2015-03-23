@@ -101,7 +101,7 @@ class AccessTestCase(base.TestCase):
         admin = {
             'email': 'admin@email.com',
             'login': 'admin',
-            'firstName': 'Admin',
+            'firstName': u'Admin\ua000',
             'lastName': 'Admin',
             'password': 'adminpassword',
             'admin': True
@@ -151,3 +151,7 @@ class AccessTestCase(base.TestCase):
                             self.user['_id']), method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], str(self.user['_id']))
+
+    def testGetFullAccessList(self):
+        acl = self.model('user').getFullAccessList(self.admin)
+        self.assertEqual(len(acl['users']), 1)

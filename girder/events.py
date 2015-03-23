@@ -133,7 +133,7 @@ class AsyncEventsThread(threading.Thread):
                 if isinstance(callback, types.FunctionType):
                     callback(event)
             except:
-                logger.exception('In handler for event "{}":'.format(eventName))
+                logger.exception('In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
         print TerminalColor.info('Stopped asynchronous event manager thread.')
