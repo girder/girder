@@ -2,6 +2,11 @@ language: cpp
 
 sudo: false
 
+# Build matrix
+env:
+    - MONGO_SOURCE=mongodb-linux-x86_64-2.6.8.tgz
+    - MONGO_SOURCE=mongodb-linux-x86_64-3.0.1.tgz
+
 compiler:
     - gcc
 before_install:
@@ -11,9 +16,7 @@ before_install:
     #- python scripts/vmtest.py
 
     - pushd "${HOME}"
-    # We can test with Mongo 2.6.8 or Mongo 3.0.1
-    #- curl -O https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.0.1.tgz | gunzip -c | tar x
-    - curl https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-2.6.8.tgz | gunzip -c | tar x
+    - curl "https://fastdl.mongodb.org/linux/${MONGO_SOURCE}" | gunzip -c | tar x
     - cd mongodb-*/bin && export PATH="${PWD}:${PATH}"
     - popd
     - mkdir /tmp/db
@@ -32,7 +35,6 @@ install:
     - pip install --user -r plugins/celery_jobs/requirements.txt -r plugins/hdfs_assetstore/requirements.txt
     # We have to upgrade six or requiring moto can cause other modules to fail
     - pip install --user -U six
-    - python -c "import bcrypt"
     - npm install grunt grunt-cli
     - npm install
 script:
