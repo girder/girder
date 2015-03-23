@@ -21,8 +21,7 @@ import json
 import os
 
 from tests import base
-from girder import events
-from girder.constants import AccessType, AssetstoreType, SettingKey
+from girder.constants import AssetstoreType, SettingKey
 from girder.models.model_base import ValidationException
 from girder.utility.system import formatSize
 from server import constants
@@ -176,7 +175,7 @@ class QuotaTestCase(base.TestCase):
         except ValidationException as err:
             if not error:
                 raise
-            if not error in err.message:
+            if error not in err.message:
                 raise
             return
         if testVal is not '__NOCHECK__':
@@ -314,7 +313,7 @@ class QuotaTestCase(base.TestCase):
             'name': 'Broken Store',
             'type': AssetstoreType.GRIDFS,
             'db': 'girder_assetstore_user_quota_test_broken',
-            'mongohost': 'mongodb://127.254.254.254:27017'
+            'mongohost': 'mongodb://127.254.254.254:27016'
         }
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
