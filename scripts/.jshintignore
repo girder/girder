@@ -1,0 +1,2 @@
+tests/test_json_config_merge_script/data
+tests/test_json_config_expand_relpaths_script/data
