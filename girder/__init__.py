@@ -47,12 +47,12 @@ class LogFormatter(logging.Formatter):
     """
     def formatException(self, exc):
         info = '\n'.join((
-            '  Request URL: {} {}'.format(cherrypy.request.method.upper(),
-                                          cherrypy.url()),
-            '  Query string: {}'.format(cherrypy.request.query_string),
-            '  Remote IP: {}'.format(cherrypy.request.remote.ip)
+            '  Request URL: %s %s' % (cherrypy.request.method.upper(),
+                                      cherrypy.url()),
+            '  Query string: ' + cherrypy.request.query_string,
+            '  Remote IP: ' + cherrypy.request.remote.ip
         ))
-        return '{}\nAdditional info:\n{}'.format(
+        return '%s\nAdditional info:\n%s' % (
             logging.Formatter.formatException(self, exc), info)
 
 
