@@ -10,10 +10,11 @@
     service: name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
 
   tasks:
+  - name: add nodejs ppa key
+    apt_key: id=68576280 url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key
 
   - name: add nodejs ppa
-    apt_repository: repo='ppa:chris-lea/node.js'
-    sudo: yes
+    apt_repository: repo="deb https://deb.nodesource.com/node {{ ansible_distribution_release }} main"
 
   - name: update apt cache
     apt: update_cache=yes
