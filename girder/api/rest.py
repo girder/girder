@@ -881,3 +881,30 @@ class Resource(ModelImporter):
         """
         if not hasattr(handler, 'accessLevel'):
             requireAdmin(getCurrentUser())
+
+
+# An instance of Resource that can be shared by boundHandlers for efficiency
+_sharedContext = Resource()
+
+
+class boundHandler(object):
+    """
+    This decorator allows unbound functions to be conveniently added as route
+    handlers to existing :py:class:`girder.api.rest.Resource` instances.
+    With no arguments, this uses a shared, generic ``Resource`` instance as the
+    context. If you need a specific instance, pass that as the ``ctx`` arg, for
+    instance if you need to reference the resource name or any other properties
+    specific to a Resource subclass.
+
+    Plugins that add new routes to existing API resources are encouraged to use
+    this to gain access to bound convenience methods like ``self.model``,
+    ``self.boolParam``, ``self.requireParams``, etc.
+    """
+    def __init__(self, ctx=None):
+        self.ctx = ctx or _sharedContext
+
+    def __call__(self, fn):
+        @functools.wraps(fn)
+        def wrapped(*args, **kwargs):
+            return fn(self.ctx, *args, **kwargs)
+        return wrapped
