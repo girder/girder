@@ -21,12 +21,9 @@
 
   - name: add mongodb ppa
     apt_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
-  - name: update apt cache
-    apt: update_cache=yes
-    sudo: yes
 
   - name: install package dependencies
-    apt: name={{ item }} state=present
+    apt: name={{ item }}
     sudo: yes
     with_items:
       - python-pip
