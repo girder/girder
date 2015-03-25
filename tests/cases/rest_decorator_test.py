@@ -18,13 +18,20 @@
 ###############################################################################
 
 import json
+import os
 
 from .. import base
-
 from girder.api.rest import endpoint
+from girder.utility import config
 
 
 def setUpModule():
+    pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                              'test_plugins')
+    conf = config.getConfig()
+    conf['plugins'] = {'plugin_directory': pluginRoot}
+    base.enabledPlugins = ['test_plugin']
+
     base.startServer()
 
 
@@ -47,18 +54,31 @@ class testEndpointDecoratorException(base.TestCase):
     def pointless_endpoint_bytes(self, path, params):
         raise Exception('\x80\x80 cannot be converted to unicode or ascii.')
 
-    def test_endpoint_exception_ascii(self):
+    def tes_endpoint_exception_ascii(self):
         resp = self.pointless_endpoint_ascii('', {})
         obj = json.loads(resp)
         self.assertEquals(obj['type'], 'internal')
 
-    def test_endpoint_exception_unicode(self):
+    def tes_endpoint_exception_unicode(self):
         resp = self.pointless_endpoint_unicode('', {})
         obj = json.loads(resp)
         self.assertEquals(obj['type'], 'internal')
 
-    def test_endpoint_exception_bytes(self):
+    def tes_endpoint_exception_bytes(self):
         resp = self.pointless_endpoint_bytes('', {})
-        print resp
         obj = json.loads(resp)
         self.assertEquals(obj['type'], 'internal')
+
+    def testBoundHandlerDecorator(self):
+        resp = self.request('/collection/unbound/default', params={
+            'val': False
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, True)
+
+        resp = self.request('/collection/unbound/explicit')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {
+            'name': 'collection',
+            'user': None
+        })
