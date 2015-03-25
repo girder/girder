@@ -35,5 +35,9 @@ function(json_config_expand_relpaths)
   execute_process(
     COMMAND ${NODEJS_EXECUTABLE} ${JSON_CONFIG_EXPAND_RELPATHS_SCRIPT}
       ${basedir_arg} ${relpathkey_args} -o ${fn_OUTPUTFILE} -i ${fn_INPUTFILE}
+    RESULT_VARIABLE result
     )
+  if(NOT result EQUAL 0)
+    message(FATAL_ERROR "Failed to expand relative path in file: ${fn_INPUTFILE}")
+  endif()
 endfunction()
