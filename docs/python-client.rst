@@ -73,7 +73,7 @@ Files within those Items, add the ``--leaf-folders-as-items`` flag ::
 If you already have an existing Folder hierarchy in Girder which you have a
 superset of on your local disk (e.g. you previously uploaded a hierarchy to
 Girder and then added more folders and files to the hierarchy on disk), you can
-reuse the existing hiearchy in Girder, which will not create new Folders and
+reuse the existing hierarchy in Girder, which will not create new Folders and
 Items for those that match folders and files on disk, by using the ``--reuse`` flag.
 
 ::

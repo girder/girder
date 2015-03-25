@@ -118,7 +118,7 @@ Dependent Libraries
 Another common attack vector is through libraries upon which girder depends
 such as Cherrypy, Jade, PyMongo, etc. Girder's library dependencies reference
 specific versions, ensuring that arbitrary upstream changes to libraries are
-not automatically accepted into Girder's environment. Conversely, during 
+not automatically accepted into Girder's environment. Conversely, during
 development and before releases we work to ensure our dependencies are up to
 date in order to get the latest security fixes.
 
