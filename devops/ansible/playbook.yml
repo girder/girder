@@ -64,7 +64,7 @@
     sudo: yes
 
   - name: disable default nginx site
-    command: rm /etc/nginx/sites-enabled/default removes=/etc/nginx/sites-enabled/default
+    file: state=absent path=/etc/nginx/sites-available/default
     sudo: yes
     notify:
       - restart nginx
@@ -76,7 +76,7 @@
       - restart nginx
 
   - name: enable girder nginx site
-    command: ln -s /etc/nginx/sites-available/girder /etc/nginx/sites-enabled/girder creates=/etc/nginx/sites-enabled/girder
+    file: state=link src=/etc/nginx/sites-available/girder path=/etc/nginx/sites-enabled/girder
     sudo: yes
     notify:
       - restart nginx
