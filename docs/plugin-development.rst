@@ -93,12 +93,16 @@ If you want to add a new route to an existing core resource type, just call the
 route for ``GET /item/:id/cat`` to the system, ::
 
     from girder.api import access
+    from girder.api.rest import boundHandler
 
     @access.public
-    def myHandler(id, params):
+    @boundHandler()
+    def myHandler(self, id, params):
+        self.requireParams('cat', params)
+
         return {
            'itemId': id,
-           'cat': params.get('cat', 'No cat param passed')
+           'cat': params['cat']
         }
 
     def load(info):
@@ -109,6 +113,11 @@ indicate who can call the new route.  The decorator is one of ``@access.admin``
 (only administrators can call this endpoint), ``@access.user`` (any user who is
 logged in can call the endpoint), or ``@access.public`` (any client can call
 the endpoint).
+
+In the above example, the :py:obj:`girder.api.rest.boundHandler` decorator is
+used to make the unbound method ``myHandler`` behave as though it is a member method
+of a :py:class:`girder.api.rest.Resource` instance, which enables convenient access
+to methods like ``self.requireParams``.
 
 If you do not add an access decorator, a warning message appears:
 ``WARNING: No access level specified for route GET item/:id/cat``.  The access
