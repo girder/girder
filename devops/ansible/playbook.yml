@@ -16,6 +16,11 @@
   - name: add nodejs ppa
     apt_repository: repo="deb https://deb.nodesource.com/node {{ ansible_distribution_release }} main"
 
+  - name: add mongodb ppa key
+    apt_key: id=7F0CEB10 url=http://keyserver.ubuntu.com:11371/pks/lookup?op=get&search=0x9ECBEC467F0CEB10
+
+  - name: add mongodb ppa
+    apt_repository: repo="deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen"
   - name: update apt cache
     apt: update_cache=yes
     sudo: yes
@@ -27,7 +32,7 @@
       - python-pip
       - python2.7-dev
       - build-essential
-      - mongodb
+      - mongodb-org
       - python-software-properties
       - libffi-dev
       - nodejs
@@ -36,12 +41,6 @@
       - cmake
       - cmake-curses-gui
       - git
-
-  - name: Enable mongo full-text search
-    lineinfile: dest=/etc/mongodb.conf regexp=^setParameter= line=setParameter=textSearchEnabled=true
-    sudo: yes
-    notify:
-      - restart mongodb
 
   - name: install girder requirements
     pip: requirements=/vagrant/requirements.txt
