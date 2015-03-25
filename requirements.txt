@@ -1,7 +1,7 @@
 cffi==0.8.6
 CherryPy==3.3.0
 pymongo==2.8
-bcrypt==1.0.2
+bcrypt==1.1.1
 boto==2.29.1
 Mako==1.0.0
 PyYaml==3.11
