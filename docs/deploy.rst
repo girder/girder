@@ -93,7 +93,7 @@ the following environment variables set: ::
 
     $ export ZONE=us-central1-a
     $ export CLUSTER_NAME=hello-girder
-    
+
 Start a new project in Google Developers Console
 (here we assume it's identifier is ``my-girder``).
 Set this as your active project with ::
@@ -134,7 +134,7 @@ Then we create the directory and mount the drive: ::
     user_name@k8s-hello-girder-node-1:~$ sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" /dev/sdb /data
 
 Now we are ready to install our pod, which is a collection of containers that
-work together. Save the following yaml specfication for our MongoDB/Girder pod
+work together. Save the following yaml specification for our MongoDB/Girder pod
 to ``pod.yaml``:
 
 .. code-block:: yaml
