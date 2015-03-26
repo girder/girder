@@ -26,7 +26,11 @@ function(json_config_merge)
     execute_process(
       COMMAND ${NODEJS_EXECUTABLE} ${JSON_CONFIG_MERGE_SCRIPT}
         -o ${fn_OUTPUTFILE} ${inputfiles}
+      RESULT_VARIABLE result
       )
+    if(NOT result EQUAL 0)
+      message(FATAL_ERROR "Failed to merge config files: ${fn_INPUTFILES}")
+    endif()
   else()
     configure_file(
       ${fn_INPUTFILES}
