@@ -75,14 +75,14 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Girder'
-copyright = u'2014, Kitware'
+copyright = u'2014-2015, Kitware'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = '1.2.2'
+release = '1.2.3'
 # The short X.Y version.
 version = '1.2'
 
@@ -300,7 +300,7 @@ texinfo_documents = [
 epub_title = u'Girder'
 epub_author = u'Kitware'
 epub_publisher = u'Kitware'
-epub_copyright = u'2014, Kitware'
+epub_copyright = u'2014-2015, Kitware'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = u'Girder'

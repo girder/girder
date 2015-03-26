@@ -93,12 +93,16 @@ If you want to add a new route to an existing core resource type, just call the
 route for ``GET /item/:id/cat`` to the system, ::
 
     from girder.api import access
+    from girder.api.rest import boundHandler
 
     @access.public
-    def myHandler(id, params):
+    @boundHandler()
+    def myHandler(self, id, params):
+        self.requireParams('cat', params)
+
         return {
            'itemId': id,
-           'cat': params.get('cat', 'No cat param passed')
+           'cat': params['cat']
         }
 
     def load(info):
@@ -109,6 +113,11 @@ indicate who can call the new route.  The decorator is one of ``@access.admin``
 (only administrators can call this endpoint), ``@access.user`` (any user who is
 logged in can call the endpoint), or ``@access.public`` (any client can call
 the endpoint).
+
+In the above example, the :py:obj:`girder.api.rest.boundHandler` decorator is
+used to make the unbound method ``myHandler`` behave as though it is a member method
+of a :py:class:`girder.api.rest.Resource` instance, which enables convenient access
+to methods like ``self.requireParams``.
 
 If you do not add an access decorator, a warning message appears:
 ``WARNING: No access level specified for route GET item/:id/cat``.  The access
@@ -222,14 +231,30 @@ default behavior using ``preventDefault`` and ``addResponse``. The identifiers
 for these events are of the form ``rest.get.item/:id.before``. They
 receive the same kwargs as the default route handler in the event's info.
 
+Since handlers of this event run prior to the normal access level check of the
+underlying route handler, they are bound by the same access level rules as route
+handlers; they must be decorated by one of the functions in `girder.api.access`.
+If you do not decorate them with one, they will default to requiring administrator
+access. This is to prevent accidental reduction of security by plugin developers.
+You may change the access level of the route in your handler, but you will
+need to do so explicitly by declaring a different decorator than the underlying
+route handler.
+
 *  **After REST call**
 
 Just like the before REST call event, but this is fired after the default
 handler has already executed and returned its value. That return value is
 also passed in the event.info for possible alteration by the receiving handler.
-The identifier for this event is, e.g., ``rest.get.item/:id.after``. You may
-alter the existing return value or override it completely using
-``preventDefault`` and ``addResponse`` on the event.
+The identifier for this event is, e.g., ``rest.get.item/:id.after``.
+
+You may alter the existing return value, for example adding an additional property ::
+
+    event.info['returnVal']['myProperty'] = 'myPropertyValue'
+
+or override it completely using ``preventDefault`` and ``addResponse`` on the event ::
+
+    event.addResponse(myReplacementResponse)
+    event.preventDefault()
 
 *  **Before model save**
 

@@ -125,10 +125,11 @@ class FilterTestCase(base.TestCase):
         # Test Model implementation
         fake = self.model('fake').save(fields)
         filtered = self.model('fake').filter(fake, self.user)
-        self.assertEqual(filtered, {'read': 1})
+        self.assertEqual(filtered, {'read': 1, '_modelType': 'fake'})
 
         filtered = self.model('fake').filter(fake, self.admin)
         self.assertEqual(filtered, {
             'read': 1,
-            'sa': 1
+            'sa': 1,
+            '_modelType': 'fake'
         })

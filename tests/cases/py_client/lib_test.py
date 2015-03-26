@@ -21,6 +21,7 @@ import girder_client
 import json
 import mock
 import os
+import shutil
 
 # Need to set the environment variable before importing girder
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')  # noqa
@@ -40,6 +41,30 @@ def tearDownModule():
 
 
 class PythonClientTestCase(base.TestCase):
+
+    def setUp(self):
+        base.TestCase.setUp(self)
+
+        def writeFile(dirName):
+            filename = os.path.join(dirName, 'f')
+            f = open(filename, 'w')
+            f.write(filename)
+            f.close()
+
+        # make some temp dirs and files
+        self.libTestDir = os.path.join(os.path.dirname(__file__),
+                                       '_libTestDir')
+        os.mkdir(self.libTestDir)
+        writeFile(self.libTestDir)
+        for subDir in range(0, 3):
+            subDirName = os.path.join(self.libTestDir, 'sub'+str(subDir))
+            os.mkdir(subDirName)
+            writeFile(subDirName)
+
+    def tearDown(self):
+        shutil.rmtree(self.libTestDir, ignore_errors=True)
+
+        base.TestCase.tearDown(self)
 
     def testRestCore(self):
         client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
@@ -125,3 +150,47 @@ class PythonClientTestCase(base.TestCase):
         # Test recursive ACL propagation (not very robust test yet)
         client.createFolder(privateFolder['_id'], name='Subfolder')
         client.inheritAccessControlRecursive(privateFolder['_id'])
+
+    def testUploadCallbacks(self):
+        callbackUser = self.model('user').createUser(
+            firstName='Callback', lastName='Last', login='callback',
+            password='password', email='Callback@email.com')
+        callbackPublicFolder = self.model('folder').childFolders(
+            parentType='user', parent=callbackUser, user=None, limit=1).next()
+        callback_counts = {'folder': 0, 'item': 0}
+        folders = {}
+        items = {}
+        folders[self.libTestDir] = False
+        folder_count = 1     # 1 for self.libTestDir
+        item_count = 0
+        for root, dirs, files in os.walk(self.libTestDir):
+            for name in files:
+                items[os.path.join(root, name)] = False
+                item_count += 1
+            for name in dirs:
+                folders[os.path.join(root, name)] = False
+                folder_count += 1
+
+        def folder_callback(folder, filepath):
+            self.assertIn(filepath, folders.keys())
+            folders[filepath] = True
+            callback_counts['folder'] += 1
+
+        def item_callback(item, filepath):
+            self.assertIn(filepath, items.keys())
+            items[filepath] = True
+            callback_counts['item'] += 1
+
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        client.authenticate('callback', 'password')
+
+        client.add_folder_upload_callback(folder_callback)
+        client.add_item_upload_callback(item_callback)
+        client.upload(self.libTestDir, callbackPublicFolder['_id'])
+
+        # make sure counts are the same (callbacks not called more than once)
+        # and that all folders and files have callbacks called on them
+        self.assertEqual(folder_count, callback_counts['folder'])
+        self.assertEqual(item_count, callback_counts['item'])
+        self.assertTrue(all(items.values()))
+        self.assertTrue(all(folders.values()))

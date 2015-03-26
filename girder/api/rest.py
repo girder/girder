@@ -376,8 +376,9 @@ def _setCommonCORSHeaders(isOptions=False):
     # Some requests do not require further checking
     if (cherrypy.request.method in ('GET', 'HEAD') or (
             cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
-            'Content-Type', '') in ('application/x-www-form-urlencoded',
-                                    'multipart/form-data', 'text/plain'))):
+            'Content-Type', '').split(';', 1)[0].strip() in (
+                'application/x-www-form-urlencoded',
+                'multipart/form-data', 'text/plain'))):
         return
     cors = ModelImporter.model('setting').corsSettingsDict()
     base = cherrypy.request.base.rstrip('/')
@@ -619,7 +620,7 @@ class Resource(ModelImporter):
                 eventPrefix = '.'.join(('rest', method, routeStr))
 
                 event = events.trigger('.'.join((eventPrefix, 'before')),
-                                       kwargs)
+                                       kwargs, pre=self._defaultAccess)
                 if event.defaultPrevented and len(event.responses) > 0:
                     val = event.responses[0]
                 else:
@@ -867,10 +868,44 @@ class Resource(ModelImporter):
     def PATCH(self, path, params):
         return self.handleRoute('PATCH', path, params)
 
-    def _defaultAccess(self, fun):
+    @staticmethod
+    def _defaultAccess(handler, **kwargs):
         """
-        If a function wasn't wrapped by one of the security decorators, check
-        the default access rights (admin required).
+        This is the pre-event handler callback for the events that are triggered
+        before default handling of a REST request. Since such an event handler
+        could accidentally circumvent the access level of the default handler,
+        we enforce that handlers of these event types must also specify their
+        own access level, or else default to the strictest level (admin) just
+        like the core route handlers. This allows plugins to potentially
+        override the default level, but makes sure they don't accidentally lower
+        the access level for a given route.
         """
-        if not hasattr(fun, 'accessLevel'):
-            self.requireAdmin(self.getCurrentUser())
+        if not hasattr(handler, 'accessLevel'):
+            requireAdmin(getCurrentUser())
+
+
+# An instance of Resource that can be shared by boundHandlers for efficiency
+_sharedContext = Resource()
+
+
+class boundHandler(object):
+    """
+    This decorator allows unbound functions to be conveniently added as route
+    handlers to existing :py:class:`girder.api.rest.Resource` instances.
+    With no arguments, this uses a shared, generic ``Resource`` instance as the
+    context. If you need a specific instance, pass that as the ``ctx`` arg, for
+    instance if you need to reference the resource name or any other properties
+    specific to a Resource subclass.
+
+    Plugins that add new routes to existing API resources are encouraged to use
+    this to gain access to bound convenience methods like ``self.model``,
+    ``self.boolParam``, ``self.requireParams``, etc.
+    """
+    def __init__(self, ctx=None):
+        self.ctx = ctx or _sharedContext
+
+    def __call__(self, fn):
+        @functools.wraps(fn)
+        def wrapped(*args, **kwargs):
+            return fn(self.ctx, *args, **kwargs)
+        return wrapped

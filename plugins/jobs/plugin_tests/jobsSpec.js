@@ -20,11 +20,8 @@ $(function () {
 
     describe('Unit test the job widget.', function () {
         it('Show a job detail widget.', function () {
-            waitsFor('scripts to load', function () {
-                return girder.views.jobs_JobDetailsWidget &&
-                       girder.models.JobModel &&
-                       girder.jobs_JobStatus &&
-                       girder.templates.jobs_jobDetails;
+            waitsFor('app to render', function () {
+                return $('#g-app-body-container').length > 0;
             });
 
             runs(function () {

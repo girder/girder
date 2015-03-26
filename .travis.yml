@@ -1,16 +1,27 @@
 language: cpp
+
+sudo: false
+
+# Build matrix
+env:
+    - MONGO_VERSION=2.6.8 DEPLOY=true
+    - MONGO_VERSION=3.0.1
+
 compiler:
     - gcc
 before_install:
     # Show the memory state; this lets us more quickly determine when the
     # travis environment is bad
     - vmstat
-    - python scripts/vmtest.py
-    - sudo apt-get install npm
-    - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10"
-    - "echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list"
-    - "sudo apt-get update"
-    - "sudo apt-get install mongodb-org-server"
+    #- python scripts/vmtest.py
+
+    - pushd "${HOME}"
+    - curl "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGO_VERSION}.tgz" | gunzip -c | tar x
+    - cd mongodb-*/bin && export PATH="${PWD}:${PATH}"
+    - popd
+    - mkdir /tmp/db
+    - mongod --dbpath=/tmp/db >/dev/null 2>/dev/null &
+
     - mongod --version
     - pushd "${HOME}"
     - curl "http://www.cmake.org/files/v3.1/cmake-3.1.0-rc3-Linux-x86_64.tar.gz" | gunzip -c | tar x
@@ -18,12 +29,13 @@ before_install:
     - popd
     - cmake --version
 install:
-    - sudo pip install -r requirements.txt -r requirements-dev.txt -r plugins/geospatial/requirements.txt -r plugins/metadata_extractor/requirements.txt
-    - sudo pip install -r plugins/celery_jobs/requirements.txt
+    - mkdir -p "${HOME}/.local/bin"
+    - export PATH="${HOME}/.local/bin:${PATH}"
+    - pip install --user -r requirements.txt -r requirements-dev.txt -r plugins/geospatial/requirements.txt -r plugins/metadata_extractor/requirements.txt
+    - pip install --user -r plugins/celery_jobs/requirements.txt -r plugins/hdfs_assetstore/requirements.txt
     # We have to upgrade six or requiring moto can cause other modules to fail
-    - sudo pip install -U six
-    - sudo python -c "import bcrypt"
-    - npm install -g grunt grunt-cli
+    - pip install --user -U six
+    - npm install grunt grunt-cli
     - npm install
 script:
     - mkdir _build
@@ -43,3 +55,4 @@ deploy:
     on:
         repo: girder/girder
         branch: master
+        condition: "$DEPLOY = true"

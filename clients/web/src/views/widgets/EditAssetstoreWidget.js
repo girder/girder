@@ -6,36 +6,32 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         'submit #g-assetstore-edit-form': function (e) {
             e.preventDefault();
 
-            var view = this;
-            var fields;
-            if (view.model.get('type') === girder.AssetstoreType.FILESYSTEM) {
-                fields = {
-                    name: this.$('#g-edit-name').val(),
-                    root: this.$('#g-edit-fs-root').val()
-                };
-            } else if (view.model.get('type') === girder.AssetstoreType.GRIDFS) {
-                fields = {
-                    name: this.$('#g-edit-name').val(),
-                    db: this.$('#g-edit-gridfs-db').val(),
-                    mongohost: this.$('#g-edit-gridfs-mongohost').val(),
-                    replicaset: this.$('#g-edit-gridfs-replicaset').val()
-                };
-            } else if (view.model.get('type') === girder.AssetstoreType.S3) {
-                fields = {
-                    name: this.$('#g-edit-name').val(),
-                    bucket: this.$('#g-edit-s3-bucket').val(),
-                    prefix: this.$('#g-edit-s3-prefix').val(),
-                    accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
-                    secret: this.$('#g-edit-s3-secret').val(),
-                    service: this.$('#g-edit-s3-service').val()
-                };
-            }
+            var fields = this.fieldsMap[this.model.get('type')].get.call(this);
+            fields.name = this.$('#g-edit-name').val();
+
             this.updateAssetstore(fields);
 
             this.$('button.g-save-assetstore').addClass('disabled');
             this.$('.g-validation-failed-message').text('');
         }
     },
+
+    /**
+     * This maps each type of assetstore to a function to getter and setter
+     * functions. The set functions are reponsible for populating the dialog
+     * fields with the appropriate current model values, and the get functions
+     * are responsible for reading the user input values from the dialog and
+     * returning a set of fields (excluding the name field) to set on the model.
+     *
+     * This is meant to make it easy for plugins that add new assetstore types
+     * to extend this dialog to allow the setting of custom fields using whatever
+     * widgets make the most sense. By adding a new field to this object, this
+     * edit dialog can support any type of assetstore dynamically.
+     *
+     * Since the keys of this array are values defined by variables,
+     * we set them after this class rather than inline with object creation syntax.
+     */
+    fieldsMap: {},
 
     initialize: function (settings) {
         this.model = settings.model || null;
@@ -49,23 +45,10 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-edit-name').focus();
             girder.dialogs.handleOpen('assetstoreedit', undefined, view.model.get('id'));
+            view.$('#g-edit-name').val(view.model.get('name'));
+            view.fieldsMap[view.model.get('type')].set.call(view);
         }).on('hidden.bs.modal', function () {
             girder.dialogs.handleClose('assetstoreedit', undefined, view.model.get('id'));
-        }).on('ready.girder.modal', function () {
-            view.$('#g-edit-name').val(view.model.get('name'));
-            if (view.model.get('type') === girder.AssetstoreType.FILESYSTEM) {
-                view.$('#g-edit-fs-root').val(view.model.get('root'));
-            } else if (view.model.get('type') === girder.AssetstoreType.GRIDFS) {
-                view.$('#g-edit-gridfs-db').val(view.model.get('db'));
-                view.$('#g-edit-gridfs-mongohost').val(view.model.get('mongohost'));
-                view.$('#g-edit-gridfs-replicaset').val(view.model.get('replicaset'));
-            } else if (view.model.get('type') === girder.AssetstoreType.S3) {
-                view.$('#g-edit-s3-bucket').val(view.model.get('bucket'));
-                view.$('#g-edit-s3-prefix').val(view.model.get('prefix'));
-                view.$('#g-edit-s3-access-key-id').val(view.model.get('accessKeyId'));
-                view.$('#g-edit-s3-secret').val(view.model.get('secret'));
-                view.$('#g-edit-s3-service').val(view.model.get('service'));
-            }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;
@@ -89,3 +72,52 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         }, this).save();
     }
 });
+
+(function () {
+    var fieldsMap = girder.views.EditAssetstoreWidget.prototype.fieldsMap;
+
+    fieldsMap[girder.AssetstoreType.FILESYSTEM] = {
+        get: function () {
+            return {
+                root: this.$('#g-edit-fs-root').val()
+            };
+        },
+        set: function () {
+            this.$('#g-edit-fs-root').val(this.model.get('root'));
+        }
+    };
+
+    fieldsMap[girder.AssetstoreType.GRIDFS] = {
+        get: function () {
+            return {
+                db: this.$('#g-edit-gridfs-db').val(),
+                mongohost: this.$('#g-edit-gridfs-mongohost').val(),
+                replicaset: this.$('#g-edit-gridfs-replicaset').val()
+            };
+        },
+        set: function () {
+            this.$('#g-edit-gridfs-db').val(this.model.get('db'));
+            this.$('#g-edit-gridfs-mongohost').val(this.model.get('mongohost'));
+            this.$('#g-edit-gridfs-replicaset').val(this.model.get('replicaset'));
+        }
+    };
+
+    fieldsMap[girder.AssetstoreType.S3] = {
+        get: function () {
+            return {
+                bucket: this.$('#g-edit-s3-bucket').val(),
+                prefix: this.$('#g-edit-s3-prefix').val(),
+                accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
+                secret: this.$('#g-edit-s3-secret').val(),
+                service: this.$('#g-edit-s3-service').val()
+            };
+        },
+        set: function () {
+            this.$('#g-edit-s3-bucket').val(this.model.get('bucket'));
+            this.$('#g-edit-s3-prefix').val(this.model.get('prefix'));
+            this.$('#g-edit-s3-access-key-id').val(this.model.get('accessKeyId'));
+            this.$('#g-edit-s3-secret').val(this.model.get('secret'));
+            this.$('#g-edit-s3-service').val(this.model.get('service'));
+        }
+    };
+}) ();

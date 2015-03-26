@@ -207,8 +207,8 @@ def findAllPlugins(curConfig=None):
                     data = json.load(conf)
                 except ValueError as e:
                     print(TerminalColor.error(
-                        'ERROR: Failed to load plugin "%s": plugin.json is not '
-                        'valid JSON.' % plugin))
+                        'ERROR: Plugin "%s": plugin.json is not valid JSON.' %
+                        plugin))
                     print e
                     continue
         elif os.path.isfile(configYml):
@@ -217,8 +217,8 @@ def findAllPlugins(curConfig=None):
                     data = yaml.safe_load(conf)
                 except yaml.YAMLError as e:
                     print(TerminalColor.error(
-                        'ERROR: Failed to load plugin "%s": plugin.yml is not '
-                        'valid YAML.' % plugin))
+                        'ERROR: Plugin "%s": plugin.yml is not valid YAML.' %
+                        plugin))
                     print e
                     continue
 

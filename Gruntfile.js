@@ -308,6 +308,9 @@ module.exports = function (grunt) {
         if (fs.existsSync(pluginJson)) {
             var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
             if (pluginDescription.hasOwnProperty('grunt')) {
+                console.log(('Found plugin: ' +
+                             path.basename(pluginDir) + ' (custom Gruntfile)').bold);
+
                 var pluginGruntCfg = pluginDescription.grunt;
 
                 // Merge plugin Grunt file
@@ -327,7 +330,7 @@ module.exports = function (grunt) {
         var pluginName = path.basename(pluginDir);
         var staticDir = 'clients/web/static/built/plugins/' + pluginName;
 
-        console.log(('Found plugin: ' + pluginName).bold.underline);
+        console.log(('Found plugin: ' + pluginName).bold);
 
         if (!fs.existsSync(staticDir)) {
             fs.mkdirSync(staticDir);
