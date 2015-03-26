@@ -20,8 +20,27 @@ import os
 
 from girder.api import access
 from girder.api.describe import Description
-from girder.api.rest import Resource
+from girder.api.rest import boundHandler, Resource
+from girder.api.v1.collection import Collection
 from girder.utility.server import staticFile
+
+
+@access.public
+@boundHandler()
+def unboundHandlerDefault(self, params):
+    self.requireParams('val', params)
+    return not self.boolParam('val', params)
+unboundHandlerDefault.description = None
+
+
+@access.public
+@boundHandler(Collection())
+def unboundHandlerExplicit(self, params):
+    return {
+        'user': self.getCurrentUser(),
+        'name': self.resourceName
+    }
+unboundHandlerExplicit.description = None
 
 
 class CustomAppRoot(object):
@@ -51,6 +70,11 @@ def load(info):
         CustomAppRoot(), info['serverRoot'])
     info['serverRoot'].api = info['serverRoot'].girder.api
     del info['serverRoot'].girder.api
+
+    info['apiRoot'].collection.route('GET', ('unbound', 'default'),
+                                     unboundHandlerDefault)
+    info['apiRoot'].collection.route('GET', ('unbound', 'explicit'),
+                                     unboundHandlerExplicit)
 
     info['apiRoot'].other = Other()
     path = os.path.join(globals()['PLUGIN_ROOT_DIR'], 'static.txt')
