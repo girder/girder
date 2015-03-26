@@ -9,6 +9,8 @@ https://girder.readthedocs.org.
 For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum 
 <https://gitter.im/girder/girder>`_.
 
+We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
+
 .. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
     :target: https://travis-ci.org/girder/girder
     :alt: Build Status

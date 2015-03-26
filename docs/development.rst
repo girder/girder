@@ -61,6 +61,21 @@ will override the defaults.
 
 .. _client_development_js:
 
+Server Development
+------------------
+
+Python Style
+^^^^^^^^^^^^
+
+We use ``flake8`` to test for Python style on the server side.
+
+Use ``%`` instead of ``format``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use ``%`` or some other string formatting operation that coerces to unicode,
+and avoid ``format``, since it does not coerce to unicode and has caused bugs.
+
+
 Client Development
 ------------------
 
