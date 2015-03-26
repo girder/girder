@@ -111,7 +111,7 @@ def pauseMongoReplicaSet(pauseList, verbose=0):
             pprint.pprint(stat)
 
 
-def startMongoReplicaSet(timeout=60, verbose=0):
+def startMongoReplicaSet(timeout=120, verbose=0):
     """
     Start three mongo servers on ports 27070, 27071, 27072.  Configure a
     replica set between the three of them.  Makre sure they shut down when the
@@ -206,7 +206,7 @@ def stopMongoReplicaSet(graceful=True, purgeFiles=True):
                     shutil.rmtree(server['dir'])
 
 
-def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
+def waitForRSStatus(client, status=[1], timeout=120, verbose=0):
     """
     Wait until a mongodb client has a replica set status record that matches a
     specific state.
