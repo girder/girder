@@ -376,8 +376,9 @@ def _setCommonCORSHeaders(isOptions=False):
     # Some requests do not require further checking
     if (cherrypy.request.method in ('GET', 'HEAD') or (
             cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
-            'Content-Type', '') in ('application/x-www-form-urlencoded',
-                                    'multipart/form-data', 'text/plain'))):
+            'Content-Type', '').split(';', 1)[0].strip() in (
+                'application/x-www-form-urlencoded',
+                'multipart/form-data', 'text/plain'))):
         return
     cors = ModelImporter.model('setting').corsSettingsDict()
     base = cherrypy.request.base.rstrip('/')
