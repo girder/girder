@@ -5,8 +5,8 @@ girder.models.UserModel = girder.Model.extend({
     // is logged in.
     current: function (success, error) {
         girder.restRequest({
-            method: "GET",
-            path: "/user/me"
+            method: 'GET',
+            path: '/user/me'
         }).then(_.bind(function (user) {
             if (user) {
                 this.set(user);
