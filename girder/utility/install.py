@@ -16,11 +16,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-'''
+"""
 This module contains functions to install optional components
 into the current girder installation.  Note that girder must
 be restarted for these changes to take effect.
-'''
+"""
 
 import os
 import urllib2
@@ -42,13 +42,13 @@ defaultSource = (
 
 
 def fix_path(path):
-    '''
+    """
     Get an absolute path (while expanding ~).
 
     :param str path: a filesystem path
     :return: an absolute path
     :rtype: str
-    '''
+    """
     # first expand ~
     path = os.path.expanduser(path)
 
@@ -57,7 +57,7 @@ def fix_path(path):
 
 
 def handle_source(src, dest):
-    '''
+    """
     Stage a source specification into a temporary directory for processing.
     Returns False if unsuccessful.
 
@@ -65,7 +65,7 @@ def handle_source(src, dest):
     :param str dest: destination path
     :returns: True if success else False
     :rtype: bool
-    '''
+    """
 
     try:  # pragma: no cover
         # Try to open as a url
@@ -100,7 +100,7 @@ def handle_source(src, dest):
 
 
 def install_web(source=None, force=False):  # pragma: no cover
-    '''
+    """
     Install the web client from the given source.  If no source
     is present it will install from the current release package
     on Github.
@@ -109,7 +109,7 @@ def install_web(source=None, force=False):  # pragma: no cover
     :param bool force: allow overwriting existing files
     :returns: True if success else False
     :rtype: bool
-    '''
+    """
     if source is None:
         source = defaultSource + 'girder-web-' + version + '.tar.gz'
 
@@ -145,7 +145,7 @@ def install_web(source=None, force=False):  # pragma: no cover
 
 
 def install_plugin(source=None, force=False):
-    '''
+    """
     Install one or more plugins from the given source.  If no
     source is given, it will install all plugins in the release
     package on Github.  The source provided must be a directory
@@ -156,7 +156,7 @@ def install_plugin(source=None, force=False):
     :param bool force: allow overwriting existing files
     :returns: a list of plugins that were installed
     :rtype: list
-    '''
+    """
     if source is None:  # pragma: no cover
         source = defaultSource + 'girder-plugins-' + version + '.tar.gz'
 

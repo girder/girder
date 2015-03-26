@@ -418,6 +418,8 @@ class Model(ModelImporter):
         if '_textScore' in doc:
             out['_textScore'] = doc['_textScore']
 
+        out['_modelType'] = self.name
+
         return out
 
     def subtreeCount(self, doc):
@@ -678,8 +680,7 @@ class AccessControlledModel(Model):
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
             user['login'] = userDoc['login']
-            user['name'] = '{} {}'.format(
-                userDoc['firstName'], userDoc['lastName'])
+            user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups']:
             grpDoc = self.model('group').load(

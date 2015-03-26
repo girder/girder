@@ -227,6 +227,7 @@ class ItemTestCase(base.TestCase):
                             user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], item['_id'])
+        self.assertEqual(resp.json['_modelType'], 'item')
 
         # Also from the children call
         resp = self.request(path='/item', method='GET', user=self.users[0],

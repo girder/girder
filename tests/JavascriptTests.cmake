@@ -20,16 +20,66 @@ function(javascript_tests_init)
   )
 endfunction()
 
+include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
+include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigMerge.cmake)
+
 function(add_javascript_style_test name input)
+  set(_args JSHINT_EXTRA_CONFIGS JSSTYLE_EXTRA_CONFIGS)
+  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  # jshint
+  set(jshint_config "${PROJECT_BINARY_DIR}/tests/${name}_jshint.cfg")
+  json_config_merge(
+    INPUTFILES
+      "${PROJECT_SOURCE_DIR}/tests/jshint.cfg"
+      ${fn_JSHINT_EXTRA_CONFIGS}
+    OUTPUTFILE
+      ${jshint_config}
+    )
+
+  # jsstyle
+  set(inputfiles
+    "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg"
+    ${fn_JSSTYLE_EXTRA_CONFIGS}
+    )
+  set(expanded_jsstyle_inputfiles)
+  foreach(inputfile IN LISTS inputfiles)
+    set(outputfile ${CMAKE_CURRENT_BINARY_DIR}/${inputfile})
+    get_filename_component(outputdir ${outputfile} PATH)
+    file(MAKE_DIRECTORY ${outputdir})
+    list(APPEND expanded_jsstyle_inputfiles ${outputfile})
+    json_config_expand_relpaths(
+      INPUTFILE ${inputfile}
+      OUTPUTFILE ${outputfile}
+      RELATIVE_PATH_KEYS excludeFiles
+      )
+  endforeach()
+
+  set(jsstyle_config "${PROJECT_BINARY_DIR}/tests/${name}_jsstyle.cfg")
+  json_config_merge(
+    INPUTFILES ${expanded_jsstyle_inputfiles}
+    OUTPUTFILE ${jsstyle_config}
+    )
+
+  # add tests
+  set(working_dir "${PROJECT_SOURCE_DIR}/clients/web")
+  if(NOT IS_ABSOLUTE ${input})
+    set(input ${working_dir}/${input})
+  endif()
+  if(NOT EXISTS ${input})
+    message(FATAL_ERROR "Failed to add javascript style tests."
+                        "Directory '${input}' does not exist.")
+  endif()
+
   add_test(
     NAME "jshint_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
-    COMMAND "${JSHINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jshint.cfg" "${input}"
+    WORKING_DIRECTORY ${input}
+    COMMAND "${JSHINT_EXECUTABLE}" --config "${jshint_config}" "${input}"
   )
   add_test(
     NAME "jsstyle_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/clients/web"
-    COMMAND "${JSSTYLE_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg" "${input}"
+    WORKING_DIRECTORY ${input}
+    COMMAND "${JSSTYLE_EXECUTABLE}" --config "${jsstyle_config}" "${input}"
   )
 endfunction()
 

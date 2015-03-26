@@ -8,3 +8,5 @@ girder.egg-info
 .*.swp
 .*.swo
 .vagrant
+phantom-*.png
+girder-*.tar.gz
