@@ -395,7 +395,7 @@ def _setCommonCORSHeaders(isOptions=False):
         logAltBase = ', forwarded base origin is ' + baselist[-1]
         if baseparse.scheme != cherrypy.request.scheme:
             baselist.append('%s://%s' % (baseparse.scheme, altbase))
-            logAltBase(', also allowing ' + baselist[-1])
+            logAltBase += ', also allowing ' + baselist[-1]
     else:
         logAltBase = ''
     # If we don't have any allowed origins, return that OPTIONS isn't a
