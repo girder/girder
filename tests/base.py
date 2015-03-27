@@ -325,7 +325,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
-                additionalHeaders=None):
+                additionalHeaders=None, useHttps=False):
         """
         Make an HTTP request.
 
@@ -347,6 +347,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param additionalHeaders: a list of headers to add to the
                                   request.  Each item is a tuple of the form
                                   (header-name, header-value).
+        :param useHttps: if True, pretend to use https
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -372,7 +373,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             qs = urllib.urlencode(params)
 
         app = cherrypy.tree.apps['']
-        request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
+        request, response = app.get_serving(
+            local, remote, 'http' if not useHttps else 'https', 'HTTP/1.1')
         request.show_tracebacks = True
 
         self._buildHeaders(headers, cookie, user, token, basicAuth)
