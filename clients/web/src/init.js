@@ -142,8 +142,8 @@ _.extend(girder, {
                 Authorization: auth
             }
         }).then(function (response) {
-            girder.events.trigger('g:login.success', response.user);
-            girder.events.trigger('g:login', response.user);
+            girder.events.trigger('g:login.success', response.user, response.authToken);
+            girder.events.trigger('g:login', response);
             return response.user;
         }, function (jqxhr) {
             girder.events.trigger('g:login.error', jqxhr.status, jqxhr);

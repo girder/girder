@@ -8,13 +8,13 @@ girder.views.LoginView = girder.View.extend({
 
             girder.login(this.$('#g-login').val(), this.$('#g-password').val());
 
-            girder.events.once('g:login.success', _.bind(function (resp) {
+            girder.events.once('g:login.success', _.bind(function (user, token) {
                 this.$el.modal('hide');
 
                 // Save the token for later
-                resp.user.token = resp.authToken.token;
+                user.token = token;
 
-                girder.currentUser = new girder.models.UserModel(resp.user);
+                girder.currentUser = new girder.models.UserModel(user);
                 girder.dialogs.handleClose('login', {replace: true});
             }, this));
 
