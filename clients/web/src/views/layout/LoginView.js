@@ -6,16 +6,9 @@ girder.views.LoginView = girder.View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            var authStr = window.btoa(this.$('#g-login').val() + ':' +
-                this.$('#g-password').val());
-            girder.restRequest({
-                path: 'user/authentication',
-                type: 'GET',
-                headers: {
-                    Authorization: 'Basic ' + authStr
-                },
-                error: null // don't do default error behavior
-            }).done(_.bind(function (resp) {
+            girder.login(this.$('#g-login').val(), this.$('#g-password').val());
+
+            girder.events.once('g:login.success', _.bind(function (resp) {
                 this.$el.modal('hide');
 
                 // Save the token for later
@@ -23,8 +16,9 @@ girder.views.LoginView = girder.View.extend({
 
                 girder.currentUser = new girder.models.UserModel(resp.user);
                 girder.dialogs.handleClose('login', {replace: true});
-                girder.events.trigger('g:login');
-            }, this)).error(_.bind(function (err) {
+            }, this));
+
+            girder.events.once('g:login.error', _.bind(function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
             }, this));

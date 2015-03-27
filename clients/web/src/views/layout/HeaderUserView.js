@@ -13,10 +13,9 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         },
 
         'click a.g-logout': function () {
-            girder.restRequest({
-                path: 'user/authentication',
-                type: 'DELETE'
-            }).done(_.bind(function () {
+            girder.logout();
+
+            girder.events.once('g:logout.success', _.bind(function () {
                 girder.currentUser = null;
                 girder.events.trigger('g:login');
             }, this));
