@@ -145,7 +145,14 @@ def startMongoReplicaSet(timeout=60, verbose=0):
         'members': [{'_id': i, 'host': '127.0.0.1:%d' % Config[i]['port']}
                     for i in xrange(len(Config))]}
     client, stat = waitForRSStatus(getMongoClient(0, replConf, timeout),
-                                   [1, 2, 2], timeout, verbose=verbose)
+                                   [(1, 2), (2, 1), (2, 1)], timeout,
+                                   verbose=verbose)
+    # Reorder our config records so that the primary set is first
+    if Config[0]['lastState'] != 1:
+        for idx in xrange(1, len(Config)):
+            if Config[idx]['lastState'] == 1:
+                Config[0], Config[idx] = Config[idx], Config[0]
+                break
     if verbose >= 1:
         print 'Mongo replica set ready'
         conf = client.local.system.replset.find_one()
@@ -206,6 +213,39 @@ def stopMongoReplicaSet(graceful=True, purgeFiles=True):
                     shutil.rmtree(server['dir'])
 
 
+def getOrderedRSStatus(client, minMembers):
+    """
+    Get the status of the mongodb replica set and order the members to match
+    the Config list.
+
+    :param client: an existing client connection to a mongodb.
+    :param minMembers: the number of members to ensure exist and are in the
+                       desired order.
+    :returns: current status of the replica set with the members in the order
+              of the Config list, or None.
+    """
+    if minMembers > len(Config):
+        return None
+    try:
+        stat = client.admin.command('replSetGetStatus')
+        if 'members' not in stat or len(stat['members']) < minMembers:
+            return None
+        members = []
+        for idx in xrange(minMembers):
+            member = None
+            for entry in stat['members']:
+                if (entry['name'].split(':')[-1] ==
+                        str(Config[idx]['port'])):
+                    member = entry
+            if not member:
+                return None
+            members.append(member)
+        stat['members'] = members
+        return stat
+    except (pymongo.errors.OperationFailure, pymongo.errors.AutoReconnect):
+        return None
+
+
 def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
     """
     Wait until a mongodb client has a replica set status record that matches a
@@ -225,33 +265,30 @@ def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
     starttime = time.time()
     okay = False
     while time.time() < starttime + timeout:
-        try:
-            stat = client.admin.command('replSetGetStatus')
-            if 'members' in stat and len(stat['members']) >= len(status):
-                okay = True
-                numberOfPrimary = 0
-                numberOfSecondary = 0
-                for idx in xrange(len(status)):
-                    member = stat['members'][idx]
-                    numberOfPrimary += (member['state'] == 1)
-                    numberOfSecondary += (member['state'] == 2)
-                    if isinstance(status[idx], (list, tuple)):
-                        if member['state'] not in status[idx]:
-                            okay = False
-                    elif member['state'] != status[idx]:
+        stat = getOrderedRSStatus(client, len(status))
+        if stat:
+            okay = True
+            numberOfPrimary = 0
+            numberOfSecondary = 0
+            for idx in xrange(len(status)):
+                member = stat['members'][idx]
+                numberOfPrimary += (member['state'] == 1)
+                numberOfSecondary += (member['state'] == 2)
+                if isinstance(status[idx], (list, tuple)):
+                    if member['state'] not in status[idx]:
                         okay = False
-                if ((numberOfPrimary != 1 and numberOfSecondary > 0) or
-                        numberOfPrimary > 1):
+                elif member['state'] != status[idx]:
                     okay = False
-                if verbose >= 2:
-                    print ([memb['state'] for memb in stat['members']],
-                           status, numberOfPrimary, numberOfSecondary)
-                if okay:
-                    break
-            time.sleep(0.5)
-        except (pymongo.errors.OperationFailure,
-                pymongo.errors.AutoReconnect):
-            time.sleep(0.5)
+                Config[idx]['lastState'] = member['state']
+            if ((numberOfPrimary != 1 and numberOfSecondary > 0) or
+                    numberOfPrimary > 1):
+                okay = False
+            if verbose >= 2:
+                print ([memb['state'] for memb in stat['members']],
+                       status, numberOfPrimary, numberOfSecondary)
+            if okay:
+                break
+        time.sleep(0.5)
     if not stat or not okay:
         raise Exception('Status does not match')
     return client, stat
