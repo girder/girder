@@ -143,6 +143,7 @@ _.extend(girder, {
             }
         }).then(function (response) {
             girder.events.trigger('g:login.success', response.user);
+            girder.events.trigger('g:login', response.user);
             return response.user;
         }, function (jqxhr) {
             girder.events.trigger('g:login.error', jqxhr.status, jqxhr);
