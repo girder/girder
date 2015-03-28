@@ -11,9 +11,7 @@ For questions, comments, or to get in touch with the maintainers, head to our `G
 
 We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 
-.. |logo| image:: clients/web/static/img/Girder_Mark.png
-    :width: 40
-    :align: middle
+.. |logo| image:: clients/web/static/img/Girder_Favicon.png
 
 .. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
     :target: https://travis-ci.org/girder/girder
