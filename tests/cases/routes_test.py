@@ -93,16 +93,17 @@ class RoutesTestCase(base.TestCase):
         self.assertRaises(RestException, dummy.handleRoute, 'DUMMY',
                           ('guid', 'dummy'), {})
 
-    def _testOrigin(self, origin=None, results={}, headers={}):
+    def _testOrigin(self, origin=None, results={}, headers={}, useHttps=False):
         """
         Test CORS responses by querying the dummy endpoints for each method.
 
         :param origin: the origin to use in the request, or None for no
                        origin header.
-        :param results: a dictionary.  The kesy are methods and the values are
+        :param results: a dictionary.  The keys are methods and the values are
                         the expected HTTP response code.  Any method that isn't
                         expected to return a 200 must be present.
         :param headers: a dictionary of additional headers to send.
+        :param useHttps: if True, pretend to use https.
         """
         methods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
         additionalHeaders = []
@@ -114,7 +115,8 @@ class RoutesTestCase(base.TestCase):
         for method in methods:
             resp = self.request(
                 path='/dummy/test', method=method, isJson=False,
-                params={'key': 'value'}, additionalHeaders=additionalHeaders)
+                params={'key': 'value'}, additionalHeaders=additionalHeaders,
+                useHttps=useHttps)
             self.assertStatus(resp, results.get(method, 200))
 
     def testCORS(self):
@@ -156,11 +158,24 @@ class RoutesTestCase(base.TestCase):
         # Set a list of allowed origins
         self.model('setting').set(
             SettingKey.CORS_ALLOW_ORIGIN,
-            'http://kitware.com,http://girder.kitware.com')
+            'http://kitware.com,http://girder.kitware.com,'
+            'https://secure.kitware.com')
         self._testOrigin(None, {'OPTIONS': 405})
         self._testOrigin('http://127.0.0.1')
         self._testOrigin('http://kitware.com')
         self._testOrigin('http://girder.kitware.com')
+
+        # Test origins with paths and https.  None should cause a problem
+        self._testOrigin('http://kitware.com/girder')
+        self._testOrigin('https://secure.kitware.com',
+                         headers={'X-Forwarded-Host': 'secure.kitware.com'},
+                         useHttps=True)
+        self._testOrigin('http://secure.kitware.com',
+                         headers={'X-Forwarded-Host': 'secure.kitware.com'},
+                         useHttps=False)
+        self._testOrigin('http://kitware.com',
+                         headers={'X-Forwarded-Host': 'kitware.com/girder'})
+
         # If we specify a different origin, everything should be refused
         self._testOrigin('http://girder2.kitware.com', {
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
