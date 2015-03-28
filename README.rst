@@ -1,15 +1,19 @@
-Girder |build-status| |docs-status| |license-badge| |gitter-badge|
-==================================================================
+|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge|
+=========================================================================
 
-*Data Management Platform*
+**Data Management Platform**
 
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.org.
 
-For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum 
+For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum
 <https://gitter.im/girder/girder>`_.
 
 We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
+
+.. |logo| image:: clients/web/static/img/Girder_Mark.png
+    :width: 40
+    :align: middle
 
 .. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
     :target: https://travis-ci.org/girder/girder
