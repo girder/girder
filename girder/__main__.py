@@ -35,7 +35,7 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Girder: High Performance Data Management.')
+        description='Girder: data management platform for the web.')
     parser.add_argument("-t", "--testing", help="run in testing mode",
                         action="store_true")
     parser.add_argument("-d", "--database",
