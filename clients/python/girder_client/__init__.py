@@ -664,9 +664,11 @@ class GirderClient(object):
         Callback functions will be called after a folder in Girder is created
         and all subfolders and items for that folder have completed uploading.
         Callback functions should take two parameters:
-            - the folder in girder
-            - the full path to the local folder
-        :param callback: callback function to be called
+        - the folder in girder
+        - the full path to the local folder
+
+        :param callback: callback function to be called.
+
         """
         self.folder_upload_callbacks.append(callback)
 
@@ -677,9 +679,11 @@ class GirderClient(object):
         Callback functions will be called after an item in Girder is created
         and all files for that item have been uploaded.  Callback functions
         should take two parameters:
-            - the item in girder
-            - the full path to the local folder or file comprising the item
-        :param callback: callback function to be called
+        - the item in girder
+        - the full path to the local folder or file comprising the item
+
+        :param callback: callback function to be called.
+
         """
         self.item_upload_callbacks.append(callback)
 
@@ -864,13 +868,13 @@ class GirderClient(object):
         create a hierarchy on the server under the parent_id.
 
         :param file_pattern: a glob pattern for files that will be uploaded,
-        recursively copying any file folder structures
-        :param parent_id: id of the parent in girder
-        :param parent_type: one of (collection, folder, user) default of folder
-        :param leaf_folders_as_items: whether leaf folders should have all
-        files uploaded as single items
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item of the same name in the same location, or create a new one instead
+            recursively copying any file folder structures.
+        :param parent_id: id of the parent in girder.
+        :param parent_type: one of (collection,folder,user), default of folder.
+        :param leaf_folders_as_items: bool whether leaf folders should have all
+            files uploaded as single items.
+        :param reuse_existing: bool whether to accept an existing item of
+            the same name in the same location, or create a new one instead.
         """
         empty = True
         for current_file in glob.iglob(file_pattern):
