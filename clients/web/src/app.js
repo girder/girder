@@ -28,6 +28,7 @@ girder.App = girder.View.extend({
                 girder.currentUser = new girder.models.UserModel(user);
                 girder.eventStream.open();
             }
+            this._initLayoutRenderMap();
             this.render();
 
             // Once we've rendered the layout, we can start up the routing.
@@ -42,6 +43,45 @@ girder.App = girder.View.extend({
         girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         girder.events.on('g:alert', this.alert, this);
         girder.events.on('g:login', this.login, this);
+    },
+
+    _initLayoutRenderMap: function () {
+        var hide_on_empty = ['#g-app-header-container', '#g-global-nav-container', '#g-app-footer-container'],
+            css_empty = {
+                '#g-app-body-container': {
+                    'margin-left': '0px',
+                    'padding-top': '10px'
+                }
+            },
+            css_restore = {},
+            _this = this, // more readable than _.bind-ing this through three nested functions
+            toEmpty = function () {
+                _.each(hide_on_empty, function (element) {
+                    _this.$(element).hide();
+                });
+                _.each(css_empty, function (properties, element) {
+                    var restored_element = {};
+                    _.each(properties, function (value, property) {
+                        restored_element[property] = _this.$(element).css(property);
+                        _this.$(element).css(property, value);
+                    });
+                    css_restore[element] = restored_element;
+                });
+            },
+            toDefault = function () {
+                _.each(hide_on_empty, function (element) {
+                    _this.$(element).show();
+                });
+                _.each(css_restore, function (properties, element) {
+                    _.each(properties, function (value, property) {
+                        _this.$(element).css(property, value);
+                    });
+                });
+                css_restore = {};
+            };
+        this.layoutRenderMap = {};
+        this.layoutRenderMap[girder.Layout.DEFAULT] = toDefault;
+        this.layoutRenderMap[girder.Layout.EMPTY] = toEmpty;
     },
 
     render: function () {
@@ -59,13 +99,30 @@ girder.App = girder.View.extend({
      * Changes the current body view to the view class specified by view.
      * @param view The view to display in the body.
      * @param [settings={}] Settings to pass to the view initialize() method.
+     * @param opts Additional options for navigateTo, if any.
      */
-    navigateTo: function (view, settings) {
+    navigateTo: function (view, settings, opts) {
         var container = this.$('#g-app-body-container');
 
         this.globalNavView.deactivateAll();
 
         settings = settings || {};
+
+        if (opts && opts.layout) {
+            if (girder.layout !== opts.layout) {
+                if (_.has(this.layoutRenderMap, opts.layout)) {
+                    // set a layout if opts specifies one different from current
+                    girder.layout = opts.layout;
+                    this.layoutRenderMap[girder.layout]();
+                } else {
+                    console.error('Attempting to set unknown layout type: ' + opts.layout);
+                }
+            }
+        } else if (girder.layout !== girder.Layout.DEFAULT) {
+            // reset to default as needed when nothing specified in opts
+            girder.layout = girder.Layout.DEFAULT;
+            this.layoutRenderMap[girder.layout]();
+        }
 
         if (view) {
             if (this.bodyView) {
