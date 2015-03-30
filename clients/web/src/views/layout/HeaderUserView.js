@@ -12,14 +12,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
             girder.events.trigger('g:registerUi');
         },
 
-        'click a.g-logout': function () {
-            girder.logout();
-
-            girder.events.once('g:logout.success', _.bind(function () {
-                girder.currentUser = null;
-                girder.events.trigger('g:login');
-            }, this));
-        },
+        'click a.g-logout': girder.logout,
 
         'click a.g-my-folders': function () {
             girder.router.navigate('user/' + girder.currentUser.get('_id'), {trigger: true});

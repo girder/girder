@@ -142,8 +142,13 @@ _.extend(girder, {
                 Authorization: auth
             }
         }).then(function (response) {
-            girder.events.trigger('g:login.success', response.user, response.authToken);
+            response.user.token = response.authToken;
+
+            girder.currentUser = new girder.models.UserModel(response.user);
+
+            girder.events.trigger('g:login.success', response.user);
             girder.events.trigger('g:login', response);
+
             return response.user;
         }, function (jqxhr) {
             girder.events.trigger('g:login.error', jqxhr.status, jqxhr);
@@ -156,6 +161,8 @@ _.extend(girder, {
             method: 'DELETE',
             path: '/user/authentication'
         }).then(function () {
+            girder.currentUser = null;
+
             girder.events.trigger('g:login', null);
             girder.events.trigger('g:logout.success');
         }, function (jqxhr) {
