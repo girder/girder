@@ -130,6 +130,51 @@ _.extend(girder, {
             opts.headers['Girder-Token'] = token;
         }
         return Backbone.ajax(opts);
+    },
+
+    login: function (username, password) {
+        var auth = 'Basic ' + window.btoa(username + ':' + password);
+
+        return girder.restRequest({
+            method: 'GET',
+            path: '/user/authentication',
+            headers: {
+                Authorization: auth
+            }
+        }).then(function (response) {
+            response.user.token = response.authToken;
+
+            girder.currentUser = new girder.models.UserModel(response.user);
+
+            girder.events.trigger('g:login.success', response.user);
+            girder.events.trigger('g:login', response);
+
+            return response.user;
+        }, function (jqxhr) {
+            girder.events.trigger('g:login.error', jqxhr.status, jqxhr);
+            return jqxhr;
+        });
+    },
+
+    logout: function () {
+        return girder.restRequest({
+            method: 'DELETE',
+            path: '/user/authentication'
+        }).then(function () {
+            girder.currentUser = null;
+
+            girder.events.trigger('g:login', null);
+            girder.events.trigger('g:logout.success');
+        }, function (jqxhr) {
+            girder.events.trigger('g:logout.error', jqxhr.status, jqxhr);
+        });
+    },
+
+    fetchCurrentUser: function () {
+        return girder.restRequest({
+            method: 'GET',
+            path: '/user/me'
+        });
     }
 });
 

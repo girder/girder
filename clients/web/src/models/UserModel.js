@@ -1,6 +1,29 @@
 girder.models.UserModel = girder.Model.extend({
     resourceName: 'user',
 
+    /**
+     * Calling this function mutates the model in one of two ways: (1) if a user
+     * is currently logged into Girder, the model will reflect that user; (2) if
+     * no user is logged in, the model will become clear.  To know which path
+     * occurred, you can call this method, then install a one-time event handler
+     * for the model's change event.  In that handler, calling isNew() on the
+     * model will tell if you if a user is logged in (false) or not (true).
+     *
+     * This is equivalent to invoking girder.fetchCurrentUser(), then calling
+     * clear() or set() on the model depending on whether the result of the call
+     * is null or not.
+     */
+    current: function () {
+        girder.fetchCurrentUser()
+            .then(_.bind(function (user) {
+                if (user) {
+                    this.set(user);
+                } else {
+                    this.clear();
+                }
+            }, this));
+    },
+
     name: function () {
         return this.get('firstName') + ' ' + this.get('lastName');
     },
