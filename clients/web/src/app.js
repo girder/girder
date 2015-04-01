@@ -46,38 +46,37 @@ girder.App = girder.View.extend({
     },
 
     _initLayoutRenderMap: function () {
-        var hide_on_empty = ['#g-app-header-container', '#g-global-nav-container', '#g-app-footer-container'],
+        var hideOnEmpty = ['#g-app-header-container', '#g-global-nav-container', '#g-app-footer-container'],
             css_empty = {
                 '#g-app-body-container': {
                     'margin-left': '0px',
                     'padding-top': '10px'
                 }
             },
-            css_restore = {},
-            _this = this, // more readable than _.bind-ing this through three nested functions
+            cssRestore = {},
             toEmpty = function () {
-                _.each(hide_on_empty, function (element) {
-                    _this.$(element).hide();
-                });
-                _.each(css_empty, function (properties, element) {
+                _.each(hideOnEmpty, _.bind(function (element) {
+                    this.$(element).hide();
+                }, this));
+                _.each(css_empty, _.bind(function (properties, element) {
                     var restored_element = {};
-                    _.each(properties, function (value, property) {
-                        restored_element[property] = _this.$(element).css(property);
-                        _this.$(element).css(property, value);
-                    });
-                    css_restore[element] = restored_element;
-                });
+                    _.each(properties, _.bind(function (value, property) {
+                        restored_element[property] = this.$(element).css(property);
+                        this.$(element).css(property, value);
+                    }, this));
+                    cssRestore[element] = restored_element;
+                }, this));
             },
             toDefault = function () {
-                _.each(hide_on_empty, function (element) {
-                    _this.$(element).show();
-                });
-                _.each(css_restore, function (properties, element) {
-                    _.each(properties, function (value, property) {
-                        _this.$(element).css(property, value);
-                    });
-                });
-                css_restore = {};
+                _.each(hideOnEmpty, _.bind(function (element) {
+                    this.$(element).show();
+                }, this));
+                _.each(cssRestore, _.bind(function (properties, element) {
+                    _.each(properties, _.bind(function (value, property) {
+                        this.$(element).css(property, value);
+                    }, this));
+                }, this));
+                cssRestore = {};
             };
         this.layoutRenderMap = {};
         this.layoutRenderMap[girder.Layout.DEFAULT] = toDefault;
@@ -107,13 +106,14 @@ girder.App = girder.View.extend({
         this.globalNavView.deactivateAll();
 
         settings = settings || {};
+        opts = opts || {};
 
-        if (opts && opts.layout) {
+        if (opts.layout) {
             if (girder.layout !== opts.layout) {
                 if (_.has(this.layoutRenderMap, opts.layout)) {
                     // set a layout if opts specifies one different from current
                     girder.layout = opts.layout;
-                    this.layoutRenderMap[girder.layout]();
+                    this.layoutRenderMap[girder.layout].call(this, opts);
                 } else {
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
@@ -121,7 +121,7 @@ girder.App = girder.View.extend({
         } else if (girder.layout !== girder.Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
             girder.layout = girder.Layout.DEFAULT;
-            this.layoutRenderMap[girder.layout]();
+            this.layoutRenderMap[girder.layout].call(this, opts);
         }
 
         if (view) {
