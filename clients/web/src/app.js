@@ -46,7 +46,7 @@ girder.App = girder.View.extend({
 
     _initLayoutRenderMap: function () {
         var hideOnEmpty = ['#g-app-header-container', '#g-global-nav-container', '#g-app-footer-container'],
-            css_empty = {
+            cssEmpty = {
                 '#g-app-body-container': {
                     'margin-left': '0px',
                     'padding-top': '10px'
@@ -57,13 +57,13 @@ girder.App = girder.View.extend({
                 _.each(hideOnEmpty, _.bind(function (element) {
                     this.$(element).hide();
                 }, this));
-                _.each(css_empty, _.bind(function (properties, element) {
-                    var restored_element = {};
+                _.each(cssEmpty, _.bind(function (properties, element) {
+                    var restoredElement = {};
                     _.each(properties, _.bind(function (value, property) {
-                        restored_element[property] = this.$(element).css(property);
+                        restoredElement[property] = this.$(element).css(property);
                         this.$(element).css(property, value);
                     }, this));
-                    cssRestore[element] = restored_element;
+                    cssRestore[element] = restoredElement;
                 }, this));
             },
             toDefault = function () {
