@@ -152,6 +152,40 @@ The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
 under **/clients/web/dev/built/py_coverage**.
 
+Client Side Testing
+-------------------
+
+Using the same setup as above for the Server Side Tests, your environment will be set up
+to run client side tests. Running ::
+
+    cd girder-build
+    ctest
+
+will run all of the tests, which include the client side tests.  Our client tests use the
+Jasmine JS testing framework.
+
+When running client side test, if you try to SIGINT (ctrl+c) the CTest process, CTest
+won't pass that signal down to the test processes for them to handle.  This can result
+in orphaned python unittest processes and can prevent future runs of client tests.  If you
+run a client side test and see an error message similar to ``IOError: Port 30015 not free on '0.0.0.0'``,
+then look for an existing process similar to ``/usr/bin/python2.7 -m unittest -v tests.web_client_test``,
+kill the process, and then try your tests again.
+
+Adding a New Client Side Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To add a new client side test, add a new spec file in ``/clients/web/test/spec/``, add a line
+referencing your spec file to ``/girder/tests/CMakeLists.txt`` using the ``add_web_client_test`` function,
+and then run in your build directory ::
+
+    cmake ../girder
+
+before running your tests.
+
+You will find many useful methods for client side testing in the ``girderTest`` object
+defined at ``/clients/test/web/testUtils.js``.
+
+
 
 Code Review
 -----------
