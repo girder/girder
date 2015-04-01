@@ -1,41 +1,40 @@
 girder.App = girder.View.extend({
     initialize: function (settings) {
-        girder.restRequest({
-            path: 'user/me'
-        }).done(_.bind(function (user) {
-            girder.eventStream = new girder.EventStream({
-                timeout: girder.sseTimeout || null
-            });
+        girder.fetchCurrentUser()
+            .done(_.bind(function (user) {
+                girder.eventStream = new girder.EventStream({
+                    timeout: girder.sseTimeout || null
+                });
 
-            this.headerView = new girder.views.LayoutHeaderView({
-                parentView: this
-            });
+                this.headerView = new girder.views.LayoutHeaderView({
+                    parentView: this
+                });
 
-            this.globalNavView = new girder.views.LayoutGlobalNavView({
-                parentView: this
-            });
+                this.globalNavView = new girder.views.LayoutGlobalNavView({
+                    parentView: this
+                });
 
-            this.footerView = new girder.views.LayoutFooterView({
-                parentView: this
-            });
+                this.footerView = new girder.views.LayoutFooterView({
+                    parentView: this
+                });
 
-            this.progressListView = new girder.views.ProgressListView({
-                eventStream: girder.eventStream,
-                parentView: this
-            });
+                this.progressListView = new girder.views.ProgressListView({
+                    eventStream: girder.eventStream,
+                    parentView: this
+                });
 
-            if (user) {
-                girder.currentUser = new girder.models.UserModel(user);
-                girder.eventStream.open();
-            }
-            this._initLayoutRenderMap();
-            this.render();
+                if (user) {
+                    girder.currentUser = new girder.models.UserModel(user);
+                    girder.eventStream.open();
+                }
+                this._initLayoutRenderMap();
+                this.render();
 
-            // Once we've rendered the layout, we can start up the routing.
-            Backbone.history.start({
-                pushState: false
-            });
-        }, this));
+                // Once we've rendered the layout, we can start up the routing.
+                Backbone.history.start({
+                    pushState: false
+                });
+            }, this));
 
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
