@@ -62,6 +62,9 @@ we have the following:
     api_root: "/girder/api/v1"
     static_root: "/girder/static"
 
+The ``tools.proxy.base`` and ``tools.proxy.local`` aren't necessary if the
+proxy service adds the appropriate X-Forwarded-Host header to proxied requests.
+
 After modifying the configuration, always remember to rebuild Girder by changing to
 the main Girder directory and issuing the following command: ::
 

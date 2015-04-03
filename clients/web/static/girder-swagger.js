@@ -1,6 +1,11 @@
 $(function () {
+    var apiRoot = $('#g-global-info-apiroot').text().replace(
+        '%HOST%', 'http://' + window.location.host);
+    if (!apiRoot) {
+        apiRoot = window.location.origin + window.location.pathname;
+    }
     window.swaggerUi = new SwaggerUi({
-        url: window.location.origin + window.location.pathname + '/describe',
+        url: apiRoot + '/describe',
         dom_id: 'swagger-ui-container',
         supportHeaderParams: false,
         supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
