@@ -1,6 +1,6 @@
 $(function () {
     var apiRoot = $('#g-global-info-apiroot').text().replace(
-        '%HOST%', 'http://' + window.location.host);
+        '%HOST%', window.location.origin);
     if (!apiRoot) {
         apiRoot = window.location.origin + window.location.pathname;
     }
