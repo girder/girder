@@ -127,9 +127,9 @@ class RoutesTestCase(base.TestCase):
         self._testOrigin(None, {'OPTIONS': 405})
         # If we specify an origin of ourselves, there should be no change
         self._testOrigin('http://127.0.0.1', {'OPTIONS': 405})
-        # If we specify a different origin, simple queries are allowed and
-        # everything else should be refused
+        # If we specify a different origin, everything should be refused
         self._testOrigin('http://kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
         # If we have a X-Forward-Host that contains ourselves, even thouugh
         # the origin is different, then it should be just like coming from
@@ -138,6 +138,7 @@ class RoutesTestCase(base.TestCase):
                          headers={'X-Forwarded-Host': 'kitware.com'})
         # But a different X-Forwarded-Host should be like a different origin
         self._testOrigin('http://kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405},
             headers={'X-Forwarded-Host': 'www.kitware.com'})
 
@@ -150,9 +151,9 @@ class RoutesTestCase(base.TestCase):
         self._testOrigin('http://127.0.0.1')
         # As should the allowed origin
         self._testOrigin('http://kitware.com')
-        # If we specify a different origin, non-simple queries should be
-        # refused
+        # If we specify a different origin, everything should be refused
         self._testOrigin('http://girder.kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
 
         # Set a list of allowed origins
@@ -170,6 +171,9 @@ class RoutesTestCase(base.TestCase):
         self._testOrigin('https://secure.kitware.com',
                          headers={'X-Forwarded-Host': 'secure.kitware.com'},
                          useHttps=True)
+        self._testOrigin('https://secure.kitware.com', headers={
+            'X-Forwarded-Host': 'secure.kitware.com',
+            'X-Forwarded-Proto': 'https'}, useHttps=True)
         self._testOrigin('http://secure.kitware.com',
                          headers={'X-Forwarded-Host': 'secure.kitware.com'},
                          useHttps=False)
@@ -178,6 +182,7 @@ class RoutesTestCase(base.TestCase):
 
         # If we specify a different origin, everything should be refused
         self._testOrigin('http://girder2.kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
             'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
 
         # Specifying the wildcard should allow everything
@@ -201,8 +206,9 @@ class RoutesTestCase(base.TestCase):
         # Custom headers should fail until we approve them.  Case shouldn't
         # matter
         headers = {'x-cUstom': 'test'}
-        self._testOrigin('http://kitware.com',
-                         {'PUT': 403, 'DELETE': 403, 'PATCH': 403}, headers)
+        self._testOrigin('http://kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
+            'PUT': 403, 'DELETE': 403, 'PATCH': 403}, headers)
         # Before we specify anything, a few headers should go through
         headersDefault = {'Authorization': 'password'}
         self._testOrigin('http://kitware.com', headers=headersDefault)
@@ -210,9 +216,9 @@ class RoutesTestCase(base.TestCase):
         self.model('setting').set(SettingKey.CORS_ALLOW_HEADERS, 'X-Custom')
         self._testOrigin('http://kitware.com', headers=headers)
         # And now our default is no longer there
-        self._testOrigin('http://kitware.com',
-                         {'PUT': 403, 'DELETE': 403, 'PATCH': 403},
-                         headersDefault)
+        self._testOrigin('http://kitware.com', {
+            'GET': 403, 'HEAD': 403, 'POST': 403,
+            'PUT': 403, 'DELETE': 403, 'PATCH': 403}, headersDefault)
         # Our header can be one in a list
         self.model('setting').set(SettingKey.CORS_ALLOW_HEADERS,
                                   'X-Test,X-Custom,Authorization')

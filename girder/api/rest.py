@@ -376,13 +376,6 @@ def _setCommonCORSHeaders(isOptions=False):
     origin = '%s://%s' % (originparse.scheme, originparse.netloc)
     cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
     cherrypy.response.headers['Vary'] = 'Origin'
-    # Some requests do not require further checking
-    if (cherrypy.request.method in ('GET', 'HEAD') or (
-            cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
-            'Content-Type', '').split(';', 1)[0].strip() in (
-                'application/x-www-form-urlencoded',
-                'multipart/form-data', 'text/plain'))):
-        return
     cors = ModelImporter.model('setting').corsSettingsDict()
     baseparse = urlparse.urlparse(cherrypy.request.base)
     base = '%s://%s' % (baseparse.scheme, baseparse.netloc)
@@ -395,6 +388,12 @@ def _setCommonCORSHeaders(isOptions=False):
         logAltBase = ', forwarded base origin is ' + baselist[-1]
         if baseparse.scheme != cherrypy.request.scheme:
             baselist.append('%s://%s' % (baseparse.scheme, altbase))
+            logAltBase += ', also allowing ' + baselist[-1]
+        if (cherrypy.request.headers.get('X-Forwarded-Proto', '') and
+                cherrypy.request.headers.get('X-Forwarded-Proto', '') not in
+                (baseparse.scheme, cherrypy.request.scheme)):
+            baselist.append('%s://%s' % (
+                cherrypy.request.headers['X-Forwarded-Proto'], altbase))
             logAltBase += ', also allowing ' + baselist[-1]
     else:
         logAltBase = ''
