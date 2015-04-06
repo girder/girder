@@ -172,7 +172,7 @@ class ApiDocs(object):
     <div class="docs-header">
       <span>Girder REST API Documentation</span>
       <i class="icon-book-alt right"></i>
-      <div id="g-global-info-apiroot" class="hide">${apiRoot}</div>
+      <div id="g-global-info-apiroot" style="display: none">${apiRoot}</div>
     </div>
     <div class="docs-body">
       <p>Below you will find the list of all of the resource types exposed
