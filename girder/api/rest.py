@@ -376,16 +376,6 @@ def _setCommonCORSHeaders(isOptions=False):
     origin = '%s://%s' % (originparse.scheme, originparse.netloc)
     cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
     cherrypy.response.headers['Vary'] = 'Origin'
-    # Some requests are "simple", and don't require the browser to have sent an
-    # OPTIONS request before them.  If we want to be stricter, we would log
-    # what OPTIONS requests have occurered, and only respond to non-simple
-    # requests that had been preflighted.
-    #   For the moment, we aren't doing anything special with simple requests.
-    # simpleRequest = (cherrypy.request.method in ('GET', 'HEAD') or (
-    #     cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
-    #     'Content-Type', '').split(';', 1)[0].strip() in (
-    #         'application/x-www-form-urlencoded',
-    #        'multipart/form-data', 'text/plain')))
     cors = ModelImporter.model('setting').corsSettingsDict()
     baseparse = urlparse.urlparse(cherrypy.request.base)
     base = '%s://%s' % (baseparse.scheme, baseparse.netloc)
