@@ -53,6 +53,7 @@ add_web_client_test(routing "${PROJECT_SOURCE_DIR}/clients/web/test/spec/routing
 add_web_client_test(version "${PROJECT_SOURCE_DIR}/clients/web/test/spec/versionSpec.js")
 add_web_client_test(custom_widgets "${PROJECT_SOURCE_DIR}/clients/web/test/spec/customWidgetsSpec.js")
 add_web_client_test(widgets "${PROJECT_SOURCE_DIR}/clients/web/test/spec/widgetsSpec.js")
+add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1" NOCOVERAGE)
 
 add_subdirectory(clients)
 add_subdirectory(packaging)

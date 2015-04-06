@@ -90,7 +90,7 @@ class WebClientTestEndpoints(Resource):
 class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
-        self.coverageFile = os.environ['COVERAGE_FILE']
+        self.coverageFile = os.environ.get('COVERAGE_FILE', '')
         assetstoreType = os.environ['ASSETSTORE_TYPE']
         self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
         if self.webSecurity != 'false':
@@ -104,13 +104,16 @@ class WebClientTestCase(base.TestCase):
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
     def testWebClientSpec(self):
+        baseUrl = '/static/built/testEnv.html'
+        if os.environ.get('BASEURL', ''):
+            baseUrl = os.environ['BASEURL']
+
         cmd = (
             os.path.join(
                 ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
-            'http://localhost:%s/static/built/testEnv.html' % os.environ[
-                'GIRDER_PORT'],
+            'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
             self.specFile,
             self.coverageFile,
             os.environ.get('JASMINE_TIMEOUT', '')

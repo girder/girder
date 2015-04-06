@@ -19,7 +19,6 @@
 
 import cherrypy
 import mako
-import os
 
 from girder.constants import VERSION
 from . import docs, access
@@ -251,7 +250,6 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': cherrypy.url(),
             'apis': [{'path': '/{}'.format(resource)}
                      for resource in sorted(docs.discovery)]
         }
@@ -293,7 +291,7 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': os.path.dirname(os.path.dirname(cherrypy.url())),
+            'basePath': '.',
             'models': docs.models,
             'apis': [{'path': route,
                       'operations': sorted(op, self._compareOperations)}
