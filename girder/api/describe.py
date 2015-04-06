@@ -64,7 +64,7 @@ class Description(object):
             'responseClass': self._responseClass
         }
 
-        if self._consumes is not None:
+        if self._consumes:
             resp['consumes'] = self._consumes
 
         return resp
