@@ -81,8 +81,9 @@ def configureServer(test=False, plugins=None, curConfig=None):
         # Force some config params in testing mode
         curConfig.update({'server': {
             'mode': 'testing',
-            'api_root': '/api/v1',
-            'static_root': '/static'
+            'api_root': 'api/v1',
+            'static_root': 'static',
+            'api_static_root': '../static'
         }})
 
     # Don't import this until after the configs have been read; some module
@@ -106,8 +107,12 @@ def configureServer(test=False, plugins=None, curConfig=None):
         'plugins': plugins
     })
 
+    apiStaticRoot = curConfig['server'].get('api_static_root', '')
+    if not apiStaticRoot:
+        apiStaticRoot = curConfig['server']['static_root']
     root.api.v1.updateHtmlVars({
-        'staticRoot': curConfig['server']['static_root']
+        'apiRoot': curConfig['server']['api_root'],
+        'staticRoot': apiStaticRoot,
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
