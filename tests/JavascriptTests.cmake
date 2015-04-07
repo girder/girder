@@ -100,9 +100,11 @@ function(add_web_client_test case specFile)
   # RESOURCE_LOCKS (list of resources): A list of resources that this test
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.
+  # BASEURL (url): The base url to load for the test.
   set(testname "web_client_${case}")
 
-  set(_args PLUGIN ASSETSTORE WEBSECURITY)
+  set(_options NOCOVERAGE)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL)
   set(_multival_args RESOURCE_LOCKS TIMEOUT ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -144,7 +146,6 @@ function(add_web_client_test case specFile)
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
     "ENABLED_PLUGINS=${plugins}"
-    "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
     "GIRDER_TEST_ASSETSTORE=webclient_${testname}"
     "GIRDER_PORT=${web_client_port}"
@@ -163,7 +164,17 @@ function(add_web_client_test case specFile)
   if(fn_TIMEOUT)
     set_property(TEST ${testname} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()
+  if(fn_BASEURL)
+    set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
+        "BASEURL=${fn_BASEURL}"
+    )
+  endif()
 
-  set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
-  set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
+  if (NOT fn_NOCOVERAGE)
+    set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
+        "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
+    )
+    set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
+    set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
+  endif()
 endfunction()

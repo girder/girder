@@ -5,7 +5,7 @@ $(function () {
         apiRoot = window.location.origin + window.location.pathname;
     }
     window.swaggerUi = new SwaggerUi({
-        url: apiRoot + '/describe',
+        url: 'describe',
         dom_id: 'swagger-ui-container',
         supportHeaderParams: false,
         supportedSubmitMethods: ['get', 'post', 'put', 'delete'],

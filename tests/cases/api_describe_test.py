@@ -85,7 +85,6 @@ class ApiDescribeTestCase(base.TestCase):
         # Test top level describe endpoint
         resp = self.request(path='/describe', method='GET')
         self.assertStatusOk(resp)
-        self.assertTrue('/api/v1/describe' in resp.json['basePath'])
         self.assertEqual(resp.json['swaggerVersion'], describe.SWAGGER_VERSION)
         self.assertEqual(resp.json['apiVersion'], describe.API_VERSION)
         self.assertTrue({'path': '/group'} in resp.json['apis'])

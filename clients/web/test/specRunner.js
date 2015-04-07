@@ -37,16 +37,14 @@ var terminate = function () {
     var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === "success") {
             return window.coverageHandler.handleCoverage(window._$blanket);
-        }
-        else {
+        } else {
             return false;
         }
     });
 
     if (status) {
         phantom.exit(0);
-    }
-    else {
+    } else {
         phantom.exit(1);
     }
 };
@@ -108,10 +106,10 @@ page.onCallback = function (data) {
             }
             break;
         case 'uploadFile':
-            var path = data.path
-            if (!path && data.size!==undefined) {
+            var path = data.path;
+            if (!path && data.size !== undefined) {
                 path = uploadTemp;
-                fs.write(path, new Array(data.size+1).join("-"), "wb");
+                fs.write(path, new Array(data.size + 1).join("-"), "wb");
             }
             page.uploadFile(data.selector, path);
             if (fs.size(path) >= 1024 * 64) {
@@ -157,8 +155,10 @@ page.onLoadFinished = function (status) {
         phantom.exit(1);
     }
     if (phantom.args[3]) {
-        page.evaluate(function(timeout) {
-            jasmine.getEnv().defaultTimeoutInterval = timeout;
+        page.evaluate(function (timeout) {
+            if (window.jasmine) {
+                jasmine.getEnv().defaultTimeoutInterval = timeout;
+            }
         }, phantom.args[3]);
     }
 };
@@ -172,11 +172,11 @@ page.settings.resourceTimeout = 15000;
 page.onResourceTimeout = function (request) {
     console.log('Resource timed out.  (#' + request.id + '): ' +
                 JSON.stringify(request));
-    console.log('PHANTOM_TIMEOUT')
+    console.log('PHANTOM_TIMEOUT');
     /* The exit code doesn't get sent back from here, so setting this to a
      * non-zero value doesn't seem to have any benefit. */
     phantom.exit(0);
-}
+};
 
 page.open(pageUrl, function (status) {
     if (status !== 'success') {
