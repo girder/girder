@@ -107,7 +107,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 'free': info['capacity'] - info['used'],
                 'total': info['capacity']
             }
-        except:
+        except Exception:
             return {
                 'free': None,
                 'total': None
