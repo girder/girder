@@ -8,5 +8,6 @@ six==1.8.0
 Sphinx==1.2.2
 virtualenv==1.11.6
 flake8-docstrings==0.2.1.post1
+flake8-blind-except==0.1.0
 mccabe==0.3
 mock==1.0.1
