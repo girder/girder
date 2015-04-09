@@ -101,11 +101,17 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         return doc
 
     def capacityInfo(self):
-        info = self.client.df()
-        return {
-            'free': info['capacity'] - info['used'],
-            'total': info['capacity']
-        }
+        try:
+            info = self.client.df()
+            return {
+                'free': info['capacity'] - info['used'],
+                'total': info['capacity']
+            }
+        except Exception:
+            return {
+                'free': None,
+                'total': None
+            }
 
     def downloadFile(self, file, offset=0, headers=True):
         if headers:
