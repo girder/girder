@@ -135,7 +135,7 @@ def getCurrentUser(returnToken=False):
     else:
         try:
             ensureTokenScopes(token, TokenScope.USER_AUTH)
-        except:
+        except Exception:
             return retVal(None, token)
         user = ModelImporter.model('user').load(token['userId'], force=True)
         return retVal(user, token)
@@ -314,7 +314,7 @@ def endpoint(fun):
                 val['field'] = e.field
         except cherrypy.HTTPRedirect:  # flake8: noqa
             raise
-        except:
+        except Exception:
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
