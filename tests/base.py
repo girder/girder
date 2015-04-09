@@ -389,7 +389,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if isJson:
             try:
                 response.json = json.loads(response.collapse_body())
-            except:
+            except Exception:
                 print response.collapse_body()
                 raise AssertionError('Did not receive JSON response')
 
@@ -439,7 +439,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if isJson:
             try:
                 response.json = json.loads(response.collapse_body())
-            except:
+            except Exception:
                 print response.collapse_body()
                 raise AssertionError('Did not receive JSON response')
 

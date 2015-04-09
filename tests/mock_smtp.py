@@ -54,7 +54,7 @@ class MockSmtpReceiver(object):
                 self.address = ('localhost', port)
                 self.smtp = MockSmtpServer(self.address, None)
                 break
-            except:
+            except Exception:
                 pass
         else:
             raise Exception('Could not bind to any port for Mock SMTP server')

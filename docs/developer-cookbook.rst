@@ -301,7 +301,7 @@ behaviors, use the following examples:
 
     try:
         ...
-    except:
+    except Exception:
         # Will log the most recent exception, including a traceback, request URL,
         # and remote IP address. Should only be called from within an exception handler.
         logger.exception('A descriptive message')

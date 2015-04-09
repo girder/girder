@@ -132,7 +132,7 @@ class AsyncEventsThread(threading.Thread):
                 event = trigger(eventName, info)
                 if isinstance(callback, types.FunctionType):
                     callback(event)
-            except:
+            except Exception:
                 logger.exception('In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
