@@ -51,7 +51,7 @@ form.g-settings-form(role="form")
       .panel-heading
         .panel-title
           a(data-toggle="collapse", data-parent="#g-configuration-accordion",
-            href="#g-advanced-settings-tab") 
+            href="#g-advanced-settings-tab")
             b Advanced Settings
       #g-advanced-settings-tab.panel-collapse.collapse
         .panel-body
@@ -67,7 +67,9 @@ form.g-settings-form(role="form")
               placeholder="Default: #{defaults['core.upload_minimum_chunk_size'] || ''}",
               title="For large files, the minimum size of all but the last chunk.")
           | CORS (Cross-origin resource sharing) allows access from other
-          | websites.
+          | websites. These settings are described in detail
+          a(href="http://girder.readthedocs.org/en/latest/security.html#cors-cross-origin-resource-sharing"
+            target="_blank")  here.
           .form-group
             label(for="g-core-cors-allow-origin") CORS Allowed Origins
             input#g-core-cors-allow-origin.form-control.input-sm(
