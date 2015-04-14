@@ -20,7 +20,7 @@
 from collections import OrderedDict
 import cherrypy
 
-from ..constants import SettingDefault, SettingKey
+from ..constants import SettingDefault
 from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 
