@@ -44,8 +44,6 @@ class Webroot(object):
       <head>
         <title>${title}</title>
         <link rel="stylesheet"
-              href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
-        <link rel="stylesheet"
               href="${staticRoot}/lib/bootstrap/css/bootstrap.min.css">
         <link rel="stylesheet"
               href="${staticRoot}/lib/bootstrap/css/bootstrap-switch.min.css">
