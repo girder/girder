@@ -4,8 +4,8 @@ sudo: false
 
 # Build matrix
 env:
-    - MONGO_VERSION=2.6.8 DEPLOY=true
-    - MONGO_VERSION=3.0.1
+    - MONGO_VERSION=2.6.9 DEPLOY=true
+    - MONGO_VERSION=3.0.2
 
 compiler:
     - gcc
