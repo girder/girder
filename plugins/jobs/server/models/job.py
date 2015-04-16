@@ -189,8 +189,8 @@ class Job(AccessControlledModel):
 
             if notify and job['userId']:
                 user = self.model('user').load(job['userId'], force=True)
-                expires = expires = (datetime.datetime.utcnow() +
-                                     datetime.timedelta(seconds=30))
+                expires = (datetime.datetime.utcnow() +
+                           datetime.timedelta(seconds=30))
                 self.model('notification').createNotification(
                     type='job_status', data=self.filter(job, user), user=user,
                     expires=expires)

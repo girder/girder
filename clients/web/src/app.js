@@ -180,12 +180,10 @@ girder.App = girder.View.extend({
         var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         girder.router.navigate(route, {trigger: true});
+        girder.eventStream.close();
 
         if (girder.currentUser) {
-            girder.eventStream.close();
             girder.eventStream.open();
-        } else {
-            girder.eventStream.close();
         }
     }
 });
