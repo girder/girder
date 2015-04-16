@@ -20,7 +20,7 @@
 from collections import OrderedDict
 import cherrypy
 
-from ..constants import SettingDefault, SettingKey
+from ..constants import SettingDefault
 from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 
@@ -32,7 +32,6 @@ class Setting(Model):
     def initialize(self):
         self.name = 'setting'
         self.ensureIndices(['key'])
-        self._corsSettingsCache = None
 
     def validate(self, doc):
         """
@@ -103,7 +102,6 @@ class Setting(Model):
             # remove duplicates
             methods = list(OrderedDict.fromkeys(methods))
             doc['value'] = ", ".join(methods)
-            self.corsSettingsCacheClear()
             return
         raise ValidationException(
             'Allowed methods must be a comma-separated list or an empty '
@@ -115,7 +113,6 @@ class Setting(Model):
             # remove duplicates
             headers = list(OrderedDict.fromkeys(headers))
             doc['value'] = ", ".join(headers)
-            self.corsSettingsCacheClear()
             return
         raise ValidationException(
             'Allowed headers must be a comma-separated list or an empty '
@@ -128,7 +125,6 @@ class Setting(Model):
             # remove duplicates
             origins = list(OrderedDict.fromkeys(origins))
             doc['value'] = ", ".join(origins)
-            self.corsSettingsCacheClear()
             return
         raise ValidationException(
             'Allowed origin must be a comma-separated list of base urls or * '
@@ -244,66 +240,3 @@ class Setting(Model):
             if callable(getattr(self, funcName, None)):
                 default = getattr(self, funcName)()
         return default
-
-    def corsSettingsCacheClear(self):
-        """
-        Clear the CORS information we have stored for quick use, forcing it to
-        be reloaded the next time it is requested.
-        """
-        self._corsSettingsCache = None
-
-    def corsSettingsDict(self):
-        """Return a dictionary of CORS settings.  This parses the user settings
-        into a format that is useful for the REST api.  The dictionary
-        contains:
-
-        * allowOrigin: None if no CORS settings are present, or a list of
-          allowed origins.  If the list contains '*', all origins are allowed.
-        * allowMethods: None if all methods allowed, or a list of allowed
-          methods.  Note that regardless of this list, GET, HEAD, and some POST
-          methods are always allowed.  These are always upper case.
-        * allowHeaders: a set of allowed headers.  This includes the headers
-          which are always allowed by CORS.  There are always all lower case.
-
-        :returns: a dictionary as described above.
-        """
-        if self._corsSettingsCache is None:
-            cors = {}
-            allowOrigin = self.get(SettingKey.CORS_ALLOW_ORIGIN)
-            if not allowOrigin:
-                cors['allowOrigin'] = None
-            else:
-                cors['allowOrigin'] = allowOrigin.replace(",", " ").strip(). \
-                    split()
-            methods = self.get(SettingKey.CORS_ALLOW_METHODS)
-            if not methods:
-                cors['allowMethods'] = None
-            else:
-                cors['allowMethods'] = methods.replace(",", " ").strip(). \
-                    upper().split()
-            headers = set(self.get(SettingKey.CORS_ALLOW_HEADERS).replace(
-                ",", " ").strip().lower().split())
-            headers = {header.lower() for header in headers.union({
-                'Accept',
-                # in defaults: Accept-Encoding
-                'Accept-Language',
-                # in defaults: Authorization
-                # in defaults: Content-Dispostion
-                'Connection',
-                'Content-Language',
-                'Content-Length',
-                # Content-Type is in the defaults besides being listed here,
-                # because some CORS requests don't have to permit it.  We side
-                # on always allowing it, though it may need to be in the
-                # allowed headers that are sent to the browser for the browser
-                # to be willing to send the CORS request
-                'Content-Type',
-                # in defaults: Cookie
-                # in defaults: Girder-Token
-                'Host',
-                'Origin',
-                'Referer',
-                'User-Agent'})}
-            cors['allowHeaders'] = headers
-            self._corsSettingsCache = cors
-        return self._corsSettingsCache
