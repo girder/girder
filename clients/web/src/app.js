@@ -182,7 +182,6 @@ girder.App = girder.View.extend({
         girder.router.navigate(route, {trigger: true});
 
         if (girder.currentUser) {
-            girder.eventStream.close();
             girder.eventStream.open();
         } else {
             girder.eventStream.close();

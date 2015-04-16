@@ -63,6 +63,9 @@ Nginx can be used by adding a block such as:
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://localhost:9000/;
+        # Must turn off response buffering for SSE to work
+        proxy_buffering off;
+        proxy_read_timeout 600s;
     }
 
 Girder Settings
