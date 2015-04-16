@@ -26,7 +26,6 @@ import pymongo
 import sys
 import traceback
 import types
-import urlparse
 
 from . import docs
 from girder import events, logger
@@ -135,7 +134,7 @@ def getCurrentUser(returnToken=False):
     else:
         try:
             ensureTokenScopes(token, TokenScope.USER_AUTH)
-        except:
+        except Exception:
             return retVal(None, token)
         user = ModelImporter.model('user').load(token['userId'], force=True)
         return retVal(user, token)
@@ -314,7 +313,7 @@ def endpoint(fun):
                 val['field'] = e.field
         except cherrypy.HTTPRedirect:  # flake8: noqa
             raise
-        except:
+        except Exception:
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
@@ -352,99 +351,21 @@ def ensureTokenScopes(token, scope):
                     ' '.join(tokenModel.getAllowedScopes(token))))
 
 
-def _setCommonCORSHeaders(isOptions=False):
+def _setCommonCORSHeaders():
     """
-    CORS requires that we specify the allowed origins on both the preflight
-    request via OPTIONS and on the actual request.  Unless the default setting
-    for allowed origin is changed, we don't support CORS.  We can permit
-    multiple origins, including * to allow all origins.  Even in the wildcard
-    case, we report just the requesting origin (if there is one), so as not to
-    advertise the openness of the system.
-
-    In general, see
-    https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
-    for details.
-
-    :param isOptions: True if this call is from the options method
+    Set CORS headers that should be passed back with either a preflight OPTIONS
+    or a simple CORS request. We set these headers anytime there is an Origin
+    header present since browsers will simply ignore them if the request is not
+    cross-origin.
     """
-    origin = cherrypy.request.headers.get('origin', '')
-    if not origin:
-        if isOptions:
-            raise cherrypy.HTTPError(405)
+    if not cherrypy.request.headers.get('origin'):
+        # If there is no origin header, this is not a cross origin request
         return
-    originparse = urlparse.urlparse(origin)
-    origin = '%s://%s' % (originparse.scheme, originparse.netloc)
-    cherrypy.response.headers['Access-Control-Allow-Origin'] = origin
-    cherrypy.response.headers['Vary'] = 'Origin'
-    # Some requests do not require further checking
-    if (cherrypy.request.method in ('GET', 'HEAD') or (
-            cherrypy.request.method == 'POST' and cherrypy.request.headers.get(
-            'Content-Type', '').split(';', 1)[0].strip() in (
-                'application/x-www-form-urlencoded',
-                'multipart/form-data', 'text/plain'))):
-        return
-    cors = ModelImporter.model('setting').corsSettingsDict()
-    baseparse = urlparse.urlparse(cherrypy.request.base)
-    base = '%s://%s' % (baseparse.scheme, baseparse.netloc)
-    baselist = [base]
-    # We want to handle X-Forwarded-Host be default
-    altbase = cherrypy.request.headers.get('X-Forwarded-Host', '')
-    if altbase:
-        altbase = altbase.strip('/').split('/')[0]
-        baselist.append('%s://%s' % (cherrypy.request.scheme, altbase))
-        logAltBase = ', forwarded base origin is ' + baselist[-1]
-        if baseparse.scheme != cherrypy.request.scheme:
-            baselist.append('%s://%s' % (baseparse.scheme, altbase))
-            logAltBase += ', also allowing ' + baselist[-1]
-    else:
-        logAltBase = ''
-    # If we don't have any allowed origins, return that OPTIONS isn't a
-    # valid method.  If the request specified an origin, fail.
-    if not cors['allowOrigin']:
-        if isOptions:
-            logger.info('CORS 405 error: no allowed origins (request origin '
-                        'is %s, base origin is %s%s', origin, base, logAltBase)
-            raise cherrypy.HTTPError(405)
-        if origin not in baselist:
-            logger.info('CORS 403 error: no allowed origins (request origin '
-                        'is %s, base origin is %s%s', origin, base, logAltBase)
-            raise cherrypy.HTTPError(403)
-        return
-    # If this origin is not allowed, return an error
-    if ('*' not in cors['allowOrigin'] and origin not in cors['allowOrigin']
-            and origin not in baselist):
-        if isOptions:
-            logger.info('CORS 405 error: origin not allowed (request origin '
-                        'is %s, base origin is %s%s', origin, base, logAltBase)
-            raise cherrypy.HTTPError(405)
-        logger.info('CORS 403 error: origin not allowed (request origin '
-                    'is %s, base origin is %s%s', origin, base, logAltBase)
-        raise cherrypy.HTTPError(403)
-    # If possible, send back the requesting origin.
-    if origin not in baselist and not isOptions:
-        _validateCORSMethodAndHeaders(cors)
 
-
-def _validateCORSMethodAndHeaders(cors):
-    """
-    When processing a CORS request for a method other than OPTIONS, check to
-    make sure that the method has not been restricted and that no unapproved
-    headers have been sent.  Note that GET, HEAD, and POST are always allowed
-    (provided, for POST, the an appropriate Content-Type is specified).
-
-    :param cors: cors settings dictionary.
-    """
-    # Check if we are restricting methods
-    if cors['allowMethods']:
-        if cherrypy.request.method not in cors['allowMethods']:
-            logger.info('CORS 403 error: method %s not allowed',
-                        cherrypy.request.method)
-            raise cherrypy.HTTPError(403)
-    # Check if we were sent any unapproved headers
-    for header in cherrypy.request.headers.keys():
-        if header.lower() not in cors['allowHeaders']:
-            logger.info('CORS 403 error: header %s not allowed', header)
-            raise cherrypy.HTTPError(403)
+    origins = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
+    if origins:
+        cherrypy.response.headers['Access-Control-Allow-Origin'] = origins
+        cherrypy.response.headers['Access-Control-Allow-Credentials'] = 'true'
 
 
 class RestException(Exception):
@@ -808,38 +729,17 @@ class Resource(ModelImporter):
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = 0
 
-    # This is NOT wrapped in an @endpoint decorator; we don't want that
-    # behavior
+    # This is NOT wrapped in an endpoint decorator; we don't want that behavior
     def OPTIONS(self, *path, **param):
-        _setCommonCORSHeaders(True)
+        _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
-        # Get a list of allowed methods for this path
-        if not self._routes:
-            raise Exception('No routes defined for resource')
-        allowedMethods = ['OPTIONS']
-        for routeMethod in self._routes:
-            for route, handler in self._routes[routeMethod][len(path)]:
-                kwargs = self._matchRoute(path, route)
-                if kwargs is not False:
-                    allowedMethods.append(routeMethod.upper())
-                    break
-        # Restrict this further if there is a user setting
-        restrictMethods = self.model('setting').get(
-            SettingKey.CORS_ALLOW_METHODS)
-        if restrictMethods:
-            restrictMethods = restrictMethods.replace(",", " ").strip() \
-                .upper().split()
-            allowedMethods = [method for method in allowedMethods
-                              if method in restrictMethods]
-        cherrypy.response.headers['Access-Control-Allow-Methods'] = \
-            ', '.join(allowedMethods)
-        # Send the allowed headers.
-        allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
-        cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
 
-        # All successful OPTIONS return 200 OK with no data
-        cherrypy.response.headers['Content-Type'] = 'text/plain'
-        return
+        allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
+        allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)\
+                       or 'GET, POST, PUT, HEAD, DELETE'
+
+        cherrypy.response.headers['Access-Control-Allow-Methods'] = allowMethods
+        cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
 
     @endpoint
     def DELETE(self, path, params):

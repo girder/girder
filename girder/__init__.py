@@ -66,7 +66,7 @@ def _setupLogger():
     # Determine log paths
     cur_config = config.getConfig()
     log_config = cur_config.get('logging', {})
-    log_root = log_config.get('log_root', LOG_ROOT)
+    log_root = os.path.expanduser(log_config.get('log_root', LOG_ROOT))
     error_log_file = log_config.get('error_log_file',
                                     os.path.join(log_root, 'error.log'))
     info_log_file = log_config.get('info_log_file',

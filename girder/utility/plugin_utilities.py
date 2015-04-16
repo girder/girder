@@ -86,7 +86,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
                     plugin, root, appconf, apiRoot, curConfig=curConfig)
                 print TerminalColor.success('Loaded plugin "{}"'
                                             .format(plugin))
-            except:
+            except Exception:
                 print TerminalColor.error(
                     'ERROR: Failed to load plugin "{}":'.format(plugin))
                 traceback.print_exc()

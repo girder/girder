@@ -17,50 +17,29 @@ endpoint code is executed.
 CORS (Cross-Origin Resource Sharing)
 ------------------------------------
 
-When a request is sent from a web browser that could modify the data in Girder,
-the web browser sends an ``Origin`` header.  If this is not the same origin as
-where a user's sessions was initiated, it is a Cross-Origin request, and is
-restricted based on the Girder CORS settings.
+In an out-of-the-box Girder deployment, `CORS <http://en.wikipedia.org/wiki/Cross-origin_resource_sharing>`__
+is disabled for API calls. If you want your server to support API calls that are cross-origin
+requests from web browsers, you'll need to modify some configuration settings.
 
-By default, all cross-origin requests that could modify data are refused.
-Different origins may be allowed via the System Configuration.  For best
-security it is highly recommended that only a specific list of origins be
-allowed, and not all origins using the ``*`` token.  When responding to a valid
-Cross-Origin request, Girder only responds that the specific origin is allowed,
-and does not reveal what other origins can be accessed.
+As an administrator, go to the **Admin console**, then to **Server configuration**.
+Open the **Advanced Settings** panel and you will see several settings that allow
+you to specify the CORS policies for the REST API. The most important setting is the
+**CORS Allowed Origins** field, which is used to specify what origins are allowed
+to make cross-origin requests to the instance's REST API. By default, this is blank,
+meaning no cross-origin requests are allowed. To allow requests from *any* origin,
+simply set this to ``*``. Whatever you set here will be passed back to the browser
+in the ``Access-Control-Allow-Origin`` header, which the browser uses to allow
+or deny the cross-origin request.
 
-If desired, cross-origin requests can be further restricted by specifying a
-list of permitted endpoint methods.  The `CORS specification
-<http://www.w3.org/TR/cors>`_ always permits ``GET``, ``HEAD``, and a subset
-of ``POST`` requests.  If set in the System Configuration, other methods can be
-restricted or allowed as desired.
+If you want more fine-grained control over the CORS policies, you can also restrict
+the allowed methods and allowed request headers by providing them in comma-separated
+lists in the **CORS Allowed Methods** and **CORS Allowed Headers** fields, though
+this is usually not necessary--the default values for these two fields are quite
+permissive and should enable complete access to the web API so long as the origin
+is allowed.
 
-CORS policy accepts requests with simple headers.  If requests include other
-headers, they must be listed in the System Configuration, or the request will
-be refused.  If the default isn't changed, Girder will authorize a small set of
-headers that are typically needed when accessing the default web client from a
-different origin than the Girder server.  Some configurations require
-additional headers to be allowed.  For instance, if the Girder server is behind
-a proxy, the ``X-Requested-With``, ``X-Forwarded-Server``, ``X-Forwarded-For``,
-``X-Forwarded-Host``, and ``Remote-Addr`` headers may also be needed.  Changing
-the allowed headers overrides the default values.  Therefore, to have the
-default allowed headers **and** the additional headers, the allowed headers
-should be changed to the combined list of the two: ::
-
-    Accept-Encoding, Authorization, Content-Disposition, Content-Type, Cookie,
-    Girder-Token, X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
-    X-Forwarded-Host, Remote-Addr
-
-Although the server always allows the ``Content-Type`` header, some
-cross-origin browsers may require it to be listed in the allowed headers.  If
-this is the case, it muse be included in the allowed headers setting so that
-browsers will be informed that it is allowed.
-
-Girder returns an error when a Cross-Origin request is made (one with the
-``Origin`` header) that does not match the system configuration settings.
-Although most modern web browsers also enforce this, some additional security
-is added by enforcing it at the request level.
-
+These settings simply control the CORS headers that are sent to the browser;
+actual enforcement of the CORS policies takes place on the user's browser.
 
 Database Injection Attacks
 --------------------------

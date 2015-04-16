@@ -27,15 +27,21 @@ Girder to keep any customization separate. ::
 
 You should now see your Girder instance running on Heroku. Congratulations!
 
-Apache Reverse Proxy
---------------------
+Reverse Proxy
+-------------
 
-In many cases, it is useful to route multiple web services from a single server.
-You can configure Apache's `mod_proxy <http://httpd.apache.org/docs/current/mod/mod_proxy.html>`_
-to route traffic to these services using a reverse proxy.  For example, if you have an
-Apache server accepting requests at ``www.example.com``, and you want to forward requests
-to ``www.example.com/girder`` to a Girder instance listening on port ``9000``.  You can
-add the following section to your Apache config:
+In many cases, it is useful to route multiple web services from a single
+server.  For example, if you have a server accepting requests at
+``www.example.com``, you may want to forward requests to
+``www.example.com/girder`` to a Girder instance listening on port ``9000``.
+
+Apache
+++++++
+
+When using Apache, configure Apache's `mod_proxy
+<http://httpd.apache.org/docs/current/mod/mod_proxy.html>`_ to route traffic to
+these services using a reverse proxy.  Add the following section to your Apache
+config:
 
 .. code-block:: apacheconf
 
@@ -44,10 +50,32 @@ add the following section to your Apache config:
         ProxyPassReverse /girder http://localhost:9000
     </VirtualHost>
 
-In such a scenario, Girder must be configured properly in order to serve content
-correctly.  Fortunately, this can be accomplished by setting a few parameters in
-your local configuration file at ``girder/conf/girder.local.cfg``.  In this example,
-we have the following:
+Nginx
++++++
+
+Nginx can be used by adding a block such as:
+
+.. code-block:: nginx
+
+    location /girder/ {
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://localhost:9000/;
+        # Must set the following for SSE notifications to work
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+    }
+
+Girder Settings
++++++++++++++++
+
+In such a scenario, Girder must be configured properly in order to serve
+content correctly.  This can be accomplished by setting a few parameters in
+your local configuration file at ``girder/conf/girder.local.cfg``.  In this
+example, we have the following:
 
 .. code-block:: ini
 
@@ -62,10 +90,16 @@ we have the following:
     api_root: "/girder/api/v1"
     static_root: "/girder/static"
 
-After modifying the configuration, always remember to rebuild Girder by changing to
-the main Girder directory and issuing the following command: ::
+The ``tools.proxy.base`` and ``tools.proxy.local`` aren't necessary if the
+proxy service adds the appropriate X-Forwarded-Host header to proxied requests.
+For this purpose, the X-Forwarded-Host should be the host used in http
+requests, including any non-default port.
+
+After modifying the configuration, always remember to rebuild Girder by
+changing to the main Girder directory and issuing the following command: ::
 
     $ grunt init && grunt
+
 
 Docker Container
 ----------------

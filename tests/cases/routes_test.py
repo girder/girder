@@ -21,7 +21,7 @@ from .. import base
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
-from girder.constants import SettingKey
+from girder.constants import SettingKey, SettingDefault
 
 testServer = None
 
@@ -93,128 +93,46 @@ class RoutesTestCase(base.TestCase):
         self.assertRaises(RestException, dummy.handleRoute, 'DUMMY',
                           ('guid', 'dummy'), {})
 
-    def _testOrigin(self, origin=None, results={}, headers={}, useHttps=False):
-        """
-        Test CORS responses by querying the dummy endpoints for each method.
-
-        :param origin: the origin to use in the request, or None for no
-                       origin header.
-        :param results: a dictionary.  The keys are methods and the values are
-                        the expected HTTP response code.  Any method that isn't
-                        expected to return a 200 must be present.
-        :param headers: a dictionary of additional headers to send.
-        :param useHttps: if True, pretend to use https.
-        """
-        methods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
-        additionalHeaders = []
-        if headers:
-            for key in headers:
-                additionalHeaders.append((key, headers[key]))
-        if origin:
-            additionalHeaders.append(('Origin', origin))
-        for method in methods:
-            resp = self.request(
-                path='/dummy/test', method=method, isJson=False,
-                params={'key': 'value'}, additionalHeaders=additionalHeaders,
-                useHttps=useHttps)
-            self.assertStatus(resp, results.get(method, 200))
-
     def testCORS(self):
         testServer.root.api.v1.dummy = DummyResource()
 
-        # Without an origin, the query comes from ourselves, so it should all
-        # be fine, except OPTIONS, which doesn't acknowlege its presence
-        self._testOrigin(None, {'OPTIONS': 405})
-        # If we specify an origin of ourselves, there should be no change
-        self._testOrigin('http://127.0.0.1', {'OPTIONS': 405})
-        # If we specify a different origin, simple queries are allowed and
-        # everything else should be refused
-        self._testOrigin('http://kitware.com', {
-            'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
-        # If we have a X-Forward-Host that contains ourselves, even thouugh
-        # the origin is different, then it should be just like coming from
-        # ourselves
-        self._testOrigin('http://kitware.com', {'OPTIONS': 405},
-                         headers={'X-Forwarded-Host': 'kitware.com'})
-        # But a different X-Forwarded-Host should be like a different origin
-        self._testOrigin('http://kitware.com', {
-            'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405},
-            headers={'X-Forwarded-Host': 'www.kitware.com'})
+        # When no origin header is passed, we shouldn't receive CORS headers
+        resp = self.request(path='/dummy/test')
+        self.assertStatusOk(resp)
+        self.assertFalse('Access-Control-Allow-Origin' in resp.headers)
+        self.assertFalse('Access-Control-Allow-Credentials' in resp.headers)
 
-        # Set a single allowed origin
+        # If no origins are allowed, we should not get an allow origin header
+        resp = self.request(path='/dummy/test', additionalHeaders=[
+            ('Origin', 'http://foo.com')
+        ])
+        self.assertStatusOk(resp)
+        self.assertFalse('Access-Control-Allow-Origin' in resp.headers)
+
+        # If we allow some origins, we should get the corresponding header
         self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN,
                                   'http://kitware.com')
-        # Without an origin, nothing should be different
-        self._testOrigin(None, {'OPTIONS': 405})
-        # If we specify an origin of ourselves, everything should work
-        self._testOrigin('http://127.0.0.1')
-        # As should the allowed origin
-        self._testOrigin('http://kitware.com')
-        # If we specify a different origin, non-simple queries should be
-        # refused
-        self._testOrigin('http://girder.kitware.com', {
-            'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
+        resp = self.request(path='/dummy/test', additionalHeaders=[
+            ('Origin', 'http://foo.com')
+        ])
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
+                         'http://kitware.com')
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
+                         'true')
 
-        # Set a list of allowed origins
-        self.model('setting').set(
-            SettingKey.CORS_ALLOW_ORIGIN,
-            'http://kitware.com,http://girder.kitware.com,'
-            'https://secure.kitware.com')
-        self._testOrigin(None, {'OPTIONS': 405})
-        self._testOrigin('http://127.0.0.1')
-        self._testOrigin('http://kitware.com')
-        self._testOrigin('http://girder.kitware.com')
-
-        # Test origins with paths and https.  None should cause a problem
-        self._testOrigin('http://kitware.com/girder')
-        self._testOrigin('https://secure.kitware.com',
-                         headers={'X-Forwarded-Host': 'secure.kitware.com'},
-                         useHttps=True)
-        self._testOrigin('http://secure.kitware.com',
-                         headers={'X-Forwarded-Host': 'secure.kitware.com'},
-                         useHttps=False)
-        self._testOrigin('http://kitware.com',
-                         headers={'X-Forwarded-Host': 'kitware.com/girder'})
-
-        # If we specify a different origin, everything should be refused
-        self._testOrigin('http://girder2.kitware.com', {
-            'PUT': 403, 'DELETE': 403, 'PATCH': 403, 'OPTIONS': 405})
-
-        # Specifying the wildcard should allow everything
-        self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN, '*')
-        self._testOrigin(None, {'OPTIONS': 405})
-        self._testOrigin('http://127.0.0.1')
-        self._testOrigin('http://kitware.com')
-        self._testOrigin('http://girder.kitware.com')
-        self._testOrigin('http://girder2.kitware.com')
-
-        # If we set the methods, then only those methods are allowed for
-        # non-local origins
-        self.model('setting').set(SettingKey.CORS_ALLOW_METHODS,
-                                  'GET,PUT,POST,HEAD')
-        # For ourselves, everything is allowed
-        self._testOrigin(None, {'OPTIONS': 405})
-        self._testOrigin('http://127.0.0.1')
-        self._testOrigin('http://kitware.com', {'DELETE': 403, 'PATCH': 403})
-        self.model('setting').set(SettingKey.CORS_ALLOW_METHODS, '')
-
-        # Custom headers should fail until we approve them.  Case shouldn't
-        # matter
-        headers = {'x-cUstom': 'test'}
-        self._testOrigin('http://kitware.com',
-                         {'PUT': 403, 'DELETE': 403, 'PATCH': 403}, headers)
-        # Before we specify anything, a few headers should go through
-        headersDefault = {'Authorization': 'password'}
-        self._testOrigin('http://kitware.com', headers=headersDefault)
-        # Allow our custom header
-        self.model('setting').set(SettingKey.CORS_ALLOW_HEADERS, 'X-Custom')
-        self._testOrigin('http://kitware.com', headers=headers)
-        # And now our default is no longer there
-        self._testOrigin('http://kitware.com',
-                         {'PUT': 403, 'DELETE': 403, 'PATCH': 403},
-                         headersDefault)
-        # Our header can be one in a list
-        self.model('setting').set(SettingKey.CORS_ALLOW_HEADERS,
-                                  'X-Test,X-Custom,Authorization')
-        self._testOrigin('http://kitware.com', headers=headers)
-        self._testOrigin('http://kitware.com', headers=headersDefault)
+        # Simulate a preflight request; we should get back several headers
+        self.model('setting').set(SettingKey.CORS_ALLOW_METHODS, 'POST')
+        resp = self.request(
+            path='/dummy/test', method='OPTIONS', additionalHeaders=[
+                ('Origin', 'http://foo.com')
+            ], isJson=False
+        )
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.collapse_body(), '')
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
+                         'http://kitware.com')
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
+                         'true')
+        self.assertEqual(resp.headers['Access-Control-Allow-Headers'],
+                         SettingDefault.defaults[SettingKey.CORS_ALLOW_HEADERS])
+        self.assertEqual(resp.headers['Access-Control-Allow-Methods'], 'POST')

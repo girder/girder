@@ -150,7 +150,7 @@ module.exports = function (grunt) {
                         callback();
                     }
                 }
-            },
+            }
         },
 
         compress: {
@@ -243,6 +243,10 @@ module.exports = function (grunt) {
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
+                    ],
+                    'clients/web/static/built/testing-no-cover.min.js': [
+                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
+                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
                 }
             }
@@ -324,7 +328,6 @@ module.exports = function (grunt) {
         }
     };
 
-
     // Configure a given plugin for building
     var configurePlugin = function (pluginDir) {
         var pluginName = path.basename(pluginDir);
@@ -336,9 +339,10 @@ module.exports = function (grunt) {
             fs.mkdirSync(staticDir);
         }
 
+        var files;
         var jadeDir = pluginDir + '/web_client/templates';
         if (fs.existsSync(jadeDir)) {
-            var files = {};
+            files = {};
             files[staticDir + '/templates.js'] = [jadeDir + '/**/*.jade'];
             grunt.config.set('jade.plugin_' + pluginName, {
                 files: files
@@ -351,7 +355,7 @@ module.exports = function (grunt) {
 
         var cssDir = pluginDir + '/web_client/stylesheets';
         if (fs.existsSync(cssDir)) {
-            var files = {};
+            files = {};
             files[staticDir + '/plugin.min.css'] = [cssDir + '/**/*.styl'];
             grunt.config.set('stylus.plugin_' + pluginName, {
                 files: files
@@ -364,7 +368,7 @@ module.exports = function (grunt) {
 
         var jsDir = pluginDir + '/web_client/js';
         if (fs.existsSync(jsDir)) {
-            var files = {};
+            files = {};
             files[staticDir + '/plugin.min.js'] = [
                 staticDir + '/templates.js',
                 jsDir + '/**/*.js'

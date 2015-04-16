@@ -84,7 +84,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             client = HdfsAssetstoreAdapter._getClient(doc)
             client.serverdefaults()
-        except:
+        except Exception:
             raise ValidationException('Could not connect to HDFS at %s:%d.' %
                                       (info['host'], info['port']))
 
@@ -101,11 +101,17 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         return doc
 
     def capacityInfo(self):
-        info = self.client.df()
-        return {
-            'free': info['capacity'] - info['used'],
-            'total': info['capacity']
-        }
+        try:
+            info = self.client.df()
+            return {
+                'free': info['capacity'] - info['used'],
+                'total': info['capacity']
+            }
+        except Exception:
+            return {
+                'free': None,
+                'total': None
+            }
 
     def downloadFile(self, file, offset=0, headers=True):
         if headers:
@@ -191,7 +197,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         try:
             resp.raise_for_status()
-        except:
+        except Exception:
             logger.exception('HDFS response: ' + resp.text)
             raise Exception('Error appending to HDFS, see log for details.')
 
@@ -203,7 +209,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
         chunk.close()
         try:
             resp.raise_for_status()
-        except:
+        except Exception:
             logger.exception('HDFS response: ' + resp.text)
             raise Exception('Error appending to HDFS, see log for details.')
 
@@ -211,7 +217,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         try:
             resp.raise_for_status()
-        except:
+        except Exception:
             logger.exception('HDFS response: ' + resp.text)
             raise Exception('Error appending to HDFS, see log for details.')
 
