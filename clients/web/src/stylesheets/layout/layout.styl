@@ -14,10 +14,14 @@ $headerZ = 50
   width 100%
   z-index $headerZ
 
-#g-app-body-container
+#g-app-body-container.g-default-layout
   padding 10px + $headerHeight 10px 10px 10px
   margin-left $navWidth + 1px
   min-height $minHeight
+
+#g-app-body-container.g-empty-layout
+  margin 0
+  padding 10px
 
 #g-alerts-container
   position fixed

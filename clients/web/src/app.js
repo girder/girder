@@ -27,7 +27,10 @@ girder.App = girder.View.extend({
                     girder.currentUser = new girder.models.UserModel(user);
                     girder.eventStream.open();
                 }
-                this._initLayoutRenderMap();
+
+                this.layoutRenderMap = {};
+                this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
+                this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
                 this.render();
 
                 // Once we've rendered the layout, we can start up the routing.
@@ -44,42 +47,26 @@ girder.App = girder.View.extend({
         girder.events.on('g:login', this.login, this);
     },
 
-    _initLayoutRenderMap: function () {
-        var hideOnEmpty = ['#g-app-header-container', '#g-global-nav-container', '#g-app-footer-container'],
-            cssEmpty = {
-                '#g-app-body-container': {
-                    'margin-left': '0px',
-                    'padding-top': '10px'
-                }
-            },
-            cssRestore = {},
-            toEmpty = function () {
-                _.each(hideOnEmpty, _.bind(function (element) {
-                    this.$(element).hide();
-                }, this));
-                _.each(cssEmpty, _.bind(function (properties, element) {
-                    var restoredElement = {};
-                    _.each(properties, _.bind(function (value, property) {
-                        restoredElement[property] = this.$(element).css(property);
-                        this.$(element).css(property, value);
-                    }, this));
-                    cssRestore[element] = restoredElement;
-                }, this));
-            },
-            toDefault = function () {
-                _.each(hideOnEmpty, _.bind(function (element) {
-                    this.$(element).show();
-                }, this));
-                _.each(cssRestore, _.bind(function (properties, element) {
-                    _.each(properties, _.bind(function (value, property) {
-                        this.$(element).css(property, value);
-                    }, this));
-                }, this));
-                cssRestore = {};
-            };
-        this.layoutRenderMap = {};
-        this.layoutRenderMap[girder.Layout.DEFAULT] = toDefault;
-        this.layoutRenderMap[girder.Layout.EMPTY] = toEmpty;
+    _defaultLayout: {
+        show: function () {
+            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').show();
+            this.$('#g-app-body-container').addClass('g-default-layout');
+        },
+
+        hide: function () {
+            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').hide();
+            this.$('#g-app-body-container').removeClass('g-default-layout');
+        }
+    },
+
+    _emptyLayout: {
+        show: function () {
+            this.$('#g-app-body-container').addClass('g-empty-layout');
+        },
+
+        hide: function () {
+            this.$('#g-app-body-container').removeClass('g-empty-layout');
+        }
     },
 
     render: function () {
@@ -111,8 +98,9 @@ girder.App = girder.View.extend({
             if (girder.layout !== opts.layout) {
                 if (_.has(this.layoutRenderMap, opts.layout)) {
                     // set a layout if opts specifies one different from current
+                    this.layoutRenderMap[girder.layout].hide.call(this, opts);
                     girder.layout = opts.layout;
-                    this.layoutRenderMap[girder.layout].call(this, opts);
+                    this.layoutRenderMap[girder.layout].show.call(this, opts);
                 } else {
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
@@ -120,7 +108,7 @@ girder.App = girder.View.extend({
         } else if (girder.layout !== girder.Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
             girder.layout = girder.Layout.DEFAULT;
-            this.layoutRenderMap[girder.layout].call(this, opts);
+            this.layoutRenderMap[girder.layout].show.call(this, opts);
         }
 
         if (view) {
