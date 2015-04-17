@@ -531,7 +531,7 @@ route to your plugin.
 
 .. code-block:: javascript
 
-    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function(collectionId, params) {
+    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
         var collection = new girder.models.CollectionModel();
         collection.set({
             _id: collectionId
