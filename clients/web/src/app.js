@@ -107,6 +107,7 @@ girder.App = girder.View.extend({
             }
         } else if (girder.layout !== girder.Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
+            this.layoutRenderMap[girder.layout].hide.call(this, opts);
             girder.layout = girder.Layout.DEFAULT;
             this.layoutRenderMap[girder.layout].show.call(this, opts);
         }
