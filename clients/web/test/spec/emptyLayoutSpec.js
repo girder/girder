@@ -14,26 +14,28 @@ describe('Test empty and default layouts', function () {
 
     function expectEmptyLayout() {
         // ensure that all components we expect hidden are hidden
-        expect($('#g-app-header-container').is(":visible") === false);
-        expect($('#g-global-nav-container').is(":visible") === false);
-        expect($('#g-app-footer-container').is(":visible") === false);
-        // test that the css changes took effect for the empty layout
-        expect($('#g-app-body-container').css('margin-left') === '0px');
-        expect($('#g-app-body-container').css('padding-top') === '10px');
+        expect($('#g-app-header-container').is(":visible")).toBe(false);
+        expect($('#g-global-nav-container').is(":visible")).toBe(false);
+        expect($('#g-app-footer-container').is(":visible")).toBe(false);
+        // ensure the empty layout is present
+        expect($('#g-app-body-container').hasClass('g-empty-layout')).toBe(true);
+        // and the default layout is absent
+        expect($('#g-app-body-container').hasClass('g-default-layout')).toBe(false);
         // test that body elements remain visible
-        expect($('.g-collection-create-button').is(':visible'));
+        expect($('.g-collection-create-button').is(':visible')).toBe(true);
     }
 
     function expectDefaultLayout () {
         // ensure that all components we expect revealed are visible
-        expect($('#g-app-header-container').is(":visible"));
-        expect($('#g-global-nav-container').is(":visible"));
-        expect($('#g-app-footer-container').is(":visible"));
-        // test that the css changes are reverted for the default layout
-        expect($('#g-app-body-container').css('margin-left') !== '0px');
-        expect($('#g-app-body-container').css('padding-top') !== '10px');
+        expect($('#g-app-header-container').is(":visible")).toBe(true);
+        expect($('#g-global-nav-container').is(":visible")).toBe(true);
+        expect($('#g-app-footer-container').is(":visible")).toBe(true);
+        // ensure the default layout is present
+        expect($('#g-app-body-container').hasClass('g-default-layout')).toBe(true);
+        // and the empty layout is absent
+        expect($('#g-app-body-container').hasClass('g-empty-layout')).toBe(false);
         // test that body elements remain visible
-        expect($('.g-collection-create-button').is(':visible'));
+        expect($('.g-collection-create-button').is(':visible')).toBe(true);
     }
 
     girder.router.route('collections/emptylayout', 'collectionsEmptyLayout', function(params) {
@@ -63,7 +65,6 @@ describe('Test empty and default layouts', function () {
         });
 
         runs(expectEmptyLayout);
-
     });
 
     it('go to standard collections page, test that not passing a layout will revert to default', function () {
