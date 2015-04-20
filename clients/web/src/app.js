@@ -27,6 +27,10 @@ girder.App = girder.View.extend({
                     girder.currentUser = new girder.models.UserModel(user);
                     girder.eventStream.open();
                 }
+
+                this.layoutRenderMap = {};
+                this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
+                this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
                 this.render();
 
                 // Once we've rendered the layout, we can start up the routing.
@@ -41,6 +45,28 @@ girder.App = girder.View.extend({
         girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         girder.events.on('g:alert', this.alert, this);
         girder.events.on('g:login', this.login, this);
+    },
+
+    _defaultLayout: {
+        show: function () {
+            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').show();
+            this.$('#g-app-body-container').addClass('g-default-layout');
+        },
+
+        hide: function () {
+            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').hide();
+            this.$('#g-app-body-container').removeClass('g-default-layout');
+        }
+    },
+
+    _emptyLayout: {
+        show: function () {
+            this.$('#g-app-body-container').addClass('g-empty-layout');
+        },
+
+        hide: function () {
+            this.$('#g-app-body-container').removeClass('g-empty-layout');
+        }
     },
 
     render: function () {
@@ -58,13 +84,33 @@ girder.App = girder.View.extend({
      * Changes the current body view to the view class specified by view.
      * @param view The view to display in the body.
      * @param [settings={}] Settings to pass to the view initialize() method.
+     * @param opts Additional options for navigateTo, if any.
      */
-    navigateTo: function (view, settings) {
+    navigateTo: function (view, settings, opts) {
         var container = this.$('#g-app-body-container');
 
         this.globalNavView.deactivateAll();
 
         settings = settings || {};
+        opts = opts || {};
+
+        if (opts.layout) {
+            if (girder.layout !== opts.layout) {
+                if (_.has(this.layoutRenderMap, opts.layout)) {
+                    // set a layout if opts specifies one different from current
+                    this.layoutRenderMap[girder.layout].hide.call(this, opts);
+                    girder.layout = opts.layout;
+                    this.layoutRenderMap[girder.layout].show.call(this, opts);
+                } else {
+                    console.error('Attempting to set unknown layout type: ' + opts.layout);
+                }
+            }
+        } else if (girder.layout !== girder.Layout.DEFAULT) {
+            // reset to default as needed when nothing specified in opts
+            this.layoutRenderMap[girder.layout].hide.call(this, opts);
+            girder.layout = girder.Layout.DEFAULT;
+            this.layoutRenderMap[girder.layout].show.call(this, opts);
+        }
 
         if (view) {
             if (this.bodyView) {

@@ -46,6 +46,11 @@ _.extend(girder, {
         GRIDFS: 1,
         S3: 2
     },
+    Layout: {
+        DEFAULT: 'default',
+        EMPTY: 'empty'
+    },
+    layout: 'default',
 
     /**
      * Make a request to the REST API. Bind a "done" handler to the return

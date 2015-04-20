@@ -516,3 +516,30 @@ it to make it functional:
 This demonstrates one simple use case for client plugins, but using these same
 techniques, you should be able to do almost anything to change the core
 application as you need.
+
+Setting an empty layout for a route
+***********************************
+
+If you have a route in your plugin that you would like to have an empty layout,
+meaning that the Girder header, nav bar, and footer are hidden and the Girder body is
+evenly padded and displayed, you can specify an empty layout in the ``navigateTo``
+event trigger.
+
+As an example, say your plugin wanted a ``frontPage`` route for a Collection which
+would display the Collection with only the Girder body shown, you could add the following
+route to your plugin.
+
+.. code-block:: javascript
+
+    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
+        var collection = new girder.models.CollectionModel();
+        collection.set({
+            _id: collectionId
+        }).on('g:fetched', function () {
+            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
+                collection: collection
+            }, params || {}), {layout: girder.Layout.EMPTY});
+        }, this).on('g:error', function () {
+            girder.router.navigate('/collections', {trigger: true});
+        }, this).fetch();
+    });
