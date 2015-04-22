@@ -17,12 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import json
 
 from ...constants import AccessType
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from girder.api import access
+from girder.utility import ziputil
 
 
 class Collection(Resource):
@@ -32,6 +34,7 @@ class Collection(Resource):
         self.route('DELETE', (':id',), self.deleteCollection)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getCollection)
+        self.route('GET', (':id', 'download'), self.downloadCollection)
         self.route('GET', (':id', 'access'), self.getCollectionAccess)
         self.route('POST', (), self.createCollection)
         self.route('PUT', (':id',), self.updateCollection)
@@ -99,6 +102,30 @@ class Collection(Resource):
         .param('id', 'The ID of the collection.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403))
+
+    @access.public
+    @loadmodel(model='collection', level=AccessType.READ)
+    def downloadCollection(self, collection, params):
+        cherrypy.response.headers['Content-Type'] = 'application/zip'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="%s%s"' % (collection['name'], '.zip')
+
+        user = self.getCurrentUser()
+
+        def stream():
+            zip = ziputil.ZipGenerator(collection['name'])
+            for (path, file) in self.model('collection').fileList(
+                    collection, user=user, subpath=False):
+                for data in zip.addFile(file, path):
+                    yield data
+            yield zip.footer()
+        return stream
+    downloadCollection.cookieAuth = True
+    downloadCollection.description = (
+        Description('Download an entire collection as a zip archive.')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the collection.', 403))
 
     @access.user
     @loadmodel(model='collection', level=AccessType.ADMIN)

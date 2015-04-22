@@ -8,7 +8,7 @@
         i.icon-down-dir
     ul.g-collection-actions-menu.dropdown-menu.pull-right(role="menu")
       li(role="presentation")
-        a.g-download-collection(role="menuitem")
+        a.g-download-collection(role="menuitem" href="#{collection.downloadUrl()}")
           i.icon-download
           | Download collection
       if (collection.getAccessLevel() >= girder.AccessType.WRITE)
