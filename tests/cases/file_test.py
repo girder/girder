@@ -276,6 +276,64 @@ class FileTestCase(base.TestCase):
         extracted = zip.read('Private/Test/random.bin')
         self.assertEqual(extracted, contents)
 
+    def _testDownloadCollection(self):
+        """
+        Test downloading an entire collection as a zip file.
+        """
+        # Create a collection
+        resp = self.request(
+            path='/collection', method='POST', user=self.user, params={
+                'name': 'Test Collection'
+            })
+        self.assertStatusOk(resp)
+        collection = resp.json
+
+        # Create a folder in the collection
+        resp = self.request(
+            path='/folder', method='POST', user=self.user, params={
+                'name': 'Test Folder',
+                'parentId': collection['_id'],
+                'parentType': 'collection'
+            })
+        self.assertStatusOk(resp)
+
+        test = resp.json
+        contents = os.urandom(64)  # Generate random file contents
+
+        # Upload the file into that subfolder
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': test['_id'],
+                'name': 'random.bin',
+                'size': len(contents)
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'random.bin', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the collection
+        path = '/collection/%s/download' % str(collection['_id'])
+        resp = self.request(
+            path=path,
+            method='GET', user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="Test Collection.zip"')
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        extracted = zip.read('Test Collection/Test Folder/random.bin')
+        self.assertEqual(extracted, contents)
+
     def _testDeleteFile(self, file):
         """
         Deletes the previously uploaded file from the server.
@@ -331,6 +389,7 @@ class FileTestCase(base.TestCase):
 
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
+        self._testDownloadCollection()
 
         # Test updating of the file contents
         newContents = 'test'
@@ -411,6 +470,7 @@ class FileTestCase(base.TestCase):
 
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
+        self._testDownloadCollection()
 
         # Delete the file, make sure chunks are gone from database
         self._testDeleteFile(file)
