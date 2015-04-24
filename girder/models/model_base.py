@@ -671,8 +671,8 @@ class AccessControlledModel(Model):
         list.
         """
         acList = {
-            'users': doc['access'].get('users', []),
-            'groups': doc['access'].get('groups', [])
+            'users': doc.get('access', {}).get('users', []),
+            'groups': doc.get('access', {}).get('groups', [])
         }
 
         for user in acList['users']:
