@@ -35,6 +35,13 @@
           .form-group
             label(for="addAccess") Grant access to another group or user
             .g-search-field-container
+
+      .form-group
+        .checkbox
+          label
+            input.g-apply-recursive(type="checkbox")
+            | Apply policies to all subfolders recursively
+
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss="modal") Close
       button.g-save-access-list.btn.btn-small.btn-primary(type="submit")

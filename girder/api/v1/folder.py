@@ -179,22 +179,40 @@ class Folder(Resource):
     @loadmodel(model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
         self.requireParams('access', params)
+        user = self.getCurrentUser()
 
         public = self.boolParam('public', params, default=False)
+        recurse = self.boolParam('recurse', params, default=False)
+        progress = self.boolParam('progress', params, default=True) and recurse
+
         self.model('folder').setPublic(folder, public)
 
         try:
             access = json.loads(params['access'])
-            return self.model('folder').setAccessList(
-                folder, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
+
+        with ProgressContext(progress, user=user, title='Updating permissions',
+                             message='Calculating progress...') as ctx:
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(
+                    folder, includeItems=False, user=user,
+                    level=AccessType.ADMIN))
+            return self.model('folder').setAccessList(
+                folder, access, save=True, recurse=recurse, user=user,
+                progress=ctx)
+
     updateFolderAccess.description = (
         Description('Update the access control list for a folder.')
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
         .param('public', "Whether the folder should be publicly visible.",
                dataType='boolean')
+        .param('recurse', 'Whether the policies should be applied to all '
+               'subfolders under this folder as well (default=False).',
+               dataType='boolean')
+        .param('progress', 'If recurse is set to True, this controls whether '
+               'progress notifications will be sent.', dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 
