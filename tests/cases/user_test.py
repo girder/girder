@@ -299,7 +299,14 @@ class UserTestCase(base.TestCase):
 
         self.assertEqual(len(folder['access']['users']), 2)
 
+        # Create a token for user 1
         token = self.model('token').createToken(users[1])
+
+        # Create a group, and have user 1 request to join it
+        group = self.model('group').createGroup('test', users[0], public=True)
+        resp = self.request(path='/group/%s/member' % group['_id'],
+                            method='POST', user=users[1])
+        self.assertStatusOk(resp)
 
         # Make sure non-admin users can't delete other users
         resp = self.request(path='/user/%s' % users[0]['_id'], method='DELETE',
@@ -317,10 +324,15 @@ class UserTestCase(base.TestCase):
         folder = self.model('folder').load(folder['_id'], force=True)
         token = self.model('token').load(token['_id'], force=True,
                                          objectId=False)
+        group = self.model('group').load(group['_id'], force=True)
 
         # Make sure user and token were deleted
         self.assertEqual(users[1], None)
         self.assertEqual(token, None)
+
+        # Make sure pending invite to group was deleted
+        self.assertEqual(
+            len(list(self.model('group').getFullRequestList(group))), 0)
 
         # Make sure access control references for the user were deleted
         self.assertEqual(len(folder['access']['users']), 1)
