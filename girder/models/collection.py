@@ -23,6 +23,7 @@ import os
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType
+from girder.utility.progress import noProgress
 
 
 class Collection(AccessControlledModel):
@@ -191,18 +192,57 @@ class Collection(AccessControlledModel):
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
 
-    def subtreeCount(self, doc):
+    def subtreeCount(self, doc, includeItems=True, user=None, level=None):
         """
         Return the size of the folders within the collection.  The collection
         is counted as well.
 
         :param doc: The collection.
+        :param includeItems: Whether items should be included in the count.
+        :type includeItems: bool
+        :param user: If filtering by permission, the user to filter against.
+        :param level: If filtering by permission, the required permission level.
+        :type level: AccessLevel
         """
         count = 1
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
         })
-        count += sum(self.model('folder').subtreeCount(folder)
-                     for folder in folders)
+
+        if level is not None:
+            folders = self.filterResultsByPermission(
+                cursor=folders, user=user, level=level, limit=None)
+        count += sum(self.model('folder').subtreeCount(
+            folder, includeItems=includeItems, user=user, level=level)
+            for folder in folders)
         return count
+
+    def setAccessList(self, doc, access, save=False, recurse=False, user=None,
+                      progress=noProgress, setPublic=None):
+        """
+        Overrides AccessControlledModel.setAccessList to add a recursive
+        option. When true, this will set the access list on all subfolders to
+        which the given user has ADMIN access level. Any subfolders that the
+        given user does not have ADMIN access on will be skipped.
+        """
+        progress.update(increment=1, message='Updating ' + doc['name'])
+        if setPublic is not None:
+            self.setPublic(doc, setPublic, save=False)
+        doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
+
+        if recurse and save:
+            cursor = self.model('folder').find({
+                'parentId': doc['_id'],
+                'parentCollection': 'collection'
+            })
+
+            folders = self.filterResultsByPermission(
+                cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
+
+            for folder in folders:
+                self.model('folder').setAccessList(
+                    folder, access, save=True, recurse=True, user=user,
+                    progress=progress, setPublic=setPublic)
+
+        return doc

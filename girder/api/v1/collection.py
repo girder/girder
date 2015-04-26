@@ -25,6 +25,7 @@ from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from girder.api import access
 from girder.utility import ziputil
+from girder.utility.progress import ProgressContext
 
 
 class Collection(Resource):
@@ -141,22 +142,37 @@ class Collection(Resource):
     @loadmodel(model='collection', level=AccessType.ADMIN)
     def updateCollectionAccess(self, collection, params):
         self.requireParams('access', params)
+        user = self.getCurrentUser()
 
         public = self.boolParam('public', params, default=False)
-        self.model('collection').setPublic(collection, public)
+        recurse = self.boolParam('recurse', params, default=False)
+        progress = self.boolParam('progress', params, default=False) and recurse
 
         try:
             access = json.loads(params['access'])
-            return self.model('collection').setAccessList(
-                collection, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
+
+        with ProgressContext(progress, user=user, title='Updating permissions',
+                             message='Calculating progress...') as ctx:
+            if progress:
+                ctx.update(total=self.model('collection').subtreeCount(
+                    collection, includeItems=False, user=user,
+                    level=AccessType.ADMIN))
+            return self.model('collection').setAccessList(
+                collection, access, save=True, user=user, recurse=recurse,
+                progress=ctx, setPublic=public)
     updateCollectionAccess.description = (
         Description('Set the access control list for a collection.')
         .param('id', 'The ID of the collection.', paramType='path')
         .param('access', 'The access control list as JSON.')
         .param('public', 'Whether the collection should be publicly visible.',
                dataType='boolean')
+        .param('recurse', 'Whether the policies should be applied to all '
+               'subfolders under the collection as well (default=False).',
+               dataType='boolean')
+        .param('progress', 'If recurse is set to True, this controls whether '
+               'progress notifications will be sent.', dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403))
 

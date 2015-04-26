@@ -547,7 +547,8 @@ class Folder(AccessControlledModel):
             folders = self.filterResultsByPermission(
                 cursor=folders, user=user, level=level, limit=None)
 
-        count += sum(self.subtreeCount(subfolder, includeItems)
+        count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
+                                       user=user, level=level)
                      for subfolder in folders)
 
         return count
@@ -695,7 +696,7 @@ class Folder(AccessControlledModel):
         return newFolder
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress):
+                      progress=noProgress, setPublic=None):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When true, this will set the access list on all subfolders to
@@ -703,6 +704,8 @@ class Folder(AccessControlledModel):
         given user does not have ADMIN access on will be skipped.
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
+        if setPublic is not None:
+            self.setPublic(doc, setPublic, save=False)
         doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
 
         if recurse and save:
@@ -715,7 +718,8 @@ class Folder(AccessControlledModel):
                 cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
 
             for folder in subfolders:
-                self.setAccessList(folder, access, save=True, recurse=True,
-                                   user=user, progress=progress)
+                self.setAccessList(
+                    folder, access, save=True, recurse=True, user=user,
+                    progress=progress, setPublic=setPublic)
 
         return doc

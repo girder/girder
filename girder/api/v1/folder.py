@@ -183,9 +183,7 @@ class Folder(Resource):
 
         public = self.boolParam('public', params, default=False)
         recurse = self.boolParam('recurse', params, default=False)
-        progress = self.boolParam('progress', params, default=True) and recurse
-
-        self.model('folder').setPublic(folder, public)
+        progress = self.boolParam('progress', params, default=False) and recurse
 
         try:
             access = json.loads(params['access'])
@@ -200,7 +198,7 @@ class Folder(Resource):
                     level=AccessType.ADMIN))
             return self.model('folder').setAccessList(
                 folder, access, save=True, recurse=recurse, user=user,
-                progress=ctx)
+                progress=ctx, setPublic=public)
 
     updateFolderAccess.description = (
         Description('Update the access control list for a folder.')
