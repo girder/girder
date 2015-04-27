@@ -17,6 +17,7 @@ See the specific instructions for your platform below.
 
 * :ref:`debian-ubuntu`
 * :ref:`centos-fedora-rhel`
+* :ref:`archlinux`
 * :ref:`os-x`
 * :ref:`windows`
 
@@ -94,6 +95,18 @@ Enable the Node.js YUM repository: ::
 Install Node.js and NPM using YUM: ::
 
     sudo yum install nodejs
+
+.. _archlinux:
+
+Arch Linux
+----------
+
+For Arch Linux it is important to note that Python 3 is default. This means
+that most commands will need a 2 appending to them, i.e. python2, pip2, ...
+
+Install the prerequisites using the pacman tool: ::
+
+    sudo pacman -S python2 python2-pip mongodb nodejs
 
 .. _os-x:
 
