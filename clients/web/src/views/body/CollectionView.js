@@ -133,8 +133,11 @@
                 modelType: 'collection',
                 model: this.model,
                 parentView: this
-            }).on('g:saved', function (collection) {
-                // need to do anything?
+            }).on('g:accessListSaved', function (params) {
+                if (params.recurse) {
+                    console.log('x');
+                    this.hierarchyWidget.refreshFolderList();
+                }
             }, this);
         }
     });
