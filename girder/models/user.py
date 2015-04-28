@@ -147,6 +147,12 @@ class User(AccessControlledModel):
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})
 
+        # Delete all pending group invites for this user
+        self.model('group').update(
+            {'requests': user['_id']},
+            {'$pull': {'requests': user['_id']}}
+        )
+
         # Delete all of the folders under this user
         folders = self.model('folder').find({
             'parentId': user['_id'],
