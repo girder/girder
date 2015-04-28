@@ -31,8 +31,23 @@ Otherwise you can equivalently just invoke the module directly: ::
 
     python -m girder_client <arguments>
 
+Specifying the Girder Instance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The default host for the girder_client is `localhost`.  To specify the host
+with cli usage ::
+
+    python cli.py --host girder.example.com
+
+To specify a host using SSL (https) ::
+
+    python cli.py --host girder.example.com --scheme https --port 443
+
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Currently, the girder_client does not support uploads to the S3 Assetstore type
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The upload command, ``-c upload``, is the default, so the following two forms
 are equivalent ::
