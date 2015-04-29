@@ -100,14 +100,14 @@ class Folder(Resource):
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
         .param('text', 'Pass to perform a text search.', required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the folder list by (default=name)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
-               required=False, dataType='int')
+        .param('limit', "Result set size limit.", required=False,
+               dataType='int', default=50)
+        .param('offset', "Offset into result set.", required=False,
+               dataType='int', default=0)
+        .param('sort', "Field to sort the folder list by.",
+               required=False, default='name')
+        .param('sortdir', "1 for ascending, -1 for descending.",
+               required=False, dataType='int', default=1)
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
@@ -205,12 +205,13 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
         .param('public', "Whether the folder should be publicly visible.",
-               dataType='boolean')
+               dataType='boolean', default=False, required=False)
         .param('recurse', 'Whether the policies should be applied to all '
-               'subfolders under this folder as well (default=False).',
-               dataType='boolean')
+               'subfolders under this folder as well.', dataType='boolean',
+               default=False, required=False)
         .param('progress', 'If recurse is set to True, this controls whether '
-               'progress notifications will be sent.', dataType='boolean')
+               'progress notifications will be sent.', dataType='boolean',
+               default=False, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 

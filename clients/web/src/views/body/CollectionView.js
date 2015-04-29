@@ -135,7 +135,6 @@
                 parentView: this
             }).on('g:accessListSaved', function (params) {
                 if (params.recurse) {
-                    console.log('x');
                     this.hierarchyWidget.refreshFolderList();
                 }
             }, this);

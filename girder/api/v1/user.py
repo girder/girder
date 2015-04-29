@@ -52,16 +52,6 @@ class User(Resource):
 
     @access.public
     def find(self, params):
-        """
-        Get a list of users. You can pass a "text" parameter to filter the
-        users by a full text search string.
-
-        :param [text]: Full text search.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=name.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
-        """
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
         currentUser = self.getCurrentUser()
 
@@ -74,13 +64,13 @@ class User(Resource):
         .responseClass('User')
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
+        .param('limit', "Result set size limit.", required=False, default=50,
                dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
+        .param('offset', "Offset into result set.", required=False, default=0,
                dataType='int')
-        .param('sort', "Field to sort the user list by (default=lastName)",
+        .param('sort', "Field to sort the user list by.", default='lastName',
                required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+        .param('sortdir', "1 for ascending, -1 for descending.", default=1,
                required=False, dataType='int'))
 
     @access.public
@@ -234,7 +224,7 @@ class User(Resource):
 
         # Only admins can change admin state
         if 'admin' in params:
-            newAdminState = params['admin'] == 'true'
+            newAdminState = self.boolParam('admin', params)
             if currentUser['admin']:
                 user['admin'] = newAdminState
             else:

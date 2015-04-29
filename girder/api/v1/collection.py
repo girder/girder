@@ -59,14 +59,14 @@ class Collection(Resource):
         .responseClass('Collection')
         .param('text', "Pass this to perform a text search for collections.",
                required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the result list by (default=name)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
-               required=False, dataType='int'))
+        .param('limit', "Result set size limit.", required=False,
+               dataType='int', default=50)
+        .param('offset', "Offset into result set.", required=False,
+               dataType='int', default=0)
+        .param('sort', "Field to sort the result list by.",
+               required=False, default='name')
+        .param('sortdir', "1 for ascending, -1 for descending.",
+               required=False, dataType='int', default=1))
 
     @access.admin
     def createCollection(self, params):
@@ -88,7 +88,7 @@ class Collection(Resource):
         .param('name', 'Name for the collection. Must be unique.')
         .param('description', 'Collection description.', required=False)
         .param('public', 'Whether the collection should be publicly visible.',
-               dataType='boolean')
+               dataType='boolean', default=False)
         .errorResponse()
         .errorResponse('You are not an administrator', 403))
 
@@ -166,13 +166,14 @@ class Collection(Resource):
         Description('Set the access control list for a collection.')
         .param('id', 'The ID of the collection.', paramType='path')
         .param('access', 'The access control list as JSON.')
-        .param('public', 'Whether the collection should be publicly visible.',
-               dataType='boolean')
+        .param('public', "Whether the collection should be publicly visible.",
+               dataType='boolean', default=False, required=False)
         .param('recurse', 'Whether the policies should be applied to all '
-               'subfolders under the collection as well (default=False).',
-               dataType='boolean')
+               'folders under this collection as well.', dataType='boolean',
+               default=False, required=False)
         .param('progress', 'If recurse is set to True, this controls whether '
-               'progress notifications will be sent.', dataType='boolean')
+               'progress notifications will be sent.', dataType='boolean',
+               default=False, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403))
 

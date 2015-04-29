@@ -222,16 +222,33 @@ class Collection(AccessControlledModel):
                       progress=noProgress, setPublic=None):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
-        option. When true, this will set the access list on all subfolders to
-        which the given user has ADMIN access level. Any subfolders that the
-        given user does not have ADMIN access on will be skipped.
+        option. When `recurse=True`, this will set the access list on all
+        subfolders to which the given user has ADMIN access level. Any
+        subfolders that the given user does not have ADMIN access on will be
+        skipped.
+
+        :param doc: The collection to set access settings on.
+        :type doc: collection
+        :param access: The access control list.
+        :type access: dict
+        :param save: Whether the changes should be saved to the database.
+        :type save: bool
+        :param recurse: Whether this access list should be propagated to all
+            folders underneath this collection.
+        :type recurse: bool
+        :param user: The current user (for recursive mode filtering).
+        :param progress: Progress context to update.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param setPublic: Pass this if you wish to set the public flag on the
+            resources being updated.
+        :type setPublic: bool or None
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
         doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
 
-        if recurse and save:
+        if recurse:
             cursor = self.model('folder').find({
                 'parentId': doc['_id'],
                 'parentCollection': 'collection'
