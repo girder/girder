@@ -131,10 +131,23 @@ describe('Create a data hierarchy', function () {
             expect($('a.g-folder-list-link:first').text()).toBe(
                 "John's subfolder");
             expect($('.g-folder-privacy:first').text()).toBe('Private');
+        });
+
+        // Recursively set this folder to public
+        girderTest.folderAccessControl('private', 'public', true);
+
+        waitsFor(function () {
+            return $('.g-folder-privacy:first').text() === 'Public';
+        }, 'public flag to propagate to subfolder');
+
+        // Change back to private
+        girderTest.folderAccessControl('public', 'private', true);
+
+        runs(function () {
             $('a.g-folder-list-link:first').click();
         });
-        girderTest.waitForLoad();
 
+        girderTest.waitForLoad();
         runs(function () {
             $('a.g-edit-folder').click();
         });

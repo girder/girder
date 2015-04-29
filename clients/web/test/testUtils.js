@@ -509,7 +509,7 @@ girderTest.importStylesheet = function (css) {
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.
   */
-girderTest.folderAccessControl = function (current, action) {
+girderTest.folderAccessControl = function (current, action, recurse) {
     waitsFor(function () {
         return $('.g-folder-access-button:visible').length === 1;
     }, 'folder access button to be available');
@@ -525,21 +525,13 @@ girderTest.folderAccessControl = function (current, action) {
     }, 'dialog and private access radio button to appear');
 
     runs(function () {
-        switch (current) {
-            case 'private':
-                expect($('#g-access-private:checked').length).toBe(1);
-                break;
-            case 'public':
-                expect($('#g-access-public:checked').length).toBe(1);
-                break;
-        }
-        switch (action) {
-            case 'private':
-                $('#g-access-private').click();
-                break;
-            case 'public':
-                $('#g-access-public').click();
-                break;
+        expect($('#g-access-' + current + ':checked').length).toBe(1);
+        $('#g-access-' + action).click();
+
+        if (recurse) {
+            $('#g-apply-recursive').click();
+        } else {
+            $('#g-apply-nonrecursive').click();
         }
     });
 
