@@ -181,7 +181,7 @@ class Folder(Resource):
         self.requireParams('access', params)
         user = self.getCurrentUser()
 
-        public = self.boolParam('public', params, default=False)
+        public = self.boolParam('public', params)
         recurse = self.boolParam('recurse', params, default=False)
         progress = self.boolParam('progress', params, default=False) and recurse
 
@@ -205,7 +205,7 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
         .param('public', "Whether the folder should be publicly visible.",
-               dataType='boolean', default=False, required=False)
+               dataType='boolean', required=False)
         .param('recurse', 'Whether the policies should be applied to all '
                'subfolders under this folder as well.', dataType='boolean',
                default=False, required=False)

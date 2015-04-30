@@ -283,17 +283,29 @@ class User(AccessControlledModel):
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
 
-    def subtreeCount(self, doc):
+    def subtreeCount(self, doc, includeItems=True, user=None, level=None):
         """
         Return the size of the user's folders.  The user is counted as well.
 
         :param doc: The user.
+        :param includeItems: Whether to include items in the subtree count, or
+            just folders.
+        :type includeItems: bool
+        :param user: If filtering by permission, the user to filter against.
+        :param level: If filtering by permission, the required permission level.
+        :type level: AccessLevel
         """
         count = 1
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'user'
-        })
-        count += sum(self.model('folder').subtreeCount(folder)
-                     for folder in folders)
+        }, fields=('access',))
+
+        if level is not None:
+            folders = self.filterResultsByPermission(
+                cursor=folders, user=user, level=level, limit=None)
+
+        count += sum(self.model('folder').subtreeCount(
+            folder, includeItems=includeItems, user=user, level=level)
+            for folder in folders)
         return count

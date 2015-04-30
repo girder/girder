@@ -144,7 +144,7 @@ class Collection(Resource):
         self.requireParams('access', params)
         user = self.getCurrentUser()
 
-        public = self.boolParam('public', params, default=False)
+        public = self.boolParam('public', params)
         recurse = self.boolParam('recurse', params, default=False)
         progress = self.boolParam('progress', params, default=False) and recurse
 
@@ -167,7 +167,7 @@ class Collection(Resource):
         .param('id', 'The ID of the collection.', paramType='path')
         .param('access', 'The access control list as JSON.')
         .param('public', "Whether the collection should be publicly visible.",
-               dataType='boolean', default=False, required=False)
+               dataType='boolean', required=False)
         .param('recurse', 'Whether the policies should be applied to all '
                'folders under this collection as well.', dataType='boolean',
                default=False, required=False)

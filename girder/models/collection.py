@@ -208,7 +208,7 @@ class Collection(AccessControlledModel):
         folders = self.model('folder').find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
-        })
+        }, fields=('access',))
 
         if level is not None:
             folders = self.filterResultsByPermission(
