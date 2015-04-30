@@ -210,3 +210,49 @@ class CollectionTestCase(base.TestCase):
             }],
             'groups': []
         })
+
+        # Recursively drop the user's access level to READ
+        obj['users'][0]['level'] = AccessType.READ
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'public': True,
+                'recurse': True,
+                'progress': True
+            }, user=self.admin)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], True)
+        self.assertEqual(folder2['public'], True)
+        self.assertEqual(folder1['access'], coll['access'])
+        self.assertEqual(folder1['access'], folder2['access'])
+        self.assertEqual(folder2['access'], {
+            'users': [{
+                'id': self.user['_id'],
+                'level': AccessType.READ
+            }],
+            'groups': []
+        })
+
+        # Recursively remove the user's access altogether, also make sure that
+        # passing no "public" param just retains the current flag state
+        obj['users'] = ()
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'recurse': True
+            }, user=self.admin)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], True)
+        self.assertEqual(folder2['public'], True)
+        self.assertEqual(folder1['access'], coll['access'])
+        self.assertEqual(folder1['access'], folder2['access'])
+        self.assertEqual(folder2['access'], {
+            'users': [],
+            'groups': []
+        })
