@@ -20,7 +20,7 @@
 import cherrypy
 
 from . import describe
-from v1 import assetstore, file, collection, folder, group, item, resource,\
+from .v1 import assetstore, file, collection, folder, group, item, resource,\
     system, token, user, notification
 
 

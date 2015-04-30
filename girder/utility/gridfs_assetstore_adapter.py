@@ -22,7 +22,7 @@ import cherrypy
 import pymongo
 import uuid
 
-from StringIO import StringIO
+from six import StringIO
 from .model_importer import ModelImporter
 from girder import logger
 from girder.models import getDbConnection

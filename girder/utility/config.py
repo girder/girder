@@ -18,8 +18,10 @@
 ###############################################################################
 
 import cherrypy
-from girder.constants import ROOT_DIR
 import os
+import six
+
+from girder.constants import ROOT_DIR
 
 
 def _mergeConfig(filename):
@@ -30,7 +32,7 @@ def _mergeConfig(filename):
     cherrypy._cpconfig.merge(cherrypy.config, filename)
     global_config = cherrypy.config.pop('global', {})
 
-    for option, value in global_config.iteritems():
+    for option, value in six.iteritems(global_config):
         cherrypy.config[option] = value
 
 

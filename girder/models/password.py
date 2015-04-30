@@ -54,18 +54,16 @@ class Password(Model):
             try:
                 import bcrypt
             except ImportError:
-                raise Exception('Bcrypt module is not installed. '
-                                'See local.auth.cfg.')
+                raise Exception(
+                    'Bcrypt module is not installed. See girder.local.cfg.')
 
-            if type(password) is unicode:
-                password = password.encode('utf-8')
+            password = password.encode()
 
             if salt is None:
                 rounds = int(cur_config['auth']['bcrypt_rounds'])
                 return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
-                if type(salt) is unicode:
-                    salt = salt.encode('utf-8')
+                salt = salt.encode()
                 return bcrypt.hashpw(password, salt)
         else:
             raise Exception('Unsupported hash algorithm: %s' % alg)
@@ -91,7 +89,7 @@ class Password(Model):
                             password=password)
 
         if user['hashAlg'] == 'bcrypt':
-            return hash == user['salt']
+            return hash == user['salt'].encode()
         else:
             return self.load(hash, False) is not None
 

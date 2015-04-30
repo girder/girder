@@ -41,12 +41,13 @@ function to be called when the task is finished. That callback function will
 receive the Event object as its only argument.
 """
 
-import Queue
+import six
 import threading
 import types
 
 from .constants import TerminalColor
 from girder import logger
+from six.moves import queue
 
 
 class Event(object):
@@ -116,7 +117,7 @@ class AsyncEventsThread(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.terminate = False
-        self.eventQueue = Queue.Queue()
+        self.eventQueue = queue.Queue()
 
     def run(self):
         """
@@ -124,7 +125,7 @@ class AsyncEventsThread(threading.Thread):
         put to sleep until someone calls trigger() on it with a new event to
         dispatch.
         """
-        print TerminalColor.info('Started asynchronous event manager thread.')
+        print(TerminalColor.info('Started asynchronous event manager thread.'))
 
         while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
@@ -136,7 +137,7 @@ class AsyncEventsThread(threading.Thread):
                 logger.exception('In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
-        print TerminalColor.info('Stopped asynchronous event manager thread.')
+        print(TerminalColor.info('Stopped asynchronous event manager thread.'))
 
     def trigger(self, eventName, info=None, callback=None):
         """
@@ -219,7 +220,7 @@ def trigger(eventName, info=None, pre=None):
     """
     global _mapping
     e = Event(eventName, info)
-    for handlerName, handler in _mapping.get(eventName, {}).iteritems():
+    for handlerName, handler in six.iteritems(_mapping.get(eventName, {})):
         e.currentHandlerName = handlerName
         if pre is not None:
             pre(info=info, handler=handler, eventName=eventName,

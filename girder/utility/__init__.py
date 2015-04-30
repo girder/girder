@@ -8,7 +8,5 @@ def camelcase(value):
     :type value: str
     :returns: the value converted to camel case.
     """
-    if isinstance(value, unicode):
-        value = value.encode("utf8")
-    return ''.join(str.capitalize(x) if x else '_' for x in
+    return ''.join(x.capitalize() if x else '_' for x in
                    re.split("[._]+", value))

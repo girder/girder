@@ -195,13 +195,13 @@ class StatusMonitor(cherrypy.Tool):
         self.seenThreads = {}
 
     def callable(self):
-        threadId = threading._get_ident()
+        threadId = threading.current_thread().ident
         self.seenThreads[threadId] = {
             'start': cherrypy.response.time, 'url': cherrypy.url()}
 
     def unregister(self):
         """Unregister the current thread."""
-        threadID = threading._get_ident()
+        threadID = threading.current_thread().ident
         if threadID in self.seenThreads:
             self.seenThreads[threadID]['end'] = time.time()
 

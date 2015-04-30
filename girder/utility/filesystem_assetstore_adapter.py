@@ -24,7 +24,7 @@ import shutil
 import stat
 import tempfile
 
-from StringIO import StringIO
+from six import StringIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter

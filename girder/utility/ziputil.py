@@ -34,6 +34,7 @@ Example of creating and consuming a streaming zip:
 
 import binascii
 import os
+import six
 import struct
 import sys
 import time
@@ -77,7 +78,7 @@ class ZipInfo(object):
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
 
-        self.filename = str(filename)
+        self.filename = filename.encode()
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
@@ -150,7 +151,7 @@ class ZipGenerator(object):
         """
         header = ZipInfo(os.path.join(self.rootPath, str(path)),
                          time.localtime()[0:6])
-        header.externalAttr = (0100644 & 0xFFFF) << 16L
+        header.externalAttr = (0o100644 & 0xFFFF) << 16
         header.compressType = self.compression
         header.headerOffset = self.offset
 
@@ -257,4 +258,4 @@ class ZipGenerator(object):
                              size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 
-        return ''.join(data)
+        return b''.join(data)
