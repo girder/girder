@@ -73,7 +73,7 @@ class Description(object):
         return self
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True, enum=None):
+              required=True, enum=None, default=None):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
@@ -95,6 +95,9 @@ class Description(object):
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
         """
+        if dataType == 'int':
+            dataType = 'integer'
+
         param = {
             'name': name,
             'description': description,
@@ -105,6 +108,15 @@ class Description(object):
         }
         if enum:
             param['enum'] = enum
+
+        if default is not None:
+            if dataType == 'boolean':
+                param['defaultValue'] = 'true' if default else 'false'
+            elif dataType == 'integer' and default == 0:
+                param['defaultValue'] = '0'  # workaround swagger-ui bug
+            else:
+                param['defaultValue'] = default
+
         self._params.append(param)
         return self
 

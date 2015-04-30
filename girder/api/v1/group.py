@@ -74,16 +74,17 @@ class Group(Resource):
         Description('Search for groups or list all groups.')
         .param('text', "Pass this to perform a full-text search for groups.",
                required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the group list by (default=name)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
-               required=False, dataType='int')
-        .param('exact', 'If true, only return exact name matches.  This is '
-               'case sensitive.', required=False, dataType='boolean')
+        .param('limit', "Result set size limit.", required=False,
+               dataType='int', default=50)
+        .param('offset', "Offset into result set.", required=False,
+               dataType='int', default=0)
+        .param('sort', "Field to sort the group list by.",
+               required=False, default='name')
+        .param('sortdir', "1 for ascending, -1 for descending.",
+               required=False, dataType='int', default=1)
+        .param('exact', 'If true, only return exact name matches. This is '
+               'case sensitive.', required=False, dataType='boolean',
+               default=False)
         .errorResponse())
 
     @access.user
@@ -113,8 +114,8 @@ class Group(Resource):
         .notes('Must be logged in.')
         .param('name', 'Unique name for the group.')
         .param('description', 'Description of the group.', required=False)
-        .param('public', """Whether the group should be publicly visible. The
-               default is private.""", required=False, dataType='boolean')
+        .param('public', 'Whether the group should be publicly visible.',
+               required=False, dataType='boolean', default=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403))
 
@@ -156,14 +157,14 @@ class Group(Resource):
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
         .param('id', 'The ID of the group.', paramType='path')
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the invitee list by (default=lastName)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
-               required=False, dataType='int')
+        .param('limit', "Result set size limit.", required=False,
+               dataType='int', default=50)
+        .param('offset', "Offset into result set.", required=False,
+               dataType='int', default=0)
+        .param('sort', "Field to sort the invitee list by.",
+               required=False, default='lastName')
+        .param('sortdir', "1 for ascending, -1 for descending.",
+               required=False, dataType='int', default=1)
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403))
 
@@ -239,13 +240,13 @@ class Group(Resource):
     listMembers.description = (
         Description('List members of a group.')
         .param('id', 'The ID of the group.', paramType='path')
-        .param('limit', "Result set size limit (default=50).", required=False,
+        .param('limit', "Result set size limit.", required=False, default=50,
                dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
+        .param('offset', "Offset into result set.", required=False, default=0,
                dataType='int')
-        .param('sort', "Field to sort the member list by (default=lastName)",
+        .param('sort', "Field to sort the member list by.", default='lastName',
                required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
+        .param('sortdir', "1 for ascending, -1 for descending.", default=1,
                required=False, dataType='int')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
@@ -310,8 +311,8 @@ class Group(Resource):
         .param('id', 'The ID of the group.', paramType='path')
         .param('userId', 'The ID of the user to invite or accept.')
         .param('level', 'The access level the user will be given when they '
-               'accept the invitation. Defaults to read access (0).',
-               required=False, dataType='int')
+               'accept the invitation.',
+               required=False, dataType='int', default=AccessType.READ)
         .param('quiet', 'If you do not want this action to send an email to '
                'the target user, set this to true.', dataType='boolean',
                required=False)

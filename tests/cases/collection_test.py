@@ -155,13 +155,21 @@ class CollectionTestCase(base.TestCase):
                             }, user=self.admin)
         self.assertStatus(resp, 400)
 
+        # Create some folders underneath the collection
+        folder1 = self.model('folder').createFolder(
+            parentType='collection', parent=self.collection, creator=self.admin,
+            public=False, name='top level')
+        folder2 = self.model('folder').createFolder(
+            parentType='folder', parent=folder1, creator=self.admin,
+            public=False, name='subfolder')
+
         # Change the access to allow just the user
         obj = {'users': [{'id': str(self.user['_id']),
                           'level': AccessType.WRITE}]}
         resp = self.request(path='/collection/%s/access' %
                             self.collection['_id'], method='PUT', params={
                                 'access': json.dumps(obj),
-                                'public': False
+                                'public': True
                             }, user=self.admin)
         self.assertStatusOk(resp)
 
@@ -172,3 +180,79 @@ class CollectionTestCase(base.TestCase):
         access = resp.json
         self.assertEqual(access['users'][0]['id'], str(self.user['_id']))
         self.assertEqual(access['users'][0]['level'], AccessType.WRITE)
+        coll = self.model('collection').load(self.collection['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], False)
+
+        # Update the collection recursively to public
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'public': True,
+                'recurse': True,
+                'progress': True
+            }, user=self.admin)
+        self.assertStatusOk(resp)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], True)
+        self.assertEqual(folder2['public'], True)
+        self.assertEqual(folder1['access'], coll['access'])
+        self.assertEqual(folder1['access'], folder2['access'])
+        self.assertEqual(folder2['access'], {
+            'users': [{
+                'id': self.user['_id'],
+                'level': AccessType.WRITE
+            }],
+            'groups': []
+        })
+
+        # Recursively drop the user's access level to READ
+        obj['users'][0]['level'] = AccessType.READ
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'public': True,
+                'recurse': True,
+                'progress': True
+            }, user=self.admin)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], True)
+        self.assertEqual(folder2['public'], True)
+        self.assertEqual(folder1['access'], coll['access'])
+        self.assertEqual(folder1['access'], folder2['access'])
+        self.assertEqual(folder2['access'], {
+            'users': [{
+                'id': self.user['_id'],
+                'level': AccessType.READ
+            }],
+            'groups': []
+        })
+
+        # Recursively remove the user's access altogether, also make sure that
+        # passing no "public" param just retains the current flag state
+        obj['users'] = ()
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'recurse': True
+            }, user=self.admin)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        folder1 = self.model('folder').load(folder1['_id'], force=True)
+        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        self.assertEqual(coll['public'], True)
+        self.assertEqual(folder1['public'], True)
+        self.assertEqual(folder2['public'], True)
+        self.assertEqual(folder1['access'], coll['access'])
+        self.assertEqual(folder1['access'], folder2['access'])
+        self.assertEqual(folder2['access'], {
+            'users': [],
+            'groups': []
+        })

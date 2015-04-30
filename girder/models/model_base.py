@@ -816,7 +816,7 @@ class AccessControlledModel(Model):
             dest = self.save(dest, validate=False)
         return dest
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset,
+    def filterResultsByPermission(self, cursor, user, level, limit, offset=0,
                                   removeKeys=()):
         """
         Given a database result cursor, this generator will yield only the

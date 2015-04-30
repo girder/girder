@@ -159,7 +159,7 @@ girder.AccessControlledModel = girder.Model.extend({
      * The "public" attribute of this model should also be set as a boolean.
      * When done, triggers the 'g:accessListSaved' event on the model.
      */
-    updateAccess: function () {
+    updateAccess: function (params) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
@@ -168,10 +168,10 @@ girder.AccessControlledModel = girder.Model.extend({
         girder.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/access',
             type: 'PUT',
-            data: {
+            data: _.extend({
                 access: JSON.stringify(this.get('access')),
                 public: this.get('public')
-            }
+            }, params || {})
         }).done(_.bind(function () {
             this.trigger('g:accessListSaved');
         }, this)).error(_.bind(function (err) {

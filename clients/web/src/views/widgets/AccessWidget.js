@@ -193,10 +193,18 @@ girder.views.AccessWidget = girder.View.extend({
             public: this.$('#g-access-public').is(':checked')
         });
 
+        var recurse = this.$('#g-apply-recursive').is(':checked');
+
         this.model.off('g:accessListSaved')
                   .on('g:accessListSaved', function () {
                       this.$el.modal('hide');
-                  }, this).updateAccess();
+                      this.trigger('g:accessListSaved', {
+                          recurse: recurse
+                      });
+                  }, this).updateAccess({
+                      recurse: recurse,
+                      progress: true
+                  });
     },
 
     removeAccessEntry: function (event) {

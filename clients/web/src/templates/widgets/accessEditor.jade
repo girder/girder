@@ -35,6 +35,18 @@
           .form-group
             label(for="addAccess") Grant access to another group or user
             .g-search-field-container
+
+      .g-recursive-container
+        .radio
+          label
+            input#g-apply-nonrecursive(type="radio" name="recurse" checked="checked")
+            | Apply permissions only to this #{modelType}, not its subfolders
+        .radio
+          label
+            input#g-apply-recursive(type="radio" name="recurse")
+            | Also set permissions on all subfolders to match this #{modelType}'s permissions
+
+
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss="modal") Close
       button.g-save-access-list.btn.btn-small.btn-primary(type="submit")

@@ -696,9 +696,19 @@ girder.views.HierarchyWidget = girder.View.extend({
             modelType: this.parentModel.resourceName,
             model: this.parentModel,
             parentView: this
-        }).on('g:saved', function (folder) {
-            // need to do anything?
+        }).on('g:accessListSaved', function (params) {
+            if (params.recurse) {
+                // Refresh list since the public flag may have changed on the children.
+                this.refreshFolderList();
+            }
         }, this);
+    },
+
+    /**
+     * Reloads the folder list view.
+     */
+    refreshFolderList: function () {
+        this.folderListView.collection.fetch(null, true);
     },
 
     /**

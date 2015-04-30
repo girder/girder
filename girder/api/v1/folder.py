@@ -100,14 +100,14 @@ class Folder(Resource):
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
         .param('text', 'Pass to perform a text search.', required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the folder list by (default=name)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=1)",
-               required=False, dataType='int')
+        .param('limit', "Result set size limit.", required=False,
+               dataType='int', default=50)
+        .param('offset', "Offset into result set.", required=False,
+               dataType='int', default=0)
+        .param('sort', "Field to sort the folder list by.",
+               required=False, default='name')
+        .param('sortdir', "1 for ascending, -1 for descending.",
+               required=False, dataType='int', default=1)
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
@@ -179,22 +179,39 @@ class Folder(Resource):
     @loadmodel(model='folder', level=AccessType.ADMIN)
     def updateFolderAccess(self, folder, params):
         self.requireParams('access', params)
+        user = self.getCurrentUser()
 
-        public = self.boolParam('public', params, default=False)
-        self.model('folder').setPublic(folder, public)
+        public = self.boolParam('public', params)
+        recurse = self.boolParam('recurse', params, default=False)
+        progress = self.boolParam('progress', params, default=False) and recurse
 
         try:
             access = json.loads(params['access'])
-            return self.model('folder').setAccessList(
-                folder, access, save=True)
         except ValueError:
             raise RestException('The access parameter must be JSON.')
+
+        with ProgressContext(progress, user=user, title='Updating permissions',
+                             message='Calculating progress...') as ctx:
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(
+                    folder, includeItems=False, user=user,
+                    level=AccessType.ADMIN))
+            return self.model('folder').setAccessList(
+                folder, access, save=True, recurse=recurse, user=user,
+                progress=ctx, setPublic=public)
+
     updateFolderAccess.description = (
         Description('Update the access control list for a folder.')
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
         .param('public', "Whether the folder should be publicly visible.",
-               dataType='boolean')
+               dataType='boolean', required=False)
+        .param('recurse', 'Whether the policies should be applied to all '
+               'subfolders under this folder as well.', dataType='boolean',
+               default=False, required=False)
+        .param('progress', 'If recurse is set to True, this controls whether '
+               'progress notifications will be sent.', dataType='boolean',
+               default=False, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403))
 

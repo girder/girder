@@ -27,7 +27,7 @@ from .model_base import AccessControlledModel, ValidationException, \
     GirderException
 from girder import events
 from girder.constants import AccessType
-from girder.utility.progress import setResponseTimeLimit
+from girder.utility.progress import noProgress, setResponseTimeLimit
 
 
 class Folder(AccessControlledModel):
@@ -514,29 +514,42 @@ class Folder(AccessControlledModel):
             return self.parentsToRoot(curParentObject, curPath, user=user,
                                       force=force)
 
-    def subtreeCount(self, folder):
+    def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
         Return the size of the subtree rooted at the given folder. Includes
-        the root folder in the count. Counts folders and items. This returns the
-        absolute size of the subtree, it does not filter by permissions.
+        the root folder in the count.
 
         :param folder: The root of the subtree.
         :type folder: dict
+        :param includeItems: Whether to include items in the subtree count, or
+            just folders.
+        :type includeItems: bool
+        :param user: If filtering by permission, the user to filter against.
+        :param level: If filtering by permission, the required permission level.
+        :type level: AccessLevel
         """
         count = 1
 
-        items = self.model('item').find({
-            'folderId': folder['_id']
-        }, fields=())
-        count += items.count()
-        # subsequent operations take a long time, so free the cursor's resources
-        items.close()
+        if includeItems:
+            items = self.model('item').find({
+                'folderId': folder['_id']
+            }, fields=())
+            count += items.count()
+            # subsequent operations may take a long time, so free the cursor
+            items.close()
 
         folders = self.find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=())
-        count += sum(self.subtreeCount(subfolder) for subfolder in folders)
+        }, fields=('access',))
+
+        if level is not None:
+            folders = self.filterResultsByPermission(
+                cursor=folders, user=user, level=level, limit=None)
+
+        count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
+                                       user=user, level=level)
+                     for subfolder in folders)
 
         return count
 
@@ -681,3 +694,49 @@ class Folder(AccessControlledModel):
             progress.update(increment=1, message='Copied folder ' +
                             newFolder['name'])
         return newFolder
+
+    def setAccessList(self, doc, access, save=False, recurse=False, user=None,
+                      progress=noProgress, setPublic=None):
+        """
+        Overrides AccessControlledModel.setAccessList to add a recursive
+        option. When `recurse=True`, this will set the access list on all
+        subfolders to which the given user has ADMIN access level. Any
+        subfolders that the given user does not have ADMIN access on will be
+        skipped.
+
+        :param doc: The folder to set access settings on.
+        :type doc: folder
+        :param access: The access control list.
+        :type access: dict
+        :param save: Whether the changes should be saved to the database.
+        :type save: bool
+        :param recurse: Whether this access list should be propagated to all
+            subfolders underneath this folder.
+        :type recurse: bool
+        :param user: The current user (for recursive mode filtering).
+        :param progress: Progress context to update.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param setPublic: Pass this if you wish to set the public flag on the
+            resources being updated.
+        :type setPublic: bool or None
+        """
+        progress.update(increment=1, message='Updating ' + doc['name'])
+        if setPublic is not None:
+            self.setPublic(doc, setPublic, save=False)
+        doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
+
+        if recurse:
+            cursor = self.find({
+                'parentId': doc['_id'],
+                'parentCollection': 'folder'
+            })
+
+            subfolders = self.filterResultsByPermission(
+                cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
+
+            for folder in subfolders:
+                self.setAccessList(
+                    folder, access, save=True, recurse=True, user=user,
+                    progress=progress, setPublic=setPublic)
+
+        return doc

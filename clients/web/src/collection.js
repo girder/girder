@@ -80,9 +80,10 @@ girder.Collection = Backbone.Collection.extend({
 
         if (reset) {
             this.offset = 0;
+        } else {
+            this.params = params || {};
         }
 
-        this.params = params || {};
         var xhr = girder.restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
@@ -108,10 +109,10 @@ girder.Collection = Backbone.Collection.extend({
             });
 
             if (list.length > 0 || reset) {
-                if (this.append) {
+                if (this.append && !reset) {
                     this.add(list);
                 } else {
-                    this.set(list);
+                    this.reset(list);
                 }
             }
 

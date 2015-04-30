@@ -181,7 +181,7 @@ class Resource(BaseResource):
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id 2)], "folder": [(folder id 1)]}.')
         .param('includeMetadata', 'Include any metadata in json files in the '
-               'archive.', required=False, dataType='boolean')
+               'archive.', required=False, dataType='boolean', default=False)
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
@@ -231,8 +231,8 @@ class Resource(BaseResource):
         .param('resources', 'A JSON-encoded list of types to delete.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id2)], "folder": [(folder id 1)]}.')
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean')
+        .param('progress', 'Whether to record progress on this task.',
+               default=False, required=False, dataType='boolean')
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
