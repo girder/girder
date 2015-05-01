@@ -26,11 +26,12 @@ import logging
 import os
 import shutil
 import signal
+import six
 import sys
 import unittest
 import uuid
 
-from six import StringIO
+from six import BytesIO
 from six.moves import urllib
 from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
@@ -278,10 +279,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.assertStatus(response, 400)
 
     def getSseMessages(self, resp):
-        messages = resp.collapse_body().strip().split('\n\n')
+        messages = self.getBody(resp).strip().split('\n\n')
         if not messages or messages == ['']:
             return ()
-        return map(lambda m: json.loads(m.replace('data: ', '')), messages)
+        return [json.loads(m.replace('data: ', '')) for m in messages]
 
     def ensureRequiredParams(self, path='/', method='GET', required=(),
                              user=None):
@@ -359,7 +360,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if additionalHeaders:
             headers.extend(additionalHeaders)
         if method in ['POST', 'PUT', 'PATCH'] or body:
-            qs = urllib.parse.urlencode(params)
+            if isinstance(body, six.string_types):
+                body = body.encode('utf8')
+            qs = urllib.parse.urlencode(params).encode('utf8')
             if type is None:
                 headers.append(('Content-Type',
                                 'application/x-www-form-urlencoded'))
@@ -367,7 +370,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 headers.append(('Content-Type', type))
                 qs = body
             headers.append(('Content-Length', '%d' % len(qs)))
-            fd = StringIO(qs)
+            fd = BytesIO(qs)
             qs = None
         elif params:
             qs = urllib.parse.urlencode(params)
@@ -387,16 +390,36 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 fd.close()
 
         if isJson:
+            body = self.getBody(response)
             try:
-                response.json = json.loads(response.collapse_body().decode())
+                response.json = json.loads(body)
             except Exception:
-                print(response.collapse_body())
+                print(body)
                 raise AssertionError('Did not receive JSON response')
 
         if not exception and response.output_status.startswith(b'500'):
-            raise AssertionError("Internal server error: %s" % response.body)
+            raise AssertionError("Internal server error: %s" %
+                                 self.getBody(response))
 
         return response
+
+    def getBody(self, response, text=True):
+        """
+        Returns the response body as a text type or binary string.
+
+        :param response: The response object from the server
+        :type response:
+        """
+        data = '' if text else b''
+
+        for chunk in response.body:
+            if text and isinstance(chunk, six.binary_type):
+                chunk = chunk.decode('utf8')
+            elif not text and not isinstance(chunk, six.binary_type):
+                chunk = chunk.encode('utf8')
+            data += chunk
+
+        return data
 
     def multipartRequest(self, fields, files, path, method='POST', user=None,
                          prefix='/api/v1', isJson=True):
@@ -437,14 +460,16 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             fd.close()
 
         if isJson:
+            body = self.getBody(response)
             try:
-                response.json = json.loads(str(response.collapse_body()))
+                response.json = json.loads(body)
             except Exception:
-                print(response.collapse_body())
+                print(body)
                 raise AssertionError('Did not receive JSON response')
 
-        if response.output_status.startswith('500'):
-            raise AssertionError("Internal server error: %s" % response.body)
+        if response.output_status.startswith(b'500'):
+            raise AssertionError("Internal server error: %s" %
+                                 self.getBody(response))
 
         return response
 
@@ -498,6 +523,8 @@ class MultipartFormdataEncoder(object):
         body = io.BytesIO()
         size = 0
         for chunk, chunkLen in self.iter(fields, files):
+            if not isinstance(chunk, six.binary_type):
+                chunk = chunk.encode('utf8')
             body.write(chunk)
             size += chunkLen
         return self.contentType, body.getvalue(), size

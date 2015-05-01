@@ -20,7 +20,6 @@
 import io
 import os
 import shutil
-import urllib
 import zipfile
 
 from hashlib import sha512
@@ -28,6 +27,7 @@ from .. import base
 
 from girder.constants import SettingKey
 from girder.models import getDbConnection
+from six.moves import urllib
 
 
 def setUpModule():
@@ -38,6 +38,7 @@ def tearDownModule():
     base.stopServer()
 
 chunk1, chunk2 = ('hello ', 'world')
+chunkData = chunk1.encode('utf8') + chunk2.encode('utf8')
 
 
 class FileTestCase(base.TestCase):
@@ -212,7 +213,7 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
 
-        self.assertEqual(contents, resp.collapse_body())
+        self.assertEqual(contents, self.getBody(resp))
 
         # Test downloading with an offset
         resp = self.request(path='/file/%s/download' % str(file['_id']),
@@ -220,18 +221,19 @@ class FileTestCase(base.TestCase):
                             params={'offset': 1})
         self.assertStatusOk(resp)
 
-        self.assertEqual(contents[1:], resp.collapse_body())
+        self.assertEqual(contents[1:], self.getBody(resp))
 
         # Test downloading with a name
         resp = self.request(
             path='/file/%s/download/%s' % (
-                str(file['_id']), urllib.quote(file['name']).encode('utf8')),
-            method='GET', user=self.user, isJson=False)
+                str(file['_id']),
+                urllib.parse.quote(file['name']).encode('utf8')
+            ), method='GET', user=self.user, isJson=False)
         self.assertStatusOk(resp)
         if contents:
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
-        self.assertEqual(contents, resp.collapse_body())
+        self.assertEqual(contents, self.getBody(resp))
 
     def _testDownloadFolder(self):
         """
@@ -270,7 +272,7 @@ class FileTestCase(base.TestCase):
             path='/folder/%s/download' % str(self.privateFolder['_id']),
             method='GET', user=self.user, isJson=False)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
-        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         self.assertTrue(zip.testzip() is None)
 
         extracted = zip.read('Private/Test/random.bin')
@@ -328,7 +330,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(resp.headers['Content-Disposition'],
                          'attachment; filename="Test Collection.zip"')
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
-        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         self.assertTrue(zip.testzip() is None)
 
         extracted = zip.read('Test Collection/Test Folder/random.bin')
@@ -369,7 +371,7 @@ class FileTestCase(base.TestCase):
 
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
-        hash = sha512(chunk1 + chunk2).hexdigest()
+        hash = sha512(chunkData).hexdigest()
         self.assertEqual(hash, file['sha512'])
         self.assertFalse(os.path.isabs(file['path']))
         abspath = os.path.join(root, file['path'])
@@ -462,7 +464,7 @@ class FileTestCase(base.TestCase):
 
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
-        hash = sha512(chunk1 + chunk2).hexdigest()
+        hash = sha512(chunkData).hexdigest()
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
@@ -517,10 +519,10 @@ class FileTestCase(base.TestCase):
             path='/folder/{}/download'.format(self.privateFolder['_id']),
             method='GET', user=self.user, isJson=False)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
-        body = ''.join([str(_) for _ in resp.body])
+        body = self.getBody(resp, text=False)
         zip = zipfile.ZipFile(io.BytesIO(body), 'r')
         self.assertTrue(zip.testzip() is None)
 
         # The file should just contain the URL of the link
-        extracted = zip.read('Private/My Link Item')
+        extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())

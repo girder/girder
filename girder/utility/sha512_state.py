@@ -61,7 +61,7 @@ def restore(data):
         ctypes.cast(id(checksum), ctypes.POINTER(ctypes.c_voidp))[POFFSET],
         ctypes.POINTER(ctypes.c_char))
     assert datap
-    assert datap[:8] == '\x08\xc9\xbc\xf3g\xe6\tj'  # first sha512 word
+    assert datap[:8] == b'\x08\xc9\xbc\xf3g\xe6\tj'  # first sha512 word
 
     for i, byte in enumerate(data):
         assert i < STATESIZE

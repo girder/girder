@@ -22,6 +22,7 @@ import io
 import json
 import moto
 import os
+import six
 import time
 import zipfile
 
@@ -161,7 +162,7 @@ class AssetstoreTestCase(base.TestCase):
         folders = self.model('folder').childFolders(
             self.admin, 'user', user=self.admin)
         item = self.model('item').createItem(
-            name='x.txt', creator=self.admin, folder=folders.next())
+            name='x.txt', creator=self.admin, folder=six.next(folders))
         file = self.model('file').createFile(
             creator=self.admin, item=item, name='x.txt',
             size=1, assetstore=assetstore, mimeType='text/plain')
@@ -287,6 +288,7 @@ class AssetstoreTestCase(base.TestCase):
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore
         self.model('assetstore').remove(self.assetstore)
+        s3Regex = r'^https://s3.amazonaws.com(:443)?/bucketname/foo/bar'
 
         params = {
             'name': 'S3 Assetstore',
@@ -346,7 +348,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test init for a single-chunk upload
         folders = self.model('folder').childFolders(self.admin, 'user')
-        parentFolder = folders.next()
+        parentFolder = six.next(folders)
         params = {
             'parentType': 'folder',
             'parentId': parentFolder['_id'],
@@ -366,8 +368,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(s3Info['chunked'], False)
         self.assertEqual(type(s3Info['chunkLength']), int)
         self.assertEqual(s3Info['request']['method'], 'PUT')
-        self.assertTrue(s3Info['request']['url'].startswith(
-                        'https://s3.amazonaws.com/bucketname/foo/bar'))
+        six.assertRegex(self, s3Info['request']['url'], s3Regex)
         self.assertEqual(s3Info['request']['headers']['x-amz-acl'], 'private')
 
         # Test resume of a single-chunk upload
@@ -376,8 +377,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['method'], 'PUT')
         self.assertTrue('headers' in resp.json)
-        self.assertTrue(resp.json['url'].startswith(
-            'https://s3.amazonaws.com/bucketname/foo/bar/'))
+        six.assertRegex(self, resp.json['url'], s3Regex)
 
         # Test finalize for a single-chunk upload
         resp = self.request(path='/file/completion', method='POST',
@@ -388,8 +388,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(resp.json['size'], 1024)
         self.assertEqual(resp.json['assetstoreId'], str(assetstore['_id']))
         self.assertTrue('s3Key' in resp.json)
-        self.assertTrue(resp.json['relpath'].startswith(
-            '/bucketname/foo/bar/'))
+        self.assertTrue(resp.json['relpath'].startswith('/bucketname/foo/bar/'))
 
         # Test init for a multi-chunk upload
         params['size'] = 1024 * 1024 * 1024 * 5
@@ -402,8 +401,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(s3Info['chunked'], True)
         self.assertEqual(type(s3Info['chunkLength']), int)
         self.assertEqual(s3Info['request']['method'], 'POST')
-        self.assertTrue(s3Info['request']['url'].startswith(
-                        'https://s3.amazonaws.com/bucketname/foo/bar'))
+        six.assertRegex(self, s3Info['request']['url'], s3Regex)
 
         # Test uploading a chunk
         resp = self.request(path='/file/chunk', method='POST',
@@ -416,8 +414,7 @@ class AssetstoreTestCase(base.TestCase):
                                 })
                             })
         self.assertStatusOk(resp)
-        self.assertTrue(resp.json['s3']['request']['url'].startswith(
-                        'https://s3.amazonaws.com/bucketname/foo/bar'))
+        six.assertRegex(self, resp.json['s3']['request']['url'], s3Regex)
         self.assertEqual(resp.json['s3']['request']['method'], 'PUT')
 
         # We should not be able to call file/offset with multi-chunk upload
@@ -435,8 +432,7 @@ class AssetstoreTestCase(base.TestCase):
                             params={'uploadId': multiChunkUpload['_id']})
         largeFile = resp.json
         self.assertStatusOk(resp)
-        self.assertTrue(resp.json['s3FinalizeRequest']['url'].startswith(
-                        'https://s3.amazonaws.com/bucketname/foo/bar'))
+        six.assertRegex(self, resp.json['s3FinalizeRequest']['url'], s3Regex)
         self.assertEqual(resp.json['s3FinalizeRequest']['method'], 'POST')
 
         # Test init for an empty file (should be no-op)
@@ -452,7 +448,7 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/file/{}/download'.format(emptyFile['_id']),
                             user=self.admin, method='GET', isJson=False)
         self.assertStatusOk(resp)
-        self.assertEqual(resp.collapse_body(), '')
+        self.assertEqual(self.getBody(resp), '')
         self.assertEqual(resp.headers['Content-Length'], '0')
         self.assertEqual(resp.headers['Content-Disposition'],
                          'attachment; filename="My File.txt"')
@@ -461,13 +457,13 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
                             user=self.admin, method='GET', isJson=False)
         self.assertStatus(resp, 303)
-        self.assertTrue(resp.headers['Location'].startswith(
-            'https://s3.amazonaws.com/bucketname/foo/bar/'))
+        six.assertRegex(self, resp.headers['Location'], s3Regex)
 
         # Test download as part of a streaming zip
         @httmock.all_requests
         def s3_pipe_mock(url, request):
-            if url.netloc == 's3.amazonaws.com' and url.scheme == 'https':
+            if(url.netloc.startswith('s3.amazonaws.com') and
+                    url.scheme == 'https'):
                 return 'dummy file contents'
             else:
                 raise Exception('Unexpected url {}'.format(url))
@@ -477,11 +473,12 @@ class AssetstoreTestCase(base.TestCase):
                 '/folder/{}/download'.format(parentFolder['_id']),
                 method='GET', user=self.admin, isJson=False)
             self.assertStatusOk(resp)
-            zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+            zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)),
+                                  'r')
             self.assertTrue(zip.testzip() is None)
 
             extracted = zip.read('Public/My File.txt')
-            self.assertEqual(extracted, 'dummy file contents')
+            self.assertEqual(extracted, b'dummy file contents')
 
         # Create the file key in the moto s3 store so that we can test that it
         # gets deleted.

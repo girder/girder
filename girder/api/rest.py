@@ -163,7 +163,7 @@ def getBodyJson():
     invalid JSON.
     """
     try:
-        return json.load(cherrypy.request.body)
+        return json.loads(cherrypy.request.body.read().decode('utf8'))
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
 

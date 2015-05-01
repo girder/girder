@@ -37,5 +37,6 @@ class WebRootTestCase(base.TestCase):
         """
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
-        self.assertTrue('app.min.js' in resp.collapse_body().decode())
-        self.assertTrue('libs.min.js' in resp.collapse_body().decode())
+        body = self.getBody(resp)
+        self.assertTrue('app.min.js' in body)
+        self.assertTrue('libs.min.js' in body)

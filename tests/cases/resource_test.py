@@ -21,14 +21,14 @@ import datetime
 import io
 import json
 import os
-import urllib
+import six
 import zipfile
 
 from .. import base
 
 import girder.utility.ziputil
 from girder.models.notification import ProgressState
-from six.moves import range
+from six.moves import range, urllib
 
 
 def setUpModule():
@@ -228,12 +228,15 @@ class ResourceTestCase(base.TestCase):
             }, isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
-        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         self.assertTrue(zip.testzip() is None)
         self.assertHasKeys(self.expectedZip, zip.namelist())
         self.assertHasKeys(zip.namelist(), self.expectedZip)
         for name in zip.namelist():
-            self.assertEqual(self.expectedZip[name], zip.read(name))
+            expected = self.expectedZip[name]
+            if not isinstance(expected, six.binary_type):
+                expected = expected.encode('utf8')
+            self.assertEqual(expected, zip.read(name))
         # Download the same resources again, this time triggering the large zip
         # file creation (artifically forced).  We could do this naturally by
         # downloading >65536 files, but that would make the test take several
@@ -250,7 +253,7 @@ class ResourceTestCase(base.TestCase):
             additionalHeaders=[('X-HTTP-Method-Override', 'GET')])
         self.assertStatusOk(resp)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
-        zip = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         self.assertTrue(zip.testzip() is None)
         # Test deleting resources
         resourceList = {
@@ -280,7 +283,9 @@ class ResourceTestCase(base.TestCase):
             }
         resp = self.request(
             path='/resource', method='DELETE', user=self.admin,
-            body=urllib.urlencode({'resources': json.dumps(resourceList)}),
+            body=urllib.parse.urlencode({
+                'resources': json.dumps(resourceList)
+            }),
             type='application/x-www-form-urlencoded', isJson=False)
         self.assertStatusOk(resp)
         # Test deletes using POST and override method
@@ -545,4 +550,4 @@ class ResourceTestCase(base.TestCase):
                 genEmptyFile(6 * 1024 * 1024 * 1024), 'bigfile'):
             pass
         footer = zip.footer()
-        self.assertEqual(footer[-6:], '\xFF\xFF\xFF\xFF\x00\x00')
+        self.assertEqual(footer[-6:], b'\xFF\xFF\xFF\xFF\x00\x00')
