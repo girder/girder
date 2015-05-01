@@ -104,7 +104,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
         if isinstance(chunk, six.string_types):
-            chunk = StringIO(chunk.encode())
+            chunk = StringIO(chunk.encode('utf8'))
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])

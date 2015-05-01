@@ -41,8 +41,8 @@ def _objectToDict(obj):
     return {key: getattr(obj, key) for key in dir(obj) if
             not key.startswith('_') and
             isinstance(getattr(obj, key),
-                       [float, tuple] + list(six.string_types) +
-                       list(six.integer_types))}
+                       tuple([float, tuple] + list(six.string_types) +
+                             list(six.integer_types)))}
 
 
 def _computeSlowStatus(process, status, db):

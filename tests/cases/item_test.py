@@ -140,7 +140,7 @@ class ItemTestCase(base.TestCase):
         body = []
         for chunk in resp.body:
             if isinstance(chunk, six.string_types):
-                chunk = chunk.encode()
+                chunk = six.binary_type(chunk)
             body.append(chunk)
         body = b''.join(body)
         zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')

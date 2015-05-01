@@ -57,13 +57,13 @@ class Password(Model):
                 raise Exception(
                     'Bcrypt module is not installed. See girder.local.cfg.')
 
-            password = password.encode()
+            password = password.encode('utf8')
 
             if salt is None:
                 rounds = int(cur_config['auth']['bcrypt_rounds'])
                 return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
-                salt = salt.encode()
+                salt = salt.encode('utf8')
                 return bcrypt.hashpw(password, salt)
         else:
             raise Exception('Unsupported hash algorithm: %s' % alg)
@@ -89,7 +89,7 @@ class Password(Model):
                             password=password)
 
         if user['hashAlg'] == 'bcrypt':
-            return hash == user['salt'].encode()
+            return hash == user['salt'].encode('utf8')
         else:
             return self.load(hash, False) is not None
 

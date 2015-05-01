@@ -159,7 +159,7 @@ class AbstractAssetstoreAdapter(object):
         if hasattr(chunk, "fileno"):
             chunkSize = os.fstat(chunk.fileno()).st_size
         elif isinstance(chunk, six.string_types):
-            chunkSize = len(chunk.encode())
+            chunkSize = len(chunk.encode('utf8'))
         return chunkSize
 
     def checkUploadSize(self, upload, chunkSize):

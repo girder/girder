@@ -245,12 +245,12 @@ def _createResponse(val):
                               separators=(',', ': '), default=str)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
-            return resp.encode()
+            return resp.encode('utf8')
 
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, default=str).encode()
+    return json.dumps(val, sort_keys=True, default=str).encode('utf8')
 
 
 def endpoint(fun):

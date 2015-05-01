@@ -77,7 +77,7 @@ class ZipInfo(object):
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
 
-        self.filename = filename.encode()
+        self.filename = filename.encode('utf8')
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
