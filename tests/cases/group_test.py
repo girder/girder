@@ -19,6 +19,7 @@
 
 from .. import base
 from girder.constants import AccessType, SettingKey
+from six.moves import range
 
 
 def setUpModule():
@@ -37,7 +38,7 @@ class GroupTestCase(base.TestCase):
         # an admin
         self.users = [self.model('user').createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
-            for num in xrange(6)]
+            for num in range(6)]
 
     def testDirectAdd(self):
         """
@@ -547,7 +548,7 @@ class GroupTestCase(base.TestCase):
                     path='/group/%s' % group['_id'], user=self.users[0],
                     method='PUT', params={'addAllowed': groupSetting})
                 self.assertStatusOk(resp)
-                for user in xrange(5):
+                for user in range(5):
                     resp = self.request(
                         path='/group/{}/invitation'.format(group['_id']),
                         params={

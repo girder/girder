@@ -22,6 +22,7 @@ import datetime
 import itertools
 import json
 import os
+import six
 
 from bson.objectid import ObjectId
 from .model_base import Model, ValidationException, GirderException
@@ -56,14 +57,14 @@ class Item(Model):
 
     def _validateString(self, value):
         """
-        Make sure a value is an instance of basestring and is stripped of
-        whitespace.
+        Make sure a value is a string and is stripped of whitespace.
+
         :param value: the value to coerce into a string if it isn't already.
         :return stringValue: the string version of the value.
         """
         if value is None:
             value = ''
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             value = str(value)
         return value.strip()
 
@@ -293,7 +294,7 @@ class Item(Model):
             return folderAccessCache[folderId]
 
         endIndex = offset + limit if limit else None
-        filteredCursor = itertools.ifilter(hasAccess, cursor)
+        filteredCursor = six.moves.filter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
                 if key in result:
@@ -371,7 +372,7 @@ class Item(Model):
         item['meta'].update(metadata.items())
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in item['meta'].iteritems() if v is None]
+        toDelete = [k for k, v in six.iteritems(item['meta']) if v is None]
         for key in toDelete:
             del item['meta'][key]
 

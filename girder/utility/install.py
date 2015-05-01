@@ -121,10 +121,10 @@ def install_web(source=None, force=False):  # pragma: no cover
         if force:
             shutil.rmtree(clients)
         else:
-            print constants.TerminalColor.warning(
+            print(constants.TerminalColor.warning(
                 'Client files already exist at %s, use "force" to overwrite.' %
                 constants.STATIC_ROOT_DIR
-            )
+            ))
             return False
 
     tmp = tempfile.mkdtemp()
@@ -179,22 +179,22 @@ def install_plugin(source=None, force=False):
                 if force:
                     shutil.rmtree(pluginTarget)
                 else:
-                    print constants.TerminalColor.warning(
+                    print(constants.TerminalColor.warning(
                         'A plugin already exists at %s, '
                         'use "force" to overwrite.' % pluginTarget
-                    )
+                    ))
                     continue
             found.append(pluginName)
             shutil.copytree(plugin, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):  # pragma: no cover
-                print constants.TerminalColor.info(
+                print(constants.TerminalColor.info(
                     'Attempting to install requirements for %s.\n' % pluginName
-                )
+                ))
                 if pip.main(['install', '-U', '-r', requirements]) != 0:
-                    print constants.TerminalColor.error(
+                    print(constants.TerminalColor.error(
                         'Failed to install requirements for %s.' % pluginName
-                    )
+                    ))
     finally:
         shutil.rmtree(tmp)
     return found

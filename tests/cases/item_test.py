@@ -21,6 +21,7 @@ import os
 import io
 import json
 import shutil
+import six
 import zipfile
 
 from bson.objectid import ObjectId
@@ -138,10 +139,10 @@ class ItemTestCase(base.TestCase):
         # we have to generate the body ourselves.
         body = []
         for chunk in resp.body:
-            if isinstance(chunk, unicode):
-                chunk = chunk.encode("utf8")
+            if isinstance(chunk, six.string_types):
+                chunk = chunk.encode()
             body.append(chunk)
-        body = "".join(body)
+        body = b''.join(body)
         zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')
         prefix = os.path.split(zipFile.namelist()[0])[0]
         expectedZip = {}

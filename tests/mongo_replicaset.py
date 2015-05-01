@@ -28,6 +28,8 @@ import signal
 import subprocess
 import time
 
+from six.moves import range
+
 
 Config = [{
     'dir': '/tmp/mongodb1',
@@ -86,7 +88,7 @@ def pauseMongoReplicaSet(pauseList, verbose=0):
     :param verbose: verbosity for logging.
     """
     changed = False
-    for idx in xrange(min(len(pauseList), len(Config))):
+    for idx in range(min(len(pauseList), len(Config))):
         server = Config[idx]
         if ('proc' in server and
                 bool(pauseList[idx]) != server.get('paused', False)):
@@ -104,7 +106,7 @@ def pauseMongoReplicaSet(pauseList, verbose=0):
             else:
                 status.append((1, 2))
         client, stat = waitForRSStatus(getMongoClient(min([
-            idx for idx in xrange(len(Config))
+            idx for idx in range(len(Config))
             if not Config[idx].get('paused', False)])), status=status,
             verbose=verbose)
         if verbose >= 2:
@@ -122,7 +124,7 @@ def startMongoReplicaSet(timeout=60, verbose=0):
     """
     atexit.register(stopMongoReplicaSet, False)
     if verbose >= 1:
-        print 'Preparing mongo replica set'
+        print('Preparing mongo replica set')
     # Create a set of directories in /tmp and start mongod processes
     kwargs = {}
     if verbose < 3:
@@ -143,18 +145,18 @@ def startMongoReplicaSet(timeout=60, verbose=0):
     replConf = {
         '_id': ReplicaSetName, 'version': 1,
         'members': [{'_id': i, 'host': '127.0.0.1:%d' % Config[i]['port']}
-                    for i in xrange(len(Config))]}
+                    for i in range(len(Config))]}
     client, stat = waitForRSStatus(getMongoClient(0, replConf, timeout),
                                    [(1, 2), (2, 1), (2, 1)], timeout,
                                    verbose=verbose)
     # Reorder our config records so that the primary set is first
     if Config[0]['lastState'] != 1:
-        for idx in xrange(1, len(Config)):
+        for idx in range(1, len(Config)):
             if Config[idx]['lastState'] == 1:
                 Config[0], Config[idx] = Config[idx], Config[0]
                 break
     if verbose >= 1:
-        print 'Mongo replica set ready'
+        print('Mongo replica set ready')
         conf = client.local.system.replset.find_one()
         pprint.pprint(conf)
     if verbose >= 2:
@@ -170,7 +172,7 @@ def stepDownMongoReplicaSet(uri):
     """
     client = getMongoClient(uri)
     numtries = 3
-    for trynum in xrange(numtries):
+    for trynum in range(numtries):
         try:
             client.admin.command({'replSetStepDown': 60})
             break
@@ -207,7 +209,7 @@ def stopMongoReplicaSet(graceful=True, purgeFiles=True):
                 except Exception:
                     # If this fails, we have lost our power to affect the
                     # process, so it does no good to complain about it.
-                    print "Can't kill a mongod replica set server"
+                    print("Can't kill a mongod replica set server")
             if purgeFiles:
                 if os.path.exists(server['dir']):
                     shutil.rmtree(server['dir'])
@@ -231,7 +233,7 @@ def getOrderedRSStatus(client, minMembers):
         if 'members' not in stat or len(stat['members']) < minMembers:
             return None
         members = []
-        for idx in xrange(minMembers):
+        for idx in range(minMembers):
             member = None
             for entry in stat['members']:
                 if (entry['name'].split(':')[-1] ==
@@ -270,7 +272,7 @@ def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
             okay = True
             numberOfPrimary = 0
             numberOfSecondary = 0
-            for idx in xrange(len(status)):
+            for idx in range(len(status)):
                 member = stat['members'][idx]
                 numberOfPrimary += (member['state'] == 1)
                 numberOfSecondary += (member['state'] == 2)
@@ -284,8 +286,8 @@ def waitForRSStatus(client, status=[1], timeout=60, verbose=0):
                     numberOfPrimary > 1):
                 okay = False
             if verbose >= 2:
-                print ([memb['state'] for memb in stat['members']],
-                       status, numberOfPrimary, numberOfSecondary)
+                print([memb['state'] for memb in stat['members']],
+                      status, numberOfPrimary, numberOfSecondary)
             if okay:
                 break
         time.sleep(0.5)
@@ -312,16 +314,16 @@ if __name__ == '__main__':
     startMongoReplicaSet(verbose=args.verbose)
     if args.pause:
         time.sleep(20)
-        print 'Pausing first server'
+        print('Pausing first server')
         pauseMongoReplicaSet([True], verbose=args.verbose)
         time.sleep(20)
-        print 'Unpausing first server; pausing second server'
+        print('Unpausing first server; pausing second server')
         pauseMongoReplicaSet([False, True], verbose=args.verbose)
         time.sleep(20)
-        print 'Unpausing all servers'
+        print('Unpausing all servers')
         pauseMongoReplicaSet([False, False], verbose=args.verbose)
         time.sleep(20)
-        print 'Checking server status'
+        print('Checking server status')
         pauseMongoReplicaSet([], verbose=args.verbose)
     while True:
         try:

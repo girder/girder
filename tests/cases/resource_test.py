@@ -28,6 +28,7 @@ from .. import base
 
 import girder.utility.ziputil
 from girder.models.notification import ProgressState
+from six.moves import range
 
 
 def setUpModule():
@@ -530,7 +531,7 @@ class ResourceTestCase(base.TestCase):
             chunk = '\0' * chunkSize
 
             def genEmptyData():
-                for val in xrange(0, fileLength, chunkSize):
+                for val in range(0, fileLength, chunkSize):
                     yield chunk
 
             return genEmptyData

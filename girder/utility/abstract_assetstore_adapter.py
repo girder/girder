@@ -15,6 +15,7 @@
 ###############################################################################
 
 import os
+import six
 
 from ..constants import SettingKey
 from .model_importer import ModelImporter
@@ -157,8 +158,8 @@ class AbstractAssetstoreAdapter(object):
         chunkSize = None
         if hasattr(chunk, "fileno"):
             chunkSize = os.fstat(chunk.fileno()).st_size
-        elif isinstance(chunk, basestring):
-            chunkSize = len(chunk)
+        elif isinstance(chunk, six.string_types):
+            chunkSize = len(chunk.encode())
         return chunkSize
 
     def checkUploadSize(self, upload, chunkSize):
@@ -173,9 +174,9 @@ class AbstractAssetstoreAdapter(object):
             return
         if chunkSize is None:
             return
-        if upload['received']+chunkSize > upload['size']:
+        if upload['received'] + chunkSize > upload['size']:
             raise ValidationException('Received too many bytes.')
-        if upload['received']+chunkSize != upload['size'] and \
+        if upload['received'] + chunkSize != upload['size'] and \
                 chunkSize < ModelImporter().model('setting').get(
                 SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             raise ValidationException('Chunk is smaller than the minimum size.')

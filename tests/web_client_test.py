@@ -31,6 +31,7 @@ from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR
 from girder.utility.progress import ProgressContext
 from . import base
+from six.moves import range
 
 testServer = None
 
@@ -64,7 +65,7 @@ class WebClientTestEndpoints(Resource):
         with ProgressContext(True, user=self.getCurrentUser(),
                              title='Progress Test', message='Progress Message',
                              total=duration) as ctx:
-            for current in xrange(duration):
+            for current in range(duration):
                 if self.stop:
                     break
                 ctx.update(current=current)
@@ -122,7 +123,7 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        for tries in xrange(5):
+        for tries in range(5):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)

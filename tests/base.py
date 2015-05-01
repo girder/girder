@@ -28,10 +28,10 @@ import shutil
 import signal
 import sys
 import unittest
-import urllib
 import uuid
 
-from StringIO import StringIO
+from six import StringIO
+from six.moves import urllib
 from girder.utility import model_importer
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
@@ -196,7 +196,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         code = str(code)
         msg = 'Response status was %s, not %s.' % (response.output_status, code)
-        self.assertTrue(response.output_status.startswith(code), msg)
+        self.assertTrue(response.output_status.startswith(code.encode()), msg)
 
     def assertHasKeys(self, obj, keys):
         """
@@ -359,7 +359,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if additionalHeaders:
             headers.extend(additionalHeaders)
         if method in ['POST', 'PUT', 'PATCH'] or body:
-            qs = urllib.urlencode(params)
+            qs = urllib.parse.urlencode(params)
             if type is None:
                 headers.append(('Content-Type',
                                 'application/x-www-form-urlencoded'))
@@ -370,7 +370,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             fd = StringIO(qs)
             qs = None
         elif params:
-            qs = urllib.urlencode(params)
+            qs = urllib.parse.urlencode(params)
 
         app = cherrypy.tree.apps['']
         request, response = app.get_serving(
@@ -388,12 +388,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if isJson:
             try:
-                response.json = json.loads(response.collapse_body())
+                response.json = json.loads(response.collapse_body().decode())
             except Exception:
-                print response.collapse_body()
+                print(response.collapse_body())
                 raise AssertionError('Did not receive JSON response')
 
-        if not exception and response.output_status.startswith('500'):
+        if not exception and response.output_status.startswith(b'500'):
             raise AssertionError("Internal server error: %s" % response.body)
 
         return response
@@ -438,9 +438,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if isJson:
             try:
-                response.json = json.loads(response.collapse_body())
+                response.json = json.loads(str(response.collapse_body()))
             except Exception:
-                print response.collapse_body()
+                print(response.collapse_body())
                 raise AssertionError('Did not receive JSON response')
 
         if response.output_status.startswith('500'):
@@ -504,7 +504,7 @@ class MultipartFormdataEncoder(object):
 
 
 def _sigintHandler(*args):
-    print 'Received SIGINT, shutting down mock SMTP server...'
+    print('Received SIGINT, shutting down mock SMTP server...')
     mockSmtp.stop()
     sys.exit(1)
 

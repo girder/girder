@@ -19,17 +19,18 @@
 
 import asyncore
 import os
-import Queue
 import smtpd
 import threading
 import time
+
+from six.moves import queue, range
 
 _startPort = 31000
 _maxTries = 100
 
 
 class MockSmtpServer(smtpd.SMTPServer):
-    mailQueue = Queue.Queue()
+    mailQueue = queue.Queue()
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         self.mailQueue.put(data)
@@ -48,7 +49,7 @@ class MockSmtpReceiver(object):
         the current process so as to reduce potential conflicts with parallel
         tests that are started nearly simultaneously.
         """
-        for porttry in xrange(_maxTries):
+        for porttry in range(_maxTries):
             port = _startPort + ((porttry + os.getpid()) % _maxTries)
             try:
                 self.address = ('localhost', port)

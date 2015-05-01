@@ -94,8 +94,8 @@ def report(args, combined, stats):
     directory.
     """
     percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
-    print 'Overall total: {} / {} ({:.2f}%)'.format(
-        stats['totalHits'], stats['totalSloc'], percent)
+    print('Overall total: {} / {} ({:.2f}%)'.format(
+        stats['totalHits'], stats['totalSloc'], percent))
 
     coverageEl = ET.Element('coverage', {
         'branch-rate': '0',
@@ -133,7 +133,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print 'FAIL: Coverage below threshold ({}%)'.format(args.threshold)
+        print('FAIL: Coverage below threshold ({}%)'.format(args.threshold))
         sys.exit(1)
 
 if __name__ == '__main__':

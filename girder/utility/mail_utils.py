@@ -19,6 +19,7 @@
 
 import cherrypy
 import os
+import six
 import smtplib
 
 from email.mime.text import MIMEText
@@ -81,7 +82,7 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False):
     """
     if toAdmins:
         to = [u['email'] for u in ModelImporter.model('user').getAdmins()]
-    elif isinstance(to, basestring):
+    elif isinstance(to, six.string_types):
         to = (to,)
 
     if not isinstance(to, (list, tuple)):

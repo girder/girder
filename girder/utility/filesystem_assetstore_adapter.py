@@ -21,6 +21,7 @@ import cherrypy
 import os
 import psutil
 import shutil
+import six
 import stat
 import tempfile
 
@@ -126,7 +127,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
-        if isinstance(chunk, basestring):
+        if isinstance(chunk, six.string_types):
             chunk = StringIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum

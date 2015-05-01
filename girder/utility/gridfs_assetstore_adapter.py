@@ -20,6 +20,7 @@
 import bson
 import cherrypy
 import pymongo
+import six
 import uuid
 
 from six import StringIO
@@ -102,10 +103,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
-        if isinstance(chunk, basestring):
-            if isinstance(chunk, unicode):
-                chunk = chunk.encode('utf8')
-            chunk = StringIO(chunk)
+        if isinstance(chunk, six.string_types):
+            chunk = StringIO(chunk.encode())
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])

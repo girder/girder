@@ -212,7 +212,7 @@ body would be ``0123456789``.
     @access.public
     def rawExample(self, params):
         def gen():
-            for i in xrange(10):
+            for i in range(10):
                 yield str(i)
         return gen
 
