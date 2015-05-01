@@ -41,7 +41,6 @@ function to be called when the task is finished. That callback function will
 receive the Event object as its only argument.
 """
 
-import six
 import threading
 import types
 
@@ -176,9 +175,12 @@ def bind(eventName, handlerName, handler):
     """
     global _mapping
     if eventName not in _mapping:
-        _mapping[eventName] = {}
+        _mapping[eventName] = []
 
-    _mapping[eventName][handlerName] = handler
+    _mapping[eventName].append({
+        'name': handlerName,
+        'handler': handler
+    })
 
 
 def unbind(eventName, handlerName):
@@ -191,8 +193,13 @@ def unbind(eventName, handlerName):
     :type handlerName: str
     """
     global _mapping
-    if eventName in _mapping and handlerName in _mapping[eventName]:
-        del _mapping[eventName][handlerName]
+    if eventName not in _mapping:
+        return
+
+    for handler in _mapping[eventName]:
+        if handler['name'] == handlerName:
+            _mapping[eventName].remove(handler)
+            break
 
 
 def unbindAll():
@@ -220,12 +227,12 @@ def trigger(eventName, info=None, pre=None):
     """
     global _mapping
     e = Event(eventName, info)
-    for handlerName, handler in six.iteritems(_mapping.get(eventName, {})):
-        e.currentHandlerName = handlerName
+    for handler in _mapping.get(eventName, ()):
+        e.currentHandlerName = handler['name']
         if pre is not None:
-            pre(info=info, handler=handler, eventName=eventName,
-                handlerName=handlerName)
-        handler(e)
+            pre(info=info, handler=handler['handler'], eventName=eventName,
+                handlerName=handler['name'])
+        handler['handler'](e)
 
         if e.propagate is False:
             break
