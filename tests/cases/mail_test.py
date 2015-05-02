@@ -83,7 +83,7 @@ class MailTestCase(base.TestCase):
         except Exception as e:
             x = 1
             self.assertEqual(
-                e.message, 'You must specify a "to" address or list of '
+                e.args[0], 'You must specify a "to" address or list of '
                 'addresses or set toAdmins=True when calling sendEmail.')
 
         self.assertEqual(x, 1)

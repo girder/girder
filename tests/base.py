@@ -320,8 +320,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 headers.append(('Girder-Token', token))
 
         if basicAuth is not None:
-            auth = base64.b64encode(basicAuth)
-            headers.append(('Authorization', 'Basic {}'.format(auth)))
+            auth = base64.b64encode(basicAuth.encode('utf8'))
+            headers.append(('Authorization', 'Basic {}'.format(auth.decode())))
 
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,

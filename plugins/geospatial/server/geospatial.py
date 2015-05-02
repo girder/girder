@@ -18,10 +18,9 @@
 ###############################################################################
 
 
-import json
-
 import bson.json_util
-import cherrypy
+import six
+
 from geojson import GeoJSON
 from pymongo import GEOSPHERE
 from pymongo.errors import OperationFailure
@@ -460,10 +459,7 @@ class GeospatialItem(Resource):
         :rtype : dict[str, unknown]
         :raise RestException: on malformed, forbidden, or unauthorized API call.
         """
-        try:
-            geospatial = json.load(cherrypy.request.body)
-        except ValueError:
-            raise RestException('Invalid JSON passed in request body.')
+        geospatial = self.getBodyJson()
 
         for k, v in geospatial.items():
             if '.' in k or k[0] == '$':
@@ -482,7 +478,8 @@ class GeospatialItem(Resource):
             item[GEOSPATIAL_FIELD] = dict()
 
         item[GEOSPATIAL_FIELD].update(geospatial.items())
-        keys = [k for k, v in item[GEOSPATIAL_FIELD].iteritems() if v is None]
+        keys = [k for k, v in six.iteritems(item[GEOSPATIAL_FIELD])
+                if v is None]
 
         for key in keys:
             del item[GEOSPATIAL_FIELD][key]

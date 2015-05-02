@@ -23,7 +23,6 @@ be restarted for these changes to take effect.
 """
 
 import os
-import urllib2
 import tempfile
 import tarfile
 import shutil
@@ -31,6 +30,7 @@ import pip
 
 from girder import constants
 from girder.utility.plugin_utilities import getPluginDir
+from six.moves import urllib
 
 
 version = constants.VERSION['apiVersion']
@@ -69,13 +69,13 @@ def handle_source(src, dest):
 
     try:  # pragma: no cover
         # Try to open as a url
-        request = urllib2.urlopen(src)
+        request = urllib.request.urlopen(src)
         download = tempfile.NamedTemporaryFile(suffix='.tgz')
         download.file.write(request.read())
         download.file.flush()
         download.file.seek(0)
         src = download.name
-    except (urllib2.URLError, ValueError):
+    except (urllib.error.URLError, ValueError):
         pass
 
     src = fix_path(src)
@@ -89,8 +89,8 @@ def handle_source(src, dest):
     if os.path.exists(src):
         # Try to open as a tarball.
         try:
-            tgz = tarfile.open(src)
-            tgz.extractall(dest)
+            with tarfile.open(src) as tgz:
+                tgz.extractall(dest)
             return True
         except tarfile.ReadError:
             pass

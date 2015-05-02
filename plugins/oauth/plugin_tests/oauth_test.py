@@ -246,6 +246,8 @@ class OauthTest(base.TestCase):
         self.assertEqual(newUser['firstName'], 'John')
         self.assertEqual(newUser['lastName'], 'Doe')
 
+        # Test receiving a bad status from google, make sure we show some
+        # helpful output.
         errorContent = {'message': 'error'}
         @httmock.all_requests
         def errorResponse(url, request):

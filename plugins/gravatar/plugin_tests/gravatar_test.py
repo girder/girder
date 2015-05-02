@@ -64,7 +64,7 @@ class GravatarTest(base.TestCase):
 
         resp = self.request('/user/{}/gravatar'.format(self.admin['_id']),
                             isJson=False)
-        md5 = hashlib.md5(self.admin['email']).hexdigest()
+        md5 = hashlib.md5(self.admin['email'].encode()).hexdigest()
         self.assertRedirect(resp,
             'https://www.gravatar.com/avatar/{}?d=mm&s=64'.format(md5))
 

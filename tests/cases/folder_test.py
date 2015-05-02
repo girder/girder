@@ -19,6 +19,7 @@
 
 import datetime
 import json
+import six
 
 from .. import base
 
@@ -332,7 +333,7 @@ class FolderTestCase(base.TestCase):
         folders = self.model('folder').childFolders(
             parent=self.admin, parentType='user', user=self.admin, limit=1,
             sort=[('name', -1)])
-        folderResp = folders.next()
+        folderResp = six.next(folders)
 
         # Add a subfolder and an item to that folder
         subfolder = self.model('folder').createFolder(
@@ -396,13 +397,13 @@ class FolderTestCase(base.TestCase):
         del folder['baseParentType']
         self.model('folder').save(folder, validate=False)
 
-        folder = self.model('folder').find({'_id': folder['_id']}).next()
+        folder = self.model('folder').find({'_id': folder['_id']})[0]
         self.assertNotHasKeys(folder, ('lowerName', 'baseParentType'))
 
         # Now ensure that calling load() actually populates those fields and
         # saves the results persistently
         self.model('folder').load(folder['_id'], force=True)
-        folder = self.model('folder').find({'_id': folder['_id']}).next()
+        folder = self.model('folder').find({'_id': folder['_id']})[0]
         self.assertHasKeys(folder, ('lowerName', 'baseParentType'))
         self.assertEqual(folder['lowerName'], 'my folder name')
         self.assertEqual(folder['baseParentType'], 'user')

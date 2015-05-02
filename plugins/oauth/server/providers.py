@@ -80,8 +80,8 @@ class Google(model_importer.ModelImporter):
         except requests.HTTPError:
             raise RestException(
                 'Got %s from %s, response="%s".' % (
-                resp.status_code, kwargs['url'], content),
-                code=502)
+                    resp.status_code, kwargs['url'], content
+                ), code=502)
 
         try:
             return json.loads(content)
