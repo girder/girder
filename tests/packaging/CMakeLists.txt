@@ -11,7 +11,7 @@ set(girder_install "${virtualenv_dir}/bin/girder-install")
 
 add_custom_command(
   OUTPUT "${virtualenv_python}"
-  COMMAND "${VIRTUALENV_EXECUTABLE}" env
+  COMMAND "${VIRTUALENV_EXECUTABLE}" -p "${PYTHON_EXECUTABLE}" env
   WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
   COMMENT "Creating virtualenv for packaging tests"
 )

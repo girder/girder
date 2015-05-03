@@ -53,10 +53,10 @@ class InstallWithOptions(install):
         """
         install.run(self, *arg, **kw)
         if self.plugins:
-            print 'Installing plugins'
+            print('Installing plugins')
             self.girder_install('plugins')
         if self.web:
-            print 'Installing web components'
+            print('Installing web components')
             self.girder_install('web')
 
     def girder_install(self, component):
