@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import six
 import subprocess
 import sys
 import time
@@ -129,7 +130,9 @@ class WebClientTestCase(base.TestCase):
                                     stderr=subprocess.STDOUT)
             hasJasmine = False
             jasmineFinished = False
-            for line in iter(task.stdout.readline, ''):
+            for line in iter(task.stdout.readline, b''):
+                if isinstance(line, six.binary_type):
+                    line = line.decode('utf8')
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
                     task.kill()
@@ -138,7 +141,7 @@ class WebClientTestCase(base.TestCase):
                     base.mockSmtp.waitForMail()
                     msg = base.mockSmtp.getMail()
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
-                         'wb').write(msg)
+                         'wb').write(msg.encode('utf8'))
                     continue  # we don't want to print this
                 if 'Jasmine' in line:
                     hasJasmine = True

@@ -17,10 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import constants
-from resource import ResourceExt
+import six
+
 from girder import events
 from girder.models.model_base import ValidationException
+from . import constants
+from .resource import ResourceExt
 
 
 def validateSettings(event):
@@ -28,7 +30,7 @@ def validateSettings(event):
 
     if key == constants.PluginSettings.PROVENANCE_RESOURCES:
         if val:
-            if not isinstance(val, basestring):
+            if not isinstance(val, six.string_types):
                 raise ValidationException(
                     'Provenance Resources must be a string.', 'value')
             # accept comma or space separated lists

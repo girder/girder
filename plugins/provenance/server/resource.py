@@ -17,17 +17,18 @@
 #  limitations under the License.
 ###############################################################################
 
-from bson.objectid import ObjectId
 import copy
 import datetime
+import six
 
-import constants
+from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
+from . import constants
 
 
 class ResourceExt(Resource):
@@ -91,7 +92,7 @@ class ResourceExt(Resource):
         """Unbind any models that were bound and aren't listed as needed.
         :param resources: resources that shouldn't be unbound."""
         # iterate on keys() so that we can change the dictionary as we use it
-        for oldresource in self.boundResources.keys():
+        for oldresource in list(self.boundResources.keys()):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
                 events.unbind('model.{}.save'.format(oldresource), 'provenance')
@@ -213,7 +214,7 @@ class ResourceExt(Resource):
             user = obj.get('userId', None)
             if not user:
                 user = obj.get('creatorId', None)
-        if isinstance(user, (ObjectId, basestring)):
+        if isinstance(user, tuple([ObjectId] + list(six.string_types))):
             user = self.model('user').load(user, force=True)
         return user
 

@@ -27,6 +27,7 @@ import argparse
 import collections
 import glob
 import os
+import six
 import sys
 import time
 
@@ -71,9 +72,9 @@ def combine_report(args):
         'totalHits': 0,
         'files': {}
     }
-    for file, lines in combined.iteritems():
+    for file, lines in six.iteritems(combined):
         hits, sloc = 0, 0
-        for lineNum, hit in lines.iteritems():
+        for lineNum, hit in six.iteritems(lines):
             sloc += 1
             hits += hit
 
@@ -112,7 +113,7 @@ def report(args, combined, stats):
     })
     classesEl = ET.SubElement(packageEl, 'classes')
 
-    for file, data in combined.iteritems():
+    for file, data in six.iteritems(combined):
         lineRate = (float(stats['files'][file]['hits']) /
                     float(stats['files'][file]['sloc']))
         classEl = ET.SubElement(classesEl, 'class', {
@@ -124,7 +125,7 @@ def report(args, combined, stats):
         })
         linesEl = ET.SubElement(classEl, 'lines')
         ET.SubElement(classEl, 'methods')
-        for lineNum, hit in data.iteritems():
+        for lineNum, hit in six.iteritems(data):
             ET.SubElement(linesEl, 'line', {
                 'number': str(lineNum),
                 'hits': str(hit)
