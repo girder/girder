@@ -22,6 +22,7 @@ import json
 import mock
 import os
 import shutil
+import six
 
 # Need to set the environment variable before importing girder
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')  # noqa
@@ -155,8 +156,8 @@ class PythonClientTestCase(base.TestCase):
         callbackUser = self.model('user').createUser(
             firstName='Callback', lastName='Last', login='callback',
             password='password', email='Callback@email.com')
-        callbackPublicFolder = self.model('folder').childFolders(
-            parentType='user', parent=callbackUser, user=None, limit=1).next()
+        callbackPublicFolder = six.next(self.model('folder').childFolders(
+            parentType='user', parent=callbackUser, user=None, limit=1))
         callback_counts = {'folder': 0, 'item': 0}
         folders = {}
         items = {}

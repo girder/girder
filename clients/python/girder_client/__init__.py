@@ -514,6 +514,8 @@ class GirderClient(object):
         :param fileId: The ID of the Girder file to download.
         :param path: The local path to write the file to.
         """
+        _safeMakedirs(os.path.dirname(path))
+
         with open(path, 'wb') as fd:
             req = requests.get('%s/file/%s/download' % (self.urlBase, fileId),
                                headers={'Girder-Token': self.token})
