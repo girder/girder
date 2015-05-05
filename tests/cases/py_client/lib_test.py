@@ -99,7 +99,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with mock.patch('girder_client.rawInput', return_value=user['login']),\
+        with mock.patch('six.moves.input', return_value=user['login']),\
                 mock.patch('getpass.getpass', return_value='password'):
             client.authenticate(interactive=True)
 
