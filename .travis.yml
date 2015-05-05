@@ -5,17 +5,13 @@ python:
 
 sudo: false
 
-env:
-    - MONGO_VERSION=2.6.9 DEPLOY=true
-    - MONGO_VERSION=3.0.2
-
 compiler:
     - gcc
 before_install:
     # Show the memory state; this lets us more quickly determine when the
     # travis environment is bad
     - vmstat
-    - echo ${TRAVIS_PYTHON_VERSION}
+    - if [[ ${TRAVIS_PYTHON_VERSION:0:1} == "3" ]]; then export MONGO_VERSION=3.0.2; else export MONGO_VERSION=2.6.9; export DEPLOY=true; fi
 
     - pushd "${HOME}"
     - curl "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-${MONGO_VERSION}.tgz" | gunzip -c | tar x
@@ -35,8 +31,7 @@ install:
     - export PATH="${HOME}/.local/bin:${PATH}"
     - pip install -r requirements.txt -r requirements-dev.txt -r plugins/geospatial/requirements.txt -r plugins/metadata_extractor/requirements.txt
     - pip install -r plugins/celery_jobs/requirements.txt -r plugins/hdfs_assetstore/requirements.txt
-    # We have to upgrade six or requiring moto can cause other modules to fail
-    - pip install -U six
+
     - npm install grunt grunt-cli
     - npm install
 script:
