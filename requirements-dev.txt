@@ -3,7 +3,7 @@ flake8==2.2.2
 pep8==1.6.2
 httmock==1.2.2
 httpretty==0.8.6  # https://github.com/gabrielfalcao/HTTPretty/issues/228 (moto problem)
-moto==0.4.1
+moto==0.3.6
 sphinx_rtd_theme==0.1.6
 Sphinx==1.2.2
 virtualenv==1.11.6

@@ -28,8 +28,6 @@ before_install:
     - popd
     - cmake --version
 install:
-    - mkdir -p "${HOME}/.local/bin"
-    - export PATH="${HOME}/.local/bin:${PATH}"
     - pip install -r requirements.txt -r requirements-dev.txt -r plugins/geospatial/requirements.txt -r plugins/celery_jobs/requirements.txt
     - if [ -n "${PY2}" ]; then pip install -r plugins/hdfs_assetstore/requirements.txt -r plugins/metadata_extractor/requirements.txt; fi
 
