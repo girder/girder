@@ -45,13 +45,11 @@ class EventsTestCase(unittest.TestCase):
         event.addResponse('foo')
 
     def _eatEvent(self, event):
-        print('XXX')
         event.addResponse({'foo': 'bar'})
         event.stopPropagation()
         event.preventDefault()
 
     def _shouldNotBeCalled(self, event):
-        print('YYY')
         self.fail('This should not be called due to stopPropagation().')
 
     def testSynchronousEvents(self):
