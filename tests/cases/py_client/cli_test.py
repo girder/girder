@@ -131,7 +131,8 @@ class PythonCliTestCase(base.TestCase):
 
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(self, ret['stdout'],
+        six.assertRegex(
+            self, ret['stdout'],
             'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
@@ -164,7 +165,8 @@ class PythonCliTestCase(base.TestCase):
 
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(self, ret['stdout'],
+        six.assertRegex(
+            self, ret['stdout'],
             'Creating Item from folder .*tests/cases/py_client/testdata')
         self.assertIn('Adding file world.txt', ret['stdout'])
 
