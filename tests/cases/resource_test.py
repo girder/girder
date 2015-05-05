@@ -133,7 +133,7 @@ class ResourceTestCase(base.TestCase):
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.items[2]['name'], 'girder-item-metadata.json']))
-        self.expectedZip[path] = json.dumps(meta)
+        self.expectedZip[path] = meta
 
         meta = {'x': 'y'}
         self.model('item').setMetadata(self.items[4], meta)
@@ -141,7 +141,7 @@ class ResourceTestCase(base.TestCase):
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.items[4]['name'], 'girder-item-metadata.json']))
-        self.expectedZip[path] = json.dumps(meta)
+        self.expectedZip[path] = meta
 
         meta = {'key2': 'value2', 'date': datetime.datetime.utcnow()}
         # mongo rounds to millisecond, so adjust our expectations
@@ -153,7 +153,7 @@ class ResourceTestCase(base.TestCase):
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
-        self.expectedZip[path] = json.dumps(meta, default=str)
+        self.expectedZip[path] = meta
 
     def _uploadFile(self, name, item):
         """
@@ -234,6 +234,8 @@ class ResourceTestCase(base.TestCase):
         self.assertHasKeys(zip.namelist(), self.expectedZip)
         for name in zip.namelist():
             expected = self.expectedZip[name]
+            if isinstance(expected, dict):
+                expected = json.dumps(expected, default=str)
             if not isinstance(expected, six.binary_type):
                 expected = expected.encode('utf8')
             self.assertEqual(expected, zip.read(name))

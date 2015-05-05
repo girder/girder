@@ -1,5 +1,6 @@
 {
     "name": "Metadata extractor",
     "description": "Enables the extraction of metadata from uploaded files",
-    "version": "0.1.0"
+    "version": "0.1.0",
+    "python3": false
 }
