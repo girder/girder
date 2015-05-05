@@ -70,10 +70,15 @@ endfunction()
 function(add_python_test case)
   set(name "server_${case}")
 
-  set(_options BIND_SERVER)
+  set(_options BIND_SERVER PY2_ONLY)
   set(_args PLUGIN)
   set(_multival_args RESOURCE_LOCKS TIMEOUT)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
+    message(STATUS " !!! Not adding test ${name}, cannot run in python version ${PYTHON_VERSION}.")
+    return()
+  endif()
 
   if(fn_PLUGIN)
     set(name "server_${fn_PLUGIN}.${case}")
