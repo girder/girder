@@ -37,11 +37,17 @@ girder.views.oauth_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        var origin = window.location.protocol + '//' + window.location.host;
+        var origin = window.location.protocol + '//' + window.location.host,
+            apiRoot = girder.apiRoot;
+
+        if (apiRoot.substring(0, 1) !== '/') {
+            apiRoot = '/' + apiRoot;
+        }
+
         this.$el.html(girder.templates.oauth_config({
             google: {
                 jsOrigin: origin,
-                redirectUri: origin + girder.apiRoot + '/oauth/google/callback'
+                redirectUri: origin + apiRoot + '/oauth/google/callback'
             }
         }));
 
