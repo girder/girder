@@ -252,3 +252,9 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(progressNotify['data']['state'], 'error')
         self.assertEqual(progressNotify['_id'],
                          str(job['progress']['notificationId']))
+
+    def testDotsInKwargs(self):
+        job = self.model('job', 'jobs').createJob(
+            title='dots', type='x', user=self.users[1], public=True, kwargs={
+                'key.with.dots': 'value'
+            })
