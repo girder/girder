@@ -18,7 +18,9 @@
 ###############################################################################
 
 import datetime
+import json
 import pymongo
+import six
 
 from girder import events
 from girder.constants import AccessType
@@ -137,6 +139,30 @@ class Job(AccessControlledModel):
             self.setUserAccess(job, user=user, level=AccessType.ADMIN)
 
         job = self.save(job)
+
+        return job
+
+    def save(self, job, *args, **kwargs):
+        """
+        We extend save so that we can serialize the kwargs before sending them
+        to the database. This will allow kwargs with $ and . characters in the
+        keys.
+        """
+        deserialized = job['kwargs']
+        job['kwargs'] = json.dumps(job['kwargs'])
+        job = AccessControlledModel.save(self, job, *args, **kwargs)
+        job['kwargs'] = deserialized
+        return job
+
+    def load(self, *args, **kwargs):
+        """
+        We extend load to deserialize the kwargs back into a dict since we
+        serialized them on the way into the database.
+        """
+        job = AccessControlledModel.load(self, *args, **kwargs)
+
+        if job and isinstance(job['kwargs'], six.string_types):
+            job['kwargs'] = json.loads(job['kwargs'])
 
         return job
 
@@ -279,4 +305,9 @@ class Job(AccessControlledModel):
             if 'removeFields' in resp:
                 keys = [k for k in keys if k not in resp['removeFields']]
 
-        return self.filterDocument(job, allow=keys)
+        doc = self.filterDocument(job, allow=keys)
+
+        if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
+            doc['kwargs'] = json.loads(doc['kwargs'])
+
+        return doc
