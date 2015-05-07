@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import six
 import time
 
 from .model_base import Model
@@ -163,7 +164,7 @@ class Notification(Model):
         if 'increment' in kwargs:
             record['data']['current'] += kwargs['increment']
 
-        for field, value in kwargs.iteritems():
+        for field, value in six.iteritems(kwargs):
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 

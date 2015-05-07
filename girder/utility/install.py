@@ -23,7 +23,6 @@ be restarted for these changes to take effect.
 """
 
 import os
-import urllib2
 import tempfile
 import tarfile
 import shutil
@@ -31,6 +30,7 @@ import pip
 
 from girder import constants
 from girder.utility.plugin_utilities import getPluginDir
+from six.moves import urllib
 
 
 version = constants.VERSION['apiVersion']
@@ -69,13 +69,13 @@ def handle_source(src, dest):
 
     try:  # pragma: no cover
         # Try to open as a url
-        request = urllib2.urlopen(src)
+        request = urllib.request.urlopen(src)
         download = tempfile.NamedTemporaryFile(suffix='.tgz')
         download.file.write(request.read())
         download.file.flush()
         download.file.seek(0)
         src = download.name
-    except (urllib2.URLError, ValueError):
+    except (urllib.error.URLError, ValueError):
         pass
 
     src = fix_path(src)
@@ -89,8 +89,8 @@ def handle_source(src, dest):
     if os.path.exists(src):
         # Try to open as a tarball.
         try:
-            tgz = tarfile.open(src)
-            tgz.extractall(dest)
+            with tarfile.open(src) as tgz:
+                tgz.extractall(dest)
             return True
         except tarfile.ReadError:
             pass
@@ -121,10 +121,10 @@ def install_web(source=None, force=False):  # pragma: no cover
         if force:
             shutil.rmtree(clients)
         else:
-            print constants.TerminalColor.warning(
+            print(constants.TerminalColor.warning(
                 'Client files already exist at %s, use "force" to overwrite.' %
                 constants.STATIC_ROOT_DIR
-            )
+            ))
             return False
 
     tmp = tempfile.mkdtemp()
@@ -179,22 +179,22 @@ def install_plugin(source=None, force=False):
                 if force:
                     shutil.rmtree(pluginTarget)
                 else:
-                    print constants.TerminalColor.warning(
+                    print(constants.TerminalColor.warning(
                         'A plugin already exists at %s, '
                         'use "force" to overwrite.' % pluginTarget
-                    )
+                    ))
                     continue
             found.append(pluginName)
             shutil.copytree(plugin, pluginTarget)
             requirements = os.path.join(pluginTarget, 'requirements.txt')
             if os.path.exists(requirements):  # pragma: no cover
-                print constants.TerminalColor.info(
+                print(constants.TerminalColor.info(
                     'Attempting to install requirements for %s.\n' % pluginName
-                )
+                ))
                 if pip.main(['install', '-U', '-r', requirements]) != 0:
-                    print constants.TerminalColor.error(
+                    print(constants.TerminalColor.error(
                         'Failed to install requirements for %s.' % pluginName
-                    )
+                    ))
     finally:
         shutil.rmtree(tmp)
     return found

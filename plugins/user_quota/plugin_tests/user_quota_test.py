@@ -24,7 +24,6 @@ from tests import base
 from girder.constants import AssetstoreType, SettingKey
 from girder.models.model_base import ValidationException
 from girder.utility.system import formatSize
-from server import constants
 
 
 def setUpModule():
@@ -166,6 +165,8 @@ class QuotaTestCase(base.TestCase):
                         matches this.
         :param error: if set, this is a substring expected in an error message.
         """
+        from girder.plugins.user_quota import constants
+
         if model == 'user':
             key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
         elif model == 'collection':
@@ -175,7 +176,7 @@ class QuotaTestCase(base.TestCase):
         except ValidationException as err:
             if not error:
                 raise
-            if error not in err.message:
+            if error not in err.args[0]:
                 raise
             return
         if testVal is not '__NOCHECK__':
@@ -273,7 +274,7 @@ class QuotaTestCase(base.TestCase):
             resp = self.multipartRequest(**file2kwargs)
             self.assertStatus(resp, 500)
         except AssertionError as exc:
-            self.assertTrue('Upload exceeded' in exc.message)
+            self.assertTrue('Upload exceeded' in exc.args[0])
         # Shrink the quota to smaller than all of our files.  Replacing an
         # existing file should still work, though
         self._setPolicy({'fileSizeQuota': 2048}, model, resource, user)

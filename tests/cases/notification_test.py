@@ -54,7 +54,7 @@ class NotificationTestCase(base.TestCase):
                             user=user, token=token, isJson=False,
                             params={'timeout': 0})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.collapse_body(), '')
+        self.assertEqual(self.getBody(resp), '')
 
         # Use a very high rate-limit interval so that we don't fail on slow
         # build boxes

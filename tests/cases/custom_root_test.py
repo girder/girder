@@ -44,22 +44,24 @@ class CustomRootTestCase(base.TestCase):
         # Root (/) should serve our custom route
         resp = self.request('/', prefix='', isJson=False)
         self.assertStatusOk(resp)
-        self.assertEqual(resp.collapse_body(), 'hello world')
+        self.assertEqual(self.getBody(resp), 'hello world')
 
         # Normal web client should now be served from /girder
         resp = self.request('/girder', prefix='', isJson=False)
         self.assertStatusOk(resp)
-        self.assertTrue('g-global-info-apiroot' in resp.collapse_body())
+        self.assertTrue(
+            'g-global-info-apiroot' in self.getBody(resp))
 
         # Api should be served out of /api/v1
         resp = self.request('/api/v1', prefix='', isJson=False)
         self.assertStatusOk(resp)
-        self.assertTrue('Girder REST API Documentation' in resp.collapse_body())
+        self.assertTrue(
+            'Girder REST API Documentation' in self.getBody(resp))
 
         # /api should redirect to /api/v1
         resp = self.request('/api', prefix='', isJson=False)
         self.assertStatus(resp, 303)
-        self.assertTrue('/api/v1' in resp.collapse_body())
+        self.assertTrue('/api/v1' in self.getBody(resp))
 
         # Our custom API augmentations should still work
         resp = self.request('/describe')
@@ -82,4 +84,4 @@ class CustomRootTestCase(base.TestCase):
 
         # Test our staticFile method
         resp = self.request('/static_route', prefix='', isJson=False)
-        self.assertEqual(resp.collapse_body(), 'Hello world!\n')
+        self.assertEqual(self.getBody(resp), 'Hello world!\n')

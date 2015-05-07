@@ -30,6 +30,7 @@ import functools
 import imp
 import json
 import os
+import six
 import sys
 import traceback
 import yaml
@@ -71,11 +72,11 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
             '__name__': ROOT_PLUGINS_PACKAGE
         })()
 
-    print TerminalColor.info('Resolving plugin dependencies...')
+    print(TerminalColor.info('Resolving plugin dependencies...'))
 
     filteredDepGraph = {
         pluginName: info['dependencies']
-        for pluginName, info in findAllPlugins(curConfig).iteritems()
+        for pluginName, info in six.iteritems(findAllPlugins(curConfig))
         if pluginName in plugins
     }
 
@@ -84,11 +85,11 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
             try:
                 root, appconf, apiRoot = loadPlugin(
                     plugin, root, appconf, apiRoot, curConfig=curConfig)
-                print TerminalColor.success('Loaded plugin "{}"'
-                                            .format(plugin))
+                print(TerminalColor.success('Loaded plugin "{}"'
+                                            .format(plugin)))
             except Exception:
-                print TerminalColor.error(
-                    'ERROR: Failed to load plugin "{}":'.format(plugin))
+                print(TerminalColor.error(
+                    'ERROR: Failed to load plugin "{}":'.format(plugin)))
                 traceback.print_exc()
 
     return root, appconf, apiRoot
@@ -209,7 +210,7 @@ def findAllPlugins(curConfig=None):
                     print(TerminalColor.error(
                         'ERROR: Plugin "%s": plugin.json is not valid JSON.' %
                         plugin))
-                    print e
+                    print(e)
                     continue
         elif os.path.isfile(configYml):
             with open(configYml) as conf:
@@ -219,7 +220,7 @@ def findAllPlugins(curConfig=None):
                     print(TerminalColor.error(
                         'ERROR: Plugin "%s": plugin.yml is not valid YAML.' %
                         plugin))
-                    print e
+                    print(e)
                     continue
 
         allPlugins[plugin] = {
@@ -252,22 +253,22 @@ def toposort(data):
 
     # Find all items that don't depend on anything.
     extra = functools.reduce(
-        set.union, data.itervalues()) - set(data.iterkeys())
+        set.union, six.itervalues(data)) - set(six.iterkeys(data))
     # Add empty dependencies where needed
     data.update({item: set() for item in extra})
 
     # Perform the topological sort.
     while True:
-        ordered = set(item for item, dep in data.iteritems() if not dep)
+        ordered = set(item for item, dep in six.iteritems(data) if not dep)
         if not ordered:
             break
         yield ordered
         data = {item: (dep - ordered)
-                for item, dep in data.iteritems() if item not in ordered}
+                for item, dep in six.iteritems(data) if item not in ordered}
     # Detect any cycles in the dependency graph.
     if data:
         raise Exception('Cyclic dependencies detected:\n%s' % '\n'.join(
-                        repr(x) for x in data.iteritems()))
+                        repr(x) for x in six.iteritems(data)))
 
 
 def addChildNode(node, name, obj=None):

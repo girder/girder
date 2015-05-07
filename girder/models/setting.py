@@ -19,6 +19,7 @@
 
 from collections import OrderedDict
 import cherrypy
+import six
 
 from ..constants import SettingDefault
 from .model_base import Model, ValidationException
@@ -97,7 +98,7 @@ class Setting(Model):
             'Cookie lifetime must be an integer > 0.', 'value')
 
     def validateCoreCorsAllowMethods(self, doc):
-        if isinstance(doc['value'], basestring):
+        if isinstance(doc['value'], six.string_types):
             methods = doc['value'].replace(",", " ").strip().upper().split()
             # remove duplicates
             methods = list(OrderedDict.fromkeys(methods))
@@ -108,7 +109,7 @@ class Setting(Model):
             'string.', 'value')
 
     def validateCoreCorsAllowHeaders(self, doc):
-        if isinstance(doc['value'], basestring):
+        if isinstance(doc['value'], six.string_types):
             headers = doc['value'].replace(",", " ").strip().split()
             # remove duplicates
             headers = list(OrderedDict.fromkeys(headers))
@@ -119,7 +120,7 @@ class Setting(Model):
             'string.', 'value')
 
     def validateCoreCorsAllowOrigin(self, doc):
-        if isinstance(doc['value'], basestring):
+        if isinstance(doc['value'], six.string_types):
             origins = doc['value'].replace(",", " ").strip().split()
             origins = [origin.rstrip('/') for origin in origins]
             # remove duplicates
@@ -136,7 +137,7 @@ class Setting(Model):
                 'Email from address must not be blank.', 'value')
 
     def validateCoreEmailHost(self, doc):
-        if isinstance(doc['value'], basestring):
+        if isinstance(doc['value'], six.string_types):
             doc['value'] = doc['value'].strip()
             return
         raise ValidationException(

@@ -24,7 +24,7 @@ for girder.  Try `girder-install --help` for more information.
 import sys
 import os
 import argparse
-from cStringIO import StringIO
+from six import StringIO
 
 stdout = sys.stdout
 stderr = sys.stderr
@@ -59,7 +59,7 @@ def handle_web(parser):
         )
         sys.exit(1)
     else:
-        print 'Installed client libraries to "{}"'.format(result)
+        print('Installed client libraries to "{}"'.format(result))
 
 
 def handle_plugin(parser):
@@ -73,29 +73,29 @@ def handle_plugin(parser):
         )
         sys.exit(1)
     else:
-        print 'Installed {} plugins:'.format(len(result))
-        print '  ' + '\n  '.join(result)
+        print('Installed {} plugins:'.format(len(result)))
+        print('  ' + '\n  '.join(result))
 
 
 def print_version(parser):
     """
     Prints the girder version number.
     """
-    print version
+    print(version)
 
 
 def print_plugin_path(parser):
     """
     Prints the configured plugin path.
     """
-    print pluginDir
+    print(pluginDir)
 
 
 def print_web_root(parser):
     """
     Prints the static web root.
     """
-    print webRoot
+    print(webRoot)
 
 
 def main(args):

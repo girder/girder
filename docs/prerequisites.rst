@@ -3,7 +3,7 @@ System Prerequisites
 
 The following software packages are required to be installed on your system:
 
-* `Python 2 <https://www.python.org>`_
+* `Python 2.7 or 3.4 <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `Node.js <http://nodejs.org/>`_
@@ -14,6 +14,15 @@ an SMTP server on your system is beyond the scope of these docs, but we
 recommend setting up `Postfix <http://www.postfix.org/documentation.html>`_.
 
 See the specific instructions for your platform below.
+
+.. note:: We perform continuous integration testing using Python 2.7 and Python 3.4.
+   The system *should* work on other versions of Python 3 as well, but we do not
+   verify that support in our automated testing at this time, so use at your own
+   risk.
+
+.. warning:: Some Girder plugins do not support Python 3 at this time due to
+   third party library dependencies. Namely, the HDFS Assetstore plugin and the
+   Metadata Extractor plugin will only be available in a Python 2.7 environment.
 
 * :ref:`debian-ubuntu`
 * :ref:`centos-fedora-rhel`

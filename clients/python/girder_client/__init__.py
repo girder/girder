@@ -25,17 +25,10 @@ import json
 import os
 import re
 import requests
+import six
 
 
 _safeNameRegex = re.compile(r'^[/\\]+')
-
-
-def rawInput(prompt):
-    """
-    We don't have the ability to mock raw_input since it is a builtin, so we
-    wrap it here so it can be mocked to simulate user input.
-    """
-    return raw_input(prompt)  # pragma: no cover
 
 
 def _safeMakedirs(path):
@@ -157,7 +150,7 @@ class GirderClient(object):
         """
         if interactive:
             if username is None:
-                username = rawInput('Login or email: ')
+                username = six.moves.input('Login or email: ')
             password = getpass.getpass('Password for %s: ' % username)
 
         if username is None or password is None:
@@ -433,11 +426,11 @@ class GirderClient(object):
         # Check if the file already exists by name and sha512 in the file.
         file_id, current = self.isFileCurrent(itemId, filename, filepath)
         if file_id is not None and current:
-            print 'File %s already exists in parent Item' % filename
+            print('File %s already exists in parent Item' % filename)
             return
 
         if file_id is not None and not current:
-            print 'File %s exists in Item, but with stale contents' % filename
+            print('File %s exists in Item, but with stale contents' % filename)
             path = 'file/' + file_id + '/contents'
             params = {
                 'size': filesize
@@ -521,6 +514,8 @@ class GirderClient(object):
         :param fileId: The ID of the Girder file to download.
         :param path: The local path to write the file to.
         """
+        _safeMakedirs(os.path.dirname(path))
+
         with open(path, 'wb') as fd:
             req = requests.get('%s/file/%s/download' % (self.urlBase, fileId),
                                headers={'Girder-Token': self.token})
@@ -755,7 +750,7 @@ class GirderClient(object):
         item
         of the same name in the same location, or create a new one instead
         """
-        print 'Uploading Item from %s' % local_file
+        print('Uploading Item from %s' % local_file)
         if not self.dryrun:
             current_item = self._create_or_reuse_item(
                 local_file, parent_folder_id, reuse_existing)
@@ -775,7 +770,7 @@ class GirderClient(object):
         item
         of the same name in the same location, or create a new one instead
         """
-        print 'Creating Item from folder %s' % local_folder
+        print('Creating Item from folder %s' % local_folder)
         if not self.dryrun:
             item = self._create_or_reuse_item(local_folder, parent_folder_id,
                                               reuse_existing)
@@ -787,10 +782,10 @@ class GirderClient(object):
             filepath = os.path.join(local_folder, current_file)
             if current_file in self.blacklist:
                 if self.dryrun:
-                    print "Ignoring file %s as blacklisted" % current_file
+                    print("Ignoring file %s as blacklisted" % current_file)
                 continue
-            print 'Adding file %s, (%d of %d) to Item' % (current_file,
-                                                          ind + 1, filecount)
+            print('Adding file %s, (%d of %d) to Item' % (current_file,
+                                                          ind + 1, filecount))
 
             if not self.dryrun:
                 self._upload_file_to_item(current_file, item['_id'], filepath)
@@ -825,10 +820,10 @@ class GirderClient(object):
             filename = os.path.basename(local_folder)
             if filename in self.blacklist:
                 if self.dryrun:
-                    print "Ignoring file %s as it is blacklisted" % filename
+                    print("Ignoring file %s as it is blacklisted" % filename)
                 return
 
-            print 'Creating Folder from %s' % local_folder
+            print('Creating Folder from %s' % local_folder)
             if self.dryrun:
                 # create a dryrun placeholder
                 folder = {'_id': 'dryrun'}
@@ -839,12 +834,12 @@ class GirderClient(object):
             for entry in sorted(os.listdir(local_folder)):
                 if entry in self.blacklist:
                     if self.dryrun:
-                        print "Ignoring file %s as it is blacklisted" % entry
+                        print("Ignoring file %s as it is blacklisted" % entry)
                     continue
                 full_entry = os.path.join(local_folder, entry)
                 if os.path.islink(full_entry):
                     # os.walk skips symlinks by default
-                    print "Skipping file %s as it is a symlink" % entry
+                    print("Skipping file %s as it is a symlink" % entry)
                     continue
                 elif os.path.isdir(full_entry):
                     # At this point we should have an actual folder, so can
@@ -883,7 +878,7 @@ class GirderClient(object):
             filename = os.path.basename(current_file)
             if filename in self.blacklist:
                 if self.dryrun:
-                    print "Ignoring file %s as it is blacklisted" % filename
+                    print("Ignoring file %s as it is blacklisted" % filename)
                 continue
             if os.path.isfile(current_file):
                 if parent_type != 'folder':
@@ -899,4 +894,4 @@ class GirderClient(object):
                     current_file, parent_id, parent_type,
                     leaf_folders_as_items, reuse_existing)
         if empty:
-            print 'No matching files: ' + file_pattern
+            print('No matching files: ' + file_pattern)

@@ -20,6 +20,7 @@
 import cherrypy
 import datetime
 import re
+import six
 
 from .. import base
 
@@ -634,8 +635,8 @@ class UserTestCase(base.TestCase):
 
         self.assertEqual(pvt['public'], False)
 
-        folder = self.model('folder').childFolders(
-            parentType='user', parent=pvt).next()
+        folder = six.next(self.model('folder').childFolders(
+            parentType='user', parent=pvt))
 
         # Private users should be able to upload files
         resp = self.request(path='/item', method='POST', user=pvt, params={

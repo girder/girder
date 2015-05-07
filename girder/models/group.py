@@ -302,9 +302,9 @@ class Group(AccessControlledModel):
         self._deleteRequest(group, user)
 
         # Remove any outstanding invitations for this group
-        user['groupInvites'] = filter(
+        user['groupInvites'] = list(filter(
             lambda inv: not inv['groupId'] == group['_id'],
-            user.get('groupInvites', []))
+            user.get('groupInvites', [])))
         self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
@@ -457,7 +457,7 @@ class Group(AccessControlledModel):
         field in the case of WRITE access and above since READ access is
         implied by membership or invitation.
         """
-        if level > AccessType.READ:
+        if level is not None and level > AccessType.READ:
             doc = AccessControlledModel.setUserAccess(
                 self, doc, user, level, save=True)
         else:

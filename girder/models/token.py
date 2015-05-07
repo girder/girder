@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import six
 import string
 
 from girder.constants import AccessType, TerminalColor, TokenScope
@@ -38,7 +39,7 @@ def genToken(length=64):
     Use this utility function to generate a random string of
     a desired length.
     """
-    return ''.join(random.choice(string.letters + string.digits)
+    return ''.join(random.choice(string.ascii_letters + string.digits)
                    for x in range(length))
 
 
@@ -71,7 +72,7 @@ class Token(AccessControlledModel):
 
         if scope is None:
             scope = (TokenScope.USER_AUTH,)
-        elif isinstance(scope, basestring):
+        elif isinstance(scope, six.string_types):
             scope = (scope,)
 
         token = {
@@ -126,6 +127,6 @@ class Token(AccessControlledModel):
             of the given token's allowed scopes.
         :type scope: str or list of str
         """
-        if isinstance(scope, basestring):
+        if isinstance(scope, six.string_types):
             scope = (scope,)
         return set(scope).issubset(set(self.getAllowedScopes(token)))

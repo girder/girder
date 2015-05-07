@@ -111,7 +111,7 @@ class User(Resource):
                 raise RestException('Use HTTP Basic Authentication', 401)
 
             try:
-                credentials = base64.b64decode(authHeader[6:])
+                credentials = base64.b64decode(authHeader[6:]).decode('utf8')
                 if ':' not in credentials:
                     raise TypeError
             except Exception:

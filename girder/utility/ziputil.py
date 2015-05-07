@@ -34,6 +34,7 @@ Example of creating and consuming a streaming zip:
 
 import binascii
 import os
+import six
 import struct
 import sys
 import time
@@ -77,7 +78,7 @@ class ZipInfo(object):
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
 
-        self.filename = str(filename)
+        self.filename = filename.encode('utf8')
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
@@ -90,9 +91,9 @@ class ZipInfo(object):
 
     def dataDescriptor(self):
         if self.compressSize > Z64_LIMIT or self.fileSize > Z64_LIMIT:
-            fmt = b'<4slQQ'
+            fmt = b'<4sLQQ'
         else:
-            fmt = b'<4slLL'
+            fmt = b'<4sLLL'
         return struct.pack(
             fmt, b'PK\x07\x08', self.crc, self.compressSize, self.fileSize)
 
@@ -105,7 +106,7 @@ class ZipInfo(object):
         dostime = dt[3] << 11 | dt[4] << 5 | (dt[5] // 2)
 
         header = struct.pack(
-            b'<4s2B4HlLL2H', b'PK\003\004', self.extractVersion, 0, 0x8,
+            b'<4s2B4HLLL2H', b'PK\003\004', self.extractVersion, 0, 0x8,
             self.compressType, dostime, dosdate, 0, 0, 0, len(self.filename), 0)
         return header + self.filename
 
@@ -150,7 +151,7 @@ class ZipGenerator(object):
         """
         header = ZipInfo(os.path.join(self.rootPath, str(path)),
                          time.localtime()[0:6])
-        header.externalAttr = (0100644 & 0xFFFF) << 16L
+        header.externalAttr = (0o100644 & 0xFFFF) << 16
         header.compressType = self.compression
         header.headerOffset = self.offset
 
@@ -167,9 +168,11 @@ class ZipGenerator(object):
         for buf in generator():
             if not buf:
                 break
+            if isinstance(buf, six.text_type):
+                buf = buf.encode('utf8')
             fileSize += len(buf)
             if self.useCRC:
-                crc = binascii.crc32(buf, crc)
+                crc = binascii.crc32(buf, crc) & 0xFFFFFFFF
             if compressor:
                 buf = compressor.compress(buf)
                 compressSize += len(buf)
@@ -226,7 +229,7 @@ class ZipGenerator(object):
                 createVersion = header.createVersion
 
             centdir = struct.pack(
-                b'<4s4B4HlLL5HLl', b'PK\001\002', createVersion,
+                b'<4s4B4HLLL5HLL', b'PK\001\002', createVersion,
                 header.createSystem, extractVersion, 0, 0x8,
                 header.compressType, dostime, dosdate, header.crc, compressSize,
                 fileSize, len(header.filename), len(extraData), 0, 0, 0,
@@ -242,11 +245,11 @@ class ZipGenerator(object):
 
         if pos1 > Z64_LIMIT or size > Z64_LIMIT or count >= Z_FILECOUNT_LIMIT:
             zip64endrec = struct.pack(
-                b'<4sqhhllqqqq', b'PK\x06\x06', 44, 45, 45, 0, 0, count, count,
+                b'<4sqhhLLqqqq', b'PK\x06\x06', 44, 45, 45, 0, 0, count, count,
                 size, pos1)
             data.append(self._advanceOffset(zip64endrec))
 
-            zip64locrec = struct.pack(b'<4slql', b'PK\x06\x07', 0, pos2, 1)
+            zip64locrec = struct.pack(b'<4sLqL', b'PK\x06\x07', 0, pos2, 1)
             data.append(self._advanceOffset(zip64locrec))
 
             count = min(count, 0xFFFF)
@@ -257,4 +260,4 @@ class ZipGenerator(object):
                              size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 
-        return ''.join(data)
+        return b''.join(data)

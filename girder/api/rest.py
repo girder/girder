@@ -23,6 +23,7 @@ import datetime
 import functools
 import json
 import pymongo
+import six
 import sys
 import traceback
 import types
@@ -34,6 +35,7 @@ from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
+from six.moves import range
 
 
 def _cacheAuthUser(fun):
@@ -134,8 +136,9 @@ def getCurrentUser(returnToken=False):
     else:
         try:
             ensureTokenScopes(token, TokenScope.USER_AUTH)
-        except Exception:
+        except AccessException:
             return retVal(None, token)
+
         user = ModelImporter.model('user').load(token['userId'], force=True)
         return retVal(user, token)
 
@@ -160,7 +163,7 @@ def getBodyJson():
     invalid JSON.
     """
     try:
-        return json.load(cherrypy.request.body)
+        return json.loads(cherrypy.request.body.read().decode('utf8'))
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
 
@@ -204,9 +207,9 @@ class loadmodel(object):
                                   'girder.api.rest.no-id')
 
     def __call__(self, fun):
-        @functools.wraps(fun)
+        @six.wraps(fun)
         def wrapped(*args, **kwargs):
-            for raw, converted in self.map.iteritems():
+            for raw, converted in six.iteritems(self.map):
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
@@ -242,12 +245,12 @@ def _createResponse(val):
                               separators=(',', ': '), default=str)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
-            return resp
+            return resp.encode('utf8')
 
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, default=str)
+    return json.dumps(val, sort_keys=True, default=str).encode('utf8')
 
 
 def endpoint(fun):
@@ -262,7 +265,7 @@ def endpoint(fun):
     If you want a streamed response, simply return a generator function
     from the inner method.
     """
-    @functools.wraps(fun)
+    @six.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
         # Note that the cyclomatic complexity of this function crosses our
         # flake8 configuration threshold.  Because it is largely exception
@@ -343,7 +346,7 @@ def ensureTokenScopes(token, scope):
     tokenModel = ModelImporter.model('token')
     if not tokenModel.hasScope(token, scope):
         setattr(cherrypy.request, 'girderUser', None)
-        if isinstance(scope, basestring):
+        if isinstance(scope, six.string_types):
             scope = (scope,)
         raise AccessException(
             'Invalid token scope.\nRequired: {}.\nAllowed: {}'
@@ -378,6 +381,7 @@ class RestException(Exception):
     def __init__(self, message, code=400, extra=None):
         self.code = code
         self.extra = extra
+        self.message = message
 
         Exception.__init__(self, message)
 
@@ -415,7 +419,7 @@ class Resource(ModelImporter):
 
         # Insertion sort to maintain routes in required order.
         nLengthRoutes = self._routes[method.lower()][len(route)]
-        for i in xrange(0, len(nLengthRoutes)):
+        for i in range(len(nLengthRoutes)):
             if self._shouldInsertRoute(route, nLengthRoutes[i][0]):
                 nLengthRoutes.insert(i, (route, handler))
                 break
@@ -435,16 +439,16 @@ class Resource(ModelImporter):
                     info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
-            print TerminalColor.warning(
+            print(TerminalColor.warning(
                 'WARNING: No description docs present for route {} {}'
-                .format(method, routePath))
+                .format(method, routePath)))
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
-            print TerminalColor.warning(
+            print(TerminalColor.warning(
                 'WARNING: No access level specified for route {} {}'
-                .format(method, routePath))
+                .format(method, routePath)))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """
@@ -464,7 +468,7 @@ class Resource(ModelImporter):
         if not hasattr(self, '_routes'):
             return
         nLengthRoutes = self._routes[method.lower()][len(route)]
-        for i in xrange(0, len(nLengthRoutes)):
+        for i in range(len(nLengthRoutes)):
             if nLengthRoutes[i][0] == route:
                 del nLengthRoutes[i]
                 break
@@ -485,7 +489,7 @@ class Resource(ModelImporter):
         comparing each token in order and making sure routes with literals in
         forward positions come before routes with wildcards in those positions.
         """
-        for i in xrange(0, len(a)):
+        for i in range(len(a)):
             if a[i][0] != ':' and b[i][0] == ':':
                 return True
         return False
@@ -602,7 +606,7 @@ class Resource(ModelImporter):
         :param provided: The list of provided parameters.
         :type provided: dict
         """
-        if isinstance(required, basestring):
+        if isinstance(required, six.string_types):
             required = (required,)
 
         for param in required:
@@ -813,7 +817,7 @@ class boundHandler(object):
         self.ctx = ctx or _sharedContext
 
     def __call__(self, fn):
-        @functools.wraps(fn)
+        @six.wraps(fn)
         def wrapped(*args, **kwargs):
             return fn(self.ctx, *args, **kwargs)
         return wrapped

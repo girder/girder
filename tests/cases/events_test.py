@@ -63,7 +63,7 @@ class EventsTestCase(unittest.TestCase):
             events.trigger(failname)
             self.assertTrue(False)
         except Exception as e:
-            self.assertEqual(e.message, 'Failure condition')
+            self.assertEqual(e.args[0], 'Failure condition')
 
         # Bind an event to increment the counter
         self.assertEqual(self.ctr, 0)

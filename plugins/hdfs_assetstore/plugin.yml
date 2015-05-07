@@ -4,3 +4,4 @@ description: >
     the Hadoop Distributed Filesystem (HDFS). This also allows files on a
     pre-existing HDFS instance to be imported into the Girder data hierarchy.
 version: 0.1.0
+python3: false

@@ -45,7 +45,7 @@ def computeBaseUrl(user):
         _cachedDefaultImage = ModelImporter.model('setting').get(
             PluginSettings.DEFAULT_IMAGE, default='identicon')
 
-    md5 = hashlib.md5(user['email']).hexdigest()
+    md5 = hashlib.md5(user['email'].encode('utf8')).hexdigest()
     url = 'https://www.gravatar.com/avatar/%s?d=%s' % (md5, _cachedDefaultImage)
 
     user['gravatar_baseUrl'] = url

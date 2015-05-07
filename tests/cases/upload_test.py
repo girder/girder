@@ -171,7 +171,7 @@ class UploadTestCase(base.TestCase):
         self._uploadFile('complete_upload', largeFile=True)
         partialUploads = []
         for largeFile in (False, True):
-            for partial in xrange(3):
+            for partial in range(3):
                 partialUploads.append(self._uploadFile(
                     'partial_upload_%d_%s' % (partial, str(largeFile)),
                     partial, largeFile))

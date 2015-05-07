@@ -21,6 +21,7 @@ import copy
 import datetime
 import json
 import os
+import six
 
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException, \
@@ -176,11 +177,11 @@ class Folder(AccessControlledModel):
             folder['meta'] = {}
 
         # Add new metadata to existing metadata
-        folder['meta'].update(metadata.iteritems())
+        folder['meta'].update(six.iteritems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
         folder['meta'] = {k: v
-                          for k, v in folder['meta'].iteritems()
+                          for k, v in six.iteritems(folder['meta'])
                           if v is not None}
 
         folder['updated'] = datetime.datetime.utcnow()

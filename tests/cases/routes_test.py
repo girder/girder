@@ -128,7 +128,7 @@ class RoutesTestCase(base.TestCase):
             ], isJson=False
         )
         self.assertStatusOk(resp)
-        self.assertEqual(resp.collapse_body(), '')
+        self.assertEqual(self.getBody(resp), '')
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
                          'http://kitware.com')
         self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],

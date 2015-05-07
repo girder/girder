@@ -20,6 +20,7 @@
 import cherrypy
 import os
 import psutil
+import six
 import socket
 import threading
 import time
@@ -40,7 +41,8 @@ def _objectToDict(obj):
     return {key: getattr(obj, key) for key in dir(obj) if
             not key.startswith('_') and
             isinstance(getattr(obj, key),
-                       (int, long, float, basestring, tuple))}
+                       tuple([float, tuple] + list(six.string_types) +
+                             list(six.integer_types)))}
 
 
 def _computeSlowStatus(process, status, db):
@@ -195,13 +197,13 @@ class StatusMonitor(cherrypy.Tool):
         self.seenThreads = {}
 
     def callable(self):
-        threadId = threading._get_ident()
+        threadId = threading.current_thread().ident
         self.seenThreads[threadId] = {
             'start': cherrypy.response.time, 'url': cherrypy.url()}
 
     def unregister(self):
         """Unregister the current thread."""
-        threadID = threading._get_ident()
+        threadID = threading.current_thread().ident
         if threadID in self.seenThreads:
             self.seenThreads[threadID]['end'] = time.time()
 

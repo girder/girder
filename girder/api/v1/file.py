@@ -19,6 +19,7 @@
 
 import cherrypy
 import errno
+import six
 
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
@@ -142,7 +143,7 @@ class File(Resource):
         upload = self.model('upload').load(params['uploadId'], exc=True)
         offset = self.model('upload').requestOffset(upload)
 
-        if isinstance(offset, (int, long)):
+        if isinstance(offset, six.integer_types):
             upload['received'] = offset
             self.model('upload').save(upload)
             return {'offset': offset}

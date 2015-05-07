@@ -380,7 +380,8 @@ class ProvenanceTestCase(base.TestCase):
         for key in checkList:
             eventName = 'model.{}.save'.format(key)
             self.assertTrue((eventName in events._mapping and 'provenance' in
-                            events._mapping[eventName]) is checkList[key])
+                            [h['name'] for h in events._mapping[eventName]])
+                            is checkList[key])
         # Setting a blank should be okay.  It should also remove all but item
         # event mappings
         self.model('setting').set(
@@ -388,4 +389,5 @@ class ProvenanceTestCase(base.TestCase):
         for key in checkList:
             eventName = 'model.{}.save'.format(key)
             self.assertTrue((eventName in events._mapping and 'provenance' in
-                            events._mapping[eventName]) is (key == 'item'))
+                            [h['name'] for h in events._mapping[eventName]])
+                            is (key == 'item'))

@@ -10,3 +10,4 @@ girder.egg-info
 .vagrant
 phantom-*.png
 girder-*.tar.gz
+__pycache__

@@ -17,8 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import re
 import requests
+import six
 
 from girder.api.rest import RestException
 from girder.constants import SettingKey
@@ -66,6 +68,26 @@ class Google(model_importer.ModelImporter):
         self.clientSecret = clientSecret
         self.redirectUri = redirectUri
 
+    def _getJson(self, **kwargs):
+        resp = requests.request(**kwargs)
+        content = resp.content
+
+        if not isinstance(content, six.text_type):
+            content = content.decode('utf8')
+
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError:
+            raise RestException(
+                'Got %s from %s, response="%s".' % (
+                    resp.status_code, kwargs['url'], content
+                ), code=502)
+
+        try:
+            return json.loads(content)
+        except ValueError:
+            raise RestException('Non-JSON response: %s' % content, code=502)
+
     def getUser(self, code):
         """
         Given an authorization code from an oauth callback, retrieve the user
@@ -80,13 +102,15 @@ class Google(model_importer.ModelImporter):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri
         }
-        resp = requests.post(constants.GOOGLE_TOKEN_URL, data=params).json()
+        resp = self._getJson(method='POST', url=constants.GOOGLE_TOKEN_URL,
+                             data=params)
 
         headers = {
             'Authorization': '{} {}'.format(
                 resp['token_type'], resp['access_token'])
         }
-        resp = requests.get(constants.GOOGLE_USER_URL, headers=headers).json()
+        resp = self._getJson(method='GET', url=constants.GOOGLE_USER_URL,
+                             headers=headers)
 
         for email in resp['emails']:
             if email['type'] == 'account':
@@ -106,7 +130,7 @@ class Google(model_importer.ModelImporter):
                 login=login, password=None, firstName=firstName,
                 lastName=lastName, email=email)
         else:
-            user = cursor.next()
+            user = cursor[0]
             user['firstName'] = firstName
             user['lastName'] = lastName
 

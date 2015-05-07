@@ -65,7 +65,7 @@ class SystemTestCase(base.TestCase):
             sha = check_output(
                 ['git', 'rev-parse', 'HEAD'],
                 cwd=ROOT_DIR
-            ).strip()
+            ).decode().strip()
         except CalledProcessError:
             usingGit = False
 
@@ -118,7 +118,7 @@ class SystemTestCase(base.TestCase):
             'key': SettingKey.PLUGINS_ENABLED
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, obj[:-1])
+        self.assertEqual(set(resp.json), set(['geospatial', 'oauth']))
 
         # We should now clear the setting
         resp = self.request(path='/system/setting', method='DELETE', params={
@@ -152,7 +152,8 @@ class SystemTestCase(base.TestCase):
             ])
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], obj[:-1])
+        self.assertEqual(set(resp.json[SettingKey.PLUGINS_ENABLED]),
+                         set(['oauth', 'geospatial']))
 
         # We can get the default values, or ask for no value if the current
         # value is taken from the default

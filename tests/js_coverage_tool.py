@@ -27,6 +27,7 @@ import argparse
 import collections
 import glob
 import os
+import six
 import sys
 import time
 
@@ -71,9 +72,9 @@ def combine_report(args):
         'totalHits': 0,
         'files': {}
     }
-    for file, lines in combined.iteritems():
+    for file, lines in six.iteritems(combined):
         hits, sloc = 0, 0
-        for lineNum, hit in lines.iteritems():
+        for lineNum, hit in six.iteritems(lines):
             sloc += 1
             hits += hit
 
@@ -94,8 +95,8 @@ def report(args, combined, stats):
     directory.
     """
     percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
-    print 'Overall total: {} / {} ({:.2f}%)'.format(
-        stats['totalHits'], stats['totalSloc'], percent)
+    print('Overall total: {} / {} ({:.2f}%)'.format(
+        stats['totalHits'], stats['totalSloc'], percent))
 
     coverageEl = ET.Element('coverage', {
         'branch-rate': '0',
@@ -112,7 +113,7 @@ def report(args, combined, stats):
     })
     classesEl = ET.SubElement(packageEl, 'classes')
 
-    for file, data in combined.iteritems():
+    for file, data in six.iteritems(combined):
         lineRate = (float(stats['files'][file]['hits']) /
                     float(stats['files'][file]['sloc']))
         classEl = ET.SubElement(classesEl, 'class', {
@@ -124,7 +125,7 @@ def report(args, combined, stats):
         })
         linesEl = ET.SubElement(classEl, 'lines')
         ET.SubElement(classEl, 'methods')
-        for lineNum, hit in data.iteritems():
+        for lineNum, hit in six.iteritems(data):
             ET.SubElement(linesEl, 'line', {
                 'number': str(lineNum),
                 'hits': str(hit)
@@ -133,7 +134,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print 'FAIL: Coverage below threshold ({}%)'.format(args.threshold)
+        print('FAIL: Coverage below threshold ({}%)'.format(args.threshold))
         sys.exit(1)
 
 if __name__ == '__main__':

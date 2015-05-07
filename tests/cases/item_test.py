@@ -21,6 +21,7 @@ import os
 import io
 import json
 import shutil
+import six
 import zipfile
 
 from bson.objectid import ObjectId
@@ -114,7 +115,7 @@ class ItemTestCase(base.TestCase):
                             method='GET', user=user, isJson=False)
         self.assertStatusOk(resp)
 
-        self.assertEqual(contents, resp.collapse_body())
+        self.assertEqual(contents, self.getBody(resp))
 
         # Test downloading with an offset
         resp = self.request(path='/item/{}/download'.format(item['_id']),
@@ -122,7 +123,7 @@ class ItemTestCase(base.TestCase):
                             params={'offset': 1})
         self.assertStatusOk(resp)
 
-        self.assertEqual(contents[1:], resp.collapse_body())
+        self.assertEqual(contents[1:], self.getBody(resp))
 
     def _testDownloadMultiFileItem(self, item, user, contents, format=None):
         params = None
@@ -132,17 +133,8 @@ class ItemTestCase(base.TestCase):
                             method='GET', user=user, isJson=False,
                             params=params)
         self.assertStatusOk(resp)
-        # cherrypy doesn't collapse the body properly when unicode is mixed
-        # with binary data.  Instead of using
-        #  zipFile = zipfile.ZipFile(io.BytesIO(resp.collapse_body()), 'r')
-        # we have to generate the body ourselves.
-        body = []
-        for chunk in resp.body:
-            if isinstance(chunk, unicode):
-                chunk = chunk.encode("utf8")
-            body.append(chunk)
-        body = "".join(body)
-        zipFile = zipfile.ZipFile(io.BytesIO(body), 'r')
+        zipFile = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)),
+                                  'r')
         prefix = os.path.split(zipFile.namelist()[0])[0]
         expectedZip = {}
         for name in contents:
@@ -150,7 +142,10 @@ class ItemTestCase(base.TestCase):
         self.assertHasKeys(expectedZip, zipFile.namelist())
         self.assertHasKeys(zipFile.namelist(), expectedZip)
         for name in zipFile.namelist():
-            self.assertEqual(expectedZip[name], zipFile.read(name))
+            expected = expectedZip[name]
+            if not isinstance(expected, six.binary_type):
+                expected = expected.encode('utf8')
+            self.assertEqual(expected, zipFile.read(name))
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],
@@ -501,13 +496,13 @@ class ItemTestCase(base.TestCase):
         del item['baseParentType']
         self.model('item').save(item, validate=False)
 
-        item = self.model('item').find({'_id': item['_id']}).next()
+        item = self.model('item').find({'_id': item['_id']})[0]
         self.assertNotHasKeys(item, ('lowerName', 'baseParentType'))
 
         # Now ensure that calling load() actually populates those fields and
         # saves the results persistently
         self.model('item').load(item['_id'], force=True)
-        item = self.model('item').find({'_id': item['_id']}).next()
+        item = self.model('item').find({'_id': item['_id']})[0]
         self.assertHasKeys(item, ('lowerName', 'baseParentType'))
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
@@ -525,10 +520,10 @@ class ItemTestCase(base.TestCase):
         item['description'] = 1
         del item['lowerName']
         self.model('item').save(item, validate=False)
-        item = self.model('item').find({'_id': item['_id']}).next()
+        item = self.model('item').find({'_id': item['_id']})[0]
         self.assertNotHasKeys(item, ('lowerName', ))
         self.model('item').load(item['_id'], force=True)
-        item = self.model('item').find({'_id': item['_id']}).next()
+        item = self.model('item').find({'_id': item['_id']})[0]
         self.assertHasKeys(item, ('lowerName', ))
         self.assertEqual(item['lowerName'], 'my item name (1)')
         self.assertEqual(item['description'], '1')
@@ -665,7 +660,7 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/download'.format(item['_id']),
                             isJson=False, cookie=cookie)
         self.assertStatusOk(resp)
-        self.assertEqual(resp.collapse_body(), 'foo')
+        self.assertEqual(self.getBody(resp), 'foo')
 
         # We should not be able to call GET /item/:id with a cookie token
         resp = self.request(path='/item/{}'.format(item['_id']), cookie=cookie)

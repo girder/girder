@@ -96,11 +96,11 @@ def main():
                  reuse_existing=args.reuse)
     elif args.c == 'download':
         if args.parent_type != 'folder':
-            print 'download command only accepts parent-type of folder'
+            print('download command only accepts parent-type of folder')
         else:
             g.downloadFolderRecursive(args.parent_id, args.local_folder)
     else:
-        print 'No implementation for command %s' % args.c
+        print('No implementation for command %s' % args.c)
 
 
 if __name__ == '__main__':

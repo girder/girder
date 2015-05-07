@@ -21,10 +21,11 @@ import cherrypy
 import os
 import psutil
 import shutil
+import six
 import stat
 import tempfile
 
-from StringIO import StringIO
+from six import BytesIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -126,8 +127,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
-        if isinstance(chunk, basestring):
-            chunk = StringIO(chunk)
+        if isinstance(chunk, six.string_types):
+            chunk = chunk.encode('utf8')
+
+        if isinstance(chunk, six.binary_type):
+            chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = sha512_state.restoreHex(upload['sha512state'])
@@ -146,7 +150,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         with open(upload['tempFile'], 'a+b') as tempFile:
             size = 0
-            while not upload['received']+size > upload['size']:
+            while not upload['received'] + size > upload['size']:
                 data = chunk.read(BUF_SIZE)
                 if not data:
                     break

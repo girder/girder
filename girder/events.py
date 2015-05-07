@@ -41,12 +41,12 @@ function to be called when the task is finished. That callback function will
 receive the Event object as its only argument.
 """
 
-import Queue
 import threading
 import types
 
 from .constants import TerminalColor
 from girder import logger
+from six.moves import queue
 
 
 class Event(object):
@@ -116,7 +116,7 @@ class AsyncEventsThread(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.terminate = False
-        self.eventQueue = Queue.Queue()
+        self.eventQueue = queue.Queue()
 
     def run(self):
         """
@@ -124,7 +124,7 @@ class AsyncEventsThread(threading.Thread):
         put to sleep until someone calls trigger() on it with a new event to
         dispatch.
         """
-        print TerminalColor.info('Started asynchronous event manager thread.')
+        print(TerminalColor.info('Started asynchronous event manager thread.'))
 
         while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
@@ -136,7 +136,7 @@ class AsyncEventsThread(threading.Thread):
                 logger.exception('In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
-        print TerminalColor.info('Stopped asynchronous event manager thread.')
+        print(TerminalColor.info('Stopped asynchronous event manager thread.'))
 
     def trigger(self, eventName, info=None, callback=None):
         """
@@ -175,9 +175,12 @@ def bind(eventName, handlerName, handler):
     """
     global _mapping
     if eventName not in _mapping:
-        _mapping[eventName] = {}
+        _mapping[eventName] = []
 
-    _mapping[eventName][handlerName] = handler
+    _mapping[eventName].append({
+        'name': handlerName,
+        'handler': handler
+    })
 
 
 def unbind(eventName, handlerName):
@@ -190,8 +193,13 @@ def unbind(eventName, handlerName):
     :type handlerName: str
     """
     global _mapping
-    if eventName in _mapping and handlerName in _mapping[eventName]:
-        del _mapping[eventName][handlerName]
+    if eventName not in _mapping:
+        return
+
+    for handler in _mapping[eventName]:
+        if handler['name'] == handlerName:
+            _mapping[eventName].remove(handler)
+            break
 
 
 def unbindAll():
@@ -219,12 +227,12 @@ def trigger(eventName, info=None, pre=None):
     """
     global _mapping
     e = Event(eventName, info)
-    for handlerName, handler in _mapping.get(eventName, {}).iteritems():
-        e.currentHandlerName = handlerName
+    for handler in _mapping.get(eventName, ()):
+        e.currentHandlerName = handler['name']
         if pre is not None:
-            pre(info=info, handler=handler, eventName=eventName,
-                handlerName=handlerName)
-        handler(e)
+            pre(info=info, handler=handler['handler'], eventName=eventName,
+                handlerName=handler['name'])
+        handler['handler'](e)
 
         if e.propagate is False:
             break

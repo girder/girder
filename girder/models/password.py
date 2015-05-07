@@ -20,6 +20,7 @@
 import cherrypy
 import hashlib
 import re
+import six
 
 from girder.utility import config
 from .model_base import Model, ValidationException
@@ -49,23 +50,22 @@ class Password(Model):
         """
         cur_config = config.getConfig()
         if alg == 'sha512':
-            return hashlib.sha512(password + salt).hexdigest()
+            return hashlib.sha512((password + salt).encode('utf8')).hexdigest()
         elif alg == 'bcrypt':
             try:
                 import bcrypt
             except ImportError:
-                raise Exception('Bcrypt module is not installed. '
-                                'See local.auth.cfg.')
+                raise Exception(
+                    'Bcrypt module is not installed. See girder.local.cfg.')
 
-            if type(password) is unicode:
-                password = password.encode('utf-8')
+            password = password.encode('utf8')
 
             if salt is None:
                 rounds = int(cur_config['auth']['bcrypt_rounds'])
                 return bcrypt.hashpw(password, bcrypt.gensalt(rounds))
             else:
-                if type(salt) is unicode:
-                    salt = salt.encode('utf-8')
+                if isinstance(salt, six.text_type):
+                    salt = salt.encode('utf8')
                 return bcrypt.hashpw(password, salt)
         else:
             raise Exception('Unsupported hash algorithm: %s' % alg)
@@ -91,6 +91,8 @@ class Password(Model):
                             password=password)
 
         if user['hashAlg'] == 'bcrypt':
+            if isinstance(user['salt'], six.text_type):
+                user['salt'] = user['salt'].encode('utf8')
             return hash == user['salt']
         else:
             return self.load(hash, False) is not None

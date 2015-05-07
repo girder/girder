@@ -19,11 +19,11 @@
 
 import httmock
 import json
-import urlparse
 
 from girder.constants import SettingKey
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
+from six.moves import urllib
 from tests import base
 
 
@@ -111,8 +111,8 @@ class OauthTest(base.TestCase):
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
         self.assertTrue('Google' in resp.json)
-        urlParts = urlparse.urlparse(resp.json['Google'])
-        queryParams = urlparse.parse_qs(urlParts.query)
+        urlParts = urllib.parse.urlparse(resp.json['Google'])
+        queryParams = urllib.parse.parse_qs(urlParts.query)
         self.assertEqual(urlParts.scheme, 'https')
         self.assertEqual(urlParts.netloc, 'accounts.google.com')
         self.assertEqual(queryParams['response_type'], ['code'])
@@ -159,7 +159,7 @@ class OauthTest(base.TestCase):
         email = 'admin@mail.com'
 
         @httmock.all_requests
-        def google_mock(url, request):
+        def googleMock(url, request):
             if url.netloc == 'accounts.google.com':
                 return json.dumps({
                     'token_type': 'Bearer',
@@ -180,7 +180,7 @@ class OauthTest(base.TestCase):
             else:
                 raise Exception('Unexpected url {}'.format(url))
 
-        with httmock.HTTMock(google_mock):
+        with httmock.HTTMock(googleMock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
@@ -203,7 +203,7 @@ class OauthTest(base.TestCase):
         cookie = resp.cookie
 
         email = 'anotheruser@mail.com'
-        with httmock.HTTMock(google_mock):
+        with httmock.HTTMock(googleMock):
             resp = self.request('/oauth/google/callback', params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
@@ -222,7 +222,7 @@ class OauthTest(base.TestCase):
         self.assertStatusOk(resp)
         cookie = resp.cookie
 
-        with httmock.HTTMock(google_mock):
+        with httmock.HTTMock(googleMock):
             resp = self.request('/oauth/google/callback', isJson=False, params={
                 'code': '12345',
                 'state': 'http://localhost/#foo/bar'
@@ -245,6 +245,30 @@ class OauthTest(base.TestCase):
         })
         self.assertEqual(newUser['firstName'], 'John')
         self.assertEqual(newUser['lastName'], 'Doe')
+
+        # Test receiving a bad status from google, make sure we show some
+        # helpful output.
+        errorContent = {'message': 'error'}
+        @httmock.all_requests
+        def errorResponse(url, request):
+            return httmock.response(
+                status_code=403, content=json.dumps(errorContent))
+
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
+        with httmock.HTTMock(errorResponse):
+            resp = self.request('/oauth/google/callback', params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            }, exception=True, cookie=self._createCsrfCookie(cookie))
+            self.assertStatus(resp, 502)
+            self.assertEqual(
+                resp.json['message'],
+                'Got 403 from https://accounts.google.com/o/oauth2/token, '
+                'response="{"message": "error"}".')
 
     def _createCsrfCookie(self, cookie):
         info = json.loads(cookie['oauthLogin'].value)

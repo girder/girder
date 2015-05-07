@@ -21,13 +21,13 @@ import cherrypy
 import datetime
 import json
 import os
-import urllib
 
 from girder.constants import AccessType
 from girder.api.describe import Description
 from girder.api.rest import Resource
 from girder.api import access
 from . import constants, providers
+from six.moves import urllib
 
 
 class OAuth(Resource):
@@ -65,7 +65,7 @@ class OAuth(Resource):
         callbackUrl = '/'.join((
             os.path.dirname(cherrypy.url()), 'google', 'callback'))
 
-        query = urllib.urlencode({
+        query = urllib.parse.urlencode({
             'response_type': 'code',
             'access_type': 'online',
             'client_id': clientId,

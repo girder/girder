@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import six
 import subprocess
 import sys
 import time
@@ -31,6 +32,7 @@ from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR
 from girder.utility.progress import ProgressContext
 from . import base
+from six.moves import range
 
 testServer = None
 
@@ -64,7 +66,7 @@ class WebClientTestEndpoints(Resource):
         with ProgressContext(True, user=self.getCurrentUser(),
                              title='Progress Test', message='Progress Message',
                              total=duration) as ctx:
-            for current in xrange(duration):
+            for current in range(duration):
                 if self.stop:
                     break
                 ctx.update(current=current)
@@ -122,13 +124,15 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        for tries in xrange(5):
+        for tries in range(5):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
             hasJasmine = False
             jasmineFinished = False
-            for line in iter(task.stdout.readline, ''):
+            for line in iter(task.stdout.readline, b''):
+                if isinstance(line, six.binary_type):
+                    line = line.decode('utf8')
                 if ('PHANTOM_TIMEOUT' in line or
                         'error loading source script' in line):
                     task.kill()
@@ -137,7 +141,7 @@ class WebClientTestCase(base.TestCase):
                     base.mockSmtp.waitForMail()
                     msg = base.mockSmtp.getMail()
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
-                         'wb').write(msg)
+                         'wb').write(msg.encode('utf8'))
                     continue  # we don't want to print this
                 if 'Jasmine' in line:
                     hasJasmine = True

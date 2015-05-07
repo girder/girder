@@ -55,19 +55,19 @@ class testEndpointDecoratorException(base.TestCase):
         raise Exception('\x80\x80 cannot be converted to unicode or ascii.')
 
     def test_endpoint_exception_ascii(self):
-        resp = self.pointless_endpoint_ascii('', {})
+        resp = self.pointless_endpoint_ascii('', {}).decode()
         obj = json.loads(resp)
-        self.assertEquals(obj['type'], 'internal')
+        self.assertEqual(obj['type'], 'internal')
 
     def test_endpoint_exception_unicode(self):
-        resp = self.pointless_endpoint_unicode('', {})
+        resp = self.pointless_endpoint_unicode('', {}).decode('utf8')
         obj = json.loads(resp)
-        self.assertEquals(obj['type'], 'internal')
+        self.assertEqual(obj['type'], 'internal')
 
     def test_endpoint_exception_bytes(self):
-        resp = self.pointless_endpoint_bytes('', {})
+        resp = self.pointless_endpoint_bytes('', {}).decode('utf8')
         obj = json.loads(resp)
-        self.assertEquals(obj['type'], 'internal')
+        self.assertEqual(obj['type'], 'internal')
 
     def testBoundHandlerDecorator(self):
         resp = self.request('/collection/unbound/default', params={

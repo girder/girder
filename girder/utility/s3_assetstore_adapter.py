@@ -404,17 +404,15 @@ class BotoCallingFormat(boto.s3.connection.OrdinaryCallingFormat):
     # difference between boto's OrdinaryCallingFormat and this is that we don't
     # urllib.quote the key
     def build_auth_path(self, bucket, key=''):
-        key = boto.utils.get_utf8_value(key)
         path = ''
-        if bucket != '':
+        if bucket:
             path = '/' + bucket
-        return path + '/%s' % key
+        return path + '/' + key
 
     def build_path_base(self, bucket, key=''):
-        key = boto.utils.get_utf8_value(key)
         path_base = '/'
         if bucket:
-            path_base += "%s/" % bucket
+            path_base += bucket + '/'
         return path_base + key
 
 

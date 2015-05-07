@@ -17,10 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import constants
-from quota import QuotaPolicy, ValidateSizeQuota
 from girder import events
 from girder.models.model_base import ValidationException
+from . import constants
+from .quota import QuotaPolicy, ValidateSizeQuota
 
 
 def validateSettings(event):

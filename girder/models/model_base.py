@@ -19,8 +19,8 @@
 
 import functools
 import itertools
-
 import pymongo
+import six
 
 from girder.external.mongodb_proxy import MongoProxy
 
@@ -87,7 +87,7 @@ class Model(ModelImporter):
         :param fields: A field or list of fields to expose for that level.
         :type fields: str, list, or tuple
         """
-        if isinstance(fields, basestring):
+        if isinstance(fields, six.string_types):
             fields = (fields, )
 
         self._filterKeys[level] = self._filterKeys[level].union(fields)
@@ -104,7 +104,7 @@ class Model(ModelImporter):
         :param fields: The field or fields to remove from the white list.
         :type fields: str, list, or tuple
         """
-        if isinstance(fields, basestring):
+        if isinstance(fields, six.string_types):
             fields = (fields, )
 
         self._filterKeys[level] = self._filterKeys[level].difference(fields)
@@ -838,7 +838,7 @@ class AccessControlledModel(Model):
         hasAccess = functools.partial(self.hasAccess, user=user, level=level)
 
         endIndex = offset + limit if limit else None
-        filteredCursor = itertools.ifilter(hasAccess, cursor)
+        filteredCursor = six.moves.filter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
                 if key in result:
@@ -867,7 +867,10 @@ class AccessException(Exception):
     """
     Represents denial of access to a resource.
     """
-    pass
+    def __init__(self, message):
+        self.message = message
+
+        Exception.__init__(self, message)
 
 
 class GirderException(Exception):
@@ -882,6 +885,7 @@ class GirderException(Exception):
     """
     def __init__(self, message, identifier=None):
         self.identifier = identifier
+        self.message = message
 
         Exception.__init__(self, message)
 
@@ -894,5 +898,6 @@ class ValidationException(Exception):
     """
     def __init__(self, message, field=None):
         self.field = field
+        self.message = message
 
         Exception.__init__(self, message)

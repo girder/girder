@@ -18,7 +18,9 @@
 ###############################################################################
 
 import cherrypy
+import functools
 import mako
+import six
 
 from girder.constants import VERSION
 from . import docs, access
@@ -252,6 +254,11 @@ class ApiDocs(object):
         raise cherrypy.HTTPError(405)
 
 
+def _cmp(a, b):
+    # Since cmp was removed in py3, we use this polyfill instead
+    return (a > b) - (a < b)
+
+
 class Describe(Resource):
     def __init__(self):
         self.route('GET', (), self.listResources, nodoc=True)
@@ -277,7 +284,8 @@ class Describe(Resource):
         # replacing { with ' ' is a simple way to make ASCII sort do what we
         # want for routes.  We would have to do more work if we allow - in
         # routes
-        return cmp(routeOp1[0].replace('{', ' '), routeOp2[0].replace('{', ' '))
+        return _cmp(routeOp1[0].replace('{', ' '),
+                    routeOp2[0].replace('{', ' '))
 
     def _compareOperations(self, op1, op2):
         """
@@ -291,10 +299,10 @@ class Describe(Resource):
         method1 = op1.get('httpMethod', '')
         method2 = op2.get('httpMethod', '')
         if method1 in methodOrder and method2 in methodOrder:
-            return cmp(methodOrder.index(method1), methodOrder.index(method2))
+            return _cmp(methodOrder.index(method1), methodOrder.index(method2))
         if method1 in methodOrder or method2 in methodOrder:
-            return cmp(method1 not in methodOrder, method2 not in methodOrder)
-        return cmp(method1, method2)
+            return _cmp(method1 not in methodOrder, method2 not in methodOrder)
+        return _cmp(method1, method2)
 
     @access.public
     def describeResource(self, resource, params):
@@ -305,8 +313,12 @@ class Describe(Resource):
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': '.',
             'models': docs.models,
-            'apis': [{'path': route,
-                      'operations': sorted(op, self._compareOperations)}
-                     for route, op in sorted(docs.routes[resource].iteritems(),
-                                             self._compareRoutes)]
+            'apis': [{
+                'path': route,
+                'operations': sorted(
+                    op, key=functools.cmp_to_key(self._compareOperations))
+                } for route, op in sorted(
+                    six.iteritems(docs.routes[resource]),
+                    key=functools.cmp_to_key(self._compareRoutes))
+            ]
         }

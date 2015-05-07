@@ -21,6 +21,7 @@ import cherrypy.process.plugins
 import datetime
 import errno
 import json
+import six
 
 from girder.api import access
 from girder.constants import SettingKey, VERSION
@@ -77,7 +78,7 @@ class System(Resource):
                 value = None
             else:
                 try:
-                    if isinstance(setting['value'], basestring):
+                    if isinstance(setting['value'], six.string_types):
                         value = json.loads(setting['value'])
                     else:
                         value = setting['value']

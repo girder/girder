@@ -17,10 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from bson.objectid import ObjectId, InvalidId
 import json
+import six
 
-import constants
+from bson.objectid import ObjectId, InvalidId
 from girder import logger
 from girder.api import access
 from girder.api.describe import Description
@@ -29,6 +29,7 @@ from girder.constants import AccessType
 from girder.models.model_base import GirderException
 from girder.utility import assetstore_utilities
 from girder.utility.system import formatSize
+from . import constants
 
 
 QUOTA_FIELD = 'quota'
@@ -268,7 +269,7 @@ class QuotaPolicy(Resource):
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
-        if isinstance(resource, (basestring, ObjectId)):
+        if isinstance(resource, tuple(list(six.string_types) + [ObjectId])):
             resource = self.model(model).load(id=resource, force=True)
         if model == 'file':
             model = 'item'

@@ -5,7 +5,9 @@ project(Girder NONE)
 include(CTest)
 enable_testing()
 
-find_package(PythonInterp 2.7 REQUIRED)
+set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
+
+find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
 option(PYTHON_STATIC_ANALYSIS "Run Python static analysis tests with flake8" ON)
 option(PYTHON_COVERAGE "Run tests with coverage.py" ON)
