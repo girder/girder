@@ -34,6 +34,7 @@ RUN pip install \
     -r plugins/geospatial/requirements.txt \
     -r plugins/metadata_extractor/requirements.txt
 RUN pip install -U six
+RUN npm install -g npm@next 
 RUN npm install -g grunt-cli
 RUN npm install
 RUN grunt init && grunt

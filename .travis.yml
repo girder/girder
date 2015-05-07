@@ -28,6 +28,9 @@ before_install:
     - cd cmake-*/bin && export PATH="${PWD}:${PATH}"
     - popd
     - cmake --version
+
+    - npm install -g npm@next
+    - npm --version
 install:
     - mkdir -p "${HOME}/.local/bin"
     - export PATH="${HOME}/.local/bin:${PATH}"
