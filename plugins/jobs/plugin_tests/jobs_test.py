@@ -252,3 +252,26 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(progressNotify['data']['state'], 'error')
         self.assertEqual(progressNotify['_id'],
                          str(job['progress']['notificationId']))
+
+    def testDotsInKwargs(self):
+        kwargs = {
+            '$key.with.dots': 'value',
+            'foo': [{
+                'moar.dots': True
+            }]
+        }
+        job = self.model('job', 'jobs').createJob(
+            title='dots', type='x', user=self.users[0], kwargs=kwargs)
+
+        self.assertEqual(job['kwargs'], kwargs)
+
+        resp = self.request('/job/%s' % job['_id'], user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['kwargs'], kwargs)
+
+        job = self.model('job', 'jobs').load(job['_id'], force=True)
+        self.assertEqual(job['kwargs'], kwargs)
+        job = self.model('job', 'jobs').filter(job, self.users[0])
+        self.assertEqual(job['kwargs'], kwargs)
+        job = self.model('job', 'jobs').filter(job, self.users[1])
+        self.assertFalse('kwargs' in job)
