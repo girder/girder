@@ -64,8 +64,8 @@ will override the defaults.
 Server Development
 ------------------
 
-All commits to the core python code must work in all versions of python 2.7 and above.
-Python code in plugins should also work in 2.7 and 3.x, but some plugins may depend
+All commits to the core python code must work in both python 2.7 and 3.4.
+Python code in plugins should also work in both, but some plugins may depend
 on third party libraries that do not support python 3. If that is the case, those
 plugins should declare ``"python3": false`` in their **plugin.json** or **plugin.yml** file
 to indicate that they do not support being run in python 3. Automated testing of
