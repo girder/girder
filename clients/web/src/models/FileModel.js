@@ -157,7 +157,8 @@ girder.models.FileModel = girder.Model.extend({
             }
             this.trigger('g:upload.errorStarting', {
                 message: text,
-                identifier: identifier
+                identifier: identifier,
+                response: resp
             });
         }, this));
     },
@@ -191,7 +192,8 @@ girder.models.FileModel = girder.Model.extend({
                 msg = 'An error occurred when resuming upload, check console.';
             }
             this.trigger('g:upload.error', {
-                message: msg
+                message: msg,
+                response: resp
             });
         }, this));
     },
@@ -249,14 +251,14 @@ girder.models.FileModel = girder.Model.extend({
                     model._uploadChunk(file, uploadId);
                 }
             },
-            error: function (xhr) {
+            error: function (resp) {
                 var text = 'Error: ', identifier;
 
-                if (xhr.status === 0) {
+                if (resp.status === 0) {
                     text += 'Connection to the server interrupted.';
                 } else {
-                    text += xhr.responseJSON.message;
-                    identifier = xhr.responseJSON.identifier;
+                    text += resp.responseJSON.message;
+                    identifier = resp.responseJSON.identifier;
                 }
 
                 model.resumeInfo = {
@@ -266,9 +268,9 @@ girder.models.FileModel = girder.Model.extend({
 
                 model.trigger('g:upload.error', {
                     message: text,
-                    identifier: identifier
+                    identifier: identifier,
+                    response: resp
                 });
-
             },
             xhr: function () {
                 // Custom XHR so we can register a progress handler
