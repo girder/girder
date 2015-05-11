@@ -16,7 +16,7 @@ girder.views.UploadWidget = girder.View.extend({
             this.$('.g-upload-error-message').html('');
             this.uploadNextFile();
         },
-        'change #g-files': function (e) {
+        'change #g-files': function () {
             var files = this.$('#g-files')[0].files;
 
             if (files.length) {
@@ -24,7 +24,7 @@ girder.views.UploadWidget = girder.View.extend({
                 this.filesChanged();
             }
         },
-        'click .g-drop-zone': function (e) {
+        'click .g-drop-zone': function () {
             this.$('#g-files').click();
         },
         'dragenter .g-drop-zone': function (e) {

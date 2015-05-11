@@ -37,7 +37,7 @@
                     model: this.model,
                     modelType: modelType,
                     parentView: this
-                }).on('g:saved', function (resource) {
+                }).on('g:saved', function () {
                     this.render();
                 }, this);
             }
@@ -165,8 +165,6 @@ girder.views.QuotaPolicies = girder.View.extend({
                 preferredAssetstore: this.$('#g-preferredAssetstore').val(),
                 fallbackAssetstore: this.$('#g-fallbackAssetstore').val()
             };
-            var sizeValue = this.$('#g-sizeValue').val();
-            var sizeUnits = this.$('#g-sizeUnits').val();
             fields.fileSizeQuota = girder.userQuota.valueAndUnitsToSize(
                 this.$('#g-sizeValue').val(), this.$('#g-sizeUnits').val());
             this.updateQuotaPolicies(fields);
@@ -177,7 +175,7 @@ girder.views.QuotaPolicies = girder.View.extend({
         'change #g-sizeUnits': '_selectCustomQuota'
     },
 
-    _selectCustomQuota: function (e) {
+    _selectCustomQuota: function () {
         $('#g-customQuota').prop('checked', true);
     },
 
@@ -206,7 +204,7 @@ girder.views.QuotaPolicies = girder.View.extend({
             ['Used (' + girder.formatSize(used) + ')', used],
             ['Free (' + girder.formatSize(free) + ')', free]
         ];
-        var plot = $(el).jqplot([data], {
+        $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {

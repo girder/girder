@@ -291,7 +291,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentModel: this.parentModel,
             folder: this.parentModel,
             parentView: this
-        }).on('g:saved', function (folder) {
+        }).on('g:saved', function () {
             girder.events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Folder info updated.',
@@ -404,7 +404,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (this.itemListView && this.itemListView.checked.length) {
             items = this.itemListView.checked;
         }
-        var desc = this._describeResources({folder:folders, item:items});
+        var desc = this._describeResources({folder: folders, item: items});
 
         var params = {
             text: 'Are you sure you want to delete the checked resources (' +
@@ -541,7 +541,7 @@ girder.views.HierarchyWidget = girder.View.extend({
      * Get a parameter that can be added to a url for the checked resources.
      */
     _getCheckedResourceParam: function (asObject) {
-        var resources = {folder:[], item:[]};
+        var resources = {folder: [], item: []};
         var folders = this.folderListView.checked;
         _.each(folders, function (cid) {
             var folder = this.folderListView.collection.get(cid);
@@ -605,7 +605,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         var pickDesc = this._describeResources(resources);
         /* Merge these resources with any that are already picked */
         var existing = girder.pickedResources.resources;
-        var oldDesc = this._describeResources(existing);
         _.each(existing, function (list, resource) {
             if (!resources[resource]) {
                 resources[resource] = list;

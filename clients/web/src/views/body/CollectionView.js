@@ -89,7 +89,7 @@
                     el: container,
                     model: this.model,
                     parentView: this
-                }).on('g:saved', function (collection) {
+                }).on('g:saved', function () {
                     this.render();
                 }, this);
             }

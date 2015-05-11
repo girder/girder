@@ -3,7 +3,7 @@
  */
 girder.views.LayoutHeaderView = girder.View.extend({
     events: {
-        'click .g-app-title': function (event) {
+        'click .g-app-title': function () {
             girder.router.navigate('', {trigger: true});
         }
     },

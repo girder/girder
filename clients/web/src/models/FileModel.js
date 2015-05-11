@@ -42,8 +42,6 @@ girder.models.FileModel = girder.Model.extend({
      * @param type The mime type of the file (optional).
      */
     _uploadToContainer: function (Model, model, data, name, type) {
-        var datatype = data.toString();
-
         if (_.isString(model)) {
             model = new Model({
                 _id: model

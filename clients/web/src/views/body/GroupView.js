@@ -50,7 +50,7 @@
                     el: container,
                     model: this.model,
                     parentView: this
-                }).off('g:saved').on('g:saved', function (group) {
+                }).off('g:saved').on('g:saved', function () {
                     this.render();
                 }, this);
             }

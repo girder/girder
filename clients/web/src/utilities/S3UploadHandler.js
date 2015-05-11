@@ -234,7 +234,7 @@
             });
 
             xhr.send(data);
-        }, this)).error(_.bind(function (resp) {
+        }, this)).error(_.bind(function () {
             this.trigger('g:upload.error', {
                 message: 'Error getting signed chunk request from Girder.'
             });

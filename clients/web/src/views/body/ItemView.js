@@ -54,7 +54,7 @@
                     el: container,
                     item: this.model,
                     parentView: this
-                }).off('g:saved').on('g:saved', function (item) {
+                }).off('g:saved').on('g:saved', function () {
                     this.render();
                 }, this);
             }

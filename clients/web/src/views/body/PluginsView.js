@@ -7,7 +7,7 @@ girder.views.PluginsView = girder.View.extend({
             var route = $(evt.currentTarget).attr('g-route');
             girder.router.navigate(route, {trigger: true});
         },
-        'click .g-plugin-restart-button': function (evt) {
+        'click .g-plugin-restart-button': function () {
             var params = {
                 text: 'Are you sure you want to restart the server?  This ' +
                       'will interrupt all running tasks for all users.',

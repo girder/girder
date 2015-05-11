@@ -57,7 +57,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
     updateAssetstore: function (fields) {
         var oldfields = {};
         var model = this.model;
-        _.each(fields, function (value, key, obj) {
+        _.each(fields, function (value, key) {
             oldfields[key] = model.get(key);
         });
         this.model.set(fields);

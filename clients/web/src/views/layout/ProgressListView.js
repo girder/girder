@@ -41,7 +41,7 @@ girder.views.ProgressListView = girder.View.extend({
         this._onUpdate();
     },
 
-    _onUpdate: function (event) {
+    _onUpdate: function () {
         if (_.isEmpty(this._map)) {
             this.$el.hide();
         } else {

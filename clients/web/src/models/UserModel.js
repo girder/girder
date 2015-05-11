@@ -95,7 +95,7 @@ girder.models.UserModel = girder.Model.extend({
             },
             type: 'PUT',
             error: null
-        }).done(_.bind(function (resp) {
+        }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
