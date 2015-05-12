@@ -423,7 +423,8 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json, {
             'type': 'validation',
-            'message': 'Do not call requestOffset on a chunked S3 upload.'
+            'message': 'You should not call requestOffset on a chunked '
+                       'direct-to-S3 upload.'
         })
 
         # Test finalize for a multi-chunk upload

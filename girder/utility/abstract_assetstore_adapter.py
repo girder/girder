@@ -22,7 +22,7 @@ from .model_importer import ModelImporter
 from ..models.model_base import ValidationException
 
 
-class AbstractAssetstoreAdapter(object):
+class AbstractAssetstoreAdapter(ModelImporter):
     """
     This defines the interface to be used by all assetstore adapters.
     """
@@ -177,7 +177,7 @@ class AbstractAssetstoreAdapter(object):
         if upload['received'] + chunkSize > upload['size']:
             raise ValidationException('Received too many bytes.')
         if upload['received'] + chunkSize != upload['size'] and \
-                chunkSize < ModelImporter().model('setting').get(
+                chunkSize < self.model('setting').get(
                 SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             raise ValidationException('Chunk is smaller than the minimum size.')
 

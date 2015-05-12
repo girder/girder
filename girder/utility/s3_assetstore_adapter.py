@@ -23,10 +23,10 @@ import cherrypy
 import json
 import re
 import requests
+import six
 import uuid
 
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException
 from girder import logger, events
 
@@ -105,7 +105,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         self.assetstore = assetstore
 
     def _getRequestHeaders(self, upload):
-        headers = {
+        return {
             'Content-Disposition': 'attachment; filename="{}"'
                                    .format(upload['name']),
             'Content-Type': upload.get('mimeType', ''),
@@ -114,7 +114,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'x-amz-meta-uploader-id': str(upload['userId']),
             'x-amz-meta-uploader-ip': str(cherrypy.request.remote.ip)
         }
-        return headers
 
     def initUpload(self, upload):
         """
@@ -155,10 +154,25 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def uploadChunk(self, upload, chunk):
         """
         Rather than processing actual bytes of the chunk, this will generate
-        the signature required to upload the chunk.
+        the signature required to upload the chunk. Clients that do not support
+        direct-to-S3 upload can pass the chunk via the request body as with
+        other assetstores, and girder will proxy the data through to S3.
 
         :param chunk: This should be a JSON string containing the chunk number
-        and S3 upload ID.
+            and S3 upload ID. If a normal chunk file-like object is passed,
+            we will send the data to S3.
+        """
+        if isinstance(chunk, six.string_types):
+            return self._clientUploadChunk(upload, chunk)
+        else:
+            return self._proxiedUploadChunk(upload, chunk)
+
+    def _clientUploadChunk(self, upload, chunk):
+        """
+        Clients that support direct-to-S3 upload behavior will go through this
+        method by sending a normally-encoded form string as the chunk parameter,
+        containing the required JSON info for uploading. This generates the
+        signed URL that the client should use to upload the chunk to S3.
         """
         info = json.loads(chunk)
         queryStr = 'partNumber={}&uploadId={}'.format(info['partNumber'],
@@ -172,12 +186,57 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'method': 'PUT',
             'url': url
         }
+
+        return upload
+
+    def _getBucket(self, validate=True):
+        conn = botoConnectS3(self.assetstore['botoConnect'])
+        return conn.lookup(bucket_name=self.assetstore['bucket'],
+                           validate=validate)
+
+    def _proxiedUploadChunk(self, upload, chunk):
+        """
+        Clients that do not support direct-to-S3 upload behavior will go through
+        this method by sending the chunk as a multipart-encoded file parameter
+        as they would with other assetstore types. Girder will send the data
+        to S3 on behalf of the client.
+        """
+        bucket = self._getBucket()
+
+        if upload['s3']['chunked']:
+            if 'uploadId' in upload['s3']:
+                mp = boto.s3.multipart.MultiPartUpload(bucket)
+                mp.id = upload['s3']['uploadId']
+                mp.key_name = upload['s3']['keyName']
+            else:
+                mp = bucket.initiate_multipart_upload(
+                    upload['s3']['key'],
+                    headers=self._getRequestHeaders(upload))
+                upload['s3']['uploadId'] = mp.id
+                upload['s3']['keyName'] = mp.key_name
+                upload['s3']['partNumber'] = 0
+
+            upload['s3']['partNumber'] += 1
+
+            key = mp.upload_part_from_file(chunk, upload['s3']['partNumber'])
+            upload['received'] += key.size
+        else:
+            key = bucket.new_key(upload['s3']['key'])
+            key.set_contents_from_file(chunk,
+                                       headers=self._getRequestHeaders(upload))
+            upload['received'] = key.size
+
         return upload
 
     def requestOffset(self, upload):
+        if upload['received'] > 0:
+            # This is only set when we are proxying the data to S3
+            return upload['received']
+
         if upload['s3']['chunked']:
-            raise ValidationException('Do not call requestOffset on a chunked '
-                                      'S3 upload.')
+            raise ValidationException(
+                'You should not call requestOffset on a chunked direct-to-S3 '
+                'upload.')
 
         headers = self._getRequestHeaders(upload)
         url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'],
@@ -197,15 +256,24 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['s3Verified'] = False
 
         if upload['s3']['chunked']:
-            queryStr = 'uploadId=' + upload['s3']['uploadId']
-            headers = {'Content-Type': 'text/plain;charset=UTF-8'}
-            url = self._botoGenerateUrl(method='POST', key=upload['s3']['key'],
-                                        headers=headers, queryParams=queryStr)
-            file['s3FinalizeRequest'] = {
-                'method': 'POST',
-                'url': url,
-                'headers': headers
-            }
+            if upload['received'] > 0:
+                # We proxied the data to S3
+                bucket = self._getBucket()
+                mp = boto.s3.multipart.MultiPartUpload(bucket)
+                mp.id = upload['s3']['uploadId']
+                mp.key_name = upload['s3']['keyName']
+                mp.complete_upload()
+            else:
+                queryStr = 'uploadId=' + upload['s3']['uploadId']
+                headers = {'Content-Type': 'text/plain;charset=UTF-8'}
+                url = self._botoGenerateUrl(
+                    method='POST', key=upload['s3']['key'], headers=headers,
+                    queryParams=queryStr)
+                file['s3FinalizeRequest'] = {
+                    'method': 'POST',
+                    'url': url,
+                    'headers': headers
+                }
         return file
 
     def downloadFile(self, file, offset=0, headers=True):
@@ -251,7 +319,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'relpath': file['relpath'],
                 'assetstoreId': self.assetstore['_id']
             }
-            matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+            matching = self.model('file').find(q, limit=2, fields=[])
             if matching.count(True) == 1:
                 events.daemon.trigger('_s3_assetstore_delete_file', {
                     'botoConnect': self.assetstore.get('botoConnect', {}),
@@ -267,9 +335,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return
         if 'key' not in upload['s3']:
             return
-        conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
-        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
-                             validate=True)
+
+        bucket = self._getBucket()
         if bucket:
             key = bucket.get_key(upload['s3']['key'], validate=True)
             if key:
@@ -312,9 +379,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         prefix = self.assetstore.get('prefix', '')
         if prefix:
             prefix += '/'
-        conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
-        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
-                             validate=True)
+
+        bucket = self._getBucket()
         if not bucket:
             return []
         getParams = {}

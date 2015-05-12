@@ -235,10 +235,12 @@ class ResourceTestCase(base.TestCase):
         for name in zip.namelist():
             expected = self.expectedZip[name]
             if isinstance(expected, dict):
-                expected = json.dumps(expected, default=str)
-            if not isinstance(expected, six.binary_type):
-                expected = expected.encode('utf8')
-            self.assertEqual(expected, zip.read(name))
+                self.assertEqual(json.loads(zip.read(name).decode('utf8')),
+                                 json.loads(json.dumps(expected, default=str)))
+            else:
+                if not isinstance(expected, six.binary_type):
+                    expected = expected.encode('utf8')
+                self.assertEqual(expected, zip.read(name))
         # Download the same resources again, this time triggering the large zip
         # file creation (artifically forced).  We could do this naturally by
         # downloading >65536 files, but that would make the test take several
