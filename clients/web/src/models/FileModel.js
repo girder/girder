@@ -2,14 +2,16 @@ girder.models.FileModel = girder.Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
-    _wrapData: function (data) {
+    _wrapData: function (data, type) {
         var wrapped = data;
 
         if (!(data instanceof Blob)) {
             if (!_.isArray(data)) {
                 wrapped = [data];
             }
-            wrapped = new Blob(wrapped);
+            wrapped = new Blob(wrapped, {
+                type: type
+            });
         }
 
         return wrapped;
@@ -48,9 +50,8 @@ girder.models.FileModel = girder.Model.extend({
             });
         }
 
-        data = this._wrapData(data);
+        data = this._wrapData(data, type);
         data.name = name;
-        data.type = type;
 
         this.upload(model, data);
     },
