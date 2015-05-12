@@ -286,7 +286,6 @@ module.exports = function (grunt) {
                     fs.writeSync(
                         fd,
                         [
-                            '/* global girder: true */',
                             '/* jshint ignore: start */',
                             '//jscs:disable',
                             'girder.versionInfo = ',

@@ -23,7 +23,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                     list: JSON.stringify(settings)
                 },
                 error: null
-            }).done(_.bind(function (resp) {
+            }).done(_.bind(function () {
                 this.$('.g-submit-settings').removeClass('disabled');
                 girder.events.trigger('g:alert', {
                     icon: 'ok',

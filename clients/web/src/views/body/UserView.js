@@ -5,12 +5,12 @@
      */
     girder.views.UserView = girder.View.extend({
         events: {
-            'click a.g-edit-user': function (event) {
+            'click a.g-edit-user': function () {
                 var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
                 girder.router.navigate(editUrl, {trigger: true});
             },
 
-            'click a.g-delete-user': function (event) {
+            'click a.g-delete-user': function () {
                 girder.confirm({
                     text: 'Are you sure you want to delete the user <b>' +
                           this.model.escape('login') + '</b>?',

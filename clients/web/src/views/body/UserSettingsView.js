@@ -161,7 +161,7 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
             tab: 'password',
             temporary: token
         });
-    }, this)).error(_.bind(function (err) {
+    }, this)).error(_.bind(function () {
         girder.router.navigate('users', {trigger: true});
     }, this));
 });

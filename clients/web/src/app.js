@@ -1,5 +1,5 @@
 girder.App = girder.View.extend({
-    initialize: function (settings) {
+    initialize: function () {
         girder.fetchCurrentUser()
             .done(_.bind(function (user) {
                 girder.eventStream = new girder.EventStream({
@@ -87,8 +87,6 @@ girder.App = girder.View.extend({
      * @param opts Additional options for navigateTo, if any.
      */
     navigateTo: function (view, settings, opts) {
-        var container = this.$('#g-app-body-container');
-
         this.globalNavView.deactivateAll();
 
         settings = settings || {};

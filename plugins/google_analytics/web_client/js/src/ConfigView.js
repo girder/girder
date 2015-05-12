@@ -51,7 +51,7 @@ girder.views.google_analytics_ConfigView = girder.View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function (resp) {
+        }).done(_.bind(function () {
             girder.events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',

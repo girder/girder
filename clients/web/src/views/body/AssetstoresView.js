@@ -68,7 +68,7 @@ girder.views.AssetstoresView = girder.View.extend({
             ['Used (' + girder.formatSize(used) + ')', used],
             ['Free (' + girder.formatSize(capacity.free) + ')', capacity.free]
         ];
-        var plot = $(el).jqplot([data], {
+        $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {
@@ -155,7 +155,7 @@ girder.views.AssetstoresView = girder.View.extend({
             el: container,
             model: assetstore,
             parentView: this
-        }).off('g:saved').on('g:saved', function (group) {
+        }).off('g:saved').on('g:saved', function () {
             this.render();
         }, this);
         editAssetstoreWidget.render();

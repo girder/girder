@@ -54,7 +54,7 @@ girder.views.FileListWidget = girder.View.extend({
             el: $('#g-dialog-container'),
             file: this.collection.get(cid),
             parentView: this
-        }).off('g:saved', null, this).on('g:saved', function (file) {
+        }).off('g:saved', null, this).on('g:saved', function () {
             this.render();
         }, this);
         this.editFileWidget.render();

@@ -60,7 +60,7 @@ girder.Collection = Backbone.Collection.extend({
      * Return the 0-indexed page number of the current page. Add 1 to this
      * result when displaying it to the user.
      */
-    pageNum: function (params) {
+    pageNum: function () {
         return Math.ceil((this.offset - this.length) / this.pageLimit);
     },
 

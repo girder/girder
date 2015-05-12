@@ -136,8 +136,8 @@ girder.getModelClassByName = function (name) {
 girder.parseQueryString = function (queryString) {
     var params = {};
     if (queryString) {
-        _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el, i) {
-            var aux = el.split('='), o = {}, val;
+        _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el) {
+            var aux = el.split('='), val;
             if (aux.length > 1) {
                 val = decodeURIComponent(el.substr(aux[0].length + 1));
             }
@@ -272,12 +272,12 @@ girder.renderMarkdown = (function () {
 (function () {
     var restXhrPool = {};
     var restXhrCount = 0;
-    $(document).ajaxSend(function (event, xhr, opts) {
+    $(document).ajaxSend(function (event, xhr) {
         restXhrCount += 1;
         xhr.girderXhrNumber = restXhrCount;
         restXhrPool[restXhrCount] = xhr;
     });
-    $(document).ajaxComplete(function (event, xhr, opts) {
+    $(document).ajaxComplete(function (event, xhr) {
         var num = xhr.girderXhrNumber;
         if (num && restXhrPool[num]) {
             delete restXhrPool[num];
@@ -301,7 +301,7 @@ girder.renderMarkdown = (function () {
      *                  xhr.girder.(category) set to a truthy value.
      */
     girder.cancelRestRequests = function (category) {
-        _.each(restXhrPool, function (xhr, num, pool) {
+        _.each(restXhrPool, function (xhr) {
             if (category && (!xhr.girder || !xhr.girder[category])) {
                 return;
             }

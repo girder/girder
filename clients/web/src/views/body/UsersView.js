@@ -5,9 +5,6 @@ girder.views.UsersView = girder.View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
-            var params = {
-                user: this.collection.get(cid)
-            };
             girder.router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-user-search-form': function (event) {
@@ -15,7 +12,7 @@ girder.views.UsersView = girder.View.extend({
         }
     },
 
-    initialize: function (settings) {
+    initialize: function () {
         girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {

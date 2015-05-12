@@ -7,7 +7,7 @@ girder.views.CollectionsView = girder.View.extend({
             var cid = $(event.currentTarget).attr('g-collection-cid');
             girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
-        'click button.g-collection-create-button': function (event) {
+        'click button.g-collection-create-button': function () {
             this.createCollectionDialog();
         },
         'submit .g-collections-search-form': function (event) {
