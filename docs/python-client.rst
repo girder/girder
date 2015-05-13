@@ -46,8 +46,8 @@ To specify a host using SSL (https) ::
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Currently, the girder_client does not support uploads to the S3 Assetstore type
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+The girder_client can upload to an S3 Assetstore when uploading to a Girder server
+that is version 1.3.0 or later.
 
 The upload command, ``-c upload``, is the default, so the following two forms
 are equivalent ::
