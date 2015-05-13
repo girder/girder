@@ -26,8 +26,7 @@ import six
 import time
 import zipfile
 
-from .. import base
-from .. import mock_s3
+from .. import base, mock_s3
 from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 
@@ -423,7 +422,8 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json, {
             'type': 'validation',
-            'message': 'Do not call requestOffset on a chunked S3 upload.'
+            'message': 'You should not call requestOffset on a chunked '
+                       'direct-to-S3 upload.'
         })
 
         # Test finalize for a multi-chunk upload

@@ -38,8 +38,7 @@ class Upload(Model):
         if doc['size'] < 0:
             raise ValidationException('File size must not be negative.')
         if doc['received'] > doc['size']:
-            raise ValidationException('Received bytes must not be larger than '
-                                      'the total size of the upload.')
+            raise ValidationException('Received too many bytes.')
 
         doc['updated'] = datetime.datetime.utcnow()
 

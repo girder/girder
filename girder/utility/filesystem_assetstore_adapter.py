@@ -29,7 +29,6 @@ from six import BytesIO
 from hashlib import sha512
 from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from .model_importer import ModelImporter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
 
@@ -248,7 +247,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             'sha512': file['sha512'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+        matching = self.model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
             path = os.path.join(self.assetstore['root'], file['path'])
             if os.path.isfile(path):

@@ -24,7 +24,6 @@ import six
 import uuid
 
 from six import BytesIO
-from .model_importer import ModelImporter
 from girder import logger
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
@@ -254,7 +253,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'chunkUuid': file['chunkUuid'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = ModelImporter().model('file').find(q, limit=2, fields=[])
+        matching = self.model('file').find(q, limit=2, fields=[])
         if matching.count(True) == 1:
             try:
                 self.chunkColl.remove({'uuid': file['chunkUuid']})
