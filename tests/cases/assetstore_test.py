@@ -26,8 +26,7 @@ import six
 import time
 import zipfile
 
-from .. import base
-from .. import mock_s3
+from .. import base, mock_s3
 from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 

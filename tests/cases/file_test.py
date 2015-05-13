@@ -18,15 +18,18 @@
 ###############################################################################
 
 import io
+import moto
 import os
 import shutil
 import zipfile
 
 from hashlib import sha512
-from .. import base
+from .. import base, mock_s3
 
 from girder.constants import SettingKey
 from girder.models import getDbConnection
+from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
+                                                  S3AssetstoreAdapter)
 from six.moves import urllib
 
 
@@ -151,6 +154,7 @@ class FileTestCase(base.TestCase):
         files = [('chunk', name, chunk2)]
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
+
         self.assertStatus(resp, 400)
 
         # Ask for completion before sending second chunk should fail
@@ -483,8 +487,135 @@ class FileTestCase(base.TestCase):
         self._testDownloadFile(empty, '')
         self._testDeleteFile(empty)
 
-    def testLinkFile(self):
+    @moto.mock_s3bucket_path
+    def testS3Assetstore(self):
+        botoParams = makeBotoConnectParams('access', 'secret')
+        mock_s3.createBucket(botoParams, 'b')
 
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        assetstore = self.model('assetstore').createS3Assetstore(
+            name='test', bucket='b', accessKeyId='access', secret='secret',
+            prefix='test')
+        self.assetstore = assetstore
+
+        # Initialize the upload
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.privateFolder['_id'],
+                'name': 'hello.txt',
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+
+        self.assertFalse(resp.json['s3']['chunked'])
+        uploadId = resp.json['_id']
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'hello.txt', chunk1)]
+
+        # Send the first chunk, we should get a 400
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            'Uploads of this length must be sent in a single chunk.')
+
+        # Attempting to send second chunk with incorrect offset should fail
+        fields = [('offset', 100), ('uploadId', uploadId)]
+        files = [('chunk', 'hello.txt', chunk2)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            'Server has received 0 bytes, but client sent offset 100.')
+
+        # Request offset from server (simulate a resume event)
+        resp = self.request(path='/file/offset', method='GET', user=self.user,
+                            params={'uploadId': uploadId})
+        self.assertStatusOk(resp)
+
+        # Trying to send too many bytes should fail
+        currentOffset = resp.json['offset']
+        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
+        files = [('chunk', 'hello.txt', "extra_"+chunk2+"_bytes")]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json, {
+            'type': 'validation',
+            'message': 'Received too many bytes.'
+        })
+
+        # The offset should not have changed
+        resp = self.request(path='/file/offset', method='GET', user=self.user,
+                            params={'uploadId': uploadId})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['offset'], currentOffset)
+
+        # Send all in one chunk
+        files = [('chunk', 'hello.txt', chunk1 + chunk2)]
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        file = resp.json
+
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['name'], 'hello.txt')
+        self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+        # Enable testing of multi-chunk proxied upload
+        S3AssetstoreAdapter.CHUNK_LEN = 5
+
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.privateFolder['_id'],
+                'name': 'hello.txt',
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        self.assertTrue(resp.json['s3']['chunked'])
+
+        uploadId = resp.json['_id']
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'hello.txt', chunk1)]
+
+        # Send the first chunk, should now work
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        resp = self.request(path='/file/offset', user=self.user, params={
+            'uploadId': uploadId
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['offset'], len(chunk1))
+
+        # Hack: make moto accept our too-small chunks
+        moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
+
+        # Send the second chunk
+        files = [('chunk', 'hello.txt', chunk2)]
+        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        file = resp.json
+
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['name'], 'hello.txt')
+        self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+    def testLinkFile(self):
         params = {
             'parentType': 'folder',
             'parentId': self.privateFolder['_id'],

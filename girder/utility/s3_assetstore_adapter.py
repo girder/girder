@@ -218,12 +218,20 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             upload['s3']['partNumber'] += 1
 
-            key = mp.upload_part_from_file(chunk, upload['s3']['partNumber'])
+            key = mp.upload_part_from_file(
+                chunk, upload['s3']['partNumber'],
+                headers=self._getRequestHeaders(upload))
             upload['received'] += key.size
         else:
             key = bucket.new_key(upload['s3']['key'])
             key.set_contents_from_file(chunk,
                                        headers=self._getRequestHeaders(upload))
+
+            if key.size < upload['size']:
+                bucket.delete_key(key)
+                raise ValidationException('Uploads of this length must be sent '
+                                          'in a single chunk.')
+
             upload['received'] = key.size
 
         return upload
@@ -244,7 +252,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return {
             'method': 'PUT',
             'url': url,
-            'headers': headers
+            'headers': headers,
+            'offset': upload['received']
         }
 
     def finalizeUpload(self, upload, file):
