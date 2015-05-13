@@ -253,7 +253,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'method': 'PUT',
             'url': url,
             'headers': headers,
-            'offset': upload['received']
+            'offset': 0
         }
 
     def finalizeUpload(self, upload, file):
