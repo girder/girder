@@ -85,8 +85,8 @@ class Webroot(object):
         if self.indexHtml is None:
             self.vars['pluginCss'] = []
             self.vars['pluginJs'] = []
-            builtDir = os.path.join(constants.ROOT_DIR, 'clients', 'web',
-                                    'static', 'built', 'plugins')
+            builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients',
+                                    'web', 'static', 'built', 'plugins')
             for plugin in self.vars['plugins']:
                 if os.path.exists(os.path.join(builtDir, plugin,
                                                'plugin.min.css')):
