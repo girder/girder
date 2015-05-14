@@ -6,8 +6,9 @@ girder.views.oauth_LoginView = girder.View.extend({
         }
     },
 
-    initialize: function () {
-        var redirect = girder.dialogs.splitRoute(window.location.href).base;
+    initialize: function (settings) {
+        var redirect = settings.redirect ||
+                       girder.dialogs.splitRoute(window.location.href).base;
 
         girder.restRequest({
             path: 'oauth/provider',
