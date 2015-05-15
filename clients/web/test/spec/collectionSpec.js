@@ -173,7 +173,17 @@ describe('Test collection actions', function () {
         }, 'access dialog to be hidden');
     });
 
+    it('logout and check for redirect to front page from collection page', function () {
+        girderTest.logout()();
+
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
+
     it('go back to collections page again', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+
         runs(function () {
             $("a.g-nav-link[g-target='collections']").click();
         });
@@ -188,9 +198,19 @@ describe('Test collection actions', function () {
 
     });
 
-    it('logout to become anonymous', girderTest.logout());
+    it('logout to become anonymous, and check for redirect to front page from collections list page', function () {
+        girderTest.logout()();
+
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
 
     it('check if public collection is viewable (and ensure private is not)', function () {
+
+        runs(function () {
+            $("a.g-nav-link[g-target='collections']").click();
+        });
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
