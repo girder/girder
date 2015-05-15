@@ -58,14 +58,20 @@ describe('Create an admin and non-admin user', function () {
         });
     });
 
-    it('check redirect to users page', function () {
+    it('check redirect to front page after logout from user page', function () {
         girderTest.logout()();
         waitsFor(function () {
-            return Backbone.history.fragment === 'users';
-        }, 'redirect to users');
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
+
+    it('check redirect to front page after logout from users list page', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        girderTest.goToUsersPage()();
+        girderTest.logout()();
         waitsFor(function () {
-            return $('.g-user-list-entry:visible').length > 0;
-        }, 'user list to be present');
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 
     it('check for admin checkbox on admin user settings page', function () {
