@@ -316,8 +316,6 @@
             girder.events.trigger('g:navigateTo', girder.views.GroupView, _.extend({
                 group: group
             }, params || {}));
-        }, this).on('g:error', function () {
-            girder.router.navigate('/groups', {trigger: true});
         }, this).fetch();
     };
 

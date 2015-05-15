@@ -153,8 +153,6 @@
             girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
                 collection: collection
             }, params || {}));
-        }, this).on('g:error', function () {
-            girder.router.navigate('/collections', {trigger: true});
         }, this).fetch();
     };
 
