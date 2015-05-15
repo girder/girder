@@ -125,7 +125,22 @@ function _testDirectAdd(policy, curUser, curSetting) {
                 'password!')();
         }
         curUser = policy.user;
-    }
+        // go back to the groups page since we've logged out
+        girderTest.goToGroupsPage()();
+        waitsFor(function () {
+            return $('.g-group-list-entry').length >= 1 &&
+                   $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
+        }, 'the public groups to show up');
+        runs(function () {
+            $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+        });
+        waitsFor(function () {
+            return $('.g-group-name').text() === 'pubGroup' &&
+                   $('.g-group-members>li').length === 1 &&
+                   $('.g-group-mods>li').length === 1 &&
+                   $('.g-group-admins>li').length === 2;
+        }, 'the group page to load');
+     }
     /* If the invite search field exists or we think it should,
      * test that the add button exists as we expect */
     if (policy.mayAdd === null) {
@@ -223,7 +238,24 @@ describe('Test group actions', function () {
         }, 'admin user to appear in the member list');
     });
 
+    it('check that logging out of a group redirects to the front page', function () {
+        girderTest.logout()();
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
+
+    it('check that logging out of the groups list page redirects to the front page', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        girderTest.goToGroupsPage()();
+        girderTest.logout()();
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
+
     it('check that the groups page has both groups for admin', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         girderTest.goToGroupsPage()();
         waitsFor(function () {
             return $('.g-group-list-entry').length === 2;
@@ -239,6 +271,7 @@ describe('Test group actions', function () {
 
     it('check that the groups page has only the public groups for anon', function () {
         girderTest.logout()();
+        girderTest.goToGroupsPage()();
         waitsFor(function () {
             return $('.g-group-list-entry').length === 1;
         }, 'the two groups to show up');
