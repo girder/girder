@@ -91,6 +91,13 @@ describe('Test the settings page', function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
     });
+    it('logout and check for redirect to front page from settings page', function () {
+        girderTest.logout()();
+
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
+    });
 });
 
 describe('Test the assetstore page', function () {
@@ -233,6 +240,12 @@ describe('Test the assetstore page', function () {
     }
 
     it('Go to assetstore page', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+
         runs(function () {
             $("a.g-nav-link[g-target='admin']").click();
         });
@@ -284,10 +297,10 @@ describe('Test the assetstore page', function () {
 
     /* Logout to make sure we don't see the assetstores any more */
     it('logout from admin account', girderTest.logout('logout to no longer view asset stores'));
-    it('check logged out state', function() {
-        runs(function () {
-            expect($('#g-app-body-container').text()).toEqual('Must be logged in as admin to view this page.');
-        });
+    it('logout and check for redirect to front page from assetstore page', function () {
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 });
 
@@ -372,7 +385,7 @@ describe('Test the plugins page', function () {
         });
     });
     /* Logout to make sure we don't see the plugins any more */
-    it('log out and check state', function() {
+    it('log out and check for redirect to front page from plugins page', function() {
         waitsFor(function () {
             return $('.g-logout').length > 0;
         }, 'logout link to render');
@@ -390,5 +403,9 @@ describe('Test the plugins page', function () {
             $('#g-dialog-container').click();
         });
         girderTest.waitForLoad();
+
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 });
