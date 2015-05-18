@@ -97,6 +97,45 @@ describe('Test folder creation, editing, and deletion', function () {
         });
     });
 
+    it('test that anonymous loading the private folder of the user prompts a login dialog', function () {
+        waitsFor(function () {
+            return $('a.g-folder-list-link:contains(Private):visible').length === 1;
+        }, 'the private folder to be clickable');
+
+        runs(function () {
+            $('a.g-folder-list-link:contains(Private)').click();
+        });
+
+        waitsFor(function () {
+            return Backbone.history.fragment.search('folder') > -1;
+        }, 'the url state to change');
+
+        runs(function () {
+            var privateFolderFragment = Backbone.history.fragment;
+            girderTest.anonymousLoadPage(true, privateFolderFragment, true, girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
+        });
+
+        // get back to where you once belonged, the User page, so that testing may continue
+        girderTest.goToUsersPage()();
+
+        runs(function () {
+            expect($('.g-user-list-entry').length).toBe(1);
+        });
+
+        runs(function () {
+            $("a.g-user-link:contains('Admin')").click();
+        });
+
+        waitsFor(function () {
+            return $('.g-user-name').text() === 'Admin Admin';
+        }, 'user page to appear');
+
+        // check for actions menu
+        runs(function () {
+            expect($("button:contains('Actions')").length).toBe(1);
+        });
+    });
+
     it('create a subfolder in the public folder of the user', function () {
 
         waitsFor(function () {
