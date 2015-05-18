@@ -386,23 +386,7 @@ describe('Test the plugins page', function () {
     });
     /* Logout to make sure we don't see the plugins any more */
     it('log out and check for redirect to front page from plugins page', function() {
-        waitsFor(function () {
-            return $('.g-logout').length > 0;
-        }, 'logout link to render');
-        runs(function () {
-            $('.g-logout').click();
-        });
-        waitsFor(function () {
-            return girder.currentUser === null;
-        }, 'user to be cleared');
-        girderTest.waitForDialog();
-        waitsFor(function () {
-            return $('input#g-login').length > 0;
-        }, 'register dialog to appear');
-        runs(function () {
-            $('#g-dialog-container').click();
-        });
-        girderTest.waitForLoad();
+        girderTest.logout('logout to no longer view plugins page')();
 
         waitsFor(function () {
             return $('.g-frontpage-title:visible').length > 0;
