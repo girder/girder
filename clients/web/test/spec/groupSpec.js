@@ -173,6 +173,11 @@ describe('Test group actions', function () {
     it('Create a private group',
        girderTest.createGroup('privGroup', 'private group', false));
 
+    it('Test that anonymous loading private group prompts login', function () {
+        var privateGroupFragment = Backbone.history.fragment;
+        girderTest.anonymousLoadPage(true, privateGroupFragment, true, girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
+    });
+
     it('go back to groups page', girderTest.goToGroupsPage());
 
     it('Create a public group',
