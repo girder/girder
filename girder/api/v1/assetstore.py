@@ -20,8 +20,9 @@
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from girder import events
-from girder.constants import AssetstoreType
+from girder.constants import AccessType, AssetstoreType
 from girder.api import access
+from girder.utility.progress import ProgressContext
 
 
 class Assetstore(Resource):
@@ -33,6 +34,7 @@ class Assetstore(Resource):
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getAssetstore)
         self.route('POST', (), self.createAssetstore)
+        self.route('POST', (':id', 'import'), self.importData)
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
 
@@ -125,6 +127,44 @@ class Assetstore(Resource):
                'port as well using the form '
                '[http[s]://](host domain)[:(port)].  Do not include the '
                'bucket name here.', required=False)
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403))
+
+    @access.admin
+    @loadmodel(model='assetstore')
+    def importData(self, assetstore, params):
+        self.requireParams(('destinationId', 'destinationType'), params)
+
+        parentType = params.pop('destinationType')
+        if parentType not in ('folder', 'collection', 'user'):
+            raise RestException('The destinationType must be user, folder, or '
+                                'collection.')
+
+        user = self.getCurrentUser()
+        parent = self.model(parentType).load(
+            params.pop('destinationId'), user=user, level=AccessType.ADMIN)
+
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(
+                progress, user=user, title='Importing data') as ctx:
+            return self.model('assetstore').importData(
+                assetstore, parent=parent, parentType=parentType, params=params,
+                progress=ctx, user=user)
+    importData.description = (
+        Description('Import existing data into an assetstore.')
+        .notes('This does not move or copy the existing data, it just creates '
+               'references to it in the Girder data hierarchy. Deleting '
+               'those references will not delete the underlying data. This '
+               'operation is currently only supported for S3 assetstores.')
+        .param('id', 'The ID of the assetstore.', paramType='path')
+        .param('importPath', 'Root path within the underlying storage system '
+               'to import.', required=False)
+        .param('destinationId', 'ID of a folder, collection, or user in Girder '
+               'under which the data will be imported.')
+        .param('destinationType', 'Type of the destination resource.',
+               enum=('folder', 'collection', 'user'))
+        .param('progress', 'Whether to record progress on the import.',
+               dataType='boolean', default=False, required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
 

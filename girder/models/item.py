@@ -301,7 +301,8 @@ class Item(Model):
                     del result[key]
             yield result
 
-    def createItem(self, name, creator, folder, description=''):
+    def createItem(self, name, creator, folder, description='',
+                   reuseExisting=False):
         """
         Create a new item. The creator will be given admin access to it.
 
@@ -312,8 +313,20 @@ class Item(Model):
         :param folder: The parent folder of the item.
         :param creator: User document representing the creator of the group.
         :type creator: dict
+        :param reuseExisting: If a folder with the given name already exists
+            under the given parent, return that folder rather than creating a
+            new one.
+        :type reuseExisting: bool
         :returns: The item document that was created.
         """
+        if reuseExisting:
+            existing = self.findOne({
+                'folderId': folder['_id'],
+                'name': name
+            })
+            if existing:
+                return existing
+
         now = datetime.datetime.utcnow()
 
         if not type(creator) is dict or '_id' not in creator:

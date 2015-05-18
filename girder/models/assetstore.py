@@ -164,3 +164,13 @@ class Assetstore(Model):
                 'girder.model.assetstore.no-current-assetstore')
 
         return current
+
+    def importData(self, assetstore, parent, parentType, params, progress,
+                   user):
+        """
+        Calls the importData method of the underlying assetstore adapter.
+        """
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        return adapter.importData(
+            parent=parent, parentType=parentType, params=params,
+            progress=progress, user=user)

@@ -317,11 +317,46 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     yield ''
             return stream
 
+    def importData(self, parent, parentType, params, progress, user,
+                   bucket=None):
+        importPath = params.get('importPath', '').strip()
+
+        if importPath and not importPath.endswith('/'):
+            importPath += '/'
+
+        if bucket is None:
+            bucket = self._getBucket()
+
+        for obj in bucket.list(importPath, '/'):
+            if isinstance(obj, boto.s3.prefix.Prefix):
+                name = obj.name.rstrip('/').rsplit('/', 1)[-1]
+                folder = self.model('folder').createFolder(
+                    parent=parent, name=name, parentType=parentType,
+                    creator=user, reuseExisting=True)
+                self.importData(parent=folder, parentType='folder', params={
+                    'importPath': obj.name
+                }, progress=progress, user=user, bucket=bucket)
+            elif isinstance(obj, boto.s3.key.Key) and parentType == 'folder':
+                name = obj.name.rsplit('/', 1)[-1]
+                if not name:
+                    continue
+                item = self.model('item').createItem(
+                    name=name, creator=user, folder=parent, reuseExisting=True)
+                file = self.model('file').createFile(
+                    name=name, creator=user, item=item, reuseExisting=True,
+                    assetstore=self.assetstore, mimeType=None, size=obj.size)
+                file['s3Key'] = obj.name
+                file['imported'] = True
+                self.model('file').save(file)
+
     def deleteFile(self, file):
         """
         We want to queue up files to be deleted asynchronously since it requires
         an external HTTP request per file in order to delete them, and we don't
         want to wait on that.
+
+        Files that were imported as pre-existing data will not actually be
+        deleted from S3, only their references in Girder will be deleted.
         """
         if file['size'] > 0 and 'relpath' in file:
             q = {

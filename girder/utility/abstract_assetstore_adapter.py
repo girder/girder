@@ -52,6 +52,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         Assetstore types that are able to report how much free and/or total
         capacity they have should override this method. Default behavior is to
         report both quantities as unknown.
+
         :returns: A dict with 'free' and 'total' keys whose values are
                   either bytes (ints) or None for an unknown quantity.
         """
@@ -66,6 +67,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         additional behavior and optionally augment the upload document. The
         method must return the upload document. Default behavior is to
         simply return the upload document unmodified.
+
         :param upload: The upload document to optionally augment.
         :type upload: dict
         """
@@ -74,6 +76,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
     def uploadChunk(self, upload, chunk):
         """
         Call this method to process each chunk of an upload.
+
         :param upload: The upload document to update.
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
@@ -89,6 +92,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         need to delete the upload document as that will be deleted by the
         caller afterward. This method may augment the File document, and must
         return the File document.
+
         :param upload: The upload document.
         :type upload: dict
         :param file: The file document that was created.
@@ -112,6 +116,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         This is called when a File is deleted to allow the adapter to remove
         the data from within the assetstore. This method should not modify
         or delete the file object, as the caller will delete it afterward.
+
         :param file: The File document about to be deleted.
         :type file: dict
         """
@@ -124,6 +129,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         that can be used to download the file. This can return a generator
         function that streams the file directly, or can modify the cherrypy
         request headers and perform a redirect and return None, for example.
+
         :param file: The file document being downloaded.
         :type file: dict
         :param offset: Offset in bytes to start the download at.
@@ -138,6 +144,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         This method copies the necessary fields and data so that the
         destination file contains the same data as the source file.
+
         :param srcFile: The original File document.
         :type srcFile: dict
         :param destFile: The File which should have the data copied to it.
@@ -151,6 +158,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         Given a chunk that is either a file-like object or a string, attempt to
         determine its length.  If it is a file-like object, then this relies on
         being able to use fstat.
+
         :param chunk: the chunk to get the size of
         :type chunk: a file-like object or a string
         :returns: the length of the chunk if known, or None.
@@ -191,10 +199,11 @@ class AbstractAssetstoreAdapter(ModelImporter):
         raise Exception('Must override cancelUpload in %s.'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def untrackedUploads(self, knownUploads=[], delete=False):
+    def untrackedUploads(self, knownUploads=(), delete=False):
         """
         List and optionally discard uploads that are in the assetstore but not
         in the known list.
+
         :param knownUploads: a list of upload dictionaries of all known
                              incomplete uploads.
         :type knownUploads: list
@@ -202,4 +211,25 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type delete: bool
         :returns: a list of unknown uploads.
         """
-        return []
+        return ()
+
+    def importData(self, parent, parentType, params, progress, user):
+        """
+        Assetstores that are capable of importing pre-existing data from the
+        underlying storage medium can implement this method.
+
+        :param parent: The parent object to import into.
+        :param parentType: The model type of the parent object (folder, user,
+            or collection).
+        :type parentType: str
+        :param params: Additional parameters required for the import process.
+            Typically includes an importPath field representing a root path
+            on the underlying storage medium.
+        :type params: dict
+        :param progress: Object on which to record progress if possible.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param user: The girder user performing the import.
+        :type user: dict or None
+        """
+        raise ValidationException(
+            'This assetstore type does not support importing existing data.')

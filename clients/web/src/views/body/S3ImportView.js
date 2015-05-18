@@ -3,12 +3,16 @@ girder.views.S3ImportView = girder.View.extend({
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
 
+            var destId = this.$('#g-s3-import-dest-id').val().trim(),
+                destType = this.$('#g-s3-import-dest-type').val();
+
             this.assetstore.off('g:imported').on('g:imported', function () {
-                console.log('done!');
+                girder.router.navigate(destType + '/' + destId, {trigger: true});
             }, this).import({
                 importPath: this.$('#g-s3-import-path').val().trim(),
-                destinationId: this.$('#g-s3-import-dest-id').val().trim(),
-                destinationType: this.$('#g-s3-import-dest-type').val()
+                destinationId: destId,
+                destinationType: destType,
+                progress: true
             });
         }
     },
