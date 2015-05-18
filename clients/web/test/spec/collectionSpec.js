@@ -12,6 +12,8 @@ $(function () {
 
 describe('Test collection actions', function () {
 
+    var privateCollectionFragment, privateFolderFragment;
+
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -73,6 +75,7 @@ describe('Test collection actions', function () {
         }, 'edit collection menu item to appear');
 
         runs(function () {
+            privateCollectionFragment = Backbone.history.fragment;
             $('.g-edit-collection').click();
         });
         girderTest.waitForDialog();
@@ -110,10 +113,30 @@ describe('Test collection actions', function () {
             return $(".g-edit-collection").is(':visible');
         }, 'ensure edit collection menu item continues to appear');
 
+        // save fragment of Private folder
+        runs(function () {
+            $('.g-folder-list-link:first').click();
+        });
+
+        waitsFor(function () {
+            return $(".g-folder-metadata").is(':visible');
+        }, 'ensure collection folder is displayed');
+
+        runs(function ()  {
+            privateFolderFragment = Backbone.history.fragment;
+        });
     });
 
+    it('test that login dialog appears when anonymous loads a private collection', function () {
+        girderTest.anonymousLoadPage(true, privateCollectionFragment, true);
+    });
+
+    it('test that login dialog appears when anonymous loads a private folder in a private collection', function () {
+        girderTest.anonymousLoadPage(false, privateFolderFragment, true);
+    });
 
     it('make new collection public', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
             $("a.g-nav-link[g-target='collections']").click();
@@ -179,6 +202,15 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-frontpage-title:visible').length > 0;
         }, 'front page to display');
+    });
+
+    it('test that login dialog does not appear when anonymous loads a public collection', function () {
+        // despite its name, privateCollectionFragment now points to a public collection
+        girderTest.anonymousLoadPage(false, privateCollectionFragment, false);
+    });
+
+    it('test that login dialog appears when anonymous loads a private folder in a public collection', function () {
+        girderTest.anonymousLoadPage(false, privateFolderFragment, true);
     });
 
     it('go back to collections page again', function () {
