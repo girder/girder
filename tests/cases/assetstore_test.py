@@ -492,10 +492,10 @@ class AssetstoreTestCase(base.TestCase):
 
         resp = self.request(
             '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
-            'importPath': '',
-            'destinationType': 'folder',
-            'destinationId': importFolder['_id'],
-        }, user=self.admin)
+                'importPath': '',
+                'destinationType': 'folder',
+                'destinationId': importFolder['_id'],
+            }, user=self.admin)
         self.assertStatusOk(resp)
 
         # Data should now appear in the tree
@@ -526,7 +526,8 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(item['name'], 'test')
         self.assertEqual(item['size'], 0)
 
-        resp = self.request('/item/%s/files' % str(item['_id']), user=self.admin)
+        resp = self.request('/item/%s/files' % str(item['_id']),
+                            user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         file = resp.json[0]
