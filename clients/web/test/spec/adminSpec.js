@@ -33,6 +33,10 @@ describe('Create an admin and non-admin user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 
+    waitsFor(function () {
+        return $('.g-frontpage-title:visible').length > 0;
+    }, 'front page to display');
+
     it('register a (normal user)',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -47,6 +51,11 @@ describe('Create an admin and non-admin user', function () {
 
 describe('Test the settings page', function () {
     it('Logout', girderTest.logout());
+
+    it('Test that anonymous loading settings page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'settings', true);
+    });
+
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to settings page', function () {
         runs(function () {
@@ -239,6 +248,10 @@ describe('Test the assetstore page', function () {
         });
     }
 
+    it('Test that anonymous loading assetstore page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'assetstores', true);
+    });
+
     it('Go to assetstore page', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
@@ -314,6 +327,11 @@ describe('Test the plugins page', function () {
         });
         spyOn(girder.restartServer, '_reloadWindow');
     });
+
+    it('Test that anonymous loading plugins page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'plugins', true);
+    });
+
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to plugins page', function () {
         runs(function () {
