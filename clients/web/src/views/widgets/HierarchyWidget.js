@@ -470,6 +470,14 @@ girder.views.HierarchyWidget = girder.View.extend({
                 minItemLevel = Math.min(minItemLevel, this.parentModel.getAccessLevel());
             }
         }
+
+        if (folders.length + items.length) {
+            // Disable folder actions if checkboxes are checked
+            this.$('.g-folder-actions-button').attr('disabled', 'disabled');
+        } else {
+            this.$('.g-folder-actions-button').removeAttr('disabled');
+        }
+
         this.checkedMenuWidget.update({
             minFolderLevel: minFolderLevel,
             minItemLevel: minItemLevel,
