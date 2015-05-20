@@ -16,6 +16,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-copy-picked': 'copyPickedResources',
         'click a.g-clear-picked': 'clearPickedResources',
         'click a.g-delete-checked': 'deleteCheckedDialog',
+        'click .g-list-checkbox': 'checkboxListener',
         'change .g-select-all': function (e) {
             this.folderListView.checkAll(e.currentTarget.checked);
 
@@ -731,6 +732,35 @@ girder.views.HierarchyWidget = girder.View.extend({
      */
     getSelectedItem: function () {
         return this.itemListView.getSelectedItem();
+    },
+
+    /**
+     * In order to handle range selection, we must listen to checkbox changes
+     * at this level, in case a range selection crosses the boundary between
+     * folders and items.
+     */
+    checkboxListener: function (e) {
+        var checkbox = $(e.currentTarget);
+
+        if (this._lastCheckbox) {
+            if (e.shiftKey) {
+                var checkboxes = this.$el.find(':checkbox');
+                var from = checkboxes.index(this._lastCheckbox);
+                var to = checkboxes.index(checkbox);
+
+                checkboxes.slice(Math.min(from, to), Math.max(from, to) + 1)
+                    .prop('checked', checkbox.prop('checked'));
+
+                this.folderListView.recomputeChecked();
+
+                if (this.itemListView) {
+                    this.itemListView.recomputeChecked();
+                }
+
+                this.updateChecked();
+            }
+        }
+        this._lastCheckbox = checkbox;
     }
 });
 

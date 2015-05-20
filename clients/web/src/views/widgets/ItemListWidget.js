@@ -41,7 +41,7 @@ girder.views.ItemListWidget = girder.View.extend({
         }));
 
         var view = this;
-        this.$('.g-list-checkbox').unbind('change').change(function () {
+        this.$('.g-list-checkbox').change(function () {
             var cid = $(this).attr('g-item-cid');
             if (this.checked) {
                 view.checked.push(cid);
@@ -103,5 +103,11 @@ girder.views.ItemListWidget = girder.View.extend({
         }
         var cid = $('.g-item-list-link', $(el[0])).attr('g-item-cid');
         return this.collection.get(cid);
+    },
+
+    recomputeChecked: function () {
+        this.checked = _.map(this.$('.g-list-checkbox:checked'), function (checkbox) {
+            return $(checkbox).attr('g-item-cid');
+        }, this);
     }
 });
