@@ -401,6 +401,15 @@ describe('Test the plugins page', function () {
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
         });
+        waitsFor(function () {
+            var resp = girder.restRequest({
+                path: 'system/plugins',
+                type: 'GET',
+                async: false
+            });
+            return (resp && resp.responseJSON && resp.responseJSON.enabled &&
+                resp.responseJSON.enabled.length === 0);
+        });
     });
     /* Logout to make sure we don't see the plugins any more */
     it('log out and check for redirect to front page from plugins page', function() {
