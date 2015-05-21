@@ -168,7 +168,7 @@ _.extend(girder, {
         }).then(function () {
             girder.currentUser = null;
 
-            girder.events.trigger('g:logout');
+            girder.events.trigger('g:login', null);
             girder.events.trigger('g:logout.success');
         }, function (jqxhr) {
             girder.events.trigger('g:logout.error', jqxhr.status, jqxhr);

@@ -45,7 +45,6 @@ girder.App = girder.View.extend({
         girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         girder.events.on('g:alert', this.alert, this);
         girder.events.on('g:login', this.login, this);
-        girder.events.on('g:logout', this.logout, this);
     },
 
     _defaultLayout: {
@@ -219,24 +218,19 @@ girder.App = girder.View.extend({
     },
 
     /**
-     * On login, we re-render the current body view.
+     * On login we re-render the current body view; whereas on
+     * logout, we redirect to the front page.
      */
     login: function () {
         var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
-        girder.router.navigate(route, {trigger: true});
         girder.eventStream.close();
 
         if (girder.currentUser) {
             girder.eventStream.open();
+            girder.router.navigate(route, {trigger: true});
+        } else {
+            girder.router.navigate('/', {trigger: true});
         }
-    },
-
-    /**
-     * On logout, we redirect to the front page.
-     */
-    logout: function () {
-        girder.eventStream.close();
-        girder.router.navigate('/', {trigger: true});
     }
 });
