@@ -20,6 +20,8 @@
 
 from girder.models.notification import ProgressState
 
+JOB_HANDLER_LOCAL = 'local'
+
 
 # Constants representing the setting keys for this plugin
 class JobStatus(object):
