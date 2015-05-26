@@ -11,5 +11,6 @@
 !mongo_search/
 !oauth/
 !provenance/
+!thumbnails/
 !user_quota/
 !vega/
