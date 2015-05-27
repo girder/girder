@@ -84,8 +84,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if doc.get('readOnly'):
             try:
                 bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
-                if not bucket:
-                    raise Exception('Bucket lookup returned None.')
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException('Unable to connect to bucket "{}".'
