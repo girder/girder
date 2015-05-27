@@ -62,7 +62,7 @@ class ModelImporter(object):
     should extend/mixin this class.
     """
     @staticmethod
-    def model(model, plugin='_core'):
+    def model(model, plugin=None):
         """
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.
@@ -77,6 +77,10 @@ class ModelImporter(object):
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
+
+        if plugin is None:
+            plugin = '_core'
+
         if plugin not in _modelInstances:
             _modelInstances[plugin] = {}
 

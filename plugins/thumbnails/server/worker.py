@@ -76,10 +76,10 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     image.thumbnail((width, height), Image.ANTIALIAS)
 
-    return _uploadThumbnail(image, attachToType, attachToId)
+    return _uploadThumbnail(file, image, attachToType, attachToId)
 
 
-def _uploadThumbnail(image, attachToType, attachToId):
+def _uploadThumbnail(originalFile, image, attachToType, attachToId):
     target = ModelImporter.model(attachToType).load(attachToId, force=True)
     uploadModel = ModelImporter.model('upload')
 
@@ -93,5 +93,17 @@ def _uploadThumbnail(image, attachToType, attachToId):
 
     file = uploadModel.handleChunk(upload, contents)
 
-    print(file)
-    return file
+    parentModel = ModelImporter.model(attachToType)
+    parent = parentModel.load(attachToId, force=True)
+    parent['_thumbnails'] = parent.get('_thumbnails', [])
+    parent['_thumbnails'].append(file['_id'])
+    parentModel.save(parent)
+
+    file['attachedToType'] = attachToType
+    file['attachToId'] = parent['_id']
+    file['derivedFrom'] = {
+        'type': 'file',
+        'id': originalFile['_id'],
+        'process': 'thumbnail'
+    }
+    return ModelImporter.model('file').save(file)
