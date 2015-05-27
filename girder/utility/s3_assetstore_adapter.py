@@ -59,12 +59,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         doc['prefix'] = doc['prefix'].strip('/')
         if not doc.get('bucket'):
             raise ValidationException('Bucket must not be empty.', 'bucket')
-        if not doc.get('secret'):
-            raise ValidationException(
-                'Secret key must not be empty.', 'secret')
-        if not doc.get('accessKeyId'):
-            raise ValidationException(
-                'Access key ID must not be empty.', 'accessKeyId')
+        if not doc.get('readOnly'):
+            if not doc.get('secret'):
+                raise ValidationException(
+                    'Secret key must not be empty.', 'secret')
+            if not doc.get('accessKeyId'):
+                raise ValidationException(
+                    'Access key ID must not be empty.', 'accessKeyId')
         # construct a set of connection parameters based on the keys and the
         # service
         if 'service' not in doc:
@@ -80,16 +81,26 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             doc['accessKeyId'], doc['secret'], doc['service'])
         # Make sure we can write into the given bucket using boto
         conn = botoConnectS3(doc['botoConnect'])
-        try:
-            bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
-            testKey = boto.s3.key.Key(
-                bucket=bucket, name='/'.join(
-                    filter(None, (doc['prefix'], 'test'))))
-            testKey.set_contents_from_string('')
-        except Exception:
-            logger.exception('S3 assetstore validation exception')
-            raise ValidationException('Unable to write into bucket "{}".'
-                                      .format(doc['bucket']), 'bucket')
+        if doc.get('readOnly'):
+            try:
+                bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
+                if not bucket:
+                    raise Exception('Bucket lookup returned None.')
+            except Exception:
+                logger.exception('S3 assetstore validation exception')
+                raise ValidationException('Unable to connect to bucket "{}".'
+                                          .format(doc['bucket']), 'bucket')
+        else:
+            try:
+                bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
+                testKey = boto.s3.key.Key(
+                    bucket=bucket, name='/'.join(
+                        filter(None, (doc['prefix'], 'test'))))
+                testKey.set_contents_from_string('')
+            except Exception:
+                logger.exception('S3 assetstore validation exception')
+                raise ValidationException('Unable to write into bucket "{}".'
+                                          .format(doc['bucket']), 'bucket')
 
         return doc
 

@@ -40,6 +40,10 @@
             .form-group
               label.control-label(for="g-edit-s3-service") Service
               input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="Service name")
+            .checkbox
+              label
+                input#g-edit-s3-readonly(type="checkbox")
+                | Read only
         if assetstore.get('hasFiles')
           div
             i.icon-attention

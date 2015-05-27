@@ -140,13 +140,14 @@ class Assetstore(Model):
         })
 
     def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',
-                           service=''):
+                           service='', readOnly=False):
         return self.save({
             'type': AssetstoreType.S3,
             'created': datetime.datetime.utcnow(),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,
+            'readOnly': readOnly,
             'prefix': prefix,
             'bucket': bucket,
             'service': service

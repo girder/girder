@@ -94,12 +94,13 @@ class Assetstore(Resource):
                 mongohost=params.get('mongohost', None),
                 replicaset=params.get('replicaset', None))
         elif assetstoreType == AssetstoreType.S3:
-            self.requireParams(('bucket', 'accessKeyId', 'secret'), params)
+            self.requireParams(('bucket'), params)
             return self.model('assetstore').createS3Assetstore(
                 name=params['name'], bucket=params['bucket'],
-                prefix=params.get('prefix', ''), secret=params['secret'],
+                prefix=params.get('prefix', ''), secret=params.get('secret'),
                 accessKeyId=params.get('accessKeyId'),
-                service=params.get('service', ''))
+                service=params.get('service', ''),
+                readOnly=self.boolParam('readOnly', params, default=False))
         else:
             raise RestException('Invalid type parameter')
     createAssetstore.description = (
@@ -127,6 +128,8 @@ class Assetstore(Resource):
                'port as well using the form '
                '[http[s]://](host domain)[:(port)].  Do not include the '
                'bucket name here.', required=False)
+        .param('readOnly', 'If this assetstore is read-only, set this to true.',
+               required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
 
@@ -193,6 +196,8 @@ class Assetstore(Resource):
             assetstore['accessKeyId'] = params['accessKeyId']
             assetstore['secret'] = params['secret']
             assetstore['service'] = params.get('service', '')
+            assetstore['readOnly'] = self.boolParam(
+                'readOnly', params, default=assetstore.get('readOnly'))
         else:
             event = events.trigger('assetstore.update', info={
                 'assetstore': assetstore,
@@ -225,6 +230,8 @@ class Assetstore(Resource):
                'port as well using the form '
                '[http[s]://](host domain)[:(port)].  Do not include the '
                'bucket name here.', required=False)
+        .param('readOnly', 'If this assetstore is read-only, set this to true.',
+               required=False, dataType='boolean')
         .param('current', 'Whether this is the current assetstore',
                dataType='boolean')
         .errorResponse()
