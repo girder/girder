@@ -48,8 +48,8 @@ class Thumbnail(Resource):
         self.model(params['attachToType']).load(
             params['attachToId'], user=user, level=AccessType.WRITE, exc=True)
 
-        width = max(int(kwargs.get('width', 0)), 0)
-        height = max(int(kwargs.get('height', 0)), 0)
+        width = max(int(params.get('width', 0)), 0)
+        height = max(int(params.get('height', 0)), 0)
 
         if not width and not height:
             raise RestException('You must specify a width, a height, or both.')
@@ -57,8 +57,8 @@ class Thumbnail(Resource):
         kwargs = {
             'width': width,
             'height': height,
-            'preserveAspectRatio': params.get('preserveAspectRatio', True),
-            'fileId': file['_id'],
+            'fileId': str(file['_id']),
+            'crop': self.boolParam('crop', params, default=True),
             'attachToType': params['attachToType'],
             'attachToId': params['attachToId']
         }
@@ -66,19 +66,21 @@ class Thumbnail(Resource):
         job = self.model('job', 'jobs').createLocalJob(
             title='Generate thumbnail for %s' % file['name'], user=user,
             type='thumbnails.create', public=False, kwargs=kwargs,
-            module='girder.plugins.thumbnails.run_job')
+            module='girder.plugins.thumbnails.worker')
 
         self.model('job', 'jobs').scheduleJob(job)
 
         return self.model('job', 'jobs').filter(job, user=user)
     createThumbnail.description = (
         Description('Create a new thumbnail from an existing image file.')
+        .notes('Setting a width or height parameter of 0 will preserve the '
+               'original aspect ratio.')
         .param('fileId', 'The ID of the source file.')
         .param('width', 'The desired width.', required=False, dataType='int')
         .param('height', 'The desired height.', required=False, dataType='int')
-        .param('preserveAspectRatio', 'Whether to preserve aspect ratio. Only '
-               'used if both width and height parameters are specified.',
-               dataType='bool', required=False, default=True)
+        .param('crop', 'Whether to crop the image to preserve aspect ratio. '
+               'Only used if both width and height parameters are nonzero.',
+               dataType='boolean', required=False, default=True)
         .param('attachToId', 'The lifecycle of this thumbnail is bound to the '
                'resource specified by this ID.')
         .param('attachToType', 'The type of resource to which this thumbnail is'

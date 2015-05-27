@@ -380,6 +380,9 @@ class Model(ModelImporter):
         :type exc: bool
         :returns: The matching document, or None.
         """
+        if not id:
+            raise Exception('Attempt to load null ObjectId: %s' % id)
+
         if objectId and type(id) is not ObjectId:
             try:
                 id = ObjectId(id)

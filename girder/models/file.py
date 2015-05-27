@@ -51,10 +51,11 @@ class File(Model):
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             adapter.deleteFile(file)
 
-        item = self.model('item').load(file['itemId'], force=True)
-        # files that are linkUrls might not have a size field
-        if 'size' in file:
-            self.propagateSizeChange(item, -file['size'], updateItemSize)
+        if file['itemId']:
+            item = self.model('item').load(file['itemId'], force=True)
+            # files that are linkUrls might not have a size field
+            if 'size' in file:
+                self.propagateSizeChange(item, -file['size'], updateItemSize)
 
         Model.remove(self, file)
 
@@ -186,7 +187,6 @@ class File(Model):
         """
         file = {
             'created': datetime.datetime.utcnow(),
-            'itemId': item['_id'],
             'creatorId': creator['_id'],
             'assetstoreId': assetstore['_id'],
             'name': name,
@@ -194,7 +194,11 @@ class File(Model):
             'size': size
         }
 
-        self.propagateSizeChange(item, size)
+        if item:
+            file['itemId'] = item['_id']
+            self.propagateSizeChange(item, size)
+        else:
+            file['itemId'] = None
 
         if saveFile:
             return self.save(file)

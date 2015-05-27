@@ -106,9 +106,11 @@ class Upload(Model):
                 item = self.model('item').createItem(
                     name=upload['name'], creator={'_id': upload['userId']},
                     folder={'_id': upload['parentId']})
-            else:
+            elif upload['parentType'] == 'item':
                 item = self.model('item').load(
                     id=upload['parentId'], force=True)
+            else:
+                item = None
 
             file = self.model('file').createFile(
                 item=item, name=upload['name'], size=upload['size'],
@@ -195,15 +197,25 @@ class Upload(Model):
         upload = {
             'created': now,
             'updated': now,
-            'userId': user['_id'],
-            'parentType': parentType.lower(),
-            'parentId': ObjectId(parent['_id']),
             'assetstoreId': assetstore['_id'],
             'size': size,
             'name': name,
             'mimeType': mimeType,
             'received': 0
         }
+
+        if parentType and parent:
+            upload['parentType'] = parentType.lower(),
+            upload['parentId'] = ObjectId(parent['_id'])
+        else:
+            upload['parentType'] = None
+            upload['parentId'] = None
+
+        if user:
+            upload['userId'] = user['_id']
+        else:
+            upload['userId'] = None
+
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
