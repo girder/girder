@@ -100,7 +100,8 @@ def _uploadThumbnail(originalFile, image, attachToType, attachToId):
     parentModel.save(parent)
 
     file['attachedToType'] = attachToType
-    file['attachToId'] = parent['_id']
+    file['attachedToId'] = parent['_id']
+    file['isThumbnail'] = True
     file['derivedFrom'] = {
         'type': 'file',
         'id': originalFile['_id'],

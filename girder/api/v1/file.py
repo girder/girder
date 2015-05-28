@@ -214,7 +214,7 @@ class File(Resource):
         AccessException if the user does not have the appropriate access level
         for the given file.
         """
-        if 'itemId' in file:
+        if 'itemId' in file and file['itemId']:
             self.model('item').load(id=file['itemId'], user=user,
                                     level=AccessType.READ, exc=True)
         else:

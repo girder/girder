@@ -17,9 +17,40 @@
 #  limitations under the License.
 ###############################################################################
 
+from girder import events
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 from . import rest
+
+
+def removeThumbnails(event):
+    """
+    When a resource containing thumbnails is about to be deleted, we delete
+    all of the thumbnails that are attached to it.
+    """
+    thumbs = event.info.get('_thumbnails', ())
+    fileModel = ModelImporter.model('file')
+
+    for fileId in thumbs:
+        file = fileModel.load(fileId)
+        if file:
+            fileModel.remove(file)
+
+
+def removeThumbnailLink(event):
+    """
+    When a thumbnail file is deleted, we remove the reference to it from the
+    resource to which it is attached.
+    """
+    doc = event.info
+
+    if doc.get('isThumbnail'):
+        model = ModelImporter.model(doc['attachedToType'])
+        resource = model.load(doc['attachedToId'], force=True)
+
+        if doc['_id'] in resource.get('_thumbnails', ()):
+            resource['_thumbnails'].remove(doc['_id'])
+            model.save(resource, validate=False)
 
 
 def load(info):
@@ -28,3 +59,7 @@ def load(info):
     for model in ('item', 'collection', 'folder', 'user'):
         ModelImporter.model(model).exposeFields(
             level=AccessType.READ, fields='_thumbnails')
+
+        events.bind('model.%s.remove' % model, 'thumbnails', removeThumbnails)
+
+    events.bind('model.file.remove', 'thumbnails', removeThumbnailLink)

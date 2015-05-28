@@ -205,7 +205,7 @@ class Upload(Model):
         }
 
         if parentType and parent:
-            upload['parentType'] = parentType.lower(),
+            upload['parentType'] = parentType.lower()
             upload['parentId'] = ObjectId(parent['_id'])
         else:
             upload['parentType'] = None
