@@ -33,6 +33,10 @@ describe('Create an admin and non-admin user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
 
+    waitsFor(function () {
+        return $('.g-frontpage-title:visible').length > 0;
+    }, 'front page to display');
+
     it('register a (normal user)',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -47,6 +51,11 @@ describe('Create an admin and non-admin user', function () {
 
 describe('Test the settings page', function () {
     it('Logout', girderTest.logout());
+
+    it('Test that anonymous loading settings page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'settings', true);
+    });
+
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to settings page', function () {
         runs(function () {
@@ -90,6 +99,13 @@ describe('Test the settings page', function () {
         waitsFor(function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
+    });
+    it('logout and check for redirect to front page from settings page', function () {
+        girderTest.logout()();
+
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 });
 
@@ -232,7 +248,17 @@ describe('Test the assetstore page', function () {
         });
     }
 
+    it('Test that anonymous loading assetstore page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'assetstores', true);
+    });
+
     it('Go to assetstore page', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+
         runs(function () {
             $("a.g-nav-link[g-target='admin']").click();
         });
@@ -284,10 +310,10 @@ describe('Test the assetstore page', function () {
 
     /* Logout to make sure we don't see the assetstores any more */
     it('logout from admin account', girderTest.logout('logout to no longer view asset stores'));
-    it('check logged out state', function() {
-        runs(function () {
-            expect($('#g-app-body-container').text()).toEqual('Must be logged in as admin to view this page.');
-        });
+    it('logout and check for redirect to front page from assetstore page', function () {
+        waitsFor(function () {
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 });
 
@@ -301,6 +327,11 @@ describe('Test the plugins page', function () {
         });
         spyOn(girder.restartServer, '_reloadWindow');
     });
+
+    it('Test that anonymous loading plugins page prompts login', function () {
+        girderTest.anonymousLoadPage(false, 'plugins', true);
+    });
+
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to plugins page', function () {
         runs(function () {
@@ -370,25 +401,22 @@ describe('Test the plugins page', function () {
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
         });
+        waitsFor(function () {
+            var resp = girder.restRequest({
+                path: 'system/plugins',
+                type: 'GET',
+                async: false
+            });
+            return (resp && resp.responseJSON && resp.responseJSON.enabled &&
+                resp.responseJSON.enabled.length === 0);
+        });
     });
     /* Logout to make sure we don't see the plugins any more */
-    it('log out and check state', function() {
+    it('log out and check for redirect to front page from plugins page', function() {
+        girderTest.logout('logout to no longer view plugins page')();
+
         waitsFor(function () {
-            return $('.g-logout').length > 0;
-        }, 'logout link to render');
-        runs(function () {
-            $('.g-logout').click();
-        });
-        waitsFor(function () {
-            return girder.currentUser === null;
-        }, 'user to be cleared');
-        girderTest.waitForDialog();
-        waitsFor(function () {
-            return $('input#g-login').length > 0;
-        }, 'register dialog to appear');
-        runs(function () {
-            $('#g-dialog-container').click();
-        });
-        girderTest.waitForLoad();
+            return $('.g-frontpage-title:visible').length > 0;
+        }, 'front page to display');
     });
 });

@@ -218,16 +218,19 @@ girder.App = girder.View.extend({
     },
 
     /**
-     * On login or logout, we re-render the current body view.
+     * On login we re-render the current body view; whereas on
+     * logout, we redirect to the front page.
      */
     login: function () {
         var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
-        girder.router.navigate(route, {trigger: true});
         girder.eventStream.close();
 
         if (girder.currentUser) {
             girder.eventStream.open();
+            girder.router.navigate(route, {trigger: true});
+        } else {
+            girder.router.navigate('/', {trigger: true});
         }
     }
 });
