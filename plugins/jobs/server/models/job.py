@@ -334,7 +334,7 @@ class Job(AccessControlledModel):
         })
 
         keys = ['title', 'type', 'created', 'interval', 'when', 'status',
-                'progress', 'log', 'meta', '_id', 'public']
+                'progress', 'log', 'meta', '_id', 'public', 'async']
 
         if user and user['admin'] is True:
             keys.extend(('args', 'kwargs'))
