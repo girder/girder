@@ -27,11 +27,12 @@ girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
                 attachToId: this.attachToId,
                 attachToType: this.attachToType
             }).on('g:saved', function () {
-                this.$el.modal('hide');
-                this.trigger('g:created', {
-                    attachedToType: this.attachToType,
-                    attachedToId: this.attachToId
-                });
+                this.$el.on('hidden.bs.modal', _.bind(function () {
+                    this.trigger('g:created', {
+                        attachedToType: this.attachToType,
+                        attachedToId: this.attachToId
+                    });
+                }, this)).modal('hide');
             }, this).on('g:error', function (resp) {
                 this.$('.g-submit-create-thumbnail').removeAttr('disabled');
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
