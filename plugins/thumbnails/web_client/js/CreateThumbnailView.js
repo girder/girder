@@ -4,12 +4,18 @@
 girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
     events: {
         'change .g-thumbnail-attach-container input[type="radio"]': function () {
+            this.$('.g-target-result-container').empty();
+
             if (this.$('.g-thumbnail-attach-this-item').is(':checked')) {
                 this.attachToType = 'item';
                 this.attachToId = this.item.id;
+                this.$('.g-thumbnail-custom-target-container').addClass('hide');
+                this.$('.g-submit-create-thumbnail').removeClass('disabled');
             } else {
                 this.attachToType = null;
                 this.attachToId = null;
+                this.$('.g-thumbnail-custom-target-container').removeClass('hide');
+                this.$('.g-submit-create-thumbnail').addClass('disabled');
             }
         },
 
@@ -45,6 +51,12 @@ girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
         this.file = settings.file;
         this.attachToType = 'item';
         this.attachToId = this.item.id;
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            placeholder: 'Start typing a name...',
+            types: ['collection', 'folder', 'item', 'user'],
+            parentView: this
+        }).on('g:resultClicked', this.pickTarget, this);
     },
 
     render: function () {
@@ -58,6 +70,20 @@ girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
 
         this.$('#g-thumbnail-width').focus();
 
+        this.searchWidget.setElement(this.$('.g-search-field-container')).render();
+
         return this;
+    },
+
+    pickTarget: function (target) {
+        this.searchWidget.resetState();
+        this.attachToType = target.type;
+        this.attachToId = target.id;
+        this.$('.g-submit-create-thumbnail').removeClass('disabled');
+
+        this.$('.g-target-result-container').html(girder.templates.thumbnails_targetDescription({
+            text: target.text,
+            icon: target.icon
+        }));
     }
 });

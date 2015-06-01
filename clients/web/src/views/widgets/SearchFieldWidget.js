@@ -25,7 +25,8 @@ girder.views.SearchFieldWidget = girder.View.extend({
             this.trigger('g:resultClicked', {
                 type: link.attr('resourcetype'),
                 id: link.attr('resourceid'),
-                text: link.text()
+                text: link.text().trim(),
+                icon: link.attr('g-icon')
             });
         },
 
@@ -55,7 +56,8 @@ girder.views.SearchFieldWidget = girder.View.extend({
                     this.trigger('g:resultClicked', {
                         type: link.attr('resourcetype'),
                         id: link.attr('resourceid'),
-                        text: link.text()
+                        text: link.text().trim(),
+                        icon: link.attr('g-icon')
                     });
                 }
             }
