@@ -52,9 +52,9 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
         raise Exception('File %s has no assetstore.' % fileId)
 
     stream = ModelImporter.model('file').download(file, headers=False)
+    data = b''.join(stream())
 
-    data = ''.join(stream())
-    image = Image.open(six.StringIO(data))
+    image = Image.open(six.BytesIO(data))
 
     if not width:
         width = int(height * image.size[0] / image.size[1])
@@ -76,22 +76,23 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     image.thumbnail((width, height), Image.ANTIALIAS)
 
-    return _uploadThumbnail(file, image, attachToType, attachToId)
+    return _uploadThumbnail(
+        file, image, attachToType, attachToId, width, height)
 
 
-def _uploadThumbnail(originalFile, image, attachToType, attachToId):
-    target = ModelImporter.model(attachToType).load(attachToId, force=True)
+def _uploadThumbnail(originalFile, image, attachToType, attachToId,
+                     width, height):
     uploadModel = ModelImporter.model('upload')
 
     out = six.BytesIO()
     image.save(out, 'JPEG', quality=75)
     contents = out.getvalue()
-    out.close()
+
     upload = uploadModel.createUpload(
         user=None, name='_thumb.jpg', parentType=None, parent=None,
         size=len(contents), mimeType='image/jpeg')
 
-    file = uploadModel.handleChunk(upload, contents)
+    file = uploadModel.handleChunk(upload, six.BytesIO(contents))
 
     parentModel = ModelImporter.model(attachToType)
     parent = parentModel.load(attachToId, force=True)
@@ -105,6 +106,9 @@ def _uploadThumbnail(originalFile, image, attachToType, attachToId):
     file['derivedFrom'] = {
         'type': 'file',
         'id': originalFile['_id'],
-        'process': 'thumbnail'
+        'process': 'thumbnail',
+        'width': width,
+        'height': height
     }
+
     return ModelImporter.model('file').save(file)

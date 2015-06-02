@@ -203,8 +203,7 @@ class loadmodel(object):
         elif idParam in kwargs['params']:
             return kwargs['params'].pop(idParam)
         else:
-            raise GirderException('No ID parameter passed: ' + idParam,
-                                  'girder.api.rest.no-id')
+            raise RestException('No ID parameter passed: ' + idParam)
 
     def __call__(self, fun):
         @six.wraps(fun)

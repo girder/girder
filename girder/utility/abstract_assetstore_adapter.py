@@ -151,18 +151,19 @@ class AbstractAssetstoreAdapter(ModelImporter):
         Given a chunk that is either a file-like object or a string, attempt to
         determine its length.  If it is a file-like object, then this relies on
         being able to use fstat.
+
         :param chunk: the chunk to get the size of
         :type chunk: a file-like object or a string
         :returns: the length of the chunk if known, or None.
         """
-        chunkSize = None
-        if hasattr(chunk, "fileno"):
-            chunkSize = os.fstat(chunk.fileno()).st_size
+        if isinstance(chunk, six.BytesIO):
+            return
+        elif hasattr(chunk, "fileno"):
+            return os.fstat(chunk.fileno()).st_size
         elif isinstance(chunk, six.text_type):
-            chunkSize = len(chunk.encode('utf8'))
+            return len(chunk.encode('utf8'))
         else:
-            chunkSize = len(chunk)
-        return chunkSize
+            return len(chunk)
 
     def checkUploadSize(self, upload, chunkSize):
         """Check if the upload is valid based on the chunk size.  If this
