@@ -562,6 +562,52 @@ girderTest.folderAccessControl = function (current, action, recurse) {
     }, 'access dialog to be hidden');
 };
 
+/**
+ * Use this to upload a binary file into the currently visible folder. We can't
+ * upload binary files correctly in phantom, so we rely on a special test-only
+ * endpoint to do the work for us.
+ *
+ * @param path should be specified relative to the root of the repository.
+ */
+girderTest.binaryUpload = function (path) {
+    var file;
+    var oldLen;
+
+    runs(function () {
+        var folderId = Backbone.history.fragment.split('/').pop();
+        oldLen = $('.g-item-list-entry').length;
+
+        girder.restRequest({
+            path: 'webclienttest/file',
+            type: 'POST',
+            data: {
+                path: path,
+                folderId: folderId
+            }
+        }).done(function (resp) {
+            file = resp;
+        }).error(function (resp) {
+            console.log('Could not complete simulated upload of ' + path + ' to ' + folderId);
+            console.log(resp.responseJSON.message);
+        });
+    });
+
+    waitsFor(function () {
+        return !!file;
+    }, 'simulated binary upload to finish');
+
+    runs(function () {
+        // Reload the current view
+        var old = Backbone.history.fragment;
+        Backbone.history.fragment = null;
+        girder.router.navigate(old, {trigger: true});
+    });
+
+    waitsFor(function () {
+        return $('.g-item-list-entry').length === oldLen + 1;
+    }, 'newly uploaded item to appear after refresh');
+};
+
 /* Test going to a particular route, waiting for the dialog or page to load
  *  fully, and then testing that we have what we expect.
  * Enter: route: the hash url fragment to go to.
@@ -635,8 +681,6 @@ function _prepareTestUpload() {
                 newdata.append('offset', data.vals.offset);
                 newdata.append('uploadId', data.vals.uploadId);
                 var len = data.vals.chunk.size;
-                /* Note that this appears to fail if _uploadData contains
-                 * certain characters, such as LF. */
                 if (girderTest._uploadData.length &&
                         girderTest._uploadData.length == len &&
                         !girderTest._uploadDataExtra) {
@@ -659,8 +703,7 @@ function _prepareTestUpload() {
                     data = girderTest._uploadData;
                 } else {
                     data = new Array(
-                        data.size + 1 + girderTest._uploadDataExtra
-                        ).join('-');
+                        data.size + 1 + girderTest._uploadDataExtra).join('-');
                 }
             }
             impl.call(this, data);
@@ -673,8 +716,11 @@ function _prepareTestUpload() {
 girderTest.sendFile = function (uploadItem) {
     // Incantation that causes the phantom environment to send us a File.
     $('#g-files').parent().removeClass('hide');
-    var params = {action: 'uploadFile', selector: '#g-files',
-                  suffix: girderTest._uploadSuffix};
+    var params = {
+        action: 'uploadFile',
+        selector: '#g-files',
+        suffix: girderTest._uploadSuffix
+    };
     if (uploadItem === parseInt(uploadItem)) {
         params.size = uploadItem;
     } else {
@@ -774,4 +820,17 @@ girderTest.confirmDialog = function () {
         $('#g-confirm-button').click();
     });
     girderTest.waitForLoad();
+};
+
+girderTest.shimBlobBuilder = function () {
+    var oldPrototype = window.Blob.prototype;
+    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
+    window.Blob = function (data) {
+        var builder = new window.BlobBuilder();
+        _.each(data, function (d) {
+            builder.append(d);
+        });
+        return builder.getBlob();
+    };
+    window.Blob.prototype = oldPrototype;
 };

@@ -112,10 +112,9 @@ page.onCallback = function (data) {
                 fs.write(path, new Array(data.size + 1).join("-"), "wb");
             }
             page.uploadFile(data.selector, path);
-            if (fs.size(path) >= 1024 * 64) {
-                return fs.size(path);
-            }
-            return fs.read(path);
+            return fs.read(path, {
+                mode: 'rb'
+            });
         case 'uploadCleanup':
             if (fs.exists(uploadTemp)) {
                 fs.remove(uploadTemp);

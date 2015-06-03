@@ -164,7 +164,7 @@ class Upload(Model):
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
-    def createUpload(self, user, name, parentType, parent, size, mimeType):
+    def createUpload(self, user, name, parentType, parent, size, mimeType=None):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent

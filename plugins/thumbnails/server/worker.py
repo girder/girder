@@ -38,6 +38,7 @@ def run(job):
         t, val, tb = sys.exc_info()
         log = '%s: %s\n%s' % (t.__name__, repr(val), traceback.extract_tb(tb))
         jobModel.updateJob(job, status=JobStatus.ERROR, log=log)
+        raise
 
 
 def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
@@ -85,7 +86,7 @@ def _uploadThumbnail(originalFile, image, attachToType, attachToId,
     uploadModel = ModelImporter.model('upload')
 
     out = six.BytesIO()
-    image.save(out, 'JPEG', quality=75)
+    image.save(out, 'JPEG', quality=85)
     contents = out.getvalue()
 
     upload = uploadModel.createUpload(

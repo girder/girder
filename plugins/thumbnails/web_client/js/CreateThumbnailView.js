@@ -25,7 +25,7 @@ girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
             this.$('.g-validation-failed-message').empty();
             this.$('.g-submit-create-thumbnail').attr('disabled', 'disabled');
 
-            var thumbnail = new girder.models.ThumbnailModel({
+            new girder.models.ThumbnailModel({
                 width: Number(this.$('#g-thumbnail-width').val()) || 0,
                 height: Number(this.$('#g-thumbnail-height').val()) || 0,
                 crop: this.$('#g-thumbnail-crop').is(':checked'),

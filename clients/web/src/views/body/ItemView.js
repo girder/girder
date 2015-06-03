@@ -134,6 +134,7 @@
                     this.edit = false;
                 }
 
+                this.trigger('g:rendered');
             }, this));
 
             return this;

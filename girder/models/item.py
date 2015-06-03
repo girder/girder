@@ -423,7 +423,7 @@ class Item(Model):
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
-        filteredItem = self.filter(newItem)
+        filteredItem = self.filter(newItem, creator)
         updated = False
         for key in srcItem:
             if key not in filteredItem and key not in newItem:
@@ -437,7 +437,7 @@ class Item(Model):
         for file in self.childFiles(item=srcItem):
             self.model('file').copyFile(file, creator=creator, item=newItem)
         events.trigger('model.item.copy.after', newItem)
-        return self.filter(newItem)
+        return self.filter(newItem, creator)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):

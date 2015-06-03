@@ -167,6 +167,7 @@ class File(Resource):
         server and client agree on the number of bytes sent/received.
         """
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
+
         user = self.getCurrentUser()
 
         if not user:

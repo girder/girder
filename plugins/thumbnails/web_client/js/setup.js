@@ -31,22 +31,26 @@ girder.views.FileListWidget.prototype.events['click a.g-create-thumbnail'] = fun
 
 // Show thumbnails on the item page
 girder.wrap(girder.views.ItemView, 'render', function (render) {
+    // ItemView is a special case in which rendering is done asynchronously,
+    // so we must listen for a render event.
+    this.once('g:rendered', function () {
+        var thumbnails = _.map(this.model.get('_thumbnails'), function (id) {
+            return new girder.models.FileModel({_id: id});
+        });
+
+        if (thumbnails && thumbnails.length) {
+            var el = $('<div>', {
+                class: 'g-thumbnails-flow-view-container'
+            }).prependTo(this.$('.g-item-info'));
+
+            new girder.views.thumbnails_FlowView({
+                parentView: this,
+                thumbnails: thumbnails,
+                accessLevel: this.model.getAccessLevel(),
+                el: el
+            }).render();
+        }
+    }, this);
+
     render.call(this);
-
-    var thumbnails = _.map(this.model.get('_thumbnails'), function (id) {
-        return new girder.models.FileModel({_id: id});
-    });
-
-    if (thumbnails && thumbnails.length) {
-        var el = $('<div>', {
-            class: 'g-thumbnails-flow-view-container'
-        }).prependTo(this.$('.g-item-info'));
-
-        new girder.views.thumbnails_FlowView({
-            parentView: this,
-            thumbnails: thumbnails,
-            accessLevel: this.model.getAccessLevel(),
-            el: el
-        }).render();
-    }
 });
