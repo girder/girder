@@ -53,7 +53,13 @@ class Model(ModelImporter):
         }
 
         self.initialize()
+        self.reconnect()
 
+    def reconnect(self):
+        """
+        Reconnect to the database and rebuild indices if necessary. Users should
+        typically not have to call this method.
+        """
         db_connection = getDbConnection()
         self.database = db_connection.get_default_database()
         self.collection = MongoProxy(self.database[self.name])
@@ -90,7 +96,8 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].union(fields)
+        self._filterKeys[level] = \
+            self._filterKeys[level].union(fields)
 
     def hideFields(self, level, fields):
         """
@@ -107,7 +114,8 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].difference(fields)
+        self._filterKeys[level] = \
+            self._filterKeys[level].difference(fields)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
@@ -180,7 +188,7 @@ class Model(ModelImporter):
         :type doc: dict
         """
         raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__)  # pragma: no cover
+                        % self.__name__)  # pragma: no cover
 
     def initialize(self):
         """
@@ -188,7 +196,7 @@ class Model(ModelImporter):
         self.name. Also, they should set any indexed fields that they require.
         """
         raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__)  # pragma: no cover
+                        % self.__name__)  # pragma: no cover
 
     def find(self, query=None, offset=0, limit=0, **kwargs):
         """
@@ -478,7 +486,8 @@ class AccessControlledModel(Model):
                 keys = keys.union(self._filterKeys[AccessType.ADMIN])
 
                 if user.get('admin') is True:
-                    keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+                    keys = keys.union(
+                        self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
             keys = keys.union(additionalKeys)

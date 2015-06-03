@@ -94,16 +94,15 @@ def dropTestDatabase(dropModels=True):
     """
     db_connection = getDbConnection()
 
-    if dropModels:
-        # Must clear the models to rebuild indices
-        model_importer.clearModels()
-
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
 
     if 'girder_test_' not in dbName:
         raise Exception('Expected a testing database name, but got {}'
                         .format(dbName))
     db_connection.drop_database(dbName)
+
+    if dropModels:
+        model_importer.reinitializeAll()
 
 
 def dropGridFSDatabase(dbName):
