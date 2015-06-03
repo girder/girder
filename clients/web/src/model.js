@@ -60,17 +60,24 @@ girder.Model = Backbone.Model.extend({
     /**
      * Fetch a single resource from the server. Triggers g:fetched on success,
      * or g:error on error.
+     * To ignore the default error handler, pass
+     *     ignoreError: true
+     * in your opts object.
      */
-    fetch: function () {
+    fetch: function (opts) {
         if (this.resourceName === null) {
             alert('Error: You must set a resourceName on your model.');
             return;
         }
 
-        girder.restRequest({
-            path: this.resourceName + '/' + this.get('_id'),
-            error: null
-        }).done(_.bind(function (resp) {
+        opts = opts || {};
+        var restOpts = {
+            path: this.resourceName + '/' + this.get('_id')
+        };
+        if (opts.ignoreError) {
+            restOpts.error = null;
+        }
+        girder.restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
             this.trigger('g:fetched');
         }, this)).error(_.bind(function (err) {

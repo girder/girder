@@ -27,6 +27,7 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
     initialize: function () {
         girder.events.on('g:login', this.render, this);
         girder.events.on('g:login-changed', this.render, this);
+        girder.events.on('g:logout', this.render, this);
     },
 
     render: function () {

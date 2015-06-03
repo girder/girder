@@ -17,14 +17,10 @@ girder.views.AssetstoresView = girder.View.extend({
         }).on('g:created', this.addAssetstore, this);
 
         // Fetch all of the current assetstores
-        if (girder.currentUser && girder.currentUser.get('admin')) {
-            this.collection = new girder.collections.AssetstoreCollection();
-            this.collection.on('g:changed', function () {
-                this.render();
-            }, this).fetch();
-        } else {
+        this.collection = new girder.collections.AssetstoreCollection();
+        this.collection.on('g:changed', function () {
             this.render();
-        }
+        }, this).fetch();
     },
 
     render: function () {

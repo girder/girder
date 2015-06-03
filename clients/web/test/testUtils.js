@@ -834,3 +834,34 @@ girderTest.shimBlobBuilder = function () {
     };
     window.Blob.prototype = oldPrototype;
 };
+
+/*
+ * Loads a particular fragment as anonymous and checks whether the login dialog
+ * appears.  Assumes you are logged out, or else you should pass logoutFirst=true.
+ * If you would like the system to log back in at the end of this function,
+ * pass a loginFunction to be called.
+ */
+girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, loginFunction) {
+    /*
+     * :param logoutFirst: boolean, whether this function should log out the current user
+     *                     before loading the fragment.
+     * :param fragment: URL fragment to load.
+     * :param hasLoginDialog: boolean, whether the page loaded at the fragment's route should
+     *                        display a login dialog.
+     * :param loginFunction: function, if passed, the loginFunction will be called at the end of
+     *                       this function to log the user back in.
+     */
+    if (logoutFirst) {
+        girderTest.logout()();
+    }
+    girderTest.testRoute(fragment, hasLoginDialog);
+    if (hasLoginDialog) {
+        waitsFor(function () {
+            return $('input#g-login').length > 0;
+        }, 'login dialog to appear');
+    }
+    girderTest.testRoute('', false);
+    if (loginFunction) {
+        loginFunction();
+    }
+};

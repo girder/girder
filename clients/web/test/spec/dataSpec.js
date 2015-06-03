@@ -574,14 +574,38 @@ describe('Create a data hierarchy', function () {
                               'Doe',
                               'password!'));
     it('test copy permissions', function () {
+        // navigate back to John Doe's Public folder
+        girderTest.goToUsersPage()();
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val('john').trigger('input');
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+
+        runs(function () {
+            var results = $('.g-quick-search-container li.g-search-result');
+            expect(results.length).toBe(2);
+
+            expect(results.find('a[resourcetype="folder"]').length).toBe(1);
+            expect(results.find('a[resourcetype="user"]').length).toBe(1);
+
+            results.find('a[resourcetype="user"]').click();
+        });
+
         var oldPicked;
+        waitsFor(function () {
+            return $('.g-list-checkbox').length == 1;
+        }, 'User folders to be shown');
         runs(function () {
             $('a.g-folder-list-link:first').click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
             return $('.g-list-checkbox').length == 3;
-        }, 'public folder to be shown');
+        }, 'Public folder to be shown');
         /* Select one item and make sure we can't copy or move */
         runs(function () {
             $('.g-list-checkbox:last').click();
@@ -681,7 +705,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-checked-actions-menu:visible').length == 0;
         }, 'checked actions menu to hide');
         runs(function () {
-            /* Skip a bunch of UI actiosn to more quickly get back to have one
+            /* Skip a bunch of UI actions to more quickly get back to have one
              * item selected. */
             girder.pickedResources = oldPicked;
             $('a.g-folder-list-link:first').click();

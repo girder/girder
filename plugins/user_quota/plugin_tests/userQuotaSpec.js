@@ -119,7 +119,7 @@ function _testQuotaDialogAsUser(hasChart) {
 
 describe('test the user quota plugin', function () {
     var collectionDialogRoute, userDialogRoute, userRoute;
-    it('create reources', function () {
+    it('create resources', function () {
         girderTest.createUser(
             'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
         _goToCollection();
