@@ -96,8 +96,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = \
-            self._filterKeys[level].union(fields)
+        self._filterKeys[level] = self._filterKeys[level].union(fields)
 
     def hideFields(self, level, fields):
         """
@@ -114,8 +113,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = \
-            self._filterKeys[level].difference(fields)
+        self._filterKeys[level] = self._filterKeys[level].difference(fields)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """

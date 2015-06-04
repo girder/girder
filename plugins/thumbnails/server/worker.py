@@ -17,10 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
+import functools
 import six
 import sys
 import traceback
 
+from girder import events
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility.model_importer import ModelImporter
 from PIL import Image
@@ -46,13 +48,39 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     Creates the thumbnail. Validation and access control must be done prior
     to the invocation of this method.
     """
-    file = ModelImporter.model('file').load(fileId)
+    fileModel = ModelImporter.model('file')
+    file = fileModel.load(fileId)
+    streamFn = functools.partial(fileModel.download, file, headers=False)
+
+    event = events.trigger('thumbnails.create', info={
+        'file': file,
+        'width': width,
+        'height': height,
+        'crop': crop,
+        'attachToType': attachToType,
+        'attachToId': attachToId,
+        'streamFn': streamFn
+    })
+
+    if len(event.responses):
+        resp = event.responses[-1]
+        newFile = resp['file']
+
+        if event.defaultPrevented:
+            if resp.get('attach', True):
+                newFile = attachThumbnail(
+                    file, newFile, attachToType, attachToId, width, height)
+            return newFile
+        else:
+            file = newFile
+            streamFn = functools.partial(
+                fileModel.download, file, headers=False)
 
     if 'assetstoreId' not in file:
         # TODO we could thumbnail link files if we really wanted.
         raise Exception('File %s has no assetstore.' % fileId)
 
-    stream = ModelImporter.model('file').download(file, headers=False)
+    stream = streamFn()
     data = b''.join(stream())
 
     image = Image.open(six.BytesIO(data))
@@ -77,12 +105,6 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     image.thumbnail((width, height), Image.ANTIALIAS)
 
-    return _uploadThumbnail(
-        file, image, attachToType, attachToId, width, height)
-
-
-def _uploadThumbnail(originalFile, image, attachToType, attachToId,
-                     width, height):
     uploadModel = ModelImporter.model('upload')
 
     out = six.BytesIO()
@@ -93,23 +115,47 @@ def _uploadThumbnail(originalFile, image, attachToType, attachToId,
         user=None, name='_thumb.jpg', parentType=None, parent=None,
         size=len(contents), mimeType='image/jpeg')
 
-    file = uploadModel.handleChunk(upload, six.BytesIO(contents))
+    thumbnail = uploadModel.handleChunk(upload, six.BytesIO(contents))
+
+    return attachThumbnail(
+        file, thumbnail, attachToType, attachToId, width, height)
+
+
+def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
+    """
+    Add the required information to the thumbnail file and the resource it
+    is being attached to, and save the documents.
+
+    :param file: The file from which the thumbnail was derived.
+    :type file: dict
+    :param thumbnail: The newly generated thumbnail file document.
+    :type thumbnail: dict
+    :param attachToType: The type to which the thumbnail is being attached.
+    :type attachToType: str
+    :param attachToId: The ID of the document to attach the thumbnail to.
+    :type attachToId: str or ObjectId
+    :param width: Thumbnail width.
+    :type width: int
+    :param height: Thumbnail height.
+    :type height: int
+    :returns: The updated thumbnail file document.
+    """
 
     parentModel = ModelImporter.model(attachToType)
     parent = parentModel.load(attachToId, force=True)
     parent['_thumbnails'] = parent.get('_thumbnails', [])
-    parent['_thumbnails'].append(file['_id'])
+    parent['_thumbnails'].append(thumbnail['_id'])
     parentModel.save(parent)
 
-    file['attachedToType'] = attachToType
-    file['attachedToId'] = parent['_id']
-    file['isThumbnail'] = True
-    file['derivedFrom'] = {
+    thumbnail['attachedToType'] = attachToType
+    thumbnail['attachedToId'] = parent['_id']
+    thumbnail['isThumbnail'] = True
+    thumbnail['derivedFrom'] = {
         'type': 'file',
-        'id': originalFile['_id'],
+        'id': file['_id'],
         'process': 'thumbnail',
         'width': width,
         'height': height
     }
 
-    return ModelImporter.model('file').save(file)
+    return ModelImporter.model('file').save(thumbnail)
