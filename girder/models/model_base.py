@@ -186,7 +186,7 @@ class Model(ModelImporter):
         :type doc: dict
         """
         raise Exception('Must override validate() in %s model.'
-                        % self.__name__)  # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def initialize(self):
         """
@@ -194,7 +194,7 @@ class Model(ModelImporter):
         self.name. Also, they should set any indexed fields that they require.
         """
         raise Exception('Must override initialize() in %s model'
-                        % self.__name__)  # pragma: no cover
+                        % self.__class__.__name__)  # pragma: no cover
 
     def find(self, query=None, offset=0, limit=0, **kwargs):
         """
