@@ -306,9 +306,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         e.g. when downloading as part of a zip stream, we connect to S3 and
         pipe the bytes from S3 through the server to the user agent.
         """
+        if self.assetstore.get('botoConnect', {}).get('anon') is True:
+            urlFn = self._anonDownloadUrl
+        else:
+            urlFn = self._botoGenerateUrl
+
         if headers:
             if file['size'] > 0:
-                url = self._botoGenerateUrl(key=file['s3Key'])
+                url = urlFn(key=file['s3Key'])
                 raise cherrypy.HTTPRedirect(url)
             else:
                 cherrypy.response.headers['Content-Length'] = '0'
@@ -323,8 +328,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             def stream():
                 if file['size'] > 0:
-                    pipe = requests.get(
-                        self._botoGenerateUrl(key=file['s3Key']), stream=True)
+                    pipe = requests.get(urlFn(key=file['s3Key']), stream=True)
                     for chunk in pipe.iter_content(chunk_size=65536):
                         if chunk:
                             yield chunk
@@ -343,6 +347,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             bucket = self._getBucket()
 
         for obj in bucket.list(importPath, '/'):
+            if progress:
+                progress.update(message=obj.name)
+
             if isinstance(obj, boto.s3.prefix.Prefix):
                 name = obj.name.rstrip('/').rsplit('/', 1)[-1]
                 folder = self.model('folder').createFolder(
@@ -493,6 +500,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         Generate a URL to communicate with the S3 server.  This leverages the
         boto generate_url method, but has additional parameters to compensate
         for that methods lack of exposing query parameters.
+
         :param method: one of 'GET', 'PUT', 'POST', or 'DELETE'.
         :param key: the name of the S3 key to use.
         :param headers: if present, a dictionary of headers to encode in the
@@ -522,6 +530,20 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     url = parts[0]+'?'+parts[1]+'&'+parts[2]
         return url
 
+    def _anonDownloadUrl(self, key):
+        """
+        Generate and return an anonymous download URL for the given key. This
+        is necessary as a workaround for a limitation of boto's generate_url,
+        documented here: https://github.com/boto/boto/issues/1540
+        """
+        if self.assetstore['service']:
+            return '/'.join((
+                self.assetstore['service'], self.assetstore['bucket'],
+                key.lstrip('/')))
+        else:
+            service = 'https://%s.s3.amazonaws.com' % self.assetstore['bucket']
+            return '/'.join((service, key.lstrip('/')))
+
 
 class BotoCallingFormat(boto.s3.connection.OrdinaryCallingFormat):
     # By subclassing boto's calling format, we can pass upload parameters along
@@ -547,28 +569,37 @@ def botoConnectS3(connectParams):
     :param connectParams: a dictionary of paramters to use in the connection.
     :returns: the boto connection object.
     """
+    if 'anon' not in connectParams or not connectParams['anon']:
+        connectParams = connectParams.copy()
+        connectParams['calling_format'] = BotoCallingFormat()
+
     try:
-        conn = boto.connect_s3(calling_format=BotoCallingFormat(),
-                               **connectParams)
+        return boto.connect_s3(**connectParams)
     except Exception:
         logger.exception('S3 assetstore validation exception')
         raise ValidationException('Unable to connect to S3 assetstore')
-    return conn
 
 
 def makeBotoConnectParams(accessKeyId, secret, service=None):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
+
     :param accessKeyId: the S3 access key ID
     :param secret: the S3 secret key
     :param service: the name of the service in the form
                     [http[s]://](host domain)[:(port)].
     :returns: boto connection parameter dictionary.
     """
-    connect = {
-        'aws_access_key_id': accessKeyId,
-        'aws_secret_access_key': secret,
+    if accessKeyId and secret:
+        connect = {
+            'aws_access_key_id': accessKeyId,
+            'aws_secret_access_key': secret,
+            }
+    else:
+        connect = {
+            'anon': True
         }
+
     if service:
         service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$", service)
         if service.groups()[1] == 'http':
