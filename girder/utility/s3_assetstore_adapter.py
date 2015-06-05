@@ -83,14 +83,15 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         conn = botoConnectS3(doc['botoConnect'])
         if doc.get('readOnly'):
             try:
-                bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
+                conn.get_bucket(bucket_name=doc['bucket'], validate=True)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException('Unable to connect to bucket "{}".'
                                           .format(doc['bucket']), 'bucket')
         else:
             try:
-                bucket = conn.lookup(bucket_name=doc['bucket'], validate=True)
+                bucket = conn.get_bucket(bucket_name=doc['bucket'],
+                                         validate=True)
                 testKey = boto.s3.key.Key(
                     bucket=bucket, name='/'.join(
                         filter(None, (doc['prefix'], 'test'))))
@@ -200,8 +201,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def _getBucket(self, validate=True):
         conn = botoConnectS3(self.assetstore['botoConnect'])
-        return conn.lookup(bucket_name=self.assetstore['bucket'],
-                           validate=validate)
+        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
+                             validate=validate)
+
+        if not bucket:
+            raise Exception('Could not connect to S3 bucket.')
+
+        return bucket
 
     def _proxiedUploadChunk(self, upload, chunk):
         """
