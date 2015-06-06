@@ -52,7 +52,8 @@ class Thumbnail(Resource):
         height = max(int(params.get('height', 0)), 0)
 
         if not width and not height:
-            raise RestException('You must specify a width, a height, or both.')
+            raise RestException(
+                'You must specify a valid width, height, or both.')
 
         kwargs = {
             'width': width,

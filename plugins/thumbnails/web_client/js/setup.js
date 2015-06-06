@@ -49,6 +49,12 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
                 accessLevel: this.model.getAccessLevel(),
                 el: el
             }).render();
+
+            var headerEl = $('<div>', {
+                class: 'g-thumbnails-header-container'
+            }).prependTo(this.$('.g-item-info'));
+
+            headerEl.html(girder.templates.thumbnails_itemHeader());
         }
     }, this);
 
