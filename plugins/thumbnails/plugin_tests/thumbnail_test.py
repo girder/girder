@@ -115,8 +115,8 @@ class ThumbnailsTestCase(base.TestCase):
         resp = self.request(
             path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'You must specify a width, a '
-                         'height, or both.')
+        self.assertEqual(resp.json['message'], 'You must specify a valid width,'
+                         ' height, or both.')
 
         # Set a width, we should now correctly have a thumbnail
         params['width'] = 64
