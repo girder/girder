@@ -307,7 +307,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         token = self.model('token').createToken(user)
         return str(token['_id'])
 
-    def _buildHeaders(self, headers, cookie, user, token, basicAuth, authHeader):
+    def _buildHeaders(self, headers, cookie, user, token, basicAuth,
+                      authHeader):
         if cookie is not None:
             headers.append(('Cookie', cookie))
 
