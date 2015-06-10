@@ -357,7 +357,7 @@ class ResourceExt(Resource):
         beacuse we want to know its id.  We record it here, instead.
         :param event: the event with the file information."""
         file = event.info
-        if 'itemId' not in file or '_id' not in file:
+        if 'itemId' not in file or not file['itemId'] or '_id' not in file:
             return
         user = self.getProvenanceUser(file)
         item = self.model('item').load(id=file['itemId'], user=user,

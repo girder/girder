@@ -56,6 +56,7 @@ class WebClientTestEndpoints(Resource):
     def __init__(self):
         self.route('GET', ('progress', ), self.testProgress)
         self.route('PUT', ('progress', 'stop'), self.testProgressStop)
+        self.route('POST', ('file', ), self.uploadFile)
         self.stop = False
 
     @access.token
@@ -87,6 +88,30 @@ class WebClientTestEndpoints(Resource):
         self.stop = True
     testProgressStop.description = (
         Description('Halt all progress tests'))
+
+    @access.user
+    def uploadFile(self, params):
+        """
+        Providing this works around a limitation in phantom that makes us
+        unable to upload binary files, or at least ones that contain certain
+        byte values. The path parameter should be provided relative to the
+        root directory of the repository.
+        """
+        self.requireParams(('folderId', 'path'), params)
+
+        path = os.path.join(ROOT_DIR, params['path'])
+        name = os.path.basename(path)
+        folder = self.model('folder').load(params['folderId'], force=True)
+
+        upload = self.model('upload').createUpload(
+            user=self.getCurrentUser(), name=name, parentType='folder',
+            parent=folder, size=os.path.getsize(path))
+
+        with open(path, 'rb') as fd:
+            file = self.model('upload').handleChunk(upload, fd)
+
+        return file
+    uploadFile.description = None
 
 
 class WebClientTestCase(base.TestCase):

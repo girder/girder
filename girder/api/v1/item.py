@@ -72,12 +72,12 @@ class Item(Resource):
                 filters['$text'] = {
                     '$search': params['text']
                 }
-            return [self.model('item').filter(item) for item in
+            return [self.model('item').filter(item, user) for item in
                     self.model('folder').childItems(
                         folder=folder, limit=limit, offset=offset, sort=sort,
                         filters=filters)]
         elif 'text' in params:
-            return [self.model('item').filter(item) for item in
+            return [self.model('item').filter(item, user) for item in
                     self.model('item').textSearch(
                         params['text'], user=user, limit=limit, offset=offset,
                         sort=sort)]
@@ -104,7 +104,7 @@ class Item(Resource):
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
     def getItem(self, item, params):
-        return self.model('item').filter(item)
+        return self.model('item').filter(item, self.getCurrentUser())
     getItem.description = (
         Description('Get an item by ID.')
         .responseClass('Item')
@@ -134,7 +134,7 @@ class Item(Resource):
         item = self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
 
-        return self.model('item').filter(item)
+        return self.model('item').filter(item, user=user)
     createItem.description = (
         Description('Create a new item.')
         .responseClass('Item')
@@ -160,7 +160,7 @@ class Item(Resource):
             if folder['_id'] != item['folderId']:
                 self.model('item').move(item, folder)
 
-        return self.model('item').filter(item)
+        return self.model('item').filter(item, user=user)
     updateItem.description = (
         Description('Edit an item or move it to another folder.')
         .responseClass('Item')

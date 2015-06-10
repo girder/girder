@@ -49,10 +49,11 @@ class JobsTestCase(base.TestCase):
         self.job = None
         def schedule(event):
             self.job = event.info
-            self.job['status'] = JobStatus.RUNNING
-            self.model('job', 'jobs').save(self.job)
-            self.assertEqual(self.job['args'], ('hello', 'world'))
-            self.assertEqual(self.job['kwargs'], {'a': 'b'})
+            if self.job['handler'] == 'my_handler':
+                self.job['status'] = JobStatus.RUNNING
+                self.model('job', 'jobs').save(self.job)
+                self.assertEqual(self.job['args'], ('hello', 'world'))
+                self.assertEqual(self.job['kwargs'], {'a': 'b'})
 
         events.bind('jobs.schedule', 'test', schedule)
 
@@ -275,3 +276,24 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(job['kwargs'], kwargs)
         job = self.model('job', 'jobs').filter(job, self.users[1])
         self.assertFalse('kwargs' in job)
+
+    def testLocalJob(self):
+        job = self.model('job', 'jobs').createLocalJob(
+            title='local', type='local', user=self.users[0], kwargs={
+                'hello': 'world'
+            }, module='plugin_tests.local_job_impl')
+
+        self.model('job', 'jobs').scheduleJob(job)
+
+        job = self.model('job', 'jobs').load(job['_id'], force=True)
+        self.assertEqual(job['log'], 'job ran!')
+
+        job = self.model('job', 'jobs').createLocalJob(
+            title='local', type='local', user=self.users[0], kwargs={
+                'hello': 'world'
+            }, module='plugin_tests.local_job_impl', function='fail')
+
+        self.model('job', 'jobs').scheduleJob(job)
+
+        job = self.model('job', 'jobs').load(job['_id'], force=True)
+        self.assertEqual(job['log'], 'job failed')

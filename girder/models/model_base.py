@@ -53,7 +53,13 @@ class Model(ModelImporter):
         }
 
         self.initialize()
+        self.reconnect()
 
+    def reconnect(self):
+        """
+        Reconnect to the database and rebuild indices if necessary. Users should
+        typically not have to call this method.
+        """
         db_connection = getDbConnection()
         self.database = db_connection.get_default_database()
         self.collection = MongoProxy(self.database[self.name])
@@ -380,6 +386,9 @@ class Model(ModelImporter):
         :type exc: bool
         :returns: The matching document, or None.
         """
+        if not id:
+            raise Exception('Attempt to load null ObjectId: %s' % id)
+
         if objectId and type(id) is not ObjectId:
             try:
                 id = ObjectId(id)
@@ -475,7 +484,8 @@ class AccessControlledModel(Model):
                 keys = keys.union(self._filterKeys[AccessType.ADMIN])
 
                 if user.get('admin') is True:
-                    keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+                    keys = keys.union(
+                        self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
             keys = keys.union(additionalKeys)

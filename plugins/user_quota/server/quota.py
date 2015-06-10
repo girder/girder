@@ -286,7 +286,7 @@ class QuotaPolicy(Resource):
             model = resource['baseParentType']
             resourceId = resource['baseParentId']
             resource = self.model(model).load(id=resourceId, force=True)
-        if QUOTA_FIELD not in resource:
+        if not resource or QUOTA_FIELD not in resource:
             return None, None
         return model, resource
 

@@ -60,6 +60,7 @@ class Event(object):
 
     # We might have a lot of events, so we use __slots__ to make them smaller
     __slots__ = (
+        'async',
         'info',
         'name',
         'propagate',
@@ -68,13 +69,14 @@ class Event(object):
         'currentHandlerName'
     )
 
-    def __init__(self, name, info):
+    def __init__(self, name, info, async=False):
         self.name = name
         self.info = info
         self.propagate = True
         self.defaultPrevented = False
         self.responses = []
         self.currentHandlerName = None
+        self.async = async
 
     def preventDefault(self):
         """
@@ -129,7 +131,7 @@ class AsyncEventsThread(threading.Thread):
         while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
             try:
-                event = trigger(eventName, info)
+                event = trigger(eventName, info, async=True)
                 if isinstance(callback, types.FunctionType):
                     callback(event)
             except Exception:
@@ -210,7 +212,7 @@ def unbindAll():
     _mapping = {}
 
 
-def trigger(eventName, info=None, pre=None):
+def trigger(eventName, info=None, pre=None, async=False):
     """
     Fire an event with the given name. All listeners bound on that name will be
     called until they are exhausted or one of the handlers calls the
@@ -224,9 +226,13 @@ def trigger(eventName, info=None, pre=None):
         executed. It will receive a dict with a "handler" key, (the function),
         "info" key (the info arg to this function), and "eventName" and
         "handlerName" values.
+    :type pre: function or None
+    :param async: Whether this event is executing on the background daemon
+        (True) or on the request thread (False).
+    :type async: bool
     """
     global _mapping
-    e = Event(eventName, info)
+    e = Event(eventName, info, async=async)
     for handler in _mapping.get(eventName, ()):
         e.currentHandlerName = handler['name']
         if pre is not None:

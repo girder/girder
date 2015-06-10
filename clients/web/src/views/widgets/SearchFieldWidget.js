@@ -19,14 +19,9 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 this._doSearch(q);
             }
         },
-        'click .g-search-result>a': function (e) {
-            var link = $(e.currentTarget);
 
-            this.trigger('g:resultClicked', {
-                type: link.attr('resourcetype'),
-                id: link.attr('resourceid'),
-                text: link.text()
-            });
+        'click .g-search-result>a': function (e) {
+            this._resultClicked($(e.currentTarget));
         },
 
         'keydown .g-search-field': function (e) {
@@ -52,14 +47,19 @@ girder.views.SearchFieldWidget = girder.View.extend({
             } else if (code === 13) { /* enter */
                 var link = this.$('.g-search-result.g-search-selected>a');
                 if (link.length) {
-                    this.trigger('g:resultClicked', {
-                        type: link.attr('resourcetype'),
-                        id: link.attr('resourceid'),
-                        text: link.text()
-                    });
+                    this._resultClicked(link);
                 }
             }
         }
+    },
+
+    _resultClicked: function (link) {
+        this.trigger('g:resultClicked', {
+            type: link.attr('resourcetype'),
+            id: link.attr('resourceid'),
+            text: link.text().trim(),
+            icon: link.attr('g-icon')
+        });
     },
 
     /**

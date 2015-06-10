@@ -167,6 +167,7 @@ class File(Resource):
         server and client agree on the number of bytes sent/received.
         """
         self.requireParams(('offset', 'uploadId', 'chunk'), params)
+
         user = self.getCurrentUser()
 
         if not user:
@@ -208,6 +209,20 @@ class File(Resource):
         .errorResponse('You are not the user who initiated the upload.', 403)
         .errorResponse('Failed to store upload.', 500))
 
+    def _verifyAccess(self, file, level, user):
+        """
+        Helper to verify a user's access level to a given file. Throws an
+        AccessException if the user does not have the appropriate access level
+        for the given file.
+        """
+        if 'itemId' in file and file['itemId']:
+            self.model('item').load(id=file['itemId'], user=user,
+                                    level=AccessType.READ, exc=True)
+        else:
+            self.model(file['attachedToType']).load(
+                id=file['attachedToId'], user=user, level=AccessType.READ,
+                exc=True)
+
     @access.public
     @loadmodel(model='file')
     def download(self, file, params):
@@ -216,9 +231,9 @@ class File(Resource):
         Requires read permission on the folder that contains the file's item.
         """
         offset = int(params.get('offset', 0))
-        user = self.getCurrentUser()
-        self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.READ, exc=True)
+        self._verifyAccess(
+            file, level=AccessType.READ, user=self.getCurrentUser())
+
         return self.model('file').download(file, offset)
     download.cookieAuth = True
     download.description = (
@@ -249,9 +264,8 @@ class File(Resource):
     @access.user
     @loadmodel(model='file')
     def deleteFile(self, file, params):
-        user = self.getCurrentUser()
-        self.model('item').load(id=file['itemId'], user=user,
-                                level=AccessType.WRITE, exc=True)
+        self._verifyAccess(
+            file, level=AccessType.WRITE, user=self.getCurrentUser())
         self.model('file').remove(file)
     deleteFile.description = (
         Description('Delete a file by ID.')
@@ -262,8 +276,8 @@ class File(Resource):
     @access.user
     @loadmodel(model='file')
     def updateFile(self, file, params):
-        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
-                                level=AccessType.WRITE, exc=True)
+        self._verifyAccess(
+            file, level=AccessType.WRITE, user=self.getCurrentUser())
         file['name'] = params.get('name', file['name']).strip()
         file['mimeType'] = params.get('mimeType',
                                       file.get('mimeType', '')).strip()
@@ -280,8 +294,8 @@ class File(Resource):
     @loadmodel(model='file')
     def updateFileContents(self, file, params):
         self.requireParams('size', params)
-        self.model('item').load(id=file['itemId'], user=self.getCurrentUser(),
-                                level=AccessType.WRITE, exc=True)
+        self._verifyAccess(
+            file, level=AccessType.WRITE, user=self.getCurrentUser())
 
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(

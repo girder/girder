@@ -18,6 +18,7 @@
 ###############################################################################
 
 import importlib
+import six
 
 from . import camelcase
 from girder import logger
@@ -46,14 +47,13 @@ def _loadModel(model, module, plugin):
     _modelInstances[plugin][model] = constructor()
 
 
-def clearModels():
+def reinitializeAll():
     """
-    Force reloading of all models by clearing the singleton cache. This is
-    used by the test suite to ensure that indices are built properly
-    at startup.
+    Force all models to reconnect/rebuild indices (needed for testing).
     """
-    global _modelInstances
-    _modelInstances = {}
+    for pluginModels in six.itervalues(_modelInstances):
+        for model in six.itervalues(pluginModels):
+            model.reconnect()
 
 
 class ModelImporter(object):
@@ -62,7 +62,7 @@ class ModelImporter(object):
     should extend/mixin this class.
     """
     @staticmethod
-    def model(model, plugin='_core'):
+    def model(model, plugin=None):
         """
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.
@@ -77,6 +77,10 @@ class ModelImporter(object):
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
+
+        if plugin is None:
+            plugin = '_core'
+
         if plugin not in _modelInstances:
             _modelInstances[plugin] = {}
 

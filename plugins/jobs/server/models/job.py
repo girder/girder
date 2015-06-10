@@ -25,7 +25,7 @@ import six
 from girder import events
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel, ValidationException
-from girder.plugins.jobs.constants import JobStatus
+from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
 
 
 class Job(AccessControlledModel):
@@ -82,8 +82,34 @@ class Job(AccessControlledModel):
 
         return job
 
-    def createJob(self, title, type, args=(), kwargs={}, user=None, when=None,
-                  interval=0, public=False, handler=None):
+    def createLocalJob(self, module, function=None, **kwargs):
+        """
+        Takes the same keyword arguments as :py:func:`createJob`, except this
+        sets the handler to the local handler and takes additional parameters
+        to specify the module and function that should be run.
+
+        :param module: The name of the python module to run.
+        :type module: str
+        :param function: Function name within the module to run. If not passed,
+            the default name of "run" will be used.
+        :type function: str or None
+        :returns: The job that was created.
+        """
+        kwargs['handler'] = JOB_HANDLER_LOCAL
+        kwargs['save'] = False
+
+        job = self.createJob(**kwargs)
+
+        job['module'] = module
+
+        if function is not None:
+            job['function'] = function
+
+        return self.save(job)
+
+    def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
+                  interval=0, public=False, handler=None, async=False,
+                  save=True):
         """
         Create a new job record.
 
@@ -100,21 +126,29 @@ class Job(AccessControlledModel):
         :param when: Minimum start time for the job (UTC).
         :type when: datetime
         :param interval: If this job should be recurring, set this to a value
-        in seconds representing how often it should occur. Set to <= 0 for
-        jobs that should only be run once.
+            in seconds representing how often it should occur. Set to <= 0 for
+            jobs that should only be run once.
         :type interval: int
         :param public: Public read access flag.
         :type public: bool
         :param handler: If this job should be handled by a specific handler,
-        use this field to store that information.
+            use this field to store that information.
         :param externalToken: If an external token was created for updating this
         job, pass it in and it will have the job-specific scope set.
         :type externalToken: token (dict) or None.
+        :param async: Whether the job is to be run asynchronously. For now this
+            only applies to jobs that are scheduled to run locally.
+        :type async: bool
+        :param save: Whether the documented should be saved to the database.
+        :type save: bool
         """
         now = datetime.datetime.utcnow()
 
         if when is None:
             when = now
+
+        if kwargs is None:
+            kwargs = {}
 
         job = {
             'title': title,
@@ -129,7 +163,8 @@ class Job(AccessControlledModel):
             'progress': None,
             'log': '',
             'meta': {},
-            'handler': handler
+            'handler': handler,
+            'async': async
         }
 
         self.setPublic(job, public=public)
@@ -138,7 +173,8 @@ class Job(AccessControlledModel):
             job['userId'] = user['_id']
             self.setUserAccess(job, user=user, level=AccessType.ADMIN)
 
-        job = self.save(job)
+        if save:
+            job = self.save(job)
 
         return job
 
@@ -169,9 +205,13 @@ class Job(AccessControlledModel):
     def scheduleJob(self, job):
         """
         Trigger the event to schedule this job. Other plugins are in charge of
-        actually scheduling and/or executing the job.
+        actually scheduling and/or executing the job, except in the case when
+        the handler is 'local'.
         """
-        events.trigger('jobs.schedule', info=job)
+        if job.get('async') is True:
+            events.daemon.trigger('jobs.schedule', info=job)
+        else:
+            events.trigger('jobs.schedule', info=job)
 
     def createJobToken(self, job, days=7):
         """
@@ -294,7 +334,7 @@ class Job(AccessControlledModel):
         })
 
         keys = ['title', 'type', 'created', 'interval', 'when', 'status',
-                'progress', 'log', 'meta', '_id', 'public']
+                'progress', 'log', 'meta', '_id', 'public', 'async']
 
         if user and user['admin'] is True:
             keys.extend(('args', 'kwargs'))
