@@ -144,7 +144,7 @@ _.extend(girder, {
             method: 'GET',
             path: '/user/authentication',
             headers: {
-                Authorization: auth
+                'Girder-Authorization': auth
             }
         }).then(function (response) {
             response.user.token = response.authToken;

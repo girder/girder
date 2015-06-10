@@ -307,7 +307,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         token = self.model('token').createToken(user)
         return str(token['_id'])
 
-    def _buildHeaders(self, headers, cookie, user, token, basicAuth):
+    def _buildHeaders(self, headers, cookie, user, token, basicAuth,
+                      authHeader):
         if cookie is not None:
             headers.append(('Cookie', cookie))
 
@@ -321,12 +322,13 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if basicAuth is not None:
             auth = base64.b64encode(basicAuth.encode('utf8'))
-            headers.append(('Authorization', 'Basic {}'.format(auth.decode())))
+            headers.append((authHeader, 'Basic {}'.format(auth.decode())))
 
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
-                additionalHeaders=None, useHttps=False):
+                additionalHeaders=None, useHttps=False,
+                authHeader='Girder-Authorization'):
         """
         Make an HTTP request.
 
@@ -349,6 +351,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                                   request.  Each item is a tuple of the form
                                   (header-name, header-value).
         :param useHttps: if True, pretend to use https
+        :param authHeader: The HTTP request header to use for authentication.
+        :type authHeader: str
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -380,7 +384,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             local, remote, 'http' if not useHttps else 'https', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        self._buildHeaders(headers, cookie, user, token, basicAuth)
+        self._buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
         try:
             response = request.run(method, prefix + path, qs, 'HTTP/1.1',

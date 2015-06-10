@@ -151,7 +151,7 @@ class SettingDefault:
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
-            'Content-Type, Cookie, Girder-Token',
+            'Content-Type, Cookie, Girder-Authorization, Girder-Token',
             # An apache server using reverse proxy would also need
             #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
             #  X-Forwarded-Host, Remote-Addr
