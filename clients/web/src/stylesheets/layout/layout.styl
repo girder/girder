@@ -1,22 +1,13 @@
-$navWidth = 180px
-$minHeight = 500px
-$headerHeight = 52px
-$headerZ = 50
-
-#g-global-nav-container
-  position fixed
-  top $headerHeight
-  width $navWidth
+@import "layoutVars"
 
 #g-app-header-container
   position fixed
   top 0
   width 100%
   z-index $headerZ
+  height $headerHeight
 
 #g-app-body-container.g-default-layout
-  padding 10px + $headerHeight 10px 10px 10px
-  margin-left $navWidth + 1px
   min-height $minHeight
 
 #g-app-body-container.g-empty-layout
@@ -62,12 +53,22 @@ $headerZ = 50
   overflow hidden
   text-overflow ellipsis
 
+@media (min-width: 721px)
+  #g-app-body-container.g-default-layout
+    padding 10px + $headerHeight 10px 10px 10px
+    margin-left $navWidth + 1px
+
+  #g-global-nav-container
+    position fixed
+    top $headerHeight
+    width $navWidth
+
 @media (max-width: 720px)
   #g-global-nav-container
     width 100%
     position static
     margin-top $headerHeight
 
-  #g-app-body-container
+  #g-app-body-container.g-default-layout
     margin-left 0
     padding 10px
