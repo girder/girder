@@ -169,7 +169,7 @@ class File(Model):
         }, field='size', amount=sizeIncrement, multi=False)
 
     def createFile(self, creator, item, name, size, assetstore, mimeType,
-                   saveFile=True):
+                   saveFile=True, reuseExisting=False):
         """
         Create a new file record in the database.
 
@@ -184,7 +184,18 @@ class File(Model):
         :type mimeType: str
         :param saveFile: if False, don't save the file, just return it.
         :type saveFile: bool
+        :param reuseExisting: If a file with the same name already exists in
+            this location, return it rather than creating a new file.
+        :type reuseExisting: bool
         """
+        if reuseExisting:
+            existing = self.findOne({
+                'itemId': item['_id'],
+                'name': name
+            })
+            if existing:
+                return existing
+
         file = {
             'created': datetime.datetime.utcnow(),
             'creatorId': creator['_id'],

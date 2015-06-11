@@ -90,7 +90,7 @@ class Folder(AccessControlledModel):
             }
             if '_id' in doc:
                 q['_id'] = {'$ne': doc['_id']}
-            dupFolder = self.model('folder').findOne(q, fields=['_id'])
+            dupFolder = self.findOne(q, fields=['_id'])
             if doc['parentCollection'] == 'folder':
                 q = {
                     'folderId': doc['parentId'],
@@ -199,7 +199,7 @@ class Folder(AccessControlledModel):
         the folder.
         :type updateQuery: dict
         """
-        self.model('folder').update(query={
+        self.update(query={
             'parentId': folderId,
             'parentCollection': 'folder'
         }, update=updateQuery, multi=True)
@@ -395,7 +395,8 @@ class Folder(AccessControlledModel):
             offset=offset)
 
     def createFolder(self, parent, name, description='', parentType='folder',
-                     public=None, creator=None, allowRename=False):
+                     public=None, creator=None, allowRename=False,
+                     reuseExisting=False):
         """
         Create a new folder under the given parent.
 
@@ -415,8 +416,23 @@ class Folder(AccessControlledModel):
         :type creator: dict
         :param allowRename: if True and a folder or item of this name exists,
                             automatically rename the folder.
+        :type allowRename: bool
+        :param reuseExisting: If a folder with the given name already exists
+            under the given parent, return that folder rather than creating a
+            new one.
+        :type reuseExisting: bool
         :returns: The folder document that was created.
         """
+        if reuseExisting:
+            existing = self.findOne({
+                'parentId': parent['_id'],
+                'name': name,
+                'parentCollection': parentType
+            })
+
+            if existing:
+                return existing
+
         assert '_id' in parent
         assert public is None or type(public) is bool
 

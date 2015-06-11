@@ -112,17 +112,17 @@ describe('Test the settings page', function () {
 describe('Test the assetstore page', function () {
     var name, service;
 
-    function _getAssetstoreContainer(name)
-    {
+    var _getAssetstoreContainer = function (name) {
         var containers = $('.g-assetstore-container');
-        for (var i=0; i<containers.length; i++)
-            if ($('span.g-assetstore-name', containers.eq(i)).text() ==
-                    ' '+name)
-                return containers.eq(i)
+        for (var i=0; i<containers.length; i++) {
+            if ($('span.g-assetstore-name', containers.eq(i)).text().trim() === name) {
+                return containers.eq(i);
+            }
+        }
         return null;
-    }
+    };
 
-    function _testAssetstore(assetstore, tab, params) {
+    var _testAssetstore = function (assetstore, tab, params, callback) {
         var storeName = 'Test ' + assetstore + ' Assetstore';
 
         it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
@@ -141,8 +141,7 @@ describe('Test the assetstore page', function () {
             }, 'failure message to appear');
             runs(function () {
                 name = storeName;
-                for (var key in params)
-                {
+                for (var key in params) {
                     var value = params[key];
                     if (value == 'name')
                         value = name;
@@ -177,7 +176,7 @@ describe('Test the assetstore page', function () {
                 return $('.g-save-assetstore.btn:visible').length > 0 &&
                        $('#g-edit-name').val() === name;
             }, 'edit confirmation to appear and name field to be present');
-            runs(function() {
+            runs(function () {
                 name += ' Edit'
                 $('input#g-edit-name').val('');
                 $('.g-save-assetstore.btn').click();
@@ -186,7 +185,7 @@ describe('Test the assetstore page', function () {
                 return $('#g-dialog-container .g-validation-failed-message').text() === 'Name must not be empty.';
             }, 'name empty error to appear');
 
-            runs(function() {
+            runs(function () {
                 name += ' Edit'
                 $('input#g-edit-name').val(name);
                 $('.g-save-assetstore.btn').click();
@@ -224,6 +223,14 @@ describe('Test the assetstore page', function () {
                 return $('.g-assetstore-container').length > 0;
             }, 'assetstore page to load');
 
+            if (callback) {
+                runs(function () {
+                    callback({
+                        name: name
+                    });
+                });
+            };
+
             /* delete the assetstore */
             runs(function () {
                 $('.g-delete-assetstore', _getAssetstoreContainer(name)).click();
@@ -246,7 +253,77 @@ describe('Test the assetstore page', function () {
             });
             girderTest.waitForLoad();
         });
-    }
+    };
+
+    var _testS3Import = function (params) {
+        runs(function () {
+            var container = _getAssetstoreContainer(params.name);
+            var el = $('a.g-s3-import-button', container);
+            window.location = el[0].href;
+        });
+
+        waitsFor(function () {
+            return $('input#g-s3-import-path').length > 0;
+        }, 'import page to load');
+
+        runs(function () {
+            $('#g-s3-import-dest-id').val(girder.currentUser.id);
+            $('#g-s3-import-dest-type').val('user');
+
+            $('.g-submit-s3-import').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-folder-list-entry').text().indexOf('prefix') !== -1;
+        }, 'user folders to show');
+
+        runs(function () {
+            _.each($('.g-folder-list-link'), function (link) {
+                if ($(link).text() === 'prefix') {
+                    $(link).click();
+                }
+            });
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-link').text().indexOf('test') !== -1;
+        }, 'item to appear in the hierarchy widget');
+
+        runs(function () {
+            $('.g-item-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-file-list-link').length === 1;
+        }, 'item page to render');
+
+        // Delete the file so we can delete the assetstore
+        runs(function () {
+            $('.g-delete-file').click();
+        });
+
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('#g-confirm-button').length === 1;
+        }, 'delete file confirmation dialog to appear');
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+        girderTest.waitForLoad();
+
+        waitsFor(function () {
+            return $('.g-file-list-link').length === 0;
+        });
+
+        runs(function () {
+            window.location = '#assetstores';
+        });
+
+        waitsFor(function () {
+            return $('.g-assetstore-container').length > 0;
+        }, 'assetstore page to load');
+    };
 
     it('Test that anonymous loading assetstore page prompts login', function () {
         girderTest.anonymousLoadPage(false, 'assetstores', true);
@@ -300,13 +377,14 @@ describe('Test the assetstore page', function () {
                         '127.0.0.2:27081,127.0.0.2:27082',
                      'g-new-gridfs-replicaset': 'replicaset'});
 
-    _testAssetstore('s3', 'g-create-s3-tab',
-                    {'g-new-s3-name': 'name',
-                     'g-new-s3-bucket': 'bucketname',
-                     'g-new-s3-prefix': 'prefix',
-                     'g-new-s3-access-key-id': 'test',
-                     'g-new-s3-secret': 'test',
-                     'g-new-s3-service': 'service'});
+    _testAssetstore('s3', 'g-create-s3-tab', {
+        'g-new-s3-name': 'name',
+        'g-new-s3-bucket': 'bucketname',
+        'g-new-s3-prefix': 'prefix',
+        'g-new-s3-access-key-id': 'test',
+        'g-new-s3-secret': 'test',
+        'g-new-s3-service': 'service'
+    }, _testS3Import);
 
     /* Logout to make sure we don't see the assetstores any more */
     it('logout from admin account', girderTest.logout('logout to no longer view asset stores'));

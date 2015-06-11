@@ -60,6 +60,10 @@
             div
               b Service:
               span.g-service-key  #{assetstore.get('service')}
+            div.g-s3-import-button-container
+              a.g-s3-import-button.btn.btn-sm.btn-success(href="#assetstore/#{assetstore.id}/s3import")
+                i.icon-link-ext
+                |  Import files from S3
 
         if assetstore.capacityKnown()
           div
@@ -76,7 +80,7 @@
             div.g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
               button.g-delete-assetstore.btn.btn-sm.btn-danger.disabled(
                   cid="#{assetstore.cid}") Delete
-          if !assetstore.get('current')
+          if !assetstore.get('current') && !assetstore.get('readOnly')
             button.g-set-current.btn.btn-sm.btn-primary(
               cid="#{assetstore.cid}") Set as current
 

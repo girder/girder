@@ -140,13 +140,14 @@ class Assetstore(Model):
         })
 
     def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',
-                           service=''):
+                           service='', readOnly=False):
         return self.save({
             'type': AssetstoreType.S3,
             'created': datetime.datetime.utcnow(),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,
+            'readOnly': readOnly,
             'prefix': prefix,
             'bucket': bucket,
             'service': service
@@ -164,3 +165,13 @@ class Assetstore(Model):
                 'girder.model.assetstore.no-current-assetstore')
 
         return current
+
+    def importData(self, assetstore, parent, parentType, params, progress,
+                   user):
+        """
+        Calls the importData method of the underlying assetstore adapter.
+        """
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        return adapter.importData(
+            parent=parent, parentType=parentType, params=params,
+            progress=progress, user=user)

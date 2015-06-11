@@ -20,6 +20,7 @@
 import httmock
 import io
 import json
+import mock
 import moto
 import os
 import six
@@ -479,6 +480,70 @@ class AssetstoreTestCase(base.TestCase):
 
             extracted = zip.read('Public/My File.txt')
             self.assertEqual(extracted, b'dummy file contents')
+
+        # Import existing data from S3
+        resp = self.request('/folder', method='POST', params={
+            'parentType': 'folder',
+            'parentId': parentFolder['_id'],
+            'name': 'import destinaton'
+        }, user=self.admin)
+        self.assertStatusOk(resp)
+        importFolder = resp.json
+
+        resp = self.request(
+            '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
+                'importPath': '',
+                'destinationType': 'folder',
+                'destinationId': importFolder['_id'],
+            }, user=self.admin)
+        self.assertStatusOk(resp)
+
+        # Data should now appear in the tree
+        resp = self.request('/folder', user=self.admin, params={
+            'parentId': importFolder['_id'],
+            'parentType': 'folder'
+        })
+        self.assertStatusOk(resp)
+        children = resp.json
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0]['name'], 'foo')
+
+        resp = self.request('/folder', user=self.admin, params={
+            'parentId': children[0]['_id'],
+            'parentType': 'folder'
+        })
+        self.assertStatusOk(resp)
+        children = resp.json
+        self.assertEqual(len(children), 1)
+        self.assertEqual(children[0]['name'], 'bar')
+
+        resp = self.request('/item', user=self.admin, params={
+            'folderId': children[0]['_id']
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        item = resp.json[0]
+        self.assertEqual(item['name'], 'test')
+        self.assertEqual(item['size'], 0)
+
+        resp = self.request('/item/%s/files' % str(item['_id']),
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        file = resp.json[0]
+        self.assertTrue(file['imported'])
+        self.assertFalse('relpath' in file)
+        self.assertEqual(file['size'], 0)
+        self.assertEqual(file['assetstoreId'], str(assetstore['_id']))
+
+        # Deleting an imported file should not delete it from S3
+        self.assertTrue(bucket.get_key('/foo/bar/test') is not None)
+
+        with mock.patch('girder.events.daemon.trigger') as daemon:
+            resp = self.request('/item/%s' % str(item['_id']), method='DELETE',
+                                user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(len(daemon.mock_calls), 0)
 
         # Create the file key in the moto s3 store so that we can test that it
         # gets deleted.

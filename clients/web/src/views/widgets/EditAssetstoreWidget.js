@@ -109,7 +109,8 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
                 prefix: this.$('#g-edit-s3-prefix').val(),
                 accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
                 secret: this.$('#g-edit-s3-secret').val(),
-                service: this.$('#g-edit-s3-service').val()
+                service: this.$('#g-edit-s3-service').val(),
+                readOnly: this.$('#g-edit-s3-readonly').is(':checked')
             };
         },
         set: function () {
@@ -118,6 +119,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             this.$('#g-edit-s3-access-key-id').val(this.model.get('accessKeyId'));
             this.$('#g-edit-s3-secret').val(this.model.get('secret'));
             this.$('#g-edit-s3-service').val(this.model.get('service'));
+            this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
         }
     };
 }) ();
