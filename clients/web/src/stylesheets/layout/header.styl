@@ -1,25 +1,30 @@
+@import "layoutVars"
+
 .g-header-wrapper
   background-color #3f3b3b
   color white
-  padding 8px 15px
+  height $headerHeight
+  vertical-align middle
+  padding 0 15px
 
 .g-app-title
   display inline
   font-size 25px
   font-weight bold
   margin-right 35px
-  line-height 36px
-  vertical-align middle
+  line-height $headerHeight
   cursor pointer
 
 .g-quick-search-form
-  display inline
-  margin-right 15px
-
-#g-quick-search-input
-  width 180px
-  margin-right 10px
+  display inline-block
+  margin-right 12px
+  vertical-align top
+  margin-top (($headerHeight - 30px) / 2)
 
 .g-current-user-wrapper
   display inline
   float right
+
+@media (max-width: 500px)
+  .g-app-title
+    display none
