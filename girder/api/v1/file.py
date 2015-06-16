@@ -217,10 +217,10 @@ class File(Resource):
         """
         if 'itemId' in file and file['itemId']:
             self.model('item').load(id=file['itemId'], user=user,
-                                    level=AccessType.READ, exc=True)
+                                    level=level, exc=True)
         else:
             self.model(file['attachedToType']).load(
-                id=file['attachedToId'], user=user, level=AccessType.READ,
+                id=file['attachedToId'], user=user, level=level,
                 exc=True)
 
     @access.public
