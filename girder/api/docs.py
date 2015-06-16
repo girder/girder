@@ -60,7 +60,9 @@ def addRouteDocs(resource, route, method, info, handler):
     if path not in routes[resource]:
         routes[resource][path] = []
 
-    routes[resource][path].append(info)
+    if info not in routes[resource][path]:
+        routes[resource][path].append(info)
+
     discovery.add(resource)
 
 
