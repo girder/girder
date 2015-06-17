@@ -50,7 +50,7 @@ def getApiUrl(url=None):
     idx = url.find('/api/v1')
 
     if idx < 0:
-        raise Exception('Could not determine API root in %s.' % url)
+        raise GirderException('Could not determine API root in %s.' % url)
 
     return url[:idx + 7]
 
