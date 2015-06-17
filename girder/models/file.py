@@ -22,10 +22,10 @@ import datetime
 
 from .model_base import Model, ValidationException
 from ..constants import AccessType
-from girder.utility import assetstore_utilities
+from girder.utility import assetstore_utilities, acl_mixin
 
 
-class File(Model):
+class File(acl_mixin.AccessControlMixin, Model):
     """
     This model represents a File, which is stored in an assetstore.
     """
@@ -34,6 +34,8 @@ class File(Model):
         self.ensureIndices(
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
+        self.resource_coll = 'item'
+        self.resource_parent = 'itemId'
 
     def remove(self, file, updateItemSize=True, **kwargs):
         """

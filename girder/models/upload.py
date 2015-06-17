@@ -84,7 +84,7 @@ class Upload(Model):
             assetstore = self.model('assetstore').load(upload['assetstoreId'])
 
         if 'fileId' in upload:  # Updating an existing file's contents
-            file = self.model('file').load(upload['fileId'])
+            file = self.model('file').load(upload['fileId'], force=True)
 
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(

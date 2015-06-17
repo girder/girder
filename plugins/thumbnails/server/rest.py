@@ -29,7 +29,7 @@ class Thumbnail(Resource):
         self.route('POST', (), self.createThumbnail)
 
     @access.user
-    @loadmodel(map={'fileId': 'file'}, model='file')
+    @loadmodel(map={'fileId': 'file'}, model='file', level=AccessType.READ)
     def createThumbnail(self, file, params):
         self.requireParams(('attachToId', 'attachToType'), params)
 

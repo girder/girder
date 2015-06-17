@@ -29,10 +29,11 @@ from .model_base import Model, ValidationException, GirderException
 from girder import events
 from girder import logger
 from girder.constants import AccessType
+from girder.utility import acl_mixin
 from girder.utility.progress import setResponseTimeLimit
 
 
-class Item(Model):
+class Item(acl_mixin.AccessControlMixin, Model):
     """
     Items are leaves in the data hierarchy. They can contain 0 or more
     files within them, and can also contain arbitrary metadata.
@@ -46,6 +47,8 @@ class Item(Model):
             'name': 10,
             'description': 1
         })
+        self.resource_coll = 'folder'
+        self.resource_parent = 'folderId'
 
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
@@ -120,12 +123,8 @@ class Item(Model):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields,
-                         exc=exc)
-
-        if not force and doc is not None:
-            self.model('folder').load(doc['folderId'], level, user, objectId,
-                                      force, fields)
+        doc = super(Item, self).load(id, level, user, objectId, force, fields,
+                                     exc)
 
         if doc is not None and 'baseParentType' not in doc:
             pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
@@ -248,58 +247,6 @@ class Item(Model):
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)
-
-    def hasAccess(self, item, user=None, level=AccessType.READ):
-        """
-        Test access for a given user to this item. Simply calls this method
-        on the parent folder.
-        """
-        folder = self.model('folder').load(item['folderId'], force=True)
-        return self.model('folder').hasAccess(folder, user=user, level=level)
-
-    def filterResultsByPermission(self, cursor, user, level, limit, offset,
-                                  removeKeys=()):
-        """
-        This method is provided as a convenience for filtering a result cursor
-        of items by permissions, based on the parent folder. The results in
-        the cursor must contain the folderId field.
-
-        :param cursor: The database cursor object from "find()".
-        :param user: The user to check policies against.
-        :param level: The access level.
-        :type level: AccessType
-        :param limit: The max size of the result set.
-        :type limit: int
-        :param offset: The offset into the result set.
-        :type offset: int
-        :param removeKeys: List of keys that should be removed from each
-                           matching document.
-        :type removeKeys: list
-
-        """
-        # Cache mapping folderIds -> access granted (bool)
-        folderAccessCache = {}
-
-        def hasAccess(_result):
-            folderId = _result['folderId']
-
-            # check if the folderId is cached
-            if folderId not in folderAccessCache:
-                # if the folderId is not cached, check for permission "level"
-                # and set the cache
-                folder = self.model('folder').load(folderId, force=True)
-                folderAccessCache[folderId] = self.model('folder').hasAccess(
-                    folder, user=user, level=level)
-
-            return folderAccessCache[folderId]
-
-        endIndex = offset + limit if limit else None
-        filteredCursor = six.moves.filter(hasAccess, cursor)
-        for result in itertools.islice(filteredCursor, offset, endIndex):
-            for key in removeKeys:
-                if key in result:
-                    del result[key]
-            yield result
 
     def createItem(self, name, creator, folder, description='',
                    reuseExisting=False):

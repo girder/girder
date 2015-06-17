@@ -329,7 +329,9 @@ class ResourceExt(Resource):
                                        level=AccessType.READ, force=True)
         if not item:
             return
-        prevFile = self.model('file').load(curFile['_id'])
+        # should all of these sort of events be forced, since a save has to be
+        # granted first?
+        prevFile = self.model('file').load(curFile['_id'], force=True)
         if prevFile is None:
             oldData = None
             newData = self.snapshotResource(curFile)

@@ -25,6 +25,7 @@ from ..rest import Resource as BaseResource, RestException
 from girder.constants import AccessType
 from girder.api import access
 from girder.models.model_base import AccessControlledModel
+from girder.utility import acl_mixin
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -205,8 +206,8 @@ class Resource(BaseResource):
             for kind in resources:
                 model = self._getResourceModel(kind, 'remove')
                 for id in resources[kind]:
-                    if (kind == 'item' or
-                            isinstance(model, AccessControlledModel)):
+                    if (isinstance(model, (acl_mixin.AccessControlMixin,
+                                           AccessControlledModel))):
                         doc = model.load(id=id, user=user,
                                          level=AccessType.ADMIN)
                     else:
@@ -242,8 +243,8 @@ class Resource(BaseResource):
     @access.admin
     def getResource(self, id, params):
         model = self._getResourceModel(params['type'])
-        if (params['type'] == 'item' or
-                isinstance(model, AccessControlledModel)):
+        if (isinstance(model, (acl_mixin.AccessControlMixin,
+                               AccessControlledModel))):
             user = self.getCurrentUser()
             return model.load(id=id, user=user, level=AccessType.READ)
         return model.load(id=id)
