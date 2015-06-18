@@ -49,7 +49,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     to the invocation of this method.
     """
     fileModel = ModelImporter.model('file')
-    file = fileModel.load(fileId)
+    file = fileModel.load(fileId, force=True)
     streamFn = functools.partial(fileModel.download, file, headers=False)
 
     event = events.trigger('thumbnails.create', info={

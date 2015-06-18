@@ -46,6 +46,9 @@ class AccessControlMixin(object):
         Calls Model.load on the current item, and then attempts to load the
         resourceParent which the user must have access to in order to load this
         model.
+
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlledModel.load`.
         """
         doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
@@ -60,6 +63,9 @@ class AccessControlMixin(object):
         """
         Determines if a user has access to a resource based on their access to
         the resourceParent.
+
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlledModel.hasAccess`.
         """
         resource = self.model(self.resourceColl) \
                        .load(resource[self.resourceParent], force=True)
@@ -71,6 +77,9 @@ class AccessControlMixin(object):
         """
         Yields filtered results from the cursor based on the access control
         existing for the resourceParent.
+
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlledModel.filterResultsByPermission`.
         """
         # Cache mapping resourceIds -> access granted (bool)
         resourceAccessCache = {}
@@ -86,10 +95,9 @@ class AccessControlMixin(object):
             # and set the cache
             resource = self.model(self.resourceColl).load(resourceId,
                                                           force=True)
-            resourceAccessCache[resourceId] = self.model(self.resourceColl) \
-                                                  .hasAccess(resource,
-                                                             user=user,
-                                                             level=level)
+            resourceAccessCache[resourceId] = \
+                self.model(self.resourceColl).hasAccess(
+                    resource, user=user, level=level)
 
             return resourceAccessCache[resourceId]
 

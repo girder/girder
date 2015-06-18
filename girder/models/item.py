@@ -110,17 +110,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
         """
-        We override Model.load to also do permission checking.
+        Calls AccessControlMixin.load while doing some auto-correction.
 
-        :param id: The id of the resource.
-        :type id: string or ObjectId
-        :param user: The user to check access against.
-        :type user: dict or None
-        :param level: The required access type for the object.
-        :type level: AccessType
-        :param force: If you explicitly want to circumvent access
-                      checking on this resource, set this to True.
-        :type force: bool
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlledMixin.load`.
         """
         doc = super(Item, self).load(id, level, user, objectId, force, fields,
                                      exc)
