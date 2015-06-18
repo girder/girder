@@ -236,7 +236,7 @@ class ThumbnailsTestCase(base.TestCase):
         # Download the new thumbnail
         folder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(len(folder['_thumbnails']), 1)
-        thumbnail = self.model('file').load(folder['_thumbnails'][0])
+        thumbnail = self.model('file').load(folder['_thumbnails'][0], force=True)
 
         self.assertEqual(thumbnail['attachedToType'], 'folder')
         self.assertEqual(thumbnail['attachedToId'], folder['_id'])

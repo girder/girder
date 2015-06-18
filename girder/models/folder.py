@@ -519,15 +519,27 @@ class Folder(AccessControlledModel):
         if curParentType == 'user' or curParentType == 'collection':
             curParentObject = self.model(curParentType).load(
                 curParentId, user=user, level=level, force=force)
-            parentFiltered = self.model(curParentType).filter(curParentObject,
-                                                              user)
+
+            if not force:
+                parentFiltered = \
+                    self.model(curParentType).filter(curParentObject, user)
+            else:
+                parentFiltered = curParentObject
+
             return [{'type': curParentType,
                      'object': parentFiltered}] + curPath
         else:
             curParentObject = self.load(
                 curParentId, user=user, level=level, force=force)
-            curPath = [{'type': curParentType,
-                        'object': self.filter(curParentObject, user)}] + curPath
+
+            if not force:
+                curPath = \
+                    [{'type': curParentType,
+                      'object': self.filter(curParentObject, user)}] + curPath
+            else:
+                curPath = [{'type': curParentType,
+                            'object': curParentObject}] + curPath
+
             return self.parentsToRoot(curParentObject, curPath, user=user,
                                       force=force)
 

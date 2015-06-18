@@ -346,7 +346,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         folderIdsToRoot = self.model('folder').parentsToRoot(
             curFolder, user=user, level=AccessType.READ, force=force)
 
-        if not force:
+        if force:
+            folderIdsToRoot.append({'type': 'folder', 'object': curFolder})
+        else:
             filteredFolder = self.model('folder').filter(curFolder, user)
             folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
 

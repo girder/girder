@@ -32,7 +32,7 @@ def removeThumbnails(event):
     fileModel = ModelImporter.model('file')
 
     for fileId in thumbs:
-        file = fileModel.load(fileId)
+        file = fileModel.load(fileId, force=True)
         if file:
             fileModel.remove(file)
 
