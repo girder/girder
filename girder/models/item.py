@@ -352,8 +352,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
             item['folderId'], user=user, level=AccessType.READ, force=force)
         folderIdsToRoot = self.model('folder').parentsToRoot(
             curFolder, user=user, level=AccessType.READ, force=force)
-        filteredFolder = self.model('folder').filter(curFolder, user)
-        folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
+
+        if not force:
+            filteredFolder = self.model('folder').filter(curFolder, user)
+            folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
+
         return folderIdsToRoot
 
     def copyItem(self, srcItem, creator, name=None, folder=None,

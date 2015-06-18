@@ -28,6 +28,7 @@ from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
+from girder.utility import acl_mixin
 from . import constants
 
 
@@ -129,7 +130,8 @@ class ResourceExt(Resource):
     def provenanceGetHandler(self, id, params, resource=None):
         user = self.getCurrentUser()
         model = self.model(resource)
-        if resource == 'item' or isinstance(model, AccessControlledModel):
+        if isinstance(model, (acl_mixin.AccessControlMixin,
+                              AccessControlledModel)):
             obj = model.load(id, level=AccessType.READ, user=user)
         else:
             obj = model.load(id)
@@ -250,9 +252,9 @@ class ResourceExt(Resource):
         """
         user = self.getProvenanceUser(curObj)
         model = self.model(resource)
-        if resource == 'item' or isinstance(model, AccessControlledModel):
-            prevObj = model.load(curObj['_id'], level=AccessType.READ,
-                                 user=user, force=True)
+        if isinstance(model, (acl_mixin.AccessControlMixin,
+                              AccessControlledModel)):
+            prevObj = model.load(curObj['_id'], force=True)
         else:
             prevObj = model.load(curObj['_id'])
         if prevObj is None:
@@ -325,12 +327,9 @@ class ResourceExt(Resource):
         if 'itemId' not in curFile or '_id' not in curFile:
             return
         user = self.getProvenanceUser(curFile)
-        item = self.model('item').load(id=curFile['itemId'], user=user,
-                                       level=AccessType.READ, force=True)
+        item = self.model('item').load(id=curFile['itemId'], force=True)
         if not item:
             return
-        # should all of these sort of events be forced, since a save has to be
-        # granted first?
         prevFile = self.model('file').load(curFile['_id'], force=True)
         if prevFile is None:
             oldData = None
@@ -362,8 +361,7 @@ class ResourceExt(Resource):
         if 'itemId' not in file or not file['itemId'] or '_id' not in file:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=file['itemId'], user=user,
-                                       level=AccessType.READ, force=True)
+        item = self.model('item').load(id=file['itemId'], force=True)
         if not item:
             return
         updateEvent = {
@@ -386,8 +384,7 @@ class ResourceExt(Resource):
         if 'itemId' not in file:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=file['itemId'], user=user,
-                                       level=AccessType.READ, force=True)
+        item = self.model('item').load(id=file['itemId'], force=True)
         if not item:
             return
         updateEvent = {
