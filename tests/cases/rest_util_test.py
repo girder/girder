@@ -51,3 +51,10 @@ class RestUtilTestCase(unittest.TestCase):
             self.assertEqual(resource.boolParam('some_key', params), output)
 
         self.assertEqual(resource.boolParam('some_key', {}, default='x'), 'x')
+
+    def testGetApiUrl(self):
+        url = 'https://localhost/thing/api/v1/hello/world?foo=bar#test'
+        self.assertEqual(rest.getApiUrl(url), 'https://localhost/thing/api/v1')
+
+        url = 'https://localhost/girder#users'
+        self.assertRaises(Exception, rest.getApiUrl, url=url)
