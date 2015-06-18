@@ -34,8 +34,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         self.ensureIndices(
             ['itemId', 'assetstoreId', 'exts'] +
             assetstore_utilities.fileIndexFields())
-        self.resource_coll = 'item'
-        self.resource_parent = 'itemId'
+        self.resourceColl = 'item'
+        self.resourceParent = 'itemId'
 
     def remove(self, file, updateItemSize=True, **kwargs):
         """

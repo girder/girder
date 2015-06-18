@@ -29,15 +29,15 @@ class AccessControlMixin(object):
     controlled by default, but resolve their access controls through other
     resources.
 
-    resource_coll corresponds to the resource collection that needs to be used
-    for resolution, for example an item would resolve its resource_coll as
+    resourceColl corresponds to the resource collection that needs to be used
+    for resolution, for example an item would resolve its resourceColl as
     folder (if it weren't already access controlled).
 
-    resource_parent corresponds to the field in which the parent resource
+    resourceParent corresponds to the field in which the parent resource
     belongs, so for an item it would be the folderId.
     """
-    resource_coll = None
-    resource_parent = None
+    resourceColl = None
+    resourceParent = None
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
@@ -47,14 +47,14 @@ class AccessControlMixin(object):
             """ this is done to load the resource for side effects only,
             primarily we just want it to raise an exception if the user doesn't
             have permission to view it. """
-            self.model(self.resource_coll).load(doc[self.resource_parent], level, user, objectId,
+            self.model(self.resourceColl).load(doc[self.resourceParent], level, user, objectId,
                                               force, fields, exc)
 
         return doc
 
     def hasAccess(self, file, user=None, level=AccessType.READ):
-        resource = self.model(self.resource_coll).load(file[self.resource_parent], force=True)
-        return self.model(self.resource_coll).hasAccess(resource, user=user, level=level)
+        resource = self.model(self.resourceColl).load(file[self.resourceParent], force=True)
+        return self.model(self.resourceColl).hasAccess(resource, user=user, level=level)
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
@@ -62,14 +62,14 @@ class AccessControlMixin(object):
         resourceAccessCache = {}
 
         def hasAccess(_result):
-            resourceId = _result[self.resource_parent]
+            resourceId = _result[self.resourceParent]
 
             # check if the resourceId is cached
             if resourceId not in resourceAccessCache:
                 # if the resourceId is not cached, check for permission "level"
                 # and set the cache
-                resource = self.model(self.resource_coll).load(resourceId, force=True)
-                resourceAccessCache[resourceId] = self.model(self.resource_coll).hasAccess(
+                resource = self.model(self.resourceColl).load(resourceId, force=True)
+                resourceAccessCache[resourceId] = self.model(self.resourceColl).hasAccess(
                     resource, user=user, level=level)
 
             return resourceAccessCache[resourceId]

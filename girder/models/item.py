@@ -47,8 +47,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'name': 10,
             'description': 1
         })
-        self.resource_coll = 'folder'
-        self.resource_parent = 'folderId'
+        self.resourceColl = 'folder'
+        self.resourceParent = 'folderId'
 
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
