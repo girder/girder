@@ -23,15 +23,16 @@ import six
 from ..models.model_base import Model
 from ..constants import AccessType
 
+
 class AccessControlMixin(object):
     """
     This mixin is intended to be used for resources which aren't access
     controlled by default, but resolve their access controls through other
-    resources.
+    resources. As such, the overridden methods retain the same parameters and
+    only alter functionality related to access control resolution.
 
     resourceColl corresponds to the resource collection that needs to be used
-    for resolution, for example an item would resolve its resourceColl as
-    folder (if it weren't already access controlled).
+    for resolution, for example the Item model has a resourceColl of folder.
 
     resourceParent corresponds to the field in which the parent resource
     belongs, so for an item it would be the folderId.
@@ -41,36 +42,54 @@ class AccessControlMixin(object):
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
+        """
+        Calls Model.load on the current item, and then attempts to load the
+        resourceParent which the user must have access to in order to load this
+        model.
+        """
         doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
         if not force and doc is not None:
-            """ this is done to load the resource for side effects only,
-            primarily we just want it to raise an exception if the user doesn't
-            have permission to view it. """
-            self.model(self.resourceColl).load(doc[self.resourceParent], level, user, objectId,
-                                              force, fields, exc)
+            self.model(self.resourceColl).load(doc[self.resourceParent], level,
+                                               user, objectId, force, fields,
+                                               exc)
 
         return doc
 
-    def hasAccess(self, file, user=None, level=AccessType.READ):
-        resource = self.model(self.resourceColl).load(file[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccess(resource, user=user, level=level)
+    def hasAccess(self, resource, user=None, level=AccessType.READ):
+        """
+        Determines if a user has access to a resource based on their access to
+        the resourceParent.
+        """
+        resource = self.model(self.resourceColl) \
+                       .load(resource[self.resourceParent], force=True)
+        return self.model(self.resourceColl).hasAccess(resource, user=user,
+                                                       level=level)
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
+        """
+        Yields filtered results from the cursor based on the access control
+        existing for the resourceParent.
+        """
         # Cache mapping resourceIds -> access granted (bool)
         resourceAccessCache = {}
 
         def hasAccess(_result):
             resourceId = _result[self.resourceParent]
 
-            # check if the resourceId is cached
-            if resourceId not in resourceAccessCache:
-                # if the resourceId is not cached, check for permission "level"
-                # and set the cache
-                resource = self.model(self.resourceColl).load(resourceId, force=True)
-                resourceAccessCache[resourceId] = self.model(self.resourceColl).hasAccess(
-                    resource, user=user, level=level)
+            # return cached check if it exists
+            if resourceId in resourceAccessCache:
+                return resourceAccessCache[resourceId]
+
+            # if the resourceId is not cached, check for permission "level"
+            # and set the cache
+            resource = self.model(self.resourceColl).load(resourceId,
+                                                          force=True)
+            resourceAccessCache[resourceId] = self.model(self.resourceColl) \
+                                                  .hasAccess(resource,
+                                                             user=user,
+                                                             level=level)
 
             return resourceAccessCache[resourceId]
 
