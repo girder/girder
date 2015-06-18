@@ -38,6 +38,23 @@ from girder.utility import config
 from six.moves import range
 
 
+def getApiUrl(url=None):
+    """
+    In a request thread, call this to get the path to the root of the REST API.
+    The returned path does *not* end in a forward slash.
+
+    :param url: URL from which to extract the base URL. If not specified, uses
+        `cherrypy.url()`
+    """
+    url = url or cherrypy.url()
+    idx = url.find('/api/v1')
+
+    if idx < 0:
+        raise GirderException('Could not determine API root in %s.' % url)
+
+    return url[:idx + 7]
+
+
 def _cacheAuthUser(fun):
     """
     This decorator for getCurrentUser ensures that the authentication procedure
