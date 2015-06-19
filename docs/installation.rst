@@ -61,17 +61,13 @@ dependencies: ::
         locale-gen en_US.UTF-8
         export LANG=en_US.utf8
 
-Before you can build the client-side code project, you must install the
-`Grunt <http://gruntjs.com>`_ command line utilities: ::
-
-    npm install -g grunt-cli
-
-Then cd into the root of the repository and run: ::
+To build the client-side code project, cd into the root of the repository
+and run: ::
 
     npm install
 
-This should run ``grunt init`` and ``grunt`` to build all of the javascript and
-CSS files needed to run the web client application.
+This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
+the Javascript and CSS files needed to run the web client application.
 
 .. _run-girder:
 
