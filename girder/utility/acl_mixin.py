@@ -61,8 +61,7 @@ class AccessControlMixin(object):
                 loadId = doc['attachedToId']
 
         if not force and doc is not None:
-            self.model(loadType).load(loadId, level, user, objectId, force,
-                                      fields, exc)
+            self.model(loadType).load(loadId, level=level, user=user, exc=exc)
 
         return doc
 
