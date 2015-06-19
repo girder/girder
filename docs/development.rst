@@ -192,7 +192,7 @@ and then run in your build directory ::
 before running your tests.
 
 You will find many useful methods for client side testing in the ``girderTest`` object
-defined at ``/clients/test/web/testUtils.js``.
+defined at ``/clients/web/test/testUtils.js``.
 
 
 
