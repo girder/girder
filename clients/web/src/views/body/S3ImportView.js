@@ -6,8 +6,12 @@ girder.views.S3ImportView = girder.View.extend({
             var destId = this.$('#g-s3-import-dest-id').val().trim(),
                 destType = this.$('#g-s3-import-dest-type').val();
 
+            this.$('.g-validation-failed-message').empty();
+
             this.assetstore.off('g:imported').on('g:imported', function () {
                 girder.router.navigate(destType + '/' + destId, {trigger: true});
+            }, this).on('g:error', function (resp) {
+                this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
                 importPath: this.$('#g-s3-import-path').val().trim(),
                 destinationId: destId,
