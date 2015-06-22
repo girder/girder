@@ -23,11 +23,10 @@ function _invite(name, level, action, check) {
     // Search for the named user in user search box
     waitsFor(function () {
         return $('.g-group-invite-container input.g-search-field').length > 0;
-    });
+    }, 'search field widget to render');
 
     runs(function () {
-        $('.g-group-invite-container input.g-search-field')
-            .val(name).trigger('input');
+        $('.g-group-invite-container input.g-search-field').val(name).trigger('input');
     });
     girderTest.waitForLoad();
     waitsFor(function () {
