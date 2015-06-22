@@ -528,6 +528,22 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['lowerName'], 'my item name (1)')
         self.assertEqual(item['description'], '1')
 
+    def testParentsToRoot(self):
+        """
+        Demonstrate that forcing parentsToRoot will cause it to skip the
+        filtering process.
+        """
+        item = self.model('item').createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder)
+
+        parents = self.model('item').parentsToRoot(item, force=True)
+        for parent in parents:
+            self.assertNotIn('_accessLevel', parent['object'])
+
+        parents = self.model('item').parentsToRoot(item)
+        for parent in parents:
+            self.assertIn('_accessLevel', parent['object'])
+
     def testItemCopy(self):
         origItem = self._createItem(self.publicFolder['_id'],
                                     'test_for_copy', 'fake description',

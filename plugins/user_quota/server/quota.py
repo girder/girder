@@ -353,7 +353,7 @@ class QuotaPolicy(Resource):
         """
         origSize = 0
         if 'fileId' in upload:
-            file = self.model('file').load(id=upload['fileId'])
+            file = self.model('file').load(id=upload['fileId'], force=True)
             origSize = int(file.get('size', 0))
             model, resource = self._getBaseResource('file', file)
         else:

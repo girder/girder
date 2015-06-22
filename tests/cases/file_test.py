@@ -28,6 +28,7 @@ from .. import base, mock_s3
 
 from girder.constants import SettingKey
 from girder.models import getDbConnection
+from girder.models.model_base import AccessException
 from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
                                                   S3AssetstoreAdapter)
 from six.moves import urllib
@@ -392,6 +393,10 @@ class FileTestCase(base.TestCase):
             path='/folder/{}/download'.format(self.privateFolder['_id']),
             method='GET')
         self.assertStatus(resp, 401)
+
+        # Ensure the model layer raises an exception when trying to access
+        # the file within a private folder
+        self.assertRaises(AccessException, self.model('file').load, file['_id'])
 
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()

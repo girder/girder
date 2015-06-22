@@ -547,7 +547,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Create the file key in the moto s3 store so that we can test that it
         # gets deleted.
-        file = self.model('file').load(largeFile['_id'])
+        file = self.model('file').load(largeFile['_id'], user=self.admin)
         bucket.initiate_multipart_upload(file['s3Key'])
         key = bucket.new_key(file['s3Key'])
         key.set_contents_from_string("test")

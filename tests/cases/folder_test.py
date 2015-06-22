@@ -409,6 +409,39 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(folder['baseParentType'], 'user')
         self.assertEqual(folder['baseParentId'], self.admin['_id'])
 
+    def testParentsToRoot(self):
+        """
+        Demonstrate that forcing parentsToRoot will cause it to skip the
+        filtering process.
+        """
+        userFolder = self.model('folder').createFolder(
+            parent=self.admin, parentType='user', creator=self.admin,
+            name=' My Folder Name')
+
+        # Filtering adds the _accessLevel key to the object
+        # So forcing should result in an absence of that key
+        parents = self.model('folder').parentsToRoot(userFolder, force=True)
+        for parent in parents:
+            self.assertNotIn('_accessLevel', parent['object'])
+
+        parents = self.model('folder').parentsToRoot(userFolder)
+        for parent in parents:
+            self.assertIn('_accessLevel', parent['object'])
+
+        # The logic is a bit different for user/collection parents,
+        # so we need to handle the other case
+        subFolder = self.model('folder').createFolder(
+            parent=userFolder, parentType='folder', creator=self.admin,
+            name=' My Subfolder Name')
+
+        parents = self.model('folder').parentsToRoot(subFolder, force=True)
+        for parent in parents:
+            self.assertNotIn('_accessLevel', parent['object'])
+
+        parents = self.model('folder').parentsToRoot(subFolder, user=self.admin)
+        for parent in parents:
+            self.assertIn('_accessLevel', parent['object'])
+
     def testFolderAccess(self):
         # create a folder to work with
         folder = self.model('folder').createFolder(
