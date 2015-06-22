@@ -27,7 +27,7 @@
             // If group model is already passed, there is no need to fetch.
             if (settings.group) {
                 this.model = settings.group;
-                this.model.on('g:accessFetched', function () {
+                this.model.once('g:accessFetched', function () {
                     this.render();
                 }, this).fetchAccess();
             } else if (settings.id) {
@@ -128,13 +128,7 @@
             }));
 
             if (this.invitees) {
-                new girder.views.GroupInvitesWidget({
-                    el: this.$('.g-group-invites-body'),
-                    invitees: this.invitees,
-                    group: this.model,
-                    parentView: this
-                }).render();
-                this.updatePendingStatus();
+                this._renderInvitesWidget();
             } else {
                 var container = this.$('.g-group-invites-body');
                 new girder.views.LoadingAnimation({
@@ -147,7 +141,7 @@
                     'group/' + this.model.get('_id') + '/invitation';
                 var view = this;
                 this.invitees.on('g:changed', function () {
-                    this.render();
+                    this._renderInvitesWidget();
                     view.updatePendingStatus();
                 }, this).fetch();
             }
@@ -191,6 +185,16 @@
             }, this);
 
             return this;
+        },
+
+        _renderInvitesWidget: function () {
+            new girder.views.GroupInvitesWidget({
+                el: this.$('.g-group-invites-body'),
+                invitees: this.invitees,
+                group: this.model,
+                parentView: this
+            }).render();
+            this.updatePendingStatus();
         },
 
         updatePendingStatus: function () {
@@ -312,7 +316,7 @@
         var group = new girder.models.GroupModel();
         group.set({
             _id: groupId
-        }).on('g:fetched', function () {
+        }).once('g:fetched', function () {
             girder.events.trigger('g:navigateTo', girder.views.GroupView, _.extend({
                 group: group
             }, params || {}));
