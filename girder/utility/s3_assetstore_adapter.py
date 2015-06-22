@@ -338,7 +338,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def importData(self, parent, parentType, params, progress, user,
                    bucket=None):
-        importPath = params.get('importPath', '').strip()
+        importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
             importPath += '/'
