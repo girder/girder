@@ -358,10 +358,16 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 self.importData(parent=folder, parentType='folder', params={
                     'importPath': obj.name
                 }, progress=progress, user=user, bucket=bucket)
-            elif isinstance(obj, boto.s3.key.Key) and parentType == 'folder':
+            elif isinstance(obj, boto.s3.key.Key):
                 name = obj.name.rsplit('/', 1)[-1]
                 if not name:
                     continue
+
+                if parentType != 'folder':
+                    raise ValidationException(
+                        'Keys cannot be imported directly underneath a %s.' %
+                        parentType)
+
                 item = self.model('item').createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
                 file = self.model('file').createFile(

@@ -16,9 +16,14 @@ girder.models.AssetstoreModel = girder.Model.extend({
         girder.restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
-            data: params
+            data: params,
+            error: null
         }).done(_.bind(function (resp) {
             this.trigger('g:imported', resp);
+        }, this)).error(_.bind(function (resp) {
+            this.trigger('g:error', resp);
         }, this));
+
+        return this;
     }
 });

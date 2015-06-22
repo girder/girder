@@ -481,6 +481,17 @@ class AssetstoreTestCase(base.TestCase):
             extracted = zip.read('Public/My File.txt')
             self.assertEqual(extracted, b'dummy file contents')
 
+        # Attempt to import item directly into user; should fail
+        resp = self.request(
+            '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
+                'importPath': '/foo/bar',
+                'destinationType': 'user',
+                'destinationId': self.admin['_id']
+            }, user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Keys cannot be imported directly underneath a user.')
+
         # Import existing data from S3
         resp = self.request('/folder', method='POST', params={
             'parentType': 'folder',
