@@ -145,7 +145,8 @@ class Assetstore(Resource):
 
         user = self.getCurrentUser()
         parent = self.model(parentType).load(
-            params.pop('destinationId'), user=user, level=AccessType.ADMIN)
+            params.pop('destinationId'), user=user, level=AccessType.ADMIN,
+            exc=True)
 
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(

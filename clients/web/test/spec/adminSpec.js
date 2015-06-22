@@ -256,6 +256,8 @@ describe('Test the assetstore page', function () {
     };
 
     var _testS3Import = function (params) {
+        var privateFolder = null;
+
         runs(function () {
             var container = _getAssetstoreContainer(params.name);
             var el = $('a.g-s3-import-button', container);
@@ -267,8 +269,22 @@ describe('Test the assetstore page', function () {
         }, 'import page to load');
 
         runs(function () {
-            $('#g-s3-import-dest-id').val(girder.currentUser.id);
-            $('#g-s3-import-dest-type').val('user');
+            var coll = new girder.collections.FolderCollection();
+            coll.on('g:changed', function () {
+                privateFolder = coll.models[0];
+            }).fetch({
+                parentType: 'user',
+                parentId: girder.currentUser.id
+            });
+        });
+
+        waitsFor(function () {
+            return privateFolder !== null;
+        }, 'admin user folders to be fetched');
+
+        runs(function () {
+            $('#g-s3-import-dest-id').val(privateFolder.id);
+            $('#g-s3-import-dest-type').val('folder');
 
             $('.g-submit-s3-import').click();
         });
@@ -297,24 +313,16 @@ describe('Test the assetstore page', function () {
             return $('.g-file-list-link').length === 1;
         }, 'item page to render');
 
-        // Delete the file so we can delete the assetstore
+        // Delete the containing folder so we can delete the assetstore
         runs(function () {
-            $('.g-delete-file').click();
+            privateFolder.on('g:deleted', function () {
+                privateFolder = null;
+            }).destroy();
         });
-
-        girderTest.waitForDialog();
-        waitsFor(function () {
-            return $('#g-confirm-button').length === 1;
-        }, 'delete file confirmation dialog to appear');
-
-        runs(function () {
-            $('#g-confirm-button').click();
-        });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $('.g-file-list-link').length === 0;
-        });
+            return privateFolder === null;
+        }, 'private folder to be deleted');
 
         runs(function () {
             window.location = '#assetstores';
