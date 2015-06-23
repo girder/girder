@@ -3,7 +3,7 @@
 source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 workon girder
 cd /home/cpatrick/Dashboards/girder
-./scripts/InstallPythonRequirements --mode=dev
+./scripts/InstallPythonRequirements.py --mode=dev
 npm install
 python setup.py install
 # Copy compile plugin template files so that the javascript coverage locates

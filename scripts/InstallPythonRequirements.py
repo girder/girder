@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import argparse
 import os
 import subprocess
 import sys
@@ -62,8 +63,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    import argparse
-
     parser = argparse.ArgumentParser(
         description='Install all required pip packages.')
     parser.add_argument('-m', '--mode', default='prod',
