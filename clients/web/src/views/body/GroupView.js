@@ -27,7 +27,7 @@
             // If group model is already passed, there is no need to fetch.
             if (settings.group) {
                 this.model = settings.group;
-                this.model.once('g:accessFetched', function () {
+                this.model.on('g:accessFetched', function () {
                     this.render();
                 }, this).fetchAccess();
             } else if (settings.id) {
@@ -278,7 +278,7 @@
                 group: this.model,
                 moderators: mods,
                 parentView: this
-            }).off().on('g:demoteUser', function (userId) {
+            }).on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.WRITE);
             }, this).on('g:removeMember', this.removeMember, this)
@@ -291,12 +291,15 @@
                 admins: admins,
                 moderators: mods,
                 parentView: this
-            }).off().on('g:sendInvite', function (params) {
+            }).on('g:sendInvite', function (params) {
                 var opts = {
                     force: params.force || false
                 };
                 this.model.off('g:invited').on('g:invited', function () {
                     this.invitees.fetch(null, true);
+                    if (params.force) {
+                        this.model.fetchAccess();
+                    }
                 }, this).off('g:error').on('g:error', function (err) {
                     // TODO don't alert, show something useful
                     alert(err.responseJSON.message);
