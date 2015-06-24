@@ -21,14 +21,17 @@ $(function () {
  */
 function _invite(name, level, action, check) {
     // Search for the named user in user search box
+    waitsFor(function () {
+        return $('.g-group-invite-container input.g-search-field').length > 0;
+    }, 'search field widget to render');
+
     runs(function () {
-        $('.g-group-invite-container input.g-search-field')
-            .val(name).trigger('input');
+        $('.g-group-invite-container input.g-search-field').val(name).trigger('input');
     });
     girderTest.waitForLoad();
     waitsFor(function () {
         return $('.g-group-invite-container .g-search-results').hasClass('open');
-    }, 'search to return');
+    }, 'search to return (' + name + ')');
     runs(function () {
         var results = $('.g-group-invite-container li.g-search-result');
         expect(results.length).toBe(1);

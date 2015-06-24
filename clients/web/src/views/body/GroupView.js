@@ -128,13 +128,7 @@
             }));
 
             if (this.invitees) {
-                new girder.views.GroupInvitesWidget({
-                    el: this.$('.g-group-invites-body'),
-                    invitees: this.invitees,
-                    group: this.model,
-                    parentView: this
-                }).render();
-                this.updatePendingStatus();
+                this._renderInvitesWidget();
             } else {
                 var container = this.$('.g-group-invites-body');
                 new girder.views.LoadingAnimation({
@@ -147,7 +141,7 @@
                     'group/' + this.model.get('_id') + '/invitation';
                 var view = this;
                 this.invitees.on('g:changed', function () {
-                    this.render();
+                    this._renderInvitesWidget();
                     view.updatePendingStatus();
                 }, this).fetch();
             }
@@ -191,6 +185,16 @@
             }, this);
 
             return this;
+        },
+
+        _renderInvitesWidget: function () {
+            new girder.views.GroupInvitesWidget({
+                el: this.$('.g-group-invites-body'),
+                invitees: this.invitees,
+                group: this.model,
+                parentView: this
+            }).render();
+            this.updatePendingStatus();
         },
 
         updatePendingStatus: function () {
@@ -274,7 +278,7 @@
                 group: this.model,
                 moderators: mods,
                 parentView: this
-            }).off().on('g:demoteUser', function (userId) {
+            }).on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
                           .demoteUser(userId, girder.AccessType.WRITE);
             }, this).on('g:removeMember', this.removeMember, this)
@@ -287,12 +291,15 @@
                 admins: admins,
                 moderators: mods,
                 parentView: this
-            }).off().on('g:sendInvite', function (params) {
+            }).on('g:sendInvite', function (params) {
                 var opts = {
                     force: params.force || false
                 };
                 this.model.off('g:invited').on('g:invited', function () {
                     this.invitees.fetch(null, true);
+                    if (params.force) {
+                        this.model.fetchAccess();
+                    }
                 }, this).off('g:error').on('g:error', function (err) {
                     // TODO don't alert, show something useful
                     alert(err.responseJSON.message);
@@ -312,7 +319,7 @@
         var group = new girder.models.GroupModel();
         group.set({
             _id: groupId
-        }).on('g:fetched', function () {
+        }).once('g:fetched', function () {
             girder.events.trigger('g:navigateTo', girder.views.GroupView, _.extend({
                 group: group
             }, params || {}));
