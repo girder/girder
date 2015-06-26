@@ -82,7 +82,7 @@ girder.views.FileListWidget = girder.View.extend({
         this.fileEdit = settings.fileEdit;
         this.checked = [];
         this.collection = new girder.collections.FileCollection();
-        this.collection.resourceName = 'item/' +
+        this.collection.altUrl = 'item/' +
             (settings.itemId || settings.item.get('_id')) + '/files';
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
