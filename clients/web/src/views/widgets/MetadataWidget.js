@@ -52,10 +52,13 @@ girder.views.MetadataWidget = girder.View.extend({
         var metaList = [];
         for (var i = 0; i < metaKeys.length; i += 1) {
             var value = metaDict[metaKeys[i]];
+            var isJson = false;
+
             if (typeof value === 'object') {
-                value = JSON.stringify(value);
+                value = JSON.stringify(value, null, 4);
+                isJson = true;
             }
-            metaList.push({key: metaKeys[i], value: value});
+            metaList.push({key: metaKeys[i], value: value, isJson: isJson});
         }
         this.$el.html(girder.templates.metadataWidget({
             item: this.item,

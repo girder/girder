@@ -399,7 +399,7 @@ girderTest.testMetadata = function () {
         _editMetadata(null, '', 'no_key', 'cancel', /.*A key is required for all metadata/);
         _editMetadata(null, 'cancel_me', 'this will be cancelled', 'cancel');
         _editMetadata(null, 'long_key', 'long_value' + new Array(2048).join('-'));
-        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}));
+        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}, null, 4));
         _editMetadata(null, 'unicode_key\u00A9\uD834\uDF06', 'unicode_value\u00A9\uD834\uDF06');
         _editMetadata('simple_key', null, 'new_value', 'cancel');
         _editMetadata('long_key', 'json_key', null, 'cancel', /.*json_key is already a metadata key/);

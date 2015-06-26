@@ -8,6 +8,20 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         'click .g-widget-metadata-delete-button': 'deleteMetadatum'
     },
 
+    isJsonValue: function (s) {
+        s = s || this.value;
+
+        try {
+            var jsonValue = JSON.parse(s);
+
+            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
+                return jsonValue;
+            }
+        } catch (err) {}
+
+        return false;
+    },
+
     deleteMetadatum: function (event) {
         event.stopImmediatePropagation();
         var metadataList = $(event.currentTarget.parentElement);
@@ -34,6 +48,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             curRow.removeClass('editing').html(girder.templates.metadatumView({
                 key: this.key,
                 value: this.value,
+                isJson: this.isJsonValue(),
                 accessLevel: this.accessLevel,
                 girder: girder
             }));
@@ -55,17 +70,10 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         }
 
         var displayValue = tempValue;
-        try {
-            var jsonValue = JSON.parse(tempValue);
-            /* This may succeed when we don't want it to (for instance with the
-             * value 'false' or '1234'), so check and only switch to JSON if we
-             * got an object back. */
-            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
-                tempValue = jsonValue;
-            }
-        }
-        catch (err) {
-            /* Do nothing -- keep our original value */
+        var jsonValue = this.isJsonValue(tempValue);
+
+        if (jsonValue) {
+            tempValue = jsonValue;
         }
 
         var saveCallback = _.bind(function () {
@@ -76,7 +84,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
                 'g-value': this.value
             }).html(girder.templates.metadatumView({
                 key: this.key,
-                value: this.value,
+                value: (jsonValue) ? JSON.stringify(jsonValue, null, 4) : this.value,
+                isJson: this.isJsonValue(),
                 accessLevel: this.accessLevel,
                 girder: girder
             }));
@@ -111,6 +120,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             item: this.item,
             key: this.key,
             value: this.value,
+            isJson: this.isJsonValue(),
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
             girder: girder
