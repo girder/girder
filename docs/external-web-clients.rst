@@ -67,7 +67,7 @@ behavior specific to the full Girder web application.
 Using Girder Register and Login UI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To user Girder UI components, you will need Bootstrap and Girder CSS in your HTML:
+To use Girder UI components, you will need Bootstrap and Girder CSS in your HTML:
 
 .. code-block:: html
 
