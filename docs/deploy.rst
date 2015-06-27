@@ -58,9 +58,9 @@ Nginx can be used by adding a block such as:
 .. code-block:: nginx
 
     location /girder/ {
-        proxy_set_header X-Forwarded-Host $http_host;
-        proxy_set_header X-Forwarded-Server $host;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://localhost:9000/;
         # Must set the following for SSE notifications to work
