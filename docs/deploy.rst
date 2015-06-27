@@ -87,17 +87,21 @@ example, we have the following:
     server.socket_host: "0.0.0.0"
     server.socket_port: 9000
     tools.proxy.on: True
-    tools.proxy.base: "http://www.example.com/girder"
-    tools.proxy.local: ""
 
     [server]
     api_root: "/girder/api/v1"
     static_root: "/girder/static"
 
-The ``tools.proxy.base`` and ``tools.proxy.local`` aren't necessary if the
-proxy service adds the appropriate X-Forwarded-Host header to proxied requests.
-For this purpose, the X-Forwarded-Host should be the host used in http
-requests, including any non-default port.
+.. note:: If your chosen proxy server does not add the appropriate
+   ``X-Forwarded-Host`` header (containing the host used in http requests,
+   including any non-default port to proxied requests), the ``tools.proxy.base``
+   and ``tools.proxy.local`` configuration options must also be set in the
+   ``[global]`` section as:
+
+   .. code-block:: ini
+
+       tools.proxy.base: "http://www.example.com/girder"
+       tools.proxy.local: ""
 
 After modifying the configuration, always remember to rebuild Girder by
 changing to the main Girder directory and issuing the following command: ::
