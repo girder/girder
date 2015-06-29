@@ -1,10 +1,15 @@
+// key editor
 input.input-sm.form-control.g-widget-metadata-key-input(type="text", value=key, placeholder="Key")
+
+// value editor
+- var rows = value.length <= 40 ? 1 : (value.length <= 100 ? 3 : 5)
 if isJson
-  - var rows = 12
+  .json-editor
 else
-  - var rows = value.length <= 40 ? 1 : (value.length <= 100 ? 3 : 5)
-textarea.input-sm.form-control.g-widget-metadata-value-input(placeholder="Value", rows=rows)
-  = value
+  textarea.input-sm.form-control.g-widget-metadata-value-input(placeholder="Value", rows=rows)
+    = value
+
+// buttons
 button.btn.btn-sm.btn-warning.g-widget-metadata-cancel-button(title="Cancel")
   i.icon-cancel
 button.btn.btn-sm.btn-primary.g-widget-metadata-save-button(title="Accept")

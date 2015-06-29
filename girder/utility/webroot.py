@@ -54,6 +54,8 @@ class Webroot(object):
         <link rel="stylesheet"
               href="${staticRoot}/lib/fontello/css/animation.css">
         <link rel="stylesheet"
+              href="${staticRoot}/lib/jsoneditor/jsoneditor.min.css">
+        <link rel="stylesheet"
               href="${staticRoot}/lib/jqplot/css/jquery.jqplot.min.css">
         <link rel="stylesheet"
               href="${staticRoot}/built/app.min.css">

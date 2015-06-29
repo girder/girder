@@ -201,6 +201,7 @@ module.exports = function (grunt) {
                 beautify: {
                     ascii_only: true
                 }
+                // mangle: false
             },
             app: {
                 files: {
@@ -232,6 +233,7 @@ module.exports = function (grunt) {
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
                         'node_modules/marked/lib/marked.js',
+                        'node_modules/jsoneditor/dist/jsoneditor.js',
                         'clients/web/lib/js/d3.js',
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
@@ -447,6 +449,7 @@ module.exports = function (grunt) {
                 '/clients/web/static/lib/bootstrap/css/bootstrap.min.css',
                 '/clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css',
                 '/clients/web/static/lib/fontello/css/fontello.css',
+                '/clients/web/static/lib/jsoneditor/jsoneditor.min.css',
                 '/clients/web/static/built/app.min.css'
             ],
             jsFiles: inputs,

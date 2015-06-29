@@ -58,8 +58,14 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     save: function (event) {
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
-            tempKey = curRow.find('.g-widget-metadata-key-input').val(),
-            tempValue = curRow.find('.g-widget-metadata-value-input').val();
+            tempKey = curRow.find('.g-widget-metadata-key-input').val();
+
+        // If it's json and we have an active editor, we need to retrieve that JSON
+        if (this.isJsonValue() && this.editor) {
+            var tempValue = this.editor.getText();
+        } else {
+            var tempValue = curRow.find('.g-widget-metadata-value-input').val();
+        }
 
         if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
@@ -116,16 +122,28 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     render: function () {
+        var jsonValue = this.isJsonValue();
+
         this.$el.html(girder.templates.metadatumEditWidget({
             item: this.item,
             key: this.key,
             value: this.value,
-            isJson: this.isJsonValue(),
+            isJson: jsonValue,
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
             girder: girder
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
+
+        if (jsonValue) {
+            var options = {
+                mode: 'tree',
+                modes: ['code', 'text', 'tree'],
+                error: function (err) { alert(err.toString()); }
+            };
+
+            this.editor = new JSONEditor(this.$el.find('.json-editor')[0], options, jsonValue);
+        }
 
         this.$('[title]').tooltip({
             container: this.$el,
