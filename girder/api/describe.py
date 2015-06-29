@@ -161,6 +161,7 @@ class ApiDocs(object):
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
     <link rel="stylesheet"
         href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
