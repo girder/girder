@@ -32,7 +32,6 @@
     "colors": "0.6.2",
     "event-source": "0.1.1",
     "jsoneditor": "4.2.1"
-
   },
   "devDependencies": {
     "argv" : "0.0.2",

@@ -201,7 +201,6 @@ module.exports = function (grunt) {
                 beautify: {
                     ascii_only: true
                 }
-                // mangle: false
             },
             app: {
                 files: {
