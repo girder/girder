@@ -8,4 +8,4 @@ if (accessLevel >= girder.AccessType.WRITE)
 .g-widget-metadata-container
   each keyValue in meta
     .g-widget-metadata-row(g-key="#{keyValue.key}", g-value="#{keyValue.value}")
-      +metadatum(keyValue.key, keyValue.value, keyValue.isJson, accessLevel, girder)
+      +metadatum(keyValue.key, keyValue.value, accessLevel, girder, keyValue.isJson)
