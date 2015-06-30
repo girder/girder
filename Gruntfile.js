@@ -250,6 +250,13 @@ module.exports = function (grunt) {
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
                 }
+            },
+            polyfill: {
+                files: {
+                    'clients/web/static/built/polyfill.min.js': [
+                        'node_modules/phantomjs-polyfill/bind-polyfill.js'
+                    ]
+                }
             }
         },
 
@@ -504,6 +511,7 @@ module.exports = function (grunt) {
     grunt.registerTask('init', [
         'setup',
         'uglify:libs',
+        'uglify:polyfill',
         'copy:swagger',
         'shell:readServerConfig'
     ]);
