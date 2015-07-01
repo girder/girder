@@ -22,6 +22,11 @@ do not run ``grunt watch`` while making code changes, you will need to run the
 ``grunt`` command to manually rebuild the web client in order to see your changes
 reflected.
 
+Note that some browser debugging tools do not play well with local variable
+mangling in JavaScript. If you want to use such a debugger and need to work around this,
+run ``grunt`` or ``grunt watch`` with the additional argument ``--debug-js``.
+This will prevent name mangling in the minified output.
+
 Vagrant
 ^^^^^^^
 
