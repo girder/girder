@@ -307,19 +307,31 @@ module.exports = function (grunt) {
 
     // bring plugin Grunt targets into default Girder Grunt tasks
     var extractPluginGruntTargets = function (pluginDir) {
-        var pluginJson = pluginDir + '/plugin.json';
+        var pluginJson = pluginDir + '/plugin.json',
+            pluginYml = pluginDir + '/plugin.yml',
+            pluginConfigFile;
+
+
         if (fs.existsSync(pluginJson)) {
-            var pluginDescription = grunt.file.readJSON(pluginDir + '/plugin.json');
-            if (pluginDescription.hasOwnProperty('grunt')) {
-                console.log(('Found plugin: ' +
-                             path.basename(pluginDir) + ' (custom Gruntfile)').bold);
+            pluginConfigFile = pluginJson;
+        } else if (fs.existsSync(pluginYml)) {
+            pluginConfigFile = pluginYml;
+        } else {
+            return;
+        }
 
-                var pluginGruntCfg = pluginDescription.grunt;
+        var pluginDescription = grunt.file.readYAML(pluginConfigFile);
+        if (pluginDescription.hasOwnProperty('grunt')) {
+            console.log(('Found plugin: ' + path.basename(pluginDir) +
+                         ' (custom Gruntfile)').bold);
 
-                // Merge plugin Grunt file
-                require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
+            var pluginGruntCfg = pluginDescription.grunt;
 
-                // Register default targets
+            // Merge plugin Grunt file
+            require('./' + pluginDir + '/' + pluginGruntCfg.file)(grunt);
+
+            // Register default targets
+            if (pluginGruntCfg.defaultTargets) {
                 pluginGruntCfg.defaultTargets.forEach(function (defaultTarget) {
                     defaultTasks.push(defaultTarget);
                 });
