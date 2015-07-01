@@ -26,6 +26,24 @@ module.exports = function (grunt) {
 
     // Pass a "--env=<value>" argument to grunt. Default value is "dev".
     var environment = grunt.option('env') || 'dev';
+    var debugJs = grunt.option('debug-js') || false;
+
+    var uglifyOptions = {
+        sourceMap: environment === 'dev',
+        sourceMapIncludeSources: true,
+        report: 'min',
+    };
+
+    if (debugJs) {
+        console.log('Building JS in debug mode'.yellow);
+        uglifyOptions.beautify = false;
+        uglifyOptions.mangle = false;
+        uglifyOptions.compress = false;
+    } else {
+        uglifyOptions.beautify = {
+            ascii_only: true
+        };
+    }
 
     var setServerConfig = function (err, stdout, stderr, callback) {
         if (err) {
@@ -194,14 +212,7 @@ module.exports = function (grunt) {
         },
 
         uglify: {
-            options: {
-                sourceMap: environment === 'dev',
-                sourceMapIncludeSources: true,
-                report: 'min',
-                beautify: {
-                    ascii_only: true
-                }
-            },
+            options: uglifyOptions,
             app: {
                 files: {
                     'clients/web/static/built/app.min.js': [
