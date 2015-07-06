@@ -3,15 +3,19 @@
  */
 girder.views.MetadataWidget = girder.View.extend({
     events: {
-        'click .g-widget-metadata-add-button': 'addMetadata',
+        'click .g-add-json-metadata': function (event) {
+            this.addMetadata(event, true);
+        },
+        'click .g-add-simple-metadata': 'addMetadata',
         'click .g-widget-metadata-edit-button': 'editMetadata'
     },
 
-    addMetadata: function () {
+    addMetadata: function (event, json) {
+        var EditWidget = (json) ? girder.views.JsonMetadatumEditWidget : girder.views.MetadatumEditWidget;
         var newRow = $('<div>').attr({
             class: 'g-widget-metadata-row editing'
         }).appendTo(this.$el.find('.g-widget-metadata-container'));
-        this.metadatumEditWidget = new girder.views.MetadatumEditWidget({
+        this.metadatumEditWidget = new EditWidget({
             el: newRow,
             item: this.item,
             key: '',
@@ -25,7 +29,8 @@ girder.views.MetadataWidget = girder.View.extend({
     editMetadata: function (event) {
         var row = $(event.currentTarget.parentElement);
         row.addClass('editing').empty();
-        this.metadatumEditWidget = new girder.views.MetadatumEditWidget({
+
+        var opts = {
             el: row,
             item: this.item,
             key: row.attr('g-key'),
@@ -33,7 +38,14 @@ girder.views.MetadataWidget = girder.View.extend({
             accessLevel: this.accessLevel,
             newDatum: false,
             parentView: this
-        });
+        };
+
+        if (row.attr('g-is-json') === 'true') {
+            opts.value = JSON.parse(row.attr('g-value'));
+            this.metadatumEditWidget = new girder.views.JsonMetadatumEditWidget(opts);
+        } else {
+            this.metadatumEditWidget = new girder.views.MetadatumEditWidget(opts);
+        }
     },
 
     initialize: function (settings) {

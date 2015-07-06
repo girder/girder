@@ -295,13 +295,14 @@ girderTest.testMetadata = function () {
      * :param key: key text.
      * :param value: value text.  If this appears to be a JSON string, the
      *               metadata should be stored as a JSON object.
-     * :param action: one of 'save', 'cance', or 'delete'.  'delete' can't be
+     * :param action: one of 'save', 'cancel', or 'delete'.  'delete' can't be
      *                used with new items.  Default is 'save'.
      * :param errorMessage: if present, expect an information message with
      *                      regex.
      */
-    function _editMetadata(origKey, key, value, action, errorMessage) {
+    function _editMetadata(origKey, key, value, action, errorMessage, type) {
         var expectedNum, elem;
+        type = (type !== undefined && type === 'json') ? 'json' : 'simple';
 
         if (origKey === null) {
             waitsFor(function () {
@@ -309,7 +310,12 @@ girderTest.testMetadata = function () {
             }, 'the add metadata button to appear');
             runs(function () {
                 expectedNum = $(".g-widget-metadata-row").length;
-                $('.g-widget-metadata-add-button:visible').click();
+
+                if (type === 'json') {
+                    $('a.g-add-json-metadata').click();
+                } else {
+                    $('a.g-add-simple-metadata').click();
+                }
             });
         } else {
             runs(function () {
@@ -322,7 +328,8 @@ girderTest.testMetadata = function () {
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 1 &&
-                   $('textarea.g-widget-metadata-value-input').length === 1;
+                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 1 :
+                 $('.jsoneditor > .outer > .tree').length === 1);
         }, 'the add metadata input fields to appear');
         runs(function () {
             if (!elem) {
@@ -333,10 +340,24 @@ girderTest.testMetadata = function () {
             } else {
                 key = $('input.g-widget-metadata-key-input', elem).val();
             }
-            if (value !== null) {
-                $('textarea.g-widget-metadata-value-input', elem).val(value);
+
+            if (type == 'simple') {
+                if (value !== null) {
+                    $('textarea.g-widget-metadata-value-input', elem).val(value);
+                } else {
+                    value = $('textarea.g-widget-metadata-value-input', elem).val();
+                }
             } else {
-                value = $('textarea.g-widget-metadata-value-input', elem).val();
+                // tree mode
+                for (arrKey in value) {
+                    $('.jsoneditor button.contextmenu', elem).click();
+                    $('.jsoneditor-contextmenu button.insert').click();
+                    $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
+                    $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+
+                    // trigger update for JSONEditor to do internal tasks
+                    $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                }
             }
         });
         if (errorMessage) {
@@ -380,7 +401,8 @@ girderTest.testMetadata = function () {
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 0 &&
-                   $('textarea.g-widget-metadata-value-input').length === 0;
+                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 0 :
+                 $('.jsoneditor > .outer > .tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
             return $(".g-widget-metadata-row").length == expectedNum;
@@ -388,6 +410,9 @@ girderTest.testMetadata = function () {
         runs(function () {
             expect($(".g-widget-metadata-row").length).toBe(expectedNum);
             if (action === 'save') {
+                if (type === 'json') {
+                    value = JSON.stringify(value, null, 4);
+                }
                 expect(elem.text()).toBe(key + value);
             }
         });
@@ -406,6 +431,9 @@ girderTest.testMetadata = function () {
         _editMetadata('simple_key', null, 'new_value');
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
+
+        // json tests
+        _editMetadata(null, 'a_json_key', {"foo": "bar"}, 'save', null, 'json');
     };
 };
 

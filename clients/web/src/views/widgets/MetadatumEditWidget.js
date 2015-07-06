@@ -8,18 +8,25 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         'click .g-widget-metadata-delete-button': 'deleteMetadatum'
     },
 
-    isJsonValue: function (s) {
-        s = s || this.value;
+    editTemplate: girder.templates.metadatumEditWidget,
 
-        try {
-            var jsonValue = JSON.parse(s);
+    /* The following 2 functions could be the beginning of
+     warranting another layer of abstraction. Particularly
+     a MetadatumWidget, and a JsonMetadatumWidget.
+     Right now it's a bit odd that the edit widget knows things
+     about how to display it in a non-editing environment.  */
+    displayValue: function () {
+        return this.value;
+    },
 
-            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
-                return jsonValue;
-            }
-        } catch (err) {}
-
-        return false;
+    viewHtml: function () {
+        return girder.templates.metadatumView({
+            key: this.key,
+            value: this.displayValue(),
+            accessLevel: this.accessLevel,
+            isJson: false,
+            girder: girder
+        });
     },
 
     deleteMetadatum: function (event) {
@@ -27,7 +34,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         var metadataList = $(event.currentTarget.parentElement);
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
-                  _.escape(this.key) + '</b>?',
+                _.escape(this.key) + '</b>?',
             escapedHtml: true,
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
@@ -45,27 +52,15 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         if (this.newDatum) {
             curRow.remove();
         } else {
-            curRow.removeClass('editing').html(girder.templates.metadatumView({
-                key: this.key,
-                value: this.value,
-                isJson: this.isJsonValue(),
-                accessLevel: this.accessLevel,
-                girder: girder
-            }));
+            curRow.removeClass('editing').html(this.viewHtml());
         }
     },
 
-    save: function (event) {
+    save: function (event, value) {
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
-            tempKey = curRow.find('.g-widget-metadata-key-input').val();
-
-        // If it's json and we have an active editor, we need to retrieve that JSON
-        if (this.isJsonValue() && this.editor) {
-            var tempValue = this.editor.getText();
-        } else {
-            var tempValue = curRow.find('.g-widget-metadata-value-input').val();
-        }
+            tempKey = curRow.find('.g-widget-metadata-key-input').val(),
+            tempValue = value || curRow.find('.g-widget-metadata-value-input').val();
 
         if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
@@ -75,26 +70,14 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             return;
         }
 
-        var displayValue = tempValue;
-        var jsonValue = this.isJsonValue(tempValue);
-
-        if (jsonValue) {
-            tempValue = jsonValue;
-        }
-
         var saveCallback = _.bind(function () {
             this.key = tempKey;
-            this.value = displayValue;
+            this.value = tempValue;
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
-                'g-value': this.value
-            }).html(girder.templates.metadatumView({
-                key: this.key,
-                value: (jsonValue) ? JSON.stringify(jsonValue, null, 4) : this.value,
-                isJson: this.isJsonValue(),
-                accessLevel: this.accessLevel,
-                girder: girder
-            }));
+                'g-value': this.displayValue(),
+                'g-is-json': typeof value === 'object'
+            }).html(this.viewHtml());
             this.newDatum = false;
         }, this);
 
@@ -122,28 +105,15 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     },
 
     render: function () {
-        var jsonValue = this.isJsonValue();
-
-        this.$el.html(girder.templates.metadatumEditWidget({
+        this.$el.html(this.editTemplate({
             item: this.item,
             key: this.key,
             value: this.value,
-            isJson: jsonValue,
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
             girder: girder
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
-
-        if (jsonValue) {
-            var options = {
-                mode: 'tree',
-                modes: ['code', 'text', 'tree'],
-                error: function (err) { alert(err.toString()); }
-            };
-
-            this.editor = new JSONEditor(this.$el.find('.json-editor')[0], options, jsonValue);
-        }
 
         this.$('[title]').tooltip({
             container: this.$el,
