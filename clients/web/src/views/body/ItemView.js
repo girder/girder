@@ -111,6 +111,10 @@
                     upload: this.upload,
                     parentView: this
                 });
+                this.fileListWidget.on('g:changed', function () {
+                    this.trigger('g:rendered');
+                }, this);
+
                 this.fileEdit = false;
                 this.upload = false;
 
@@ -133,8 +137,6 @@
                     this.editItem();
                     this.edit = false;
                 }
-
-                this.trigger('g:rendered');
             }, this));
 
             return this;
