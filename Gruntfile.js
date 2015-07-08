@@ -217,9 +217,6 @@ module.exports = function (grunt) {
                         'clients/web/src/model.js',
                         'clients/web/src/models/**/*.js',
                         'clients/web/src/collections/**/*.js',
-                        'clients/web/src/views/widgets/MetadataWidget.js',
-                        'clients/web/src/views/widgets/MetadatumEditWidget.js',
-                        'clients/web/src/views/widgets/JsonMetadatumEditWidget.js',
                         'clients/web/src/views/**/*.js'
                     ],
                     'clients/web/static/built/main.min.js': [
