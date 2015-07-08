@@ -111,7 +111,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
      warranting another layer of abstraction. Particularly
      a MetadatumWidget, and a JsonMetadatumWidget.
      Right now it's a bit odd that the edit widget knows things
-     about how to display it in a non-editing environment.  */
+     about how to display itself in a non-editing environment.  */
     displayValue: function () {
         return this.value;
     },
@@ -234,21 +234,9 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
         return JSON.stringify(this.value, null, 4);
     },
 
-    deleteMetadatum: function (event) {
-        girder.views.MetadatumEditWidget.prototype.deleteMetadatum.apply(this, [event]);
-    },
-
-    cancelEdit: function (event) {
-        girder.views.MetadatumEditWidget.prototype.cancelEdit.apply(this, [event]);
-    },
-
     save: function (event) {
-        try {
-            girder.views.MetadatumEditWidget.prototype.save.apply(
-                this, [event, this.editor.get()]);
-        } catch (err) {
-            alert(err);
-        }
+        girder.views.MetadatumEditWidget.prototype.save.apply(
+            this, [event, this.editor.get()]);
     },
 
     viewHtml: function () {
@@ -269,8 +257,6 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
             modes: ['code', 'tree'],
             error: function (err) {
                 alert(err);
-                // This will need to be fleshed out to warn the user in a more friendly manner,
-                // and possibly give them the option here to 'convert' to a simple edit widget
             }});
 
             if (this.value) {

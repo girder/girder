@@ -289,6 +289,29 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
  * metadata editing options.
  */
 girderTest.testMetadata = function () {
+
+    function _editSimpleMetadata(value, elem) {
+        if (value !== null) {
+            $('textarea.g-widget-metadata-value-input', elem).val(value);
+        } else {
+            value = $('textarea.g-widget-metadata-value-input', elem).val();
+        }
+
+        return value;
+    }
+
+    function _editJsonMetadata(value, elem) {
+        for (arrKey in value) {
+            $('.jsoneditor button.contextmenu', elem).click();
+            $('.jsoneditor-contextmenu button.insert').click();
+            $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
+            $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+
+            // trigger update for JSONEditor to do internal tasks
+            $('.jsoneditor table.values .empty', elem).trigger('keyup');
+        }
+    }
+
     /* Add metadata and check that the value is actually set for the item.
      * :param origKey: null to create a new metadata item.  Otherwise, edit the
      *                 metadata item with this key.
@@ -341,24 +364,12 @@ girderTest.testMetadata = function () {
                 key = $('input.g-widget-metadata-key-input', elem).val();
             }
 
-            if (type == 'simple') {
-                if (value !== null) {
-                    $('textarea.g-widget-metadata-value-input', elem).val(value);
-                } else {
-                    value = $('textarea.g-widget-metadata-value-input', elem).val();
-                }
+            if (type === 'simple') {
+                value = _editSimpleMetadata(value, elem);
             } else {
-                // tree mode
-                for (arrKey in value) {
-                    $('.jsoneditor button.contextmenu', elem).click();
-                    $('.jsoneditor-contextmenu button.insert').click();
-                    $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
-                    $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
-
-                    // trigger update for JSONEditor to do internal tasks
-                    $('.jsoneditor table.values .empty', elem).trigger('keyup');
-                }
+                _editJsonMetadata(value, elem);
             }
+
         });
         if (errorMessage) {
             runs(function () {
