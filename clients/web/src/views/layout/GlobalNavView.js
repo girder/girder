@@ -5,6 +5,8 @@
 girder.views.LayoutGlobalNavView = girder.View.extend({
     events: {
         'click .g-nav-link': function (event) {
+            event.preventDefault(); // so we can keep the href
+
             var link = $(event.currentTarget);
 
             girder.router.navigate(link.attr('g-target'), {trigger: true});
