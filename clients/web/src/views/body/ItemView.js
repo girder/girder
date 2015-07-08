@@ -111,7 +111,7 @@
                     upload: this.upload,
                     parentView: this
                 });
-                this.fileListWidget.on('g:changed', function () {
+                this.fileListWidget.once('g:changed', function () {
                     this.trigger('g:rendered');
                 }, this);
 
