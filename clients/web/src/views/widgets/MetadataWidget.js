@@ -61,7 +61,7 @@ girder.views.MetadataWidget = girder.View.extend({
         this.render();
     },
 
-    render: function (convertKey, convertValueIsJson) {
+    render: function (convertKey, convertValueIsJson, convertValue) {
         var metaDict = this.item.attributes.meta || {};
         var metaKeys = Object.keys(metaDict);
         metaKeys.sort(girder.localeSort);
@@ -75,9 +75,10 @@ girder.views.MetadataWidget = girder.View.extend({
                 isJson = true;
             }
 
-            // if we're converting, set isJson to what the converter says
+            // if we're converting, setup temporary overrides
             if (convertKey === metaKeys[i]) {
                 isJson = convertValueIsJson;
+                value = convertValue;
             }
 
             metaList.push({key: metaKeys[i], value: value, isJson: isJson});
@@ -127,6 +128,12 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         var isJson = (json === undefined);
         var curRow = $(event.currentTarget.parentElement);
 
+        if (json === true) {
+            this.value = this.editor.getText();
+        } else {
+            this.value = curRow.find('.g-widget-metadata-value-input').val();
+        }
+
         curRow.removeClass('editing').attr({
             'g-key': this.key,
             'g-value': this.value,
@@ -140,7 +147,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         }));
 
         // re-render MetadataWidget, which will get rid of this object and edit the metadata
-        this.parentView.render(this.key, isJson);
+        this.parentView.render(this.key, isJson, this.value);
     },
 
     /* The following 2 functions could be the beginning of
@@ -276,8 +283,12 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
     },
 
     save: function (event) {
-        girder.views.MetadatumEditWidget.prototype.save.apply(
-            this, [event, this.editor.get()]);
+        try {
+            girder.views.MetadatumEditWidget.prototype.save.apply(
+                this, [event, this.editor.get()]);
+        } catch (err) {
+            alert('Failed to parse as JSON.');
+        }
     },
 
     viewHtml: function () {
