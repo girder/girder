@@ -104,10 +104,9 @@ example, we have the following:
        tools.proxy.local: ""
 
 After modifying the configuration, always remember to rebuild Girder by
-changing to the main Girder directory and issuing the following command: ::
+changing to the Girder directory and issuing the following command: ::
 
-    $ grunt init && grunt
-
+    $ npm install
 
 Docker Container
 ----------------

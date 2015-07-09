@@ -10,10 +10,31 @@ the tools used to develop Girder.
 Configuring Your Development Environment
 ----------------------------------------
 
-In order to develop Girder, you can refer to the :doc:`prerequisites` and
-:doc:`installation` sections to setup a local development environment. Once
-Girder is started via ``python -m girder``, the server will reload itself
-whenever a Python file is modified.
+In order to develop Girder, you should first refer to the :doc:`prerequisites`
+and :doc:`installation` sections to setup a basic local environment.
+
+Next, you should install the `Grunt <http://gruntjs.com>`_ build tool globally,
+to allow it to be run directly from the command line: ::
+
+    npm install -g grunt
+    npm install -g grunt-cli
+
+Finally, you should also install the Python development dependencies, to
+provide helpful development tools and to allow the test suite to run: ::
+
+    pip install -r requirements-dev.txt
+
+.. note:: One of the development requirements, `httpretty`, can fail to install
+   if under certain system locales (see the `error report
+   <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
+   UTF8 locale works around this problem.  For instance, on Ubuntu, you can
+   change your system locale using the commands: ::
+
+        locale-gen en_US.UTF-8
+        export LANG=en_US.utf8
+
+During development, once Girder is started via ``python -m girder``, the server
+will reload itself whenever a Python file is modified.
 
 To get the same auto-building behavior for JavaScript, we use ``grunt-watch``.
 Thus, running ``grunt watch`` in the root of the repository will watch for
