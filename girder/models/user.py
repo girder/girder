@@ -41,8 +41,7 @@ class User(AccessControlledModel):
         }, language='none')
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'login', 'public', 'firstName', 'lastName', 'admin',
-            'created'))
+            'login', 'public', 'firstName', 'lastName', 'admin', 'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites'))
 

@@ -50,7 +50,7 @@ class Folder(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'public', 'description', 'created', 'updated',
+            'name', 'public', 'description', 'created', 'updated',
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
 

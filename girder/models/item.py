@@ -50,7 +50,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         self.resourceParent = 'folderId'
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'size', 'updated', 'description', 'created', 'meta',
+            'size', 'updated', 'description', 'created', 'meta',
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
     def filter(self, item, user=None):

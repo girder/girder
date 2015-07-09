@@ -41,7 +41,7 @@ class Collection(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'description', 'public', 'created', 'updated',
+            'name', 'description', 'public', 'created', 'updated',
             'size'))
 
     def filter(self, collection, user=None):

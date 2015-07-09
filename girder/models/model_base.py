@@ -46,7 +46,7 @@ class Model(ModelImporter):
         self._textLanguage = None
 
         self._filterKeys = {
-            AccessType.READ: set(),
+            AccessType.READ: set('_id'),
             AccessType.WRITE: set(),
             AccessType.ADMIN: set(),
             AccessType.SITE_ADMIN: set()
