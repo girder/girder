@@ -3,6 +3,10 @@ mixin metadatum(key, value, accessLevel, girder, isJson)
     button.btn.btn-sm.btn-default.g-widget-metadata-edit-button
       i.icon-pencil
   span.g-widget-metadata-key #{key}
+    if isJson
+      span.small json
+    else
+      span.small simple
   if isJson
     span.g-widget-metadata-value
       pre #{value}

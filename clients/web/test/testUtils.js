@@ -424,7 +424,7 @@ girderTest.testMetadata = function () {
                 if (type === 'json') {
                     value = JSON.stringify(value, null, 4);
                 }
-                expect(elem.text()).toBe(key + value);
+                expect(elem.text()).toBe(key + type + value);
             }
         });
     }

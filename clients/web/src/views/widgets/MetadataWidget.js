@@ -41,7 +41,11 @@ girder.views.MetadataWidget = girder.View.extend({
         };
 
         if (row.attr('g-is-json') === 'true') {
-            opts.value = JSON.parse(row.attr('g-value'));
+            // we try catch in the case that a simple string is being converted to json
+            try {
+                opts.value = JSON.parse(row.attr('g-value'));
+            } catch (err) {}
+
             this.metadatumEditWidget = new girder.views.JsonMetadatumEditWidget(opts);
         } else {
             this.metadatumEditWidget = new girder.views.MetadatumEditWidget(opts);
@@ -57,7 +61,7 @@ girder.views.MetadataWidget = girder.View.extend({
         this.render();
     },
 
-    render: function () {
+    render: function (convertKey, convertValueIsJson) {
         var metaDict = this.item.attributes.meta || {};
         var metaKeys = Object.keys(metaDict);
         metaKeys.sort(girder.localeSort);
@@ -70,6 +74,12 @@ girder.views.MetadataWidget = girder.View.extend({
                 value = JSON.stringify(value, null, 4);
                 isJson = true;
             }
+
+            // if we're converting, set isJson to what the converter says
+            if (convertKey === metaKeys[i]) {
+                isJson = convertValueIsJson;
+            }
+
             metaList.push({key: metaKeys[i], value: value, isJson: isJson});
         }
         this.$el.html(girder.templates.metadataWidget({
@@ -85,6 +95,11 @@ girder.views.MetadataWidget = girder.View.extend({
             animation: false,
             delay: {show: 100}
         });
+
+        // if we're converting, we need to trigger a click on the newly rendered edit-button
+        if (convertKey) {
+            this.$('div[g-key="' + convertKey + '"] .g-widget-metadata-edit-button').trigger('click');
+        }
 
         return this;
     },
@@ -102,10 +117,31 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     events: {
         'click .g-widget-metadata-cancel-button': 'cancelEdit',
         'click .g-widget-metadata-save-button': 'save',
-        'click .g-widget-metadata-delete-button': 'deleteMetadatum'
+        'click .g-widget-metadata-delete-button': 'deleteMetadatum',
+        'click .g-widget-metadata-toggle-button': 'toggleFieldType'
     },
 
     editTemplate: girder.templates.metadatumEditWidget,
+
+    toggleFieldType: function (event, json) {
+        var isJson = (json === undefined);
+        var curRow = $(event.currentTarget.parentElement);
+
+        curRow.removeClass('editing').attr({
+            'g-key': this.key,
+            'g-value': this.value,
+            'g-is-json': isJson
+        }).html(girder.templates.metadatumView({
+            key: this.key,
+            value: this.value,
+            accessLevel: this.accessLevel,
+            isJson: isJson, // use viewhtml?
+            girder: girder
+        }));
+
+        // re-render MetadataWidget, which will get rid of this object and edit the metadata
+        this.parentView.render(this.key, isJson);
+    },
 
     /* The following 2 functions could be the beginning of
      warranting another layer of abstraction. Particularly
@@ -173,7 +209,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             curRow.removeClass('editing').attr({
                 'g-key': this.key,
                 'g-value': this.displayValue(),
-                'g-is-json': typeof value === 'object'
+                'g-is-json': typeof this.value === 'object'
             }).html(this.viewHtml());
             this.newDatum = false;
         }, this);
@@ -229,6 +265,11 @@ girder.views.MetadatumEditWidget = girder.View.extend({
  */
 girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
     editTemplate: girder.templates.jsonMetadatumEditWidget,
+
+    toggleFieldType: function (event) {
+        return girder.views.MetadatumEditWidget.prototype.toggleFieldType.apply(
+            this, [event, true]);
+    },
 
     displayValue: function () {
         return JSON.stringify(this.value, null, 4);
