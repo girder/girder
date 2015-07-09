@@ -51,6 +51,56 @@ _.extend(girder, {
         EMPTY: 'empty'
     },
     layout: 'default',
+    requestError: function (error, status) {
+        var info;
+        if (error.status === 401) {
+            girder.events.trigger('g:loginUi');
+            info = {
+                text: 'You must log in to view this resource',
+                type: 'warning',
+                timeout: 4000,
+                icon: 'info'
+            };
+        } else if (error.status === 403) {
+            info = {
+                text: 'Access denied. See the console for more details.',
+                type: 'danger',
+                timeout: 5000,
+                icon: 'attention'
+            };
+        } else if (error.status === 0 && error.statusText === 'abort') {
+            /* We expected this abort, so do nothing. */
+            return;
+        } else if (error.status === 500 && error.responseJSON &&
+                   error.responseJSON.type === 'girder') {
+            info = {
+                text: error.responseJSON.message,
+                type: 'warning',
+                timeout: 5000,
+                icon: 'info'
+            };
+        } else if (status === 'parsererror') {
+            info = {
+                text: 'A parser error occurred while communicating with the ' +
+                      'server (did you use the correct value for `dataType`?). ' +
+                      'Details have been logged in the console.',
+                type: 'danger',
+                timeout: 5000,
+                icon: 'attention'
+            };
+        } else {
+            info = {
+                text: 'An error occurred while communicating with the ' +
+                      'server. Details have been logged in the console.',
+                type: 'danger',
+                timeout: 5000,
+                icon: 'attention'
+            };
+        }
+        girder.events.trigger('g:alert', info);
+        console.error(error.status + ' ' + error.statusText, error.responseText);
+        girder.lastError = error;
+    },
 
     /**
      * Make a request to the REST API. Bind a "done" handler to the return
@@ -69,57 +119,7 @@ _.extend(girder, {
         var defaults = {
             dataType: 'json',
             type: 'GET',
-
-            error: function (error, status) {
-                var info;
-                if (error.status === 401) {
-                    girder.events.trigger('g:loginUi');
-                    info = {
-                        text: 'You must log in to view this resource',
-                        type: 'warning',
-                        timeout: 4000,
-                        icon: 'info'
-                    };
-                } else if (error.status === 403) {
-                    info = {
-                        text: 'Access denied. See the console for more details.',
-                        type: 'danger',
-                        timeout: 5000,
-                        icon: 'attention'
-                    };
-                } else if (error.status === 0 && error.statusText === 'abort') {
-                    /* We expected this abort, so do nothing. */
-                    return;
-                } else if (error.status === 500 && error.responseJSON &&
-                           error.responseJSON.type === 'girder') {
-                    info = {
-                        text: error.responseJSON.message,
-                        type: 'warning',
-                        timeout: 5000,
-                        icon: 'info'
-                    };
-                } else if (status === 'parsererror') {
-                    info = {
-                        text: 'A parser error occurred while communicating with the ' +
-                              'server (did you use the correct value for `dataType`?). ' +
-                              'Details have been logged in the console.',
-                        type: 'danger',
-                        timeout: 5000,
-                        icon: 'attention'
-                    };
-                } else {
-                    info = {
-                        text: 'An error occurred while communicating with the ' +
-                              'server. Details have been logged in the console.',
-                        type: 'danger',
-                        timeout: 5000,
-                        icon: 'attention'
-                    };
-                }
-                girder.events.trigger('g:alert', info);
-                console.error(error.status + ' ' + error.statusText, error.responseText);
-                girder.lastError = error;
-            }
+            error: girder.requestError
         };
 
         if (opts.path.substring(0, 1) !== '/') {
