@@ -18,9 +18,9 @@
 ###############################################################################
 
 import datetime
-import json
 import pymongo
 import six
+from bson import json_util
 
 from girder import events
 from girder.constants import AccessType
@@ -185,7 +185,7 @@ class Job(AccessControlledModel):
         keys.
         """
         deserialized = job['kwargs']
-        job['kwargs'] = json.dumps(job['kwargs'])
+        job['kwargs'] = json_util.dumps(job['kwargs'])
         job = AccessControlledModel.save(self, job, *args, **kwargs)
         job['kwargs'] = deserialized
         return job
@@ -198,7 +198,7 @@ class Job(AccessControlledModel):
         job = AccessControlledModel.load(self, *args, **kwargs)
 
         if job and isinstance(job['kwargs'], six.string_types):
-            job['kwargs'] = json.loads(job['kwargs'])
+            job['kwargs'] = json_util.loads(job['kwargs'])
 
         return job
 
@@ -348,6 +348,6 @@ class Job(AccessControlledModel):
         doc = self.filterDocument(job, allow=keys)
 
         if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
-            doc['kwargs'] = json.loads(doc['kwargs'])
+            doc['kwargs'] = json_util.loads(doc['kwargs'])
 
         return doc
