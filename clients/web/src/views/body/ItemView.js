@@ -155,8 +155,6 @@
             girder.events.trigger('g:navigateTo', girder.views.ItemView, _.extend({
                 item: item
             }, params || {}));
-        }, this).on('g:error', function () {
-            girder.router.navigate('collections', {trigger: true});
         }, this).fetch();
     };
 
