@@ -44,7 +44,5 @@ girder.router.route('folder/:id', 'folder', function (id, params) {
             folderEdit: params.dialog === 'folderedit',
             itemCreate: params.dialog === 'itemcreate'
         }, params || {}));
-    }, this).on('g:error', function () {
-        girder.router.navigate('collections', {trigger: true});
     }, this).fetch();
 });
