@@ -304,7 +304,7 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
     render: function () {
         girder.views.MetadatumEditWidget.prototype.render.apply(this, arguments);
 
-        this.editor = new JSONEditor(this.$el.find('#json-editor')[0], {
+        this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
             error: function (err) {

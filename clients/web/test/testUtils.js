@@ -325,7 +325,7 @@ girderTest.testMetadata = function () {
      */
     function _editMetadata(origKey, key, value, action, errorMessage, type) {
         var expectedNum, elem;
-        type = (type !== undefined && type === 'json') ? 'json' : 'simple';
+        type = type || 'simple';
 
         if (origKey === null) {
             waitsFor(function () {
@@ -333,12 +333,7 @@ girderTest.testMetadata = function () {
             }, 'the add metadata button to appear');
             runs(function () {
                 expectedNum = $(".g-widget-metadata-row").length;
-
-                if (type === 'json') {
-                    $('a.g-add-json-metadata').click();
-                } else {
-                    $('a.g-add-simple-metadata').click();
-                }
+                $('a.g-add-' + type  + '-metadata').click();
             });
         } else {
             runs(function () {
