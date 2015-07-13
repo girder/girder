@@ -37,6 +37,7 @@ class Resource(BaseResource):
     def __init__(self):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
+        self.route('GET', ('stat',), self.stat)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
         self.route('POST', ('download',), self.download)
@@ -243,6 +244,21 @@ class Resource(BaseResource):
 
         result = self.model(model).filter(document, user)
         return result
+
+    @access.public
+    def stat(self, params):
+        path = params.get('path')
+        currentUser = self.getCurrentUser()
+        result = self._lookupPath(path, currentUser)
+        return result
+
+    stat.description = (
+        Description('Get any resource by girder path.')
+        .param('path', 'The path of the resource.')
+        .errorResponse('Path is invalid.')
+        .errorResponse('Path refers to a resource that does not exist.')
+        .errorResponse('Read access was denied for the resource.', 403))
+
 
     @access.public
     def download(self, params):
