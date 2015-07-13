@@ -20,7 +20,7 @@
 import itertools
 import six
 
-from ..models.model_base import Model
+from ..models.model_base import Model, AccessException
 from ..constants import AccessType
 
 
@@ -77,6 +77,26 @@ class AccessControlMixin(object):
                        .load(resource[self.resourceParent], force=True)
         return self.model(self.resourceColl).hasAccess(resource, user=user,
                                                        level=level)
+
+    def requireAccess(self, doc, user=None, level=AccessType.READ):
+        """
+        This wrapper just provides a standard way of throwing an
+        access denied exception if the access check fails.
+        """
+        if not self.hasAccess(doc, user, level):
+            if level == AccessType.READ:
+                perm = 'Read'
+            elif level == AccessType.WRITE:
+                perm = 'Write'
+            else:
+                perm = 'Admin'
+            if user:
+                userid = str(user.get('_id', ''))
+            else:
+                userid = None
+            raise AccessException("%s access denied for %s %s (user %s)." %
+                                  (perm, self.name, doc.get('_id', 'unknown'),
+                                   userid))
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
