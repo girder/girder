@@ -192,6 +192,58 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: {}->{}'.format(
             parentId, token))
 
+    def _lookupPath(self, path, user=None):
+        """
+        Find a particular resource by path or throw an exception.  The given
+        user must have read access to all resources featured in the path.
+        :param path: the path of the object to find
+        :param user: the user to search as
+        :returns: the resource.
+        """
+
+        if not path.startswith('/'):
+            raise RestException('Invalid path format')
+
+        pathArray = path[1:].split('/')
+        model = pathArray[0]
+        isUserPath = ( model == 'user' )
+        isCollectionPath = ( model == 'collection' )
+
+        if user is None:
+            user = self.getCurrentUser()
+
+        parent = None
+        if isUserPath:
+            username = pathArray[1]
+            parent = self.model('user').findOne({'login': username})
+
+            if parent is None:
+                raise RestException('User not found: {}'.format(username))
+
+        elif isCollectionPath:
+            collectionName = pathArray[1]
+            parent = self.model('collection').findOne({'name': collectionName})
+
+            if parent is None:
+                raise RestException(
+                    'Collection not found: {}'.format(collectionName))
+
+        else:
+            raise RestException('Invalid path format')
+
+        try:
+            document = parent
+            self.model(model).requireAccess(document, user)
+            for token in pathArray[2:]:
+                document, model = self._lookupToken(token, document['_id'])
+                self.model(model).requireAccess(document, user)
+
+        except RestException:
+            raise RestException('Path not found: {}'.format(path))
+
+        result = self.model(model).filter(document, user)
+        return result
+
     @access.public
     def download(self, params):
         """
