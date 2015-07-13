@@ -10,6 +10,21 @@ girder.views.MetadataWidget = girder.View.extend({
         'click .g-widget-metadata-edit-button': 'editMetadata'
     },
 
+    isJsonObject: function (value) {
+        try {
+            var jsonValue = JSON.parse(value);
+            /* This may succeed when we don't want it to (for instance with the
+             * value 'false' or '1234'), so check and only switch to JSON if we
+             * got an object back. */
+            if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
+                return jsonValue;
+            }
+        }
+        catch (err) {}
+
+        return false;
+    },
+
     addMetadata: function (event, json) {
         var EditWidget = (json) ? girder.views.JsonMetadatumEditWidget : girder.views.MetadatumEditWidget;
         var newRow = $('<div>').attr({
@@ -124,10 +139,23 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
     editTemplate: girder.templates.metadatumEditWidget,
 
+    // variable naming in here needs to be much clearer, json/isJson
     toggleFieldType: function (event, json) {
         var isJson = (json === undefined);
         var curRow = $(event.currentTarget.parentElement);
 
+        if (json !== true) {
+            if (!this.parentView.isJsonObject(curRow.find('.g-widget-metadata-value-input').val())) {
+                girder.events.trigger('g:alert', {
+                    text: 'The simple field is not valid JSON and can not be converted.',
+                    type: 'warning'
+                });
+
+                return;
+            }
+        }
+
+        // shouldn't this use isJson?
         if (json === true) {
             this.value = this.editor.getText();
         } else {
@@ -192,7 +220,9 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         if (this.newDatum) {
             curRow.remove();
         } else {
-            curRow.removeClass('editing').html(this.viewHtml());
+            // Re-rendering all metadata causes any partially converted metadata
+            // to revert to it's original state
+            this.parentView.render();
         }
     },
 
@@ -287,7 +317,10 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
             girder.views.MetadatumEditWidget.prototype.save.apply(
                 this, [event, this.editor.get()]);
         } catch (err) {
-            alert('Failed to parse as JSON.');
+            girder.events.trigger('g:alert', {
+                text: 'The field contains invalid JSON and can not be saved.',
+                type: 'warning'
+            });
         }
     },
 
@@ -307,15 +340,19 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
         this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
-            error: function (err) {
-                alert(err);
-            }});
-
-            if (this.value) {
-                this.editor.set(this.value);
-                this.editor.expandAll();
+            error: function () {
+                girder.events.trigger('g:alert', {
+                    text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
+                    type: 'warning'
+                });
             }
+        });
 
-            return this;
+        if (this.value) {
+            this.editor.set(this.value);
+            this.editor.expandAll();
         }
-    });
+
+        return this;
+    }
+});
