@@ -140,6 +140,58 @@ class Resource(BaseResource):
             raise RestException('Invalid resources format.')
         return model
 
+    def _lookupToken(self, token, parentId):
+        """
+        Find a particular child resource by name or throw an exception.
+        :param token: the name of the child resource to find
+        :param parentId: id of the parent to search
+        :returns: the child resource.
+        """
+
+        filterObject = { 'name': token }
+        candidateParent = None
+
+        # figure out the parentId's type
+        candidateModelNames = ('collection', 'user', 'folder', 'item')
+        for modelName in candidateModelNames:
+            candidateParent = self.model(modelName).findOne({'_id': parentId})
+
+            if candidateParent is not None:
+                if modelName in ('collection', 'user'):
+                    filterObject.update(
+                        parentId=parentId,
+                        baseParentId=parentId,
+                        baseParentType=modelName)
+                else:
+                    filterObject.update(
+                        parentId=parentId,
+                        baseParentId=candidateParent['baseParentId'],
+                        baseParentType=candidateParent['baseParentType'])
+                break
+
+        if candidateParent is None:
+            raise RestException(
+                'Parent resource not found: {}'.format(parentId))
+
+        candidateChild = self.model('folder').findOne(filterObject)
+        if candidateChild is not None:
+            return candidateChild, 'folder'
+
+        filterObject['folderId'] = filterObject.pop('parentId')
+        del filterObject['baseParentId']
+        del filterObject['baseParentType']
+        candidateChild = self.model('item').findOne(filterObject)
+        if candidateChild is not None:
+            return candidateChild, 'item'
+
+        filterObject['itemId'] = filterObject.pop('folderId')
+        candidateChild = self.model('file').findOne(filterObject)
+        if candidateChild is not None:
+            return candidateChild, 'file'
+
+        raise RestException('Child resource not found: {}->{}'.format(
+            parentId, token))
+
     @access.public
     def download(self, params):
         """
