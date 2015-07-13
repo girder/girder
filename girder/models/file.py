@@ -37,6 +37,10 @@ class File(acl_mixin.AccessControlMixin, Model):
         self.resourceColl = 'item'
         self.resourceParent = 'itemId'
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            "_id", "mimeType", "itemId", "exts", "name", "created",
+            "assetstoreId", "creatorId", "size"))
+
     def remove(self, file, updateItemSize=True, **kwargs):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
