@@ -377,8 +377,8 @@ class ResourceTestCase(base.TestCase):
         resp = self.request(path='/resource/stat',
                             method='GET', user=self.admin,
                             params={'path':
-                                '/collection/Test Collection/' +
-                                self.collectionPrivateFolder['name']})
+                                    '/collection/Test Collection/' +
+                                    self.collectionPrivateFolder['name']})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']),
                          str(self.collectionPrivateFolder['_id']))
@@ -405,13 +405,12 @@ class ResourceTestCase(base.TestCase):
             str(resp.json['_id']), str(self.adminSubFolder['_id']))
 
         # test items
+        privateFolder = self.collectionPrivateFolder['name']
         paths = ('/user/goodlogin/Public/Item 1',
                  '/user/goodlogin/Public/Item 2',
                  '/user/goodlogin/Public/Folder 1/Item 3',
-                 '/collection/Test Collection/%s/Item 4' %
-                     self.collectionPrivateFolder['name'],
-                 '/collection/Test Collection/%s/Item 5' %
-                     self.collectionPrivateFolder['name'])
+                 '/collection/Test Collection/%s/Item 4' % privateFolder,
+                 '/collection/Test Collection/%s/Item 5' % privateFolder)
 
         users = (self.user,
                  self.user,
