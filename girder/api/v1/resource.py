@@ -149,7 +149,7 @@ class Resource(BaseResource):
         :returns: the child resource.
         """
 
-        filterObject = { 'name': token }
+        filterObject = {'name': token}
         candidateParent = None
 
         # figure out the parentId's type
@@ -207,8 +207,8 @@ class Resource(BaseResource):
 
         pathArray = path[1:].split('/')
         model = pathArray[0]
-        isUserPath = ( model == 'user' )
-        isCollectionPath = ( model == 'collection' )
+        isUserPath = (model == 'user')
+        isCollectionPath = (model == 'collection')
 
         if user is None:
             user = self.getCurrentUser()
@@ -258,7 +258,6 @@ class Resource(BaseResource):
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403))
-
 
     @access.public
     def download(self, params):
