@@ -202,26 +202,21 @@ class Resource(BaseResource):
         :returns: the resource.
         """
 
-        if not path.startswith('/'):
-            raise RestException('Invalid path format')
-
-        pathArray = path[1:].split('/')
+        pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
-        isUserPath = (model == 'user')
-        isCollectionPath = (model == 'collection')
 
         if user is None:
             user = self.getCurrentUser()
 
         parent = None
-        if isUserPath:
+        if model == 'user':
             username = pathArray[1]
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
                 raise RestException('User not found: {}'.format(username))
 
-        elif isCollectionPath:
+        elif model == 'collection':
             collectionName = pathArray[1]
             parent = self.model('collection').findOne({'name': collectionName})
 
@@ -238,7 +233,6 @@ class Resource(BaseResource):
             for token in pathArray[2:]:
                 document, model = self._lookupToken(token, document['_id'])
                 self.model(model).requireAccess(document, user)
-
         except RestException:
             raise RestException('Path not found: {}'.format(path))
 
@@ -247,10 +241,8 @@ class Resource(BaseResource):
 
     @access.public
     def stat(self, params):
-        path = params.get('path')
-        currentUser = self.getCurrentUser()
-        result = self._lookupPath(path, currentUser)
-        return result
+        self.requireParams('path', params)
+        return self._lookupPath(params['path'], self.getCurrentUser())
 
     stat.description = (
         Description('Get any resource by girder path.')
