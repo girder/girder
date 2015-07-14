@@ -83,6 +83,11 @@ describe('Test the settings page', function () {
         expect($('#g-core-email-from-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
+        expect($.parseJSON($('#g-core-collection-create-policy').val())).toEqual({
+            open: false,
+            users: [],
+            groups: []
+        });
     });
     it('Change settings', function () {
         runs(function () {
@@ -100,6 +105,25 @@ describe('Test the settings page', function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
     });
+    it('Use search to update collection create policy', function () {
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-field').val('admin')
+                .trigger('input');
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .g-search-result').length > 0;
+        }, 'search result to appear');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-result>a').click();
+        });
+
+        waitsFor(function () {
+            return JSON.parse($('#g-core-collection-create-policy').text()).users.length === 1;
+        }, 'policy value to update');
+    });
+
     it('logout and check for redirect to front page from settings page', function () {
         girderTest.logout()();
 
