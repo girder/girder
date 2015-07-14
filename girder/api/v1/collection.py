@@ -20,10 +20,11 @@
 import cherrypy
 import json
 
-from ...constants import AccessType
 from ..describe import Description
 from ..rest import Resource, RestException, loadmodel
 from girder.api import access
+from girder.constants import AccessType
+from girder.models.model_base import AccessException
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -68,12 +69,15 @@ class Collection(Resource):
         .param('sortdir', "1 for ascending, -1 for descending.",
                required=False, dataType='int', default=1))
 
-    @access.admin
+    @access.user
     def createCollection(self, params):
-        """Create a new collection. Requires global admin."""
         self.requireParams('name', params)
 
         user = self.getCurrentUser()
+
+        if not self.model('collection').hasCreatePrivilege(user):
+            raise AccessException(
+                'You are not authorized to create collections.')
 
         public = self.boolParam('public', params, default=False)
 
@@ -90,7 +94,7 @@ class Collection(Resource):
         .param('public', 'Whether the collection should be publicly visible.',
                dataType='boolean', default=False)
         .errorResponse()
-        .errorResponse('You are not an administrator', 403))
+        .errorResponse('You are not authorized to create collections.', 403))
 
     @access.public
     @loadmodel(model='collection', level=AccessType.READ)
