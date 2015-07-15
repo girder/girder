@@ -120,7 +120,7 @@ describe('Test the settings page', function () {
         });
 
         waitsFor(function () {
-            return JSON.parse($('#g-core-collection-create-policy').text()).users.length === 1;
+            return JSON.parse($('#g-core-collection-create-policy').val()).users.length === 1;
         }, 'policy value to update');
     });
 
