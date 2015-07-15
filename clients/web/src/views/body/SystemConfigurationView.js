@@ -115,10 +115,28 @@ girder.views.SystemConfigurationView = girder.View.extend({
 
             if (result.type === 'user') {
                 settingValue.users = settingValue.users || [];
-                settingValue.users.push(result.id);
+                if (!_.contains(settingValue.users, result.id)) {
+                    settingValue.users.push(result.id);
+                } else {
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'User already exists in current policy.',
+                        type: 'warning',
+                        timeout: 4000
+                    });
+                }
             } else if (result.type === 'group') {
                 settingValue.groups = settingValue.groups || [];
-                settingValue.groups.push(result.id);
+                if (!_.contains(settingValue.groups, result.id)) {
+                    settingValue.groups.push(result.id);
+                } else {
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Group already exists in current policy.',
+                        type: 'warning',
+                        timeout: 4000
+                    });
+                }
             }
 
             this.$('#g-core-collection-create-policy').val(
