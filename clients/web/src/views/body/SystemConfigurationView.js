@@ -97,11 +97,20 @@ girder.views.SystemConfigurationView = girder.View.extend({
             el: this.$('.g-collection-create-policy-container .g-search-container'),
             parentView: this,
             types: ['user', 'group'],
-            placeholder: 'Add a user or group...'
+            placeholder: 'Add a user or group...',
+            settingValue: this.settings['core.collection_create_policy'] ||
+                               this.defaults['core.collection_create_policy']
         }).on('g:resultClicked', function (result) {
-            var settingValue = this.settings['core.collection_create_policy'] ||
-                               this.defaults['core.collection_create_policy'];
+            var settingValue = null;
 
+            try {
+                settingValue = JSON.parse(this.$('#g-core-collection-create-policy').val());
+                this.$('#g-settings-error-message').empty();
+            } catch (err) {
+                this.$('#g-settings-error-message').text('Collection creation policy must be a JSON object.');
+                this.searchWidget.resetState();
+                return this;
+            }
             this.searchWidget.resetState();
 
             if (result.type === 'user') {
@@ -112,7 +121,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 settingValue.groups.push(result.id);
             }
 
-            this.$('#g-core-collection-create-policy').text(
+            this.$('#g-core-collection-create-policy').val(
                 JSON.stringify(settingValue, null, 4));
 
         }, this).render();
