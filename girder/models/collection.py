@@ -284,8 +284,7 @@ class Collection(AccessControlledModel):
         if user['_id'] in policy.get('users', ()):
             return True
 
-        userGroups = set(user.get('groups', ()))
-        if set(policy.get('groups', ())).intersection(userGroups):
+        if set(policy.get('groups', ())) & set(user.get('groups', ())):
             return True
 
         return False
