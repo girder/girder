@@ -141,43 +141,33 @@ class Resource(BaseResource):
             raise RestException('Invalid resources format.')
         return model
 
-    def _lookupToken(self, token, parentId):
+    def _lookupToken(self, token, parentType, parent):
         """
         Find a particular child resource by name or throw an exception.
         :param token: the name of the child resource to find
-        :param parentId: id of the parent to search
-        :returns: the child resource.
+        :param parentType: the type of the parent to search
+        :param parent: the parent resource
+        :returns: the child resource
         """
 
-        filterObject = {'name': token}
-        candidateParent = None
+        filterObject = {
+            'name': token,
+            'parentId': parent['_id'],
+            'baseParentId': parent.get('baseParentId'),
+            'baseParentType': parent.get('baseParentType'),
+        }
 
-        # figure out the parentId's type
-        candidateModelNames = ('collection', 'user', 'folder', 'item')
-        for modelName in candidateModelNames:
-            candidateParent = self.model(modelName).findOne({'_id': parentId})
+        if parentType in ('collection', 'user'):
+            filterObject.update(
+                baseParentId=parent['_id'],
+                baseParentType=parentType)
 
-            if candidateParent is not None:
-                if modelName in ('collection', 'user'):
-                    filterObject.update(
-                        parentId=parentId,
-                        baseParentId=parentId,
-                        baseParentType=modelName)
-                else:
-                    filterObject.update(
-                        parentId=parentId,
-                        baseParentId=candidateParent['baseParentId'],
-                        baseParentType=candidateParent['baseParentType'])
-                break
-
-        if candidateParent is None:
-            raise RestException(
-                'Parent resource not found: {}'.format(parentId))
-
+        # look for a folder
         candidateChild = self.model('folder').findOne(filterObject)
         if candidateChild is not None:
             return candidateChild, 'folder'
 
+        # if folder not found, look for an item
         filterObject['folderId'] = filterObject.pop('parentId')
         del filterObject['baseParentId']
         del filterObject['baseParentType']
@@ -185,13 +175,15 @@ class Resource(BaseResource):
         if candidateChild is not None:
             return candidateChild, 'item'
 
+        # if item not found, look for a file
         filterObject['itemId'] = filterObject.pop('folderId')
         candidateChild = self.model('file').findOne(filterObject)
         if candidateChild is not None:
             return candidateChild, 'file'
 
-        raise RestException('Child resource not found: {}->{}'.format(
-            parentId, token))
+        # if no folder, item, or file matches, give up
+        raise RestException('Child resource not found: {}({})->{}'.format(
+            parentType, parent.get('name', parent.get('_id')), token))
 
     def _lookupPath(self, path, user=None):
         """
@@ -231,7 +223,7 @@ class Resource(BaseResource):
             document = parent
             self.model(model).requireAccess(document, user)
             for token in pathArray[2:]:
-                document, model = self._lookupToken(token, document['_id'])
+                document, model = self._lookupToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
             raise RestException('Path not found: {}'.format(path))
