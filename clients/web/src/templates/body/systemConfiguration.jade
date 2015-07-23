@@ -46,6 +46,12 @@ form.g-settings-form(role="form")
       option(value="yesmod", selected=(settings['core.add_to_group_policy'] ==
              "yesmod")) Yes by group administrators and moderators unless disabled per group
 
+  .g-collection-create-policy-container
+    label(for="g-collection-create-policy") Collection creation policy
+    textarea#g-core-collection-create-policy.form-control
+      = JSON.stringify(settings['core.collection_create_policy'] || defaults['core.collection_create_policy'], null, 4)
+    .g-search-container
+
   .panel-group#g-configuration-accordion
     .panel.panel-default
       .panel-heading

@@ -24,6 +24,7 @@ import six
 from ..constants import SettingDefault
 from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
+from bson.objectid import ObjectId
 
 
 class Setting(Model):
@@ -86,6 +87,23 @@ class Setting(Model):
             raise ValidationException(
                 'Add to group policy must be one of "never", "noadmin", '
                 '"nomod", "yesadmin", or "yesmod".', 'value')
+
+    def validateCoreCollectionCreatePolicy(self, doc):
+        value = doc['value']
+
+        if type(value) is not dict:
+            raise ValidationException('Collection creation policy must be a '
+                                      'JSON object.')
+
+        for i, groupId in enumerate(value.get('groups', ())):
+            self.model('group').load(groupId, force=True, exc=True)
+            value['groups'][i] = ObjectId(value['groups'][i])
+
+        for i, userId in enumerate(value.get('users', ())):
+            self.model('user').load(userId, force=True, exc=True)
+            value['users'][i] = ObjectId(value['users'][i])
+
+        value['open'] = value.get('open', False)
 
     def validateCoreCookieLifetime(self, doc):
         try:
