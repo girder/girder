@@ -30,6 +30,8 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException
 from girder import logger, events
 
+BUF_LEN = 65536  # Buffer size for download stream
+
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     """
@@ -300,7 +302,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 }
         return file
 
-    def downloadFile(self, file, offset=0, headers=True):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+                     **kwargs):
         """
         When downloading a single file with HTTP, we redirect to S3. Otherwise,
         e.g. when downloading as part of a zip stream, we connect to S3 and
@@ -316,11 +319,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 url = urlFn(key=file['s3Key'])
                 raise cherrypy.HTTPRedirect(url)
             else:
-                cherrypy.response.headers['Content-Length'] = '0'
-                cherrypy.response.headers['Content-Type'] = \
-                    'application/octet-stream'
-                cherrypy.response.headers['Content-Disposition'] = \
-                    'attachment; filename="{}"'.format(file['name'])
+                self.setContentHeaders(file, 0, 0)
 
                 def stream():
                     yield ''
@@ -329,7 +328,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             def stream():
                 if file['size'] > 0:
                     pipe = requests.get(urlFn(key=file['s3Key']), stream=True)
-                    for chunk in pipe.iter_content(chunk_size=65536):
+                    for chunk in pipe.iter_content(chunk_size=BUF_LEN):
                         if chunk:
                             yield chunk
                 else:

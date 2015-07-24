@@ -204,11 +204,15 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file, offset=0, headers=True):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+                     **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         disk to the response.
         """
+        if endByte is None or endByte > file['size']:
+            endByte = file['size']
+
         path = os.path.join(self.assetstore['root'], file['path'])
         if not os.path.isfile(path):
             raise GirderException(
@@ -217,21 +221,20 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 'file-does-not-exist')
 
         if headers:
-            mimeType = file.get('mimeType', 'application/octet-stream')
-            if not mimeType:
-                mimeType = 'application/octet-stream'
-            cherrypy.response.headers['Content-Type'] = mimeType
-            cherrypy.response.headers['Content-Length'] = file['size'] - offset
-            cherrypy.response.headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % file['name']
+            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            self.setContentHeaders(file, offset, endByte)
 
         def stream():
+            bytesRead = offset
             with open(path, 'rb') as f:
                 if offset > 0:
                     f.seek(offset)
 
                 while True:
-                    data = f.read(BUF_SIZE)
+                    readLen = min(BUF_SIZE, endByte - bytesRead)
+                    data = f.read(readLen)
+                    bytesRead += readLen
+
                     if not data:
                         break
                     yield data

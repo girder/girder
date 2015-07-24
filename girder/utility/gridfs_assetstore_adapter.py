@@ -202,22 +202,21 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file, offset=0, headers=True):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+                     **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         the database to the response.
         """
+        if endByte is None or endByte > file['size']:
+            endByte = file['size']
+
         if headers:
-            mimeType = file.get('mimeType', 'application/octet-stream')
-            if not mimeType:
-                mimeType = 'application/octet-stream'
-            cherrypy.response.headers['Content-Type'] = mimeType
-            cherrypy.response.headers['Content-Length'] = file['size'] - offset
-            cherrypy.response.headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % file['name']
+            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            self.setContentHeaders(file, offset, endByte)
 
         # If the file is empty, we stop here
-        if file['size'] - offset <= 0:
+        if endByte - offset <= 0:
             return lambda: ''
 
         n = 0
@@ -233,14 +232,28 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'n': {'$gte': n}
         }, fields=['data']).sort('n', pymongo.ASCENDING)
 
+
         def stream():
             co = chunkOffset  # Can't assign to outer scope without "nonlocal"
+            position = offset
+            shouldBreak = False
+
             for chunk in cursor:
+                chunkLen = len(chunk['data'])
+
+                if position + chunkLen > endByte:
+                    chunkLen = endByte - position + co
+                    shouldBreak = True
+
+                yield chunk['data'][co:chunkLen]
+
+                if shouldBreak:
+                    break
+
+                position += chunkLen - co
+
                 if co > 0:
-                    yield chunk['data'][co:]
                     co = 0
-                else:
-                    yield chunk['data']
 
         return stream
 
