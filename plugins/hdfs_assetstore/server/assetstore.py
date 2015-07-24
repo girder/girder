@@ -133,6 +133,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             shouldBreak = False
             for chunk in fileStream:
                 chunkLen = len(chunk)
+
                 if position < offset:
                     if position + chunkLen <= offset:
                         position += chunkLen
@@ -147,6 +148,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
                         chunkLen = endByte - position
                         shouldBreak = True
                     yield chunk[:chunkLen]
+                    position += chunkLen
 
                 if shouldBreak:
                     break

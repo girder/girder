@@ -298,6 +298,16 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body().strip(), 'hello')
 
+        # Test download with range header
+        resp = self.request(path='/file/{}/download'.format(file['_id']),
+                            user=self.admin, isJson=False,
+                            additionalHeaders=[('Range', 'bytes=1-3')])
+        self.assertStatusOk(resp)
+        self.assertEqual('ell', self.getBody(resp))
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        self.assertEqual(resp.headers['Content-Length'], 3)
+        self.assertEqual(resp.headers['Content-Range'], 'bytes 1-3/6')
+
         helloTxtPath = os.path.join(_mockRoot, 'to_import', 'hello.txt')
 
         # Deleting an imported file should not delete the backing HDFS file
