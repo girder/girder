@@ -200,7 +200,7 @@ class SystemTestCase(base.TestCase):
             self.assertStatus(resp, 400)
             resp = self.request(path='/system/setting', method='PUT', params={
                 'key': key,
-                'value': SettingDefault.defaults.get(key, '')
+                'value': json.dumps(SettingDefault.defaults.get(key, ''))
             }, user=users[0])
             self.assertStatusOk(resp)
             resp = self.request(path='/system/setting', method='PUT', params={

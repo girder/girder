@@ -21,7 +21,7 @@ import json
 
 from .. import base
 
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 
 
 def setUpModule():
@@ -256,3 +256,62 @@ class CollectionTestCase(base.TestCase):
             'users': [],
             'groups': []
         })
+
+    def testCollectionCreatePolicy(self):
+        # With default settings, non-admin users cannot create collections
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'user collection'
+        }, user=self.user)
+        self.assertStatus(resp, 403)
+
+        # Allow any user to create collections
+        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+            'open': True
+        })
+
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'open collection'
+        }, user=self.user)
+        self.assertStatusOk(resp)
+        self.assertTrue('_id' in resp.json)
+
+        # Anonymous users still shouldn't be able to
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'open collection'
+        }, user=None)
+        self.assertStatus(resp, 401)
+
+        # Add a group that has collection create permission
+        group = self.model('group').createGroup(
+            name='coll. creators', creator=self.admin)
+
+        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+            'open': False,
+            'groups': [str(group['_id'])]
+        })
+
+        # Group membership should allow creation now
+        self.model('group').addUser(group=group, user=self.user)
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'group collection'
+        }, user=self.user)
+        self.assertStatusOk(resp)
+        self.assertTrue('_id' in resp.json)
+
+        # Test individual user access
+        self.model('group').removeUser(group=group, user=self.user)
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'group collection'
+        }, user=self.user)
+        self.assertStatus(resp, 403)
+
+        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+            'open': False,
+            'users': [str(self.user['_id'])]
+        })
+
+        resp = self.request(path='/collection', method='POST', params={
+            'name': 'user collection'
+        }, user=self.user)
+        self.assertStatusOk(resp)
+        self.assertTrue('_id' in resp.json)

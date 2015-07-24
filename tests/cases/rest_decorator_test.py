@@ -39,7 +39,7 @@ def tearDownModule():
     base.stopServer()
 
 
-class testEndpointDecoratorException(base.TestCase):
+class TestEndpointDecoratorException(base.TestCase):
     'Tests the endpoint decorator exception handling'
 
     @endpoint

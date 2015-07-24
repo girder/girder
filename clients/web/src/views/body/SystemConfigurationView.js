@@ -8,14 +8,13 @@ girder.views.SystemConfigurationView = girder.View.extend({
             this.$('.g-submit-settings').addClass('disabled');
             this.$('#g-settings-error-message').empty();
 
-            var settings = [];
-            for (var i = 0; i < this.settingsKeys.length; i += 1) {
-                settings.push({
-                    key: this.settingsKeys[i],
-                    value: $('#g-' + this.settingsKeys[i].
-                             replace(/[_.]/g, '-')).val() || null
-                });
-            }
+            var settings = _.map(this.settingsKeys, function (key) {
+                return {
+                    key: key,
+                    value: this.$('#g-' + key.replace(/[_.]/g, '-')).val() || null
+                };
+            }, this);
+
             girder.restRequest({
                 type: 'PUT',
                 path: 'system/setting',
@@ -35,11 +34,15 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 this.$('.g-submit-settings').removeClass('disabled');
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
+        },
+        'click .g-edit-collection-create-policy': function () {
+            this.collectionCreateAccessWidget.render();
         }
     },
 
     initialize: function () {
         girder.cancelRestRequests('fetch');
+
         var keys = [
             'core.cookie_lifetime',
             'core.email_from_address',
@@ -50,7 +53,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.cors.allow_origin',
             'core.cors.allow_methods',
             'core.cors.allow_headers',
-            'core.add_to_group_policy'
+            'core.add_to_group_policy',
+            'core.collection_create_policy'
         ];
         this.settingsKeys = keys;
         girder.restRequest({
@@ -79,7 +83,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
     render: function () {
         this.$el.html(girder.templates.systemConfiguration({
             settings: this.settings,
-            defaults: this.defaults
+            defaults: this.defaults,
+            JSON: window.JSON
         }));
 
         this.$('input[title]').tooltip({
@@ -87,6 +92,58 @@ girder.views.SystemConfigurationView = girder.View.extend({
             animation: false,
             delay: {show: 200}
         });
+
+        this.searchWidget = new girder.views.SearchFieldWidget({
+            el: this.$('.g-collection-create-policy-container .g-search-container'),
+            parentView: this,
+            types: ['user', 'group'],
+            placeholder: 'Add a user or group...',
+            settingValue: this.settings['core.collection_create_policy'] ||
+                               this.defaults['core.collection_create_policy']
+        }).on('g:resultClicked', function (result) {
+            var settingValue = null;
+
+            try {
+                settingValue = JSON.parse(this.$('#g-core-collection-create-policy').val());
+                this.$('#g-settings-error-message').empty();
+            } catch (err) {
+                this.$('#g-settings-error-message').text('Collection creation policy must be a JSON object.');
+                this.searchWidget.resetState();
+                return this;
+            }
+            this.searchWidget.resetState();
+
+            if (result.type === 'user') {
+                settingValue.users = settingValue.users || [];
+                if (!_.contains(settingValue.users, result.id)) {
+                    settingValue.users.push(result.id);
+                } else {
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'User already exists in current policy.',
+                        type: 'warning',
+                        timeout: 4000
+                    });
+                }
+            } else if (result.type === 'group') {
+                settingValue.groups = settingValue.groups || [];
+                if (!_.contains(settingValue.groups, result.id)) {
+                    settingValue.groups.push(result.id);
+                } else {
+                    girder.events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Group already exists in current policy.',
+                        type: 'warning',
+                        timeout: 4000
+                    });
+                }
+            }
+
+            this.$('#g-core-collection-create-policy').val(
+                JSON.stringify(settingValue, null, 4));
+
+        }, this).render();
+
         return this;
     }
 });
