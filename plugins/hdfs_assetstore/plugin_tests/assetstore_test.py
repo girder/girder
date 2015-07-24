@@ -302,7 +302,7 @@ class HdfsAssetstoreTest(base.TestCase):
         resp = self.request(path='/file/{}/download'.format(file['_id']),
                             user=self.admin, isJson=False,
                             additionalHeaders=[('Range', 'bytes=1-3')])
-        self.assertStatusOk(resp)
+        self.assertStatus(resp, 206)
         self.assertEqual('ell', self.getBody(resp))
         self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
         self.assertEqual(resp.headers['Content-Length'], 3)

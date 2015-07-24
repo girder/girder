@@ -236,8 +236,11 @@ class File(Resource):
         .param('offset', 'Start downloading at this offset in bytes within '
                'the file.', dataType='integer', required=False)
         .param('endByte', 'If you only wish to download part of the file, '
-               'pass this as the index of the last byte to download.',
-               dataType='integer', required=False)
+               'pass this as the index of the last byte to download. Unlike '
+               'the HTTP Range header, the endByte parameter is non-inclusive, '
+               'so you should set it to the index of the byte one past the '
+               'final byte you wish to recieve.', dataType='integer',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 
