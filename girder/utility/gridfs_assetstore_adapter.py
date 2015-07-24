@@ -232,7 +232,6 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'n': {'$gte': n}
         }, fields=['data']).sort('n', pymongo.ASCENDING)
 
-
         def stream():
             co = chunkOffset  # Can't assign to outer scope without "nonlocal"
             position = offset

@@ -113,15 +113,14 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 'total': None
             }
 
-    def downloadFile(self, file, offset=0, headers=True):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+                     **kwargs):
+        if endByte is None or endByte > file['size']:
+            endByte = file['size']
+
         if headers:
-            mimeType = file.get('mimeType')
-            if not mimeType:
-                mimeType = 'application/octet-stream'
-            cherrypy.response.headers['Content-Type'] = mimeType
-            cherrypy.response.headers['Content-Length'] = file['size'] - offset
-            cherrypy.response.headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % file['name']
+            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            self.setContentHeaders(file, offset, endByte)
 
         if file['hdfs'].get('imported'):
             path = file['hdfs']['path']
@@ -129,17 +128,28 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             path = self._absPath(file)
 
         def stream():
-            skipped = 0
+            position = 0
             fileStream = self.client.cat([path]).next()
+            shouldBreak = False
             for chunk in fileStream:
-                if skipped < offset:
-                    if skipped + len(chunk) <= offset:
-                        skipped += len(chunk)
+                chunkLen = len(chunk)
+                if position < offset:
+                    if position + chunkLen <= offset:
+                        position += chunkLen
                     else:
-                        yield chunk[offset - skipped:]
-                        skipped = offset
+                        if position + chunkLen > endByte:
+                            chunkLen = endByte - position
+                            shouldBreak = True
+                        yield chunk[offset - position:chunkLen]
+                        position = offset
                 else:
-                    yield chunk
+                    if position + chunkLen > endByte:
+                        chunkLen = endByte - position
+                        shouldBreak = True
+                    yield chunk[:chunkLen]
+
+                if shouldBreak:
+                    break
         return stream
 
     def deleteFile(self, file):
