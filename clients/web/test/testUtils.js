@@ -320,8 +320,8 @@ girderTest.testMetadata = function () {
     }
 
     // Just switch a simple -> json or vice versa, and save. Assert the data is what it should be
-    function _toggleMetadata(key, action, errorMessage) {
-        var elem, beforeValue, beforeType, afterElem;
+    function _toggleMetadata(key, beforeType, action, errorMessage) {
+        var elem, beforeValue, afterElem;
         action = action || 'save';
 
         runs(function () {
@@ -330,7 +330,6 @@ girderTest.testMetadata = function () {
             expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
 
             beforeValue = elem.attr('g-value');
-            beforeType = (elem.attr('g-is-json') === 'true') ? 'json': 'simple';
 
             // Edit the metadata
             $('.g-widget-metadata-edit-button', elem).click();
@@ -411,10 +410,6 @@ girderTest.testMetadata = function () {
                 expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
                 expectedNum = $(".g-widget-metadata-row").length;
                 $('.g-widget-metadata-edit-button', elem).click();
-
-                if (type === 'json') {
-                    expect(elem.attr('g-is-json')).toBe('true');
-                }
             });
         }
         waitsFor(function () {
@@ -511,25 +506,29 @@ girderTest.testMetadata = function () {
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
 
+        _editMetadata(null, 'plain_json', {"some": "json"}, 'save', null, 'json');
+
         // converting json to simple
         _editMetadata(null, 'a_json_key', {"foo": "bar"}, 'save', null, 'json');
         _editMetadata('a_json_key', 'a_json_key', {"foo": "bar"}, 'cancel', null, 'json');
-        _toggleMetadata('a_json_key');
+        _toggleMetadata('a_json_key', 'json');
 
         // a simple key that happens to be valid JSON
         _editMetadata(null, 'a_simple_key', '{"some": "json"}');
-        _toggleMetadata('a_simple_key');
+        _toggleMetadata('a_simple_key', 'simple');
+
+        // Test converting and canceling
+        _editMetadata(null, 'a_canceled_key', '{"with": "json"}');
+        _toggleMetadata('a_canceled_key', 'simple', 'cancel');
+
 
         // a simple key that is not valid json
         _editMetadata(null, 'some_simple_key', 'foobar12345');
-        _toggleMetadata('some_simple_key', 'save', 'The simple field is not valid JSON and can not be converted.');
+        _toggleMetadata('some_simple_key', 'simple', 'save', 'The simple field is not valid JSON and can not be converted.');
 
         // @todo try to save invalid JSON in the code editor, then try to convert it to tree and assert
         // failures.
 
-        // Test converting and canceling
-        _editMetadata(null, 'a_canceled_key', '{"with": "json"}');
-        _toggleMetadata('a_canceled_key', 'cancel');
     };
 };
 
