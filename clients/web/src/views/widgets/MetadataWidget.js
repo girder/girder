@@ -4,28 +4,28 @@
 girder.views.MetadataWidget = girder.View.extend({
     modes: {
         simple: {
-            editor: function(args) {
+            editor: function (args) {
                 return new girder.views.MetadatumEditWidget(args);
             },
-            displayValue: function() {
+            displayValue: function () {
                 return this.value;
             },
             template: girder.templates.metadatumView
         },
         json: {
-            editor: function(args) {
+            editor: function (args) {
                 if (args.value) {
                     args.value = JSON.parse(args.value);
                 }
                 return new girder.views.JsonMetadatumEditWidget(args);
             },
-            displayValue: function() {
+            displayValue: function () {
                 return JSON.stringify(this.value, null, 4);
             },
             validation: {
                 from: {
                     simple: [
-                        function(value) {
+                        function (value) {
                             try {
                                 var jsonValue = JSON.parse(value);
                                 /* This may succeed when we don't want it to (for instance with the
@@ -69,16 +69,19 @@ girder.views.MetadataWidget = girder.View.extend({
         return this;
     },
 
-    getModeFromValue: function(value) {
+    // Does not support modal editing
+    getModeFromValue: function (value) {
         return (typeof value === 'object') ? 'json' : 'simple';
     },
 
     addMetadata: function (event, mode) {
+        var EditWidget = this.modes[mode].editor;
         var newRow = $('<div>').attr({
             'class': 'g-widget-metadata-row editing'
         }).appendTo(this.$el.find('.g-widget-metadata-container'));
 
         var widget = new girder.views.MetadatumWidget({
+            el: newRow,
             mode: mode,
             key: '',
             value: '',
@@ -88,12 +91,9 @@ girder.views.MetadataWidget = girder.View.extend({
             parentView: this
         });
 
-        widget.setElement(newRow); // @todo same as passing el?
-
-        var editWidget = this.modes[mode].editor;
         var newEditRow = widget.$el.append('<div></div>');
 
-        new editWidget({
+        new EditWidget({
             el: newEditRow.find('div'),
             item: this.item,
             key: '',
@@ -101,7 +101,7 @@ girder.views.MetadataWidget = girder.View.extend({
             accessLevel: this.accessLevel,
             newDatum: true,
             parentView: widget
-        });
+        }).render();
     },
 
     render: function () {
@@ -118,11 +118,9 @@ girder.views.MetadataWidget = girder.View.extend({
         }));
 
         // Append each metadatum
-        _.each(metaKeys, function(metaKey) {
-            var mode = _this.getModeFromValue(metaDict[metaKey]);
-
+        _.each(metaKeys, function (metaKey) {
             _this.$el.append(new girder.views.MetadatumWidget({
-                mode: mode,
+                mode: _this.getModeFromValue(metaDict[metaKey]),
                 key: metaKey,
                 value: metaDict[metaKey],
                 accessLevel: _this.accessLevel,
@@ -148,7 +146,10 @@ girder.views.MetadatumWidget = girder.View.extend({
     },
 
     initialize: function (settings) {
-        // @todo throw error here if mode not this.modes?
+        if (!_.has(this.parentView.modes, settings.mode)) {
+            throw 'Unsupported metadatum mode ' + settings.mode + ' detected.';
+        }
+
         this.mode = settings.mode;
         this.key = settings.key;
         this.value = settings.value;
@@ -156,7 +157,7 @@ girder.views.MetadatumWidget = girder.View.extend({
         this.parentView = settings.parentView;
     },
 
-    _validate: function(to, value) {
+    _validate: function (to, value) {
         var newMode = this.parentView.modes[to];
 
         if (_.has(newMode, 'validation') &&
@@ -179,14 +180,14 @@ girder.views.MetadatumWidget = girder.View.extend({
     },
 
     // @todo too much duplication with editMetadata
-    toggleEditor: function(event, newEditorMode, existingEditor, overrides) {
+    toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
         if (!this._validate(newEditorMode, (overrides || {}).value || existingEditor.$el.attr('g-value'))) {
             return;
         }
 
         var row = existingEditor.$el;
         existingEditor.destroy();
-        row.addClass('editing').empty(); // @todo is empty necessary?
+        row.addClass('editing').empty();
 
         var opts = _.extend({
             el: row,
@@ -198,12 +199,12 @@ girder.views.MetadatumWidget = girder.View.extend({
             parentView: this
         }, (overrides || {}));
 
-        this.parentView.modes[newEditorMode].editor(opts);
+        this.parentView.modes[newEditorMode].editor(opts).render();
     },
 
-    editMetadata: function (event, mode) {
+    editMetadata: function (event) {
         var row = $(event.currentTarget.parentElement);
-        row.addClass('editing').empty(); // @todo see above todo
+        row.addClass('editing').empty();
 
         var newEditRow = row.append('<div></div>');
 
@@ -217,10 +218,10 @@ girder.views.MetadatumWidget = girder.View.extend({
             parentView: this
         };
 
-        this.parentView.modes[mode || this.mode].editor(opts);
+        this.parentView.modes[this.mode].editor(opts).render();
     },
 
-    render: function() {
+    render: function () {
         this.$el.attr({
             'class': 'g-widget-metadata-row',
             'g-key': this.key,
@@ -229,7 +230,7 @@ girder.views.MetadatumWidget = girder.View.extend({
 
         this.$el.html(this.parentView.modes[this.mode].template({
             key: this.key,
-            value: _.bind(this.parentView.modes[this.mode].displayValue, this)(), // @todo is bind necessary
+            value: _.bind(this.parentView.modes[this.mode].displayValue, this)(),
             accessLevel: this.accessLevel,
             girder: girder
         }));
@@ -263,11 +264,11 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
     editTemplate: girder.templates.metadatumEditWidget,
 
-    getCurrentValue: function() {
+    getCurrentValue: function () {
         return this.$el.find('.g-widget-metadata-value-input').val();
     },
 
-    getModeConfig: function(mode) {
+    getModeConfig: function (mode) {
         return this.parentView.parentView.modes[mode || this.mode];
     },
 
@@ -294,7 +295,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         if (this.newDatum) {
             curRow.remove();
         } else {
-            this.parentView.render(); // rerender metadatumviewwidget
+            this.parentView.render();
         }
     },
 
@@ -353,7 +354,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         this.value = settings.value || '';
         this.accessLevel = settings.accessLevel;
         this.newDatum = settings.newDatum;
-        this.render();
     },
 
     render: function () {
@@ -382,7 +382,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
     editTemplate: girder.templates.jsonMetadatumEditWidget,
 
-    getCurrentValue: function() {
+    getCurrentValue: function () {
         return this.editor.getText();
     },
 
