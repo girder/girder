@@ -14,6 +14,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import os
 import six
 
@@ -123,7 +124,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         raise Exception('Must override deleteFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def downloadFile(self, file, offset=0, headers=True):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
@@ -136,6 +137,9 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type offset: int
         :param headers: Flag for whether headers should be sent on the response.
         :type headers: bool
+        :param endByte: Final byte to download. If ``None``, downloads to the
+            end of the file.
+        :type endByte: int or None
         """
         raise Exception('Must override downloadFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover
@@ -171,6 +175,27 @@ class AbstractAssetstoreAdapter(ModelImporter):
             return len(chunk.encode('utf8'))
         else:
             return len(chunk)
+
+    def setContentHeaders(self, file, offset, endByte):
+        """
+        Sets the Content-Length, Content-Disposition, Content-Type, and also
+        the Content-Range header if this is a partial download.
+
+        :param file: The file being downloaded.
+        :param offset: The start byte of the download.
+        :type offset: int
+        :param endByte: The end byte of the download (non-inclusive).
+        :type endByte: int
+        """
+        cherrypy.response.headers['Content-Type'] = \
+            file.get('mimeType') or 'application/octet-stream'
+        cherrypy.response.headers['Content-Disposition'] = \
+            'attachment; filename="%s"' % file['name']
+        cherrypy.response.headers['Content-Length'] = max(endByte - offset, 0)
+
+        if (offset or endByte < file['size']) and file['size']:
+            cherrypy.response.headers['Content-Range'] = 'bytes %d-%d/%d' % (
+                offset, endByte - 1, file['size'])
 
     def checkUploadSize(self, upload, chunkSize):
         """Check if the upload is valid based on the chunk size.  If this

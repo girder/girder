@@ -61,16 +61,24 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         Model.remove(self, file)
 
-    def download(self, file, offset=0, headers=True):
+    def download(self, file, offset=0, headers=True, endByte=None):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call downloadFile on it. If the file is a link
         file rather than a file in an assetstore, we redirect to it.
+
+        :param file: The file to download.
+        :param offset: The start byte within the file.
+        :type offset: int
+        :param headers: Whether to set headers (i.e. is this an HTTP request
+            for a single file, or something else).
+        :type headers: bool
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            return adapter.downloadFile(file, offset=offset, headers=headers)
+            return adapter.downloadFile(
+                file, offset=offset, headers=headers, endByte=endByte)
         elif file.get('linkUrl'):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])

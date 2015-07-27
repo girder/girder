@@ -224,9 +224,51 @@ class FileTestCase(base.TestCase):
         resp = self.request(path='/file/%s/download' % str(file['_id']),
                             method='GET', user=self.user, isJson=False,
                             params={'offset': 1})
-        self.assertStatusOk(resp)
+        if file['size']:
+            self.assertStatus(resp, 206)
+        else:
+            self.assertStatusOk(resp)
 
         self.assertEqual(contents[1:], self.getBody(resp))
+
+        # Test downloading with a range header
+        resp = self.request(path='/file/%s/download' % str(file['_id']),
+                            method='GET', user=self.user, isJson=False,
+                            additionalHeaders=[('Range', 'bytes=2-7')])
+        self.assertEqual(contents[2:8], self.getBody(resp))
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        length = len(contents)
+        begin, end = min(length, 2), min(length, 8)
+        self.assertEqual(resp.headers['Content-Length'], end - begin)
+
+        if length:
+            self.assertStatus(resp, 206)
+
+            rangeVal = 'bytes %d-%d/%d' % (begin, end - 1, len(contents))
+            self.assertEqual(resp.headers['Content-Range'], rangeVal)
+        else:
+            self.assertStatusOk(resp)
+
+        # Test downloading with query range params
+        resp = self.request(
+            path='/file/%s/download' % str(file['_id']), isJson=False,
+            method='GET', user=self.user, params={
+                'offset': 2,
+                'endByte': 8
+            })
+        self.assertEqual(contents[2:8], self.getBody(resp))
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        length = len(contents)
+        begin, end = min(length, 2), min(length, 8)
+        self.assertEqual(resp.headers['Content-Length'], end - begin)
+
+        if length:
+            self.assertStatus(resp, 206)
+
+            rangeVal = 'bytes %d-%d/%d' % (begin, end - 1, len(contents))
+            self.assertEqual(resp.headers['Content-Range'], rangeVal)
+        else:
+            self.assertStatusOk(resp)
 
         # Test downloading with a name
         resp = self.request(

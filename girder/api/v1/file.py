@@ -212,14 +212,35 @@ class File(Resource):
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
-        offset = int(params.get('offset', 0))
-        return self.model('file').download(file, offset)
+        rangeHeader = cherrypy.lib.httputil.get_ranges(
+            cherrypy.request.headers.get('Range'), file.get('size', 0))
+
+        # The HTTP Range header takes precedence over query params
+        if rangeHeader and len(rangeHeader):
+            # Currently we only support a single range.
+            offset, endByte = rangeHeader[0]
+        else:
+            offset = int(params.get('offset', 0))
+            endByte = params.get('endByte')
+
+            if endByte is not None:
+                endByte = int(endByte)
+
+        return self.model('file').download(file, offset, endByte=endByte)
     download.cookieAuth = True
     download.description = (
         Description('Download a file.')
+        .notes('This endpoint also accepts the HTTP "Range" header for partial '
+               'file downloads.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('offset', 'Start downloading at this offset in bytes within '
                'the file.', dataType='integer', required=False)
+        .param('endByte', 'If you only wish to download part of the file, '
+               'pass this as the index of the last byte to download. Unlike '
+               'the HTTP Range header, the endByte parameter is non-inclusive, '
+               'so you should set it to the index of the byte one past the '
+               'final byte you wish to recieve.', dataType='integer',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 

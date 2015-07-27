@@ -104,7 +104,13 @@ girder.views.AssetstoresView = girder.View.extend({
                 timeout: 4000
             });
             this.collection.fetch({}, true);
-        }, this).save();
+        }, this).off('g:error').on('g:error', function (err) {
+            girder.events.trigger('g:alert', {
+                icon: 'cancel',
+                text: err.responseJSON.message,
+                type: 'danger'
+            });
+        }).save();
     },
 
     deleteAssetstore: function (evt) {
