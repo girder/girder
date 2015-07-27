@@ -77,7 +77,7 @@ girder.views.MetadataWidget = girder.View.extend({
     addMetadata: function (event, mode) {
         var EditWidget = this.modes[mode].editor;
         var newRow = $('<div>').attr({
-            'class': 'g-widget-metadata-row editing'
+            class: 'g-widget-metadata-row editing'
         }).appendTo(this.$el.find('.g-widget-metadata-container'));
 
         var widget = new girder.views.MetadatumWidget({
@@ -223,7 +223,7 @@ girder.views.MetadatumWidget = girder.View.extend({
 
     render: function () {
         this.$el.attr({
-            'class': 'g-widget-metadata-row',
+            class: 'g-widget-metadata-row',
             'g-key': this.key,
             'g-value': _.bind(this.parentView.modes[this.mode].displayValue, this)()
         }).empty();
