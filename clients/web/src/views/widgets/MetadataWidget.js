@@ -157,15 +157,15 @@ girder.views.MetadatumWidget = girder.View.extend({
         this.parentView = settings.parentView;
     },
 
-    _validate: function (to, value) {
+    _validate: function (from, to, value) {
         var newMode = this.parentView.modes[to];
 
         if (_.has(newMode, 'validation') &&
             _.has(newMode.validation, 'from') &&
-            _.has(newMode.validation.from, this.mode)) {
+            _.has(newMode.validation.from, from)) {
 
-            var validate = newMode.validation.from[this.mode][0];
-            var msg = newMode.validation.from[this.mode][1];
+            var validate = newMode.validation.from[from][0];
+            var msg = newMode.validation.from[from][1];
 
             if (!validate(value)) {
                 girder.events.trigger('g:alert', {
@@ -181,7 +181,8 @@ girder.views.MetadatumWidget = girder.View.extend({
 
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
-        if (!this._validate(newEditorMode, (overrides || {}).value || existingEditor.$el.attr('g-value'))) {
+        var fromEditorMode = (existingEditor instanceof girder.views.JsonMetadatumEditWidget) ? 'json' : 'simple';
+        if (!this._validate(fromEditorMode, newEditorMode, (overrides || {}).value || existingEditor.$el.attr('g-value'))) {
             return;
         }
 
@@ -266,10 +267,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
     getCurrentValue: function () {
         return this.$el.find('.g-widget-metadata-value-input').val();
-    },
-
-    getModeConfig: function (mode) {
-        return this.parentView.parentView.modes[mode || this.mode];
     },
 
     deleteMetadatum: function (event) {
