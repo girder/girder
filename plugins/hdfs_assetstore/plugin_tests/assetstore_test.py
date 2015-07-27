@@ -40,6 +40,7 @@ class MockSnakebiteClient(object):
     def __init__(self, port=None, **kwargs):
         self.root = _mockRoot
         self.port = port
+        self.chunkSize = kwargs.get('chunkSize', 3)
 
     def _convertPath(self, path):
         if path[0] == '/':
@@ -109,8 +110,14 @@ class MockSnakebiteClient(object):
 
     def cat(self, paths, **kwargs):
         for path in paths:
-            with open(self._convertPath(path), 'rb') as f:
-                yield f.read()
+            def stream():
+                with open(self._convertPath(path), 'rb') as f:
+                    while True:
+                        data = f.read(self.chunkSize)
+                        if not data:
+                            break
+                        yield data
+            yield stream()
 
     def touchz(self, paths, **kwargs):
         for path in paths:
@@ -307,6 +314,16 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
         self.assertEqual(resp.headers['Content-Length'], 3)
         self.assertEqual(resp.headers['Content-Range'], 'bytes 1-3/6')
+
+        # Test download with range header with skipped chunk
+        resp = self.request(path='/file/{}/download'.format(file['_id']),
+                            user=self.admin, isJson=False,
+                            additionalHeaders=[('Range', 'bytes=4-')])
+        self.assertStatus(resp, 206)
+        self.assertEqual('o\n', self.getBody(resp))
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        self.assertEqual(resp.headers['Content-Length'], 2)
+        self.assertEqual(resp.headers['Content-Range'], 'bytes 4-5/6')
 
         helloTxtPath = os.path.join(_mockRoot, 'to_import', 'hello.txt')
 

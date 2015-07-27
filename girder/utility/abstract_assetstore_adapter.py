@@ -191,9 +191,9 @@ class AbstractAssetstoreAdapter(ModelImporter):
             file.get('mimeType') or 'application/octet-stream'
         cherrypy.response.headers['Content-Disposition'] = \
             'attachment; filename="%s"' % file['name']
-        cherrypy.response.headers['Content-Length'] = endByte - offset
+        cherrypy.response.headers['Content-Length'] = max(endByte - offset, 0)
 
-        if offset or endByte < file['size']:
+        if (offset or endByte < file['size']) and file['size']:
             cherrypy.response.headers['Content-Range'] = 'bytes %d-%d/%d' % (
                 offset, endByte - 1, file['size'])
 

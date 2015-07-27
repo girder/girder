@@ -142,7 +142,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
                             chunkLen = endByte - position
                             shouldBreak = True
                         yield chunk[offset - position:chunkLen]
-                        position = offset
+                        position = offset + chunkLen - 1
                 else:
                     if position + chunkLen > endByte:
                         chunkLen = endByte - position
