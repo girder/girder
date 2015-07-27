@@ -250,12 +250,12 @@ class FileTestCase(base.TestCase):
             self.assertStatusOk(resp)
 
         # Test downloading with query range params
-        resp = self.request(path='/file/%s/download' % str(file['_id']),
-                            method='GET', user=self.user, isJson=False,
-                            params={
-                                'offset': 2,
-                                'endByte': 8
-                            })
+        resp = self.request(
+            path='/file/%s/download' % str(file['_id']), isJson=False,
+            method='GET', user=self.user, params={
+                'offset': 2,
+                'endByte': 8
+            })
         self.assertEqual(contents[2:8], self.getBody(resp))
         self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
         length = len(contents)
