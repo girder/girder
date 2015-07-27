@@ -232,6 +232,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 while True:
                     readLen = min(BUF_SIZE, endByte - bytesRead)
+                    if readLen <= 0:
+                        break
+
                     data = f.read(readLen)
                     bytesRead += readLen
 
