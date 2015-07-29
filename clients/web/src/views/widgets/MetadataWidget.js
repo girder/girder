@@ -105,7 +105,6 @@ girder.views.MetadataWidget = girder.View.extend({
     },
 
     render: function () {
-        var _this = this;
         var metaDict = this.item.attributes.meta || {};
         var metaKeys = Object.keys(metaDict);
         metaKeys.sort(girder.localeSort);
@@ -120,14 +119,14 @@ girder.views.MetadataWidget = girder.View.extend({
         // Append each metadatum
         _.each(metaKeys, function (metaKey) {
             _this.$el.append(new girder.views.MetadatumWidget({
-                mode: _this.getModeFromValue(metaDict[metaKey]),
+                mode: this.getModeFromValue(metaDict[metaKey]),
                 key: metaKey,
                 value: metaDict[metaKey],
-                accessLevel: _this.accessLevel,
+                accessLevel: this.accessLevel,
                 girder: girder,
-                parentView: _this
+                parentView: this
             }).render().$el);
-        });
+        }, this);
 
         this.$('.g-widget-metadata-add-button').tooltip({
             container: this.$el,
@@ -311,7 +310,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         }
 
         var saveCallback = _.bind(function () {
-            var mode;
             this.key = tempKey;
             this.value = tempValue;
 
@@ -320,9 +318,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
 
             if (this instanceof girder.views.JsonMetadatumEditWidget) {
                 this.parentView.mode = 'json';
-                mode = 'json';
             } else {
-                mode = 'simple';
                 this.parentView.mode = 'simple';
             }
 
