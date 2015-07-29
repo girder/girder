@@ -150,17 +150,7 @@ class Resource(BaseResource):
         :returns: the child resource
         """
 
-        filterObject = {
-            'name': token,
-            'parentId': parent['_id'],
-            'baseParentId': parent.get('baseParentId'),
-            'baseParentType': parent.get('baseParentType'),
-        }
-
-        if parentType in ('collection', 'user'):
-            filterObject.update(
-                baseParentId=parent['_id'],
-                baseParentType=parentType)
+        filterObject = {'name': token, 'parentId': parent['_id']}
 
         # look for a folder
         candidateChild = self.model('folder').findOne(filterObject)
@@ -169,8 +159,6 @@ class Resource(BaseResource):
 
         # if folder not found, look for an item
         filterObject['folderId'] = filterObject.pop('parentId')
-        del filterObject['baseParentId']
-        del filterObject['baseParentType']
         candidateChild = self.model('item').findOne(filterObject)
         if candidateChild is not None:
             return candidateChild, 'item'
