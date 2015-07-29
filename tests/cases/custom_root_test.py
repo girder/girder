@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import types
 
 from .. import base
 from girder.utility import config
@@ -33,6 +34,10 @@ class CustomRootTestCase(base.TestCase):
         base.enabledPlugins.append('test_plugin')
 
         base.startServer()
+
+        # Make sure our import semantics work as expected for plugins
+        from girder.plugins import test_plugin
+        self.assertEqual(type(test_plugin), types.ModuleType)
 
     def tearDown(self):
         base.stopServer()
