@@ -27,6 +27,7 @@ plugins themselves to help them register with the application.
 """
 
 import functools
+import girder
 import imp
 import json
 import os
@@ -58,19 +59,11 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
     # present in the system module list in order to avoid import warnings.
     if curConfig is None:
         curConfig = config.getConfig()
-    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        pluginDir = curConfig['plugins']['plugin_directory']
-    elif os.path.exists(os.path.join(PACKAGE_DIR, 'plugins')):
-        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
-    else:
-        pluginDir = os.path.join(ROOT_DIR, 'plugins')
 
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
-        sys.modules[ROOT_PLUGINS_PACKAGE] = type('', (), {
-            '__path__': pluginDir,
-            '__package__': ROOT_PLUGINS_PACKAGE,
-            '__name__': ROOT_PLUGINS_PACKAGE
-        })()
+        module = imp.new_module(ROOT_PLUGINS_PACKAGE)
+        girder.plugins = module
+        sys.modules[ROOT_PLUGINS_PACKAGE] = module
 
     print(TerminalColor.info('Resolving plugin dependencies...'))
 
@@ -131,7 +124,8 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         try:
             fp, pathname, description = imp.find_module('server', [pluginDir])
             module = imp.load_module(moduleName, fp, pathname, description)
-            setattr(module, 'PLUGIN_ROOT_DIR', pluginDir)
+            module.PLUGIN_ROOT_DIR = pluginDir
+            girder.plugins.__dict__[name] = module
 
             if hasattr(module, 'load'):
                 info = {
