@@ -118,7 +118,7 @@ girder.views.MetadataWidget = girder.View.extend({
 
         // Append each metadatum
         _.each(metaKeys, function (metaKey) {
-            this.$el.append(new girder.views.MetadatumWidget({
+            this.$el.find('.g-widget-metadata-container').append(new girder.views.MetadatumWidget({
                 mode: this.getModeFromValue(metaDict[metaKey]),
                 key: metaKey,
                 value: metaDict[metaKey],
