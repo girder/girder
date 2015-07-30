@@ -305,6 +305,19 @@ girderTest.testMetadata = function () {
         type = type || 'tree';
 
         if (type === 'tree') {
+            if (typeof value !== 'object') {
+                $('.jsoneditor button.contextmenu:first', elem).click();
+
+                $('.jsoneditor-contextmenu .type-object:first').click();
+                $('.jsoneditor-contextmenu .type-auto:first').click();
+
+                $('.jsoneditor table.values div.value.empty', elem).text(value);
+
+                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+
+                return;
+            }
+
             for (var arrKey in value) {
                 $('.jsoneditor button.contextmenu', elem).click();
                 $('.jsoneditor-contextmenu button.insert').click();
@@ -507,6 +520,9 @@ girderTest.testMetadata = function () {
         _editMetadata('json_key', 'json_rename', null);
 
         _editMetadata(null, 'plain_json', {"some": "json"}, 'save', null, 'json');
+
+        _editMetadata(null, 'non_object_or_array_json', false, 'save', null, 'json');
+        _toggleMetadata('non_object_or_array_json', 'json');
 
         // converting json to simple
         _editMetadata(null, 'a_json_key', {"foo": "bar"}, 'save', null, 'json');

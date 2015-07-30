@@ -14,7 +14,7 @@ girder.views.MetadataWidget = girder.View.extend({
         },
         json: {
             editor: function (args) {
-                if (args.value) {
+                if (args.value !== undefined) {
                     args.value = JSON.parse(args.value);
                 }
                 return new girder.views.JsonMetadatumEditWidget(args);
@@ -27,13 +27,8 @@ girder.views.MetadataWidget = girder.View.extend({
                     simple: [
                         function (value) {
                             try {
-                                var jsonValue = JSON.parse(value);
-                                /* This may succeed when we don't want it to (for instance with the
-                                 * value 'false' or '1234'), so check and only switch to JSON if we
-                                 * got an object back. */
-                                if (jsonValue && typeof jsonValue === 'object' && jsonValue !== null) {
-                                    return true;
-                                }
+                                JSON.parse(value);
+                                return true;
                             } catch (e) {}
 
                             return false;
@@ -71,7 +66,7 @@ girder.views.MetadataWidget = girder.View.extend({
 
     // Does not support modal editing
     getModeFromValue: function (value) {
-        return (typeof value === 'object') ? 'json' : 'simple';
+        return (typeof value === 'string') ? 'simple' : 'json';
     },
 
     addMetadata: function (event, mode) {
@@ -79,12 +74,13 @@ girder.views.MetadataWidget = girder.View.extend({
         var newRow = $('<div>').attr({
             class: 'g-widget-metadata-row editing'
         }).appendTo(this.$el.find('.g-widget-metadata-container'));
+        var value = (mode === 'json') ? '{}' : '';
 
         var widget = new girder.views.MetadatumWidget({
             el: newRow,
             mode: mode,
             key: '',
-            value: '',
+            value: value,
             item: this.item,
             accessLevel: this.accessLevel,
             girder: girder,
@@ -97,7 +93,7 @@ girder.views.MetadataWidget = girder.View.extend({
             el: newEditRow.find('div'),
             item: this.item,
             key: '',
-            value: '',
+            value: value,
             accessLevel: this.accessLevel,
             newDatum: true,
             parentView: widget
@@ -218,6 +214,17 @@ girder.views.MetadatumWidget = girder.View.extend({
             parentView: this
         };
 
+        // If they're trying to open false, null, 6, etc which are not stored as strings
+        if (this.mode === 'json') {
+            try {
+                var jsonValue = JSON.parse(row.attr('g-value'));
+
+                if (jsonValue !== undefined && typeof jsonValue !== 'object') {
+                    opts.value = jsonValue;
+                }
+            } catch (e) {}
+        }
+
         this.parentView.modes[this.mode].editor(opts).render();
     },
 
@@ -299,7 +306,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         event.stopImmediatePropagation();
         var curRow = $(event.currentTarget.parentElement),
             tempKey = curRow.find('.g-widget-metadata-key-input').val(),
-            tempValue = value || curRow.find('.g-widget-metadata-value-input').val();
+            tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
 
         if (this.newDatum && tempKey === '') {
             girder.events.trigger('g:alert', {
@@ -344,7 +351,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.key = settings.key || '';
-        this.value = settings.value || '';
+        this.value = (settings.value !== undefined) ? settings.value : '';
         this.accessLevel = settings.accessLevel;
         this.newDatum = settings.newDatum;
     },
@@ -405,8 +412,8 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
             }
         });
 
-        if (this.value) {
-            this.editor.set(this.value);
+        if (this.value !== undefined) {
+            this.editor.setText(JSON.stringify(this.value));
             this.editor.expandAll();
         }
 
