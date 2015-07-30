@@ -111,6 +111,14 @@ module.exports = function (grunt) {
                     src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
                     dest: 'clients/web/static/built/swagger'
                 }]
+            },
+            jsoneditor: {
+                files: [{
+                    expand: true,
+                    cwd: 'node_modules/jsoneditor/dist',
+                    src: ['img/**', 'jsoneditor.min.css'],
+                    dest: 'clients/web/static/built/jsoneditor'
+                }]
             }
         },
 
@@ -524,6 +532,7 @@ module.exports = function (grunt) {
         'uglify:libs',
         'uglify:polyfill',
         'copy:swagger',
+        'copy:jsoneditor',
         'shell:readServerConfig'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);
