@@ -1,6 +1,10 @@
 set(web_client_port 30001)
 
 function(javascript_tests_init)
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
   add_test(
     NAME js_coverage_reset
     COMMAND "${PYTHON_EXECUTABLE}"
@@ -24,6 +28,10 @@ include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
 include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigMerge.cmake)
 
 function(add_javascript_style_test name input)
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
   set(_args JSHINT_EXTRA_CONFIGS JSSTYLE_EXTRA_CONFIGS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -101,6 +109,10 @@ function(add_web_client_test case specFile)
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.
   # BASEURL (url): The base url to load for the test.
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
