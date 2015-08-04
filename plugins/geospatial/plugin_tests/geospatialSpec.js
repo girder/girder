@@ -1,4 +1,14 @@
 $(function () {
+    /* Include the built version of the our templates.  This means that grunt
+    * must be run to generate these before the test. */
+    girderTest.addCoveredScripts([
+        '/static/built/plugins/geospatial/templates.js',
+        '/plugins/geospatial/web_client/js/ItemWidget.js'
+    ]);
+    girderTest.importStylesheet(
+        '/static/built/plugins/geospatial/plugin.min.css'
+    );
+
     girder.events.trigger('g:appload.before');
     var app = new girder.App({
         el: 'body',
@@ -12,31 +22,6 @@ describe('a test for the geospatial plugin', function () {
                                                        'geospatial@girder.org',
                                                        'Geospatial', 'Plugin',
                                                        'fuprEsuxAth2S7ac'));
-
-    waits(1000);
-    it('enables the geospatial plugin', function () {
-        waitsFor(function () {
-            return $('a.g-nav-link[g-target="admin"]').length > 0;
-        }, 'admin console link to load');
-        runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
-        });
-        waitsFor(function () {
-            return $('.g-plugins-config').length > 0;
-        }, 'the admin console to load');
-        runs(function () {
-            $('.g-plugins-config').click();
-        });
-        waitsFor(function () {
-            return $('input.g-plugin-switch[key="geospatial"]').length > 0;
-        }, 'the plugins page to load');
-        runs(function () {
-            $('input.g-plugin-switch[key="geospatial"]').click();
-        });
-        runs(function () {
-            expect($('input.g-plugin-switch[key="geospatial"]').bootstrapSwitch('state')).toBe(true);
-        });
-    });
 
     it('creates an item and displays the geospatial info widget', function () {
         waitsFor(function () {
