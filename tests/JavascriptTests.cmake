@@ -93,7 +93,7 @@ endfunction()
 
 function(add_web_client_test case specFile)
   # test a web client using a spec file and the specRunner
-  # :param case: the nane of this test case
+  # :param case: the name of this test case
   # :param specFile: the path of the spec file to run
   # Optional parameters:
   # PLUGIN (name of plugin) : this plugin is loaded (unless overridden with

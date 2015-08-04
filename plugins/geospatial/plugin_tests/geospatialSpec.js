@@ -83,7 +83,7 @@ describe('a test for the geospatial plugin', function () {
             return $('.g-item-name:contains(Geospatial Item)').length === 1;
         }, 'the item page to load');
         runs(function () {
-            expect($('.g-item-geospatial').length > 0);
+            expect($('.g-item-geospatial').length > 0).toBe(true);
         });
     });
 });
