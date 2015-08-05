@@ -53,6 +53,10 @@ module.exports = function (grunt) {
             var cfg = JSON.parse(stdout);
             apiRoot = ((cfg.server && cfg.server.api_root) || '/api/v1').replace(/\"/g, "");
             staticRoot = ((cfg.server && cfg.server.static_root) || '/static').replace(/\"/g, "");
+            grunt.config.set('serverConfig', {
+                staticRoot: staticRoot,
+                apiRoot: apiRoot
+            });
             console.log('Static root: ' + staticRoot.bold);
             console.log('API root: ' + apiRoot.bold);
         }
@@ -453,6 +457,7 @@ module.exports = function (grunt) {
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
+        var dependencies = [];
         var inputs = [];
         globs.forEach(function (glob) {
             var files = grunt.file.expand(glob);
@@ -472,7 +477,8 @@ module.exports = function (grunt) {
                 '/clients/web/static/lib/fontello/css/fontello.css',
                 '/clients/web/static/built/app.min.css'
             ],
-            jsFiles: inputs,
+            jsFilesUncovered: dependencies,
+            jsFilesCovered: inputs,
             staticRoot: staticRoot,
             apiRoot: apiRoot
         }));
