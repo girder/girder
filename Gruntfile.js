@@ -111,6 +111,14 @@ module.exports = function (grunt) {
                     src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
                     dest: 'clients/web/static/built/swagger'
                 }]
+            },
+            jsoneditor: {
+                files: [{
+                    expand: true,
+                    cwd: 'node_modules/jsoneditor/dist',
+                    src: ['img/**', 'jsoneditor.min.css'],
+                    dest: 'clients/web/static/built/jsoneditor'
+                }]
             }
         },
 
@@ -243,6 +251,7 @@ module.exports = function (grunt) {
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
                         'node_modules/marked/lib/marked.js',
+                        'node_modules/jsoneditor/dist/jsoneditor.js',
                         'clients/web/lib/js/d3.js',
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
@@ -258,6 +267,13 @@ module.exports = function (grunt) {
                     'clients/web/static/built/testing-no-cover.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
+                    ]
+                }
+            },
+            polyfill: {
+                files: {
+                    'clients/web/static/built/polyfill.min.js': [
+                        'node_modules/phantomjs-polyfill/bind-polyfill.js'
                     ]
                 }
             }
@@ -470,6 +486,7 @@ module.exports = function (grunt) {
                 '/clients/web/static/lib/bootstrap/css/bootstrap.min.css',
                 '/clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css',
                 '/clients/web/static/lib/fontello/css/fontello.css',
+                '/clients/web/static/lib/jsoneditor/jsoneditor.min.css',
                 '/clients/web/static/built/app.min.css'
             ],
             jsFiles: inputs,
@@ -525,7 +542,9 @@ module.exports = function (grunt) {
     grunt.registerTask('init', [
         'setup',
         'uglify:libs',
+        'uglify:polyfill',
         'copy:swagger',
+        'copy:jsoneditor',
         'shell:readServerConfig'
     ]);
     grunt.registerTask('docs', ['shell:sphinx']);

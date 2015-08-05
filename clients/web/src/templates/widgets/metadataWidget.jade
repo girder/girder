@@ -1,11 +1,16 @@
-include metadatumViewMixin
 if (accessLevel >= girder.AccessType.WRITE)
-  button.btn.btn-sm.btn-primary.g-widget-metadata-add-button(title="Add Metadata")
-    i.icon-plus
+  .btn-group.pull-right
+    button.g-widget-metadata-add-button.btn.btn-sm.btn-primary.btn-default.dropdown-toggle(data-toggle="dropdown", title="Add Metadata")
+      i.icon-plus
+    ul.dropdown-menu.pull-right(role="menu")
+      li(role="presentation")
+        a.g-add-simple-metadata(role="menuitem")
+          | Simple
+      li(role="presentation")
+        a.g-add-json-metadata
+          | JSON
+
 .g-widget-metadata-header
   i.icon-tags
   |  Metadata
 .g-widget-metadata-container
-  each keyValue in meta
-    .g-widget-metadata-row(g-key="#{keyValue.key}", g-value="#{keyValue.value}")
-      +metadatum(keyValue.key, keyValue.value, accessLevel, girder)
