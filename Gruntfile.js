@@ -457,7 +457,10 @@ module.exports = function (grunt) {
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
-        var dependencies = [];
+        var dependencies = [
+            '/clients/web/test/testUtils.js',
+            '/clients/web/static/built/libs.min.js'
+        ];
         var inputs = [];
         globs.forEach(function (glob) {
             var files = grunt.file.expand(glob);
