@@ -133,6 +133,7 @@ class SettingKey:
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
+    COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
 
 
 class SettingDefault:
@@ -156,6 +157,11 @@ class SettingDefault:
             #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
             #  X-Forwarded-Host, Remote-Addr
         SettingKey.ADD_TO_GROUP_POLICY: 'never',
+        SettingKey.COLLECTION_CREATE_POLICY: {
+            'open': False,
+            'groups': [],
+            'users': []
+        }
     }
 
 

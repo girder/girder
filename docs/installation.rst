@@ -47,31 +47,13 @@ dependencies: ::
 
     pip install -r requirements.txt
 
-.. note:: If you intend to develop Girder or want to run the test suite, you should also
-   install the development dependencies: ::
-
-        pip install -r requirements-dev.txt
-
-   One of the development requirements, `httpretty`, can fail to install if
-   under certain system locales (see the `error report
-   <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
-   UTF8 locale works around this problem.  For instance, on Ubuntu, you can
-   change your system locale using the commands: ::
-
-        locale-gen en_US.UTF-8
-        export LANG=en_US.utf8
-
-Before you can build the client-side code project, you must install the
-`Grunt <http://gruntjs.com>`_ command line utilities: ::
-
-    npm install -g grunt-cli
-
-Then cd into the root of the repository and run: ::
+To build the client-side code project, cd into the root of the repository
+and run: ::
 
     npm install
 
-This should run ``grunt init`` and ``grunt`` to build all of the javascript and
-CSS files needed to run the web client application.
+This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
+the Javascript and CSS files needed to run the web client application.
 
 .. _run-girder:
 

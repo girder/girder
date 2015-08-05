@@ -450,7 +450,7 @@ class AssetstoreTestCase(base.TestCase):
                             user=self.admin, method='GET', isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), '')
-        self.assertEqual(resp.headers['Content-Length'], '0')
+        self.assertEqual(resp.headers['Content-Length'], 0)
         self.assertEqual(resp.headers['Content-Disposition'],
                          'attachment; filename="My File.txt"')
 

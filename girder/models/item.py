@@ -250,10 +250,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param description: Description for the item.
         :type description: str
         :param folder: The parent folder of the item.
-        :param creator: User document representing the creator of the group.
+        :param creator: User document representing the creator of the item.
         :type creator: dict
-        :param reuseExisting: If a folder with the given name already exists
-            under the given parent, return that folder rather than creating a
+        :param reuseExisting: If an item with the given name already exists
+            under the given folder, return that item rather than creating a
             new one.
         :type reuseExisting: bool
         :returns: The item document that was created.

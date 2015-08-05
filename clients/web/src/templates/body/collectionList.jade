@@ -4,7 +4,7 @@
   form.g-collection-search-form.form-inline(role="form")
     .form-group.g-collections-search-container
 
-  if (girder.currentUser && girder.currentUser.get('admin'))
+  if (girder.currentUser)
     button.g-collection-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create Collection

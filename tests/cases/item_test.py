@@ -121,7 +121,7 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/download'.format(item['_id']),
                             method='GET', user=user, isJson=False,
                             params={'offset': 1})
-        self.assertStatusOk(resp)
+        self.assertStatus(resp, 206)
 
         self.assertEqual(contents[1:], self.getBody(resp))
 

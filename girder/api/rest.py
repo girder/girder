@@ -294,11 +294,16 @@ def endpoint(fun):
         try:
             val = fun(self, args, kwargs)
 
+            # If this is a partial response, we set the status appropriately
+            if 'Content-Range' in cherrypy.response.headers:
+                cherrypy.response.status = 206
+
             if isinstance(val, types.FunctionType):
                 # If the endpoint returned a function, we assume it's a
                 # generator function for a streaming response.
                 cherrypy.response.stream = True
                 return val()
+
             if isinstance(val, cherrypy.lib.file_generator):
                 # Don't do any post-processing of static files
                 return val

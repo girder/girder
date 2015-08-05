@@ -111,7 +111,7 @@
                     upload: this.upload,
                     parentView: this
                 });
-                this.fileListWidget.on('g:changed', function () {
+                this.fileListWidget.once('g:changed', function () {
                     this.trigger('g:rendered');
                 }, this);
 
@@ -155,8 +155,6 @@
             girder.events.trigger('g:navigateTo', girder.views.ItemView, _.extend({
                 item: item
             }, params || {}));
-        }, this).on('g:error', function () {
-            girder.router.navigate('collections', {trigger: true});
         }, this).fetch();
     };
 

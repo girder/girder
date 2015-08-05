@@ -22,7 +22,7 @@ import os
 
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 from girder.utility.progress import noProgress
 
 
@@ -263,3 +263,28 @@ class Collection(AccessControlledModel):
                     progress=progress, setPublic=setPublic)
 
         return doc
+
+    def hasCreatePrivilege(self, user):
+        """
+        Tests whether a given user has the authority to create collections on
+        this instance. This is based on the collection creation policy settings.
+        By default, only admins are allowed to create collections.
+
+        :param user: The user to test.
+        :returns: bool
+        """
+        if user['admin'] is True:
+            return True
+
+        policy = self.model('setting').get(SettingKey.COLLECTION_CREATE_POLICY)
+
+        if policy['open'] is True:
+            return True
+
+        if user['_id'] in policy.get('users', ()):
+            return True
+
+        if set(policy.get('groups', ())) & set(user.get('groups', ())):
+            return True
+
+        return False
