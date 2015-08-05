@@ -176,8 +176,11 @@ girder.views.MetadatumWidget = girder.View.extend({
 
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
-        var fromEditorMode = (existingEditor instanceof girder.views.JsonMetadatumEditWidget) ? 'json' : 'simple';
-        if (!this._validate(fromEditorMode, newEditorMode, (overrides || {}).value || existingEditor.$el.attr('g-value'))) {
+        var fromEditorMode =
+                (existingEditor instanceof girder.views.JsonMetadatumEditWidget) ?
+                'json' : 'simple';
+        var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
+        if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
             return;
         }
 
