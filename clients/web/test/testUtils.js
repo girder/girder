@@ -157,7 +157,7 @@ girderTest.createCollection = function (collName, collDesc) {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-create-button').is(':enabled');
+                $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
         girderTest.waitForLoad();
@@ -173,7 +173,7 @@ girderTest.createCollection = function (collName, collDesc) {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-name').length > 0 &&
-                   $('.g-save-collection:visible').is(':enabled');
+                $('.g-save-collection:visible').is(':enabled');
         }, 'create collection dialog to appear');
 
         runs(function () {
@@ -183,7 +183,7 @@ girderTest.createCollection = function (collName, collDesc) {
         });
         waitsFor(function () {
             return $('.g-collection-name').text() === collName &&
-                   $('.g-collection-description').text() === collDesc;
+                $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
         girderTest.waitForLoad();
     };
@@ -244,7 +244,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
         waitsFor(function () {
             return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-group-create-button:visible').is(':enabled');
+                $('.g-group-create-button:visible').is(':enabled');
         }, 'create group button to appear');
 
         runs(function () {
@@ -254,10 +254,10 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-public:visible').length > 0 &&
-                   $('#g-name:visible').length > 0 &&
-                   $('#g-description:visible').length > 0 &&
-                   $('.g-save-group:visible').length > 0;
+                $('#g-access-public:visible').length > 0 &&
+                $('#g-name:visible').length > 0 &&
+                $('#g-description:visible').length > 0 &&
+                $('.g-save-group:visible').length > 0;
         }, 'create group dialog to appear');
 
         if (pub) {
@@ -267,7 +267,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
             waitsFor(function () {
                 return $('.g-save-group:visible').length > 0 &&
-                       $('.radio.g-selected').text().match("Public").length > 0;
+                    $('.radio.g-selected').text().match("Public").length > 0;
             }, 'access selection to be set to public');
         }
 
@@ -279,7 +279,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
         waitsFor(function () {
             return $('.g-group-name').text() === groupName &&
-                   $('.g-group-description').text() === groupDesc;
+                $('.g-group-description').text() === groupDesc;
         }, 'new group page to load');
         girderTest.waitForLoad();
     };
@@ -289,19 +289,124 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
  * metadata editing options.
  */
 girderTest.testMetadata = function () {
+
+    function _editSimpleMetadata(value, elem) {
+        if (value !== null) {
+            $('textarea.g-widget-metadata-value-input', elem).val(value);
+        } else {
+            value = $('textarea.g-widget-metadata-value-input', elem).val();
+        }
+
+        return value;
+    }
+
+    function _editJsonMetadata(value, elem, type) {
+        // type is one of (tree, code)
+        type = type || 'tree';
+
+        if (type === 'tree') {
+            if (typeof value !== 'object') {
+                $('.jsoneditor button.contextmenu:first', elem).click();
+
+                $('.jsoneditor-contextmenu .type-object:first').click();
+                $('.jsoneditor-contextmenu .type-auto:first').click();
+
+                $('.jsoneditor table.values div.value.empty', elem).text(value);
+
+                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+
+                return;
+            }
+
+            for (var arrKey in value) {
+                $('.jsoneditor button.contextmenu', elem).click();
+                $('.jsoneditor-contextmenu button.insert').click();
+                $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
+                $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+
+                // trigger update for JSONEditor to do internal tasks
+                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+            }
+        }
+
+        // Will place code editing here
+    }
+
+    // Just switch a simple -> json or vice versa, and save. Assert the data is what it should be
+    function _toggleMetadata(key, beforeType, action, errorMessage) {
+        var elem, beforeValue, afterElem;
+        action = action || 'save';
+
+        runs(function () {
+            elem = $('.g-widget-metadata-key:contains("' + key + '")').closest('.g-widget-metadata-row');
+            expect(elem.length).toBe(1); // has to already exist
+            expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
+
+            beforeValue = elem.attr('g-value');
+
+            // Edit the metadata
+            $('.g-widget-metadata-edit-button', elem).click();
+        });
+
+        waitsFor(function () {
+            return $('.g-widget-metadata-toggle-button', elem).length === 1;
+        }, 'the toggle metadata field to appear');
+
+        runs(function() {
+            // Toggle the action
+            $('.g-widget-metadata-toggle-button', elem).click();
+
+            // Cancel or save
+            $('.g-widget-metadata-' + action + '-button').click();
+        });
+
+        if (errorMessage) {
+            waitsFor(function () {
+                return $('.alert').text().match(errorMessage);
+            }, 'alert with "' + errorMessage + '" to appear');
+
+            return;
+        }
+
+        waitsFor(function () {
+            return $('input.g-widget-metadata-key-input').length === 0;
+        }, 'edit fields to disappear');
+
+        runs(function() {
+            afterElem = $('.g-widget-metadata-key:contains("' + key + '")').closest('.g-widget-metadata-row');
+            expect(afterElem.length).toBe(1);
+            expect($('.g-widget-metadata-edit-button', afterElem).length).toBe(1);
+
+            if (action == 'save') {
+                if (beforeType === 'json') {
+                    // We want to be sure that the JSON object put into a minified string form is what we get.
+                    expect(afterElem.attr('g-value')).toBe(JSON.stringify(
+                        JSON.parse(beforeValue)));
+                } else {
+                    expect(afterElem.attr('g-value')).toBe(JSON.stringify(
+                        JSON.parse(beforeValue), null, 4));
+                }
+            } else if (action == 'cancel') {
+                // If we're canceling the conversion, the after value needs to be the same as the before
+                expect(afterElem.attr('g-value')).toBe(beforeValue);
+            }
+        });
+    }
+
     /* Add metadata and check that the value is actually set for the item.
      * :param origKey: null to create a new metadata item.  Otherwise, edit the
      *                 metadata item with this key.
      * :param key: key text.
      * :param value: value text.  If this appears to be a JSON string, the
      *               metadata should be stored as a JSON object.
-     * :param action: one of 'save', 'cance', or 'delete'.  'delete' can't be
+     * :param action: one of 'save', 'cancel', or 'delete'.  'delete' can't be
      *                used with new items.  Default is 'save'.
      * :param errorMessage: if present, expect an information message with
      *                      regex.
      */
-    function _editMetadata(origKey, key, value, action, errorMessage) {
+    function _editMetadata(origKey, key, value, action, errorMessage, type) {
         var expectedNum, elem;
+        type = type || 'simple';
 
         if (origKey === null) {
             waitsFor(function () {
@@ -309,7 +414,7 @@ girderTest.testMetadata = function () {
             }, 'the add metadata button to appear');
             runs(function () {
                 expectedNum = $(".g-widget-metadata-row").length;
-                $('.g-widget-metadata-add-button:visible').click();
+                $('a.g-add-' + type  + '-metadata').click();
             });
         } else {
             runs(function () {
@@ -322,7 +427,8 @@ girderTest.testMetadata = function () {
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 1 &&
-                   $('textarea.g-widget-metadata-value-input').length === 1;
+                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 1 :
+                 $('.jsoneditor > .outer > .tree').length === 1);
         }, 'the add metadata input fields to appear');
         runs(function () {
             if (!elem) {
@@ -333,11 +439,13 @@ girderTest.testMetadata = function () {
             } else {
                 key = $('input.g-widget-metadata-key-input', elem).val();
             }
-            if (value !== null) {
-                $('textarea.g-widget-metadata-value-input', elem).val(value);
+
+            if (type === 'simple') {
+                value = _editSimpleMetadata(value, elem);
             } else {
-                value = $('textarea.g-widget-metadata-value-input', elem).val();
+                _editJsonMetadata(value, elem);
             }
+
         });
         if (errorMessage) {
             runs(function () {
@@ -349,38 +457,39 @@ girderTest.testMetadata = function () {
         }
         switch (action)
         {
-            case 'cancel':
-                runs(function () {
-                    $('.g-widget-metadata-cancel-button').click();
-                });
-                break;
-            case 'delete':
-                runs(function () {
-                    $('.g-widget-metadata-delete-button').click();
-                });
-                girderTest.waitForDialog();
-                waitsFor(function () {
-                    return $('#g-confirm-button:visible').length > 0;
-                }, 'delete confirmation to appear');
-                runs(function () {
-                    $('#g-confirm-button').click();
-                    expectedNum -= 1;
-                });
-                girderTest.waitForLoad();
-                break;
-            default:
-                action = 'save';
-                runs(function () {
-                    $('.g-widget-metadata-save-button').click();
-                    if (origKey === null) {
-                        expectedNum += 1;
-                    }
-                });
-                break;
+        case 'cancel':
+            runs(function () {
+                $('.g-widget-metadata-cancel-button').click();
+            });
+            break;
+        case 'delete':
+            runs(function () {
+                $('.g-widget-metadata-delete-button').click();
+            });
+            girderTest.waitForDialog();
+            waitsFor(function () {
+                return $('#g-confirm-button:visible').length > 0;
+            }, 'delete confirmation to appear');
+            runs(function () {
+                $('#g-confirm-button').click();
+                expectedNum -= 1;
+            });
+            girderTest.waitForLoad();
+            break;
+        default:
+            action = 'save';
+            runs(function () {
+                $('.g-widget-metadata-save-button').click();
+                if (origKey === null) {
+                    expectedNum += 1;
+                }
+            });
+            break;
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 0 &&
-                   $('textarea.g-widget-metadata-value-input').length === 0;
+                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 0 :
+                 $('.jsoneditor > .outer > .tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
             return $(".g-widget-metadata-row").length == expectedNum;
@@ -388,6 +497,9 @@ girderTest.testMetadata = function () {
         runs(function () {
             expect($(".g-widget-metadata-row").length).toBe(expectedNum);
             if (action === 'save') {
+                if (type === 'json') {
+                    value = JSON.stringify(value, null, 4);
+                }
                 expect(elem.text()).toBe(key + value);
             }
         });
@@ -399,13 +511,40 @@ girderTest.testMetadata = function () {
         _editMetadata(null, '', 'no_key', 'cancel', /.*A key is required for all metadata/);
         _editMetadata(null, 'cancel_me', 'this will be cancelled', 'cancel');
         _editMetadata(null, 'long_key', 'long_value' + new Array(2048).join('-'));
-        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}));
+        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}, null, 4));
         _editMetadata(null, 'unicode_key\u00A9\uD834\uDF06', 'unicode_value\u00A9\uD834\uDF06');
         _editMetadata('simple_key', null, 'new_value', 'cancel');
         _editMetadata('long_key', 'json_key', null, 'cancel', /.*json_key is already a metadata key/);
         _editMetadata('simple_key', null, 'new_value');
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
+
+        _editMetadata(null, 'plain_json', {"some": "json"}, 'save', null, 'json');
+
+        _editMetadata(null, 'non_object_or_array_json', false, 'save', null, 'json');
+        _toggleMetadata('non_object_or_array_json', 'json');
+
+        // converting json to simple
+        _editMetadata(null, 'a_json_key', {"foo": "bar"}, 'save', null, 'json');
+        _editMetadata('a_json_key', 'a_json_key', {"foo": "bar"}, 'cancel', null, 'json');
+        _toggleMetadata('a_json_key', 'json');
+
+        // a simple key that happens to be valid JSON
+        _editMetadata(null, 'a_simple_key', '{"some": "json"}');
+        _toggleMetadata('a_simple_key', 'simple');
+
+        // Test converting and canceling
+        _editMetadata(null, 'a_canceled_key', '{"with": "json"}');
+        _toggleMetadata('a_canceled_key', 'simple', 'cancel');
+
+
+        // a simple key that is not valid json
+        _editMetadata(null, 'some_simple_key', 'foobar12345');
+        _toggleMetadata('some_simple_key', 'simple', 'save', 'The simple field is not valid JSON and can not be converted.');
+
+        // @todo try to save invalid JSON in the code editor, then try to convert it to tree and assert
+        // failures.
+
     };
 };
 
@@ -422,10 +561,10 @@ girderTest.waitForLoad = function (desc) {
     /* It is faster to wait to make sure a dialog is being hidden than to wait
      * for it to be fully gone.  It is probably more reliable, too.  This had
      * been:
-    waitsFor(function () {
-        return $('.modal-backdrop').length === 0;
-    }, 'for the modal backdrop to go away'+desc);
-    */
+     waitsFor(function () {
+     return $('.modal-backdrop').length === 0;
+     }, 'for the modal backdrop to go away'+desc);
+     */
     waitsFor(function () {
         if ($('.modal').data('bs.modal') === undefined) {
             return true;
@@ -451,15 +590,15 @@ girderTest.waitForDialog = function (desc) {
     desc = desc ? ' (' + desc + ')' : '';
     /* It is faster to wait until the dialog is officially shown than to wait
      * for the backdrop.  This had been:
-    waitsFor(function() {
-        return $('#g-dialog-container:visible').length > 0 &&
-               $('.modal-backdrop:visible').length > 0;
-    }, 'a dialog to fully render'+desc);
+     waitsFor(function() {
+     return $('#g-dialog-container:visible').length > 0 &&
+     $('.modal-backdrop:visible').length > 0;
+     }, 'a dialog to fully render'+desc);
      */
     waitsFor(function () {
         return $('.modal').data('bs.modal') &&
-               $('.modal').data('bs.modal').isShown === true &&
-               $('#g-dialog-container:visible').length > 0;
+            $('.modal').data('bs.modal').isShown === true &&
+            $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render' + desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
@@ -475,11 +614,11 @@ girderTest.addCoveredScript = function (url) {
         blanket.utils.cache[url] = {};
         blanket.utils.attachScript({url:url}, function (content) {
             blanket.instrument({inputFile: content, inputFileName: url},
-                function (instrumented) {
-                    blanket.utils.cache[url].loaded = true;
-                    blanket.utils.blanketEval(instrumented);
-                    blanket.requiringFile(url, true);
-                });
+                               function (instrumented) {
+                                   blanket.utils.cache[url].loaded = true;
+                                   blanket.utils.blanketEval(instrumented);
+                                   blanket.requiringFile(url, true);
+                               });
         });
     } else {
         $('<script/>', {src: url}).appendTo('head');
@@ -508,7 +647,7 @@ girderTest.importStylesheet = function (css) {
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.
-  */
+ */
 girderTest.folderAccessControl = function (current, action, recurse) {
     waitsFor(function () {
         return $('.g-folder-access-button:visible').length === 1;
@@ -521,7 +660,7 @@ girderTest.folderAccessControl = function (current, action, recurse) {
 
     waitsFor(function () {
         return $('#g-dialog-container').hasClass('in') &&
-               $('#g-access-private:visible').is(':enabled');
+            $('#g-access-private:visible').is(':enabled');
     }, 'dialog and private access radio button to appear');
 
     runs(function () {
@@ -537,16 +676,16 @@ girderTest.folderAccessControl = function (current, action, recurse) {
 
     waitsFor(function () {
         switch (action) {
-            case 'private':
-                if (!$('.radio.g-selected').text().match("Private").length) {
-                    return false;
-                }
-                break;
-            case 'public':
-                if (!$('.radio.g-selected').text().match("Public").length) {
-                    return false;
-                }
-                break;
+        case 'private':
+            if (!$('.radio.g-selected').text().match("Private").length) {
+                return false;
+            }
+            break;
+        case 'public':
+            if (!$('.radio.g-selected').text().match("Public").length) {
+                return false;
+            }
+            break;
         }
         return $('.g-save-access-list:visible').is(':enabled');
     }, 'access save button to appear');
@@ -682,8 +821,8 @@ function _prepareTestUpload() {
                 newdata.append('uploadId', data.vals.uploadId);
                 var len = data.vals.chunk.size;
                 if (girderTest._uploadData.length &&
-                        girderTest._uploadData.length == len &&
-                        !girderTest._uploadDataExtra) {
+                    girderTest._uploadData.length == len &&
+                    !girderTest._uploadDataExtra) {
                     newdata.append('chunk', girderTest._uploadData);
                 } else {
                     newdata.append('chunk', new Array(
@@ -698,8 +837,8 @@ function _prepareTestUpload() {
                     this.setRequestHeader('x-amz-copy-source', 'bad_value');
                 }
                 if (girderTest._uploadData.length &&
-                        girderTest._uploadData.length == data.size &&
-                        !girderTest._uploadDataExtra) {
+                    girderTest._uploadData.length == data.size &&
+                    !girderTest._uploadDataExtra) {
                     data = girderTest._uploadData;
                 } else {
                     data = new Array(
@@ -754,7 +893,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     waitsFor(function () {
         return $('.g-drop-zone:visible').length > 0 &&
-               $('.modal-dialog:visible').length > 0;
+            $('.modal-dialog:visible').length > 0;
     }, 'the upload dialog to appear');
 
     runs(function () {
@@ -779,7 +918,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
     if (needResume) {
         waitsFor(function () {
             return $('.g-resume-upload:visible').length > 0 ||
-                   $('.g-restart-upload:visible').length > 0;
+                $('.g-restart-upload:visible').length > 0;
         }, 'the resume link to appear');
         runs(function () {
             if (error) {
@@ -799,13 +938,13 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     waitsFor(function () {
         return $('.modal-content:visible').length === 0 &&
-               $('.g-item-list-entry').length === orig_len + 1;
+            $('.g-item-list-entry').length === orig_len + 1;
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
     window.callPhantom(
         {action: 'uploadCleanup',
-        suffix: girderTest._uploadSuffix});
+         suffix: girderTest._uploadSuffix});
 };
 
 /* Wait for a dialog to be present with a confirm button, then select the
