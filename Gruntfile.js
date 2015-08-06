@@ -36,7 +36,10 @@ module.exports = function (grunt) {
 
     if (debugJs) {
         console.log('Building JS in debug mode'.yellow);
-        uglifyOptions.beautify = false;
+        uglifyOptions.beautify = {
+            beautify: true,
+            ascii_only: true
+        };
         uglifyOptions.mangle = false;
         uglifyOptions.compress = false;
     } else {
