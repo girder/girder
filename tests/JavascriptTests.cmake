@@ -124,7 +124,7 @@ function(add_web_client_test case specFile)
     set(testname "web_client_${fn_PLUGIN}.${case}")
     set(plugins ${fn_PLUGIN})
   else()
-    set(plugins '')
+    set(plugins "")
   endif()
 
   if(fn_ASSETSTORE)
@@ -140,7 +140,7 @@ function(add_web_client_test case specFile)
   endif()
 
   if(fn_ENABLEDPLUGINS)
-    set(plugins ${fn_ENABLEDPLIGINS})
+    list(APPEND plugins ${fn_ENABLEDPLUGINS})
   endif()
 
   add_test(
