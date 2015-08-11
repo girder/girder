@@ -221,6 +221,8 @@ class loadmodel(object):
     :type plugin: str
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
+    :param force:
+    :type force: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False):
