@@ -298,9 +298,10 @@ def endpoint(fun):
             if 'Content-Range' in cherrypy.response.headers:
                 cherrypy.response.status = 206
 
-            if isinstance(val, types.FunctionType):
-                # If the endpoint returned a function, we assume it's a
-                # generator function for a streaming response.
+            if callable(val):
+                # If the endpoint returned anything callable (function,
+                # lambda, functools.partial), we assume it's a generator
+                # function for a streaming response.
                 cherrypy.response.stream = True
                 return val()
 
