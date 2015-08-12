@@ -5,6 +5,7 @@ $(function () {
         '/static/built/plugins/jobs/templates.js',
         '/plugins/jobs/web_client/js/misc.js',
         '/plugins/jobs/web_client/js/models/JobModel.js',
+        '/plugins/jobs/web_client/js/collections/JobCollection.js',
         '/plugins/jobs/web_client/js/views/JobDetailsWidget.js'
     ]);
     girderTest.importStylesheet(
