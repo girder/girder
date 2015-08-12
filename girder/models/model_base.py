@@ -395,7 +395,7 @@ class Model(ModelImporter):
             except Exception:
                 raise ValidationException('Invalid ObjectId: {}'.format(id),
                                           field='id')
-        doc = self.collection.find_one({'_id': id}, fields=fields)
+        doc = self.findOne({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
             raise ValidationException('No such {}: {}'.format(
