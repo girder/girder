@@ -17,7 +17,9 @@ table.g-jobs-list-table
           td.g-status-icon-container(status="#{job.get('status')}")
             i(class="#{girder.jobs_JobStatus.icon(job.get('status'))}")
         if columns & columnEnum.COLUMN_TITLE
-          if linkToJob
+          if triggerJobClick
+            td: a.g-job-trigger-link(cid="#{job.cid}")= job.get('title')
+          else if linkToJob
             td: a(href="#job/#{job.id}")= job.get('title')
           else
             td= job.get('title')

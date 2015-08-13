@@ -7,6 +7,13 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         'COLUMN_STATUS'
     ], 'COLUMN_ALL'),
 
+    events: {
+        'click .g-job-trigger-link': function (e) {
+            var cid = $(e.target).attr('cid');
+            this.trigger('g:jobClicked', this.collection.get(cid));
+        }
+    },
+
     initialize: function (settings) {
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.filter = settings.filter || {
@@ -23,7 +30,9 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         }, this).fetch(this.filter);
 
         this.showHeader = _.has(settings, 'showHeader') ? settings.showHeader : true;
+        this.showPaging = _.has(settings, 'showPaging') ? settings.showPaging : true;
         this.linkToJob = _.has(settings, 'linkToJob') ? settings.linkToJob : true;
+        this.triggerJobClick = _.has(settings, 'triggerJobClick') ? settings.triggerJobClick : false;
 
         this.paginateWidget = new girder.views.PaginateWidget({
             collection: this.collection,
@@ -40,10 +49,13 @@ girder.views.jobs_JobListWidget = girder.View.extend({
             columns: this.columns,
             columnEnum: this.columnEnum,
             linkToJob: this.linkToJob,
+            triggerJobClick: this.triggerJobClick,
             girder: girder
         }));
 
-        this.paginateWidget.setElement(this.$('.g-job-pagination')).render();
+        if (this.showPaging) {
+            this.paginateWidget.setElement(this.$('.g-job-pagination')).render();
+        }
 
         return this;
     },
