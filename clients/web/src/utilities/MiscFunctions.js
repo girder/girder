@@ -226,6 +226,35 @@ girder.restartServer._reloadWindow = function () {
 };
 
 /**
+ * Create a set of flags that can be OR'd (|) together to define a set of
+ * options.
+ *
+ * @param {Array} options An array of strings defining the option names.
+ * @param {string} allOption If you want an option that enables all options,
+ *                 pass its name as this parameter.
+ * @return {Object} An object mapping the names of options to values.
+ */
+girder.defineFlags = function (options, allOption) {
+    var i = 0,
+        obj = {};
+
+    if (allOption) {
+        obj[allOption] = 1;
+    }
+    _.each(options, function (opt) {
+        obj[opt] = 1 << i;
+
+        if (allOption) {
+            obj[allOption] |= obj[opt];
+        }
+
+        i += 1;
+    });
+
+    return obj;
+};
+
+/**
  * Transform markdown into HTML and render it into the given element. If no
  * element is provided, simply returns the HTML.
  *
