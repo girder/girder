@@ -5,9 +5,11 @@
   handlers:
   - name: restart nginx
     service: name=nginx pattern=/etc/init.d/nginx state=restarted enabled=yes
+    sudo: yes
 
   - name: restart mongodb
     service: name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
+    sudo: yes
 
   tasks:
 
