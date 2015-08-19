@@ -517,7 +517,7 @@ class GirderClient(object):
         _safeMakedirs(os.path.dirname(path))
 
         with open(path, 'wb') as fd:
-            req = requests.get('%s/file/%s/download' % (self.urlBase, fileId),
+            req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
                                headers={'Girder-Token': self.token})
             for chunk in req.iter_content(chunk_size=65536):
                 fd.write(chunk)
