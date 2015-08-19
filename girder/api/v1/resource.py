@@ -175,7 +175,7 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: {}({})->{}'.format(
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookupPath(self, path, user=None):
+    def _lookupPath(self, path, user):
         """
         Find a particular resource by path or throw an exception.  The given
         user must have read access to all resources featured in the path.
@@ -186,9 +186,6 @@ class Resource(BaseResource):
 
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
-
-        if user is None:
-            user = self.getCurrentUser()
 
         parent = None
         if model == 'user':
