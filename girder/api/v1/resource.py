@@ -37,7 +37,7 @@ class Resource(BaseResource):
     def __init__(self):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
-        self.route('GET', ('stat',), self.stat)
+        self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
         self.route('POST', ('download',), self.download)
@@ -219,11 +219,11 @@ class Resource(BaseResource):
         return result
 
     @access.public
-    def stat(self, params):
+    def lookup(self, params):
         self.requireParams('path', params)
         return self._lookupPath(params['path'], self.getCurrentUser())
 
-    stat.description = (
+    lookup.description = (
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
                'The path of the resource.  The path must be an absolute Unix '

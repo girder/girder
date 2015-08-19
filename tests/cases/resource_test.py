@@ -354,27 +354,27 @@ class ResourceTestCase(base.TestCase):
         self._createFiles()
 
         # test users
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.admin,
                             params={'path': '/user/goodlogin'})
 
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
 
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/user/userlogin'})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.user['_id']))
 
         # test collections
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/collection/Test Collection'})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.collection['_id']))
 
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.admin,
                             params={'path':
                                     '/collection/Test Collection/' +
@@ -384,20 +384,20 @@ class ResourceTestCase(base.TestCase):
                          str(self.collectionPrivateFolder['_id']))
 
         # test folders
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/user/goodlogin/Public'})
         self.assertStatusOk(resp)
         self.assertEqual(
             str(resp.json['_id']), str(self.adminPublicFolder['_id']))
 
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/user/goodlogin/Private'})
         self.assertStatus(resp, 403)
 
         # test subfolders
-        resp = self.request(path='/resource/stat',
+        resp = self.request(path='/resource/lookup',
                             method='GET', user=self.admin,
                             params={'path': '/user/goodlogin/Public/Folder 1'})
         self.assertStatusOk(resp)
@@ -419,7 +419,7 @@ class ResourceTestCase(base.TestCase):
                  self.admin)
 
         for path, item, user in zip(paths, self.items, users):
-            resp = self.request(path='/resource/stat',
+            resp = self.request(path='/resource/lookup',
                                 method='GET', user=user,
                                 params={'path': path})
 
