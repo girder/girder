@@ -141,7 +141,7 @@ class Resource(BaseResource):
             raise RestException('Invalid resources format.')
         return model
 
-    def _lookupToken(self, token, parentType, parent):
+    def _lookUpToken(self, token, parentType, parent):
         """
         Find a particular child resource by name or throw an exception.
         :param token: the name of the child resource to find
@@ -175,7 +175,7 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: {}({})->{}'.format(
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookupPath(self, path, user):
+    def _lookUpPath(self, path, user):
         """
         Find a particular resource by path or throw an exception.  The given
         user must have read access to all resources featured in the path.
@@ -210,7 +210,7 @@ class Resource(BaseResource):
             document = parent
             self.model(model).requireAccess(document, user)
             for token in pathArray[2:]:
-                document, model = self._lookupToken(token, model, document)
+                document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
             raise RestException('Path not found: {}'.format(path))
@@ -221,7 +221,7 @@ class Resource(BaseResource):
     @access.public
     def lookup(self, params):
         self.requireParams('path', params)
-        return self._lookupPath(params['path'], self.getCurrentUser())
+        return self._lookUpPath(params['path'], self.getCurrentUser())
 
     lookup.description = (
         Description('Look up a resource in the data hierarchy by path.')
