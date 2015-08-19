@@ -150,24 +150,26 @@ class Resource(BaseResource):
         :returns: the child resource
         """
 
-        filterObject = {'name': token, 'parentId': parent['_id']}
+        seekFolder = (parentType in ('user', 'collection', 'folder'))
+        seekItem = (parentType == 'folder')
+        seekFile = (parentType == 'item')
 
-        # look for a folder
-        candidateChild = self.model('folder').findOne(filterObject)
-        if candidateChild is not None:
-            return candidateChild, 'folder'
+        # (model name, mask, search filter)
+        searchTable = (
+            ('folder', seekFolder, {'name': token,
+                                    'parentId': parent['_id'],
+                                    'parentCollection': parentType}),
+            ('item', seekItem, {'name': token, 'folderId': parent['_id']}),
+            ('file', seekFile, {'name': token, 'itemId': parent['_id']}),
+        )
 
-        # if folder not found, look for an item
-        filterObject['folderId'] = filterObject.pop('parentId')
-        candidateChild = self.model('item').findOne(filterObject)
-        if candidateChild is not None:
-            return candidateChild, 'item'
+        for candidateModel, mask, filterObject in searchTable:
+            if not mask:
+                continue
 
-        # if item not found, look for a file
-        filterObject['itemId'] = filterObject.pop('folderId')
-        candidateChild = self.model('file').findOne(filterObject)
-        if candidateChild is not None:
-            return candidateChild, 'file'
+            candidateChild = self.model(candidateModel).findOne(filterObject)
+            if candidateChild is not None:
+                return candidateChild, candidateModel
 
         # if no folder, item, or file matches, give up
         raise RestException('Child resource not found: {}({})->{}'.format(
