@@ -224,8 +224,12 @@ class Resource(BaseResource):
         return self._lookupPath(params['path'], self.getCurrentUser())
 
     stat.description = (
-        Description('Get any resource by girder path.')
-        .param('path', 'The path of the resource.')
+        Description('Look up a resource in the data hierarchy by path.')
+        .param('path',
+               'The path of the resource.  The path must be an absolute Unix '
+               'path starting with either "/users/[user name]", for a user\'s'
+               'resources or "/collection/[collection name]", for resources '
+               'under a collection.')
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403))
