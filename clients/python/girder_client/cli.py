@@ -28,7 +28,7 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, dryrun, blacklist,
-                 host='localhost', port=8080, apiRoot=None, scheme='http'):
+                 host=None, port=None, apiRoot=None, scheme=None):
         """initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance.
         :param username: username to authenticate to Girder instance.
@@ -40,11 +40,11 @@ class GirderCli(GirderClient):
         :param host: host used to connect to Girder instance,
             defaults to 'localhost'
         :param port: port used to connect to Girder instance,
-            defaults to 8080
+            default is 80 for http: and 443 for https:
         :param apiRoot: The path on the server corresponding to the root of the
             Girder REST API. If None is passed, assumes '/api/v1'.
         :param scheme: scheme used to connect to Girder instance,
-            defaults to 'http'; if passing 'https' port should likely be 443.
+            defaults to 'http'
         """
         GirderClient.__init__(self, host=host, port=port,
                               apiRoot=apiRoot, scheme=scheme, dryrun=dryrun,
@@ -69,10 +69,10 @@ def main():
         'happen')
     parser.add_argument('--username', required=False, default=None)
     parser.add_argument('--password', required=False, default=None)
-    parser.add_argument('--scheme', required=False, default='http')
-    parser.add_argument('--host', required=False, default='localhost')
-    parser.add_argument('--port', required=False, default='8080')
-    parser.add_argument('--api-root', required=False, default='/api/v1',
+    parser.add_argument('--scheme', required=False, default=None)
+    parser.add_argument('--host', required=False, default=None)
+    parser.add_argument('--port', required=False, default=None)
+    parser.add_argument('--api-root', required=False, default=None,
                         help='path to the Girder REST API')
     parser.add_argument('-c', default='upload', choices=['upload', 'download'],
                         help='command to run')
