@@ -435,7 +435,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     getParams['upload_id_marker'] = \
                         multipartUploads.next_upload_id_marker
 
-    def untrackedUploads(self, knownUploads=[], delete=False):
+    def untrackedUploads(self, knownUploads=None, delete=False):
         """
         List and optionally discard uploads that are in the assetstore but not
         in the known list.
@@ -446,10 +446,16 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         :type delete: bool
         :returns: a list of unknown uploads.
         """
+        if self.assetstore.get('readOnly'):
+            return []
+
         untrackedList = []
         prefix = self.assetstore.get('prefix', '')
         if prefix:
             prefix += '/'
+
+        if knownUploads is None:
+            knownUploads = []
 
         bucket = self._getBucket()
         if not bucket:
