@@ -24,6 +24,7 @@ import mock
 import moto
 import os
 import six
+import sys
 import time
 import zipfile
 
@@ -582,3 +583,25 @@ class AssetstoreTestCase(base.TestCase):
                 break  # give up and fail
             time.sleep(0.1)
         self.assertIsNone(bucket.get_key(file['s3Key']))
+
+        resp = self.request(path='/folder/%s' % parentFolder['_id'],
+                            method='DELETE', user=self.admin)
+        self.assertStatusOk(resp)
+
+        # Set the assetstore to read only, attempt to delete it
+        assetstore['readOnly'] = True
+        self.model('assetstore').save(assetstore)
+
+        def fn(*args, **kwargs):
+            raise Exception('get_all_multipart_uploads should not be called')
+
+        # Must mock globally (too tricky to get a direct mock.patch)
+        old = sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads
+        sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads = fn
+
+        try:
+            resp = self.request(path='/assetstore/%s' % assetstore['_id'],
+                                method='DELETE', user=self.admin)
+            self.assertStatusOk(resp)
+        finally:
+            sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads = old
