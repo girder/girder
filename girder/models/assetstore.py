@@ -79,7 +79,7 @@ class Assetstore(Model):
         # delete partial uploads before we delete the store.
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         try:
-            adapter.untrackedUploads([], 'delete')
+            adapter.untrackedUploads([], delete=True)
         except ValidationException:
             # this assetstore is currently unreachable, so skip this step
             pass
