@@ -154,7 +154,7 @@ module.exports = function (grunt) {
                 }
             },
             readServerConfig: {
-                command: 'python config_parse.py girder/conf/girder.local.cfg',
+                command: 'env python config_parse.py girder/conf/girder.local.cfg',
                 options: {
                     stdout: false,
                     callback: setServerConfig
