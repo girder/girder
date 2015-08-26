@@ -35,7 +35,12 @@ from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import config
-from six.moves import range
+from six.moves import range, urllib
+
+
+def getUrlParts(url=None):
+    url = url or cherrypy.url()
+    return urllib.parse.urlparse(url)
 
 
 def getApiUrl(url=None):
