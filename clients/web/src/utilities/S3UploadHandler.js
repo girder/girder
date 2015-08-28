@@ -187,7 +187,8 @@
                 offset: 0,
                 chunk: JSON.stringify({
                     s3UploadId: this.s3UploadId,
-                    partNumber: this.chunkN
+                    partNumber: this.chunkN,
+                    contentLength: this.payloadLength
                 }),
                 uploadId: this.params.upload._id
             },
