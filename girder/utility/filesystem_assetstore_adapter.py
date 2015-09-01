@@ -196,8 +196,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             os.remove(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
+            # shutil.move works across filesystems
             shutil.move(upload['tempFile'], abspath)
-            os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
+            try:
+                os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
+            except OSError:
+                # some filesystems may not support POSIX permissions
+                pass
 
         file['sha512'] = hash
         file['path'] = path
