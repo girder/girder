@@ -96,7 +96,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].union(fields)
+        self._filterKeys[level].update(fields)
 
     def hideFields(self, level, fields):
         """
@@ -113,7 +113,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].difference(fields)
+        self._filterKeys[level].difference_update(fields)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
@@ -134,15 +134,15 @@ class Model(ModelImporter):
         if doc is None:
             return None
 
-        keys = self._filterKeys[AccessType.READ]
+        keys = set(self._filterKeys[AccessType.READ])
 
         if user and user.get('admin') is True:
-            keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+            keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
-            keys = keys.union(additionalKeys)
+            keys.update(additionalKeys)
 
-        return self.filterDocument(doc, allow=tuple(keys))
+        return self.filterDocument(doc, allow=keys)
 
     def ensureTextIndex(self, index, language='english'):
         """
@@ -474,23 +474,22 @@ class AccessControlledModel(Model):
         if doc is None:
             return None
 
-        keys = self._filterKeys[AccessType.READ]
+        keys = set(self._filterKeys[AccessType.READ])
         level = self.getAccessLevel(doc, user)
 
         if level >= AccessType.WRITE:
-            keys = keys.union(self._filterKeys[AccessType.WRITE])
+            keys.update(self._filterKeys[AccessType.WRITE])
 
             if level >= AccessType.ADMIN:
-                keys = keys.union(self._filterKeys[AccessType.ADMIN])
+                keys.update(self._filterKeys[AccessType.ADMIN])
 
                 if user.get('admin') is True:
-                    keys = keys.union(
-                        self._filterKeys[AccessType.SITE_ADMIN])
+                    keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
-            keys = keys.union(additionalKeys)
+            keys.update(additionalKeys)
 
-        filtered = self.filterDocument(doc, allow=tuple(keys))
+        filtered = self.filterDocument(doc, allow=keys)
         filtered['_accessLevel'] = level
 
         return filtered
