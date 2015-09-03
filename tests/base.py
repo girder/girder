@@ -195,8 +195,17 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :type code: int or str
         """
         code = str(code)
-        msg = 'Response status was %s, not %s.' % (response.output_status, code)
-        self.assertTrue(response.output_status.startswith(code.encode()), msg)
+
+        if not response.output_status.startswith(code.encode()):
+            msg = 'Response status was %s, not %s.' % (response.output_status,
+                                                       code)
+
+            if hasattr(response, 'json'):
+                msg += ' Response body was:\n%s' % json.dumps(
+                    response.json, sort_keys=True, indent=4,
+                    separators=(',', ': '))
+
+            self.fail(msg)
 
     def assertHasKeys(self, obj, keys):
         """
