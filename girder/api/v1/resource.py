@@ -39,6 +39,7 @@ class Resource(BaseResource):
         self.route('GET', ('search',), self.search)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
+        self.route('POST', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
         self.route('POST', ('copy',), self.copyResources)
         self.route('DELETE', (), self.delete)
@@ -178,6 +179,10 @@ class Resource(BaseResource):
     download.description = (
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')
+        .notes('This route is also exposed via the POST method because the '
+               'request parameters can be quite long, and encoding them in the '
+               'URL (as is standard when using the GET method) can cause the '
+               'URL to become too long, which causes errors.')
         .param('resources', 'A JSON-encoded list of types to download.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id 2)], "folder": [(folder id 1)]}.')

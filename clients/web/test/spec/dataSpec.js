@@ -355,7 +355,7 @@ describe('Create a data hierarchy', function () {
         });
         runs(function () {
             expect(widget.redirectViaForm).toHaveBeenCalled();
-            expect(redirect.method).toBe('GET');
+            expect(redirect.method).toBe('POST');
             expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/.
                    test(redirect.url)).toBe(true);
             expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources)).

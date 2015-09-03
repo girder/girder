@@ -580,7 +580,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         var resources = this._getCheckedResourceParam();
         var data = {resources: resources};
 
-        this.redirectViaForm('GET', url, data);
+        this.redirectViaForm('POST', url, data);
     },
 
     pickChecked: function () {
