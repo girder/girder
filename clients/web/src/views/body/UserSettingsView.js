@@ -59,10 +59,16 @@ girder.views.UserAccountView = girder.View.extend({
                             timeout: 4000
                         });
                         this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
-                    }, this).changePassword(
-                        this.$('#g-password-old').val(),
-                        this.$('#g-password-new').val()
-                    );
+                    }, this);
+
+            if (this.isCurrentUser) {
+                this.user.changePassword(
+                    this.$('#g-password-old').val(),
+                    this.$('#g-password-new').val()
+                );
+            } else {
+                this.user.adminChangePassword(this.$('#g-password-new').val());
+            }
         }
     },
 
@@ -93,6 +99,7 @@ girder.views.UserAccountView = girder.View.extend({
 
         this.$el.html(girder.templates.userSettings({
             user: this.model,
+            isCurrentUser: this.isCurrentUser,
             girder: girder,
             temporaryToken: this.temporary
         }));

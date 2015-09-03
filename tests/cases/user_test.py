@@ -376,6 +376,9 @@ class UserTestCase(base.TestCase):
     def testPasswordChangeAndReset(self):
         user = self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
                                              'user@user.com')
+        user2 = self.model('user').createUser('user2', 'passwd', 'tst', 'usr',
+                                              'user2@user.com')
+
         # Reset password should require email param
         resp = self.request(path='/user/password', method='DELETE', params={})
         self.assertStatus(resp, 400)
@@ -426,6 +429,15 @@ class UserTestCase(base.TestCase):
         })
         self.assertStatus(resp, 401)
 
+        # Old password must not be empty
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': '',
+            'new': 'something_else'
+        }, user=user)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Old password must not be empty.')
+
         # Old password must be correct
         resp = self.request(path='/user/password', method='PUT', params={
             'old': 'passwd',
@@ -451,6 +463,31 @@ class UserTestCase(base.TestCase):
         # Make sure we can login with new password
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='user@user.com:something_else')
+        self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ('authToken',))
+        self.assertHasKeys(
+            resp.json['authToken'], ('token', 'expires'))
+        self._verifyAuthCookie(resp)
+
+        # Non-admin user should not be able to reset admin's password
+        resp = self.request(path='/user/%s/password' % str(user['_id']),
+                            method='PUT', user=user2, params={
+                                'password': 'another password'
+        })
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'],
+                         'Administrator access required.')
+
+        # Admin user should be able to reset non-admin's password
+        resp = self.request(path='/user/%s/password' % str(user2['_id']),
+                            method='PUT', user=user, params={
+                                'password': 'foo  bar'
+        })
+        self.assertStatusOk(resp)
+
+        # Make sure we can login with new password
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='user2:foo  bar')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
