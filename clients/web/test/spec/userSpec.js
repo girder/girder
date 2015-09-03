@@ -11,14 +11,15 @@ $(function () {
 });
 
 describe('Create an admin and non-admin user', function () {
-    var link;
+    var link, registeredUsers = [];
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
                               'Admin',
                               'Admin',
-                              'adminpassword!'));
+                              'adminpassword!',
+                              registeredUsers));
 
     it('logout', girderTest.logout());
 
@@ -27,7 +28,8 @@ describe('Create an admin and non-admin user', function () {
                               'nonadmin@email.com',
                               'Not',
                               'Admin',
-                              'password!'));
+                              'password!',
+                              registeredUsers));
 
     it('view the users on the user page and click on one', function () {
         girderTest.goToUsersPage()();
@@ -94,6 +96,31 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             return $('#g-user-info-error-msg').text() === '';
         }, 'error to vanish');
+    });
+
+    it("test changing other user's password", function () {
+        runs(function () {
+            girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
+                                   {trigger: true});
+        });
+
+        waitsFor(function () {
+            return $('input#g-password-new:visible').length > 0;
+        }, 'password input to appear');
+        girderTest.waitForLoad();
+
+        runs(function () {
+            expect($('.g-user-description').text()).toBe('nonadmin');
+            expect($('#g-password-old').length).toBe(0);
+
+            $('#g-password-new,#g-password-retype').val('a new password');
+            $('#g-password-change-form button[type="submit"]').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-alerts-container .alert-success').length > 0 &&
+                   $('#g-password-new').val() === '';
+        }, 'password change to complete');
     });
 
     it('test reset password', function () {

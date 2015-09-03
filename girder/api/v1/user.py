@@ -44,6 +44,7 @@ class User(Resource):
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
+        self.route('PUT', (':id', 'password'), self.changeUserPassword)
         self.route('GET', ('password', 'temporary', ':id'),
                    self.checkTemporaryPassword)
         self.route('PUT', ('password', 'temporary'),
@@ -248,10 +249,27 @@ class User(Resource):
         .errorResponse('You do not have write access for this user.', 403)
         .errorResponse('Must be an admin to create an admin.', 403))
 
+    @access.admin
+    @loadmodel(model='user', level=AccessType.ADMIN)
+    def changeUserPassword(self, user, params):
+        self.requireParams('password', params)
+        self.model('user').setPassword(user, params['password'])
+        return {'message': 'Password changed.'}
+    changeUserPassword.description = (
+        Description('Change a user\'s password.')
+        .notes('Only administrators may use this endpoint.')
+        .param('id', 'The ID of the user.', paramType='path')
+        .param('password', 'The user\'s new password.')
+        .errorResponse('You are not an administrator.', 403)
+        .errorResponse('The new password is invalid.'))
+
     @access.user
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)
         user = self.getCurrentUser()
+
+        if not params['old']:
+            raise RestException('Old password must not be empty.')
 
         if not self.model('password').authenticate(user, params['old']):
             token = self.model('token').load(

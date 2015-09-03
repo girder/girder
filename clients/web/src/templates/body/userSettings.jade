@@ -44,7 +44,7 @@ ul.g-account-tabs.nav.nav-tabs
       form#g-password-change-form(role="form")
         if temporaryToken
             input.input-sm.form-control#g-password-old(type="hidden", value="#{temporaryToken}")
-        else
+        else if isCurrentUser
           .form-group
             label(for="g-password-old") Current password
             input.input-sm.form-control#g-password-old(type="password", placeholder="Enter current password")

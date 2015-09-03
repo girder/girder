@@ -11,7 +11,7 @@ window.alert = function (msg) {
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 
-girderTest.createUser = function (login, email, firstName, lastName, password) {
+girderTest.createUser = function (login, email, firstName, lastName, password, userList) {
 
     return function () {
         runs(function () {
@@ -49,6 +49,10 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
             expect(girder.currentUser).not.toBe(null);
             expect(girder.currentUser.name()).toBe(firstName + ' ' + lastName);
             expect(girder.currentUser.get('login')).toBe(login);
+
+            if (userList) {
+                userList.push(girder.currentUser);
+            }
         });
     };
 };
