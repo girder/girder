@@ -195,3 +195,18 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(item_count, callback_counts['item'])
         self.assertTrue(all(items.values()))
         self.assertTrue(all(folders.values()))
+
+        # Upload again with reuse_existing on
+        existingList = list(self.model('folder').childFolders(
+            parentType='folder', parent=callbackPublicFolder,
+            user=callbackUser, limit=0))
+        client.upload(self.libTestDir, callbackPublicFolder['_id'],
+                      reuse_existing=True)
+        newList = list(self.model('folder').childFolders(
+            parentType='folder', parent=callbackPublicFolder,
+            user=callbackUser, limit=0))
+        self.assertEqual(existingList, newList)
+        self.assertEqual(len(newList), 1)
+        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+            parentType='folder', parent=newList[0],
+            user=callbackUser, limit=0)], ['sub0', 'sub1', 'sub2'])
