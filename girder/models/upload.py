@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import six
 from bson.objectid import ObjectId
 
 from girder import events
@@ -34,6 +35,47 @@ class Upload(Model):
     def initialize(self):
         self.name = 'upload'
 
+    def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
+                       user=None, mimeType=None):
+        """
+        This method wraps the entire upload process into a single function to
+        facilitate "internal" uploads from a file-like object. Example:
+
+        .. code-block:: python
+
+            size = os.path.getsize(filename)
+
+            with open(filename, 'rb') as f:
+                self.model('upload').uploadFromFile(
+                    f, size, filename, 'item', parentItem, user)
+
+        :param obj: The object representing the content to upload.
+        :type obj: file-like
+        :param size: The total size of
+        :param name: The name of the file to create.
+        :type name: str
+        :param parent: The parent (item or folder) to upload into.
+        :type parent: dict
+        :param parentType: The type of the parent: "folder" or "item".
+        :type parentType: str
+        :param user: The user who is creating the file.
+        :type user: dict
+        :param mimeType: MIME type of the file.
+        :type mimeType: str
+        """
+        upload = self.createUpload(
+            user=user, name=name, parentType=parentType, parent=parent,
+            size=size, mimeType=mimeType)
+
+        while True:
+            data = obj.read(33554432)  # 32MB
+            if not data:
+                break
+
+            upload = self.handleChunk(upload, six.BytesIO(data))
+
+        return upload
+
     def validate(self, doc):
         if doc['size'] < 0:
             raise ValidationException('File size must not be negative.')
@@ -49,6 +91,7 @@ class Upload(Model):
         When a chunk is uploaded, this should be called to process the chunk.
         If this is the final chunk of the upload, this method will finalize
         the upload automatically.
+
         :param upload: The upload document to update.
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
@@ -78,6 +121,12 @@ class Upload(Model):
         """
         This should only be called manually in the case of creating an
         empty file, i.e. one that has no chunks.
+
+        :param upload: The upload document.
+        :type upload: dict
+        :param assetstore: If known, the containing assetstore for the upload.
+        :type assetstore: dict
+        :returns: The file object that was created.
         """
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
@@ -254,6 +303,7 @@ class Upload(Model):
         """
         Discard an upload that is in progress.  This asks the assetstore to
         discard the data, then removes the item from the upload database.
+
         :param upload: The upload document to remove.
         :type upload: dict
         """
@@ -273,11 +323,12 @@ class Upload(Model):
         """
         List or discard any uploads that an assetstore knows about but that our
         database doesn't have in it.
+
         :param action: 'delete' to discard the untracked uploads, anything else
-                       to just return with a list of them.
+            to just return with a list of them.
         :type action: str
         :param assetstoreId: if present, only include untracked items from the
-                             specified assetstore.
+            specified assetstore.
         :type assetstoreId: str
         :returns: a list of items that were removed or could be removed.
         """
