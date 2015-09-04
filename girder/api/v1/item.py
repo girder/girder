@@ -68,10 +68,13 @@ class Item(Resource):
             folder = self.model('folder').load(id=params['folderId'], user=user,
                                                level=AccessType.READ, exc=True)
             filters = {}
-            if 'text' in params:
+            if params.get('text'):
                 filters['$text'] = {
                     '$search': params['text']
                 }
+            if params.get('name'):
+                filters['name'] = params['name']
+
             return [self.model('item').filter(item, user) for item in
                     self.model('folder').childItems(
                         folder=folder, limit=limit, offset=offset, sort=sort,
@@ -90,6 +93,8 @@ class Item(Resource):
                required=False)
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
+        .param('name', 'Pass to lookup an item by exact name match. Must '
+               'pass folderId as well when using this.', required=False)
         .param('limit', "Result set size limit.", default=50,
                required=False, dataType='int')
         .param('offset', "Offset into result set.", default=0, required=False,

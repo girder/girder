@@ -77,10 +77,12 @@ class Folder(Resource):
                 exc=True)
 
             filters = {}
-            if 'text' in params:
+            if params.get('text'):
                 filters['$text'] = {
                     '$search': params['text']
                 }
+            if params.get('name'):
+                filters['name'] = params['name']
 
             return [self.model('folder').filter(folder, user) for folder in
                     self.model('folder').childFolders(
@@ -100,6 +102,9 @@ class Folder(Resource):
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
         .param('text', 'Pass to perform a text search.', required=False)
+        .param('name', 'Pass to lookup a folder by exact name match. Must '
+               'pass parentType and parentId as well when using this.',
+               required=False)
         .param('limit', "Result set size limit.", required=False,
                dataType='int', default=50)
         .param('offset', "Offset into result set.", required=False,
