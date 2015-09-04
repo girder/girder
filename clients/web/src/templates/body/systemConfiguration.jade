@@ -28,22 +28,22 @@ form.g-settings-form(role="form")
   .form-group
     label(for="g-core-registration-policy") Registration policy
     select#g-core-registration-policy.form-control.input-sm
-      option(value="open", selected=(settings['core.registration_policy'] ==
+      option(value="open", selected=(settings['core.registration_policy'] ===
              "open")) Open registration
-      option(value="closed", selected=(settings['core.registration_policy'] ==
+      option(value="closed", selected=(settings['core.registration_policy'] ===
              "closed")) Closed registration
   .form-group
     label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
     select#g-core-add-to-group-policy.form-control.input-sm
-      option(value="never", selected=(settings['core.add_to_group_policy'] ==
+      option(value="never", selected=(settings['core.add_to_group_policy'] ===
              "never")) No - members must be invited and accept invitations
-      option(value="noadmin", selected=(settings['core.add_to_group_policy'] ==
+      option(value="noadmin", selected=(settings['core.add_to_group_policy'] ===
              "noadmin")) No, except for group administrators when enabled per group
-      option(value="nomod", selected=(settings['core.add_to_group_policy'] ==
+      option(value="nomod", selected=(settings['core.add_to_group_policy'] ===
              "nomod")) No, except for group administrators and moderators when enabled per group
-      option(value="yesadmin", selected=(settings['core.add_to_group_policy'] ==
+      option(value="yesadmin", selected=(settings['core.add_to_group_policy'] ===
              "yesadmin")) Yes, by group administrators unless disabled per group
-      option(value="yesmod", selected=(settings['core.add_to_group_policy'] ==
+      option(value="yesmod", selected=(settings['core.add_to_group_policy'] ===
              "yesmod")) Yes by group administrators and moderators unless disabled per group
 
   .g-collection-create-policy-container

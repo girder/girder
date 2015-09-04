@@ -10,11 +10,11 @@
           .form-group
             label.control-label(for="g-edit-name") Assetstore Name
             input.input-sm#g-edit-name.form-control(type="text", placeholder="Name")
-          if assetstore.get('type') == types.FILESYSTEM
+          if assetstore.get('type') === types.FILESYSTEM
             .form-group
               label.control-label(for="g-edit-fs-root") Root directory
               input.input-sm#g-edit-fs-root.form-control(type="text", placeholder="Root directory")
-          if assetstore.get('type') == types.GRIDFS
+          if assetstore.get('type') === types.GRIDFS
             .form-group
               label.control-label(for="g-edit-gridfs-db") Database name
               input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
@@ -24,7 +24,7 @@
             .form-group
               label.control-label(for="g-edit-gridfs-replicaset") Replica Set
               input.input-sm#g-edit-gridfs-replicaset.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
-          if assetstore.get('type') == types.S3
+          if assetstore.get('type') === types.S3
             .form-group
               label.control-label(for="g-edit-s3-bucket") S3 bucket name
               input.input-sm#g-edit-s3-bucket.form-control(type="text", placeholder="Bucket")

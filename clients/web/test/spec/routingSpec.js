@@ -64,7 +64,7 @@ describe('Test routing paths', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
+            return $(".g-collection-access-control[role='menuitem']:visible").length === 1;
         }, 'access control menu item to appear');
         runs(function () {
             $('.g-collection-access-control').click();
@@ -341,7 +341,7 @@ describe('Test routing paths', function () {
     it('test item routes', function () {
         var itemPath = 'item/' + ids.item;
         girderTest.testRoute(itemPath, false, function () {
-            return $('.g-item-header .g-item-name').text() == 'Link File';
+            return $('.g-item-header .g-item-name').text() === 'Link File';
         });
         girderTest.testRoute(itemPath + '?dialog=itemedit', true,
             function () {

@@ -47,7 +47,7 @@
             select#g-preferredAssetstore.form-control.input-sm
               option(value='current', selected=(!quotaPolicy.preferredAssetstore)) Current Assetstore
               each assetstore in assetstoreList
-                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.preferredAssetstore == assetstore.get('_id'))) #{assetstore.get('name')}
+                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.preferredAssetstore === assetstore.get('_id'))) #{assetstore.get('name')}
           .form-group
             label.control-label(for="g-fallbackAssetstore") Fallback Assetstore
             p.g-quota-description
@@ -56,8 +56,8 @@
             select#g-fallbackAssetstore.form-control.input-sm
               option(value='current', selected=(!quotaPolicy.fallbackAssetstore)) Current Assetstore
               each assetstore in assetstoreList
-                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.fallbackAssetstore == assetstore.get('_id'))) #{assetstore.get('name')}
-              option(value='none', selected=(quotaPolicy.fallbackAssetstore == 'none')) None
+                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.fallbackAssetstore === assetstore.get('_id'))) #{assetstore.get('name')}
+              option(value='none', selected=(quotaPolicy.fallbackAssetstore === 'none')) None
           .g-validation-failed-message
       .modal-footer
         if girder.currentUser.get('admin')
