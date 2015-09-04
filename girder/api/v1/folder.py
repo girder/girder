@@ -105,14 +105,7 @@ class Folder(Resource):
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.',
                required=False)
-        .param('limit', "Result set size limit.", required=False,
-               dataType='int', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='int', default=0)
-        .param('sort', "Field to sort the folder list by.",
-               required=False, default='name')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='int', default=1)
+        .pagingParams(defaultSort='name')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 

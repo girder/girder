@@ -59,14 +59,7 @@ class Job(Resource):
                'not passed or empty, will use the currently logged in user. If '
                'set to "None", will list all jobs that do not have an owning '
                'user.', required=False)
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .param('sort', "Field to sort the result list by (default=created)",
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending (default=-1)",
-               required=False, dataType='int'))
+        .pagingParams(defaultSort='created', defaultSortDir=pymongo.DESCENDING))
 
     @access.public
     @loadmodel(model='job', plugin='jobs', level=AccessType.READ)

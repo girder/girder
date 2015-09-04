@@ -122,6 +122,29 @@ class Description(object):
         self._params.append(param)
         return self
 
+    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50):
+        """
+        Adds the limit, offset, sort, and sortdir parameter documentation to
+        this route handler.
+
+        :param defaultSort: The default field used to sort the result set.
+        :type defaultSort: str
+        :param defaultSortDir: Sort order: -1 or 1 (desc or asc)
+        :type defaultSortDir: int
+        :param defaultLimit: The default page size.
+        :type defaultLimit: int
+        """
+        self.param('limit', 'Result set size limit.', default=defaultLimit,
+                   required=False, dataType='int')
+        self.param('offset', 'Offset into result set.', default=0,
+                   required=False, dataType='int')
+        self.param('sort', 'Field to sort the result set by.',
+                   default=defaultSort, required=False)
+        self.param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+                   required=False, dataType='int', enum=(1, -1),
+                   default=defaultSortDir)
+        return self
+
     def consumes(self, value):
         self._consumes.append(value)
         return self
