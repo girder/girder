@@ -427,6 +427,13 @@ class ResourceTestCase(base.TestCase):
             self.assertEqual(
                 str(resp.json['_id']), str(item['_id']))
 
+        # test bogus path
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/bogus/path'})
+        self.assertStatus(resp, 400)
+
+
     def testMove(self):
         self._createFiles()
         # Move item1 from the public to the private folder
