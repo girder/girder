@@ -176,14 +176,6 @@ class Resource(BaseResource):
             parentType, parent.get('name', parent.get('_id')), token))
 
     def _lookUpPath(self, path, user):
-        """
-        Find a particular resource by path or throw an exception.  The given
-        user must have read access to all resources featured in the path.
-        :param path: the path of the object to find
-        :param user: the user to search as
-        :returns: the resource.
-        """
-
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
 
