@@ -433,7 +433,6 @@ class ResourceTestCase(base.TestCase):
                             params={'path': '/bogus/path'})
         self.assertStatus(resp, 400)
 
-
     def testMove(self):
         self._createFiles()
         # Move item1 from the public to the private folder
