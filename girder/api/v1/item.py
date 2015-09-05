@@ -47,19 +47,12 @@ class Item(Resource):
         Get a list of items with given search parameters. Currently accepted
         search modes are:
 
-        1. Searching by folderId.
-        2. Searching with full text search.
-
-        To search with full text search, pass the "text" parameter. To search
-        by parent, (i.e. list child items in a folder) pass folderId. You can
-        also pass limit, offset, sort, and sortdir parameters.
-
-        :param text: Pass this to perform a full-text search of items.
-        :param folderId: Get child items of a particular folder.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=lowerName.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        1. Searching by folderId, with optional additional filtering by the name
+           field (exact match) or using full text search within a single parent
+           folder. Pass a "name" parameter or "text" parameter to invoke these
+           additional filters.
+        2. Searching with full text search across all items in the system.
+           Simply pass a "text" parameter for this mode.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
