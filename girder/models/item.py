@@ -62,7 +62,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         Make sure a value is a string and is stripped of whitespace.
 
         :param value: the value to coerce into a string if it isn't already.
-        :return stringValue: the string version of the value.
+        :returns: the string version of the value.
         """
         if value is None:
             value = ''

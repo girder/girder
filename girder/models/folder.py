@@ -66,7 +66,7 @@ class Folder(AccessControlledModel):
         :param doc: the folder document to validate.
         :param allowRename: if True and a folder or item exists with the same
                             name, rename the folder so that it is unique.
-        :return doc: the validated folder document.
+        :returns: the validated folder document.
         """
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()
