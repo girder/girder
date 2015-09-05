@@ -276,18 +276,22 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None):
+    def listItem(self, folderId, text=None, name=None):
         """
         Retrieves a item set from this folder ID.
 
         :param folderId: the parent folder's ID.
-        :param text: query for full text search of items, optional.
+        :param text: query for full text search of items.
+        :param name: query for exact name match of items.
         """
         params = {
             'folderId': folderId,
         }
-        if text is not None:
+        if text:
             params['text'] = text
+        if name:
+            params['name'] = name
+
         return self.listResource('item', params)
 
     def createFolder(self, parentId, name, description='', parentType='folder'):
@@ -313,7 +317,7 @@ class GirderClient(object):
         """
         return self.getResource('folder', folderId)
 
-    def listFolder(self, parentId, parentFolderType='folder'):
+    def listFolder(self, parentId, parentFolderType='folder', name=None):
         """
         Retrieves a folder set from this parent ID.
 
@@ -324,6 +328,10 @@ class GirderClient(object):
             'parentId': parentId,
             'parentType': parentFolderType
         }
+
+        if name:
+            params['name'] = name
+
         return self.listResource('folder', params)
 
     def getFolderAccess(self, folderId):
@@ -688,24 +696,22 @@ class GirderClient(object):
         """
         self.item_upload_callbacks.append(callback)
 
-    def _load_or_create_folder(self, local_folder, parent_id, parent_type):
-        """Returns a folder in Girder with the same name as the passed in
-        local_folder under the parent_id, creating a new Girder folder
-        if need be or returning an existing folder with that name.
-        :param local_folder: full path to the local folder
+    def load_or_create_folder(self, folder_name, parent_id, parent_type):
+        """Returns a folder in Girder with the given name under the given
+        parent. If none exists yet, it will create it and return it.
+
+        :param folder_name: the name of the folder to look up.
         :param parent_id: id of parent in Girder
         :param parent_type: one of (collection, folder, user)
+        :returns: The folder that was found or created.
         """
-        child_folders = self.listFolder(parent_id, parent_type)
-        folder_name = os.path.basename(local_folder)
-        folder = None
-        for child in child_folders:
-            if child['name'] == folder_name:
-                folder = child
-        if folder is None:
-            folder = self.createFolder(
+        children = self.listFolder(parent_id, parent_type, name=folder_name)
+
+        if len(children):
+            return children[0]
+        else:
+            return self.createFolder(
                 parent_id, folder_name, parentType=parent_type)
-        return folder
 
     def _has_only_files(self, local_folder):
         """Returns whether a folder has only files. This will be false if the
@@ -715,26 +721,22 @@ class GirderClient(object):
         return not any(os.path.isdir(os.path.join(local_folder, entry))
                        for entry in os.listdir(local_folder))
 
-    def _create_or_reuse_item(self, local_file, parent_folder_id,
-                              reuse_existing=False):
-        """Create an item from the local_file in the parent_folder
-        :param local_file: full path to a file on the local file system
+    def load_or_create_item(self, name, parent_folder_id, reuse_existing=True):
+        """Create an item with the given name in the given parent folder.
+
+        :param name: The name of the item to load or create.
         :param parent_folder_id: id of parent folder in Girder
-        :param reuse_existing: boolean indicating whether to accept an existing
+        :param reuse_existing: boolean indicating whether to load an existing
             item of the same name in the same location, or create a new one.
         """
-        local_item_name = os.path.basename(local_file)
         item = None
         if reuse_existing:
-            children = self.listItem(parent_folder_id, local_item_name)
-            for child in children:
-                if child['name'] == local_item_name:
-                    item = child
-                    break
+            children = self.listItem(parent_folder_id, name=name)
+            if len(children):
+                item = children[0]
 
         if item is None:
-            item = self.createItem(parent_folder_id, local_item_name,
-                                   description='')
+            item = self.createItem(parent_folder_id, name, description='')
 
         return item
 
@@ -758,8 +760,8 @@ class GirderClient(object):
         """
         print('Uploading Item from %s' % local_file)
         if not self.dryrun:
-            current_item = self._create_or_reuse_item(
-                local_file, parent_folder_id, reuse_existing)
+            current_item = self.load_or_create_item(
+                os.path.basename(local_file), parent_folder_id, reuse_existing)
             self._upload_file_to_item(
                 local_file, current_item['_id'], file_path)
 
@@ -778,8 +780,9 @@ class GirderClient(object):
         """
         print('Creating Item from folder %s' % local_folder)
         if not self.dryrun:
-            item = self._create_or_reuse_item(local_folder, parent_folder_id,
-                                              reuse_existing)
+            item = self.load_or_create_item(
+                os.path.basename(local_folder), parent_folder_id,
+                reuse_existing)
 
         subdircontents = sorted(os.listdir(local_folder))
         # for each file in the subdir, add it to the item
@@ -834,8 +837,8 @@ class GirderClient(object):
                 # create a dryrun placeholder
                 folder = {'_id': 'dryrun'}
             else:
-                folder = self._load_or_create_folder(
-                    local_folder, parent_id, parent_type)
+                folder = self.load_or_create_folder(
+                    os.path.basename(local_folder), parent_id, parent_type)
 
             for entry in sorted(os.listdir(local_folder)):
                 if entry in self.blacklist:

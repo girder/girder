@@ -60,14 +60,7 @@ class Collection(Resource):
         .responseClass('Collection')
         .param('text', "Pass this to perform a text search for collections.",
                required=False)
-        .param('limit', "Result set size limit.", required=False,
-               dataType='int', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='int', default=0)
-        .param('sort', "Field to sort the result list by.",
-               required=False, default='name')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='int', default=1))
+        .pagingParams(defaultSort='name'))
 
     @access.user
     def createCollection(self, params):

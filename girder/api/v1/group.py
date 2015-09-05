@@ -74,14 +74,7 @@ class Group(Resource):
         Description('Search for groups or list all groups.')
         .param('text', "Pass this to perform a full-text search for groups.",
                required=False)
-        .param('limit', "Result set size limit.", required=False,
-               dataType='int', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='int', default=0)
-        .param('sort', "Field to sort the group list by.",
-               required=False, default='name')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='int', default=1)
+        .pagingParams(defaultSort='name')
         .param('exact', 'If true, only return exact name matches. This is '
                'case sensitive.', required=False, dataType='boolean',
                default=False)
@@ -157,14 +150,7 @@ class Group(Resource):
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
         .param('id', 'The ID of the group.', paramType='path')
-        .param('limit', "Result set size limit.", required=False,
-               dataType='int', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='int', default=0)
-        .param('sort', "Field to sort the invitee list by.",
-               required=False, default='lastName')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='int', default=1)
+        .pagingParams(defaultSort='lastName')
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403))
 
@@ -240,14 +226,7 @@ class Group(Resource):
     listMembers.description = (
         Description('List members of a group.')
         .param('id', 'The ID of the group.', paramType='path')
-        .param('limit', "Result set size limit.", required=False, default=50,
-               dataType='int')
-        .param('offset', "Offset into result set.", required=False, default=0,
-               dataType='int')
-        .param('sort', "Field to sort the member list by.", default='lastName',
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending.", default=1,
-               required=False, dataType='int')
+        .pagingParams(defaultSort='lastName')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403))
 

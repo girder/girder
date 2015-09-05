@@ -65,14 +65,7 @@ class User(Resource):
         .responseClass('User')
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
-        .param('limit', "Result set size limit.", required=False, default=50,
-               dataType='int')
-        .param('offset', "Offset into result set.", required=False, default=0,
-               dataType='int')
-        .param('sort', "Field to sort the user list by.", default='lastName',
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending.", default=1,
-               required=False, dataType='int'))
+        .pagingParams(defaultSort='lastName'))
 
     @access.public
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)

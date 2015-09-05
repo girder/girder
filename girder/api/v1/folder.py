@@ -50,18 +50,12 @@ class Folder(Resource):
         Get a list of folders with given search parameters. Currently accepted
         search modes are:
 
-        1. Searching by parentId and parentType.
-        2. Searching with full text search.
-
-        To search with full text search, pass the "text" parameter. To search
-        by parent, (i.e. list child folders) pass parentId and parentType,
-        which must be one of ('folder' | 'collection' | 'user'). You can also
-        pass limit, offset, sort, and sortdir parameters.
-
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=lowerName.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        1. Searching by parentId and parentType, with optional additional
+           filtering by the name field (exact match) or using full text search
+           within a single parent folder. Pass a "name" parameter or "text"
+           parameter to invoke these additional filters.
+        2. Searching with full text search across all folders in the system.
+           Simply pass a "text" parameter for this mode.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
@@ -77,10 +71,12 @@ class Folder(Resource):
                 exc=True)
 
             filters = {}
-            if 'text' in params:
+            if params.get('text'):
                 filters['$text'] = {
                     '$search': params['text']
                 }
+            if params.get('name'):
+                filters['name'] = params['name']
 
             return [self.model('folder').filter(folder, user) for folder in
                     self.model('folder').childFolders(
@@ -100,14 +96,10 @@ class Folder(Resource):
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
         .param('text', 'Pass to perform a text search.', required=False)
-        .param('limit', "Result set size limit.", required=False,
-               dataType='int', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='int', default=0)
-        .param('sort', "Field to sort the folder list by.",
-               required=False, default='name')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='int', default=1)
+        .param('name', 'Pass to lookup a folder by exact name match. Must '
+               'pass parentType and parentId as well when using this.',
+               required=False)
+        .pagingParams(defaultSort='name')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
 
