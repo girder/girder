@@ -6,6 +6,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-delete-folder': 'deleteFolderDialog',
+        'click .g-folder-info-button': 'folderInfoDialog',
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-folder-access-button': 'editFolderAccess',
@@ -207,20 +208,14 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
         }
 
-        this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
-            '.g-upload-here-button,.g-checked-actions-button').tooltip({
-                container: this.$el,
-                animation: false,
-                delay: {
-                    show: 100
-                }
-            });
-        this.$('.g-folder-actions-button,.g-hierarchy-level-up').tooltip({
+        this.$('[title]').tooltip({
             container: this.$el,
-            placement: 'left',
             animation: false,
             delay: {
                 show: 100
+            },
+            placement: function () {
+                return this.$element.attr('placement') || 'top';
             }
         });
 
@@ -324,6 +319,14 @@ girder.views.HierarchyWidget = girder.View.extend({
             }
         };
         girder.confirm(params);
+    },
+
+    folderInfoDialog: function () {
+        new girder.views.FolderInfoWidget({
+            el: $('#g-dialog-container'),
+            model: this.parentModel,
+            parentView: this
+        }).render();
     },
 
     /**
