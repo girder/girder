@@ -109,13 +109,12 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     out = six.BytesIO()
     image.save(out, 'JPEG', quality=85)
-    contents = out.getvalue()
+    size = out.tell()
+    out.seek(0)
 
-    upload = uploadModel.createUpload(
-        user=None, name='_thumb.jpg', parentType=None, parent=None,
-        size=len(contents), mimeType='image/jpeg')
-
-    thumbnail = uploadModel.handleChunk(upload, six.BytesIO(contents))
+    thumbnail = uploadModel.uploadFromFile(
+        out, size=size, name='_thumb.jpg', parentType=None, parent=None,
+        user=None, mimeType='image/jpeg')
 
     return attachThumbnail(
         file, thumbnail, attachToType, attachToId, width, height)

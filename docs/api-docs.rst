@@ -117,6 +117,12 @@ Setting
 .. automodule:: girder.models.setting
    :members:
 
+Upload
+^^^^^^
+
+.. automodule:: girder.models.upload
+   :members:
+
 Python API for RESTful web API
 ------------------------------
 
