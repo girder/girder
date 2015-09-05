@@ -73,6 +73,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param headers: Whether to set headers (i.e. is this an HTTP request
             for a single file, or something else).
         :type headers: bool
+        :param endByte: Final byte to download. If ``None``, downloads to the
+            end of the file.
+        :type endByte: int or None
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
