@@ -37,20 +37,20 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('success', 0);
         });
         waitsFor(function () {
-            return $('.g-task-progress-title').text() == 'Progress Test';
+            return $('.g-task-progress-title').text() === 'Progress Test';
         }, 'progress to be shown');
         waitsFor(function () {
-            return $('.g-task-progress-message').text() == 'Done';
+            return $('.g-task-progress-message').text() === 'Done';
         }, 'progress to be complete');
 
         runs(function () {
             _setProgress('error', 0);
         });
         waitsFor(function () {
-            return $('.g-task-progress-title:last').text() == 'Progress Test';
+            return $('.g-task-progress-title:last').text() === 'Progress Test';
         }, 'progress to be shown');
         waitsFor(function () {
-            return $('.g-task-progress-message:last').text() == 'Error: Progress error test.';
+            return $('.g-task-progress-message:last').text() === 'Error: Progress error test.';
         }, 'progress to report an error');
 
         runs(function () {
@@ -70,13 +70,13 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('success', 0);
         });
         waitsFor(function () {
-            return onMessageError == 1;
+            return onMessageError === 1;
         }, 'bad progress callback to be tried');
         runs(function () {
             _setProgress('error', 0);
         });
         waitsFor(function () {
-            return onMessageError == 2;
+            return onMessageError === 2;
         }, 'bad progress callback to be tried again');
         runs(function () {
             expect(errorCalled).toBe(0);
@@ -88,7 +88,7 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('success', 100);
         });
         waitsFor(function () {
-            return $('.g-task-progress-message:last').text() == 'Progress Message';
+            return $('.g-task-progress-message:last').text() === 'Progress Message';
         }, 'progress to be shown');
         runs(function () {
             expect($('.g-progress-widget-container').length > 0);

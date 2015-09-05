@@ -15,7 +15,7 @@
           ul.g-checked-actions-menu.dropdown-menu(role="menu")
 
       .g-folder-header-buttons
-        if (type == 'folder')
+        if (type === 'folder')
           if (level >= AccessType.WRITE)
             button.g-upload-here-button.btn.btn-sm.btn-success(title="Upload here")
               i.icon-upload
@@ -31,7 +31,7 @@
             li.dropdown-header(role="presentation")
               i.icon-folder-open
               |  #{model.get('name') || model.name()}
-            if (type == 'folder')
+            if (type === 'folder')
               li(role="presentation")
                 a.g-download-folder(role="menuitem", href="#{model.downloadUrl()}")
                   i.icon-download
@@ -41,7 +41,7 @@
                 a.g-create-subfolder(role="menuitem")
                   i.icon-folder
                   | Create folder here
-              if (type == 'folder')
+              if (type === 'folder')
                 li(role="presentation")
                   a.g-create-item(role="menuitem")
                     i.icon-doc
@@ -50,7 +50,7 @@
                   a.g-edit-folder(role="menuitem")
                     i.icon-edit
                     | Edit folder
-            if (type =='folder' && level >= AccessType.ADMIN)
+            if (type === 'folder' && level >= AccessType.ADMIN)
               li.divider(role="presentation")
               li(role="presentation")
                 a.g-delete-folder(role="menuitem")

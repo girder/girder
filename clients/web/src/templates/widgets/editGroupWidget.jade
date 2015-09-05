@@ -32,9 +32,9 @@
             .form-group
               label.control-label(for="g-add-to-group") Allow members to be directly added to this group
               select#g-add-to-group.form-control.input-sm
-                if addToGroupPolicy == 'yesadmin'
+                if addToGroupPolicy === 'yesadmin'
                     option(value='default', selected=(addAllowed === 'default')) Default - Yes, allow group administrators to add members
-                else if addToGroupPolicy == 'yesmod'
+                else if addToGroupPolicy === 'yesmod'
                     option(value='default', selected=(addAllowed === 'default')) Default - Yes, allow group administrators and moderators to add members
                 else
                     option(value='default', selected=(addAllowed === 'default')) Default - No

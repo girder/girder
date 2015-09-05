@@ -66,13 +66,13 @@ function _goToUser(user) {
 function _testQuotaDialogAsAdmin(hasChart, capacity) {
     girderTest.waitForDialog('quota dialog to appear');
     waitsFor(function () {
-        return $(".g-quota-capacity").length == 1;
+        return $(".g-quota-capacity").length === 1;
     }, 'capacity to appear');
     waitsFor(function () {
-        return $('a.btn-default').length == 1;
+        return $('a.btn-default').length === 1;
     }, 'the cancel button to appear');
     waitsFor(function () {
-        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
+        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined (' + hasChart + ' ' + capacity + ')');
     runs(function () {
         expect($("#g-sizeValue").length).toBe(1);
@@ -100,13 +100,13 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
 function _testQuotaDialogAsUser(hasChart) {
     girderTest.waitForDialog();
     waitsFor(function () {
-        return $(".g-quota-capacity").length == 1;
+        return $(".g-quota-capacity").length === 1;
     }, 'capacity to appear');
     waitsFor(function () {
-        return $('a.btn-default').length == 1;
+        return $('a.btn-default').length === 1;
     }, 'the cancel button to appear');
     waitsFor(function () {
-        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
+        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined');
     runs(function () {
         expect($("#g-sizeValue").length).toBe(0);
@@ -139,7 +139,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
+            return $(".g-collection-access-control[role='menuitem']:visible").length === 1;
         }, 'access control menu item to appear');
         runs(function () {
             $('.g-collection-access-control').click();
@@ -221,7 +221,7 @@ describe('test the user quota plugin', function () {
                 data: {key: 'user_quota.default_user_quota'},
                 async: false
             });
-            return resp.responseText == '512000';
+            return resp.responseText === '512000';
         }, 'default quota settings to change');
         girderTest.waitForLoad();
     });
@@ -231,7 +231,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-policies[role='menuitem']:visible").length == 1;
+            return $(".g-collection-policies[role='menuitem']:visible").length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             $('.g-collection-policies').click();
@@ -252,7 +252,7 @@ describe('test the user quota plugin', function () {
             $('.g-user-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-user-policies[role='menuitem']:visible").length == 1;
+            return $(".g-user-policies[role='menuitem']:visible").length === 1;
         }, 'user actions menu to appear');
         runs(function () {
             $('.g-user-policies').click();
@@ -265,13 +265,13 @@ describe('test the user quota plugin', function () {
     });
     it('test routes', function () {
         girderTest.testRoute(collectionDialogRoute, true, function () {
-            return $(".g-quota-capacity").length == 1;
+            return $(".g-quota-capacity").length === 1;
         });
         girderTest.testRoute(userRoute, false, function () {
             return $('.g-user-name').text() === 'Quota User';
         });
         girderTest.testRoute(userDialogRoute, true, function () {
-            return $(".g-quota-capacity").length == 1;
+            return $(".g-quota-capacity").length === 1;
         });
         runs(function () {
             $('a[data-dismiss="modal"]').click();
@@ -303,7 +303,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-policies[role='menuitem']:visible").length == 1;
+            return $(".g-collection-policies[role='menuitem']:visible").length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             $('.g-collection-policies').click();
@@ -314,7 +314,7 @@ describe('test the user quota plugin', function () {
             $('.g-user-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-user-policies[role='menuitem']:visible").length == 1;
+            return $(".g-user-policies[role='menuitem']:visible").length === 1;
         }, 'user actions menu to appear');
         runs(function () {
             $('.g-user-policies').click();
@@ -332,7 +332,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-download-collection[role='menuitem']:visible").length == 1;
+            return $(".g-download-collection[role='menuitem']:visible").length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             expect($('.g-collection-policies').length).toBe(0);
