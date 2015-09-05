@@ -240,6 +240,7 @@ class User(AccessControlledModel):
             'emailVerified': False,
             'admin': admin,
             'size': 0,
+            'groups': [],
             'groupInvites': []
         }
 
