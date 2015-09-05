@@ -20,13 +20,11 @@
 import cherrypy
 import collections
 import datetime
-import functools
 import json
 import pymongo
 import six
 import sys
 import traceback
-import types
 
 from . import docs
 from girder import events, logger
