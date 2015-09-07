@@ -294,7 +294,7 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'apis': [{'path': '/{}'.format(resource)}
-                     for resource in sorted(docs.discovery)]
+                     for resource in sorted(six.viewkeys(docs.routes))]
         }
 
     def _compareRoutes(self, routeOp1, routeOp2):
@@ -336,7 +336,6 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': '.',
-            'models': docs.models,
             'apis': [{
                 'path': route,
                 'operations': sorted(
