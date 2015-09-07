@@ -418,7 +418,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         if subpath:
             files = list(self.childFiles(item=doc, limit=2))
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
-                    (includeMetadata and len(doc.get('meta', {})))):
+                    (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = "girder-item-metadata.json"
         for file in self.childFiles(item=doc):

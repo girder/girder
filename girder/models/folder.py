@@ -613,7 +613,7 @@ class Folder(AccessControlledModel):
             for (filepath, file) in self.model('item').fileList(
                     item, user, path, includeMetadata):
                 yield (filepath, file)
-        if includeMetadata and metadataFile and len(doc.get('meta', {})):
+        if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
