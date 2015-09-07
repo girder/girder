@@ -37,6 +37,22 @@ from six.moves import range, urllib
 
 
 def getUrlParts(url=None):
+    """
+    Calls `urllib.parse.urlparse`_ on a URL.
+
+    :param url: A URL, or None to use the current request's URL.
+    :type url: str or None
+    :return: The URL's seperate components.
+    :rtype: `urllib.parse.ParseResult`_
+
+    .. note:: This is compatible with both Python 2 and 3.
+
+    .. _urllib.parse.urlparse: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.urlparse
+
+    .. _urllib.parse.ParseResult: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.ParseResult
+    """
     url = url or cherrypy.url()
     return urllib.parse.urlparse(url)
 
