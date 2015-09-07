@@ -22,7 +22,6 @@ import collections
 
 discovery = set()
 routes = collections.defaultdict(dict)
-models = {}
 
 
 def addRouteDocs(resource, route, method, info, handler):
@@ -103,15 +102,3 @@ def removeRouteDocs(resource, route, method, info, handler):
             del routes[resource][path]
             if not len(routes[resource]):
                 discovery.remove(resource)
-
-
-def addModel(name, model):
-    """
-    This is called to add a model to the swagger documentation.
-
-    :param name: The name of the model.
-    :type name: str
-    :param model: The model to add.
-    :type model: dict
-    """
-    models[name] = model
