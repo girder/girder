@@ -20,7 +20,6 @@
 import collections
 
 
-discovery = set()
 routes = collections.defaultdict(dict)
 
 
@@ -62,7 +61,6 @@ def addRouteDocs(resource, route, method, info, handler):
     if info not in routes[resource][path]:
         routes[resource][path].append(info)
 
-    discovery.add(resource)
 
 
 def removeRouteDocs(resource, route, method, info, handler):
@@ -101,4 +99,4 @@ def removeRouteDocs(resource, route, method, info, handler):
         if not len(routes[resource][path]):
             del routes[resource][path]
             if not len(routes[resource]):
-                discovery.remove(resource)
+                del routes[resource]
