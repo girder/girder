@@ -33,7 +33,7 @@ def _toRoutePath(resource, route):
     """
     # Convert wildcard tokens from :foo form to {foo} form
     convRoute = [
-        '{{{}}}'.format(token[1:]) if token[0] == ':' else token
+        '{%s}' % token[1:] if token[0] == ':' else token
         for token in route
     ]
     path = '/'.join(['', resource] + convRoute)
