@@ -39,9 +39,11 @@ def ValidateSizeQuota(value):
     """
     Validate a quota value.  This may be blank or a non-negative integer.
 
-    :param value: the proposed value.
-    :return value: the validated value: either None or an integer
-    :return: None if no error occurred, otherwise a recommended error message.
+    :param value: The proposed value.
+    :type value: int
+    :returns: The validated value or None,
+              and a recommended error message or None.
+    :rtype: (int or None, str or None)
     """
     if value is None or value == '' or value == 0:
         return None, None

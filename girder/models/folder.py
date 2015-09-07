@@ -587,15 +587,22 @@ class Folder(AccessControlledModel):
         """
         Generate a list of files within this folder.
 
-        :param doc: the folder to list.
-        :param user: the user used for access.
-        :param path: a path prefix to add to the results.
+        :param doc: The folder to list.
+        :param user: The user used for access.
+        :param path: A path prefix to add to the results.
+        :type path: str
         :param includeMetadata: if True and there is any metadata, include a
                                 result which is the json string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the folder.
+        :type includeMetadata: bool
         :param subpath: if True, add the folder's name to the path.
+        :type subpath: bool
+        :returns: Iterable over files in this folder, where each element is a
+                  tuple of (path name of the file, stream function with file
+                  data).
+        :rtype: generator(str, func)
         """
         if subpath:
             path = os.path.join(path, doc['name'])
