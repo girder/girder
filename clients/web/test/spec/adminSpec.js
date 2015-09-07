@@ -107,16 +107,16 @@ describe('Test the settings page', function () {
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
-            $('.g-collection-create-policy-container .g-search-field').val('admin')
+            $('#g-collection-create-policy-container .g-search-field').val('admin')
                 .trigger('input');
         });
 
         waitsFor(function () {
-            return $('.g-collection-create-policy-container .g-search-result').length > 0;
+            return $('#g-collection-create-policy-container .g-search-result').length > 0;
         }, 'search result to appear');
 
         runs(function () {
-            $('.g-collection-create-policy-container .g-search-result>a').click();
+            $('#g-collection-create-policy-container .g-search-result>a').click();
         });
 
         waitsFor(function () {
