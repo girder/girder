@@ -74,6 +74,9 @@ girder.Model = Backbone.Model.extend({
         var restOpts = {
             path: this.resourceName + '/' + this.get('_id')
         };
+        if (opts.extraPath) {
+            restOpts.path += '/' + opts.extraPath;
+        }
         if (opts.ignoreError) {
             restOpts.error = null;
         }

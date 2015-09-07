@@ -7,7 +7,10 @@ girder.views.FolderInfoWidget = girder.View.extend({
     },
 
     initialize: function (settings) {
-        console.log(this.model);
+        if (!this.model.has('nItems')) {
+            this.model.fetch({extraPath: 'details'}).once('g:fetched', function () {
+            }, this);
+        }
     },
 
     render: function () {
