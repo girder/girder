@@ -563,8 +563,8 @@ class Resource(ModelImporter):
 
             ``rest.post.group.before``
 
-        Note: You will normally not need to call this method directly, as it
-        is called by the internals of this class during the routing process.
+        .. note:: You will normally not need to call this method directly, as it
+           is called by the internals of this class during the routing process.
 
         :param method: The HTTP method of the current request.
         :type method: str
