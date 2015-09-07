@@ -18,6 +18,7 @@
 ###############################################################################
 
 import unittest
+import six
 
 from girder.api import rest
 
@@ -44,7 +45,7 @@ class RestUtilTestCase(unittest.TestCase):
             True: True
         }
 
-        for input, output in expect.items():
+        for input, output in six.viewitems(expect):
             params = {
                 'some_key': input
             }

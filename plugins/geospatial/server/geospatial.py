@@ -461,7 +461,7 @@ class GeospatialItem(Resource):
         """
         geospatial = self.getBodyJson()
 
-        for k, v in geospatial.items():
+        for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
                 raise RestException('Geospatial key name {} must not contain a'
                                     ' period or begin with a dollar sign.'
@@ -477,8 +477,8 @@ class GeospatialItem(Resource):
         if GEOSPATIAL_FIELD not in item:
             item[GEOSPATIAL_FIELD] = dict()
 
-        item[GEOSPATIAL_FIELD].update(geospatial.items())
-        keys = [k for k, v in six.iteritems(item[GEOSPATIAL_FIELD])
+        item[GEOSPATIAL_FIELD].update(six.viewitems(geospatial))
+        keys = [k for k, v in six.viewitems(item[GEOSPATIAL_FIELD])
                 if v is None]
 
         for key in keys:

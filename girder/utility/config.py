@@ -32,7 +32,7 @@ def _mergeConfig(filename):
     cherrypy._cpconfig.merge(cherrypy.config, filename)
     global_config = cherrypy.config.pop('global', {})
 
-    for option, value in six.iteritems(global_config):
+    for option, value in six.viewitems(global_config):
         cherrypy.config[option] = value
 
 

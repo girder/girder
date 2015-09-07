@@ -321,10 +321,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             item['meta'] = {}
 
         # Add new metadata to existing metadata
-        item['meta'].update(metadata.items())
+        item['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in six.iteritems(item['meta']) if v is None]
+        toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
         for key in toDelete:
             del item['meta'][key]
 

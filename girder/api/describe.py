@@ -342,7 +342,7 @@ class Describe(Resource):
                 'operations': sorted(
                     op, key=functools.cmp_to_key(self._compareOperations))
                 } for route, op in sorted(
-                    six.iteritems(docs.routes[resource]),
+                    six.viewitems(docs.routes[resource]),
                     key=functools.cmp_to_key(self._compareRoutes))
             ]
         }
