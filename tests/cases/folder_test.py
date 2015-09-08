@@ -442,11 +442,13 @@ class FolderTestCase(base.TestCase):
         for parent in parents:
             self.assertIn('_accessLevel', parent['object'])
 
-    def testFolderAccess(self):
+
+    def testFolderAccessAndDetails(self):
         # create a folder to work with
         folder = self.model('folder').createFolder(
             parent=self.admin, parentType='user', creator=self.admin,
             name='Folder')
+
         resp = self.request(
             path='/folder/{}/access'.format(folder['_id']), method='GET',
             user=self.admin)
@@ -461,22 +463,48 @@ class FolderTestCase(base.TestCase):
                                        self.admin['lastName'])}],
             'groups': []
         })
+        self.assertTrue(not folder.get('public'))
         # Setting the access list with bad json should throw an error
         resp = self.request(
             path='/folder/{}/access'.format(folder['_id']), method='PUT',
             user=self.admin, params={'access': 'badJSON'})
         self.assertStatus(resp, 400)
-        # Change the access to private.
+        # Change the access to public
         resp = self.request(
             path='/folder/{}/access'.format(folder['_id']), method='PUT',
             user=self.admin,
-            params={'access': json.dumps(access), 'public': False})
+            params={'access': json.dumps(access), 'public': True})
         self.assertStatusOk(resp)
         resp = self.request(
             path='/folder/{}'.format(folder['_id']), method='GET',
             user=self.admin)
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['public'], False)
+        self.assertEqual(resp.json['public'], True)
+
+        # Create an item in the folder
+        self.model('item').createItem(
+            folder=folder, creator=self.admin, name='Item')
+        # Create a public and private folder within the folder
+        self.model('folder').createFolder(
+            parent=folder, parentType='folder', creator=self.admin,
+            name='Public', public=True)
+        self.model('folder').createFolder(
+            parent=folder, parentType='folder', creator=self.admin,
+            name='Private', public=False)
+
+        # Test folder details as anonymous
+        resp = self.request(
+            path='/folder/%s/details' % str(folder['_id']))
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nItems'], 1)
+        self.assertEqual(resp.json['nFolders'], 1)
+
+        # Test folder details as admin
+        resp = self.request(
+            path='/folder/%s/details' % str(folder['_id']), user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nItems'], 1)
+        self.assertEqual(resp.json['nFolders'], 2)
 
     def testFolderCopy(self):
         # create a folder with a subfolder, items, and metadata

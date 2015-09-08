@@ -563,7 +563,7 @@ class Folder(AccessControlledModel):
         :param level: The required access level, or None to return the raw
             subfolder count.
         """
-        fields = () if level is None else ('access',)
+        fields = () if level is None else ('access', 'public')
 
         folders = self.find({
             'parentId': folder['_id'],
