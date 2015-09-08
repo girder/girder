@@ -442,7 +442,6 @@ class FolderTestCase(base.TestCase):
         for parent in parents:
             self.assertIn('_accessLevel', parent['object'])
 
-
     def testFolderAccessAndDetails(self):
         # create a folder to work with
         folder = self.model('folder').createFolder(
