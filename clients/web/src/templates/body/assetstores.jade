@@ -18,14 +18,14 @@
             if assetstore.get('current')
               span.g-assetstore-current-text
                 |  (Current assetstore)
-          if assetstore.get('type') == types.FILESYSTEM
+          if assetstore.get('type') === types.FILESYSTEM
             div
               b Type:
               span.g-assetstore-type  Filesystem
             div
               b Root path:
               span.g-assetstore-root  #{assetstore.get('root')}
-          else if assetstore.get('type') == types.GRIDFS
+          else if assetstore.get('type') === types.GRIDFS
             div
               b Type:
               span.g-assetstore-type  GridFS
@@ -40,7 +40,7 @@
                 div
                   b Replica Set:
                   span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
-          else if assetstore.get('type') == types.S3
+          else if assetstore.get('type') === types.S3
             div
               b Type:
               span.g-assetstore-type  S3

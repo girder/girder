@@ -47,19 +47,12 @@ class Item(Resource):
         Get a list of items with given search parameters. Currently accepted
         search modes are:
 
-        1. Searching by folderId.
-        2. Searching with full text search.
-
-        To search with full text search, pass the "text" parameter. To search
-        by parent, (i.e. list child items in a folder) pass folderId. You can
-        also pass limit, offset, sort, and sortdir parameters.
-
-        :param text: Pass this to perform a full-text search of items.
-        :param folderId: Get child items of a particular folder.
-        :param limit: The result set size limit, default=50.
-        :param offset: Offset into the results, default=0.
-        :param sort: The field to sort by, default=lowerName.
-        :param sortdir: 1 for ascending, -1 for descending, default=1.
+        1. Searching by folderId, with optional additional filtering by the name
+           field (exact match) or using full text search within a single parent
+           folder. Pass a "name" parameter or "text" parameter to invoke these
+           additional filters.
+        2. Searching with full text search across all items in the system.
+           Simply pass a "text" parameter for this mode.
         """
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         user = self.getCurrentUser()
@@ -68,10 +61,13 @@ class Item(Resource):
             folder = self.model('folder').load(id=params['folderId'], user=user,
                                                level=AccessType.READ, exc=True)
             filters = {}
-            if 'text' in params:
+            if params.get('text'):
                 filters['$text'] = {
                     '$search': params['text']
                 }
+            if params.get('name'):
+                filters['name'] = params['name']
+
             return [self.model('item').filter(item, user) for item in
                     self.model('folder').childItems(
                         folder=folder, limit=limit, offset=offset, sort=sort,
@@ -90,14 +86,9 @@ class Item(Resource):
                required=False)
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
-        .param('limit', "Result set size limit.", default=50,
-               required=False, dataType='int')
-        .param('offset', "Offset into result set.", default=0, required=False,
-               dataType='int')
-        .param('sort', "Field to sort the item list by.", default='lowerName',
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending", default=1,
-               required=False, dataType='int')
+        .param('name', 'Pass to lookup an item by exact name match. Must '
+               'pass folderId as well when using this.', required=False)
+        .pagingParams(defaultSort='lowerName')
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403))
 
@@ -225,14 +216,7 @@ class Item(Resource):
         Description('Get the files within an item.')
         .responseClass('File')
         .param('id', 'The ID of the item.', paramType='path')
-        .param('limit', "Result set size limit.", required=False, default=50,
-               dataType='int')
-        .param('offset', "Offset into result set.", required=False, default=0,
-               dataType='int')
-        .param('sort', "Field to sort the result list by.", default='name',
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending", default=1,
-               required=False, dataType='int')
+        .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 

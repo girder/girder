@@ -220,20 +220,20 @@ describe('Test item creation, editing, and deletion', function () {
         _editItem('button.g-save-item', 'Save');
         /* Try to edit each file in turn.  They must have different ids */
         waitsFor(function () {
-            return $('.g-file-list-entry .g-update-info').length == 2;
+            return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
         runs(function() {
             $('.g-file-list-entry .g-update-info').eq(0).click();
         });
         waitsFor(function () {
-            return window.location.hash.split('?dialog=fileedit&').length == 2;
+            return window.location.hash.split('?dialog=fileedit&').length === 2;
         }, 'the url state to change');
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('#g-name').val() !== '';
         }, 'the dialog to be populated');
         waitsFor(function () {
-            return $(document.activeElement).attr('id') == 'g-name';
+            return $(document.activeElement).attr('id') === 'g-name';
         }, 'the name to have focus');
         waitsFor(function () {
             return $('a.btn-default').text() === 'Cancel';
@@ -243,7 +243,7 @@ describe('Test item creation, editing, and deletion', function () {
             $('button.g-save-file').click();
         });
         waitsFor(function () {
-            return $('.modal-dialog .g-validation-failed-message').text() == 'File name must not be empty.';
+            return $('.modal-dialog .g-validation-failed-message').text() === 'File name must not be empty.';
         }, 'error message to appear');
         runs(function () {
             fileId1 = window.location.hash.split('dialogid=')[1];
@@ -251,13 +251,13 @@ describe('Test item creation, editing, and deletion', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('.g-file-list-entry .g-update-info').length == 2;
+            return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
         runs(function() {
             $('.g-file-list-entry .g-update-info').eq(1).click();
         });
         waitsFor(function () {
-            return window.location.hash.split('?dialog=fileedit&').length == 2;
+            return window.location.hash.split('?dialog=fileedit&').length === 2;
         }, 'the url state to change');
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -267,7 +267,7 @@ describe('Test item creation, editing, and deletion', function () {
             return $('button.g-save-file').text() === 'Save';
         }, 'the save button to appear');
         runs(function () {
-            expect(window.location.hash.split('dialogid=')[1] == fileId1)
+            expect(window.location.hash.split('dialogid=')[1] === fileId1)
                 .toBe(false);
             $('button.g-save-file').click();
         });

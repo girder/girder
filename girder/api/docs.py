@@ -18,11 +18,37 @@
 ###############################################################################
 
 import collections
+import functools
 
-
-discovery = set()
-routes = collections.defaultdict(dict)
 models = {}
+# A dict of dicts of lists
+routes = collections.defaultdict(
+    functools.partial(collections.defaultdict, list))
+
+
+def _toRoutePath(resource, route):
+    """
+    Convert a base resource type and list of route components into a
+    Swagger-compatible route path.
+    """
+    # Convert wildcard tokens from :foo form to {foo} form
+    convRoute = [
+        '{%s}' % token[1:] if token[0] == ':' else token
+        for token in route
+    ]
+    path = '/'.join(['', resource] + convRoute)
+    return path
+
+
+def _toOperation(info, method, handler):
+    """
+    Augment route info, returning a Swagger-compatible operation description.
+    """
+    operation = dict(info)
+    operation['httpMethod'] = method.upper()
+    if 'nickname' not in operation:
+        operation['nickname'] = handler.__name__
+    return operation
 
 
 def addRouteDocs(resource, route, method, info, handler):
@@ -34,36 +60,22 @@ def addRouteDocs(resource, route, method, info, handler):
     :param resource: The name of the resource, e.g. "item"
     :type resource: str
     :param route: The route to describe.
-    :type route: list
+    :type route: list[str]
     :param method: The HTTP method for this route, e.g. "POST"
     :type method: str
-    :param info: The information representing the API documentation.
+    :param info: The information representing the API documentation, typically
+    from ``girder.api.describe.Description.asDict``.
     :type info: dict
+    :param handler: The actual handler method for this route.
+    :type handler: function
     """
-    # Convert wildcard tokens from :foo form to {foo} form.
-    convRoute = []
-    for token in route:
-        if token[0] == ':':
-            convRoute.append('{{{}}}'.format(token[1:]))
-        else:
-            convRoute.append(token)
+    path = _toRoutePath(resource, route)
 
-    path = '/'.join(['', resource] + convRoute)
-
-    info = info.copy()
-    info['httpMethod'] = method.upper()
-
-    if 'nickname' not in info:
-        info['nickname'] = handler.__name__
+    operation = _toOperation(info, method, handler)
 
     # Add the operation to the given route
-    if path not in routes[resource]:
-        routes[resource][path] = []
-
-    if info not in routes[resource][path]:
-        routes[resource][path].append(info)
-
-    discovery.add(resource)
+    if operation not in routes[resource][path]:
+        routes[resource][path].append(operation)
 
 
 def removeRouteDocs(resource, route, method, info, handler):
@@ -78,31 +90,26 @@ def removeRouteDocs(resource, route, method, info, handler):
     :type method: str
     :param info: The information representing the API documentation.
     :type info: dict
+    :param handler: The actual handler method for this route.
+    :type handler: function
     """
-    # Convert wildcard tokens from :foo form to {foo} form.
-    convRoute = []
-    for token in route:
-        if token[0] == ':':
-            convRoute.append('{{{}}}'.format(token[1:]))
-        else:
-            convRoute.append(token)
+    if resource not in routes:
+        return
 
-    path = '/'.join(['', resource] + convRoute)
+    path = _toRoutePath(resource, route)
 
     if path not in routes[resource]:
         return
 
-    info = info.copy()
-    info['httpMethod'] = method.upper()
+    operation = _toOperation(info, method, handler)
 
-    if 'nickname' not in info:
-        info['nickname'] = handler.__name__
     if info in routes[resource][path]:
-        routes[resource][path].remove(info)
-        if not len(routes[resource][path]):
+        routes[resource][path].remove(operation)
+        # Clean up any empty route paths
+        if not routes[resource][path]:
             del routes[resource][path]
-            if not len(routes[resource]):
-                discovery.remove(resource)
+            if not routes[resource]:
+                del routes[resource]
 
 
 def addModel(name, model):

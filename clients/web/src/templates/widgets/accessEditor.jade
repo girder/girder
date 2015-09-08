@@ -4,9 +4,9 @@
       button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
       h4.modal-title Access control
       .g-dialog-subtitle
-        if (modelType == 'folder')
+        if (modelType === 'folder')
           i.icon-folder
-        else if (modelType == 'collection')
+        else if (modelType === 'collection')
           i.icon-sitemap
         | #{model.name()}
     .modal-body.g-access-modal-body

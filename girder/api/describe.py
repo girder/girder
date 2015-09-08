@@ -24,7 +24,7 @@ import six
 
 from girder.constants import VERSION
 from . import docs, access
-from .rest import Resource, RestException
+from .rest import Resource, RestException, getApiUrl
 
 """
 Whenever we add new return values or new options we should increment the
@@ -120,6 +120,29 @@ class Description(object):
                 param['defaultValue'] = default
 
         self._params.append(param)
+        return self
+
+    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50):
+        """
+        Adds the limit, offset, sort, and sortdir parameter documentation to
+        this route handler.
+
+        :param defaultSort: The default field used to sort the result set.
+        :type defaultSort: str
+        :param defaultSortDir: Sort order: -1 or 1 (desc or asc)
+        :type defaultSortDir: int
+        :param defaultLimit: The default page size.
+        :type defaultLimit: int
+        """
+        self.param('limit', 'Result set size limit.', default=defaultLimit,
+                   required=False, dataType='int')
+        self.param('offset', 'Offset into result set.', default=0,
+                   required=False, dataType='int')
+        self.param('sort', 'Field to sort the result set by.',
+                   default=defaultSort, required=False)
+        self.param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+                   required=False, dataType='int', enum=(1, -1),
+                   default=defaultSortDir)
         return self
 
     def consumes(self, value):
@@ -271,7 +294,7 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'apis': [{'path': '/{}'.format(resource)}
-                     for resource in sorted(docs.discovery)]
+                     for resource in sorted(six.viewkeys(docs.routes))]
         }
 
     def _compareRoutes(self, routeOp1, routeOp2):
@@ -312,7 +335,7 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': '.',
+            'basePath': getApiUrl(),
             'models': docs.models,
             'apis': [{
                 'path': route,

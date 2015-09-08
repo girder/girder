@@ -167,9 +167,9 @@ describe('Test the assetstore page', function () {
                 name = storeName;
                 for (var key in params) {
                     var value = params[key];
-                    if (value == 'name')
+                    if (value === 'name')
                         value = name;
-                    if (value == 'service')
+                    if (value === 'service')
                         value = service;
                     $('input#'+key).val(value);
                 }

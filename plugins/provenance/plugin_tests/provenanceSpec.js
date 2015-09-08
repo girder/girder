@@ -56,7 +56,7 @@ describe('test the provenance plugin', function () {
                 data: {key: 'provenance.resources'},
                 async: false
             });
-            return resp.responseText == '"folder"';
+            return resp.responseText === '"folder"';
         }, 'provenance settings to change');
         girderTest.waitForLoad();
     });

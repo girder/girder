@@ -3,10 +3,10 @@ ol.breadcrumb
     li
       a.g-item-breadcrumb-link(data-id="#{parent.object._id}"
                                data-type="#{parent.type}")
-          if (parent.type == "user")
+          if (parent.type === "user")
             i.icon-user
             | #{parent.object.login}
-          else if (parent.type == "collection")
+          else if (parent.type === "collection")
             i.icon-sitemap
             | #{parent.object.name}
           else
