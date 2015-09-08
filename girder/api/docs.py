@@ -20,7 +20,7 @@
 import collections
 import functools
 
-
+models = {}
 # A dict of dicts of lists
 routes = collections.defaultdict(
     functools.partial(collections.defaultdict, list))
@@ -110,3 +110,15 @@ def removeRouteDocs(resource, route, method, info, handler):
             del routes[resource][path]
             if not routes[resource]:
                 del routes[resource]
+
+
+def addModel(name, model):
+    """
+    This is called to add a model to the swagger documentation.
+
+    :param name: The name of the model.
+    :type name: str
+    :param model: The model to add.
+    :type model: dict
+    """
+    models[name] = model
