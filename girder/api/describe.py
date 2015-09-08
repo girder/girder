@@ -24,7 +24,7 @@ import six
 
 from girder.constants import VERSION
 from . import docs, access
-from .rest import Resource, RestException
+from .rest import Resource, RestException, getApiUrl
 
 """
 Whenever we add new return values or new options we should increment the
@@ -335,7 +335,7 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': '.',
+            'basePath': getApiUrl(),
             'apis': [{
                 'path': route,
                 'operations': sorted(
