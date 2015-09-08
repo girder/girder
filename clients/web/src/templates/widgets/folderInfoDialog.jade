@@ -18,10 +18,17 @@ mixin dateInfo(intro, property)
         if folder.get('created') !== folder.get('updated')
           +dateInfo('Last updated ', 'updated')
 
-        .g-folder-info-line(property="size")
-          i.icon-hdd
-          span Size of all items in this folder is
+        .g-folder-info-line(property="nItems")
+          i.icon-doc-text-inv
+          span Contains
+          span.g-bold-part  #{folder.get('nItems')} items
+          span  totaling
           span.g-bold-part  #{girder.formatSize(folder.get('size'))}
+
+        .g-folder-info-line(property="nFolders")
+          i.icon-folder
+          span Contains
+          span.g-bold-part  #{folder.get('nFolders')} subfolders
 
       if folder.get('description')
         .g-folder-description!= girder.renderMarkdown(folder.get('description'))

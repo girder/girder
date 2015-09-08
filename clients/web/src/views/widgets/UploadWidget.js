@@ -211,7 +211,10 @@ girder.views.UploadWidget = girder.View.extend({
             if (this.modal) {
                 this.$el.modal('hide');
             }
-            this.trigger('g:uploadFinished');
+            this.trigger('g:uploadFinished', {
+                files: this.files,
+                totalSize: this.totalSize
+            });
             return;
         }
 

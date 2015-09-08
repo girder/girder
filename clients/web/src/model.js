@@ -82,7 +82,11 @@ girder.Model = Backbone.Model.extend({
         }
         girder.restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
-            this.trigger('g:fetched');
+            if (opts.extraPath) {
+                this.trigger('g:fetched.' + opts.extraPath);
+            } else {
+                this.trigger('g:fetched');
+            }
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));

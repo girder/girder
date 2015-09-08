@@ -167,7 +167,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         var parent = new girder.models[girder.getModelClassByName(parentType)]();
         parent.set({
             _id: parentId
-        }).on('g:fetched', function () {
+        }).once('g:fetched', function () {
             this.breadcrumbs.push(parent);
 
             if (parentType === 'folder') {
@@ -260,6 +260,9 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentView: this
         }).on('g:saved', function (folder) {
             this.folderListView.insertFolder(folder);
+            if (this.parentModel.has('nFolders')) {
+                this.parentModel.attributes.nFolders += 1;
+            }
             this.updateChecked();
         }, this).render();
     },
@@ -443,9 +446,15 @@ girder.views.HierarchyWidget = girder.View.extend({
             parent: this.parentModel,
             parentType: this.parentType,
             parentView: this
-        }).on('g:uploadFinished', function () {
+        }).on('g:uploadFinished', function (info) {
             girder.dialogs.handleClose('upload');
             this.upload = false;
+            if (this.parentModel.has('nItems')) {
+                this.parentModel.attributes.nItems += info.files.length;
+            }
+            if (this.parentModel.has('size')) {
+                this.parentModel.attributes.size += info.totalSize;
+            }
             this.setCurrentModel(this.parentModel, {setRoute: false});
         }, this).render();
     },
