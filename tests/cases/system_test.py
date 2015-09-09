@@ -217,12 +217,12 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
-        pluginRoot = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                   'test_plugins'),
-                      os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                   'test_other_plugins')]
+        pluginRoots = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_plugins'),
+                       os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_additional_plugins')]
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': ','.join(pluginRoot)}
+        conf['plugins'] = {'plugin_directory': ':'.join(pluginRoots)}
 
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
@@ -233,17 +233,15 @@ class SystemTestCase(base.TestCase):
             params={'plugins': '["has_deps"]'})
         self.assertStatusOk(resp)
         enabled = resp.json['value']
-        self.assertEqual(len(enabled), 2)
+        self.assertEqual(len(enabled), 3)
         self.assertTrue('test_plugin' in enabled)
+        self.assertTrue('does_nothing' in enabled)
 
     def testBadPlugin(self):
-        pluginRoot = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                   'test_plugins'),
-                      os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                   'test_other_plugins')]
-
+        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                  'test_plugins')
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': ','.join(pluginRoot)}
+        conf['plugins'] = {'plugin_directory': pluginRoot}
         # Try to enable a good plugin and a bad plugin.  Only the good plugin
         # should be enabled.
         resp = self.request(

@@ -93,24 +93,14 @@ def getPluginParentDir(name, curConfig=None):
     an exception if it can't find a directory named name in any of the
     set plugin_directory paths.
 
-    Also throws an exception if it finds multiple parents, i.e. the plugin
-    named name lives in more than one place.
-
     :params name: The name of the plugin (i.e. its directory name)
     :type name: str
     """
-    parentDirs = set()
-
-    for potentialParentDir in getPluginDir(curConfig):
+    for potentialParentDir in getPluginDirs(curConfig):
         if os.path.exists(os.path.join(potentialParentDir, name)):
-            parentDirs.add(potentialParentDir)
+            return potentialParentDir
 
-    if len(parentDirs) > 1:
-        raise Exception('Plugin directory %s exists in multiple paths' % name)
-    elif len(parentDirs) == 1:
-        return parentDirs.pop()
-    else:
-        raise Exception('Plugin directory %s does not exist' % name)
+    raise Exception('Plugin directory %s does not exist' % name)
 
 def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     """
@@ -171,42 +161,73 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         return root, appconf, apiRoot
 
 
+def defaultPluginDir():
+    """
+    Determine what the default plugin directory should be.
+
+    This assumes none have been specified using the plugin_directory
+    and/or plugin_install_path option.
+    """
+    pluginDir = None
+
+    # It looks if there is a plugin directory next
+    # to the girder python package.  This is the case when running from the
+    # git repository.
+    if os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
+        pluginDir = os.path.join(ROOT_DIR, 'plugins')
+    # As a last resort, use plugins inside the girder python package.
+    # This is intended to occur when girder is pip installed.
+    else:
+        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
+
+    return pluginDir
+
+
+def getPluginDirs(curConfig=None):
+    """Return an ordered list of directories that plugins can live in."""
+    if curConfig is None:
+        curConfig = config.getConfig()
+
+    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
+        pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
+    else:
+        pluginDirs = [defaultPluginDir()]
+
+    return pluginDirs
+
+
 def getPluginDir(curConfig=None):
     """
-    Returns a set of the /paths/to the currently configured plugin directories.
+    Return which directory plugins should be installed in.
+
+    First precedence is the plugin_install_path setting, next is
+    the first path specified in plugin_directory. If neither of those
+    can be resolved, resort to defaultPluginDir.
+
+    Returns a /path/to the directory plugins should be installed in.
     """
     if curConfig is None:
         curConfig = config.getConfig()
 
-    # This uses the plugin directory specified in the config first.
-    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        pluginsDir = set(curConfig['plugins']['plugin_directory'].split(','))
+    pluginDirs = getPluginDirs(curConfig)
 
-    # If none is specified, it looks if there is a plugin directory next
-    # to the girder python package.  This is the case when running from the
-    # git repository.
-    elif os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
-        pluginsDir = set([os.path.join(ROOT_DIR, 'plugins')])
+    if 'plugins' in curConfig and \
+       'plugin_install_path' in curConfig['plugins']:
+        pluginDir = curConfig['plugins']['plugin_install_path']
+    elif pluginDirs:
+        pluginDir = pluginDirs[0]
 
-    # As a last resort, use plugins inside the girder python package.
-    # This is intended to occur when girder is pip installed.
-    else:
-        pluginsDir = set([os.path.join(PACKAGE_DIR, 'plugins')])
+    if not os.path.exists(pluginDir):
+        try:
+            os.makedirs(pluginDir)
+        except OSError:
+            if not os.path.exists(pluginDir):
+                print(TerminalColor.warning(
+                    'Could not create plugin directory %s.' % pluginDir))
 
-    failedPluginDirs = set()
+                pluginDir = None
 
-    for pluginDir in pluginsDir:
-        if not os.path.exists(pluginDir):
-            try:
-                os.makedirs(pluginDir)
-            except OSError:
-                if not os.path.exists(pluginDir):
-                    print(TerminalColor.warning(
-                        'Could not create plugin directory %s.' % pluginDir))
-
-                    failedPluginDirs.add(pluginDir)
-
-    return pluginsDir - failedPluginDirs
+    return pluginDir
 
 
 def findAllPlugins(curConfig=None):
@@ -215,13 +236,13 @@ def findAllPlugins(curConfig=None):
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
-    pluginsDir = getPluginDir(curConfig)
-    if not pluginsDir:
+    pluginDirs = getPluginDirs(curConfig)
+    if not pluginDirs:
         print(TerminalColor.warning('Plugin directory not found. No plugins '
               'loaded.'))
         return allPlugins
 
-    for pluginDir in pluginsDir:
+    for pluginDir in pluginDirs:
         dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(
         os.path.join(pluginDir, dir))]
 
