@@ -336,7 +336,7 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': getApiUrl(),
-            'models': docs.models,
+            'models': docs.models[resource],
             'apis': [{
                 'path': route,
                 'operations': sorted(

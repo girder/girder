@@ -20,8 +20,8 @@
 import collections
 import functools
 
-models = {}
-# A dict of dicts of lists
+models = collections.defaultdict(dict)
+# routes is dict of dicts of lists
 routes = collections.defaultdict(
     functools.partial(collections.defaultdict, list))
 
@@ -112,13 +112,25 @@ def removeRouteDocs(resource, route, method, info, handler):
                 del routes[resource]
 
 
-def addModel(name, model):
+def addModel(resource, name, model):
     """
-    This is called to add a model to the swagger documentation.
+    Add a model to the Swagger documentation.
 
+    :param resource: The type of existing resource to add the model to.
+    :param resource: str
     :param name: The name of the model.
     :type name: str
     :param model: The model to add.
     :type model: dict
+
+    .. warning:: This is a low-level API which does not validate the format of
+       ``model``. See the `Swagger Model documentation`_ for a complete
+       specification of the correct format for ``model``.
+
+    .. _Swagger Model documentation: https://github.com/swagger-api/
+       swagger-spec/blob/d79c205485d702302003d4de2f2c980d1caf10f9/
+       versions/1.2.md#527-model-object
     """
-    models[name] = model
+    if resource not in routes:
+        raise Exception('"%s" is not a known resource type' % resource)
+    models[resource][name] = model
