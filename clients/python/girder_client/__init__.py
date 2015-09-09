@@ -94,7 +94,7 @@ class GirderClient(object):
     }
 
     # The current maximum chunk size for uploading file chunks
-    MAX_CHUNK_SIZE = 1024 * 1024 * 64
+    MAX_CHUNK_SIZE = 1024 * 1024 * 32
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None,
                  dryrun=False, blacklist=None):
@@ -487,6 +487,71 @@ class GirderClient(object):
                 raise Exception('After uploading a file chunk, did'
                                 ' not receive object with _id. Got instead: ' +
                                 json.dumps(obj))
+
+    def uploadFile(self, parentId, stream, name, size, parentType=None,
+                   progressCallback=None):
+        """
+        Uploads a file into an item or folder.
+
+        :param parentId: The ID of the folder or item to upload into.
+        :type parentId: str
+        :param stream: Readable stream object.
+        :type stream: file-like
+        :param name: The name of the file to create.
+        :type name: str
+        :param size: The length of the file.
+        :type size: str
+        :param parentType: 'item' or 'folder'. Default assumes parent type is
+            item.
+        :type parentType: str or None
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single parg to the callable
+            which is a dict of information about progress.
+        :type progressCallback: callable
+        :returns: The file that was created on the server.
+        """
+        obj = self.post('file', {
+            'parentType': parentType or 'item',
+            'parentId': parentId,
+            'name': name,
+            'size': size
+        })
+        if '_id' in obj:
+            uploadId = obj['_id']
+        else:
+            raise Exception(
+                'After creating an upload token for a new file, expected '
+                'an object with an id. Got instead: ' + json.dumps(obj))
+
+        offset = 0
+        while True:
+            data = stream.read(self.MAX_CHUNK_SIZE)
+
+            if not data:
+                break
+
+            params = {
+                'offset': offset,
+                'uploadId': uploadId
+            }
+            files = {
+                'chunk': data
+            }
+            obj = self.post('file/chunk', parameters=params, files=files)
+            offset += len(data)
+
+            if '_id' not in obj:
+                raise Exception('After uploading a file chunk, did'
+                                ' not receive object with _id. Got instead: ' +
+                                json.dumps(obj))
+
+            if callable(progressCallback):
+                progressCallback({
+                    'current': offset,
+                    'total': size
+                })
+
+        return obj
 
     def addMetadataToItem(self, itemId, metadata):
         """
