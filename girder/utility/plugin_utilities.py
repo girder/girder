@@ -87,6 +87,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
 
     return root, appconf, apiRoot
 
+
 def getPluginParentDir(name, curConfig=None):
     """
     Finds the directory a plugin lives in and returns it. This throws
@@ -101,6 +102,7 @@ def getPluginParentDir(name, curConfig=None):
             return potentialParentDir
 
     raise Exception('Plugin directory %s does not exist' % name)
+
 
 def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     """
@@ -244,7 +246,7 @@ def findAllPlugins(curConfig=None):
 
     for pluginDir in pluginDirs:
         dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(
-        os.path.join(pluginDir, dir))]
+            os.path.join(pluginDir, dir))]
 
         for plugin in dirs:
             data = {}
@@ -255,9 +257,10 @@ def findAllPlugins(curConfig=None):
                     try:
                         data = json.load(conf)
                     except ValueError as e:
-                        print(TerminalColor.error(
-                            'ERROR: Plugin "%s": plugin.json is not valid JSON.' %
-                            plugin))
+                        print(
+                            TerminalColor.error(
+                                ('ERROR: Plugin "%s": '
+                                 'plugin.json is not valid JSON.') % plugin))
                         print(e)
                         continue
             elif os.path.isfile(configYml):
@@ -265,9 +268,10 @@ def findAllPlugins(curConfig=None):
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError as e:
-                        print(TerminalColor.error(
-                            'ERROR: Plugin "%s": plugin.yml is not valid YAML.' %
-                            plugin))
+                        print(
+                            TerminalColor.error(
+                                ('ERROR: Plugin "%s": '
+                                 'plugin.yml is not valid YAML.') % plugin))
                         print(e)
                         continue
 
