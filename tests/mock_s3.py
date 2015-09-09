@@ -103,7 +103,7 @@ def startMockS3Server():
             selectedPort = port
         except socket.error as err:
             # Allow address in use errors to fail quietly
-            if err[0] != errno.EADDRINUSE:
+            if err.errno != errno.EADDRINUSE:
                 raise
         test_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         test_socket.close()
