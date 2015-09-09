@@ -51,8 +51,8 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         :param file: The file document to remove.
         :param updateItemSize: Whether to update the item size. Only set this
-        to False if you plan to delete the item and do not care about updating
-        its size.
+            to False if you plan to delete the item and do not care about
+            updating its size.
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
@@ -118,6 +118,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         Create a file that is a link to a URL rather than something we maintain
         in an assetstore.
+
         :param name: The local name for the file.
         :type name: str
         :param parent: The parent object for this file.
@@ -126,7 +127,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type parentType: str
         :param url: The URL that this file points to
         :param creator: The user creating the file.
-        :type user: user
+        :type creator: dict
         """
         if parentType == 'folder':
             # Create a new item with the name of the file.
@@ -165,8 +166,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param sizeIncrement: The change in size to propagate.
         :type sizeIncrement: int
         :param updateItemSize: Whether the item size should be updated. Set to
-        False if you plan to delete the item immediately and don't care to
-        update its size.
+            False if you plan to delete the item immediately and don't care to
+            update its size.
         """
         if updateItemSize:
             # Propagate size up to item
@@ -234,6 +235,7 @@ class File(acl_mixin.AccessControlMixin, Model):
     def copyFile(self, srcFile, creator, item=None):
         """
         Copy a file so that we don't need to duplicate stored data.
+
         :param srcFile: The file to copy.
         :type srcFile: dict
         :param creator: The user copying the file.
