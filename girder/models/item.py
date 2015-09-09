@@ -321,10 +321,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             item['meta'] = {}
 
         # Add new metadata to existing metadata
-        item['meta'].update(metadata.items())
+        item['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in six.iteritems(item['meta']) if v is None]
+        toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
         for key in toDelete:
             del item['meta'][key]
 
@@ -423,9 +423,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :rtype: generator(str, func)
         """
         if subpath:
-            files = [file for file in self.childFiles(item=doc, limit=2)]
+            files = list(self.childFiles(item=doc, limit=2))
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
-                    (includeMetadata and len(doc.get('meta', {})))):
+                    (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = "girder-item-metadata.json"
         for file in self.childFiles(item=doc):

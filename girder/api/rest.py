@@ -246,7 +246,7 @@ class loadmodel(object):
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
-            for raw, converted in six.iteritems(self.map):
+            for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:

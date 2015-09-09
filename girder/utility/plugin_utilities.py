@@ -69,7 +69,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
 
     filteredDepGraph = {
         pluginName: info['dependencies']
-        for pluginName, info in six.iteritems(findAllPlugins(curConfig))
+        for pluginName, info in six.viewitems(findAllPlugins(curConfig))
         if pluginName in plugins
     }
 
@@ -242,27 +242,27 @@ def toposort(data):
         return
 
     # Ignore self dependencies.
-    for k, v in data.items():
+    for k, v in six.viewitems(data):
         v.discard(k)
 
     # Find all items that don't depend on anything.
     extra = functools.reduce(
-        set.union, six.itervalues(data)) - set(six.iterkeys(data))
+        set.union, six.viewvalues(data)) - set(six.viewkeys(data))
     # Add empty dependencies where needed
     data.update({item: set() for item in extra})
 
     # Perform the topological sort.
     while True:
-        ordered = set(item for item, dep in six.iteritems(data) if not dep)
+        ordered = set(item for item, dep in six.viewitems(data) if not dep)
         if not ordered:
             break
         yield ordered
         data = {item: (dep - ordered)
-                for item, dep in six.iteritems(data) if item not in ordered}
+                for item, dep in six.viewitems(data) if item not in ordered}
     # Detect any cycles in the dependency graph.
     if data:
         raise Exception('Cyclic dependencies detected:\n%s' % '\n'.join(
-                        repr(x) for x in six.iteritems(data)))
+                        repr(x) for x in six.viewitems(data)))
 
 
 def addChildNode(node, name, obj=None):

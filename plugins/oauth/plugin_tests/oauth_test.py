@@ -19,6 +19,7 @@
 
 import httmock
 import json
+import six
 
 from girder.constants import SettingKey
 from server.constants import PluginSettings
@@ -61,7 +62,7 @@ class OauthTest(base.TestCase):
             'first-last@mail.com': 'first-last'
         }
 
-        for input, expected in expect.items():
+        for input, expected in six.viewitems(expect):
             output = _deriveLogin(input, self.model('user'))
             self.assertEqual(output, expected)
 
@@ -121,7 +122,7 @@ class OauthTest(base.TestCase):
         self.assertEqual(queryParams['redirect_uri'],
                          ['http://127.0.0.1/api/v1/oauth/google/callback'])
         self.assertEqual(queryParams['state'][0], 'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
+        self.assertEqual(len(resp.cookie), 1)
 
         cookie = resp.cookie
 
@@ -145,7 +146,7 @@ class OauthTest(base.TestCase):
         }, cookie=self._createCsrfCookie(cookie))
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 1)
+        self.assertEqual(len(resp.cookie), 1)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')
 
         # Test logging in with an existing user
@@ -189,7 +190,7 @@ class OauthTest(base.TestCase):
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'],
                          'http://localhost/#foo/bar')
-        self.assertEqual(len(resp.cookie.values()), 2)
+        self.assertEqual(len(resp.cookie), 2)
         self.assertTrue('oauthLogin' in resp.cookie)
         self.assertTrue('girderToken' in resp.cookie)
         self.assertEqual(resp.cookie['oauthLogin'].value, '')

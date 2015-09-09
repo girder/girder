@@ -71,7 +71,7 @@ class Model(ModelImporter):
                 self.collection.ensure_index(index)
 
         if type(self._textIndex) is dict:
-            textIdx = [(k, 'text') for k in self._textIndex.keys()]
+            textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
                 self.collection.ensure_index(
                     textIdx, weights=self._textIndex,

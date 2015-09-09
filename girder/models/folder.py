@@ -177,11 +177,11 @@ class Folder(AccessControlledModel):
             folder['meta'] = {}
 
         # Add new metadata to existing metadata
-        folder['meta'].update(six.iteritems(metadata))
+        folder['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
         folder['meta'] = {k: v
-                          for k, v in six.iteritems(folder['meta'])
+                          for k, v in six.viewitems(folder['meta'])
                           if v is not None}
 
         folder['updated'] = datetime.datetime.utcnow()
@@ -620,7 +620,7 @@ class Folder(AccessControlledModel):
             for (filepath, file) in self.model('item').fileList(
                     item, user, path, includeMetadata):
                 yield (filepath, file)
-        if includeMetadata and metadataFile and len(doc.get('meta', {})):
+        if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)

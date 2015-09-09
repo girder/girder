@@ -92,8 +92,8 @@ class ResourceExt(Resource):
     def unbindModels(self, resources={}):
         """Unbind any models that were bound and aren't listed as needed.
         :param resources: resources that shouldn't be unbound."""
-        # iterate on keys() so that we can change the dictionary as we use it
-        for oldresource in list(self.boundResources.keys()):
+        # iterate over a list so that we can change the dictionary as we use it
+        for oldresource in list(six.viewkeys(self.boundResources)):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
                 events.unbind('model.{}.save'.format(oldresource), 'provenance')

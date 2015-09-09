@@ -20,6 +20,7 @@
 import json
 import os
 import time
+import six
 
 from subprocess import check_output, CalledProcessError
 
@@ -190,7 +191,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},
         }
-        allKeys = dict.fromkeys(SettingDefault.defaults.keys())
+        allKeys = dict.fromkeys(six.viewkeys(SettingDefault.defaults))
         allKeys.update(badValues)
         for key in allKeys:
             resp = self.request(path='/system/setting', method='PUT', params={
