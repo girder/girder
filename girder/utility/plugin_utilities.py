@@ -187,6 +187,8 @@ def defaultPluginDir():
 
 def getPluginDirs(curConfig=None):
     """Return an ordered list of directories that plugins can live in."""
+    failedPluginDirs = []
+
     if curConfig is None:
         curConfig = config.getConfig()
 
@@ -194,6 +196,20 @@ def getPluginDirs(curConfig=None):
         pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
     else:
         pluginDirs = [defaultPluginDir()]
+
+    for pluginDir in pluginDirs:
+        if not os.path.exists(pluginDir):
+            try:
+                os.makedirs(pluginDir)
+            except OSError:
+                if not os.path.exists(pluginDir):
+                    print(TerminalColor.warning(
+                        'Could not create plugin directory %s.' % pluginDir))
+
+                    failedPluginDirs.append(pluginDir)
+
+    for failedPluginDir in failedPluginDirs:
+        pluginDirs.remove(failedPluginDir)
 
     return pluginDirs
 
@@ -218,16 +234,8 @@ def getPluginDir(curConfig=None):
         pluginDir = curConfig['plugins']['plugin_install_path']
     elif pluginDirs:
         pluginDir = pluginDirs[0]
-
-    if not os.path.exists(pluginDir):
-        try:
-            os.makedirs(pluginDir)
-        except OSError:
-            if not os.path.exists(pluginDir):
-                print(TerminalColor.warning(
-                    'Could not create plugin directory %s.' % pluginDir))
-
-                pluginDir = None
+    else:
+        pluginDir = None
 
     return pluginDir
 
