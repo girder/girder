@@ -46,7 +46,9 @@ class PluginUtilitiesTestCase(base.TestCase):
         # Test it chooses the first in the path
         # (since does_nothing is in both places)
         self.assertEqual(plugin_utilities.getPluginParentDir('does_nothing'),
-                         'tests/test_plugins')
+                         os.path.join(
+                             os.path.dirname(os.path.dirname(__file__)),
+                             'test_plugins'))
 
         # Raise an exception if a non-existent dir is specified
         with self.assertRaisesRegexp(
