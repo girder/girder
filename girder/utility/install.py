@@ -173,7 +173,7 @@ def install_plugin(source=None, force=False):
 
         for plugin in plugins:
             pluginName = os.path.split(plugin)[1]
-            pluginTarget = os.path.join(getPluginDir(), pluginName)
+            pluginTarget = os.path.join(getPluginDir().pop(), pluginName)
 
             if os.path.exists(pluginTarget):
                 if force:

@@ -217,10 +217,12 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
-        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                  'test_plugins')
+        pluginRoot = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                   'test_plugins'),
+                      os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                   'test_other_plugins')]
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': pluginRoot}
+        conf['plugins'] = {'plugin_directory': ','.join(pluginRoot)}
 
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
@@ -235,10 +237,13 @@ class SystemTestCase(base.TestCase):
         self.assertTrue('test_plugin' in enabled)
 
     def testBadPlugin(self):
-        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                  'test_plugins')
+        pluginRoot = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                   'test_plugins'),
+                      os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                   'test_other_plugins')]
+
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': pluginRoot}
+        conf['plugins'] = {'plugin_directory': ','.join(pluginRoot)}
         # Try to enable a good plugin and a bad plugin.  Only the good plugin
         # should be enabled.
         resp = self.request(
