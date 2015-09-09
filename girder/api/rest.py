@@ -20,13 +20,11 @@
 import cherrypy
 import collections
 import datetime
-import functools
 import json
 import pymongo
 import six
 import sys
 import traceback
-import types
 
 from . import docs
 from girder import events, logger
@@ -39,6 +37,22 @@ from six.moves import range, urllib
 
 
 def getUrlParts(url=None):
+    """
+    Calls `urllib.parse.urlparse`_ on a URL.
+
+    :param url: A URL, or None to use the current request's URL.
+    :type url: str or None
+    :return: The URL's seperate components.
+    :rtype: `urllib.parse.ParseResult`_
+
+    .. note:: This is compatible with both Python 2 and 3.
+
+    .. _urllib.parse.urlparse: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.urlparse
+
+    .. _urllib.parse.ParseResult: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.ParseResult
+    """
     url = url or cherrypy.url()
     return urllib.parse.urlparse(url)
 
@@ -207,6 +221,8 @@ class loadmodel(object):
     :type plugin: str
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
+    :param force:
+    :type force: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False):
@@ -547,8 +563,8 @@ class Resource(ModelImporter):
 
             ``rest.post.group.before``
 
-        Note: You will normally not need to call this method directly, as it
-        is called by the internals of this class during the routing process.
+        .. note:: You will normally not need to call this method directly, as it
+           is called by the internals of this class during the routing process.
 
         :param method: The HTTP method of the current request.
         :type method: str
