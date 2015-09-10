@@ -21,6 +21,7 @@ from .. import base
 
 from girder.api import access, describe
 from girder.api.rest import Resource
+from girder.api.docs import addModel
 
 OrderedRoutes = [
     ('GET', (), ''),
@@ -51,9 +52,37 @@ class DummyResource(Resource):
     handler.description = describe.Description('Does nothing')
 
 
+class ModelResource(Resource):
+    def __init__(self):
+        self.resourceName = 'model'
+        self.route('POST', (), self.hasModel)
+
+    @access.public
+    def hasModel(self, params):
+        pass
+
+    addModel('model', 'Body', {
+        'id': 'Body',
+        'require': 'bob',
+        'properties': {
+            'bob': {
+                'type': 'array',
+                'items': {
+                    'type': 'integer'
+                }
+            }
+        }
+    })
+
+    hasModel.description = describe.Description('What a model') \
+        .param('body', 'Where its at!', dataType='Body', required=True,
+               paramType='body')
+
+
 def setUpModule():
     server = base.startServer()
     server.root.api.v1.accesstest = DummyResource()
+    server.root.api.v1.modeltest = ModelResource()
 
 
 def tearDownModule():
@@ -112,3 +141,7 @@ class ApiDescribeTestCase(base.TestCase):
         expectedRoutes = [(method, '/foo'+testPath)
                           for method, pathElements, testPath in OrderedRoutes]
         self.assertEqual(listedRoutes, expectedRoutes)
+
+    def testAddModel(self):
+        resp = self.request(path='/describe/model', method='GET')
+        self.assertStatusOk(resp)
