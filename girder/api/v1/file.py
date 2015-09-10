@@ -36,6 +36,7 @@ class File(Resource):
     def __init__(self):
         self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
+        self.route('DELETE', ('upload', ':id'), self.cancelUpload)
         self.route('GET', ('offset',), self.requestOffset)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
@@ -270,6 +271,22 @@ class File(Resource):
         .param('id', 'The ID of the file.', paramType='path')
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403))
+
+    @access.user
+    @loadmodel(model='upload')
+    def cancelUpload(self, upload, params):
+        user = self.getCurrentUser()
+
+        if upload['userId'] != user['_id'] and not user.get('admin'):
+            raise AccessException('You did not initiate this upload.')
+
+        self.model('upload').cancelUpload(upload)
+        return {'message': 'Upload canceled.'}
+    cancelUpload.description = (
+        Description('Cancel a partially completed upload.')
+        .param('id', 'The ID of the upload.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You lack permission to cancel this upload.', 403))
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)

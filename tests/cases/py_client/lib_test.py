@@ -220,6 +220,12 @@ class PythonClientTestCase(base.TestCase):
             callbacks.append(info)
 
         with open(path) as f:
+            with self.assertRaises(girder_client.IncorrectUploadLengthError):
+                client.uploadFile(
+                    callbackPublicFolder['_id'], stream=f, name='test',
+                    size=size + 1, parentType='folder')
+
+        with open(path) as f:
             file = client.uploadFile(
                 callbackPublicFolder['_id'], stream=f, name='test', size=size,
                 parentType='folder', progressCallback=progressCallback)

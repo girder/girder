@@ -49,6 +49,10 @@ class AuthenticationError(RuntimeError):
     pass
 
 
+class IncorrectUploadLengthError(RuntimeError):
+    pass
+
+
 class HttpError(Exception):
     """
     Raised if the server returns an error status code from a request.
@@ -499,7 +503,9 @@ class GirderClient(object):
         :type stream: file-like
         :param name: The name of the file to create.
         :type name: str
-        :param size: The length of the file.
+        :param size: The length of the file. This must be exactly equal to the
+            total number of bytes that will be read from ``stream``, otherwise
+            the upload will fail.
         :type size: str
         :param parentType: 'item' or 'folder'.
         :type parentType: str
@@ -549,6 +555,12 @@ class GirderClient(object):
                     'current': offset,
                     'total': size
                 })
+
+        if offset != size:
+            self.delete('file/upload/' + uploadId)
+            raise IncorrectUploadLengthError(
+                'Expected upload to be %d bytes, but received %d.' % (
+                    size, offset))
 
         return obj
 
