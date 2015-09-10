@@ -37,6 +37,12 @@ class File(acl_mixin.AccessControlMixin, Model):
         self.resourceColl = 'item'
         self.resourceParent = 'itemId'
 
+        self.exposeFields(level=AccessType.READ, fields=(
+            "_id", "mimeType", "itemId", "exts", "name", "created", "creatorId",
+            "size"))
+
+        self.exposeFields(level=AccessType.SITE_ADMIN, fields=("assetstoreId",))
+
     def remove(self, file, updateItemSize=True, **kwargs):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
@@ -73,6 +79,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param headers: Whether to set headers (i.e. is this an HTTP request
             for a single file, or something else).
         :type headers: bool
+        :param endByte: Final byte to download. If ``None``, downloads to the
+            end of the file.
+        :type endByte: int or None
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])

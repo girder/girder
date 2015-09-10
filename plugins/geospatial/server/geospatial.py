@@ -49,7 +49,7 @@ class GeospatialItem(Resource):
         :param params: parameters to the API call, including 'folderId' and
                        'geoJSON'.
         :type params: dict[str, unknown]
-        :return: filtered fields of the created items with properties appended
+        :returns: filtered fields of the created items with properties appended
                  to the 'meta' field and geospatial data appended to the 'geo'
                  field of each item.
         :rtype: list[dict[str, unknown]]
@@ -143,7 +143,7 @@ class GeospatialItem(Resource):
 
         :param params: parameters to the API call, including 'q'.
         :type params: dict[str, unknown]
-        :return: filtered fields of the matching items with geospatial data
+        :returns: filtered fields of the matching items with geospatial data
                  appended to the 'geo' field of each item.
         :rtype: list[dict[str, unknown]]
         :raise RestException: on malformed API call.
@@ -176,7 +176,7 @@ class GeospatialItem(Resource):
         :param params: parameters to the API call, including 'field' and
                        'geometry'.
         :type params: dict[str, unknown]
-        :return: filtered fields of the matching items with geospatial data
+        :returns: filtered fields of the matching items with geospatial data
                  appended to the 'geo' field of each item.
         :rtype: list[dict[str, unknown]]
         :raise RestException: on malformed API call.
@@ -243,7 +243,7 @@ class GeospatialItem(Resource):
         :param params: parameters to the API call, including 'field' and
                        'geometry'.
         :type params: dict[str, unknown]
-        :return: filtered fields of the matching items with geospatial data
+        :returns: filtered fields of the matching items with geospatial data
                  appended to the 'geo' field of each item.
         :rtype: list[dict[str, unknown]]
         :raise RestException: on malformed or forbidden API call.
@@ -337,7 +337,7 @@ class GeospatialItem(Resource):
         :param params: parameters to the API call, including 'field' and either
                        'geometry' or both 'center' and 'radius'.
         :type params: dict[str, unknown]
-        :return: filtered fields of the matching items with geospatial data
+        :returns: filtered fields of the matching items with geospatial data
                  appended to the 'geo' field of each item.
         :rtype: list[dict[str, unknown]]
         :raise RestException: on malformed API call.
@@ -431,7 +431,7 @@ class GeospatialItem(Resource):
         :type item: dict[str, unknown]
         :param params: parameters to the API call, unused.
         :type params: dict[str, unknown]
-        :return: filtered fields of the item with geospatial data appended to
+        :returns: filtered fields of the item with geospatial data appended to
                  its 'geo' field.
         :rtype : dict[str, unknown]
         :raise RestException: on malformed or forbidden API call.
@@ -454,14 +454,14 @@ class GeospatialItem(Resource):
         :type item: dict[str, unknown]
         :param params: parameters to the API call, unused.
         :type params: dict[str, unknown]
-        :return: filtered fields of the item with geospatial data appended to
+        :returns: filtered fields of the item with geospatial data appended to
                  its 'geo' field.
         :rtype : dict[str, unknown]
         :raise RestException: on malformed, forbidden, or unauthorized API call.
         """
         geospatial = self.getBodyJson()
 
-        for k, v in geospatial.items():
+        for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
                 raise RestException('Geospatial key name {} must not contain a'
                                     ' period or begin with a dollar sign.'
@@ -477,8 +477,8 @@ class GeospatialItem(Resource):
         if GEOSPATIAL_FIELD not in item:
             item[GEOSPATIAL_FIELD] = dict()
 
-        item[GEOSPATIAL_FIELD].update(geospatial.items())
-        keys = [k for k, v in six.iteritems(item[GEOSPATIAL_FIELD])
+        item[GEOSPATIAL_FIELD].update(six.viewitems(geospatial))
+        keys = [k for k, v in six.viewitems(item[GEOSPATIAL_FIELD])
                 if v is None]
 
         for key in keys:
@@ -506,7 +506,7 @@ class GeospatialItem(Resource):
 
         :param item: item whose fields to filter and geospatial data append.
         :type item: dict[str, unknown]
-        :return: filtered fields of the item with geospatial data appended to
+        :returns: filtered fields of the item with geospatial data appended to
                  its 'geo' field.
         :rtype : dict[str, unknown]
         """
@@ -532,7 +532,7 @@ class GeospatialItem(Resource):
         :type offset: int
         :param sort: field by which to sort the matching items
         :type sort: str
-        :return: filtered fields of the matching items with geospatial data
+        :returns: filtered fields of the matching items with geospatial data
                  appended to the 'geo' field of each item.
         :rtype : list[dict[str, unknown]]
         """

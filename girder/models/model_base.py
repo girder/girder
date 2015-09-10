@@ -71,7 +71,7 @@ class Model(ModelImporter):
                 self.collection.ensure_index(index)
 
         if type(self._textIndex) is dict:
-            textIdx = [(k, 'text') for k in self._textIndex.keys()]
+            textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
                 self.collection.ensure_index(
                     textIdx, weights=self._textIndex,
@@ -788,7 +788,7 @@ class AccessControlledModel(Model):
         :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
-        :param objectId: Whether the _id field is an ObjectId.
+        :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
         :param fields: The subset of fields to load from the returned document,
             or None to return the full document.

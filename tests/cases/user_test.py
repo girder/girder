@@ -79,7 +79,7 @@ class UserTestCase(base.TestCase):
         }
         # First test all of the required parameters.
         self.ensureRequiredParams(
-            path='/user', method='POST', required=params.keys())
+            path='/user', method='POST', required=six.viewkeys(params))
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)

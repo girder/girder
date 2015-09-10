@@ -173,12 +173,12 @@ class PythonClientTestCase(base.TestCase):
                 folder_count += 1
 
         def folder_callback(folder, filepath):
-            self.assertIn(filepath, folders.keys())
+            self.assertIn(filepath, six.viewkeys(folders))
             folders[filepath] = True
             callback_counts['folder'] += 1
 
         def item_callback(item, filepath):
-            self.assertIn(filepath, items.keys())
+            self.assertIn(filepath, six.viewkeys(items))
             items[filepath] = True
             callback_counts['item'] += 1
 
@@ -193,8 +193,8 @@ class PythonClientTestCase(base.TestCase):
         # and that all folders and files have callbacks called on them
         self.assertEqual(folder_count, callback_counts['folder'])
         self.assertEqual(item_count, callback_counts['item'])
-        self.assertTrue(all(items.values()))
-        self.assertTrue(all(folders.values()))
+        self.assertTrue(all(six.viewvalues(items)))
+        self.assertTrue(all(six.viewvalues(folders)))
 
         # Upload again with reuse_existing on
         existingList = list(self.model('folder').childFolders(
