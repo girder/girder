@@ -50,7 +50,9 @@ class AuthenticationError(RuntimeError):
 
 
 class IncorrectUploadLengthError(RuntimeError):
-    pass
+    def __init__(self, message, upload=None):
+        RuntimeError.__init__(self, message)
+        self.upload = upload
 
 
 class HttpError(Exception):
@@ -560,7 +562,7 @@ class GirderClient(object):
             self.delete('file/upload/' + uploadId)
             raise IncorrectUploadLengthError(
                 'Expected upload to be %d bytes, but received %d.' % (
-                    size, offset))
+                    size, offset), upload=obj)
 
         return obj
 

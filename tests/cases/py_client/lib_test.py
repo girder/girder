@@ -221,9 +221,16 @@ class PythonClientTestCase(base.TestCase):
 
         with open(path) as f:
             with self.assertRaises(girder_client.IncorrectUploadLengthError):
-                client.uploadFile(
-                    callbackPublicFolder['_id'], stream=f, name='test',
-                    size=size + 1, parentType='folder')
+                try:
+                    client.uploadFile(
+                        callbackPublicFolder['_id'], stream=f, name='test',
+                        size=size + 1, parentType='folder')
+                except girder_client.IncorrectUploadLengthError as exc:
+                    self.assertEqual(
+                        exc.upload['received'], exc.upload['size'] - 1)
+                    upload = self.model('upload').load(exc.upload['_id'])
+                    self.assertEqual(upload, None)
+                    raise
 
         with open(path) as f:
             file = client.uploadFile(

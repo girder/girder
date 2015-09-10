@@ -78,7 +78,7 @@ class File(Resource):
                     user=user, name=params['name'], parentType=parentType,
                     parent=parent, size=int(params['size']), mimeType=mimeType)
             except OSError as exc:
-                if exc[0] in (errno.EACCES,):
+                if exc.errno == errno.EACCES:
                     raise GirderException(
                         'Failed to create upload.',
                         'girder.api.v1.file.create-upload-failed')
@@ -187,7 +187,7 @@ class File(Resource):
             else:
                 return self.model('upload').handleChunk(upload, chunk)
         except IOError as exc:
-            if exc[0] in (errno.EACCES,):
+            if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
             raise
     readChunk.description = (
