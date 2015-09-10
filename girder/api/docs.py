@@ -116,7 +116,9 @@ def addModel(resources, name, model):
     """
     Add a model to the Swagger documentation.
 
-    :param resources: The type(s) of existing resource(s) to add the model to.
+    :param resources: The type(s) of resource(s) to add the model to. New
+        resource types may be implicitly defined, with the expectation that
+        routes will be added for them at some point.
     :param resources: str or tuple[str]
     :param name: The name of the model(s).
     :type name: str
@@ -137,9 +139,5 @@ def addModel(resources, name, model):
     """
     if isinstance(resources, str):
         resources = (resources,)
-    for resource in resources:
-        if resource not in routes:
-            raise Exception('"%s" is not a known resource type' % resource)
-    # any errors should be detected ahead of time, to make the change atomic
     for resource in resources:
         models[resource][name] = model
