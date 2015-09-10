@@ -52,6 +52,20 @@ class DummyResource(Resource):
     handler.description = describe.Description('Does nothing')
 
 
+test_model = {
+    'id': 'Body',
+    'require': 'bob',
+    'properties': {
+        'bob': {
+            'type': 'array',
+            'items': {
+                'type': 'integer'
+            }
+        }
+    }
+}
+
+
 class ModelResource(Resource):
     def __init__(self):
         self.resourceName = 'model'
@@ -61,18 +75,7 @@ class ModelResource(Resource):
     def hasModel(self, params):
         pass
 
-    addModel('model', 'Body', {
-        'id': 'Body',
-        'require': 'bob',
-        'properties': {
-            'bob': {
-                'type': 'array',
-                'items': {
-                    'type': 'integer'
-                }
-            }
-        }
-    })
+    addModel('model', 'Body', test_model)
 
     hasModel.description = describe.Description('What a model') \
         .param('body', 'Where its at!', dataType='Body', required=True,
@@ -145,3 +148,4 @@ class ApiDescribeTestCase(base.TestCase):
     def testAddModel(self):
         resp = self.request(path='/describe/model', method='GET')
         self.assertStatusOk(resp)
+        self.assertEqual(resp.json['models'], {'Body': test_model})
