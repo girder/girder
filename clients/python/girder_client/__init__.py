@@ -94,7 +94,7 @@ class GirderClient(object):
     }
 
     # The current maximum chunk size for uploading file chunks
-    MAX_CHUNK_SIZE = 1024 * 1024 * 32
+    MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None,
                  dryrun=False, blacklist=None):
@@ -488,7 +488,7 @@ class GirderClient(object):
                                 ' not receive object with _id. Got instead: ' +
                                 json.dumps(obj))
 
-    def uploadFile(self, parentId, stream, name, size, parentType=None,
+    def uploadFile(self, parentId, stream, name, size, parentType='item',
                    progressCallback=None):
         """
         Uploads a file into an item or folder.
@@ -501,17 +501,16 @@ class GirderClient(object):
         :type name: str
         :param size: The length of the file.
         :type size: str
-        :param parentType: 'item' or 'folder'. Default assumes parent type is
-            item.
-        :type parentType: str or None
+        :param parentType: 'item' or 'folder'.
+        :type parentType: str
         :param progressCallback: If passed, will be called after each chunk
-            with progress information. It passes a single parg to the callable
-            which is a dict of information about progress.
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
         :type progressCallback: callable
         :returns: The file that was created on the server.
         """
         obj = self.post('file', {
-            'parentType': parentType or 'item',
+            'parentType': parentType,
             'parentId': parentId,
             'name': name,
             'size': size
