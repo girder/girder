@@ -112,13 +112,13 @@ def removeRouteDocs(resource, route, method, info, handler):
                 del routes[resource]
 
 
-def addModel(resource, name, model):
+def addModel(resources, name, model):
     """
     Add a model to the Swagger documentation.
 
-    :param resource: The type of existing resource to add the model to.
-    :param resource: str
-    :param name: The name of the model.
+    :param resources: The type(s) of existing resource(s) to add the model to.
+    :param resources: str or tuple[str]
+    :param name: The name of the model(s).
     :type name: str
     :param model: The model to add.
     :type model: dict
@@ -127,10 +127,19 @@ def addModel(resource, name, model):
        ``model``. See the `Swagger Model documentation`_ for a complete
        specification of the correct format for ``model``.
 
+    .. versionchanged:: The syntax and behavior of this function was modified
+        after v1.3.2. The previous implementation did not include a resources
+        parameter.
+
     .. _Swagger Model documentation: https://github.com/swagger-api/
        swagger-spec/blob/d79c205485d702302003d4de2f2c980d1caf10f9/
        versions/1.2.md#527-model-object
     """
-    if resource not in routes:
-        raise Exception('"%s" is not a known resource type' % resource)
-    models[resource][name] = model
+    if isinstance(resources, str):
+        resources = (resources,)
+    for resource in resources:
+        if resource not in routes:
+            raise Exception('"%s" is not a known resource type' % resource)
+    # any errors should be detected ahead of time, to make the change atomic
+    for resource in resources:
+        models[resource][name] = model
