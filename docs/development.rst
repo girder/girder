@@ -13,13 +13,7 @@ Configuring Your Development Environment
 In order to develop Girder, you should first refer to the :doc:`prerequisites`
 and :doc:`installation` sections to setup a basic local environment.
 
-Next, you should install the `Grunt <http://gruntjs.com>`_ build tool globally,
-to allow it to be run directly from the command line: ::
-
-    npm install -g grunt
-    npm install -g grunt-cli
-
-Finally, you should also install the Python development dependencies, to
+Next, you should install the Python development dependencies, to
 provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
@@ -37,6 +31,14 @@ During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 
 To get the same auto-building behavior for JavaScript, we use ``grunt-watch``.
+Since ``grunt`` is installed in the ``./node_modules/.bin/`` directory, you could
+conveniently update the ``PATH`` running ``export PATH=$(pwd)/node_modules/.bin:$PATH``.
+
+Alternatively, you could install the grunt command line interface globally so
+that the ``grunt`` command is automatically added to your ``PATH``.
+If you want to do that, run ``npm install -g grunt-cli``. Note that this
+command requires ``sudo`` on many systems.
+
 Thus, running ``grunt watch`` in the root of the repository will watch for
 JavaScript, Stylus, and Jade changes in order to rebuild them on-the-fly. If you
 do not run ``grunt watch`` while making code changes, you will need to run the
