@@ -48,6 +48,8 @@ Next, there are two scenarios:
 * You do NOT have push access: A girder core developer will integrate your request.
 * You have push access: Simply click on "Merge pull request" button.
 
+Then, click on the "Delete branch" button that appears afterward.
+
 #### Are PR tested ?
 
 When you submit a PR to the Girder repo, Travis CI will run the full build on two different branches
