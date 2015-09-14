@@ -30,20 +30,24 @@ provide helpful development tools and to allow the test suite to run: ::
 During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 
-To get the same auto-building behavior for JavaScript, we use ``grunt-watch``.
-Since ``grunt`` is installed in the ``./node_modules/.bin/`` directory, you could
-conveniently update the ``PATH`` running ``export PATH=$(pwd)/node_modules/.bin:$PATH``.
+Girder's web-based client application is built using the `Grunt <http://gruntjs.com/>`_
+task running tool. When you run the ``npm install`` command during Girder's
+installation, it will run all of the grunt tasks required to build the web client.
+Grunt tasks are run with the ``grunt`` executable, which is installed under your Girder source
+directory in the ``./node_modules/.bin/`` directory. You could conveniently update the
+``PATH`` by running ``export PATH=$(pwd)/node_modules/.bin:$PATH`` -- once you do that,
+you can just type ``grunt`` in your shell to run tasks.
 
-Alternatively, you could install the grunt command line interface globally so
-that the ``grunt`` command is automatically added to your ``PATH``.
-If you want to do that, run ``npm install -g grunt-cli``. Note that this
-command requires ``sudo`` on many systems.
+.. note :: Alternatively, you could install the grunt command line interface globally so
+   that the ``grunt`` command is automatically added to your ``PATH``. If you want to do
+   that, run ``npm install -g grunt-cli``. Note that this command requires ``sudo`` on many
+   systems.
 
-Thus, running ``grunt watch`` in the root of the repository will watch for
-JavaScript, Stylus, and Jade changes in order to rebuild them on-the-fly. If you
-do not run ``grunt watch`` while making code changes, you will need to run the
-``grunt`` command to manually rebuild the web client in order to see your changes
-reflected.
+It is recommended during development to make use of the ``grunt-watch`` tool. Running
+``grunt watch`` in the root of the repository will watch for JavaScript, Stylus, and
+Jade changes in order to rebuild them on-the-fly. If you do not run ``grunt watch``
+while making code changes, you will need to run the ``grunt`` command to manually
+rebuild the web client in order to see your changes reflected.
 
 Note that some browser debugging tools do not play well with local variable
 mangling in JavaScript. If you want to use such a debugger and need to work around this,
