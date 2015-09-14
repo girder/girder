@@ -50,7 +50,7 @@ Next, there are two scenarios:
 
 Then, click on the "Delete branch" button that appears afterward.
 
-#### Are PR tested ?
+#### Automatic testing of pull requests
 
 When you submit a PR to the Girder repo, Travis CI will run the full build on two different branches
 
