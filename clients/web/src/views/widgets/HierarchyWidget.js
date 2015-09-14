@@ -231,6 +231,8 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.createItemDialog();
         }
 
+        this.fetchAndShowChildCount()
+
         return this;
     },
 
@@ -262,6 +264,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.folderListView.insertFolder(folder);
             if (this.parentModel.has('nFolders')) {
                 this.parentModel.attributes.nFolders += 1;
+                this.fetchAndShowChildCount();
             }
             this.updateChecked();
         }, this).render();
@@ -332,6 +335,29 @@ girder.views.HierarchyWidget = girder.View.extend({
         }).render();
     },
 
+    fetchAndShowChildCount: function () {
+        this.$('.g-child-count-container').addClass('hide');
+
+        if (this.parentModel.resourceName === 'folder') {
+            var showCounts = _.bind(function () {
+                this.$('.g-child-count-container').removeClass('hide');
+                this.$('.g-subfolder-count').text(this.parentModel.get('nFolders'));
+                this.$('.g-item-count').text(this.parentModel.get('nItems'));
+            }, this);
+
+            if (this.parentModel.has('nItems')) {
+                showCounts();
+            } else {
+                this.parentModel.set('nItems', 0); // prevents fetching details twice
+                this.parentModel.once('g:fetched.details', function () {
+                    showCounts();
+                }, this).fetch({extraPath: 'details'});
+            }
+        }
+
+        return this;
+    },
+
     /**
      * Change the current parent model, i.e. the resource being shown currently.
      *
@@ -361,6 +387,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 this._initFolderViewSubwidgets();
             }
         }
+
         this.render();
         if (!_.has(opts, 'setRoute') || opts.setRoute) {
             this._setRoute();
@@ -451,6 +478,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.upload = false;
             if (this.parentModel.has('nItems')) {
                 this.parentModel.attributes.nItems += info.files.length;
+                this.fetchAndShowChildCount();
             }
             if (this.parentModel.has('size')) {
                 this.parentModel.attributes.size += info.totalSize;
