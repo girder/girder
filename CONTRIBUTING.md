@@ -13,19 +13,49 @@ We encourage a range of Pull Requests, from patches that include passing tests a
 The PR Process, Travis CI, and Related Gotchas
 ----------------------------------------------
 
+#### How to submit a PR ?
+
+If you are new to Girder development and you don't have a push access to the Girder
+repository, here are the steps:
+
+1. [Fork and clone](https://help.github.com/articles/fork-a-repo/) the repository.
+3. Create a branch.
+4. [Push](https://help.github.com/articles/pushing-to-a-remote/) the branch to your GitHub fork.
+5. Create a [Pull Request](https://github.com/girder/girder/pulls).
+
+This corresponds to the `Fork & Pull Model` mentioned in the [GitHub flow](https://guides.github.com/introduction/flow/index.html)
+guides.
+
+If you have push access to Girder repository, you could simply push your branch
+into the main repository and create you Pull Request. This corresponds to the
+`Shared Repository Model`. This will facilitate other developer to checkout your
+topic without having to [configure a remote](https://help.github.com/articles/configuring-a-remote-for-a-fork/).
+It will also simplify the workflow when you are _co-developing_ a branch.
+
+When submitting a PR, make sure to a `Cc: @girder/girder` comment to notify girder developers of your awesome contributions. Based on the
+comments posted by the reviewers, you may have to revisit your patches.
+
+### How to integrate a PR ?
+
+Getting your contributions integrated is relatively straightforward, here
+is the checklist:
+
+* All tests pass
+* Consensus is reached. This basically mean that the reviewers add `LGTM` comments. `LGTM` is a
+shortcut for _Looks Good to Me_.
+
+Next, there are two scenarios:
+* You do NOT have push access: A girder core developer will integrate your request.
+* You have push access: Simply click on "Merge pull request" button.
+
+#### Are PR tested ?
+
 When you submit a PR to the Girder repo, Travis CI will run the full build on two different branches
 
   * The commit at the head of the PR branch, the `push` build
   * The head of the PR branch that is then merged into `master`, the `pr` branch
 
 The Travis build will run according to the [.travis.yml file](/.travis.yml), which is useful as an example for how to set up your own environment for testing.  We are currently using containerized builds on Travis, and for each branch, will test against both Mongo v2.6.8 and Mongo v3.0.1.
-
-When submitting a PR, make sure to a `Cc: @girder/girder` comment to notify girder developers of your awesome contribution. Based on the
-comments posted by other Girder developers, you may have to revisit your patches.
-
-Next, to get your PR integrated, assuming all tests pass and consensus is reached, there are two scenarios:
-* You do NOT have push access: A girder core developer will integrate your request.
-* You have push access: Simply click on "Merge pull request" button.
 
 #### Confusing failing test message "AttributeError: 'module' object has no attribute 'x_test'"
 
