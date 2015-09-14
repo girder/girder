@@ -1,8 +1,10 @@
+@import 'nib'
+
 .g-hierarchy-widget
   border 1px solid #eaeaea
 
   .g-hierarchy-actions-header
-    background-image linear-gradient(to bottom,#e6e6e6 0%,#f7f7f7 8px)
+    background linear-gradient(top, #e6e6e6 0%, #f7f7f7 8px)
     padding 4px 5px 3px
     background-color #f6f6f6
     border-top 1px solid #ddd
@@ -35,8 +37,10 @@
     .g-child-count-container
       display inline-block
       margin-right 10px
-      color #777
+      color #888
       font-size 16px
+      user-select none
+      cursor default
 
       .g-subfolder-count-container,.g-item-count-container
         display inline-block
@@ -46,12 +50,12 @@
       .g-subfolder-count,.g-item-count
         display inline-block
         border-radius 3px
-        color white
-        background-color #444
+        color black
+        background-color rgba(255,255,255,0.75)
         position absolute
         font-size 9px
-        bottom -3px
-        right -4px
+        bottom -2px
+        right -3px
         padding 0 0.3em
 
   .g-folder-list,.g-item-list,.g-file-list
@@ -71,7 +75,7 @@
         background-color #fbfbf7
 
     >.g-show-more
-      background-image linear-gradient(to bottom, #f6f6f6 0%, #fff 10px)
+      background-image linear-gradient(top, #f6f6f6 0%, #fff 10px)
 
     .g-list-checkbox
       font-size 16px

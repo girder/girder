@@ -169,6 +169,15 @@ describe('Create a data hierarchy', function () {
 
     it('upload a file into the current folder', function () {
         girderTest.testUpload('clients/web/test/testFile.txt');
+
+        waitsFor(function () {
+            return $('.g-child-count-container .g-item-count').text() === '1';
+        }, 'Item count to increment after upload.');
+
+        runs(function () {
+            expect($('.g-item-count').text()).toBe('1');
+            expect($('.g-subfolder-count').text()).toBe('0');
+        })
     });
 
     it('download the file', function () {

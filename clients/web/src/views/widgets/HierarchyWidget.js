@@ -231,7 +231,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.createItemDialog();
         }
 
-        this.fetchAndShowChildCount()
+        this.fetchAndShowChildCount();
 
         return this;
     },
