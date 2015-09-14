@@ -20,6 +20,13 @@ When you submit a PR to the Girder repo, Travis CI will run the full build on tw
 
 The Travis build will run according to the [.travis.yml file](/.travis.yml), which is useful as an example for how to set up your own environment for testing.  We are currently using containerized builds on Travis, and for each branch, will test against both Mongo v2.6.8 and Mongo v3.0.1.
 
+When submitting a PR, make sure to a `Cc: @girder/girder` comment to notify girder developers of your awesome contribution. Based on the
+comments posted by other Girder developers, you may have to revisit your patches.
+
+Next, to get your PR integrated, assuming all tests pass and consensus is reached, there are two scenarios:
+* You do NOT have push access: A girder core developer will integrate your request.
+* You have push access: Simply click on "Merge pull request" button.
+
 #### Confusing failing test message "AttributeError: 'module' object has no attribute 'x_test'"
 
 This is also a gotcha for your local testing environment.  If a new dependency is introduced during development, but is not in the test environment, usually because the dependency is not included in a `requirements.txt` or `requirements-dev.txt` file, or because those requirements are not installed via `pip`, a test can fail that attempts to import that dependency and can print a confusing message in the test logs like "AttributeError: 'module' object has no attribute 'x_test'".
