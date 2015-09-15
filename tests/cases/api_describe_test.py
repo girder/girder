@@ -86,7 +86,6 @@ class ModelResource(Resource):
                paramType='body')
 
 
-
 def setUpModule():
     server = base.startServer()
     server.root.api.v1.accesstest = DummyResource()
