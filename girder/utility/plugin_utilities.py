@@ -88,6 +88,22 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
     return root, appconf, apiRoot
 
 
+def getPluginParentDir(name, curConfig=None):
+    """
+    Finds the directory a plugin lives in and returns it. This throws
+    an exception if it can't find a directory named name in any of the
+    set plugin_directory paths.
+
+    :params name: The name of the plugin (i.e. its directory name)
+    :type name: str
+    """
+    for potentialParentDir in getPluginDirs(curConfig):
+        if os.path.exists(os.path.join(potentialParentDir, name)):
+            return potentialParentDir
+
+    raise Exception('Plugin directory %s does not exist' % name)
+
+
 def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     """
     Loads a plugin into the application. This means allowing it to create
@@ -103,7 +119,8 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if apiRoot is None:
         apiRoot = root.api.v1
 
-    pluginDir = os.path.join(getPluginDir(curConfig), name)
+    pluginParentDir = getPluginParentDir(name, curConfig)
+    pluginDir = os.path.join(pluginParentDir, name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
@@ -146,83 +163,129 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         return root, appconf, apiRoot
 
 
+def defaultPluginDir():
+    """
+    Determine what the default plugin directory should be.
+
+    This assumes none have been specified using the plugin_directory
+    and/or plugin_install_path option.
+    """
+    pluginDir = None
+
+    # It looks if there is a plugin directory next
+    # to the girder python package.  This is the case when running from the
+    # git repository.
+    if os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
+        pluginDir = os.path.join(ROOT_DIR, 'plugins')
+    # As a last resort, use plugins inside the girder python package.
+    # This is intended to occur when girder is pip installed.
+    else:
+        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
+
+    return pluginDir
+
+
+def getPluginDirs(curConfig=None):
+    """Return an ordered list of directories that plugins can live in."""
+    failedPluginDirs = set()
+
+    if curConfig is None:
+        curConfig = config.getConfig()
+
+    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
+        pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
+    else:
+        pluginDirs = [defaultPluginDir()]
+
+    for pluginDir in pluginDirs:
+        if not os.path.exists(pluginDir):
+            try:
+                os.makedirs(pluginDir)
+            except OSError:
+                if not os.path.exists(pluginDir):
+                    print(TerminalColor.warning(
+                        'Could not create plugin directory %s.' % pluginDir))
+
+                    failedPluginDirs.add(pluginDir)
+
+    return [dir for dir in pluginDirs if dir not in failedPluginDirs]
+
+
 def getPluginDir(curConfig=None):
     """
-    Returns the /path/to the currently configured plugin directory.
+    Return which directory plugins should be installed in.
+
+    First precedence is the plugin_install_path setting, next is
+    the first path specified in plugin_directory. If neither of those
+    can be resolved, resort to defaultPluginDir.
+
+    Returns a /path/to the directory plugins should be installed in.
     """
     if curConfig is None:
         curConfig = config.getConfig()
 
-    # This uses the plugin directory specified in the config first.
-    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        pluginsDir = curConfig['plugins']['plugin_directory']
+    pluginDirs = getPluginDirs(curConfig)
 
-    # If none is specified, it looks if there is a plugin directory next
-    # to the girder python package.  This is the case when running from the
-    # git repository.
-    elif os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
-        pluginsDir = os.path.join(ROOT_DIR, 'plugins')
-
-    # As a last resort, use plugins inside the girder python package.
-    # This is intended to occur when girder is pip installed.
+    if 'plugins' in curConfig and \
+       'plugin_install_path' in curConfig['plugins']:
+        pluginDir = curConfig['plugins']['plugin_install_path']
+    elif pluginDirs:
+        pluginDir = pluginDirs[0]
     else:
-        pluginsDir = os.path.join(PACKAGE_DIR, 'plugins')
-    if not os.path.exists(pluginsDir):
-        try:
-            os.makedirs(pluginsDir)
-        except OSError:
-            if not os.path.exists(pluginsDir):
-                print(TerminalColor.warning(
-                    'Could not create plugin directory.'))
-                pluginsDir = None
-    return pluginsDir
+        pluginDir = None
+
+    return pluginDir
 
 
 def findAllPlugins(curConfig=None):
     """
-    Walks the plugins directory to find all of the plugins. If the plugin has
+    Walks the plugins directories to find all of the plugins. If the plugin has
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
-    pluginsDir = getPluginDir(curConfig)
-    if not pluginsDir:
+    pluginDirs = getPluginDirs(curConfig)
+    if not pluginDirs:
         print(TerminalColor.warning('Plugin directory not found. No plugins '
               'loaded.'))
         return allPlugins
-    dirs = [dir for dir in os.listdir(pluginsDir) if os.path.isdir(
-            os.path.join(pluginsDir, dir))]
 
-    for plugin in dirs:
-        data = {}
-        configJson = os.path.join(pluginsDir, plugin, 'plugin.json')
-        configYml = os.path.join(pluginsDir, plugin, 'plugin.yml')
-        if os.path.isfile(configJson):
-            with open(configJson) as conf:
-                try:
-                    data = json.load(conf)
-                except ValueError as e:
-                    print(TerminalColor.error(
-                        'ERROR: Plugin "%s": plugin.json is not valid JSON.' %
-                        plugin))
-                    print(e)
-                    continue
-        elif os.path.isfile(configYml):
-            with open(configYml) as conf:
-                try:
-                    data = yaml.safe_load(conf)
-                except yaml.YAMLError as e:
-                    print(TerminalColor.error(
-                        'ERROR: Plugin "%s": plugin.yml is not valid YAML.' %
-                        plugin))
-                    print(e)
-                    continue
+    for pluginDir in pluginDirs:
+        dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(
+            os.path.join(pluginDir, dir))]
 
-        allPlugins[plugin] = {
-            'name': data.get('name', plugin),
-            'description': data.get('description', ''),
-            'version': data.get('version', ''),
-            'dependencies': set(data.get('dependencies', []))
-        }
+        for plugin in dirs:
+            data = {}
+            configJson = os.path.join(pluginDir, plugin, 'plugin.json')
+            configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
+            if os.path.isfile(configJson):
+                with open(configJson) as conf:
+                    try:
+                        data = json.load(conf)
+                    except ValueError as e:
+                        print(
+                            TerminalColor.error(
+                                ('ERROR: Plugin "%s": '
+                                 'plugin.json is not valid JSON.') % plugin))
+                        print(e)
+                        continue
+            elif os.path.isfile(configYml):
+                with open(configYml) as conf:
+                    try:
+                        data = yaml.safe_load(conf)
+                    except yaml.YAMLError as e:
+                        print(
+                            TerminalColor.error(
+                                ('ERROR: Plugin "%s": '
+                                 'plugin.yml is not valid YAML.') % plugin))
+                        print(e)
+                        continue
+
+            allPlugins[plugin] = {
+                'name': data.get('name', plugin),
+                'description': data.get('description', ''),
+                'version': data.get('version', ''),
+                'dependencies': set(data.get('dependencies', []))
+            }
 
     return allPlugins
 
