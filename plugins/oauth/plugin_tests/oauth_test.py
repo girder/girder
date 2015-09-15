@@ -247,6 +247,14 @@ class OauthTest(base.TestCase):
         self.assertEqual(newUser['firstName'], 'John')
         self.assertEqual(newUser['lastName'], 'Doe')
 
+        # Logging in as Oauth-only user should give reasonable error
+        resp = self.request('/user/authentication',
+                            basicAuth='anotheruser:mypassword')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], "You don't have a password. "
+                         'Please log in with Google or use the password reset '
+                         'link.')
+
         # Test receiving a bad status from google, make sure we show some
         # helpful output.
         errorContent = {'message': 'error'}
