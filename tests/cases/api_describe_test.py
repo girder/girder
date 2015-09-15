@@ -19,9 +19,8 @@
 
 from .. import base
 
-from girder.api import access, describe
+from girder.api import access, describe, docs
 from girder.api.rest import Resource
-from girder.api.docs import addModel
 
 OrderedRoutes = [
     ('GET', (), ''),
@@ -52,7 +51,7 @@ class DummyResource(Resource):
     handler.description = describe.Description('Does nothing')
 
 
-test_model = {
+testModel = {
     'id': 'Body',
     'require': 'bob',
     'properties': {
@@ -64,6 +63,13 @@ test_model = {
         }
     }
 }
+docs.addModel('Body', testModel, resources='model')
+
+globalModel = {
+    'id': 'Global',
+    'properties': {}
+}
+docs.addModel('Global', globalModel)
 
 
 class ModelResource(Resource):
@@ -75,11 +81,10 @@ class ModelResource(Resource):
     def hasModel(self, params):
         pass
 
-    addModel('model', 'Body', test_model)
-
     hasModel.description = describe.Description('What a model') \
         .param('body', 'Where its at!', dataType='Body', required=True,
                paramType='body')
+
 
 
 def setUpModule():
@@ -146,6 +151,14 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertEqual(listedRoutes, expectedRoutes)
 
     def testAddModel(self):
-        resp = self.request(path='/describe/model', method='GET')
+        resp = self.request(path='/describe/model')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['models'], {'Body': test_model})
+        self.assertEqual(resp.json['models'], {
+            'Body': testModel,
+            'Global': globalModel
+        })
+
+        resp = self.request(path='/describe/folder')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['models'],
+                         dict(Global=globalModel, **docs.models['folder']))

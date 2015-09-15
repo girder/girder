@@ -19,6 +19,8 @@
 
 import collections
 import functools
+import six
+from girder.constants import TerminalColor
 
 models = collections.defaultdict(dict)
 # routes is dict of dicts of lists
@@ -112,18 +114,21 @@ def removeRouteDocs(resource, route, method, info, handler):
                 del routes[resource]
 
 
-def addModel(resources, name, model):
+def addModel(name, model, resources=None, silent=False):
     """
     Add a model to the Swagger documentation.
 
     :param resources: The type(s) of resource(s) to add the model to. New
         resource types may be implicitly defined, with the expectation that
-        routes will be added for them at some point.
-    :param resources: str or tuple[str]
-    :param name: The name of the model(s).
+        routes will be added for them at some point. If no resources are
+        passed, the model will be exposed for every resource type
+    :param resources: str or tuple/list[str]
+    :param name: The name of the model.
     :type name: str
     :param model: The model to add.
     :type model: dict
+    :param silent: Set this to True to suppress warnings.
+    :type silent: bool
 
     .. warning:: This is a low-level API which does not validate the format of
        ``model``. See the `Swagger Model documentation`_ for a complete
@@ -137,7 +142,14 @@ def addModel(resources, name, model):
        swagger-spec/blob/d79c205485d702302003d4de2f2c980d1caf10f9/
        versions/1.2.md#527-model-object
     """
-    if isinstance(resources, str):
-        resources = (resources,)
-    for resource in resources:
-        models[resource][name] = model
+    if resources:
+        if isinstance(resources, six.string_types):
+            resources = (resources,)
+        for resource in resources:
+            models[resource][name] = model
+    else:
+        if not silent:
+            print(TerminalColor.warning(
+                'WARNING: adding swagger models without specifying resources '
+                'to bind to is discouraged (%s).' % name))
+        models[None][name] = model
