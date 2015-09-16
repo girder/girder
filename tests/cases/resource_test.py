@@ -650,5 +650,8 @@ class ResourceTestCase(base.TestCase):
                 '\u0644\u0645\u0644\u0641 \u0628\u0627\u0644\u0644\u063a'
                 '\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629'):
             pass
+        # Test filename with a null
+        for data in zip.addFile(genEmptyFile(100), 'with\x00null'):
+            pass
         footer = zip.footer()
         self.assertEqual(footer[-6:], b'\xFF\xFF\xFF\xFF\x00\x00')

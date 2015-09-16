@@ -72,13 +72,14 @@ class ZipInfo(object):
     def __init__(self, filename, timestamp):
         # Terminate the file name at the first null byte.  Null bytes in file
         # names are used as tricks by viruses in archives.
-        nullByte = filename.find(chr(0))
-        if nullByte >= 0:
-            filename = filename[0:nullByte]
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
         if isinstance(filename, six.text_type):
             filename = filename.encode('utf8')
+        # Escaping or locale conversion should go here
+        nullByte = filename.find(b'\x00')
+        if nullByte >= 0:
+            filename = filename[0:nullByte]
         self.filename = filename
         self.timestamp = timestamp
         self.compressType = STORE
@@ -131,7 +132,7 @@ class ZipGenerator(object):
         self.files = []
         self.compression = compression
         self.useCRC = True
-        self.rootPath = str(rootPath)
+        self.rootPath = rootPath
         self.offset = 0
 
     def _advanceOffset(self, data):
@@ -151,8 +152,6 @@ class ZipGenerator(object):
         :type path: str
         """
         fullpath = os.path.join(self.rootPath, path)
-        if isinstance(fullpath, six.text_type):
-            fullpath = fullpath.encode('utf8')
         header = ZipInfo(fullpath, time.localtime()[0:6])
         header.externalAttr = (0o100644 & 0xFFFF) << 16
         header.compressType = self.compression
