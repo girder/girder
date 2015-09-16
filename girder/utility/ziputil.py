@@ -77,8 +77,9 @@ class ZipInfo(object):
             filename = filename[0:nullByte]
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
-
-        self.filename = filename.encode('utf8')
+        if isinstance(filename, six.text_type):
+            filename = filename.encode('utf8')
+        self.filename = filename
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
@@ -149,8 +150,10 @@ class ZipGenerator(object):
         :param path: The path within the archive for this entry.
         :type path: str
         """
-        header = ZipInfo(os.path.join(self.rootPath, str(path)),
-                         time.localtime()[0:6])
+        fullpath = os.path.join(self.rootPath, path)
+        if isinstance(fullpath, six.text_type):
+            fullpath = fullpath.encode('utf8')
+        header = ZipInfo(fullpath, time.localtime()[0:6])
         header.externalAttr = (0o100644 & 0xFFFF) << 16
         header.compressType = self.compression
         header.headerOffset = self.offset
@@ -214,7 +217,7 @@ class ZipGenerator(object):
 
             if header.headerOffset > Z64_LIMIT:
                 extra.append(header.headerOffset)
-                headerOffset = -1
+                headerOffset = 0xffffffff
             else:
                 headerOffset = header.headerOffset
 
