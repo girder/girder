@@ -19,9 +19,10 @@
 
 import httmock
 import json
+import re
 import six
 
-from girder.constants import SettingKey
+from girder.constants import SettingKey, TokenScope
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
 from six.moves import urllib
@@ -278,6 +279,47 @@ class OauthTest(base.TestCase):
                 resp.json['message'],
                 'Got 403 from https://accounts.google.com/o/oauth2/token, '
                 'response="{"message": "error"}".')
+
+        # Reset password as oauth user should work
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+        resp = self.request(path='/user/password/temporary', method='PUT',
+                            params={'email': email})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail()
+
+        # Pull out the auto-generated token from the email
+        search = re.search('<a href="(.*)">', msg)
+        link = search.group(1)
+        linkParts = link.split('/')
+        userId = linkParts[-3]
+        tokenId = linkParts[-1]
+
+        path = '/user/password/temporary/' + str(newUser['_id'])
+        resp = self.request(path=path, method='GET', params={'token': tokenId})
+        self.assertStatusOk(resp)
+        user = resp.json['user']
+
+        self.assertTrue('girderToken' in resp.cookie)
+        authToken = resp.cookie['girderToken'].value
+        token = self.model('token').load(authToken, force=True, objectId=False)
+        self.assertEqual(token['userId'], newUser['_id'])
+        self.assertTrue(self.model('token').hasScope(token, [
+            TokenScope.USER_AUTH,
+            TokenScope.TEMPORARY_USER_AUTH
+        ]))
+
+        # We should now be able to change the password
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': tokenId,
+            'new': 'mypasswd'
+        }, user=user)
+        self.assertStatusOk(resp)
+
+        # The temp token should get deleted on password change
+        token = self.model('token').load(authToken, force=True, objectId=False)
+        self.assertEqual(token, None)
 
     def _createCsrfCookie(self, cookie):
         info = json.loads(cookie['oauthLogin'].value)

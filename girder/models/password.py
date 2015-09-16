@@ -78,6 +78,18 @@ class Password(Model):
 
         return doc
 
+    def hasPassword(self, user):
+        """
+        Returns whether or not the given user has a password stored in the
+        database. If not, it is expected that the user will be authenticated by
+        an external service.
+
+        :param user: The user to test.
+        :type user: dict
+        :returns: bool
+        """
+        return 'hashAlg' in user
+
     def authenticate(self, user, password):
         """
         Authenticate a user.
@@ -88,7 +100,7 @@ class Password(Model):
         :type password: str
         :returns: Whether authentication succeeded (bool).
         """
-        if 'hashAlg' not in user:
+        if not self.hasPassword(user):
             e = events.trigger('no_password_login_attempt', {
                 'user': user,
                 'password': password
