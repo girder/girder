@@ -549,10 +549,6 @@ class UserTestCase(base.TestCase):
         }, user=user)
         self.assertStatusOk(resp)
 
-        # The token should have been deleted
-        token = self.model('token').load(tokenId, force=True, objectId=False)
-        self.assertEqual(token, None)
-
         # Generate an email with a forwarded header
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(

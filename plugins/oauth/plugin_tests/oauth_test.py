@@ -317,10 +317,6 @@ class OauthTest(base.TestCase):
         }, user=user)
         self.assertStatusOk(resp)
 
-        # The temp token should get deleted on password change
-        token = self.model('token').load(authToken, force=True, objectId=False)
-        self.assertEqual(token, None)
-
     def _createCsrfCookie(self, cookie):
         info = json.loads(cookie['oauthLogin'].value)
         return 'oauthLogin="{}"'.format(json.dumps({

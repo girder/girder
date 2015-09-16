@@ -273,8 +273,6 @@ class User(Resource):
                     not self.model('token').hasScope(
                         token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise RestException('Old password is incorrect.', code=403)
-            else:
-                self.model('token').remove(token)
 
         self.model('user').setPassword(user, params['new'])
         return {'message': 'Password changed.'}
