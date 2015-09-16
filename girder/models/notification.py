@@ -66,7 +66,7 @@ class Notification(Model):
         :param user: User to send the notification to.
         :type user: dict
         :param expires: Expiration date (for transient notifications).
-        :type expires: datetime
+        :type expires: datetime.datetime
         :param token: Set this if the notification should correspond to a token
             instead of a user.
         :type token: dict
@@ -141,22 +141,23 @@ class Notification(Model):
         :param record: The existing progress record to update.
         :type record: dict
         :param total: Some numeric value representing the total task length. By
-        convention, setting this <= 0 means progress on this task is
-        indeterminate. Generally this shouldn't change except in cases where
-        progress on a task switches between indeterminate and determinate state.
+            convention, setting this <= 0 means progress on this task is
+            indeterminate. Generally this shouldn't change except in cases where
+            progress on a task switches between indeterminate and determinate
+            state.
         :type total: int, long, or float
         :param state: Represents the state of the underlying task execution.
         :type state: ProgressState enum value.
         :param current: Some numeric value representing the current progress
-        of the task (relative to total).
+            of the task (relative to total).
         :type current: int, long, or float
         :param increment: Amount to increment the progress by. Don't pass both
-        current and increment together, as that behavior is undefined.
+            current and increment together, as that behavior is undefined.
         :type increment: int, long, or float
         :param message: Message corresponding to the current state of the task.
         :type message: str
         :param expires: Set a custom (UTC) expiration time on the record.
-        Default is one hour from the current time.
+            Default is one hour from the current time.
         :type expires: datetime
         :param save: Whether to save the record to the database.
         :type save: bool
@@ -164,7 +165,7 @@ class Notification(Model):
         if 'increment' in kwargs:
             record['data']['current'] += kwargs['increment']
 
-        for field, value in six.iteritems(kwargs):
+        for field, value in six.viewitems(kwargs):
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 

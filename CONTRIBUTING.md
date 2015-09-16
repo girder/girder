@@ -13,6 +13,45 @@ We encourage a range of Pull Requests, from patches that include passing tests a
 The PR Process, Travis CI, and Related Gotchas
 ----------------------------------------------
 
+#### How to submit a PR ?
+
+If you are new to Girder development and you don't have a push access to the Girder
+repository, here are the steps:
+
+1. [Fork and clone](https://help.github.com/articles/fork-a-repo/) the repository.
+3. Create a branch.
+4. [Push](https://help.github.com/articles/pushing-to-a-remote/) the branch to your GitHub fork.
+5. Create a [Pull Request](https://github.com/girder/girder/pulls).
+
+This corresponds to the `Fork & Pull Model` mentioned in the [GitHub flow](https://guides.github.com/introduction/flow/index.html)
+guides.
+
+If you have push access to Girder repository, you could simply push your branch
+into the main repository and create you Pull Request. This corresponds to the
+`Shared Repository Model`. This will facilitate other developer to checkout your
+topic without having to [configure a remote](https://help.github.com/articles/configuring-a-remote-for-a-fork/).
+It will also simplify the workflow when you are _co-developing_ a branch.
+
+When submitting a PR, make sure to a `Cc: @girder/girder` comment to notify girder developers of your awesome contributions. Based on the
+comments posted by the reviewers, you may have to revisit your patches.
+
+### How to integrate a PR ?
+
+Getting your contributions integrated is relatively straightforward, here
+is the checklist:
+
+* All tests pass
+* Consensus is reached. This basically mean that the reviewers add `LGTM` comments. `LGTM` is a
+shortcut for _Looks Good to Me_.
+
+Next, there are two scenarios:
+* You do NOT have push access: A girder core developer will integrate your request.
+* You have push access: Simply click on "Merge pull request" button.
+
+Then, click on the "Delete branch" button that appears afterward.
+
+#### Automatic testing of pull requests
+
 When you submit a PR to the Girder repo, Travis CI will run the full build on two different branches
 
   * The commit at the head of the PR branch, the `push` build

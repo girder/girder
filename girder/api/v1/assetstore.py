@@ -101,7 +101,7 @@ class Assetstore(Resource):
         .responseClass('Assetstore')
         .notes('You must be an administrator to call this.')
         .param('name', 'Unique name for the assetstore.')
-        .param('type', 'Type of the assetstore.', dataType='integer')
+        .param('type', 'Type of the assetstore.')
         .param('root', 'Root path on disk (for filesystem type).',
                required=False)
         .param('db', 'Database name (for GridFS type)', required=False)

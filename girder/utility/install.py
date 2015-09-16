@@ -46,7 +46,7 @@ def fix_path(path):
     Get an absolute path (while expanding ~).
 
     :param str path: a filesystem path
-    :return: an absolute path
+    :returns: an absolute path
     :rtype: str
     """
     # first expand ~

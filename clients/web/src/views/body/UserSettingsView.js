@@ -61,6 +61,9 @@ girder.views.UserAccountView = girder.View.extend({
                         this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
                     }, this);
 
+            // here and in the template, an admin user who wants to change their
+            //   own password is intentionally forced to re-enter their old
+            //   password
             if (this.isCurrentUser) {
                 this.user.changePassword(
                     this.$('#g-password-old').val(),

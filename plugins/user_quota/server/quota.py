@@ -39,9 +39,11 @@ def ValidateSizeQuota(value):
     """
     Validate a quota value.  This may be blank or a non-negative integer.
 
-    :param value: the proposed value.
-    :return value: the validated value: either None or an integer
-    :return: None if no error occurred, otherwise a recommended error message.
+    :param value: The proposed value.
+    :type value: int
+    :returns: The validated value or None,
+              and a recommended error message or None.
+    :rtype: (int or None, str or None)
     """
     if value is None or value == '' or value == 0:
         return None, None
@@ -68,7 +70,7 @@ class QuotaPolicy(Resource):
 
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
-        :return: filtered field of the resource with the quota data, if any.
+        :returns: filtered field of the resource with the quota data, if any.
         """
         filtered = self.model(model).filter(resource, self.getCurrentUser())
         filtered[QUOTA_FIELD] = resource.get(QUOTA_FIELD, {})
@@ -81,7 +83,7 @@ class QuotaPolicy(Resource):
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
         :param params: the query parameters.  'policy' is required and used.
-        :return: the updated resource document.
+        :returns: the updated resource document.
         """
         self.requireParams(('policy', ), params)
         policy = self._validatePolicy(params['policy'])
@@ -265,7 +267,7 @@ class QuotaPolicy(Resource):
         :param model: the initial model type.  Could be file, item, folder,
                       user, or collection.
         :param resource: the initial resource document.
-        :return: A pair ('model', 'resource'), where 'model' is the base model
+        :returns: A pair ('model', 'resource'), where 'model' is the base model
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
@@ -325,7 +327,7 @@ class QuotaPolicy(Resource):
 
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
-        :return: the fileSizeQuota.  None for no quota (unlimited), otherwise
+        :returns: the fileSizeQuota.  None for no quota (unlimited), otherwise
                  a positive integer.
         """
         useDefault = resource[QUOTA_FIELD].get('useQuotaDefault', True)

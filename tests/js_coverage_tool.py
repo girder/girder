@@ -72,9 +72,9 @@ def combine_report(args):
         'totalHits': 0,
         'files': {}
     }
-    for file, lines in six.iteritems(combined):
+    for file, lines in six.viewitems(combined):
         hits, sloc = 0, 0
-        for lineNum, hit in six.iteritems(lines):
+        for lineNum, hit in six.viewitems(lines):
             sloc += 1
             hits += hit
 
@@ -113,7 +113,7 @@ def report(args, combined, stats):
     })
     classesEl = ET.SubElement(packageEl, 'classes')
 
-    for file, data in six.iteritems(combined):
+    for file, data in six.viewitems(combined):
         lineRate = (float(stats['files'][file]['hits']) /
                     float(stats['files'][file]['sloc']))
         classEl = ET.SubElement(classesEl, 'class', {
@@ -125,7 +125,7 @@ def report(args, combined, stats):
         })
         linesEl = ET.SubElement(classEl, 'lines')
         ET.SubElement(classEl, 'methods')
-        for lineNum, hit in six.iteritems(data):
+        for lineNum, hit in six.viewitems(data):
             ET.SubElement(linesEl, 'line', {
                 'number': str(lineNum),
                 'hits': str(hit)

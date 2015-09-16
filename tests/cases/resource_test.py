@@ -350,6 +350,89 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.file1['_id']))
 
+    def testGetResourceByPath(self):
+        self._createFiles()
+
+        # test users
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path': '/user/goodlogin'})
+
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/userlogin'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.user['_id']))
+
+        # test collections
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/collection/Test Collection'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.collection['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path':
+                                    '/collection/Test Collection/' +
+                                    self.collectionPrivateFolder['name']})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']),
+                         str(self.collectionPrivateFolder['_id']))
+
+        # test folders
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/goodlogin/Public'})
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            str(resp.json['_id']), str(self.adminPublicFolder['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/goodlogin/Private'})
+        self.assertStatus(resp, 403)
+
+        # test subfolders
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path': '/user/goodlogin/Public/Folder 1'})
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            str(resp.json['_id']), str(self.adminSubFolder['_id']))
+
+        # test items
+        privateFolder = self.collectionPrivateFolder['name']
+        paths = ('/user/goodlogin/Public/Item 1',
+                 '/user/goodlogin/Public/Item 2',
+                 '/user/goodlogin/Public/Folder 1/Item 3',
+                 '/collection/Test Collection/%s/Item 4' % privateFolder,
+                 '/collection/Test Collection/%s/Item 5' % privateFolder)
+
+        users = (self.user,
+                 self.user,
+                 self.user,
+                 self.admin,
+                 self.admin)
+
+        for path, item, user in zip(paths, self.items, users):
+            resp = self.request(path='/resource/lookup',
+                                method='GET', user=user,
+                                params={'path': path})
+
+            self.assertStatusOk(resp)
+            self.assertEqual(
+                str(resp.json['_id']), str(item['_id']))
+
+        # test bogus path
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/bogus/path'})
+        self.assertStatus(resp, 400)
+
     def testMove(self):
         self._createFiles()
         # Move item1 from the public to the private folder

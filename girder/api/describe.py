@@ -336,13 +336,13 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'basePath': getApiUrl(),
-            'models': docs.models,
+            'models': dict(docs.models[resource], **docs.models[None]),
             'apis': [{
                 'path': route,
                 'operations': sorted(
                     op, key=functools.cmp_to_key(self._compareOperations))
                 } for route, op in sorted(
-                    six.iteritems(docs.routes[resource]),
+                    six.viewitems(docs.routes[resource]),
                     key=functools.cmp_to_key(self._compareRoutes))
             ]
         }
