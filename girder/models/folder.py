@@ -547,9 +547,7 @@ class Folder(AccessControlledModel):
         """
         Returns the number of items within the given folder.
         """
-        return self.model('item').find({
-            'folderId': folder['_id']
-        }, fields=()).count()
+        return self.childItems(folder, fields=()).count()
 
     def countFolders(self, folder, user=None, level=None):
         """
