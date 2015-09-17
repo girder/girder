@@ -343,8 +343,10 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (this.parentModel.resourceName === 'folder') {
             var showCounts = _.bind(function () {
                 this.$('.g-child-count-container').removeClass('hide');
-                this.$('.g-subfolder-count').text(this.parentModel.get('nFolders'));
-                this.$('.g-item-count').text(this.parentModel.get('nItems'));
+                this.$('.g-subfolder-count').text(
+                    girder.formatCount(this.parentModel.get('nFolders')));
+                this.$('.g-item-count').text(
+                    girder.formatCount(this.parentModel.get('nItems')));
             }, this);
 
             if (this.parentModel.has('nItems')) {
@@ -463,7 +465,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(function () {
-                    if (items.length && view.parentModel.has('nItems')) {
+                    if (items && items.length && view.parentModel.has('nItems')) {
                         view.parentModel.increment('nItems', -items.length);
                     }
                     if (folders.length && view.parentModel.has('nFolders')) {
