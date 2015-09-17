@@ -252,7 +252,7 @@ class OauthTest(base.TestCase):
         resp = self.request('/user/authentication',
                             basicAuth='anotheruser:mypassword')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "You don't have a password. "
+        self.assertEqual(resp.json['message'], 'You don\'t have a password. '
                          'Please log in with Google or use the password reset '
                          'link.')
 
@@ -285,7 +285,7 @@ class OauthTest(base.TestCase):
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': email})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail()
 
@@ -319,7 +319,7 @@ class OauthTest(base.TestCase):
 
     def _createCsrfCookie(self, cookie):
         info = json.loads(cookie['oauthLogin'].value)
-        return 'oauthLogin="{}"'.format(json.dumps({
+        return 'oauthLogin="%s"' % json.dumps({
             'redirect': info['redirect'],
             'token': info['token'],
-        }).replace('"', "\\\""))
+        }).replace('"', r'\"')
