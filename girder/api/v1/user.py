@@ -264,7 +264,8 @@ class User(Resource):
         if not params['old']:
             raise RestException('Old password must not be empty.')
 
-        if not self.model('password').authenticate(user, params['old']):
+        if (not self.model('password').hasPassword(user) or
+                not self.model('password').authenticate(user, params['old'])):
             token = self.model('token').load(
                 params['old'], force=True, objectId=False, exc=False)
             if (not token or not token.get('userId', None) or

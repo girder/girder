@@ -22,6 +22,7 @@ import hashlib
 import re
 import six
 
+from girder import events
 from girder.utility import config
 from .model_base import Model, ValidationException
 from .token import genToken
@@ -77,6 +78,18 @@ class Password(Model):
 
         return doc
 
+    def hasPassword(self, user):
+        """
+        Returns whether or not the given user has a password stored in the
+        database. If not, it is expected that the user will be authenticated by
+        an external service.
+
+        :param user: The user to test.
+        :type user: dict
+        :returns: bool
+        """
+        return 'hashAlg' in user
+
     def authenticate(self, user, password):
         """
         Authenticate a user.
@@ -87,6 +100,19 @@ class Password(Model):
         :type password: str
         :returns: Whether authentication succeeded (bool).
         """
+        if not self.hasPassword(user):
+            e = events.trigger('no_password_login_attempt', {
+                'user': user,
+                'password': password
+            })
+
+            if len(e.responses):
+                return e.responses[-1]
+
+            raise ValidationException(
+                'This user does not have a password. You must log in with an '
+                'external service, or reset your password.')
+
         hash = self._digest(salt=user['salt'], alg=user['hashAlg'],
                             password=password)
 
