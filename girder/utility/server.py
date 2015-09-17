@@ -86,7 +86,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'api_static_root': '../static'
         }})
 
-    mode = curConfig['server']['mode']
+    mode = curConfig['server']['mode'].lower()
     print(constants.TerminalColor.info('Running in mode: ' + mode))
     cherrypy.config['engine.autoreload.on'] = mode == 'development'
 
