@@ -7,6 +7,21 @@ girder.Model = Backbone.Model.extend({
     idAttribute: '_id',
 
     /**
+     * Convenience method for incrementing numeric properties.
+     * @param {string} attr The attribute to increment.
+     * @param {number} [amount] The amount to increment by. Defaults to 1.
+     */
+    increment: function (attr, amount) {
+        if (amount === undefined) {
+            amount = 1;
+        }
+        if (!amount) {
+            return;
+        }
+        return this.set(attr, this.get(attr) + amount);
+    },
+
+    /**
      * Get the name for this resource. By default, just the name attribute.
      */
     name: function () {
