@@ -78,7 +78,7 @@ girder.formatCount = function (n, opts) {
         maxLen = opts.maxLen || 3,
         precision = maxLen - 1;
 
-    for(; n > base; i += 1) {
+    for (; n > base; i += 1) {
         n /= base;
     }
 
