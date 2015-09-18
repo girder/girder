@@ -403,7 +403,7 @@ describe('Create a data hierarchy', function () {
             $('a.g-copy-picked').click();
         });
         waitsFor(function () {
-            return $('.g-task-progress-title').text() === 'Copying resources';
+            return $('.g-task-progress-title').text().indexOf('Copying resources') !== -1;
         }, 'progress to be shown');
         waitsFor(function () {
             return $('.g-list-checkbox').length === 12;

@@ -798,10 +798,24 @@ class AccessControlledModel(Model):
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
+
+        # Ensure we load access and public, these are needed by requireAccess
+        loadFields = None
+        if not force and fields:
+            loadFields = list(set(fields) | {'access', 'public'})
+
+        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields,
+                         exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
+
+            if fields is not None:
+                if 'access' not in fields:
+                    del doc['access']
+
+                if 'public' not in fields:
+                    del doc['public']
 
         return doc
 

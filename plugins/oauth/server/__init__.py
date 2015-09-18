@@ -37,6 +37,19 @@ def validateSettings(event):
         event.preventDefault().stopPropagation()
 
 
+def checkOauthUser(event):
+    """
+    If an OAuth user without a password tries to log in with a password, we
+    want to give them a useful error message.
+    """
+    user = event.info['user']
+    if 'oauth' in user:
+        raise ValidationException(
+            'You don\'t have a password. Please log in with %s or use the '
+            'password reset link.' % user['oauth'].get('provider', 'OAuth'))
+
+
 def load(info):
     events.bind('model.setting.validate', 'oauth', validateSettings)
+    events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
     info['apiRoot'].oauth = rest.OAuth()
