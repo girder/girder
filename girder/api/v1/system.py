@@ -241,7 +241,7 @@ class System(Resource):
             try:
                 self.model('upload').cancelUpload(upload)
             except OSError as exc:
-                if exc[0] in (errno.EACCES,):
+                if exc.errno == errno.EACCES:
                     raise GirderException(
                         'Failed to delete upload.',
                         'girder.api.v1.system.delete-upload-failed')

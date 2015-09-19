@@ -79,7 +79,7 @@ class UserTestCase(base.TestCase):
         }
         # First test all of the required parameters.
         self.ensureRequiredParams(
-            path='/user', method='POST', required=params.keys())
+            path='/user', method='POST', required=six.viewkeys(params))
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)
@@ -533,12 +533,7 @@ class UserTestCase(base.TestCase):
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         user = resp.json['user']
-        # We should now be able to change the password
-        resp = self.request(path='/user/password', method='PUT', params={
-            'old': tokenId,
-            'new': 'another_password'
-        }, user=user)
-        self.assertStatusOk(resp)
+
         # Artificially adjust the token to have expired.
         token = self.model('token').load(tokenId, force=True, objectId=False)
         token['expires'] = (datetime.datetime.utcnow() -
@@ -546,6 +541,14 @@ class UserTestCase(base.TestCase):
         self.model('token').save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatus(resp, 403)
+
+        # We should now be able to change the password
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': tokenId,
+            'new': 'another_password'
+        }, user=user)
+        self.assertStatusOk(resp)
+
         # Generate an email with a forwarded header
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(

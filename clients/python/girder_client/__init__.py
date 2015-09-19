@@ -49,6 +49,12 @@ class AuthenticationError(RuntimeError):
     pass
 
 
+class IncorrectUploadLengthError(RuntimeError):
+    def __init__(self, message, upload=None):
+        RuntimeError.__init__(self, message)
+        self.upload = upload
+
+
 class HttpError(Exception):
     """
     Raised if the server returns an error status code from a request.
@@ -487,6 +493,78 @@ class GirderClient(object):
                 raise Exception('After uploading a file chunk, did'
                                 ' not receive object with _id. Got instead: ' +
                                 json.dumps(obj))
+
+    def uploadFile(self, parentId, stream, name, size, parentType='item',
+                   progressCallback=None):
+        """
+        Uploads a file into an item or folder.
+
+        :param parentId: The ID of the folder or item to upload into.
+        :type parentId: str
+        :param stream: Readable stream object.
+        :type stream: file-like
+        :param name: The name of the file to create.
+        :type name: str
+        :param size: The length of the file. This must be exactly equal to the
+            total number of bytes that will be read from ``stream``, otherwise
+            the upload will fail.
+        :type size: str
+        :param parentType: 'item' or 'folder'.
+        :type parentType: str
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
+        :type progressCallback: callable
+        :returns: The file that was created on the server.
+        """
+        obj = self.post('file', {
+            'parentType': parentType,
+            'parentId': parentId,
+            'name': name,
+            'size': size
+        })
+        if '_id' in obj:
+            uploadId = obj['_id']
+        else:
+            raise Exception(
+                'After creating an upload token for a new file, expected '
+                'an object with an id. Got instead: ' + json.dumps(obj))
+
+        offset = 0
+        while True:
+            data = stream.read(self.MAX_CHUNK_SIZE)
+
+            if not data:
+                break
+
+            params = {
+                'offset': offset,
+                'uploadId': uploadId
+            }
+            files = {
+                'chunk': data
+            }
+            obj = self.post('file/chunk', parameters=params, files=files)
+            offset += len(data)
+
+            if '_id' not in obj:
+                raise Exception('After uploading a file chunk, did'
+                                ' not receive object with _id. Got instead: ' +
+                                json.dumps(obj))
+
+            if callable(progressCallback):
+                progressCallback({
+                    'current': offset,
+                    'total': size
+                })
+
+        if offset != size:
+            self.delete('file/upload/' + uploadId)
+            raise IncorrectUploadLengthError(
+                'Expected upload to be %d bytes, but received %d.' % (
+                    size, offset), upload=obj)
+
+        return obj
 
     def addMetadataToItem(self, itemId, metadata):
         """

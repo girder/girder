@@ -164,7 +164,7 @@ class UploadTestCase(base.TestCase):
 
     def _testUpload(self):
         """Upload a file to the server and several partial files.  Test that we
-        can delete a partial upload but not a completed upload.  Test that was
+        can delete a partial upload but not a completed upload. Test that we
         can delete partial uploads that are older than a certain date."""
         completeUpload = self._uploadFile('complete_upload')
         # test uploading large files
@@ -187,7 +187,7 @@ class UploadTestCase(base.TestCase):
         foundUploads = resp.json
         self.assertEqual(len(foundUploads), len(partialUploads))
         # The user shouldn't be able to delete an upload
-        resp = self.request(path='/system/uploads', method='GET',
+        resp = self.request(path='/system/uploads', method='DELETE',
                             user=self.user,
                             params={'uploadId': partialUploads[0]['_id']})
         self.assertStatus(resp, 403)

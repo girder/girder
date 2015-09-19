@@ -350,6 +350,89 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.file1['_id']))
 
+    def testGetResourceByPath(self):
+        self._createFiles()
+
+        # test users
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path': '/user/goodlogin'})
+
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/userlogin'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.user['_id']))
+
+        # test collections
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/collection/Test Collection'})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']), str(self.collection['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path':
+                                    '/collection/Test Collection/' +
+                                    self.collectionPrivateFolder['name']})
+        self.assertStatusOk(resp)
+        self.assertEqual(str(resp.json['_id']),
+                         str(self.collectionPrivateFolder['_id']))
+
+        # test folders
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/goodlogin/Public'})
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            str(resp.json['_id']), str(self.adminPublicFolder['_id']))
+
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/user/goodlogin/Private'})
+        self.assertStatus(resp, 403)
+
+        # test subfolders
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.admin,
+                            params={'path': '/user/goodlogin/Public/Folder 1'})
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            str(resp.json['_id']), str(self.adminSubFolder['_id']))
+
+        # test items
+        privateFolder = self.collectionPrivateFolder['name']
+        paths = ('/user/goodlogin/Public/Item 1',
+                 '/user/goodlogin/Public/Item 2',
+                 '/user/goodlogin/Public/Folder 1/Item 3',
+                 '/collection/Test Collection/%s/Item 4' % privateFolder,
+                 '/collection/Test Collection/%s/Item 5' % privateFolder)
+
+        users = (self.user,
+                 self.user,
+                 self.user,
+                 self.admin,
+                 self.admin)
+
+        for path, item, user in zip(paths, self.items, users):
+            resp = self.request(path='/resource/lookup',
+                                method='GET', user=user,
+                                params={'path': path})
+
+            self.assertStatusOk(resp)
+            self.assertEqual(
+                str(resp.json['_id']), str(item['_id']))
+
+        # test bogus path
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/bogus/path'})
+        self.assertStatus(resp, 400)
+
     def testMove(self):
         self._createFiles()
         # Move item1 from the public to the private folder
@@ -541,7 +624,10 @@ class ResourceTestCase(base.TestCase):
 
             def genEmptyData():
                 for val in range(0, fileLength, chunkSize):
-                    yield chunk
+                    if fileLength - val < chunkSize:
+                        yield chunk[:fileLength - val]
+                    else:
+                        yield chunk
 
             return genEmptyData
 
@@ -552,6 +638,20 @@ class ResourceTestCase(base.TestCase):
         zip.useCRC = False
         for data in zip.addFile(
                 genEmptyFile(6 * 1024 * 1024 * 1024), 'bigfile'):
+            pass
+        # Add a second small file at the end to test some of the other Zip64
+        # code
+        for data in zip.addFile(genEmptyFile(100), 'smallfile'):
+            pass
+        # Test that we don't crash on Unicode file names
+        for data in zip.addFile(
+                genEmptyFile(100), u'\u0421\u0443\u043f\u0435\u0440-\u0440'
+                '\u0443\u0441\u0441\u043a\u0438, \u0627\u0633\u0645 \u0627'
+                '\u0644\u0645\u0644\u0641 \u0628\u0627\u0644\u0644\u063a'
+                '\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629'):
+            pass
+        # Test filename with a null
+        for data in zip.addFile(genEmptyFile(100), 'with\x00null'):
             pass
         footer = zip.footer()
         self.assertEqual(footer[-6:], b'\xFF\xFF\xFF\xFF\x00\x00')

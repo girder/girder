@@ -24,7 +24,7 @@ import six
 
 from girder.constants import VERSION
 from . import docs, access
-from .rest import Resource, RestException
+from .rest import Resource, RestException, getApiUrl
 
 """
 Whenever we add new return values or new options we should increment the
@@ -294,7 +294,7 @@ class Describe(Resource):
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
             'apis': [{'path': '/{}'.format(resource)}
-                     for resource in sorted(docs.discovery)]
+                     for resource in sorted(six.viewkeys(docs.routes))]
         }
 
     def _compareRoutes(self, routeOp1, routeOp2):
@@ -335,14 +335,14 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': '.',
-            'models': docs.models,
+            'basePath': getApiUrl(),
+            'models': dict(docs.models[resource], **docs.models[None]),
             'apis': [{
                 'path': route,
                 'operations': sorted(
                     op, key=functools.cmp_to_key(self._compareOperations))
                 } for route, op in sorted(
-                    six.iteritems(docs.routes[resource]),
+                    six.viewitems(docs.routes[resource]),
                     key=functools.cmp_to_key(self._compareRoutes))
             ]
         }

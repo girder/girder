@@ -20,6 +20,7 @@
 import json
 import os
 import time
+import six
 
 from subprocess import check_output, CalledProcessError
 
@@ -190,7 +191,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},
         }
-        allKeys = dict.fromkeys(SettingDefault.defaults.keys())
+        allKeys = dict.fromkeys(six.viewkeys(SettingDefault.defaults))
         allKeys.update(badValues)
         for key in allKeys:
             resp = self.request(path='/system/setting', method='PUT', params={
@@ -217,10 +218,12 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
-        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                  'test_plugins')
+        pluginRoots = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_plugins'),
+                       os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_additional_plugins')]
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': pluginRoot}
+        conf['plugins'] = {'plugin_directory': ':'.join(pluginRoots)}
 
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
@@ -231,8 +234,9 @@ class SystemTestCase(base.TestCase):
             params={'plugins': '["has_deps"]'})
         self.assertStatusOk(resp)
         enabled = resp.json['value']
-        self.assertEqual(len(enabled), 2)
+        self.assertEqual(len(enabled), 3)
         self.assertTrue('test_plugin' in enabled)
+        self.assertTrue('does_nothing' in enabled)
 
     def testBadPlugin(self):
         pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
