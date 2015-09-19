@@ -94,7 +94,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
         });
 
         this.searchWidget = new girder.views.SearchFieldWidget({
-            el: this.$('#g-collection-create-policy-container .g-search-container'),
+            el: this.$('.g-collection-create-policy-container .g-search-container'),
             parentView: this,
             types: ['user', 'group'],
             placeholder: 'Add a user or group...',
