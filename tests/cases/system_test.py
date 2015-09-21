@@ -300,3 +300,42 @@ class SystemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         # tests that check repair of different models are convered in the
         # individual models' tests
+
+    def testLogRoute(self):
+        logRoot = os.path.join(ROOT_DIR, 'tests', 'cases', 'dummylogs')
+        config.getConfig()['logging'] = {'log_root': logRoot}
+
+        resp = self.request(path='/system/log', user=self.users[1], params={
+            'log': 'error',
+            'bytes': 0
+        })
+        self.assertStatus(resp, 403)
+
+        resp = self.request(path='/system/log', user=self.users[0], params={
+            'log': 'error',
+            'bytes': 0
+        }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            self.getBody(resp),
+            '=== Last 12 bytes of %s/error.log: ===\n\nHello world\n' % logRoot)
+
+        resp = self.request(path='/system/log', user=self.users[0], params={
+            'log': 'error',
+            'bytes': 6
+        }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            self.getBody(resp),
+            '=== Last 6 bytes of %s/error.log: ===\n\nworld\n' % logRoot)
+
+        resp = self.request(path='/system/log', user=self.users[0], params={
+            'log': 'info',
+            'bytes': 6
+        }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            self.getBody(resp),
+            '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
+
+        del config.getConfig()['logging']
