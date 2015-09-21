@@ -392,7 +392,7 @@ class System(Resource):
                 min(length, filesize), path
             )
 
-            with open(path) as f:
+            with open(path, 'rb') as f:
                 if length < filesize:
                     f.seek(-length, os.SEEK_END)
                 while True:
