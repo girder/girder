@@ -56,6 +56,23 @@ class LogFormatter(logging.Formatter):
             logging.Formatter.formatException(self, exc), info)
 
 
+def getLogPaths():
+    """
+    Return the paths to the error and info log files. These are returned as
+    a dict with "error" and "info" keys that point to the respective file,
+    as well as a "root" key pointing to the log root directory.
+    """
+    cfg = config.getConfig()
+    logCfg = cfg.get('logging', {})
+    root = os.path.expanduser(logCfg.get('log_root', LOG_ROOT))
+
+    return {
+        'root': root,
+        'error': logCfg.get('error_log_file', os.path.join(root, 'error.log')),
+        'info': logCfg.get('info_log_file', os.path.join(root, 'info.log'))
+    }
+
+
 def _setupLogger():
     """
     Sets up the girder logger.
@@ -63,34 +80,27 @@ def _setupLogger():
     logger = logging.getLogger('girder')
     logger.setLevel(logging.DEBUG)
 
-    # Determine log paths
-    cur_config = config.getConfig()
-    log_config = cur_config.get('logging', {})
-    log_root = os.path.expanduser(log_config.get('log_root', LOG_ROOT))
-    error_log_file = log_config.get('error_log_file',
-                                    os.path.join(log_root, 'error.log'))
-    info_log_file = log_config.get('info_log_file',
-                                   os.path.join(log_root, 'info.log'))
+    logPaths = getLogPaths()
 
     # Ensure log paths are valid
-    log_directories = [log_root,
-                       os.path.dirname(info_log_file),
-                       os.path.dirname(error_log_file)]
-    for log_dir in log_directories:
+    logDirs = [
+        logPaths['root'],
+        os.path.dirname(logPaths['info']),
+        os.path.dirname(logPaths['error'])
+    ]
+    for logDir in logDirs:
         try:
-            os.makedirs(log_dir)
+            os.makedirs(logDir)
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
 
     eh = logging.handlers.RotatingFileHandler(
-        error_log_file, maxBytes=MAX_LOG_SIZE,
-        backupCount=LOG_BACKUP_COUNT)
+        logPaths['error'], maxBytes=MAX_LOG_SIZE, backupCount=LOG_BACKUP_COUNT)
     eh.setLevel(logging.WARNING)
     eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
     ih = logging.handlers.RotatingFileHandler(
-        info_log_file, maxBytes=MAX_LOG_SIZE,
-        backupCount=LOG_BACKUP_COUNT)
+        logPaths['info'], maxBytes=MAX_LOG_SIZE, backupCount=LOG_BACKUP_COUNT)
     ih.setLevel(logging.INFO)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
 
