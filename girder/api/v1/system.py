@@ -20,8 +20,10 @@
 import cherrypy.process.plugins
 import datetime
 import errno
+import girder
 import json
 import six
+import os
 
 from girder.api import access
 from girder.constants import SettingKey, VERSION
@@ -33,6 +35,7 @@ from ..describe import API_VERSION, Description
 from ..rest import Resource, RestException
 
 ModuleStartTime = datetime.datetime.utcnow()
+LOG_BUF_SIZE = 65536
 
 
 class System(Resource):
@@ -52,6 +55,7 @@ class System(Resource):
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
+        self.route('GET', ('log',), self.getLog)
 
     @access.admin
     def setSetting(self, params):
@@ -372,4 +376,38 @@ class System(Resource):
                and corrects some issues, such as incorrect folder sizes.""")
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
+        .errorResponse('You are not a system administrator.', 403))
+
+    @access.admin
+    def getLog(self, params):
+        self.requireParams(['log', 'bytes'], params)
+        if params['log'] not in ('error', 'info'):
+            raise RestException('Log should be "error" or "info".')
+
+        path = girder.getLogPaths()[params['log']]
+        filesize = os.path.getsize(path)
+        length = int(params['bytes']) or filesize
+
+        def stream():
+            yield '=== Last %d bytes of %s: ===\n\n' % (
+                min(length, filesize), path
+            )
+
+            with open(path, 'rb') as f:
+                if length < filesize:
+                    f.seek(-length, os.SEEK_END)
+                while True:
+                    data = f.read(LOG_BUF_SIZE)
+                    if not data:
+                        break
+                    yield data
+        return stream
+    getLog.description = (
+        Description('Show the most recent contents of the server logs.')
+        .notes('Must be a system administrator to call this.')
+        .param('bytes', 'Controls how many bytes (from the end of the log) '
+               'to show. Pass 0 to show the whole log.', dataType='integer',
+               default=4096)
+        .param('log', 'Which log to tail.', enum=['error', 'info'],
+               default='error')
         .errorResponse('You are not a system administrator.', 403))
