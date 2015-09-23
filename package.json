@@ -37,7 +37,7 @@
     "argv" : "0.0.2",
     "jshint": "2.5.5",
     "comment-json" : "0.1.11",
-    "phantomjs": "1.9.9",
+    "phantomjs": "1.9.18",
     "phantomjs-polyfill": "0.0.1",
     "blanket": "1.1.6",
     "jscs": "1.6.1"

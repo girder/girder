@@ -23,7 +23,7 @@ before_install:
 
     - mongod --version
     - pushd "${HOME}"
-    - curl "http://www.cmake.org/files/v3.1/cmake-3.1.0-Linux-x86_64.tar.gz" | gunzip -c | tar x
+    - curl -L "http://cmake.org/files/v3.1/cmake-3.1.0-Linux-x86_64.tar.gz" | gunzip -c | tar x
     - cd cmake-*/bin && export PATH="${PWD}:${PATH}"
     - popd
     - cmake --version
