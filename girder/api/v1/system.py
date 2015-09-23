@@ -35,6 +35,7 @@ from ..describe import API_VERSION, Description
 from ..rest import Resource, RestException
 
 ModuleStartTime = datetime.datetime.utcnow()
+LOG_BUF_SIZE = 65536
 
 
 class System(Resource):
@@ -396,7 +397,7 @@ class System(Resource):
                 if length < filesize:
                     f.seek(-length, os.SEEK_END)
                 while True:
-                    data = f.read(65536)
+                    data = f.read(LOG_BUF_SIZE)
                     if not data:
                         break
                     yield data
