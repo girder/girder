@@ -33,5 +33,10 @@ mixin dateInfo(intro, property)
           span Contains
           span.g-bold-part  #{folder.get('nFolders')} subfolders
 
+        .g-folder-info-line(property="id")
+          i.icon-share
+          span Unique ID:
+          span.g-bold-part  #{folder.id}
+
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss="modal") Close

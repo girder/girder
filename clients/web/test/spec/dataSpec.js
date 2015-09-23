@@ -15,8 +15,7 @@ var minUploadSize;
  *                 minimums.
  */
 function _setMinimumChunkSize(minSize) {
-    if (!minUploadSize)
-    {
+    if (!minUploadSize) {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
         var resp = girder.restRequest({
             path: 'system/setting',
@@ -26,13 +25,10 @@ function _setMinimumChunkSize(minSize) {
         });
         minUploadSize.setting = resp.responseText;
     }
-    if (!minSize)
-    {
+    if (!minSize) {
         var uploadChunkSize = minUploadSize.UPLOAD_CHUNK_SIZE;
         var settingSize = minUploadSize.setting;
-    }
-    else
-    {
+    } else {
         var uploadChunkSize = minSize;
         var settingSize = minSize;
     }
