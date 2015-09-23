@@ -115,3 +115,45 @@ describe('Test widgets that are not covered elsewhere', function () {
         });
     });
 });
+
+describe('Test folder info widget async fetch', function () {
+    var folders = new girder.collections.FolderCollection();
+
+    it('fetch the current user\'s folders', function () {
+        runs(function () {
+            expect(girder.currentUser).not.toBe(null);
+            folders.fetch({
+                parentType: 'user',
+                parentId: girder.currentUser.id
+            });
+        });
+
+        waitsFor(function () {
+            return folders.models.length > 0;
+        }, 'child folders to be fetched');
+    });
+
+    it('show a folder info widget for one of the folders', function () {
+        folders.models[0].set('description', 'hello world');
+
+        var widget = new girder.views.FolderInfoWidget({
+            el: $('#g-dialog-container'),
+            model: folders.models[0],
+            parentView: null
+        });
+
+        waitsFor(function () {
+            return $('.modal-body .g-folder-description').text().indexOf('hello world') !== -1;
+        }, 'details to be fetched and the widget to render');
+        girderTest.waitForDialog();
+
+        runs(function () {
+            expect($('.g-folder-info-line[property="nItems"]').text()).toBe(
+                'Contains 0 items totaling 0 B');
+            expect($('.g-folder-info-line[property="nFolders"]').text()).toBe(
+                'Contains 0 subfolders');
+            expect($('.g-folder-info-line[property="id"]:contains("' + widget.model.id +
+                '")').length).toBe(1);
+        });
+    });
+});

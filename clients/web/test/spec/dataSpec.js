@@ -15,8 +15,7 @@ var minUploadSize;
  *                 minimums.
  */
 function _setMinimumChunkSize(minSize) {
-    if (!minUploadSize)
-    {
+    if (!minUploadSize) {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
         var resp = girder.restRequest({
             path: 'system/setting',
@@ -26,13 +25,10 @@ function _setMinimumChunkSize(minSize) {
         });
         minUploadSize.setting = resp.responseText;
     }
-    if (!minSize)
-    {
+    if (!minSize) {
         var uploadChunkSize = minUploadSize.UPLOAD_CHUNK_SIZE;
         var settingSize = minUploadSize.setting;
-    }
-    else
-    {
+    } else {
         var uploadChunkSize = minSize;
         var settingSize = minSize;
     }
@@ -169,6 +165,15 @@ describe('Create a data hierarchy', function () {
 
     it('upload a file into the current folder', function () {
         girderTest.testUpload('clients/web/test/testFile.txt');
+
+        waitsFor(function () {
+            return $('.g-child-count-container .g-item-count').text() === '1';
+        }, 'Item count to increment after upload.');
+
+        runs(function () {
+            expect($('.g-item-count').text()).toBe('1');
+            expect($('.g-subfolder-count').text()).toBe('0');
+        })
     });
 
     it('download the file', function () {

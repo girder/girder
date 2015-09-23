@@ -6,6 +6,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-delete-folder': 'deleteFolderDialog',
+        'click .g-folder-info-button': 'folderInfoDialog',
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-folder-access-button': 'editFolderAccess',
@@ -166,7 +167,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         var parent = new girder.models[girder.getModelClassByName(parentType)]();
         parent.set({
             _id: parentId
-        }).on('g:fetched', function () {
+        }).once('g:fetched', function () {
             this.breadcrumbs.push(parent);
 
             if (parentType === 'folder') {
@@ -207,20 +208,14 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
         }
 
-        this.$('.g-folder-info-button,.g-folder-access-button,.g-select-all,' +
-            '.g-upload-here-button,.g-checked-actions-button').tooltip({
-                container: this.$el,
-                animation: false,
-                delay: {
-                    show: 100
-                }
-            });
-        this.$('.g-folder-actions-button,.g-hierarchy-level-up').tooltip({
+        this.$('[title]').tooltip({
             container: this.$el,
-            placement: 'left',
             animation: false,
             delay: {
                 show: 100
+            },
+            placement: function () {
+                return this.$element.attr('placement') || 'top';
             }
         });
 
@@ -235,6 +230,8 @@ girder.views.HierarchyWidget = girder.View.extend({
         } else if (this.itemCreate) {
             this.createItemDialog();
         }
+
+        this.fetchAndShowChildCount();
 
         return this;
     },
@@ -265,6 +262,9 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentView: this
         }).on('g:saved', function (folder) {
             this.folderListView.insertFolder(folder);
+            if (this.parentModel.has('nFolders')) {
+                this.parentModel.increment('nFolders');
+            }
             this.updateChecked();
         }, this).render();
     },
@@ -279,6 +279,9 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentView: this
         }).on('g:saved', function (item) {
             this.itemListView.insertItem(item);
+            if (this.parentModel.has('nItems')) {
+                this.parentModel.increment('nItems');
+            }
             this.updateChecked();
         }, this).render();
     },
@@ -326,6 +329,44 @@ girder.views.HierarchyWidget = girder.View.extend({
         girder.confirm(params);
     },
 
+    folderInfoDialog: function () {
+        new girder.views.FolderInfoWidget({
+            el: $('#g-dialog-container'),
+            model: this.parentModel,
+            parentView: this
+        }).render();
+    },
+
+    fetchAndShowChildCount: function () {
+        this.$('.g-child-count-container').addClass('hide');
+
+        if (this.parentModel.resourceName === 'folder') {
+            var showCounts = _.bind(function () {
+                this.$('.g-child-count-container').removeClass('hide');
+                this.$('.g-subfolder-count').text(
+                    girder.formatCount(this.parentModel.get('nFolders')));
+                this.$('.g-item-count').text(
+                    girder.formatCount(this.parentModel.get('nItems')));
+            }, this);
+
+            if (this.parentModel.has('nItems')) {
+                showCounts();
+            } else {
+                this.parentModel.set('nItems', 0); // prevents fetching details twice
+                this.parentModel.once('g:fetched.details', function () {
+                    showCounts();
+                }, this).fetch({extraPath: 'details'});
+            }
+
+            this.parentModel.off('change:nItems', showCounts, this)
+                            .on('change:nItems', showCounts, this)
+                            .off('change:nFolders', showCounts, this)
+                            .on('change:nFolders', showCounts, this);
+        }
+
+        return this;
+    },
+
     /**
      * Change the current parent model, i.e. the resource being shown currently.
      *
@@ -355,6 +396,7 @@ girder.views.HierarchyWidget = girder.View.extend({
                 this._initFolderViewSubwidgets();
             }
         }
+
         this.render();
         if (!_.has(opts, 'setRoute') || opts.setRoute) {
             this._setRoute();
@@ -413,15 +455,23 @@ girder.views.HierarchyWidget = girder.View.extend({
 
             yesText: 'Delete',
             confirmCallback: function () {
-                var url = 'resource';
                 var resources = view._getCheckedResourceParam();
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
-                girder.restRequest({path: url, type: 'POST',
+                girder.restRequest({
+                    path: 'resource',
+                    type: 'POST',
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(function () {
+                    if (items && items.length && view.parentModel.has('nItems')) {
+                        view.parentModel.increment('nItems', -items.length);
+                    }
+                    if (folders.length && view.parentModel.has('nFolders')) {
+                        view.parentModel.increment('nFolders', -folders.length);
+                    }
+
                     view.setCurrentModel(view.parentModel, {setRoute: false});
                 });
             }
@@ -440,9 +490,15 @@ girder.views.HierarchyWidget = girder.View.extend({
             parent: this.parentModel,
             parentType: this.parentType,
             parentView: this
-        }).on('g:uploadFinished', function () {
+        }).on('g:uploadFinished', function (info) {
             girder.dialogs.handleClose('upload');
             this.upload = false;
+            if (this.parentModel.has('nItems')) {
+                this.parentModel.increment('nItems', info.files.length);
+            }
+            if (this.parentModel.has('size')) {
+                this.parentModel.increment('size', info.totalSize);
+            }
             this.setCurrentModel(this.parentModel, {setRoute: false});
         }, this).render();
     },
@@ -636,23 +692,35 @@ girder.views.HierarchyWidget = girder.View.extend({
         });
     },
 
+    _incrementCounts: function (nFolders, nItems) {
+        if (this.parentModel.has('nItems')) {
+            this.parentModel.increment('nItems', nItems);
+        }
+        if (this.parentModel.has('nFolders')) {
+            this.parentModel.increment('nFolders', nFolders);
+        }
+    },
+
     movePickedResources: function () {
         if (!this.getPickedMoveAllowed()) {
             return;
         }
-        var view = this;
-        var url = 'resource/move';
         var resources = JSON.stringify(girder.pickedResources.resources);
-        girder.restRequest({path: url, type: 'PUT',
+        var nFolders = (girder.pickedResources.resources.folder || []).length;
+        var nItems = (girder.pickedResources.resources.item || []).length;
+        girder.restRequest({
+            path: 'resource/move',
+            type: 'PUT',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
                 parentId: this.parentModel.get('_id'),
                 progress: true
             }
-        }).done(function () {
-            view.setCurrentModel(view.parentModel, {setRoute: false});
-        });
+        }).done(_.bind(function () {
+            this._incrementCounts(nFolders, nItems);
+            this.setCurrentModel(this.parentModel, {setRoute: false});
+        }, this));
         this.clearPickedResources();
     },
 
@@ -660,19 +728,22 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (!this.getPickedCopyAllowed()) {
             return;
         }
-        var view = this;
-        var url = 'resource/copy';
         var resources = JSON.stringify(girder.pickedResources.resources);
-        girder.restRequest({path: url, type: 'POST',
+        var nFolders = (girder.pickedResources.resources.folder || []).length;
+        var nItems = (girder.pickedResources.resources.item || []).length;
+        girder.restRequest({
+            path: 'resource/copy',
+            type: 'POST',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
                 parentId: this.parentModel.get('_id'),
                 progress: true
             }
-        }).done(function () {
-            view.setCurrentModel(view.parentModel, {setRoute: false});
-        });
+        }).done(_.bind(function () {
+            this._incrementCounts(nFolders, nItems);
+            this.setCurrentModel(this.parentModel, {setRoute: false});
+        }, this));
         this.clearPickedResources();
     },
 

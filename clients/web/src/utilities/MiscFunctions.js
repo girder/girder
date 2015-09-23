@@ -54,7 +54,44 @@ girder.formatSize = function (sizeBytes) {
         precision = 2;
     }
     return sizeVal.toFixed(precision) + ' ' +
-        ['B', 'kB', 'MB', 'GB', 'TB'][i];
+        ['B', 'kB', 'MB', 'GB', 'TB'][Math.min(i, 4)];
+};
+
+/**
+ * Like girder.formatSize, but more generic. Returns a human-readable format
+ * of an integer using metric prefixes. The caller is expected to append any
+ * unit string if necessary.
+ *
+ * @param {integer} n The number to format.
+ * @param {Object} [opts={}] Formatting options. These include:
+ *   - {integer} [maxLen] Max number of digits in the output.
+ *   - {integer} [base=1000] Base for the prefixes (usually 1000 or 1024).
+ *   - {string} [sep=''] Separator between numeric value and metric prefix.
+ */
+girder.formatCount = function (n, opts) {
+    n = n || 0;
+    opts = opts || {};
+
+    var i = 0,
+        base = opts.base || 1000,
+        sep = opts.sep || '',
+        maxLen = opts.maxLen || 3,
+        precision = maxLen - 1;
+
+    for (; n > base; i += 1) {
+        n /= base;
+    }
+
+    if (!i) {
+        precision = 0;
+    } else if (n > 100) {
+        precision -= 2;
+    } else if (n > 10) {
+        precision -= 1;
+    }
+
+    return n.toFixed(Math.max(0, precision)) + sep +
+        ['', 'k', 'M', 'G', 'T'][Math.min(i, 4)];
 };
 
 /**
