@@ -9,7 +9,6 @@ girder.views.AccessWidget = girder.View.extend({
     },
 
     initialize: function (settings) {
-        this.model = settings.model;
         this.modelType = settings.modelType;
 
         this.searchWidget = new girder.views.SearchFieldWidget({

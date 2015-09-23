@@ -191,6 +191,23 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the new folder to appear in the list');
 
         runs(function () {
+            $('.g-folder-info-button').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            expect($('.g-folder-info-line[property="nItems"]').text()).toBe(
+                'Contains 0 items totaling 0 B');
+            expect($('.g-folder-info-line[property="nFolders"]').text()).toBe(
+                'Contains 1 subfolders');
+            expect($('.g-folder-info-line[property="created"]').text()).toContain(
+                'Created ');
+            expect($('.g-folder-description').length).toBe(0);
+            $('.modal-footer a[data-dismiss="modal"]').click();
+        });
+        girderTest.waitForLoad();
+
+        runs(function () {
             $('a.g-folder-list-link:contains("Test Folder Name")').click();
         });
 
