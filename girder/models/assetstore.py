@@ -167,11 +167,11 @@ class Assetstore(Model):
         return current
 
     def importData(self, assetstore, parent, parentType, params, progress,
-                   user):
+                   user, **kwargs):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
             parent=parent, parentType=parentType, params=params,
-            progress=progress, user=user)
+            progress=progress, user=user, **kwargs)

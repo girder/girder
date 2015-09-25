@@ -11,6 +11,10 @@ girder.views.AssetstoresView = girder.View.extend({
     initialize: function (settings) {
         girder.cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
+        this.importableTypes = [
+            girder.AssetstoreType.FILESYSTEM,
+            girder.AssetstoreType.S3
+        ].concat(settings.importableTypes || []);
 
         this.newAssetstoreWidget = new girder.views.NewAssetstoreWidget({
             parentView: this
@@ -30,7 +34,9 @@ girder.views.AssetstoresView = girder.View.extend({
         }
         this.$el.html(girder.templates.assetstores({
             assetstores: this.collection.models,
-            types: girder.AssetstoreType
+            types: girder.AssetstoreType,
+            importableTypes: this.importableTypes,
+            getAssetstoreImportRoute: this.getAssetstoreImportRoute
         }));
 
         this.newAssetstoreWidget.setElement(this.$('#g-new-assetstore-container')).render();
@@ -164,9 +170,35 @@ girder.views.AssetstoresView = girder.View.extend({
     }
 });
 
+/**
+ * This data structure is a dynamic way to map assetstore types to the views
+ * that should be rendered to import data into them.
+ */
+girder.assetstoreImportViewMap = {};
+girder.assetstoreImportViewMap[girder.AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
+girder.assetstoreImportViewMap[girder.AssetstoreType.S3] = 'S3ImportView';
+
 girder.router.route('assetstores', 'assetstores', function (params) {
     girder.events.trigger('g:navigateTo', girder.views.AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit' ?
                         params.dialogid : false
     });
+});
+
+girder.router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
+    var assetstore = new girder.models.AssetstoreModel({
+        _id: assetstoreId
+    });
+
+    assetstore.once('g:fetched', function () {
+        var viewName = girder.assetstoreImportViewMap[assetstore.get('type')],
+            view = girder.views[viewName];
+
+        if (!view) {
+            throw 'No such view: ' + viewName;
+        }
+        girder.events.trigger('g:navigateTo', view, {
+            assetstore: assetstore
+        });
+    }).fetch();
 });

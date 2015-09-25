@@ -218,7 +218,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 
-        path = os.path.join(self.assetstore['root'], file['path'])
+        if file.get('imported'):
+            path = file['fullPath']
+        else:
+            path = os.path.join(self.assetstore['root'], file['path'])
+
         if not os.path.isfile(path):
             raise GirderException(
                 'File %s does not exist.' % path,
@@ -252,8 +256,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     def deleteFile(self, file):
         """
         Deletes the file from disk if it is the only File in this assetstore
-        with the given sha512.
+        with the given sha512. Imported files are not actually deleted.
         """
+        if file.get('imported'):
+            return
+
         q = {
             'sha512': file['sha512'],
             'assetstoreId': self.assetstore['_id']
@@ -270,3 +277,62 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         if os.path.exists(upload['tempFile']):
             os.unlink(upload['tempFile'])
+
+    def importFile(self, item, path, user, name=None, mimeType=None, size=None):
+        """
+        Import a single file from the filesystem into the assetstore.
+
+        :param item: The parent item for the file.
+        :type item: dict
+        :param path: The path on the local filesystem.
+        :type path: str
+        :param user: The user to list as the creator of the file.
+        :type user: dict
+        :param name: Name for the file. Defaults to the basename of ``path``.
+        :type name: str
+        :param mimeType: MIME type of the file if known.
+        :type mimeType: str
+        :param size: Size of the file in bytes. Will stat the file if not
+            passed.
+        :type size: int
+        :returns: The file document that was created.
+        """
+        if size is None:
+            size = os.path.getsize(path)
+
+        name = name or os.path.basename(path)
+
+        file = self.model('file').createFile(
+            name=name, creator=user, item=item, reuseExisting=True,
+            assetstore=self.assetstore, mimeType=mimeType, size=size)
+        file['fullPath'] = os.path.abspath(os.path.expanduser(path))
+        file['imported'] = True
+        return self.model('file').save(file)
+
+
+    def importData(self, parent, parentType, params, progress, user):
+        importPath = params['importPath']
+
+        if not os.path.isdir(importPath):
+            raise ValidationException('No such directory: %s.' % importPath)
+
+        for name in os.listdir(importPath):
+            progress.update(message=name)
+            path = os.path.join(importPath, name)
+
+            if os.path.isdir(path):
+                folder = self.model('folder').createFolder(
+                    parent=parent, name=name, parentType=parentType,
+                    creator=user, reuseExisting=True)
+                self.importData(folder, 'folder', params={
+                    'importPath': os.path.join(importPath, name)
+                }, progress=progress, user=user)
+            else:
+                if parentType != 'folder':
+                    raise ValidationException(
+                        'Files cannot be imported directly underneath a %s.' %
+                        parentType)
+
+                item = self.model('item').createItem(
+                    name=name, creator=user, folder=parent, reuseExisting=True)
+                self.importFile(item, path, user, name=name)
