@@ -309,7 +309,6 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['imported'] = True
         return self.model('file').save(file)
 
-
     def importData(self, parent, parentType, params, progress, user):
         importPath = params['importPath']
 

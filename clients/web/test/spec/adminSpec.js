@@ -284,7 +284,7 @@ describe('Test the assetstore page', function () {
 
         runs(function () {
             var container = _getAssetstoreContainer(params.name);
-            var el = $('a.g-s3-import-button', container);
+            var el = $('a.g-import-button', container);
             window.location = el[0].href;
         });
 
