@@ -139,6 +139,55 @@ class AssetstoreTestCase(base.TestCase):
         assetstore['root'] = oldroot
         self.model('assetstore').save(assetstore, validate=False)
 
+    def testFilesystemAssetstoreImport(self):
+        folder = six.next(self.model('folder').childFolders(
+            self.admin, parentType='user', force=True, filters={
+                'name': 'Public'
+            }))
+
+        params = {
+            'importPath': '/nonexistent/dir',
+            'destinationType': 'folder',
+            'destinationId': folder['_id']
+        }
+        path = '/assetstore/%s/import' % str(self.assetstore['_id'])
+
+        resp = self.request(path, method='POST', params=params)
+        self.assertStatus(resp, 401)
+
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'No such directory: /nonexistent/dir.')
+
+        params['importPath'] = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client')
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatusOk(resp)
+
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/testdata/hello.txt/hello.txt'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_modelType'], 'file')
+        file = self.model('file').load(resp.json['_id'], force=True, exc=True)
+
+        self.assertTrue(os.path.isfile(file['fullPath']))
+
+        # Make sure downloading the file works
+        resp = self.request('/file/%s/download' % str(file['_id']),
+                            isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(self.getBody(resp), 'hello\n')
+
+        # Deleting the file should not actually remove the file on disk
+        resp = self.request('/file/' + str(file['_id']), method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+
+        self.assertIsNone(self.model('file').load(file['_id'], force=True))
+        self.assertTrue(os.path.isfile(file['fullPath']))
+
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
