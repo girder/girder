@@ -279,6 +279,96 @@ describe('Test the assetstore page', function () {
         });
     };
 
+    var _testFilesystemImport = function (params) {
+        var privateFolder = null;
+
+        runs(function () {
+            var container = _getAssetstoreContainer(params.name);
+            var el = $('a.g-import-button', container);
+            window.location = el[0].href;
+        });
+
+        waitsFor(function () {
+            return $('input#g-filesystem-import-path').length > 0;
+        }, 'import page to load');
+
+        runs(function () {
+            var coll = new girder.collections.FolderCollection();
+            coll.on('g:changed', function () {
+                privateFolder = coll.models[0];
+            }).fetch({
+                parentType: 'user',
+                parentId: girder.currentUser.id
+            });
+        });
+
+        waitsFor(function () {
+            return privateFolder !== null;
+        }, 'admin user folders to be fetched');
+
+        runs(function () {
+            $('#g-filesystem-import-dest-id').val(privateFolder.id);
+            $('#g-filesystem-import-dest-type').val('folder');
+            $('#g-filesystem-import-path').val('/invalid/path');
+
+            $('.g-submit-assetstore-import').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text() ===
+                'No such directory: /invalid/path.';
+        });
+
+        runs(function () {
+            $('#g-filesystem-import-path').val('./tests/cases/py_client');
+
+            $('.g-submit-assetstore-import').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-folder-list-entry').text().indexOf('testdata') !== -1;
+        }, 'user folders to show');
+
+        runs(function () {
+            _.each($('.g-folder-list-link'), function (link) {
+                if ($(link).text() === 'testdata') {
+                    $(link).click();
+                }
+            });
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-link').text().indexOf('hello.txt') !== -1;
+        }, 'item to appear in the hierarchy widget');
+
+        runs(function () {
+            $('.g-item-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-file-list-link').length === 1;
+        }, 'item page to render');
+
+        // Delete the containing folder so we can delete the assetstore
+        runs(function () {
+            privateFolder.on('g:deleted', function () {
+                privateFolder = null;
+            }).destroy();
+        });
+
+        waitsFor(function () {
+            return privateFolder === null;
+        }, 'private folder to be deleted');
+
+        runs(function () {
+            window.location = '#assetstores';
+        });
+
+        waitsFor(function () {
+            return $('.g-assetstore-container').length > 0;
+        }, 'assetstore page to load');
+    };
+
     var _testS3Import = function (params) {
         var privateFolder = null;
 
@@ -392,9 +482,10 @@ describe('Test the assetstore page', function () {
         });
     });
 
-    _testAssetstore('filesystem', 'g-create-fs-tab',
-                    {'g-new-fs-name': 'name',
-                     'g-new-fs-root': '/tmp/assetstore'});
+    _testAssetstore('filesystem', 'g-create-fs-tab', {
+        'g-new-fs-name': 'name',
+        'g-new-fs-root': '/tmp/assetstore'
+    }, _testFilesystemImport);
 
     _testAssetstore('gridfs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
