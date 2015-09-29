@@ -240,7 +240,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         return ()
 
-    def importData(self, parent, parentType, params, progress, user):
+    def importData(self, parent, parentType, params, progress, user, **kwargs):
         """
         Assetstores that are capable of importing pre-existing data from the
         underlying storage medium can implement this method.
