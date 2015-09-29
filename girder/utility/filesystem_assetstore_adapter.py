@@ -31,6 +31,7 @@ from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
+from girder.utility import progress
 
 BUF_SIZE = 65536
 
@@ -70,7 +71,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         File documents should have an index on their sha512 field.
         """
-        return ['sha512']
+        return ['sha512', 'imported']
 
     def __init__(self, assetstore):
         """
@@ -335,3 +336,52 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 item = self.model('item').createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
                 self.importFile(item, path, user, name=name)
+
+    def removeMissing(self, progress=progress.noProgress, callback=None,
+                      filters=None):
+        """
+        Removes all files contained in this assetstore whose underlying data
+        on the filesystem is missing. Detailed info about any files that were
+        removed is logged to the info log file.
+
+        :param progress: Pass a progress context to record progress.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param callback: Pass a callable that will be called with each file
+            to be removed as the first argument. This callback *must* accept
+            a ``**kwargs`` parameter for forward compatibility, and should
+            return a bool representing whether or not to delete the file from
+            the database. If the callback code causes the file to be deleted,
+            it must return ``False`` to avoid exceptions.
+        :type callback: callable
+        :param filters: Additional query dictionary to restrict the search for
+            files. There is no need to set the ``assetstoreId`` in the filters,
+            since that is done automatically.
+        :type filters: dict or None
+        :returns: The number of files removed.
+        """
+        total = 0
+        filters = filters or {}
+        q = dict({
+            'assetstoreId': self.assetstore['_id']
+        }, **filters)
+
+        cursor = self.model('file').find(q)
+        progress.update(total=cursor.count(), current=0)
+        logger.info('Removing missing files from %s.', self.assetstore['name'])
+
+        for file in cursor:
+            progress.update(increment=1, message=file['name'])
+
+            if file.get('imported'):
+                path = file['fullPath']
+            else:
+                path = os.path.join(self.assetstore['root'], file['path'])
+
+            if not os.path.isfile(path) and (not callback or callback(file)):
+                self.model('file').remove(file)
+                total += 1
+                logger.info('Cleaned missing file %s (%s).', file['name'], path)
+
+        logger.info('Removed %d files from %s.', total, self.assetstore['name'])
+
+        return total
