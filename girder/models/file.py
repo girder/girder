@@ -188,7 +188,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             '_id': item['baseParentId']
         }, field='size', amount=sizeIncrement, multi=False)
 
-    def createFile(self, creator, item, name, size, assetstore, mimeType,
+    def createFile(self, creator, item, name, size, assetstore, mimeType=None,
                    saveFile=True, reuseExisting=False):
         """
         Create a new file record in the database.

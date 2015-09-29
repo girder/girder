@@ -210,6 +210,16 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
+    def fullPath(self, file):
+        """
+        Utility method for constructing the full (absolute) path to the given
+        file.
+        """
+        if file.get('imported'):
+            return file['fullPath']
+        else:
+            return os.path.join(self.assetstore['root'], file['path'])
+
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
                      **kwargs):
         """
@@ -219,10 +229,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 
-        if file.get('imported'):
-            path = file['fullPath']
-        else:
-            path = os.path.join(self.assetstore['root'], file['path'])
+        path = self.fullPath(file)
 
         if not os.path.isfile(path):
             raise GirderException(
@@ -346,9 +353,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         :param progress: Pass a progress context to record progress.
         :type progress: :py:class:`girder.utility.progress.ProgressContext`
-        :param callback: Pass a callable that will be called with each file
-            to be removed as the first argument. This callback *must* accept
-            a ``**kwargs`` parameter for forward compatibility, and should
+        :param callback: Pass a callable that will be called with a single dict
+            argument containing the file and the assetstore. The callback must
             return a bool representing whether or not to delete the file from
             the database. If the callback code causes the file to be deleted,
             it must return ``False`` to avoid exceptions.
@@ -371,16 +377,17 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         for file in cursor:
             progress.update(increment=1, message=file['name'])
+            path = self.fullPath(file)
+            info = {
+                'file': file,
+                'assetstore': self.assetstore
+            }
 
-            if file.get('imported'):
-                path = file['fullPath']
-            else:
-                path = os.path.join(self.assetstore['root'], file['path'])
-
-            if not os.path.isfile(path) and (not callback or callback(file)):
+            if not os.path.isfile(path) and (not callback or callback(info)):
                 self.model('file').remove(file)
                 total += 1
                 logger.info('Cleaned missing file %s (%s).', file['name'], path)
+            # TODO should we also make sure the size is unchanged?
 
         logger.info('Removed %d files from %s.', total, self.assetstore['name'])
 

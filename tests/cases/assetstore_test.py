@@ -30,6 +30,8 @@ import zipfile
 
 from .. import base, mock_s3
 from girder.constants import AssetstoreType, ROOT_DIR
+from girder.utility import assetstore_utilities
+from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 
 
@@ -187,6 +189,75 @@ class AssetstoreTestCase(base.TestCase):
 
         self.assertIsNone(self.model('file').load(file['_id'], force=True))
         self.assertTrue(os.path.isfile(file['fullPath']))
+
+    def testFilesystemAssetstoreRemoveMissing(self):
+        # Create several files in the assetstore, some of which point to real
+        # files on disk and some that don't
+        folder = six.next(self.model('folder').childFolders(
+            parent=self.admin, parentType='user', force=True, limit=1))
+        item = self.model('item').createItem('test', self.admin, folder)
+
+        path = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')
+        real = self.model('file').createFile(
+            name='hello.txt', creator=self.admin, item=item,
+            assetstore=self.assetstore, size=os.path.getsize(path))
+        real['imported'] = True
+        real['fullPath'] = path
+        self.model('file').save(real)
+
+        fake = self.model('file').createFile(
+            name='fake', creator=self.admin, item=item, size=1,
+            assetstore=self.assetstore)
+        fake['path'] = 'nonexistent/path/to/file'
+        fake['sha512'] = '...'
+        self.model('file').save(fake)
+
+        fakeImport = self.model('file').createFile(
+            name='fakeImport', creator=self.admin, item=item, size=1,
+            assetstore=self.assetstore)
+        fakeImport['imported'] = True
+        fakeImport['fullPath'] = '/nonexistent/path/to/file'
+        self.model('file').save(fakeImport)
+
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+
+        def exists(file):
+            return self.model('file').load(file['_id'], force=True) is not None
+
+        def doNotDelete(info):
+            self.assertEqual(info['file']['_id'], fakeImport['_id'])
+            self.assertEqual(info['assetstore']['_id'], self.assetstore['_id'])
+            return False
+
+        with ProgressContext(True, user=self.admin, title='test') as p:
+            # Test callback behavior
+            count = adapter.removeMissing(progress=p, filters={
+                'imported': True
+            }, callback=doNotDelete)
+            self.assertEqual(count, 0)
+            self.assertTrue(exists(real))
+            self.assertTrue(exists(fake))
+            self.assertTrue(exists(fakeImport))
+
+            # Clean invalid files, but only imported ones
+            count = adapter.removeMissing(progress=p, filters={
+                'imported': True
+            })
+            self.assertEqual(count, 1)
+            self.assertTrue(exists(real))
+            self.assertTrue(exists(fake))
+            self.assertFalse(exists(fakeImport))
+            self.assertEqual(p.progress['data']['current'], 2)
+            self.assertEqual(p.progress['data']['total'], 2)
+
+            # Clean the non-imported file
+            count = adapter.removeMissing(progress=p)
+            self.assertEqual(count, 1)
+            self.assertTrue(exists(real))
+            self.assertFalse(exists(fake))
+            self.assertEqual(p.progress['data']['current'], 2)
+            self.assertEqual(p.progress['data']['total'], 2)
 
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
