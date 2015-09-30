@@ -344,28 +344,25 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                     name=name, creator=user, folder=parent, reuseExisting=True)
                 self.importFile(item, path, user, name=name)
 
-    def removeMissing(self, progress=progress.noProgress, callback=None,
-                      filters=None):
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
+                         checkSize=True, **kwargs):
         """
-        Removes all files contained in this assetstore whose underlying data
-        on the filesystem is missing. Detailed info about any files that were
-        removed is logged to the info log file.
+        Goes through every file in this assetstore and finds those whose
+        underlying data is missing or invalid. This is a generator function --
+        for each invalid file found, a dictionary is yielded to the caller that
+        contains the file, its absolute path on disk, and a reason for invalid,
+        e.g. "missing" or "size".
 
         :param progress: Pass a progress context to record progress.
         :type progress: :py:class:`girder.utility.progress.ProgressContext`
-        :param callback: Pass a callable that will be called with a single dict
-            argument containing the file and the assetstore. The callback must
-            return a bool representing whether or not to delete the file from
-            the database. If the callback code causes the file to be deleted,
-            it must return ``False`` to avoid exceptions.
-        :type callback: callable
         :param filters: Additional query dictionary to restrict the search for
             files. There is no need to set the ``assetstoreId`` in the filters,
             since that is done automatically.
         :type filters: dict or None
-        :returns: The number of files removed.
+        :param checkSize: Whether to make sure the size of the underlying
+            data matches the size of the file.
+        :type checkSize: bool
         """
-        total = 0
         filters = filters or {}
         q = dict({
             'assetstoreId': self.assetstore['_id']
@@ -373,22 +370,20 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         cursor = self.model('file').find(q)
         progress.update(total=cursor.count(), current=0)
-        logger.info('Removing missing files from %s.', self.assetstore['name'])
 
         for file in cursor:
             progress.update(increment=1, message=file['name'])
             path = self.fullPath(file)
-            info = {
-                'file': file,
-                'assetstore': self.assetstore
-            }
 
-            if not os.path.isfile(path) and (not callback or callback(info)):
-                self.model('file').remove(file)
-                total += 1
-                logger.info('Cleaned missing file %s (%s).', file['name'], path)
-            # TODO should we also make sure the size is unchanged?
-
-        logger.info('Removed %d files from %s.', total, self.assetstore['name'])
-
-        return total
+            if not os.path.isfile(path):
+                yield {
+                    'reason': 'missing',
+                    'file': file,
+                    'path': path
+                }
+            elif checkSize and os.path.getsize(path) != file['size']:
+                yield {
+                    'reason': 'size',
+                    'file': file,
+                    'path': path
+                }

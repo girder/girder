@@ -18,6 +18,7 @@ import cherrypy
 import os
 import six
 
+from girder.utility import progress
 from ..constants import SettingKey
 from .model_importer import ModelImporter
 from ..models.model_base import ValidationException
@@ -143,6 +144,24 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         raise Exception('Must override downloadFile in %s.'
                         % self.__class__.__name__)  # pragma: no cover
+
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
+                         checkSize=True, **kwargs):
+        """
+        Finds and yields any invalid files in the assetstore. It is left to
+        the caller to decide what to do with them.
+
+        :param progress: Pass a progress context to record progress.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param filters: Additional query dictionary to restrict the search for
+            files. There is no need to set the ``assetstoreId`` in the filters,
+            since that is done automatically.
+        :type filters: dict or None
+        :param checkSize: Whether to make sure the size of the underlying
+            data matches the size of the file.
+        :type checkSize: bool
+        """
+        return ()
 
     def copyFile(self, srcFile, destFile):
         """

@@ -222,42 +222,25 @@ class AssetstoreTestCase(base.TestCase):
 
         adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
 
-        def exists(file):
-            return self.model('file').load(file['_id'], force=True) is not None
-
-        def doNotDelete(info):
-            self.assertEqual(info['file']['_id'], fakeImport['_id'])
-            self.assertEqual(info['assetstore']['_id'], self.assetstore['_id'])
-            return False
-
         with ProgressContext(True, user=self.admin, title='test') as p:
-            # Test callback behavior
-            count = adapter.removeMissing(progress=p, filters={
-                'imported': True
-            }, callback=doNotDelete)
-            self.assertEqual(count, 0)
-            self.assertTrue(exists(real))
-            self.assertTrue(exists(fake))
-            self.assertTrue(exists(fakeImport))
-
-            # Clean invalid files, but only imported ones
-            count = adapter.removeMissing(progress=p, filters={
-                'imported': True
-            })
-            self.assertEqual(count, 1)
-            self.assertTrue(exists(real))
-            self.assertTrue(exists(fake))
-            self.assertFalse(exists(fakeImport))
+            for i, info in enumerate(
+                    adapter.findInvalidFiles(progress=p, filters={
+                        'imported': True
+                    }), 1):
+                self.assertEqual(info['reason'], 'missing')
+                self.assertEqual(info['file']['_id'], fakeImport['_id'])
+            self.assertEqual(i, 1)
             self.assertEqual(p.progress['data']['current'], 2)
             self.assertEqual(p.progress['data']['total'], 2)
 
-            # Clean the non-imported file
-            count = adapter.removeMissing(progress=p)
-            self.assertEqual(count, 1)
-            self.assertTrue(exists(real))
-            self.assertFalse(exists(fake))
-            self.assertEqual(p.progress['data']['current'], 2)
-            self.assertEqual(p.progress['data']['total'], 2)
+            for i, info in enumerate(
+                    adapter.findInvalidFiles(progress=p), 1):
+                self.assertEqual(info['reason'], 'missing')
+                self.assertIn(info['file']['_id'], (
+                    fakeImport['_id'], fake['_id']))
+            self.assertEqual(i, 2)
+            self.assertEqual(p.progress['data']['current'], 3)
+            self.assertEqual(p.progress['data']['total'], 3)
 
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
