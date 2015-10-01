@@ -41,6 +41,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     This assetstore type stores files on the filesystem underneath a root
     directory. Files are named by their SHA-512 hash, which avoids duplication
     of file content.
+
+    :param assetstore: The assetstore to act on.
+    :type assetstore: dict
     """
 
     @staticmethod
@@ -69,14 +72,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     @staticmethod
     def fileIndexFields():
         """
-        File documents should have an index on their sha512 field.
+        File documents should have an index on their sha512 field, as well as
+        whether or not they are imported.
         """
         return ['sha512', 'imported']
 
     def __init__(self, assetstore):
-        """
-        :param assetstore: The assetstore to act on.
-        """
         self.assetstore = assetstore
         # If we can't create the temp directory, the assetstore still needs to
         # be initialized so that it can be deleted or modified.  The validation
