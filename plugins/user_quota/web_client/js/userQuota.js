@@ -206,7 +206,7 @@ girder.views.QuotaPolicies = girder.View.extend({
         }
         $(el).addClass('g-has-chart');
         used = view.model.get('size');
-        free = used < quota ? quota - used : 0;
+        free = Math.max(quota - used, 0);
         data = [
             ['Used (' + girder.formatSize(used) + ')', used],
             ['Free (' + girder.formatSize(free) + ')', free]
