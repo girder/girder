@@ -18,6 +18,7 @@
 ###############################################################################
 
 import httmock
+import inspect
 import io
 import json
 import mock
@@ -190,7 +191,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertIsNone(self.model('file').load(file['_id'], force=True))
         self.assertTrue(os.path.isfile(file['path']))
 
-    def testFilesystemAssetstoreRemoveMissing(self):
+    def testFilesystemAssetstoreFindInvalidFiles(self):
         # Create several files in the assetstore, some of which point to real
         # files on disk and some that don't
         folder = six.next(self.model('folder').childFolders(
@@ -221,6 +222,7 @@ class AssetstoreTestCase(base.TestCase):
         self.model('file').save(fakeImport)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        self.assertTrue(inspect.isgeneratorfunction(adapter.findInvalidFiles))
 
         with ProgressContext(True, user=self.admin, title='test') as p:
             for i, info in enumerate(
