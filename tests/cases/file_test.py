@@ -391,6 +391,47 @@ class FileTestCase(base.TestCase):
             path='/file/%s' % str(file['_id']), method='DELETE', user=self.user)
         self.assertStatusOk(resp)
 
+    def _downloadFile(self, file):
+        resp = self.request(path='/file/%s/download' % str(file['_id']),
+                            method='GET', user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+
+        return self.getBody(resp)
+
+    def _assertFileContent(self, file, copy):
+
+        # Assert that the two files have the same content
+        fileContent = self._downloadFile(file)
+        fileCopyContent = self._downloadFile(copy)
+        self.assertEqual(fileContent, fileCopyContent)
+
+    def _testCopyFile(self, file, assertContent=True):
+        # First create a test item
+        params = {
+            'name': 'copyItem',
+            'description': 'Another item',
+            'folderId': self.privateFolder['_id']
+        }
+        resp = self.request(path='/item', method='POST', params=params,
+                            user=self.user)
+        self.assertStatusOk(resp)
+        item = resp.json
+
+        # Now do the copy
+        params = {
+            'itemId': item['_id']
+        }
+        resp = self.request(path='/file/%s/copy' % str(file['_id']),
+                            method='POST',  params=params, user=self.user)
+        self.assertStatusOk(resp)
+        copy = resp.json
+        # Assert the copy is attached to the item
+        self.assertEqual(copy['itemId'], item['_id'])
+        # Assert the we have two different id
+        self.assertNotEqual(file['_id'], copy['_id'])
+        if assertContent:
+            self._assertFileContent(file, copy)
+
     def testFilesystemAssetstore(self):
         """
         Test usage of the Filesystem assetstore type.
@@ -496,6 +537,10 @@ class FileTestCase(base.TestCase):
         self._testDeleteFile(empty2)
         self.assertFalse(os.path.isfile(abspath))
 
+        # Test copying a file
+        copyTestFile = self._testUploadFile('helloWorld1.txt')
+        self._testCopyFile(copyTestFile)
+
     def testGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
@@ -533,6 +578,10 @@ class FileTestCase(base.TestCase):
         self.assertEqual(sha512().hexdigest(), empty['sha512'])
         self._testDownloadFile(empty, '')
         self._testDeleteFile(empty)
+
+        # Test copying a file
+        copyTestFile = self._testUploadFile('helloWorld1.txt')
+        self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
     def testS3Assetstore(self):
@@ -661,6 +710,10 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
         self.assertEqual(file['name'], 'hello.txt')
         self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+        # Test copying a file ( we don't assert to content in the case because
+        # the S3 download will fail )
+        self._testCopyFile(file, assertContent=False)
 
     def testLinkFile(self):
         params = {
