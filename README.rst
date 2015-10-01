@@ -1,4 +1,4 @@
-|logo| Girder |build-status| |docs-status| |gitter-badge|
+|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge|
 =========================================================================
 
 **Data Management Platform**
@@ -20,6 +20,10 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 .. |docs-status| image:: https://readthedocs.org/projects/girder/badge?version=latest
     :target: https://girder.readthedocs.org
     :alt: Documentation Status
+
+.. |license-badge| image:: https://img.shields.io/pypi/l/girder.svg 
+    :target: https://pypi.python.org/pypi/girder
+    :alt: License
 
 .. |gitter-badge| image:: https://badges.gitter.im/Join Chat.svg
     :target: https://gitter.im/girder/girder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
