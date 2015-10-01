@@ -174,7 +174,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(resp.json['_modelType'], 'file')
         file = self.model('file').load(resp.json['_id'], force=True, exc=True)
 
-        self.assertTrue(os.path.isfile(file['fullPath']))
+        self.assertTrue(os.path.isfile(file['path']))
 
         # Make sure downloading the file works
         resp = self.request('/file/%s/download' % str(file['_id']),
@@ -188,7 +188,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         self.assertIsNone(self.model('file').load(file['_id'], force=True))
-        self.assertTrue(os.path.isfile(file['fullPath']))
+        self.assertTrue(os.path.isfile(file['path']))
 
     def testFilesystemAssetstoreRemoveMissing(self):
         # Create several files in the assetstore, some of which point to real
@@ -203,7 +203,7 @@ class AssetstoreTestCase(base.TestCase):
             name='hello.txt', creator=self.admin, item=item,
             assetstore=self.assetstore, size=os.path.getsize(path))
         real['imported'] = True
-        real['fullPath'] = path
+        real['path'] = path
         self.model('file').save(real)
 
         fake = self.model('file').createFile(
@@ -217,7 +217,7 @@ class AssetstoreTestCase(base.TestCase):
             name='fakeImport', creator=self.admin, item=item, size=1,
             assetstore=self.assetstore)
         fakeImport['imported'] = True
-        fakeImport['fullPath'] = '/nonexistent/path/to/file'
+        fakeImport['path'] = '/nonexistent/path/to/file'
         self.model('file').save(fakeImport)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)

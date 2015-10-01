@@ -217,7 +217,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file.
         """
         if file.get('imported'):
-            return file['fullPath']
+            return file['path']
         else:
             return os.path.join(self.assetstore['root'], file['path'])
 
@@ -314,7 +314,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file = self.model('file').createFile(
             name=name, creator=user, item=item, reuseExisting=True,
             assetstore=self.assetstore, mimeType=mimeType, size=size)
-        file['fullPath'] = os.path.abspath(os.path.expanduser(path))
+        file['path'] = os.path.abspath(os.path.expanduser(path))
         file['imported'] = True
         return self.model('file').save(file)
 
