@@ -83,7 +83,10 @@ class ResourceTestCase(base.TestCase):
                 'parentType': 'collection',
                 'parentId': self.collection['_id'],
             })
-        self.collectionPrivateFolder = resp.json[0]
+        self.collectionPrivateFolder = self.model('folder').createFolder(
+            parent=self.collection, parentType='collection', name='Private',
+            creator=user, public=False)
+
         # Get the admin user's folders
         resp = self.request(
             path='/folder', method='GET', user=user, params={
