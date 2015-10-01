@@ -180,7 +180,7 @@ class QuotaPolicy(Resource):
         for key in dir(self):
             if key.startswith('_validate_'):
                 validKeys.append(key.split('_validate_', 1)[1])
-        for key in policy.keys():
+        for key in list(policy):
             if key.startswith('_'):
                 del policy[key]
         for key in policy:
