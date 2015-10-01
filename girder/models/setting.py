@@ -22,7 +22,7 @@ import cherrypy
 import six
 
 from ..constants import SettingDefault
-from .model_base import Model, ValidationException
+from .model_base import Model, ValidationException, GirderException
 from girder.utility import camelcase, plugin_utilities
 from bson.objectid import ObjectId
 
@@ -70,7 +70,12 @@ class Setting(Model):
             for dep in allPlugins[plugin]['dependencies']:
                 if dep not in doc['value']:
                     doc['value'].add(dep)
-                addDeps(dep)
+
+                if dep not in allPlugins:
+                    raise GirderException(
+                        'Required dependency %s does not exist.' % plugin)
+                else:
+                    addDeps(dep)
 
         for enabled in list(doc['value']):
             if enabled in allPlugins:

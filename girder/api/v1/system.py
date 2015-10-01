@@ -181,6 +181,7 @@ class System(Resource):
         .responseClass('Setting')
         .notes('Must be a system administrator to call this.')
         .param('plugins', 'JSON array of plugins to enable.')
+        .errorResponse('Required dependencies do not exist.', 500)
         .errorResponse('You are not a system administrator.', 403))
 
     @access.admin
