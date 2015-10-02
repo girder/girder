@@ -43,6 +43,8 @@ girder.views.PluginsView = girder.View.extend({
                 info.enabled = true;
                 info.configRoute = girder.getPluginConfigRoute(name);
             }
+
+            info.meetsDependencies = this._meetsDependencies(info);
         }, this);
 
         this.$el.html(girder.templates.plugins({
@@ -77,6 +79,17 @@ girder.views.PluginsView = girder.View.extend({
         }
 
         return this;
+    },
+
+    /**
+     * Takes a plugin object and recursively determines if it fulfills
+     * dependencies. Meaning, it's dependencies exist in this.allPlugins.
+     **/
+    _meetsDependencies: function (plugin) {
+        return _.every(plugin.dependencies, function (pluginName) {
+            return _.has(this.allPlugins, pluginName) &&
+                this._meetsDependencies(this.allPlugins[pluginName]);
+        }, this);
     },
 
     _sortPlugins: function (plugins) {
