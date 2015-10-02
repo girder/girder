@@ -461,6 +461,18 @@ describe('Test the plugins page', function () {
         }, 'plugins page to load');
         girderTest.waitForLoad();
     });
+    it('Enable a plugin with non-existent dependencies', function () {
+        runs(function () {
+            var target = $('.g-plugin-list-item:contains(has_nonexistent_deps)');
+
+            expect(target.find('.bootstrap-switch-disabled').length > 0).toBe(true);
+            expect(target.find('.g-plugin-warning').length > 0).toBe(true);
+
+            target.find('.bootstrap-switch-label').click();
+
+            expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
+        });
+    });
     it('Enable a plugin', function () {
         runs(function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
