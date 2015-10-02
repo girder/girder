@@ -73,7 +73,7 @@ class Setting(Model):
 
                 if dep not in allPlugins:
                     raise GirderException(
-                        'Required dependency %s does not exist.' % plugin)
+                        'Required dependency %s does not exist.' % dep)
                 else:
                     addDeps(dep)
 
