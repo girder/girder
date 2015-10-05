@@ -55,7 +55,8 @@ describe('Test routing paths', function () {
 
     it('create a collection',
         girderTest.createCollection('Test Collection',
-                                    'Collection Description'));
+                                    'Collection Description', 'Private'));
+
     it('make the collection public', function () {
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
@@ -206,7 +207,7 @@ describe('Test routing paths', function () {
                 return $('.modal-title').text() === 'Create folder';
             });
 
-        var collFolderPath = collPath + '/folder/' + ids.collectionFolder;
+        var collFolderPath = collPath + '/folder/' + ids.userFolder;
         girderTest.testRoute(collFolderPath, false, function () {
             return $('.g-collection-actions-menu').length === 1 &&
                    $('.g-folder-access-button').length === 1;

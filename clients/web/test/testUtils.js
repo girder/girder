@@ -155,7 +155,7 @@ girderTest.goToCurrentUserSettings = function () {
 
 // This assumes that you're logged into the system and on the create collection
 // page.
-girderTest.createCollection = function (collName, collDesc) {
+girderTest.createCollection = function (collName, collDesc, createFolderName) {
 
     return function () {
 
@@ -190,6 +190,29 @@ girderTest.createCollection = function (collName, collDesc) {
                 $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
         girderTest.waitForLoad();
+
+        if (createFolderName) {
+            waitsFor(function () {
+                return $('.g-create-subfolder').length > 0;
+            }, 'hierarchy widget to laod');
+
+            runs(function () {
+                return $('.g-create-subfolder').click();
+            });
+            girderTest.waitForDialog();
+            waitsFor(function () {
+                return $('.modal-body input#g-name').length > 0;
+            }, 'create folder dialog to appear')
+
+            runs(function () {
+                $('#g-name').val(createFolderName);
+                $('.g-save-folder').click();
+            });
+            girderTest.waitForLoad();
+            waitsFor(function () {
+                return $('.g-folder-list-link').length > 0;
+            }, 'new folder to appear in the list');
+        }
     };
 };
 

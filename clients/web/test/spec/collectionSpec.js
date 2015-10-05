@@ -36,7 +36,7 @@ describe('Test collection actions', function () {
     });
 
     it('create a collection',
-        girderTest.createCollection('collName0', 'coll Desc 0'));
+        girderTest.createCollection('collName0', 'coll Desc 0', 'Private'));
 
     it('go back to collections page', function () {
         runs(function () {
@@ -58,7 +58,7 @@ describe('Test collection actions', function () {
     });
 
     it('create another collection',
-        girderTest.createCollection('collName1', 'coll Desc 1'));
+        girderTest.createCollection('collName1', 'coll Desc 1', 'Private'));
 
     it('change collection description', function () {
 
