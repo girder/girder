@@ -18,6 +18,7 @@
 ###############################################################################
 
 import httmock
+import inspect
 import io
 import json
 import mock
@@ -30,6 +31,8 @@ import zipfile
 
 from .. import base, mock_s3
 from girder.constants import AssetstoreType, ROOT_DIR
+from girder.utility import assetstore_utilities
+from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 
 
@@ -138,6 +141,108 @@ class AssetstoreTestCase(base.TestCase):
         # restore the original root
         assetstore['root'] = oldroot
         self.model('assetstore').save(assetstore, validate=False)
+
+    def testFilesystemAssetstoreImport(self):
+        folder = six.next(self.model('folder').childFolders(
+            self.admin, parentType='user', force=True, filters={
+                'name': 'Public'
+            }))
+
+        params = {
+            'importPath': '/nonexistent/dir',
+            'destinationType': 'folder',
+            'destinationId': folder['_id']
+        }
+        path = '/assetstore/%s/import' % str(self.assetstore['_id'])
+
+        resp = self.request(path, method='POST', params=params)
+        self.assertStatus(resp, 401)
+
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'No such directory: /nonexistent/dir.')
+
+        params['importPath'] = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client')
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatusOk(resp)
+
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/testdata/hello.txt/hello.txt'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_modelType'], 'file')
+        file = self.model('file').load(resp.json['_id'], force=True, exc=True)
+
+        self.assertTrue(os.path.isfile(file['path']))
+
+        # Make sure downloading the file works
+        resp = self.request('/file/%s/download' % str(file['_id']),
+                            isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(self.getBody(resp), 'hello\n')
+
+        # Deleting the file should not actually remove the file on disk
+        resp = self.request('/file/' + str(file['_id']), method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+
+        self.assertIsNone(self.model('file').load(file['_id'], force=True))
+        self.assertTrue(os.path.isfile(file['path']))
+
+    def testFilesystemAssetstoreFindInvalidFiles(self):
+        # Create several files in the assetstore, some of which point to real
+        # files on disk and some that don't
+        folder = six.next(self.model('folder').childFolders(
+            parent=self.admin, parentType='user', force=True, limit=1))
+        item = self.model('item').createItem('test', self.admin, folder)
+
+        path = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')
+        real = self.model('file').createFile(
+            name='hello.txt', creator=self.admin, item=item,
+            assetstore=self.assetstore, size=os.path.getsize(path))
+        real['imported'] = True
+        real['path'] = path
+        self.model('file').save(real)
+
+        fake = self.model('file').createFile(
+            name='fake', creator=self.admin, item=item, size=1,
+            assetstore=self.assetstore)
+        fake['path'] = 'nonexistent/path/to/file'
+        fake['sha512'] = '...'
+        self.model('file').save(fake)
+
+        fakeImport = self.model('file').createFile(
+            name='fakeImport', creator=self.admin, item=item, size=1,
+            assetstore=self.assetstore)
+        fakeImport['imported'] = True
+        fakeImport['path'] = '/nonexistent/path/to/file'
+        self.model('file').save(fakeImport)
+
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        self.assertTrue(inspect.isgeneratorfunction(adapter.findInvalidFiles))
+
+        with ProgressContext(True, user=self.admin, title='test') as p:
+            for i, info in enumerate(
+                    adapter.findInvalidFiles(progress=p, filters={
+                        'imported': True
+                    }), 1):
+                self.assertEqual(info['reason'], 'missing')
+                self.assertEqual(info['file']['_id'], fakeImport['_id'])
+            self.assertEqual(i, 1)
+            self.assertEqual(p.progress['data']['current'], 2)
+            self.assertEqual(p.progress['data']['total'], 2)
+
+            for i, info in enumerate(
+                    adapter.findInvalidFiles(progress=p), 1):
+                self.assertEqual(info['reason'], 'missing')
+                self.assertIn(info['file']['_id'], (
+                    fakeImport['_id'], fake['_id']))
+            self.assertEqual(i, 2)
+            self.assertEqual(p.progress['data']['current'], 3)
+            self.assertEqual(p.progress['data']['total'], 3)
 
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
