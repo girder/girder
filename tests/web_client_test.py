@@ -30,6 +30,7 @@ from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR
+from girder.utility import config
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -42,6 +43,13 @@ def setUpModule():
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
+
+    pluginDirs = os.environ.get('PLUGIN_DIRS', '')
+
+    if pluginDirs:
+        curConfig = config.getConfig()
+        curConfig['plugins'] = {'plugin_directory': pluginDirs}
+
     plugins = os.environ.get('ENABLED_PLUGINS', '')
     if plugins:
         base.enabledPlugins.extend(plugins.split())
