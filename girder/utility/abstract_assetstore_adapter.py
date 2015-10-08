@@ -18,6 +18,7 @@ import cherrypy
 import os
 import six
 
+from girder.utility import progress
 from ..constants import SettingKey
 from .model_importer import ModelImporter
 from ..models.model_base import ValidationException
@@ -84,8 +85,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type chunk: file
         :returns: Must return the upload document with any optional changes.
         """
-        raise Exception('Must override processChunk in %s.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override processChunk in %s.' %
+                                  self.__class__.__name__)  # pragma: no cover
 
     def finalizeUpload(self, upload, file):
         """
@@ -121,8 +122,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param file: The File document about to be deleted.
         :type file: dict
         """
-        raise Exception('Must override deleteFile in %s.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override deleteFile in %s.' %
+                                  self.__class__.__name__)  # pragma: no cover
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None):
         """
@@ -141,8 +142,27 @@ class AbstractAssetstoreAdapter(ModelImporter):
             end of the file.
         :type endByte: int or None
         """
-        raise Exception('Must override downloadFile in %s.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override downloadFile in %s.' %
+                                  self.__class__.__name__)  # pragma: no cover
+
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
+                         checkSize=True, **kwargs):
+        """
+        Finds and yields any invalid files in the assetstore. It is left to
+        the caller to decide what to do with them.
+
+        :param progress: Pass a progress context to record progress.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param filters: Additional query dictionary to restrict the search for
+            files. There is no need to set the ``assetstoreId`` in the filters,
+            since that is done automatically.
+        :type filters: dict or None
+        :param checkSize: Whether to make sure the size of the underlying
+            data matches the size of the file.
+        :type checkSize: bool
+        """
+        raise NotImplementedError('Must override findInvalidFiles in %s.' %
+                                  self.__class__.__name__)  # pragma: no cover
 
     def copyFile(self, srcFile, destFile):
         """
@@ -223,8 +243,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         abandoned.  It must clean up temporary files, chunks, or whatever other
         information the assest store contains.
         """
-        raise Exception('Must override cancelUpload in %s.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override cancelUpload in %s.' %
+                                  self.__class__.__name__)  # pragma: no cover
 
     def untrackedUploads(self, knownUploads=(), delete=False):
         """
@@ -240,7 +260,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         return ()
 
-    def importData(self, parent, parentType, params, progress, user):
+    def importData(self, parent, parentType, params, progress, user, **kwargs):
         """
         Assetstores that are capable of importing pre-existing data from the
         underlying storage medium can implement this method.
@@ -258,5 +278,6 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param user: The girder user performing the import.
         :type user: dict or None
         """
-        raise ValidationException(
-            'This assetstore type does not support importing existing data.')
+        raise NotImplementedError(
+            'The %s assetstore type does not support importing existing data.'
+            % self.__class__.__name__)  # pragma: no cover)

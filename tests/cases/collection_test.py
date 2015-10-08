@@ -257,6 +257,42 @@ class CollectionTestCase(base.TestCase):
             'groups': []
         })
 
+        # Add group access to the collection
+        group = self.model('group').createGroup('test', self.admin)
+        obj = {
+            'groups': [{
+                'id': str(group['_id']),
+                'level': AccessType.WRITE
+            }]
+        }
+
+        resp = self.request(
+            path='/collection/%s/access' % coll['_id'], method='PUT', params={
+                'access': json.dumps(obj),
+                'recurse': False
+            }, user=self.admin)
+        self.assertStatusOk(resp)
+
+        # Create a new top-level folder, it should inherit the collection ACL.
+        resp = self.request(path='/folder', method='POST', params={
+            'name': 'top level 2',
+            'parentId': coll['_id'],
+            'parentType': 'collection'
+        }, user=self.admin)
+        self.assertStatusOk(resp)
+        folder = self.model('folder').load(resp.json['_id'], force=True)
+        coll = self.model('collection').load(coll['_id'], force=True)
+        self.assertEqual(coll['access']['users'], [])
+        self.assertEqual(folder['access']['users'], [{
+            'id': self.admin['_id'],
+            'level': AccessType.ADMIN
+        }])
+        self.assertEqual(folder['access']['groups'], [{
+            'id': group['_id'],
+            'level': AccessType.WRITE
+        }])
+        self.assertEqual(folder['access']['groups'], coll['access']['groups'])
+
     def testCollectionCreatePolicy(self):
         # With default settings, non-admin users cannot create collections
         resp = self.request(path='/collection', method='POST', params={

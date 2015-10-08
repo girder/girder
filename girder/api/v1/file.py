@@ -43,6 +43,7 @@ class File(Resource):
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
         self.route('POST', ('completion',), self.finalizeUpload)
+        self.route('POST', (':id', 'copy'), self.copy)
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
@@ -322,3 +323,18 @@ class File(Resource):
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.'))
+
+    @access.user
+    @loadmodel(model='file', level=AccessType.READ)
+    @loadmodel(model='item', map={'itemId': 'item'}, level=AccessType.WRITE)
+    def copy(self, file, item, params):
+        user = self.getCurrentUser()
+        fileModel = self.model('file')
+        newFile = fileModel.copyFile(file, user, item=item)
+
+        return fileModel.filter(newFile, user)
+
+    copy.description = (
+        Description('Copy a file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('itemId', 'The item to copy the file to.', required=True))

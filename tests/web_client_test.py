@@ -23,9 +23,7 @@ import subprocess
 import sys
 import time
 
-# Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')  # noqa
-
+from girder import config
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
@@ -35,6 +33,8 @@ from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
 
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
+config.loadConfig()  # Reload config to pick up correct port
 testServer = None
 
 

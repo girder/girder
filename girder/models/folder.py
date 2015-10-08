@@ -433,9 +433,6 @@ class Folder(AccessControlledModel):
             if existing:
                 return existing
 
-        assert '_id' in parent
-        assert public is None or type(public) is bool
-
         parentType = parentType.lower()
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
@@ -471,11 +468,10 @@ class Folder(AccessControlledModel):
             'size': 0
         }
 
-        # If this is a subfolder, default permissions are inherited from the
-        # parent folder. Otherwise, the creator is granted admin access.
-        if parentType == 'folder':
+        if parentType in ('folder', 'collection'):
             self.copyAccessPolicies(src=parent, dest=folder)
-        elif creator is not None:
+
+        if creator is not None:
             self.setUserAccess(folder, user=creator, level=AccessType.ADMIN)
 
         # Allow explicit public flag override if it's set.
