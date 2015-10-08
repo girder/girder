@@ -179,6 +179,28 @@ class Upload(Model):
 
         return file
 
+    def getTargetAssetstore(self, modelType, resource):
+        """
+        Get the assetstore for a particular target resource, i.e. where new
+        data within the resource should be stored. In girder core, this is
+        always just the current assetstore, but plugins may override this
+        behavior to allow for more granular assetstore selection.
+        """
+        eventParams = {'model': modelType, 'resource': resource}
+        event = events.trigger('model.upload.assetstore', eventParams)
+
+        if event.responses:
+            assetstore = event.responses[-1]
+        elif 'assetstore' in eventParams:
+            # This mode of event response is deprecated, but is preserved here
+            # for backward compatibility
+            # TODO remove in v2.0
+            assetstore = eventParams['assetstore']
+        else:
+            assetstore = self.model('assetstore').getCurrent()
+
+        return assetstore
+
     def createUploadToFile(self, file, user, size):
         """
         Creates a new upload record into a file that already exists. This
@@ -191,11 +213,7 @@ class Upload(Model):
         :param user: The user performing this upload.
         :param size: The size of the new file contents.
         """
-        eventParams = {'model': 'file', 'resource': file}
-        events.trigger('model.upload.assetstore', eventParams)
-        assetstore = eventParams.get('assetstore',
-                                     self.model('assetstore').getCurrent())
-
+        assetstore = self.getTargetAssetstore('file', file)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
@@ -233,11 +251,7 @@ class Upload(Model):
         :type mimeType: str
         :returns: The upload document that was created.
         """
-        eventParams = {'model': parentType, 'resource': parent}
-        events.trigger('model.upload.assetstore', eventParams)
-        assetstore = eventParams.get('assetstore',
-                                     self.model('assetstore').getCurrent())
-
+        assetstore = self.getTargetAssetstore(parentType, parent)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
