@@ -28,7 +28,6 @@ from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR
-from girder.utility import config
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
