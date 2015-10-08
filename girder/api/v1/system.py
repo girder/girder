@@ -104,7 +104,8 @@ class System(Resource):
         .param('value', 'The value for this setting.', required=False)
         .param('list', 'A JSON list of objects with key and value representing '
                'a list of settings to set.', required=False)
-        .errorResponse('You are not a system administrator.', 403))
+        .errorResponse('You are not a system administrator.', 403)
+        .errorResponse('Failed to set system setting.', 500))
 
     @access.admin
     def getSetting(self, params):
