@@ -150,13 +150,8 @@ class System(Resource):
         Return the plugin information for the system. This includes a list of
         all of the currently enabled plugins, as well as
         """
-        allPlugins = plugin_utilities.findAllPlugins()
-        for plugin in allPlugins.values():
-            if 'dependencies' in plugin:
-                plugin['dependencies'] = list(plugin['dependencies'])
-
         return {
-            'all': allPlugins,
+            'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
         }
     getPlugins.description = (

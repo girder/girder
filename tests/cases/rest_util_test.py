@@ -17,10 +17,24 @@
 #  limitations under the License.
 ###############################################################################
 
-import unittest
+import datetime
+import json
 import six
+import unittest
 
 from girder.api import rest
+
+date = datetime.datetime.now()
+
+
+class TestResource(object):
+    @rest.endpoint
+    def returnsSet(self, *args, **kwargs):
+        return {'key': {1, 2, 3}}
+
+    @rest.endpoint
+    def returnsDate(self, *args, **kwargs):
+        return {'key': date}
 
 
 class RestUtilTestCase(unittest.TestCase):
@@ -67,3 +81,11 @@ class RestUtilTestCase(unittest.TestCase):
 
         url = 'https://localhost/girder#users'
         self.assertRaises(Exception, rest.getApiUrl, url=url)
+
+    def testCustomJsonEncoder(self):
+        resource = TestResource()
+        resp = resource.returnsSet()
+        self.assertEqual(json.loads(resp), {'key': [1, 2, 3]})
+
+        resp = resource.returnsDate()
+        self.assertEqual(json.loads(resp), {'key': str(date)})
