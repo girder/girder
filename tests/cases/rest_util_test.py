@@ -84,8 +84,8 @@ class RestUtilTestCase(unittest.TestCase):
 
     def testCustomJsonEncoder(self):
         resource = TestResource()
-        resp = resource.returnsSet()
+        resp = resource.returnsSet().decode('utf8')
         self.assertEqual(json.loads(resp), {'key': [1, 2, 3]})
 
-        resp = resource.returnsDate()
+        resp = resource.returnsDate().decode('utf8')
         self.assertEqual(json.loads(resp), {'key': str(date)})
