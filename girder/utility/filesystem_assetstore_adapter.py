@@ -287,7 +287,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if os.path.exists(upload['tempFile']):
             os.unlink(upload['tempFile'])
 
-    def importFile(self, item, path, user, name=None, mimeType=None, size=None):
+    def importFile(self, item, path, user, name=None, mimeType=None, **kwargs):
         """
         Import a single file from the filesystem into the assetstore.
 
@@ -301,20 +301,16 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         :type name: str
         :param mimeType: MIME type of the file if known.
         :type mimeType: str
-        :param size: Size of the file in bytes. Will stat the file if not
-            passed.
-        :type size: int
         :returns: The file document that was created.
         """
-        if size is None:
-            size = os.path.getsize(path)
-
+        stat = os.stat(path)
         name = name or os.path.basename(path)
 
         file = self.model('file').createFile(
             name=name, creator=user, item=item, reuseExisting=True,
-            assetstore=self.assetstore, mimeType=mimeType, size=size)
+            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size)
         file['path'] = os.path.abspath(os.path.expanduser(path))
+        file['mtime'] = stat.st_mtime
         file['imported'] = True
         return self.model('file').save(file)
 
