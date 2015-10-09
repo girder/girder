@@ -42,6 +42,13 @@ def setUpModule():
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
+
+    pluginDirs = os.environ.get('PLUGIN_DIRS', '')
+
+    if pluginDirs:
+        curConfig = config.getConfig()
+        curConfig['plugins'] = {'plugin_directory': pluginDirs}
+
     plugins = os.environ.get('ENABLED_PLUGINS', '')
     if plugins:
         base.enabledPlugins.extend(plugins.split())

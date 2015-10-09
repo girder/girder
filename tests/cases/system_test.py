@@ -237,6 +237,14 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(len(enabled), 3)
         self.assertTrue('test_plugin' in enabled)
         self.assertTrue('does_nothing' in enabled)
+        resp = self.request(
+            path='/system/plugins', method='PUT', user=self.users[0],
+            params={'plugins': '["has_nonexistent_deps"]'},
+            exception=True)
+        self.assertStatus(resp, 500)
+        self.assertEqual(resp.json['message'],
+                         ("Required dependency a_plugin_that_does_not_exist"
+                          " does not exist."))
 
     def testBadPlugin(self):
         pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
