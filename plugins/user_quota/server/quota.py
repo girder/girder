@@ -335,7 +335,7 @@ class QuotaPolicy(Resource):
         if assetstore is False:
             raise GirderException('Required assetstore is unavailable')
         if assetstore:
-            event.info['assetstore'] = assetstore
+            event.addResponse(assetstore)
 
     def _getFileSizeQuota(self, model, resource):
         """
