@@ -26,7 +26,7 @@ from subprocess import check_output, CalledProcessError
 
 from .. import base
 from girder.api.describe import API_VERSION
-from girder.constants import SettingKey, SettingDefault, ROOT_DIR
+from girder.constants import SettingKey, SettingDefault, ROOT_DIR, TokenScope
 from girder.utility import config
 
 
@@ -352,3 +352,32 @@ class SystemTestCase(base.TestCase):
             '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
 
         del config.getConfig()['logging']
+
+    def testTokenScopeAuthorization(self):
+        resp = self.request('/system/setting')
+        self.assertStatus(resp, 401)
+
+        # Make sure a normal user can't use the endpoint
+        resp = self.request('/system/setting', user=self.users[1])
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Administrator access required.')
+
+        # Make sure an admin can use the endpoint
+        params = {'key': SettingKey.SMTP_HOST}
+        resp = self.request('/system/setting', user=self.users[0],
+                            params=params)
+        self.assertStatusOk(resp)
+        val = resp.json
+
+        # Token with the wrong scope should fail
+        token = self.model('token').createToken(
+            scope=TokenScope.READ_ASSETSTORES)
+        resp = self.request('/system/setting', token=token, params=params)
+        self.assertStatus(resp, 403)
+        print(resp.json)
+
+        # Token with correct scope should succeed
+        token = self.model('token').createToken(scope=TokenScope.READ_SETTINGS)
+        resp = self.request('/system/setting', token=token, params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, val)

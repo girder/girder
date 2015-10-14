@@ -19,37 +19,102 @@
 
 import six
 
-from girder.models.model_base import AccessException
 from girder.api import rest
+from girder.models.model_base import AccessException
+from girder.utility.model_importer import ModelImporter
+
+_tokenModel = ModelImporter.model('token')
 
 
-def admin(fun):
+def admin(*args, **kwargs):
     """
     Functions that require administrator access should be wrapped in this
     decorator.
+
+    :param scope: To also expose this endpoint for certain token scopes,
+        pass those scopes here. If multiple are passed, all will be required.
+    :type scope: str or list of str
     """
-    @six.wraps(fun)
-    def accessDecorator(*args, **kwargs):
-        rest.requireAdmin(rest.getCurrentUser())
-        return fun(*args, **kwargs)
-    accessDecorator.accessLevel = 'admin'
-    return accessDecorator
+    if len(args) == 1 and callable(args[0]):  # Raw decorator
+        @six.wraps(args[0])
+        def wrapped(*iargs, **ikwargs):
+            rest.requireAdmin(rest.getCurrentUser())
+            return args[0](*iargs, **ikwargs)
+        wrapped.accessLevel = 'admin'
+        return wrapped
+    else:  # We should return a decorator
+        def dec(fun):
+            @six.wraps(fun)
+            def wrapped(*iargs, **ikwargs):
+                token = rest.getCurrentToken()
+                if not _tokenModel.hasScope(token, kwargs.get('scope')):
+                    rest.requireAdmin(rest.getCurrentUser())
+                return fun(*iargs, **ikwargs)
+            wrapped.accessLevel = 'admin'
+            return wrapped
+        return dec
 
 
-def user(fun):
+def user(*args, **kwargs):
     """
-    Functions that allow any user (not just administrators) should be wrapped
-    in this decorator. That is, a token must be passed that has the
-    "core.user_auth" scope and a valid user ID.
+    Functions that require a logged-in user should be wrapped with this access
+    decorator.
+
+    :param scope: To also expose this endpoint for certain token scopes,
+        pass those scopes here. If multiple are passed, all will be required.
+    :type scope: str or list of str
     """
-    @six.wraps(fun)
-    def accessDecorator(*args, **kwargs):
-        user = rest.getCurrentUser()
-        if not user:
-            raise AccessException('You must be logged in.')
-        return fun(*args, **kwargs)
-    accessDecorator.accessLevel = 'user'
-    return accessDecorator
+    if len(args) == 1 and callable(args[0]):  # Raw decorator
+        @six.wraps(args[0])
+        def wrapped(*iargs, **ikwargs):
+            if not rest.getCurrentUser():
+                raise AccessException('You must be logged in.')
+            return args[0](*iargs, **ikwargs)
+        wrapped.accessLevel = 'user'
+        return wrapped
+    else:  # We should return a decorator
+        def dec(fun):
+            @six.wraps(fun)
+            def wrapped(*iargs, **ikwargs):
+                token = rest.getCurrentToken()
+                if (not _tokenModel.hasScope(token, kwargs.get('scope')) and
+                        not rest.getCurrentUser()):
+                    raise AccessException('You must be logged in.')
+                return fun(*iargs, **ikwargs)
+            wrapped.accessLevel = 'user'
+            return wrapped
+        return dec
+
+
+def token(*args, **kwargs):
+    """
+    Functions that require a token, but not necessarily a user authentication
+    token, should use this access decorator.
+
+    :param scope: The scope or list of scopes required for this token.
+    :type scope: str or list of str
+    """
+    if len(args) == 1 and callable(args[0]):  # Raw decorator
+        @six.wraps(args[0])
+        def wrapped(*iargs, **ikwargs):
+            if not rest.getCurrentToken():
+                raise AccessException(
+                    'You must be logged in or have a valid auth token.')
+            return args[0](*iargs, **ikwargs)
+        wrapped.accessLevel = 'token'
+        return wrapped
+    else:  # We should return a decorator
+        def dec(fun):
+            @six.wraps(fun)
+            def wrapped(*iargs, **ikwargs):
+                token = rest.getCurrentToken()
+                if not _tokenModel.hasScope(token, kwargs.get('scope')):
+                    raise AccessException(
+                        'You must be logged in or have a valid auth token.')
+                return fun(*iargs, **ikwargs)
+            wrapped.accessLevel = 'token'
+            return wrapped
+        return dec
 
 
 def public(fun):
@@ -57,25 +122,10 @@ def public(fun):
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
     """
-    fun.accessLevel = 'public'
-    return fun
-
-
-def token(fun):
-    """
-    Functions that require a token, but not necessarily a user authentication
-    token, should use this access decorator. This will ensure a valid token
-    was passed, but checking of the scopes is left to the handler and is not
-    part of this decorator.
-    """
     @six.wraps(fun)
     def accessDecorator(*args, **kwargs):
-        token = rest.getCurrentToken()
-        if not token:
-            raise AccessException('You must be logged in or supply a valid '
-                                  'session token.')
         return fun(*args, **kwargs)
-    accessDecorator.accessLevel = 'token'
+    accessDecorator.accessLevel = 'public'
     return accessDecorator
 
 

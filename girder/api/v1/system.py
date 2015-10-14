@@ -26,7 +26,7 @@ import six
 import os
 
 from girder.api import access
-from girder.constants import SettingKey, VERSION
+from girder.constants import SettingKey, TokenScope, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import plugin_utilities
 from girder.utility import system
@@ -109,7 +109,7 @@ class System(Resource):
 
         return True
 
-    @access.admin
+    @access.admin(scope=TokenScope.READ_SETTINGS)
     @describeRoute(
         Description('Get the value of a system setting, or a list of them.')
         .notes('Must be a system administrator to call this.')
@@ -147,17 +147,13 @@ class System(Resource):
             self.requireParams('key', params)
             return getFunc(params['key'], **funcParams)
 
-    @access.admin
+    @access.admin(scope=TokenScope.READ_SETTINGS)
     @describeRoute(
         Description('Get the lists of all available and all enabled plugins.')
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPlugins(self, params):
-        """
-        Return the plugin information for the system. This includes a list of
-        all of the currently enabled plugins, as well as
-        """
         return {
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
@@ -203,7 +199,7 @@ class System(Resource):
         self.requireParams('key', params)
         return self.model('setting').unset(params['key'])
 
-    @access.admin
+    @access.admin(scope=TokenScope.PARTIAL_UPLOAD_READ)
     @describeRoute(
         Description('Get a list of uploads that have not been finished.')
         .notes("Must be a system administrator to call this.")
@@ -246,7 +242,7 @@ class System(Resource):
                 uploadList += untrackedList[:limit-len(uploadList)]
         return uploadList
 
-    @access.admin
+    @access.admin(scope=TokenScope.PARTIAL_UPLOAD_CLEAN)
     @describeRoute(
         Description('Discard uploads that have not been finished.')
         .notes("""Must be a system administrator to call this. This frees

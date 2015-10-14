@@ -139,7 +139,6 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
     :type height: int
     :returns: The updated thumbnail file document.
     """
-
     parentModel = ModelImporter.model(attachToType)
     parent = parentModel.load(attachToId, force=True)
     parent['_thumbnails'] = parent.get('_thumbnails', [])
