@@ -373,7 +373,7 @@ class SystemTestCase(base.TestCase):
         token = self.model('token').createToken(
             scope=TokenScope.READ_ASSETSTORES)
         resp = self.request('/system/setting', token=token, params=params)
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 401)
         print(resp.json)
 
         # Token with correct scope should succeed
