@@ -63,6 +63,9 @@ class QuotaTestCase(base.TestCase):
             'creator': self.admin
         }
         self.collection = self.model('collection').createCollection(**coll)
+        self.model('folder').createFolder(
+            parent=self.collection, parentType='collection', name='Public',
+            public=True, creator=self.admin)
 
     def _uploadFile(self, name, parent, parentType='folder', size=1024,
                     error=None, partial=False):

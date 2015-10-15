@@ -51,8 +51,8 @@ def reinitializeAll():
     """
     Force all models to reconnect/rebuild indices (needed for testing).
     """
-    for pluginModels in six.itervalues(_modelInstances):
-        for model in six.itervalues(pluginModels):
+    for pluginModels in six.viewvalues(_modelInstances):
+        for model in six.viewvalues(pluginModels):
             model.reconnect()
 
 

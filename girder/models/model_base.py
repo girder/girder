@@ -71,7 +71,7 @@ class Model(ModelImporter):
                 self.collection.ensure_index(index)
 
         if type(self._textIndex) is dict:
-            textIdx = [(k, 'text') for k in self._textIndex.keys()]
+            textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
                 self.collection.ensure_index(
                     textIdx, weights=self._textIndex,
@@ -96,7 +96,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].union(fields)
+        self._filterKeys[level].update(fields)
 
     def hideFields(self, level, fields):
         """
@@ -113,7 +113,7 @@ class Model(ModelImporter):
         if isinstance(fields, six.string_types):
             fields = (fields, )
 
-        self._filterKeys[level] = self._filterKeys[level].difference(fields)
+        self._filterKeys[level].difference_update(fields)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
@@ -134,15 +134,15 @@ class Model(ModelImporter):
         if doc is None:
             return None
 
-        keys = self._filterKeys[AccessType.READ]
+        keys = set(self._filterKeys[AccessType.READ])
 
         if user and user.get('admin') is True:
-            keys = keys.union(self._filterKeys[AccessType.SITE_ADMIN])
+            keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
-            keys = keys.union(additionalKeys)
+            keys.update(additionalKeys)
 
-        return self.filterDocument(doc, allow=tuple(keys))
+        return self.filterDocument(doc, allow=keys)
 
     def ensureTextIndex(self, index, language='english'):
         """
@@ -474,23 +474,22 @@ class AccessControlledModel(Model):
         if doc is None:
             return None
 
-        keys = self._filterKeys[AccessType.READ]
+        keys = set(self._filterKeys[AccessType.READ])
         level = self.getAccessLevel(doc, user)
 
         if level >= AccessType.WRITE:
-            keys = keys.union(self._filterKeys[AccessType.WRITE])
+            keys.update(self._filterKeys[AccessType.WRITE])
 
             if level >= AccessType.ADMIN:
-                keys = keys.union(self._filterKeys[AccessType.ADMIN])
+                keys.update(self._filterKeys[AccessType.ADMIN])
 
                 if user.get('admin') is True:
-                    keys = keys.union(
-                        self._filterKeys[AccessType.SITE_ADMIN])
+                    keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
-            keys = keys.union(additionalKeys)
+            keys.update(additionalKeys)
 
-        filtered = self.filterDocument(doc, allow=tuple(keys))
+        filtered = self.filterDocument(doc, allow=keys)
         filtered['_accessLevel'] = level
 
         return filtered
@@ -789,7 +788,7 @@ class AccessControlledModel(Model):
         :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
-        :param objectId: Whether the _id field is an ObjectId.
+        :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
         :param fields: The subset of fields to load from the returned document,
             or None to return the full document.
@@ -799,10 +798,24 @@ class AccessControlledModel(Model):
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
+
+        # Ensure we load access and public, these are needed by requireAccess
+        loadFields = None
+        if not force and fields:
+            loadFields = list(set(fields) | {'access', 'public'})
+
+        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields,
+                         exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
+
+            if fields is not None:
+                if 'access' not in fields:
+                    del doc['access']
+
+                if 'public' not in fields:
+                    del doc['public']
 
         return doc
 

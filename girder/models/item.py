@@ -62,7 +62,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         Make sure a value is a string and is stripped of whitespace.
 
         :param value: the value to coerce into a string if it isn't already.
-        :return stringValue: the string version of the value.
+        :returns: the string version of the value.
         """
         if value is None:
             value = ''
@@ -321,10 +321,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             item['meta'] = {}
 
         # Add new metadata to existing metadata
-        item['meta'].update(metadata.items())
+        item['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in six.iteritems(item['meta']) if v is None]
+        toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
         for key in toDelete:
             del item['meta'][key]
 
@@ -401,24 +401,31 @@ class Item(acl_mixin.AccessControlMixin, Model):
         """
         Generate a list of files within this item.
 
-        :param doc: the item to list.
-        :param user: a user used to validate data that is returned.  This isn't
+        :param doc: The item to list.
+        :param user: A user used to validate data that is returned.  This isn't
                      used, but is present to be consistent across all model
                      implementations of fileList.
-        :param path: a path prefix to add to the results.
-        :param includeMetadata: if True and there is any metadata, include a
+        :param path: A path prefix to add to the results.
+        :type path: str
+        :param includeMetadata: If True and there is any metadata, include a
                                 result which is the json string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the item.
-        :param subpath: if True and the item has more than one file, metadata,
-                        or the sole file is not named the same as the item,
-                        then the returned paths include the item name.
+        :type includeMetadata: bool
+        :param subpath: If True and the item has more than one file, any
+                        metadata, or the sole file is not named the same as the
+                        item, then the returned paths include the item name.
+        :type subpath: bool
+        :returns: Iterable over files in this item, where each element is a
+                  tuple of (path name of the file, stream function with file
+                  data).
+        :rtype: generator(str, func)
         """
         if subpath:
-            files = [file for file in self.childFiles(item=doc, limit=2)]
+            files = list(self.childFiles(item=doc, limit=2))
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
-                    (includeMetadata and len(doc.get('meta', {})))):
+                    (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = "girder-item-metadata.json"
         for file in self.childFiles(item=doc):

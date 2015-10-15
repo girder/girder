@@ -27,10 +27,13 @@ from girder.utility import config
 class CustomRootTestCase(base.TestCase):
 
     def setUp(self):
-        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                  'test_plugins')
+        pluginRoots = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_plugins'),
+                       os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                    'test_additional_plugins')]
+
         conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': pluginRoot}
+        conf['plugins'] = {'plugin_directory': ':'.join(pluginRoots)}
         base.enabledPlugins.append('test_plugin')
 
         base.startServer()

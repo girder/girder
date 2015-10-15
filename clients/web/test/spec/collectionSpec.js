@@ -36,7 +36,7 @@ describe('Test collection actions', function () {
     });
 
     it('create a collection',
-        girderTest.createCollection('collName0', 'coll Desc 0'));
+        girderTest.createCollection('collName0', 'coll Desc 0', 'Private'));
 
     it('go back to collections page', function () {
         runs(function () {
@@ -58,7 +58,7 @@ describe('Test collection actions', function () {
     });
 
     it('create another collection',
-        girderTest.createCollection('collName1', 'coll Desc 1'));
+        girderTest.createCollection('collName1', 'coll Desc 1', 'Private'));
 
     it('change collection description', function () {
 
@@ -91,7 +91,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('.modal').data('bs.modal').isShown === false &&
-                   $('#g-dialog-container:visible').length == 0;
+                   $('#g-dialog-container:visible').length === 0;
         }, 'dialog to fully disappear');
         waitsFor(function () {
             return girder.numberOutstandingRestRequests() === 0;
@@ -163,7 +163,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
+            return $(".g-collection-access-control[role='menuitem']:visible").length === 1;
         }, 'access control menu item to appear');
 
         runs(function () {
@@ -283,7 +283,7 @@ describe('Test collection actions', function () {
         }, 'collection view to load');
 
         waitsFor(function () {
-            return $('.g-loading-block').length == 0;
+            return $('.g-loading-block').length === 0;
         }, 'for all blocks to load');
 
         runs(function () {

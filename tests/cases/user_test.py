@@ -79,7 +79,7 @@ class UserTestCase(base.TestCase):
         }
         # First test all of the required parameters.
         self.ensureRequiredParams(
-            path='/user', method='POST', required=params.keys())
+            path='/user', method='POST', required=six.viewkeys(params))
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)
@@ -376,6 +376,9 @@ class UserTestCase(base.TestCase):
     def testPasswordChangeAndReset(self):
         user = self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
                                              'user@user.com')
+        user2 = self.model('user').createUser('user2', 'passwd', 'tst', 'usr',
+                                              'user2@user.com')
+
         # Reset password should require email param
         resp = self.request(path='/user/password', method='DELETE', params={})
         self.assertStatus(resp, 400)
@@ -426,6 +429,15 @@ class UserTestCase(base.TestCase):
         })
         self.assertStatus(resp, 401)
 
+        # Old password must not be empty
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': '',
+            'new': 'something_else'
+        }, user=user)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Old password must not be empty.')
+
         # Old password must be correct
         resp = self.request(path='/user/password', method='PUT', params={
             'old': 'passwd',
@@ -451,6 +463,31 @@ class UserTestCase(base.TestCase):
         # Make sure we can login with new password
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='user@user.com:something_else')
+        self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ('authToken',))
+        self.assertHasKeys(
+            resp.json['authToken'], ('token', 'expires'))
+        self._verifyAuthCookie(resp)
+
+        # Non-admin user should not be able to reset admin's password
+        resp = self.request(path='/user/%s/password' % str(user['_id']),
+                            method='PUT', user=user2, params={
+                                'password': 'another password'
+        })
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'],
+                         'Administrator access required.')
+
+        # Admin user should be able to reset non-admin's password
+        resp = self.request(path='/user/%s/password' % str(user2['_id']),
+                            method='PUT', user=user, params={
+                                'password': 'foo  bar'
+        })
+        self.assertStatusOk(resp)
+
+        # Make sure we can login with new password
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='user2:foo  bar')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
@@ -496,12 +533,7 @@ class UserTestCase(base.TestCase):
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         user = resp.json['user']
-        # We should now be able to change the password
-        resp = self.request(path='/user/password', method='PUT', params={
-            'old': tokenId,
-            'new': 'another_password'
-        }, user=user)
-        self.assertStatusOk(resp)
+
         # Artificially adjust the token to have expired.
         token = self.model('token').load(tokenId, force=True, objectId=False)
         token['expires'] = (datetime.datetime.utcnow() -
@@ -509,6 +541,14 @@ class UserTestCase(base.TestCase):
         self.model('token').save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatus(resp, 403)
+
+        # We should now be able to change the password
+        resp = self.request(path='/user/password', method='PUT', params={
+            'old': tokenId,
+            'new': 'another_password'
+        }, user=user)
+        self.assertStatusOk(resp)
+
         # Generate an email with a forwarded header
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(

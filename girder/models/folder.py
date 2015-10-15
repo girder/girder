@@ -66,7 +66,7 @@ class Folder(AccessControlledModel):
         :param doc: the folder document to validate.
         :param allowRename: if True and a folder or item exists with the same
                             name, rename the folder so that it is unique.
-        :return doc: the validated folder document.
+        :returns: the validated folder document.
         """
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()
@@ -177,11 +177,11 @@ class Folder(AccessControlledModel):
             folder['meta'] = {}
 
         # Add new metadata to existing metadata
-        folder['meta'].update(six.iteritems(metadata))
+        folder['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
         folder['meta'] = {k: v
-                          for k, v in six.iteritems(folder['meta'])
+                          for k, v in six.viewitems(folder['meta'])
                           if v is not None}
 
         folder['updated'] = datetime.datetime.utcnow()
@@ -433,9 +433,6 @@ class Folder(AccessControlledModel):
             if existing:
                 return existing
 
-        assert '_id' in parent
-        assert public is None or type(public) is bool
-
         parentType = parentType.lower()
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
@@ -471,11 +468,10 @@ class Folder(AccessControlledModel):
             'size': 0
         }
 
-        # If this is a subfolder, default permissions are inherited from the
-        # parent folder. Otherwise, the creator is granted admin access.
-        if parentType == 'folder':
+        if parentType in ('folder', 'collection'):
             self.copyAccessPolicies(src=parent, dest=folder)
-        elif creator is not None:
+
+        if creator is not None:
             self.setUserAccess(folder, user=creator, level=AccessType.ADMIN)
 
         # Allow explicit public flag override if it's set.
@@ -543,6 +539,37 @@ class Folder(AccessControlledModel):
             return self.parentsToRoot(curParentObject, curPath, user=user,
                                       force=force)
 
+    def countItems(self, folder):
+        """
+        Returns the number of items within the given folder.
+        """
+        return self.childItems(folder, fields=()).count()
+
+    def countFolders(self, folder, user=None, level=None):
+        """
+        Returns the number of subfolders within the given folder. Access
+        checking is optional; to circumvent access checks, pass ``level=None``.
+
+        :param folder: The parent folder.
+        :type folder: dict
+        :param user: If performing access checks, the user to check against.
+        :type user: dict or None
+        :param level: The required access level, or None to return the raw
+            subfolder count.
+        """
+        fields = () if level is None else ('access', 'public')
+
+        folders = self.find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        }, fields=fields)
+
+        if level is None:
+            return folders.count()
+        else:
+            return sum(1 for _ in self.filterResultsByPermission(
+                cursor=folders, user=user, level=level, limit=None))
+
     def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
         Return the size of the subtree rooted at the given folder. Includes
@@ -560,12 +587,7 @@ class Folder(AccessControlledModel):
         count = 1
 
         if includeItems:
-            items = self.model('item').find({
-                'folderId': folder['_id']
-            }, fields=())
-            count += items.count()
-            # subsequent operations may take a long time, so free the cursor
-            items.close()
+            count += self.countItems(folder)
 
         folders = self.find({
             'parentId': folder['_id'],
@@ -587,15 +609,22 @@ class Folder(AccessControlledModel):
         """
         Generate a list of files within this folder.
 
-        :param doc: the folder to list.
-        :param user: the user used for access.
-        :param path: a path prefix to add to the results.
+        :param doc: The folder to list.
+        :param user: The user used for access.
+        :param path: A path prefix to add to the results.
+        :type path: str
         :param includeMetadata: if True and there is any metadata, include a
                                 result which is the json string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the folder.
+        :type includeMetadata: bool
         :param subpath: if True, add the folder's name to the path.
+        :type subpath: bool
+        :returns: Iterable over files in this folder, where each element is a
+                  tuple of (path name of the file, stream function with file
+                  data).
+        :rtype: generator(str, func)
         """
         if subpath:
             path = os.path.join(path, doc['name'])
@@ -613,7 +642,7 @@ class Folder(AccessControlledModel):
             for (filepath, file) in self.model('item').fileList(
                     item, user, path, includeMetadata):
                 yield (filepath, file)
-        if includeMetadata and metadataFile and len(doc.get('meta', {})):
+        if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)

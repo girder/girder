@@ -39,9 +39,11 @@ def ValidateSizeQuota(value):
     """
     Validate a quota value.  This may be blank or a non-negative integer.
 
-    :param value: the proposed value.
-    :return value: the validated value: either None or an integer
-    :return: None if no error occurred, otherwise a recommended error message.
+    :param value: The proposed value.
+    :type value: int
+    :returns: The validated value or None,
+              and a recommended error message or None.
+    :rtype: (int or None, str or None)
     """
     if value is None or value == '' or value == 0:
         return None, None
@@ -68,7 +70,7 @@ class QuotaPolicy(Resource):
 
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
-        :return: filtered field of the resource with the quota data, if any.
+        :returns: filtered field of the resource with the quota data, if any.
         """
         filtered = self.model(model).filter(resource, self.getCurrentUser())
         filtered[QUOTA_FIELD] = resource.get(QUOTA_FIELD, {})
@@ -81,7 +83,7 @@ class QuotaPolicy(Resource):
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
         :param params: the query parameters.  'policy' is required and used.
-        :return: the updated resource document.
+        :returns: the updated resource document.
         """
         self.requireParams(('policy', ), params)
         policy = self._validatePolicy(params['policy'])
@@ -178,6 +180,9 @@ class QuotaPolicy(Resource):
         for key in dir(self):
             if key.startswith('_validate_'):
                 validKeys.append(key.split('_validate_', 1)[1])
+        for key in list(policy):
+            if key.startswith('_'):
+                del policy[key]
         for key in policy:
             if key not in validKeys:
                 raise RestException(
@@ -190,6 +195,11 @@ class QuotaPolicy(Resource):
     @access.public
     @loadmodel(model='collection', level=AccessType.READ)
     def getCollectionQuota(self, collection, params):
+        if QUOTA_FIELD not in collection:
+            collection[QUOTA_FIELD] = {}
+        collection[QUOTA_FIELD][
+            '_currentFileSizeQuota'] = self._getFileSizeQuota(
+            'collection', collection)
         return self._filter('collection', collection)
     getCollectionQuota.description = (
         Description('Get quota and assetstore policies for the collection.')
@@ -213,6 +223,10 @@ class QuotaPolicy(Resource):
     @access.public
     @loadmodel(model='user', level=AccessType.READ)
     def getUserQuota(self, user, params):
+        if QUOTA_FIELD not in user:
+            user[QUOTA_FIELD] = {}
+        user[QUOTA_FIELD]['_currentFileSizeQuota'] = self._getFileSizeQuota(
+            'user', user)
         return self._filter('user', user)
     getUserQuota.description = (
         Description('Get quota and assetstore policies for the user.')
@@ -265,7 +279,7 @@ class QuotaPolicy(Resource):
         :param model: the initial model type.  Could be file, item, folder,
                       user, or collection.
         :param resource: the initial resource document.
-        :return: A pair ('model', 'resource'), where 'model' is the base model
+        :returns: A pair ('model', 'resource'), where 'model' is the base model
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
@@ -286,6 +300,11 @@ class QuotaPolicy(Resource):
             model = resource['baseParentType']
             resourceId = resource['baseParentId']
             resource = self.model(model).load(id=resourceId, force=True)
+        if model in ('user', 'collection') and resource:
+            # Ensure the base resource has a quota field so we can use the
+            # default quota if apropriate
+            if QUOTA_FIELD not in resource:
+                resource[QUOTA_FIELD] = {}
         if not resource or QUOTA_FIELD not in resource:
             return None, None
         return model, resource
@@ -316,7 +335,7 @@ class QuotaPolicy(Resource):
         if assetstore is False:
             raise GirderException('Required assetstore is unavailable')
         if assetstore:
-            event.info['assetstore'] = assetstore
+            event.addResponse(assetstore)
 
     def _getFileSizeQuota(self, model, resource):
         """
@@ -325,7 +344,7 @@ class QuotaPolicy(Resource):
 
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
-        :return: the fileSizeQuota.  None for no quota (unlimited), otherwise
+        :returns: the fileSizeQuota.  None for no quota (unlimited), otherwise
                  a positive integer.
         """
         useDefault = resource[QUOTA_FIELD].get('useQuotaDefault', True)

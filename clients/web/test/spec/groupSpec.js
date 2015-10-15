@@ -80,8 +80,8 @@ function _invite(name, level, action, check) {
  * @param curSetting: the current policy setting.
  */
 function _testDirectAdd(policy, curUser, curSetting) {
-    if (curSetting != policy.setting) {
-        if (curUser != 'admin') {
+    if (curSetting !== policy.setting) {
+        if (curUser !== 'admin') {
             girderTest.logout()();
             girderTest.login('admin', 'Admin', 'Admin',
                              'adminpassword!')();
@@ -117,7 +117,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
             }, 'the group page to load');
         }
     }
-    if (curUser != policy.user) {
+    if (curUser !== policy.user) {
         girderTest.logout()();
         if (policy.user === 'admin') {
             girderTest.login('admin', 'Admin', 'Admin',

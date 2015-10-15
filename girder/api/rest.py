@@ -20,13 +20,11 @@
 import cherrypy
 import collections
 import datetime
-import functools
 import json
 import pymongo
 import six
 import sys
 import traceback
-import types
 
 from . import docs
 from girder import events, logger
@@ -34,11 +32,27 @@ from girder.constants import SettingKey, TerminalColor, TokenScope
 from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
-from girder.utility import config
+from girder.utility import config, JsonEncoder
 from six.moves import range, urllib
 
 
 def getUrlParts(url=None):
+    """
+    Calls `urllib.parse.urlparse`_ on a URL.
+
+    :param url: A URL, or None to use the current request's URL.
+    :type url: str or None
+    :return: The URL's seperate components.
+    :rtype: `urllib.parse.ParseResult`_
+
+    .. note:: This is compatible with both Python 2 and 3.
+
+    .. _urllib.parse.urlparse: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.urlparse
+
+    .. _urllib.parse.ParseResult: https://docs.python.org/3/library/
+       urllib.parse.html#urllib.parse.ParseResult
+    """
     url = url or cherrypy.url()
     return urllib.parse.urlparse(url)
 
@@ -207,6 +221,8 @@ class loadmodel(object):
     :type plugin: str
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
+    :param force:
+    :type force: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False):
@@ -230,7 +246,7 @@ class loadmodel(object):
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
-            for raw, converted in six.iteritems(self.map):
+            for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
@@ -263,7 +279,7 @@ def _createResponse(val):
             # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
             resp = json.dumps(val, indent=4, sort_keys=True,
-                              separators=(',', ': '), default=str)
+                              separators=(',', ': '), cls=JsonEncoder)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
             return resp.encode('utf8')
@@ -271,7 +287,7 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, default=str).encode('utf8')
+    return json.dumps(val, sort_keys=True, cls=JsonEncoder).encode('utf8')
 
 
 def endpoint(fun):
@@ -547,8 +563,8 @@ class Resource(ModelImporter):
 
             ``rest.post.group.before``
 
-        Note: You will normally not need to call this method directly, as it
-        is called by the internals of this class during the routing process.
+        .. note:: You will normally not need to call this method directly, as it
+           is called by the internals of this class during the routing process.
 
         :param method: The HTTP method of the current request.
         :type method: str

@@ -11,6 +11,7 @@ div.g-plugin-restart
   each plugin in allPlugins
     .g-plugin-list-item
       input.g-plugin-switch(type="checkbox", key="#{plugin.key}",
+                            disabled=!plugin.value.meetsDependencies,
                             checked=(plugin.value.enabled ? "checked" : undefined))
       .g-plugin-name
         | #{plugin.value.name}
@@ -22,3 +23,5 @@ div.g-plugin-restart
                                  title="Configure Plugin")
             i.icon-cog
       .g-plugin-description #{plugin.value.description}
+        if (!plugin.value.meetsDependencies)
+          .g-plugin-warning This plugin has unmet dependencies.

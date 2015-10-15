@@ -65,14 +65,7 @@ class Assetstore(Resource):
             offset=offset, limit=limit, sort=sort))
     find.description = (
         Description('List assetstores.')
-        .param('limit', "Result set size limit.", required=False,
-               dataType='integer', default=50)
-        .param('offset', "Offset into result set.", required=False,
-               dataType='integer', default=0)
-        .param('sort', "Field to sort the assetstore list by.",
-               required=False, default='name')
-        .param('sortdir', "1 for ascending, -1 for descending.",
-               required=False, dataType='integer', default=1)
+        .pagingParams(defaultSort='name')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403))
 
@@ -108,7 +101,7 @@ class Assetstore(Resource):
         .responseClass('Assetstore')
         .notes('You must be an administrator to call this.')
         .param('name', 'Unique name for the assetstore.')
-        .param('type', 'Type of the assetstore.', dataType='integer')
+        .param('type', 'Type of the assetstore.')
         .param('root', 'Root path on disk (for filesystem type).',
                required=False)
         .param('db', 'Database name (for GridFS type)', required=False)

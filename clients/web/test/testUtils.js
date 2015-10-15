@@ -11,7 +11,7 @@ window.alert = function (msg) {
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 
-girderTest.createUser = function (login, email, firstName, lastName, password) {
+girderTest.createUser = function (login, email, firstName, lastName, password, userList) {
 
     return function () {
         runs(function () {
@@ -49,6 +49,10 @@ girderTest.createUser = function (login, email, firstName, lastName, password) {
             expect(girder.currentUser).not.toBe(null);
             expect(girder.currentUser.name()).toBe(firstName + ' ' + lastName);
             expect(girder.currentUser.get('login')).toBe(login);
+
+            if (userList) {
+                userList.push(girder.currentUser);
+            }
         });
     };
 };
@@ -151,7 +155,7 @@ girderTest.goToCurrentUserSettings = function () {
 
 // This assumes that you're logged into the system and on the create collection
 // page.
-girderTest.createCollection = function (collName, collDesc) {
+girderTest.createCollection = function (collName, collDesc, createFolderName) {
 
     return function () {
 
@@ -186,6 +190,29 @@ girderTest.createCollection = function (collName, collDesc) {
                 $('.g-collection-description').text() === collDesc;
         }, 'new collection page to load');
         girderTest.waitForLoad();
+
+        if (createFolderName) {
+            waitsFor(function () {
+                return $('.g-create-subfolder').length > 0;
+            }, 'hierarchy widget to laod');
+
+            runs(function () {
+                return $('.g-create-subfolder').click();
+            });
+            girderTest.waitForDialog();
+            waitsFor(function () {
+                return $('.modal-body input#g-name').length > 0;
+            }, 'create folder dialog to appear')
+
+            runs(function () {
+                $('#g-name').val(createFolderName);
+                $('.g-save-folder').click();
+            });
+            girderTest.waitForLoad();
+            waitsFor(function () {
+                return $('.g-folder-list-link').length > 0;
+            }, 'new folder to appear in the list');
+        }
     };
 };
 
@@ -377,7 +404,7 @@ girderTest.testMetadata = function () {
             expect(afterElem.length).toBe(1);
             expect($('.g-widget-metadata-edit-button', afterElem).length).toBe(1);
 
-            if (action == 'save') {
+            if (action === 'save') {
                 if (beforeType === 'json') {
                     // We want to be sure that the JSON object put into a minified string form is what we get.
                     expect(afterElem.attr('g-value')).toBe(JSON.stringify(
@@ -386,7 +413,7 @@ girderTest.testMetadata = function () {
                     expect(afterElem.attr('g-value')).toBe(JSON.stringify(
                         JSON.parse(beforeValue), null, 4));
                 }
-            } else if (action == 'cancel') {
+            } else if (action === 'cancel') {
                 // If we're canceling the conversion, the after value needs to be the same as the before
                 expect(afterElem.attr('g-value')).toBe(beforeValue);
             }
@@ -492,7 +519,7 @@ girderTest.testMetadata = function () {
                  $('.jsoneditor > .outer > .tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
-            return $(".g-widget-metadata-row").length == expectedNum;
+            return $(".g-widget-metadata-row").length === expectedNum;
         }, 'the correct number of items to be listed');
         runs(function () {
             expect($(".g-widget-metadata-row").length).toBe(expectedNum);
@@ -821,7 +848,7 @@ function _prepareTestUpload() {
                 newdata.append('uploadId', data.vals.uploadId);
                 var len = data.vals.chunk.size;
                 if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length == len &&
+                    girderTest._uploadData.length === len &&
                     !girderTest._uploadDataExtra) {
                     newdata.append('chunk', girderTest._uploadData);
                 } else {
@@ -837,7 +864,7 @@ function _prepareTestUpload() {
                     this.setRequestHeader('x-amz-copy-source', 'bad_value');
                 }
                 if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length == data.size &&
+                    girderTest._uploadData.length === data.size &&
                     !girderTest._uploadDataExtra) {
                     data = girderTest._uploadData;
                 } else {
@@ -927,7 +954,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
             }
             girderTest._uploadDataExtra = 0;
 
-            if (needResume == 'abort') {
+            if (needResume === 'abort') {
                 $('.btn-default').click();
                 orig_len -= 1;
             } else {

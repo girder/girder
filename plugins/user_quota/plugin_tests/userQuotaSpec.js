@@ -1,4 +1,7 @@
+/* globals girderTest, runs, waitsFor, expect, describe, it */
+
 $(function () {
+    var app;
     /* Include the built version of the our templates.  This means that grunt
      * must be run to generate these before the test. */
     girderTest.addCoveredScripts([
@@ -11,7 +14,7 @@ $(function () {
     );
 
     girder.events.trigger('g:appload.before');
-    var app = new girder.App({
+    app = new girder.App({
         el: 'body',
         parentView: null
     });
@@ -20,11 +23,12 @@ $(function () {
 
 /* Go to the collections page.  If a collection is specified, go to that
  * collection's page.
+ *
  * @param collection: the name of the collection to go to.
  */
 function _goToCollection(collection) {
     runs(function () {
-        $("a.g-nav-link[g-target='collections']").click();
+        $('a.g-nav-link[g-target=\'collections\']').click();
     });
     waitsFor(function () {
         return $('.g-collections-search-container:visible').length > 0;
@@ -43,19 +47,70 @@ function _goToCollection(collection) {
 }
 
 /* Go to the users page.  If a user is specified, go to that user's page.
+ *
  * @param user: the full name of the user to go to.
  */
 function _goToUser(user) {
     girderTest.goToUsersPage()();
     if (user) {
         runs(function () {
-            $("a.g-user-link:contains('" + user + "')").click();
+            $('a.g-user-link:contains("' + user + '")').click();
         });
         waitsFor(function () {
             return $('.g-user-name').text() === user;
         }, 'user page to appear');
         girderTest.waitForLoad();
     }
+}
+
+/* Go to a collection, make it public, and give user1 access to it.
+ *
+ * @param collection: the name of the collection to go to.
+ */
+function _makeCollectionPublic(collection) {
+    _goToCollection(collection);
+    runs(function () {
+        $('.g-collection-actions-button').click();
+    });
+    waitsFor(function () {
+        return $('.g-collection-access-control[role="menuitem"]:visible').length === 1;
+    }, 'access control menu item to appear');
+    runs(function () {
+        $('.g-collection-access-control').click();
+    });
+    girderTest.waitForDialog();
+    waitsFor(function () {
+        return $('#g-dialog-container').hasClass('in') &&
+               $('#g-access-public:visible').is(':enabled');
+    }, 'dialog and public access radio button to appear');
+    runs(function () {
+        $('#g-access-public').click();
+        $('#g-dialog-container .g-search-field').val('user1');
+        $('#g-dialog-container input.g-search-field').trigger('input');
+    });
+    waitsFor(function () {
+        return $('.g-search-result').length === 1;
+    }, 'user1 to be listed');
+    runs(function () {
+        $('.g-search-result a').click();
+    });
+    waitsFor(function () {
+        return $('.g-user-access-entry').length === 2;
+    }, 'user1 to be in the access list');
+    runs(function () {
+        $('.g-access-col-right select').eq(1).val(2);
+    });
+    waitsFor(function () {
+        return $('.g-save-access-list:visible').is(':enabled') &&
+               $('.radio.g-selected').text().match('Public').length > 0;
+    }, 'access save button to appear');
+    runs(function () {
+        $('.g-save-access-list').click();
+    });
+    girderTest.waitForLoad();
+    waitsFor(function () {
+        return !$('#g-dialog-container').hasClass('in');
+    }, 'access dialog to be hidden');
 }
 
 /* Test the quota dialog, expecting that this is an admin and can set the
@@ -66,26 +121,26 @@ function _goToUser(user) {
 function _testQuotaDialogAsAdmin(hasChart, capacity) {
     girderTest.waitForDialog('quota dialog to appear');
     waitsFor(function () {
-        return $(".g-quota-capacity").length == 1;
+        return $('.g-quota-capacity').length === 1;
     }, 'capacity to appear');
     waitsFor(function () {
-        return $('a.btn-default').length == 1;
+        return $('a.btn-default').length === 1;
     }, 'the cancel button to appear');
     waitsFor(function () {
-        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
+        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined (' + hasChart + ' ' + capacity + ')');
     runs(function () {
-        expect($("#g-sizeValue").length).toBe(1);
+        expect($('#g-sizeValue').length).toBe(1);
         /* The change() call should automatically set the custom quota radio
          * button. */
-        $("#g-sizeValue").val('abc').trigger('input');
+        $('#g-sizeValue').val('abc').trigger('input');
         $('.g-save-policies').click();
     });
     waitsFor(function () {
         return $('.g-validation-failed-message').text().indexOf('Invalid quota') >= 0;
     }, 'an error message to appear');
     runs(function () {
-        $("#g-sizeValue").val(capacity ? capacity : '');
+        $('#g-sizeValue').val(capacity ? capacity : '');
     });
     runs(function () {
         $('.g-save-policies').click();
@@ -100,16 +155,16 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
 function _testQuotaDialogAsUser(hasChart) {
     girderTest.waitForDialog();
     waitsFor(function () {
-        return $(".g-quota-capacity").length == 1;
+        return $('.g-quota-capacity').length === 1;
     }, 'capacity to appear');
     waitsFor(function () {
-        return $('a.btn-default').length == 1;
+        return $('a.btn-default').length === 1;
     }, 'the cancel button to appear');
     waitsFor(function () {
-        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length == 1;
+        return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined');
     runs(function () {
-        expect($("#g-sizeValue").length).toBe(0);
+        expect($('#g-sizeValue').length).toBe(0);
     });
     runs(function () {
         $('a.btn-default').click();
@@ -124,59 +179,23 @@ describe('test the user quota plugin', function () {
             'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
         _goToCollection();
         girderTest.createCollection('Collection A', 'ColDescription')();
+        _goToCollection();
+        girderTest.createCollection('Collection B', 'ColDescription')();
         girderTest.logout('logout from admin')();
         girderTest.createUser(
             'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
         girderTest.logout('logout from user1')();
         girderTest.createUser(
             'user2', 'user2@email.com', 'Another', 'User', 'testpassword')();
-    });
-    it('make the collection public', function () {
         girderTest.logout('logout from user2')();
+        girderTest.createUser(
+            'user3', 'user3@email.com', 'Third', 'User', 'testpassword')();
+    });
+    it('make the collections public', function () {
+        girderTest.logout('logout from user3')();
         girderTest.login('admin', 'Quota', 'Admin', 'testpassword')();
-        _goToCollection('Collection A');
-        runs(function () {
-            $('.g-collection-actions-button').click();
-        });
-        waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length == 1;
-        }, 'access control menu item to appear');
-        runs(function () {
-            $('.g-collection-access-control').click();
-        });
-        girderTest.waitForDialog();
-        waitsFor(function () {
-            return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-public:visible').is(':enabled');
-        }, 'dialog and public access radio button to appear');
-        runs(function () {
-            $('#g-access-public').click();
-            $('#g-dialog-container .g-search-field').val('user1');
-            $('#g-dialog-container input.g-search-field').trigger('input');
-        });
-        waitsFor(function () {
-            return $('.g-search-result').length === 1;
-        }, 'user1 to be listed');
-        runs(function () {
-            $('.g-search-result a').click();
-        });
-        waitsFor(function () {
-            return $('.g-user-access-entry').length === 2;
-        }, 'user1 to be in the access list');
-        runs(function () {
-            $('.g-access-col-right select').eq(1).val(2);
-        });
-        waitsFor(function () {
-            return $('.g-save-access-list:visible').is(':enabled') &&
-                   $('.radio.g-selected').text().match("Public").length > 0;
-        }, 'access save button to appear');
-        runs(function () {
-            $('.g-save-access-list').click();
-        });
-        girderTest.waitForLoad();
-        waitsFor(function () {
-            return !$('#g-dialog-container').hasClass('in');
-        }, 'access dialog to be hidden');
+        _makeCollectionPublic('Collection A');
+        _makeCollectionPublic('Collection B');
     });
     it('check that admin can set the default quotas', function () {
         waitsFor(function () {
@@ -221,7 +240,7 @@ describe('test the user quota plugin', function () {
                 data: {key: 'user_quota.default_user_quota'},
                 async: false
             });
-            return resp.responseText == '512000';
+            return resp.responseText === '512000';
         }, 'default quota settings to change');
         girderTest.waitForLoad();
     });
@@ -231,7 +250,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-policies[role='menuitem']:visible").length == 1;
+            return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             $('.g-collection-policies').click();
@@ -252,7 +271,7 @@ describe('test the user quota plugin', function () {
             $('.g-user-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-user-policies[role='menuitem']:visible").length == 1;
+            return $('.g-user-policies[role="menuitem"]:visible').length === 1;
         }, 'user actions menu to appear');
         runs(function () {
             $('.g-user-policies').click();
@@ -265,13 +284,13 @@ describe('test the user quota plugin', function () {
     });
     it('test routes', function () {
         girderTest.testRoute(collectionDialogRoute, true, function () {
-            return $(".g-quota-capacity").length == 1;
+            return $('.g-quota-capacity').length === 1;
         });
         girderTest.testRoute(userRoute, false, function () {
             return $('.g-user-name').text() === 'Quota User';
         });
         girderTest.testRoute(userDialogRoute, true, function () {
-            return $(".g-quota-capacity").length == 1;
+            return $('.g-quota-capacity').length === 1;
         });
         runs(function () {
             $('a[data-dismiss="modal"]').click();
@@ -295,7 +314,7 @@ describe('test the user quota plugin', function () {
             });
         });
     });
-    it('check that user2 can view but not set quota', function () {
+    it('check that user1 can view but not set quota', function () {
         girderTest.logout('logout from admin')();
         girderTest.login('user1', 'Quota', 'User', 'testpassword')();
         _goToCollection('Collection A');
@@ -303,7 +322,7 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-collection-policies[role='menuitem']:visible").length == 1;
+            return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             $('.g-collection-policies').click();
@@ -314,7 +333,7 @@ describe('test the user quota plugin', function () {
             $('.g-user-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-user-policies[role='menuitem']:visible").length == 1;
+            return $('.g-user-policies[role="menuitem"]:visible').length === 1;
         }, 'user actions menu to appear');
         runs(function () {
             $('.g-user-policies').click();
@@ -332,14 +351,86 @@ describe('test the user quota plugin', function () {
             $('.g-collection-actions-button').click();
         });
         waitsFor(function () {
-            return $(".g-download-collection[role='menuitem']:visible").length == 1;
+            return $('.g-download-collection[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
             expect($('.g-collection-policies').length).toBe(0);
         });
         _goToUser('Quota User');
         runs(function () {
-            expect($("button:contains('Actions')").length).toBe(0);
+            expect($('button:contains("Actions")').length).toBe(0);
         });
+    });
+    it('check that admin can set the default collection quota', function () {
+        girderTest.logout('logout from user2')();
+        girderTest.login('admin', 'Quota', 'Admin', 'testpassword')();
+        waitsFor(function () {
+            return $('a.g-nav-link[g-target="admin"]').length > 0;
+        }, 'admin console link to load');
+        runs(function () {
+            $('a.g-nav-link[g-target="admin"]').click();
+        });
+        waitsFor(function () {
+            return $('.g-plugins-config').length > 0;
+        }, 'the admin console to load');
+        runs(function () {
+            $('.g-plugins-config').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('input.g-plugin-switch[key="user_quota"]').length > 0;
+        }, 'the plugins page to load');
+        runs(function () {
+            expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);
+            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('input.g-sizeValue').length > 0;
+        }, 'quota default settings to be shown');
+        runs(function () {
+            $('input.g-sizeValue[model=collection]').val('256000');
+            $('#g-user-quota-form input.btn-primary').click();
+        });
+        waitsFor(function () {
+            var resp = girder.restRequest({
+                path: 'system/setting',
+                type: 'GET',
+                data: {key: 'user_quota.default_collection_quota'},
+                async: false
+            });
+            return resp.responseText === '256000';
+        }, 'default collection quota settings to change');
+        girderTest.waitForLoad();
+    });
+    it('check that a user that has never had their quota altered sees the default', function () {
+        girderTest.logout('logout from admin')();
+        girderTest.login('user3', 'Third', 'User', 'testpassword')();
+        _goToUser('Third User');
+        runs(function () {
+            $('.g-user-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-user-policies[role="menuitem"]:visible').length === 1;
+        }, 'user actions menu to appear');
+        runs(function () {
+            $('.g-user-policies').click();
+        });
+        _testQuotaDialogAsUser(true);
+    });
+    it('check that a collection that has never had their quota altered sees the default', function () {
+        girderTest.logout('logout from user3')();
+        girderTest.login('user1', 'Quota', 'User', 'testpassword')();
+        _goToCollection('Collection B');
+        runs(function () {
+            $('.g-collection-actions-button').click();
+        });
+        waitsFor(function () {
+            return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
+        }, 'collection actions menu to appear');
+        runs(function () {
+            $('.g-collection-policies').click();
+        });
+        _testQuotaDialogAsUser(true);
     });
 });

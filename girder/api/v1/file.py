@@ -36,12 +36,14 @@ class File(Resource):
     def __init__(self):
         self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
+        self.route('DELETE', ('upload', ':id'), self.cancelUpload)
         self.route('GET', ('offset',), self.requestOffset)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
         self.route('POST', (), self.initUpload)
         self.route('POST', ('chunk',), self.readChunk)
         self.route('POST', ('completion',), self.finalizeUpload)
+        self.route('POST', (':id', 'copy'), self.copy)
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
@@ -77,7 +79,7 @@ class File(Resource):
                     user=user, name=params['name'], parentType=parentType,
                     parent=parent, size=int(params['size']), mimeType=mimeType)
             except OSError as exc:
-                if exc[0] in (errno.EACCES,):
+                if exc.errno == errno.EACCES:
                     raise GirderException(
                         'Failed to create upload.',
                         'girder.api.v1.file.create-upload-failed')
@@ -186,7 +188,7 @@ class File(Resource):
             else:
                 return self.model('upload').handleChunk(upload, chunk)
         except IOError as exc:
-            if exc[0] in (errno.EACCES,):
+            if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
             raise
     readChunk.description = (
@@ -272,6 +274,22 @@ class File(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403))
 
     @access.user
+    @loadmodel(model='upload')
+    def cancelUpload(self, upload, params):
+        user = self.getCurrentUser()
+
+        if upload['userId'] != user['_id'] and not user.get('admin'):
+            raise AccessException('You did not initiate this upload.')
+
+        self.model('upload').cancelUpload(upload)
+        return {'message': 'Upload canceled.'}
+    cancelUpload.description = (
+        Description('Cancel a partially completed upload.')
+        .param('id', 'The ID of the upload.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You lack permission to cancel this upload.', 403))
+
+    @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
     def updateFile(self, file, params):
         file['name'] = params.get('name', file['name']).strip()
@@ -305,3 +323,18 @@ class File(Resource):
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.'))
+
+    @access.user
+    @loadmodel(model='file', level=AccessType.READ)
+    @loadmodel(model='item', map={'itemId': 'item'}, level=AccessType.WRITE)
+    def copy(self, file, item, params):
+        user = self.getCurrentUser()
+        fileModel = self.model('file')
+        newFile = fileModel.copyFile(file, user, item=item)
+
+        return fileModel.filter(newFile, user)
+
+    copy.description = (
+        Description('Copy a file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('itemId', 'The item to copy the file to.', required=True))

@@ -52,26 +52,26 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH')
         },
         '/static': {
-            'tools.staticdir.on': 'True',
+            'tools.staticdir.on': True,
             'tools.staticdir.dir': 'clients/web/static'
         }
     }
 
     if test:
         appconf['/src'] = {
-            'tools.staticdir.on': 'True',
+            'tools.staticdir.on': True,
             'tools.staticdir.dir': 'clients/web/src',
         }
         appconf['/test'] = {
-            'tools.staticdir.on': 'True',
+            'tools.staticdir.on': True,
             'tools.staticdir.dir': 'clients/web/test',
         }
         appconf['/clients'] = {
-            'tools.staticdir.on': 'True',
+            'tools.staticdir.on': True,
             'tools.staticdir.dir': 'clients'
         }
         appconf['/plugins'] = {
-            'tools.staticdir.on': 'True',
+            'tools.staticdir.on': True,
             'tools.staticdir.dir': 'plugins',
         }
 
@@ -85,6 +85,10 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'static_root': 'static',
             'api_static_root': '../static'
         }})
+
+    mode = curConfig['server']['mode'].lower()
+    print(constants.TerminalColor.info('Running in mode: ' + mode))
+    cherrypy.config['engine.autoreload.on'] = mode == 'development'
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.

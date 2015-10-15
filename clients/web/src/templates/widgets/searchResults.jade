@@ -4,7 +4,7 @@ each result in results
       role="menuitem", tabindex="-1")
       i(class="icon-#{result.icon}")
       |  #{result.text}
-if results.length == 0
+if results.length === 0
   li.g-no-search-results.disabled(role="presentation")
     a(role="menuitem", tabindex="-1")
       i.icon-block

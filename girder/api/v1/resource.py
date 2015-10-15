@@ -37,8 +37,10 @@ class Resource(BaseResource):
     def __init__(self):
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
+        self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', ('download',), self.download)
+        self.route('POST', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
         self.route('POST', ('copy',), self.copyResources)
         self.route('DELETE', (), self.delete)
@@ -139,6 +141,91 @@ class Resource(BaseResource):
             raise RestException('Invalid resources format.')
         return model
 
+    def _lookUpToken(self, token, parentType, parent):
+        """
+        Find a particular child resource by name or throw an exception.
+        :param token: the name of the child resource to find
+        :param parentType: the type of the parent to search
+        :param parent: the parent resource
+        :returns: the child resource
+        """
+
+        seekFolder = (parentType in ('user', 'collection', 'folder'))
+        seekItem = (parentType == 'folder')
+        seekFile = (parentType == 'item')
+
+        # (model name, mask, search filter)
+        searchTable = (
+            ('folder', seekFolder, {'name': token,
+                                    'parentId': parent['_id'],
+                                    'parentCollection': parentType}),
+            ('item', seekItem, {'name': token, 'folderId': parent['_id']}),
+            ('file', seekFile, {'name': token, 'itemId': parent['_id']}),
+        )
+
+        for candidateModel, mask, filterObject in searchTable:
+            if not mask:
+                continue
+
+            candidateChild = self.model(candidateModel).findOne(filterObject)
+            if candidateChild is not None:
+                return candidateChild, candidateModel
+
+        # if no folder, item, or file matches, give up
+        raise RestException('Child resource not found: {}({})->{}'.format(
+            parentType, parent.get('name', parent.get('_id')), token))
+
+    def _lookUpPath(self, path, user):
+        pathArray = [token for token in path.split('/') if token]
+        model = pathArray[0]
+
+        parent = None
+        if model == 'user':
+            username = pathArray[1]
+            parent = self.model('user').findOne({'login': username})
+
+            if parent is None:
+                raise RestException('User not found: {}'.format(username))
+
+        elif model == 'collection':
+            collectionName = pathArray[1]
+            parent = self.model('collection').findOne({'name': collectionName})
+
+            if parent is None:
+                raise RestException(
+                    'Collection not found: {}'.format(collectionName))
+
+        else:
+            raise RestException('Invalid path format')
+
+        try:
+            document = parent
+            self.model(model).requireAccess(document, user)
+            for token in pathArray[2:]:
+                document, model = self._lookUpToken(token, model, document)
+                self.model(model).requireAccess(document, user)
+        except RestException:
+            raise RestException('Path not found: {}'.format(path))
+
+        result = self.model(model).filter(document, user)
+        return result
+
+    @access.public
+    def lookup(self, params):
+        self.requireParams('path', params)
+        return self._lookUpPath(params['path'], self.getCurrentUser())
+
+    lookup.description = (
+        Description('Look up a resource in the data hierarchy by path.')
+        .param('path',
+               'The path of the resource.  The path must be an absolute Unix '
+               'path starting with either "/user/[user name]", for a user\'s'
+               'resources or "/collection/[collection name]", for resources '
+               'under a collection.')
+        .errorResponse('Path is invalid.')
+        .errorResponse('Path refers to a resource that does not exist.')
+        .errorResponse('Read access was denied for the resource.', 403))
+
     @access.public
     def download(self, params):
         """
@@ -178,6 +265,10 @@ class Resource(BaseResource):
     download.description = (
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')
+        .notes('This route is also exposed via the POST method because the '
+               'request parameters can be quite long, and encoding them in the '
+               'URL (as is standard when using the GET method) can cause the '
+               'URL to become too long, which causes errors.')
         .param('resources', 'A JSON-encoded list of types to download.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id 2)], "folder": [(folder id 1)]}.')

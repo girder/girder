@@ -33,6 +33,8 @@ girder.views.S3ImportView = girder.View.extend({
     }
 });
 
+// This route is only preserved for backward compatibility. The generic route
+// "assetstore/:id/import" is preferred, and is defined in AssetstoresView.js.
 girder.router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
     var assetstore = new girder.models.AssetstoreModel({
         _id: assetstoreId

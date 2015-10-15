@@ -25,11 +25,12 @@ import shutil
 import sys
 import six
 
-# Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')  # noqa
-
+from girder import config
 from tests import base
 from six import StringIO
+
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
+config.loadConfig()  # Must reload config to pickup correct port
 
 
 @contextlib.contextmanager

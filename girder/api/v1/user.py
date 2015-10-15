@@ -44,6 +44,7 @@ class User(Resource):
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
+        self.route('PUT', (':id', 'password'), self.changeUserPassword)
         self.route('GET', ('password', 'temporary', ':id'),
                    self.checkTemporaryPassword)
         self.route('PUT', ('password', 'temporary'),
@@ -64,14 +65,7 @@ class User(Resource):
         .responseClass('User')
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
-        .param('limit', "Result set size limit.", required=False, default=50,
-               dataType='int')
-        .param('offset', "Offset into result set.", required=False, default=0,
-               dataType='int')
-        .param('sort', "Field to sort the user list by.", default='lastName',
-               required=False)
-        .param('sortdir', "1 for ascending, -1 for descending.", default=1,
-               required=False, dataType='int'))
+        .pagingParams(defaultSort='lastName'))
 
     @access.public
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
@@ -248,12 +242,30 @@ class User(Resource):
         .errorResponse('You do not have write access for this user.', 403)
         .errorResponse('Must be an admin to create an admin.', 403))
 
+    @access.admin
+    @loadmodel(model='user', level=AccessType.ADMIN)
+    def changeUserPassword(self, user, params):
+        self.requireParams('password', params)
+        self.model('user').setPassword(user, params['password'])
+        return {'message': 'Password changed.'}
+    changeUserPassword.description = (
+        Description('Change a user\'s password.')
+        .notes('Only administrators may use this endpoint.')
+        .param('id', 'The ID of the user.', paramType='path')
+        .param('password', 'The user\'s new password.')
+        .errorResponse('You are not an administrator.', 403)
+        .errorResponse('The new password is invalid.'))
+
     @access.user
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)
         user = self.getCurrentUser()
 
-        if not self.model('password').authenticate(user, params['old']):
+        if not params['old']:
+            raise RestException('Old password must not be empty.')
+
+        if (not self.model('password').hasPassword(user) or
+                not self.model('password').authenticate(user, params['old'])):
             token = self.model('token').load(
                 params['old'], force=True, objectId=False, exc=False)
             if (not token or not token.get('userId', None) or

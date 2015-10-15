@@ -67,14 +67,6 @@ Model Base
 .. automodule:: girder.models.model_base
    :members:
 
-.. _events:
-
-Events
-^^^^^^
-
-.. automodule:: girder.events
-    :members:
-
 User
 ^^^^
 .. automodule:: girder.models.user
@@ -116,6 +108,38 @@ Setting
 
 .. automodule:: girder.models.setting
    :members:
+
+Assetstore
+^^^^^^^^^^
+
+.. automodule:: girder.models.assetstore
+   :members:
+
+File
+^^^^
+
+.. automodule:: girder.models.file
+   :members:
+
+Upload
+^^^^^^
+
+.. automodule:: girder.models.upload
+   :members:
+
+.. _events:
+
+Events
+^^^^^^
+
+.. automodule:: girder.events
+    :members:
+
+Notification
+^^^^^^^^^^^^
+
+.. automodule:: girder.models.notification
+    :members:
 
 Python API for RESTful web API
 ------------------------------
@@ -162,6 +186,9 @@ Utility
    :members:
 
 .. automodule:: girder.utility.mail_utils
+   :members:
+
+.. automodule:: girder.utility.progress
    :members:
 
 Constants

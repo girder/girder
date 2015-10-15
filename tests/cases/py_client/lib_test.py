@@ -24,10 +24,11 @@ import os
 import shutil
 import six
 
-# Need to set the environment variable before importing girder
-os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')  # noqa
-
+from girder import config
 from tests import base
+
+os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
+config.loadConfig()  # Must reload config to pickup correct port
 
 
 def setUpModule():
@@ -173,12 +174,12 @@ class PythonClientTestCase(base.TestCase):
                 folder_count += 1
 
         def folder_callback(folder, filepath):
-            self.assertIn(filepath, folders.keys())
+            self.assertIn(filepath, six.viewkeys(folders))
             folders[filepath] = True
             callback_counts['folder'] += 1
 
         def item_callback(item, filepath):
-            self.assertIn(filepath, items.keys())
+            self.assertIn(filepath, six.viewkeys(items))
             items[filepath] = True
             callback_counts['item'] += 1
 
@@ -193,5 +194,61 @@ class PythonClientTestCase(base.TestCase):
         # and that all folders and files have callbacks called on them
         self.assertEqual(folder_count, callback_counts['folder'])
         self.assertEqual(item_count, callback_counts['item'])
-        self.assertTrue(all(items.values()))
-        self.assertTrue(all(folders.values()))
+        self.assertTrue(all(six.viewvalues(items)))
+        self.assertTrue(all(six.viewvalues(folders)))
+
+        # Upload again with reuse_existing on
+        existingList = list(self.model('folder').childFolders(
+            parentType='folder', parent=callbackPublicFolder,
+            user=callbackUser, limit=0))
+        client.upload(self.libTestDir, callbackPublicFolder['_id'],
+                      reuse_existing=True)
+        newList = list(self.model('folder').childFolders(
+            parentType='folder', parent=callbackPublicFolder,
+            user=callbackUser, limit=0))
+        self.assertEqual(existingList, newList)
+        self.assertEqual(len(newList), 1)
+        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+            parentType='folder', parent=newList[0],
+            user=callbackUser, limit=0)], ['sub0', 'sub1', 'sub2'])
+
+        # Test upload via a file-like object into a folder
+        callbacks = []
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+
+        def progressCallback(info):
+            callbacks.append(info)
+
+        with open(path) as f:
+            with self.assertRaises(girder_client.IncorrectUploadLengthError):
+                try:
+                    client.uploadFile(
+                        callbackPublicFolder['_id'], stream=f, name='test',
+                        size=size + 1, parentType='folder')
+                except girder_client.IncorrectUploadLengthError as exc:
+                    self.assertEqual(
+                        exc.upload['received'], exc.upload['size'] - 1)
+                    upload = self.model('upload').load(exc.upload['_id'])
+                    self.assertEqual(upload, None)
+                    raise
+
+        with open(path) as f:
+            file = client.uploadFile(
+                callbackPublicFolder['_id'], stream=f, name='test', size=size,
+                parentType='folder', progressCallback=progressCallback)
+
+        self.assertEqual(len(callbacks), 1)
+        self.assertEqual(callbacks[0]['current'], size)
+        self.assertEqual(callbacks[0]['total'], size)
+        self.assertEqual(file['name'], 'test')
+        self.assertEqual(file['size'], size)
+        self.assertEqual(file['mimeType'], 'application/octet-stream')
+
+        items = list(
+            self.model('folder').childItems(folder=callbackPublicFolder))
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]['name'], 'test')
+
+        files = list(self.model('item').childFiles(items[0]))
+        self.assertEqual(len(files), 1)

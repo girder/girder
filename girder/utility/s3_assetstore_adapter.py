@@ -377,7 +377,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return stream
 
     def importData(self, parent, parentType, params, progress, user,
-                   bucket=None):
+                   bucket=None, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
@@ -397,7 +397,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     creator=user, reuseExisting=True)
                 self.importData(parent=folder, parentType='folder', params={
                     'importPath': obj.name
-                }, progress=progress, user=user, bucket=bucket)
+                }, progress=progress, user=user, bucket=bucket, **kwargs)
             elif isinstance(obj, boto.s3.key.Key):
                 name = obj.name.rsplit('/', 1)[-1]
                 if not name:
