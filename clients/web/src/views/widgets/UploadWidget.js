@@ -7,7 +7,10 @@
  */
 girder.views.UploadWidget = girder.View.extend({
     events: {
-        'submit #g-upload-form': 'startUpload',
+        'submit #g-upload-form': function (e) {
+            e.preventDefault();
+            this.startUpload();
+        },
         'click .g-resume-upload': function () {
             this.$('.g-upload-error-message').html('');
             this.currentFile.resumeUpload();
@@ -170,9 +173,7 @@ girder.views.UploadWidget = girder.View.extend({
         this.trigger('g:filesChanged', this.files);
     },
 
-    startUpload: function (e) {
-        e.preventDefault();
-
+    startUpload: function () {
         this.setUploadEnabled(false);
         this.$('.g-drop-zone').addClass('hide');
         this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
