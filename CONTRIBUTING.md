@@ -28,7 +28,7 @@ guides.
 
 If you have push access to Girder repository, you could simply push your branch
 into the main repository and create a [Pull Request](https://github.com/girder/girder/pulls). This corresponds to the
-`Shared Repository Model` and will facilitate other developer to checkout your
+`Shared Repository Model` and will facilitate other developers to checkout your
 topic without having to [configure a remote](https://help.github.com/articles/configuring-a-remote-for-a-fork/).
 It will also simplify the workflow when you are _co-developing_ a branch.
 
@@ -42,7 +42,8 @@ Getting your contributions integrated is relatively straightforward, here
 is the checklist:
 
 * All tests pass
-* Consensus is reached. This basically means that the reviewers add `LGTM` comments. `LGTM` is a
+* Consensus is reached. This usually means that at least one reviewer added a `LGTM` comment
+and a reasonable amount of time passed without anyone objecting. `LGTM` is a
 shortcut for _Looks Good to Me_.
 
 Next, there are two scenarios:
