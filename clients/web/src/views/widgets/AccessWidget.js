@@ -45,6 +45,14 @@ girder.views.AccessWidget = girder.View.extend({
     },
 
     render: function () {
+        if (!this.model.get('access')) {
+            new girder.views.LoadingAnimation({
+                el: this.$el,
+                parentView: this
+            }).render();
+            return;
+        }
+
         var closeFunction;
         if (this.modal && this.modelType === 'folder') {
             girder.dialogs.handleOpen('folderaccess');
