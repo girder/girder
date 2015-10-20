@@ -181,7 +181,16 @@ describe('Test folder creation, editing, and deletion', function () {
 
         runs(function () {
             $('#g-name').val('Test Folder Name');
-            $('#g-description').val('Test Folder Description');
+            $('.g-description-editor-container .g-markdown-text').val(
+                '## Test Description');
+            $('.g-description-editor-container .g-preview-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-markdown-preview h2:contains("Test Description")').length === 1;
+        }, 'markdown preview to show up correctly');
+
+        runs(function () {
             $('.g-save-folder').click();
         });
         girderTest.waitForLoad();

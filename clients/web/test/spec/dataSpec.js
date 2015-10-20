@@ -113,7 +113,8 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             $('input#g-name').val("John's subfolder");
-            $('#g-description').val(' Some description');
+            $('.g-description-editor-container .g-markdown-text').val(
+                ' Some description');
 
             $('.g-save-folder').click();
         });
@@ -149,7 +150,8 @@ describe('Create a data hierarchy', function () {
         });
 
         waitsFor(function () {
-            return $('textarea#g-description').val() === 'Some description';
+            return $('.g-description-editor-container .g-markdown-text').val() ===
+                'Some description';
         }, 'the edit folder dialog to appear');
         girderTest.waitForDialog();
 
