@@ -10,25 +10,33 @@ girder.views.MarkdownWidget = girder.View.extend({
 
     /**
      * @param [settings.text=''] Initial markdown text.
+     * @param [settings.placeholder=''] Text area placeholder.
      * @param [settings.prefix='markdown'] Prefix for element IDs in case
      *     multiple of these widgets are rendered simultaneously.
      */
     initialize: function (settings) {
         this.text = settings.text || '';
+        this.placeholder = settings.placeholder || '';
         this.prefix = settings.prefix || 'markdown';
     },
 
     render: function () {
         this.$el.html(girder.templates.markdownWidget({
             text: this.text,
+            placeholder: this.placeholder,
             prefix: this.prefix
         }));
     },
 
     /**
-     * Get the current markdown text from the widget.
+     * Get or set the current markdown text. Call with no arguments to return
+     * the current value, or call with one argument to set the value to that.
      */
     val: function () {
-        return this.$('.g-markdown-text').val();
+        if (arguments.length) {
+            return this.$('.g-markdown-text').val(arguments[0]);
+        } else {
+            return this.$('.g-markdown-text').val();
+        }
     }
 });
