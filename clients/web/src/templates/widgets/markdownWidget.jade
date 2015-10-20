@@ -1,0 +1,17 @@
+.g-markdown-widget
+  .g-tabs-container
+    .g-markdown-tabs-top
+      ul.nav.nav-tabs
+        li.first.active(role="presentation")
+          a.g-write-link(data-target="##{prefix}-write" aria-controls="home"
+                         role="tab" data-toggle="tab") Write
+        li(role="presentation")
+          a.g-preview-link(data-target="##{prefix}-preview" aria-controls="preview"
+                           role="tab" data-toggle="tab") Preview
+        .g-markdown-explanation.
+          Supports #[a(href="https://daringfireball.net/projects/markdown/syntax" target="_blank") Markdown]
+    .tab-content
+      .tab-pane.active(role="tabpanel" id="#{prefix}-write")
+        textarea.form-control.g-markdown-text= text
+      .tab-pane(role="tabpanel" id="#{prefix}-preview")
+        .g-markdown-preview
