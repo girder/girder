@@ -12,4 +12,3 @@ may not work in another networking enviroment.
 When restarting the vagrant virtualbox, to restart the docker containers, ssh
 in and, as root, use:
 docker start rs1_srv1 rs1_srv2 rs1_srv3
-
