@@ -34,13 +34,12 @@ except ImportError:
 
 EXECUTABLE_MONGO_METHODS = get_methods(pymongo.collection.Collection,
                                        pymongo.database.Database,
-                                       pymongo.Connection,
-                                       pymongo.ReplicaSetConnection,
+                                       pymongo.cursor.Cursor,
                                        MongoClient, MongoReplicaSetClient,
                                        pymongo)
 
 
-class Executable:
+class Executable(object):
     """ Wrap a MongoDB-method and handle AutoReconnect-exceptions
     using the safe_mongocall decorator.
     """
@@ -85,7 +84,7 @@ class Executable:
     def __repr__(self):
         return self.method.__repr__()
 
-class MongoProxy:
+class MongoProxy(object):
     """ Proxy for MongoDB connection.
     Methods that are executable, i.e find, insert etc, get wrapped in an
     Executable-instance that handles AutoReconnect-exceptions transparently.

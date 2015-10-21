@@ -47,13 +47,28 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     @staticmethod
     def validateInfo(doc):
         """
-        Makes sure the database name is valid.
+        Validate the assetstore -- make sure we can connect to it and that the
+        necessary indexes are set up.
         """
         if not doc.get('db', ''):
             raise ValidationException('Database name must not be empty.', 'db')
         if '.' in doc['db'] or ' ' in doc['db']:
             raise ValidationException('Database name cannot contain spaces'
                                       ' or periods.', 'db')
+
+        chunkColl = getDbConnection(
+            doc.get('mongohost', None), doc.get('replicaset', None),
+            autoRetry=False, serverSelectionTimeoutMS=10000)[doc['db']].chunk
+
+        try:
+            chunkColl.create_index([
+                ('uuid', pymongo.ASCENDING),
+                ('n', pymongo.ASCENDING)
+            ], unique=True)
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            raise ValidationException(
+                'Could not connect to the database: %s' % str(e))
+
         return doc
 
     @staticmethod
@@ -68,7 +83,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             self.chunkColl = getDbConnection(
                 assetstore.get('mongohost', None),
-                assetstore.get('replicaset', None))[assetstore['db']]['chunk']
+                assetstore.get('replicaset', None))[assetstore['db']].chunk
         except pymongo.errors.ConnectionFailure:
             logger.error('Failed to connect to GridFS assetstore %s',
                          assetstore['db'])
@@ -81,10 +96,6 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl = 'Failed to configure'
             self.unavailable = True
             return
-        self.chunkColl.ensure_index([
-            ('uuid', pymongo.ASCENDING),
-            ('n', pymongo.ASCENDING)
-        ], unique=True)
 
     def initUpload(self, upload):
         """
@@ -120,13 +131,13 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             cursor = self.chunkColl.find({
                 'uuid': upload['chunkUuid'],
                 'n': {'$gte': upload['received'] // CHUNK_SIZE}
-            }, fields=['data']).sort('n', pymongo.ASCENDING)
+            }, projection=['data']).sort('n', pymongo.ASCENDING)
             for result in cursor:
                 checksum.update(result['data'])
 
         cursor = self.chunkColl.find({
             'uuid': upload['chunkUuid']
-        }, fields=['n']).sort('n', pymongo.DESCENDING).limit(1)
+        }, projection=['n']).sort('n', pymongo.DESCENDING).limit(1)
         if cursor.count(True) == 0:
             n = 0
         else:
@@ -181,7 +192,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         cursor = self.chunkColl.find({
             'uuid': upload['chunkUuid']
-        }, fields=['n']).sort('n', pymongo.DESCENDING).limit(1)
+        }, projection=['n']).sort('n', pymongo.DESCENDING).limit(1)
         if cursor.count(True) == 0:
             offset = 0
         else:
@@ -230,7 +241,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         cursor = self.chunkColl.find({
             'uuid': file['chunkUuid'],
             'n': {'$gte': n}
-        }, fields=['data']).sort('n', pymongo.ASCENDING)
+        }, projection=['data']).sort('n', pymongo.ASCENDING)
 
         def stream():
             co = chunkOffset  # Can't assign to outer scope without "nonlocal"
@@ -265,7 +276,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'chunkUuid': file['chunkUuid'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = self.model('file').find(q, limit=2, fields=[])
+        matching = self.model('file').find(q, limit=2, projection=[])
         if matching.count(True) == 1:
             try:
                 self.chunkColl.remove({'uuid': file['chunkUuid']})

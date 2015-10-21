@@ -279,7 +279,7 @@ class GeospatialItem(Resource):
             if not user:
                 raise RestException('Index creation denied.', 403)
 
-            self.model('item').collection.ensure_index([(field, GEOSPHERE)])
+            self.model('item').collection.create_index([(field, GEOSPHERE)])
 
         query = {
             field: {

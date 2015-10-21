@@ -292,6 +292,7 @@ describe('Test item creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('.g-file-list-entry').length === fileListLength - 1;
         }, 'file to be removed from the list');
+        girderTest.waitForLoad();
     });
 
     it('Delete the item', function () {

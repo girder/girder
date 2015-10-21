@@ -18,11 +18,10 @@
 ###############################################################################
 
 import datetime
-import pymongo
 
 from .model_base import Model, ValidationException, GirderException
 from girder.utility import assetstore_utilities
-from girder.constants import AssetstoreType
+from girder.constants import AssetstoreType, SortDir
 
 
 class Assetstore(Model):
@@ -89,7 +88,7 @@ class Assetstore(Model):
         # different assetstore to be the current one.
         current = self.findOne({'current': True})
         if current is None:
-            first = self.findOne(sort=[('created', pymongo.DESCENDING)])
+            first = self.findOne(sort=[('created', SortDir.DESCENDING)])
             if first is not None:
                 first['current'] = True
                 self.save(first)
