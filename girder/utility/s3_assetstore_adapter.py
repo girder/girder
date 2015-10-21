@@ -35,6 +35,26 @@ boto.config.add_section('s3')
 boto.config.set('s3', 'use-sigv4', 'True')
 
 
+def authv4_determine_region_name(self, *args, **kwargs):
+    """
+    The boto method auth.S3HmacAuthV4Handler.determine_region_name fails when
+    the url is an IP address or localhost.  For testing, we need to have this
+    succeed.  This wraps the boto function and, if it fails, adds a fall-back
+    value.
+    """
+    try:
+        result = authv4_orig_determine_region_name(self, *args, **kwargs)
+    except UnboundLocalError:
+        result = 'us-east-1'
+    return result
+
+
+authv4_orig_determine_region_name = \
+    boto.auth.S3HmacAuthV4Handler.determine_region_name
+boto.auth.S3HmacAuthV4Handler.determine_region_name = \
+    authv4_determine_region_name
+
+
 def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
                         headers=None, response_headers=None, version_id=None,
                         iso_date=None, params=None):
@@ -185,7 +205,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             queryParams = None
         url = self._botoGenerateUrl(
             method=upload['s3']['request']['method'], key=key,
-            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams)
+            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams,
+            chunkedUpload=chunked)
         upload['s3']['request']['url'] = url
         upload['s3']['request']['headers'] = headers
         return upload
@@ -229,10 +250,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'uploadId': info['s3UploadId']
         }
 
-        url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'],
-                                    queryParams=queryParams, headers={
-                                        'Content-Length': length
-                                    })
+        url = self._botoGenerateUrl(
+            method='PUT', key=upload['s3']['key'], queryParams=queryParams,
+            headers={
+                'Content-Length': length
+            })
 
         upload['s3']['uploadId'] = info['s3UploadId']
         upload['s3']['partNumber'] = info['partNumber']
@@ -547,7 +569,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
     def _botoGenerateUrl(self, key, method='GET', headers=None,
-                         queryParams=None):
+                         queryParams=None, chunkedUpload=False):
         """
         Generate a URL to communicate with the S3 server.  This leverages the
         boto generate_url method, but has additional parameters to compensate
@@ -559,6 +581,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         request.
         :param queryParams: if present, parameters to add to the query.
         :type queryParams: dict
+        :param chunkedUpload: if True, this is a chunked upload and it may need
+                              to be adjusted for moto calls.
         :returns: a url that can be sent with the headers to the S3 server.
         """
         conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
@@ -567,6 +591,15 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             conn, expires_in=self.HMAC_TTL, method=method,
             bucket=self.assetstore['bucket'], key=key, headers=headers,
             params=queryParams)
+        # Moto doesn't work with https, so convert to http if we are testing on
+        # localhost, and multipart uploads require a very specific testing url
+        config = self.assetstore.get('botoConnect', {})
+        if (not config.get('is_secure', True) and
+                config.get('host') == '127.0.0.1'):
+            if url.startswith('https://'):
+                url = 'http' + url[5:]
+            if chunkedUpload:
+                url = url.split('?')[0] + '?uploads'
 
         return url
 
@@ -647,6 +680,10 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
         connect['host'] = service.groups()[2]
         if service.groups()[4] is not None:
             connect['port'] = int(service.groups()[4])
+    else:
+        # If we are using sigv4, we MUST specify a host for boto.  If no
+        # service is specified by the user, use the default used in boto
+        connect['host'] = boto.config.get('s3', 'host', 's3.amazonaws.com')
     return connect
 
 
