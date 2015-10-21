@@ -490,7 +490,6 @@ class AssetstoreTestCase(base.TestCase):
                             user=self.admin,
                             params={'uploadId': singleChunkUpload['_id']})
         self.assertStatusOk(resp)
-        self.assertFalse(resp.json['s3Verified'])
         self.assertEqual(resp.json['size'], 1024)
         self.assertEqual(resp.json['assetstoreId'], str(assetstore['_id']))
         self.assertTrue('s3Key' in resp.json)
