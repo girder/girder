@@ -310,7 +310,7 @@ class User(AccessControlledModel):
 
         if level is not None:
             folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level, limit=None)
+                cursor=folders, user=user, level=level)
 
         count += sum(self.model('folder').subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
