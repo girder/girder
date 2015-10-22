@@ -18,9 +18,10 @@
 ###############################################################################
 
 from ansible.module_utils.basic import *
+import inspect
 
 try:
-    from girder_client import GirderClient
+    from girder_client import GirderClient, AuthenticationError
     HAS_GIRDER_CLIENT = True
 except ImportError:
     HAS_GIRDER_CLIENT = False
@@ -57,21 +58,33 @@ def func_args(func):
 
 class GirderClientModule(GirderClient):
 
+
+    def exit(self):
+        self.module.exit_json(changed=self.changed, **self.message)
+
     def __init__(self, module):
         self.module = module
+        self.changed = False
+        self.message = {"msg": "Success!"}
 
         super(GirderClientModule, self).__init__(
             **{k: module.params.get(k, None) for k in
                func_args(GirderClient.__init__)})
 
-        self.authenticate(
-            username = module.params.get('username', None),
-            password = module.params.get('password', None)
-        )
+        try:
+            self.authenticate(
+                username = module.params.get('username', None),
+                password = module.params.get('password', None))
+
+            self.message['token'] = self.token
+        except AuthenticationError, e:
+            module.fail_json(msg="Could not Authenticate!")
+
+
 
         # call function here
 
-        self.module.exit_json(changed=False, output="{}".format(self.token))
+        self.exit()
 
 def main():
     """Entry point for ansible girder client module
