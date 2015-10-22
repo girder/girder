@@ -6,7 +6,7 @@ div(class="g-#{type}-access-entry", resourceid="#{entry.id}")
       .g-desc-title #{entry.title}
       .g-desc-subtitle #{entry.subtitle}
   .g-access-col-right
-    select
+    select.form-control.input-sm
       - var sel=null; if (entry.level === accessTypes.READ) sel='selected';
       option(value="#{accessTypes.READ}", selected=sel) Can view
       - var sel=null; if (entry.level === accessTypes.WRITE) sel='selected';
@@ -14,4 +14,4 @@ div(class="g-#{type}-access-entry", resourceid="#{entry.id}")
       - var sel=null; if (entry.level === accessTypes.ADMIN) sel='selected';
       option(value="#{accessTypes.ADMIN}", selected=sel) Is owner
     a.g-action-remove-access(title="Remove access")
-      i.icon-block
+      i.icon-cancel
