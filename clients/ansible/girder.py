@@ -43,19 +43,62 @@ EXAMPLES = '''
 - action: girder opt1=arg1 opt2=arg2
 '''
 
+def func_args(func):
+    """Return the arguments of a function as a string
+
+    Do not return the argument 'self' on class methods
+
+    :param func: a function or method
+    :returns: A list of strings,  each string is an argument to func
+    :rtype: list
+
+    """
+    return [k for k in func.__code__.co_varnames if k != 'self']
+
+class GirderClientModule(GirderClient):
+
+    def __init__(self, module):
+        self.module = module
+
+        super(GirderClientModule, self).__init__(
+            **{k: module.params.get(k, None) for k in
+               func_args(GirderClient.__init__)})
+
+        self.authenticate(
+            username = module.params.get('username', None),
+            password = module.params.get('password', None)
+        )
+
+        # call function here
+
+        self.module.exit_json(changed=False, output="{}".format(self.token))
+
 def main():
-    """Entry point for girder client ansible module
+    """Entry point for ansible girder client module
 
     :returns: Nothing
     :rtype: NoneType
 
     """
+    argument_spec = {
+        k: dict(default=None) for k in func_args(GirderClient.__init__)
+    }
+
+    argument_spec['username'] = dict(required=True)
+    argument_spec['password'] = dict(required=True)
+
     module = AnsibleModule(
-        argument_spec=dict()
+        argument_spec=argument_spec,
+        supports_check_mode=False
     )
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
+
+    try:
+        GirderClientModule(module)
+    except Exception, e:
+        module.fail_json(msg=str(e))
 
     return
 
