@@ -358,7 +358,7 @@ class QuotaPolicy(Resource):
                 key = None
             if key:
                 quota = self.model('setting').get(key, None)
-        if not quota or quota < 0 or not isinstance(quota, int):
+        if not quota or quota < 0 or not isinstance(quota, six.integer_types):
             return None
         return quota
 
