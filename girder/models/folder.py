@@ -568,7 +568,7 @@ class Folder(AccessControlledModel):
             return folders.count()
         else:
             return sum(1 for _ in self.filterResultsByPermission(
-                cursor=folders, user=user, level=level, limit=None))
+                cursor=folders, user=user, level=level))
 
     def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
@@ -596,7 +596,7 @@ class Folder(AccessControlledModel):
 
         if level is not None:
             folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level, limit=None)
+                cursor=folders, user=user, level=level)
 
         count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
                                        user=user, level=level)
@@ -790,7 +790,7 @@ class Folder(AccessControlledModel):
             })
 
             subfolders = self.filterResultsByPermission(
-                cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
+                cursor=cursor, user=user, level=AccessType.ADMIN)
 
             for folder in subfolders:
                 self.setAccessList(
