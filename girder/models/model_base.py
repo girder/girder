@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import copy
 import functools
 import itertools
 import pymongo
@@ -833,7 +834,7 @@ class AccessControlledModel(Model):
         """
         dest['public'] = src.get('public', False)
         if 'access' in src:
-            dest['access'] = src['access']
+            dest['access'] = copy.deepcopy(src['access'])
 
         if save:
             dest = self.save(dest, validate=False)
