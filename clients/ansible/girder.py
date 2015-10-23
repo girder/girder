@@ -50,25 +50,33 @@ class GirderClientModule(GirderClient):
     _exclude_methods = ['authenticate',
                         'add_folder_upload_callback',
                         'add_item_upload_callback']
+    _debug = True
 
     def exit(self):
+        if not self._debug:
+            del self.message['debug']
+
         self.module.exit_json(changed=self.changed, **self.message)
 
     def __init__(self, module):
         self.module = module
         self.changed = False
-        self.message = {"msg": "Success!"}
+        self.message = {"msg": "Success!",
+                        "debug": {}}
+
 
         super(GirderClientModule, self).__init__(
-            **{k: module.params.get(k, None) for k in
-               func_args(GirderClient.__init__)})
+            **{p: module.params[p] for p in
+               ['host', 'port', 'apiRoot',
+                'scheme', 'dryrun', 'blacklist']})
 
         try:
             self.authenticate(
-                username = module.params.get('username', None),
-                password = module.params.get('password', None))
+                username = module.params['username'],
+                password = module.params['password'])
 
-            self.message['token'] = self.token
+            self.message['debug']['token'] = self.token
+
         except AuthenticationError, e:
             module.fail_json(msg="Could not Authenticate!")
 
@@ -109,6 +117,7 @@ def main():
         'host': dict(default=None),
         'port': dict(default=None),
         'apiRoot': dict(default=None),
+        'scheme': dict(default=None),
         'dryrun': dict(default=None),
         'blacklist': dict(default=None),
 
@@ -232,7 +241,8 @@ def main():
         'text': dict(type='str')
     }
 
-    argument_spec['func'] = dict( require = True, choices = [])
+    # argument_spec['func'] = dict( required=True, choices = [])
+    argument_spec['func'] = dict( required=False, choices = [])
 
 
     required_if = []
@@ -245,6 +255,7 @@ def main():
         supports_check_mode=False
     )
 
+    module._debug = True
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
