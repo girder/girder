@@ -45,6 +45,24 @@ EXAMPLES = '''
 '''
 
 
+
+def class_spec():
+    for fn, method in getmembers(GirderClient, predicate=ismethod):
+
+        # Note, change to _exclude_methods
+        if not fn.startswith("_") and \
+           fn not in GirderClientModule._exclude_methods:
+
+            spec = getargspec(getattr(GirderClient, fn))
+            # spec.args[1:] so we don't include 'self'
+            params = spec.args[1:]
+            d = len(spec.defaults) if spec.defaults is not None else 0
+            r = len(params) - d
+
+            yield (fn, {"required": params[:r],
+                        "optional": params[r:]})
+
+
 class GirderClientModule(GirderClient):
 
     _exclude_methods = ['authenticate',
@@ -66,14 +84,14 @@ class GirderClientModule(GirderClient):
 
 
         super(GirderClientModule, self).__init__(
-            **{p: module.params[p] for p in
+            **{p: self.module.params[p] for p in
                ['host', 'port', 'apiRoot',
                 'scheme', 'dryrun', 'blacklist']})
 
         try:
             self.authenticate(
-                username = module.params['username'],
-                password = module.params['password'])
+                username = self.module.params['username'],
+                password = self.module.params['password'])
 
             self.message['debug']['token'] = self.token
 
@@ -81,27 +99,24 @@ class GirderClientModule(GirderClient):
             module.fail_json(msg="Could not Authenticate!")
 
 
-
         # call function here
+        spec = dict(class_spec())
+        func = self.module.params['func']
+        params = {}
+
+        for param in spec[func]['required']:
+            params[param] = self.module.params[param]
+
+        for param in spec[func]['optional']:
+            if param in self.module.params:
+                params[param] = self.module.params[param]
+
+        ret = getattr(self, func)(**params)
+
+        self.message['debug']['return_value'] = ret
 
         self.exit()
 
-
-def class_spec():
-    for fn, method in getmembers(GirderClient, predicate=ismethod):
-
-        # Note, change to _exclude_methods
-        if not fn.startswith("_") and \
-           fn not in GirderClientModule._exclude_methods:
-
-            spec = getargspec(getattr(GirderClient, fn))
-            # spec.args[1:] so we don't include 'self'
-            params = spec.args[1:]
-            d = len(spec.defaults) if spec.defaults is not None else 0
-            r = len(params) - d
-
-            yield (fn, {"required": params[:r],
-                        "defaults": params[r:]})
 
 def main():
     """Entry point for ansible girder client module
@@ -241,8 +256,8 @@ def main():
         'text': dict(type='str')
     }
 
-    # argument_spec['func'] = dict( required=True, choices = [])
-    argument_spec['func'] = dict( required=False, choices = [])
+    argument_spec['func'] = dict( required=True, choices = [])
+    # argument_spec['func'] = dict( required=False, choices = [])
 
 
     required_if = []
@@ -251,11 +266,11 @@ def main():
         required_if.append(("func", method, args['required']))
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=False
-    )
+        argument_spec       = argument_spec,
+        required_if         = required_if,
+        supports_check_mode = False
 
-    module._debug = True
+    )
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
@@ -264,7 +279,8 @@ def main():
         GirderClientModule(module)
 
     except Exception, e:
-        module.fail_json(msg=str(e))
+        module.fail_json(msg="{}: {}".format(e.responseText, str(e)))
+
 
     return
 
