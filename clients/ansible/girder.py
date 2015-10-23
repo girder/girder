@@ -26,7 +26,7 @@ try:
 except ImportError:
     HAS_GIRDER_CLIENT = False
 
-DOCUMENTATION= '''
+DOCUMENTATION = '''
 ---
 module: girder
 author: "Chris Kotfila (chris.kotfila@kitware.com)
@@ -44,20 +44,12 @@ EXAMPLES = '''
 - action: girder opt1=arg1 opt2=arg2
 '''
 
-def func_args(func):
-    """Return the arguments of a function as a string
-
-    Do not return the argument 'self' on class methods
-
-    :param func: a function or method
-    :returns: A list of strings,  each string is an argument to func
-    :rtype: list
-
-    """
-    return [k for k in func.__code__.co_varnames if k != 'self']
 
 class GirderClientModule(GirderClient):
 
+    _exclude_methods = ['authenticate',
+                        'add_folder_upload_callback',
+                        'add_item_upload_callback']
 
     def exit(self):
         self.module.exit_json(changed=self.changed, **self.message)
@@ -86,6 +78,21 @@ class GirderClientModule(GirderClient):
 
         self.exit()
 
+
+def class_spec():
+    for fn, method in inspect.getmembers(GirderClient,
+                                         predicate=inspect.ismethod):
+
+        # Note, change to _exclude_methods
+        if not fn.startswith("_") and fn not in ['authenticate']:
+            spec = inspect.getargspec(getattr(GirderClient, fn))
+            # spec.args[1:] so we don't include 'self'
+            params = spec.args[1:]
+            d = len(spec.defaults) if spec.defaults is not None else len(params)
+
+            yield (fn, {"required": params[:d],
+                        "defaults": params[d:]})
+
 def main():
     """Entry point for ansible girder client module
 
@@ -93,12 +100,143 @@ def main():
     :rtype: NoneType
 
     """
+
+    # Default spec for initalizing and authenticating
     argument_spec = {
-        k: dict(default=None) for k in func_args(GirderClient.__init__)
+        # __init__
+        'host': dict(default=None),
+        'port': dict(default=None),
+        'apiRoot': dict(default=None),
+        'dryrun': dict(default=None),
+        'blacklist': dict(default=None),
+
+        # authenticate
+        'username': dict(required=True),
+        'password': dict(required=True),
+
+        # setFolderAccess,  inheritAccessControlRecursive(
+        'access': dict(type='dict'),
+
+        # inheritAccessControlRecursive
+        'ancestorFolderId': dict(type='str'),
+
+        # sendRestRequest, put
+        'data': dict(type='dict'),
+
+        # createItem, createFolder
+        'description': dict(type='str'),
+
+        # downloadItem, downloadFolderRecursive
+        'dest': dict(type='str'),
+
+        # downloadFile
+        'fileId': dict(type='str'),
+
+        # upload
+        'file_pattern': dict(type='str'),
+
+        # isFileCurrent
+        'filename': dict(type='str'),
+
+        # isFileCurrent, uploadFileToItem
+        'filepath': dict(type='str'),
+
+        # post, sendRestRequest
+        'files': dict(type='dict'),
+
+        # addMetadataToFolder, downloadFolderRecursive, getFolder,
+        # getFolderAccess, listItem, setFolderAcces
+        'folderId': dict(type='str'),
+
+        #load_or_create_folder
+        'folder_name': dict(type='str'),
+
+        # getResource
+        'id': dict(type='str'),
+
+        # addMetadataToItem, downloadItem, getItem, isFileCurrent, uploadFileToIte
+        'itemId': dict(type='str'),
+
+        # upload
+        'leaf_folders_as_items': dict(type='bool'),
+
+        # addMetadataToFolder, addMetadataToItem
+        'metadata': dict(type='dict'),
+
+        # sendRestRequest
+        'method': dict(type='str'),
+
+        # createFolder, createItem, downloadItem, listFolder,
+        # listItem, load_or_create_item, uploadFile
+        'name': dict(type='str'),
+
+        # delete, get, post, put, sendRestRequest
+        'parameters': dict(type='dict'),
+
+        # createResource, listResource
+        'params': dict(type='dict'),
+
+        # createItem
+        'parentFolderId': dict(type='str'),
+
+        # listFolder
+        'parentFolderType': dict(default='folder', type='str',
+                                 choices=['folder', 'user', 'collection']),
+
+        # createFolder, listFolder, uploadFile
+        'parentId': dict(type='str'),
+
+        # createFolder, uploadFile
+        # Note: createFolder and uploadFile differ on default for this,
+        #       this means ansible task MUST specify
+        # Note: 'collection' and 'user' are not appropriate for uploadFile
+        #       'item' is not appropriate for createFolder,  it is the user's
+        #       responsibility to know this!
+        'parentType': dict(type='str', choices=['folder', 'user', 'collection', 'item']),
+
+        # load_or_create_item
+        'parent_folder_id': dict(type='str',
+                                 choices=['collection', 'folder', 'user']),
+
+        # load_or_create_folder, upload
+        'parent_id': dict(type='str'),
+
+        # load_or_create_folder, upload
+        'parent_type': dict(type='str',
+                            choices=['collection', 'folder', 'user']),
+
+        # createResource, delete, downloadFile, get, getResource,
+        # listResource, post, put, sendRestReques
+        'path': dict(type='str'),
+
+        # getResrouce
+        'property': dict(type='str'),
+
+        # inheritAccessControlRecursive, setFolderAccess
+        'public': dict(type='bool'),
+
+        # load_or_create_item, upload
+        'reuse_existing': dict(type='bool'),
+
+        # uploadFile
+        'size': dict(type='str'),
+
+        # uploadFile
+        # TODO: add custom uploadFile function to GirderClientModule
+        #       to convert stream into 'file-like' object
+        'stream': dict(type='str'),
+
+        # listItem
+        'text': dict(type='str')
     }
 
-    argument_spec['username'] = dict(required=True)
-    argument_spec['password'] = dict(required=True)
+    argument_spec['func'] = dict( require = True, choices = [])
+
+
+    required_if = []
+    for method, args in class_spec():
+        argument_spec['func']['choices'].append(method)
+        required_if.append(("func", method, args['required']))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -110,6 +248,7 @@ def main():
 
     try:
         GirderClientModule(module)
+
     except Exception, e:
         module.fail_json(msg=str(e))
 
