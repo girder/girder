@@ -61,7 +61,14 @@ class Executable(object):
         i = 0
         while True:
             try:
-                return self.method(*args, **kwargs)
+                val = self.method(*args, **kwargs)
+
+                # If we get back a cursor, we need to also make sure it tries
+                # to auto-reconnect on failure.
+                if isinstance(val, pymongo.cursor.Cursor):
+                    return MongoProxy(val, self.logger, self.wait_time)
+                else:
+                    return val
             except pymongo.errors.AutoReconnect:
                 end = time.time()
                 delta = end - start
@@ -133,6 +140,9 @@ class MongoProxy(object):
 
     def __dir__(self):
         return dir(self.conn)
+
+    def __iter__(self):
+        return self.conn.__iter__()
 
     def __str__(self):
         return self.conn.__str__()
