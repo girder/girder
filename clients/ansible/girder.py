@@ -82,11 +82,11 @@ class GirderClientModule(GirderClient):
         self.message = {"msg": "Success!",
                         "debug": {}}
 
-
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
                ['host', 'port', 'apiRoot',
-                'scheme', 'dryrun', 'blacklist']})
+                'scheme', 'dryrun', 'blacklist']
+               if module.params[p] is not None})
 
         try:
             self.authenticate(
@@ -279,10 +279,11 @@ def main():
         GirderClientModule(module)
 
     except Exception, e:
-        module.fail_json(msg="{}: {}".format(e.responseText, str(e)))
+        import traceback
+        # exc_type, exc_obj, exec_tb = sys.exc_info()
+        module.fail_json(msg="{}: {}\n\n{}".format(e.__class__,
+                                                   str(e), traceback.format_exc()))
 
-
-    return
 
 if __name__ == '__main__':
     main()
