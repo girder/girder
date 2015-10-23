@@ -1,9 +1,20 @@
 - hosts: girder
   tasks:
 
+    # Get current users
     - girder:
         username: "admin"
         password: "letmein"
         port: 8080
         func: get
         path: "user"
+
+
+    - girder:
+        username: "admin"
+        password: "letmein"
+        port: 8080
+        func: put
+        path: "system/plugins"
+        parameters:
+          plugins: '["jobs"]'

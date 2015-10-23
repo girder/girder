@@ -21,7 +21,7 @@ from ansible.module_utils.basic import *
 from inspect import getmembers, ismethod, getargspec
 
 try:
-    from girder_client import GirderClient, AuthenticationError
+    from girder_client import GirderClient, AuthenticationError, HttpError
     HAS_GIRDER_CLIENT = True
 except ImportError:
     HAS_GIRDER_CLIENT = False
@@ -277,6 +277,12 @@ def main():
 
     try:
         GirderClientModule(module)
+
+    except HttpError, e:
+        import traceback
+        module.fail_json(msg="{}:{}\n{}\n{}".format(e.__class__, str(e),
+                                                    e.responseText,
+                                                    traceback.format_exc()))
 
     except Exception, e:
         import traceback
