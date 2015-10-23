@@ -1,14 +1,9 @@
 - hosts: girder
   tasks:
-    - pip:
-        name: girder-client
-        version: 1.0.1
-      sudo: yes
 
     - girder:
         username: "admin"
         password: "letmein"
-        host: 10.0.2.15
         port: 8080
         func: get
         path: "user"

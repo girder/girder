@@ -102,6 +102,12 @@
     pip: requirements={{ girder_install_root }}/requirements.txt
     when: do_install|bool
 
+  - name: girder | pip | girder_client
+    pip:
+      name: girder-client
+      version: 1.0.1
+    when: do_install|bool
+
   - name: grunt-cli | install
     npm:
         executable: "{{ npm_binary }}"
