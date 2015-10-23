@@ -327,9 +327,8 @@ class User(Resource):
         token = self.model('token').createToken(
             user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
 
-        emailHost = self.model('setting').get(SettingKey.EMAIL_HOST)
         url = '%s/#useraccount/%s/token/%s' % (
-            emailHost, str(user['_id']), str(token['_id']))
+            mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
 
         html = mail_utils.renderTemplate('temporaryAccess.mako', {
             'url': url,
