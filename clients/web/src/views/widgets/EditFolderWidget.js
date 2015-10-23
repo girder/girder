@@ -7,7 +7,7 @@ girder.views.EditFolderWidget = girder.View.extend({
             e.preventDefault();
             var fields = {
                 name: this.$('#g-name').val(),
-                description: this.$('#g-description').val()
+                description: this.descriptionEditor.val()
             };
 
             if (this.folder) {
@@ -24,6 +24,12 @@ girder.views.EditFolderWidget = girder.View.extend({
     initialize: function (settings) {
         this.folder = settings.folder || null;
         this.parentModel = settings.parentModel;
+        this.descriptionEditor = new girder.views.MarkdownWidget({
+            text: this.folder ? this.folder.get('description') : '',
+            prefix: 'folder-description',
+            placeholder: 'Enter a description',
+            parentView: this
+        });
     },
 
     render: function () {
@@ -46,7 +52,7 @@ girder.views.EditFolderWidget = girder.View.extend({
         }).on('ready.girder.modal', function () {
             if (view.folder) {
                 view.$('#g-name').val(view.folder.get('name'));
-                view.$('#g-description').val(view.folder.get('description'));
+                view.descriptionEditor.val(view.folder.get('description'));
                 view.create = false;
             } else {
                 view.create = true;
@@ -54,6 +60,8 @@ girder.views.EditFolderWidget = girder.View.extend({
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.$('#g-name').focus();
+        this.descriptionEditor.setElement(
+            this.$('.g-description-editor-container')).render();
 
         return this;
     },

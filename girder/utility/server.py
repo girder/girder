@@ -86,6 +86,10 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'api_static_root': '../static'
         }})
 
+    mode = curConfig['server']['mode'].lower()
+    print(constants.TerminalColor.info('Running in mode: ' + mode))
+    cherrypy.config['engine.autoreload.on'] = mode == 'development'
+
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
     from girder.api import api_main

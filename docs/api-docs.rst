@@ -188,6 +188,9 @@ Utility
 .. automodule:: girder.utility.mail_utils
    :members:
 
+.. automodule:: girder.utility.progress
+   :members:
+
 Constants
 ---------
 .. automodule:: girder.constants

@@ -31,6 +31,7 @@ from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
+from girder.utility import progress
 
 BUF_SIZE = 65536
 
@@ -40,6 +41,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     This assetstore type stores files on the filesystem underneath a root
     directory. Files are named by their SHA-512 hash, which avoids duplication
     of file content.
+
+    :param assetstore: The assetstore to act on.
+    :type assetstore: dict
     """
 
     @staticmethod
@@ -68,14 +72,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     @staticmethod
     def fileIndexFields():
         """
-        File documents should have an index on their sha512 field.
+        File documents should have an index on their sha512 field, as well as
+        whether or not they are imported.
         """
-        return ['sha512']
+        return ['sha512', 'imported']
 
     def __init__(self, assetstore):
-        """
-        :param assetstore: The assetstore to act on.
-        """
         self.assetstore = assetstore
         # If we can't create the temp directory, the assetstore still needs to
         # be initialized so that it can be deleted or modified.  The validation
@@ -209,6 +211,16 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
+    def fullPath(self, file):
+        """
+        Utility method for constructing the full (absolute) path to the given
+        file.
+        """
+        if file.get('imported'):
+            return file['path']
+        else:
+            return os.path.join(self.assetstore['root'], file['path'])
+
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
                      **kwargs):
         """
@@ -218,7 +230,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 
-        path = os.path.join(self.assetstore['root'], file['path'])
+        path = self.fullPath(file)
+
         if not os.path.isfile(path):
             raise GirderException(
                 'File %s does not exist.' % path,
@@ -252,8 +265,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     def deleteFile(self, file):
         """
         Deletes the file from disk if it is the only File in this assetstore
-        with the given sha512.
+        with the given sha512. Imported files are not actually deleted.
         """
+        if file.get('imported'):
+            return
+
         q = {
             'sha512': file['sha512'],
             'assetstoreId': self.assetstore['_id']
@@ -270,3 +286,101 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         if os.path.exists(upload['tempFile']):
             os.unlink(upload['tempFile'])
+
+    def importFile(self, item, path, user, name=None, mimeType=None, **kwargs):
+        """
+        Import a single file from the filesystem into the assetstore.
+
+        :param item: The parent item for the file.
+        :type item: dict
+        :param path: The path on the local filesystem.
+        :type path: str
+        :param user: The user to list as the creator of the file.
+        :type user: dict
+        :param name: Name for the file. Defaults to the basename of ``path``.
+        :type name: str
+        :param mimeType: MIME type of the file if known.
+        :type mimeType: str
+        :returns: The file document that was created.
+        """
+        stat = os.stat(path)
+        name = name or os.path.basename(path)
+
+        file = self.model('file').createFile(
+            name=name, creator=user, item=item, reuseExisting=True,
+            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size)
+        file['path'] = os.path.abspath(os.path.expanduser(path))
+        file['mtime'] = stat.st_mtime
+        file['imported'] = True
+        return self.model('file').save(file)
+
+    def importData(self, parent, parentType, params, progress, user):
+        importPath = params['importPath']
+
+        if not os.path.isdir(importPath):
+            raise ValidationException('No such directory: %s.' % importPath)
+
+        for name in os.listdir(importPath):
+            progress.update(message=name)
+            path = os.path.join(importPath, name)
+
+            if os.path.isdir(path):
+                folder = self.model('folder').createFolder(
+                    parent=parent, name=name, parentType=parentType,
+                    creator=user, reuseExisting=True)
+                self.importData(folder, 'folder', params={
+                    'importPath': os.path.join(importPath, name)
+                }, progress=progress, user=user)
+            else:
+                if parentType != 'folder':
+                    raise ValidationException(
+                        'Files cannot be imported directly underneath a %s.' %
+                        parentType)
+
+                item = self.model('item').createItem(
+                    name=name, creator=user, folder=parent, reuseExisting=True)
+                self.importFile(item, path, user, name=name)
+
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
+                         checkSize=True, **kwargs):
+        """
+        Goes through every file in this assetstore and finds those whose
+        underlying data is missing or invalid. This is a generator function --
+        for each invalid file found, a dictionary is yielded to the caller that
+        contains the file, its absolute path on disk, and a reason for invalid,
+        e.g. "missing" or "size".
+
+        :param progress: Pass a progress context to record progress.
+        :type progress: :py:class:`girder.utility.progress.ProgressContext`
+        :param filters: Additional query dictionary to restrict the search for
+            files. There is no need to set the ``assetstoreId`` in the filters,
+            since that is done automatically.
+        :type filters: dict or None
+        :param checkSize: Whether to make sure the size of the underlying
+            data matches the size of the file.
+        :type checkSize: bool
+        """
+        filters = filters or {}
+        q = dict({
+            'assetstoreId': self.assetstore['_id']
+        }, **filters)
+
+        cursor = self.model('file').find(q)
+        progress.update(total=cursor.count(), current=0)
+
+        for file in cursor:
+            progress.update(increment=1, message=file['name'])
+            path = self.fullPath(file)
+
+            if not os.path.isfile(path):
+                yield {
+                    'reason': 'missing',
+                    'file': file,
+                    'path': path
+                }
+            elif checkSize and os.path.getsize(path) != file['size']:
+                yield {
+                    'reason': 'size',
+                    'file': file,
+                    'path': path
+                }

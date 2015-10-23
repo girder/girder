@@ -20,7 +20,6 @@
 import datetime
 import os
 
-from bson.objectid import ObjectId
 from .model_base import AccessControlledModel, ValidationException
 from girder.constants import AccessType, SettingKey
 from girder.utility.progress import noProgress
@@ -116,42 +115,21 @@ class Collection(AccessControlledModel):
         :type creator: dict
         :returns: The collection document that was created.
         """
-        assert '_id' in creator
-
         now = datetime.datetime.utcnow()
 
         collection = {
             'name': name,
             'description': description,
-            'creatorId': ObjectId(creator['_id']),
+            'creatorId': creator['_id'],
             'created': now,
             'updated': now,
             'size': 0
         }
 
         self.setPublic(collection, public=public)
-        self.setUserAccess(
-            collection, user=creator, level=AccessType.ADMIN)
+        self.setUserAccess(collection, user=creator, level=AccessType.ADMIN)
 
-        # Validate and save the collection
-        self.save(collection)
-
-        # Create some default folders for the collection and give the creator
-        # admin access to them
-        privateFolder = self.model('folder').createFolder(
-            collection, 'Private', parentType='collection', public=False,
-            creator=creator)
-        self.model('folder').setUserAccess(
-            privateFolder, creator, AccessType.ADMIN, save=True)
-
-        if public:
-            publicFolder = self.model('folder').createFolder(
-                collection, 'Public', parentType='user', public=True,
-                creator=creator)
-            self.model('folder').setUserAccess(
-                publicFolder, creator, AccessType.ADMIN, save=True)
-
-        return collection
+        return self.save(collection)
 
     def updateCollection(self, collection):
         """
@@ -212,7 +190,7 @@ class Collection(AccessControlledModel):
 
         if level is not None:
             folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level, limit=None)
+                cursor=folders, user=user, level=level)
         count += sum(self.model('folder').subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
             for folder in folders)
@@ -255,7 +233,7 @@ class Collection(AccessControlledModel):
             })
 
             folders = self.filterResultsByPermission(
-                cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
+                cursor=cursor, user=user, level=AccessType.ADMIN)
 
             for folder in folders:
                 self.model('folder').setAccessList(

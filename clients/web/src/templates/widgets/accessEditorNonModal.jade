@@ -1,0 +1,10 @@
+include accessEditorMixins
+
++privacyEditor(modelType)
++permissionsEditor
+
+if !hideRecurseOption
+  +recurseOption(modelType)
+
+if !hideSaveButton
+  +saveAccessButton

@@ -63,6 +63,9 @@ class QuotaTestCase(base.TestCase):
             'creator': self.admin
         }
         self.collection = self.model('collection').createCollection(**coll)
+        self.model('folder').createFolder(
+            parent=self.collection, parentType='collection', name='Public',
+            public=True, creator=self.admin)
 
     def _uploadFile(self, name, parent, parentType='folder', size=1024,
                     error=None, partial=False):
@@ -79,27 +82,30 @@ class QuotaTestCase(base.TestCase):
                         finishe the upload later.
         :returns: file: the created file object
         """
-        contents = os.urandom(size)
         if parentType != 'file':
             resp = self.request(
                 path='/file', method='POST', user=self.admin, params={
                     'parentType': parentType,
                     'parentId': parent['_id'],
                     'name': name,
-                    'size': len(contents),
+                    'size': size,
                     'mimeType': 'application/octet-stream'
                 }, exception=error is not None)
         else:
             resp = self.request(
                 path='/file/%s/contents' % str(parent['_id']), method='PUT',
                 user=self.admin, params={
-                    'size': len(contents),
+                    'size': size,
                 }, exception=error is not None)
         if error:
             self.assertStatus(resp, 500)
             self.assertEqual(resp.json['type'], 'girder')
             self.assertEqual(resp.json['message'][:len(error)], error)
             return None
+        # We don't create the contents until after we check for the first
+        # error.  This means that we can try to upload huge files without
+        # allocating the space for them
+        contents = os.urandom(size)
         self.assertStatusOk(resp)
         upload = resp.json
         fields = [('offset', 0), ('uploadId', upload['_id'])]
@@ -293,6 +299,14 @@ class QuotaTestCase(base.TestCase):
         file = self._uploadFile('Fifth upload', folder, size=2048)
         # And a second 2 kb file will fail
         self._uploadFile('File too large', folder, size=2048,
+                         error='Upload would exceed file storage quota')
+        # Set a policy with a large quota to test using NumberLong in the
+        # mongo settings.
+        self._setQuotaDefault(model, 5*1024**3)
+        # A small file should now upload
+        file = self._uploadFile('Six upload', folder, size=2048)
+        # But a huge one will fail
+        self._uploadFile('File too large', folder, size=6*1024**3,
                          error='Upload would exceed file storage quota')
 
     def testAssetstorePolicy(self):

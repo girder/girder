@@ -15,7 +15,7 @@ The PR Process, Travis CI, and Related Gotchas
 
 #### How to submit a PR ?
 
-If you are new to Girder development and you don't have a push access to the Girder
+If you are new to Girder development and you don't have push access to the Girder
 repository, here are the steps:
 
 1. [Fork and clone](https://help.github.com/articles/fork-a-repo/) the repository.
@@ -27,12 +27,13 @@ This corresponds to the `Fork & Pull Model` mentioned in the [GitHub flow](https
 guides.
 
 If you have push access to Girder repository, you could simply push your branch
-into the main repository and create you Pull Request. This corresponds to the
-`Shared Repository Model`. This will facilitate other developer to checkout your
+into the main repository and create a [Pull Request](https://github.com/girder/girder/pulls). This corresponds to the
+`Shared Repository Model` and will facilitate other developers to checkout your
 topic without having to [configure a remote](https://help.github.com/articles/configuring-a-remote-for-a-fork/).
 It will also simplify the workflow when you are _co-developing_ a branch.
 
-When submitting a PR, make sure to a `Cc: @girder/girder` comment to notify girder developers of your awesome contributions. Based on the
+When submitting a PR, make sure to add a `Cc: @girder/developers` comment to notify Girder
+developers of your awesome contributions. Based on the
 comments posted by the reviewers, you may have to revisit your patches.
 
 ### How to integrate a PR ?
@@ -41,12 +42,13 @@ Getting your contributions integrated is relatively straightforward, here
 is the checklist:
 
 * All tests pass
-* Consensus is reached. This basically mean that the reviewers add `LGTM` comments. `LGTM` is a
-shortcut for _Looks Good to Me_.
+* Consensus is reached. This usually means that at least one reviewer added a `LGTM` comment
+and a reasonable amount of time passed without anyone objecting. `LGTM` is an
+acronym for _Looks Good to Me_.
 
 Next, there are two scenarios:
-* You do NOT have push access: A girder core developer will integrate your request.
-* You have push access: Simply click on "Merge pull request" button.
+* You do NOT have push access: A Girder core developer will integrate your PR.
+* You have push access: Simply click on the "Merge pull request" button.
 
 Then, click on the "Delete branch" button that appears afterward.
 

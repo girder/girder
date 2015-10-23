@@ -36,6 +36,7 @@ class Folder(Resource):
         self.route('DELETE', (':id',), self.deleteFolder)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getFolder)
+        self.route('GET', (':id', 'details'), self.getFolderDetails)
         self.route('GET', (':id', 'access'), self.getFolderAccess)
         self.route('GET', (':id', 'download'), self.downloadFolder)
         self.route('POST', (), self.createFolder)
@@ -102,6 +103,20 @@ class Folder(Resource):
         .pagingParams(defaultSort='name')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403))
+
+    @access.public
+    @loadmodel(model='folder', level=AccessType.READ)
+    def getFolderDetails(self, folder, params):
+        return {
+            'nItems': self.model('folder').countItems(folder),
+            'nFolders': self.model('folder').countFolders(
+                folder, user=self.getCurrentUser(), level=AccessType.READ)
+        }
+    getFolderDetails.description = (
+        Description('Get detailed information about a folder.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .errorResponse()
+        .errorResponse('Read access was denied on the folder.', 403))
 
     @access.public
     @loadmodel(model='folder', level=AccessType.READ)

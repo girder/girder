@@ -22,7 +22,7 @@ from setuptools import setup, find_packages
 from pkg_resources import parse_requirements
 
 
-CLIENT_VERSION = '1.0.2'
+CLIENT_VERSION = '1.1.0'
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
 install_reqs = []

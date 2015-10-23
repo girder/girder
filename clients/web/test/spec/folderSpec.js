@@ -181,7 +181,16 @@ describe('Test folder creation, editing, and deletion', function () {
 
         runs(function () {
             $('#g-name').val('Test Folder Name');
-            $('#g-description').val('Test Folder Description');
+            $('.g-description-editor-container .g-markdown-text').val(
+                '## Test Description');
+            $('.g-description-editor-container .g-preview-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-markdown-preview h2:contains("Test Description")').length === 1;
+        }, 'markdown preview to show up correctly');
+
+        runs(function () {
             $('.g-save-folder').click();
         });
         girderTest.waitForLoad();
@@ -189,6 +198,23 @@ describe('Test folder creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('a.g-folder-list-link:contains("Test Folder Name")').length === 1;
         }, 'the new folder to appear in the list');
+
+        runs(function () {
+            $('.g-folder-info-button').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            expect($('.g-folder-info-line[property="nItems"]').text()).toBe(
+                'Contains 0 items totaling 0 B');
+            expect($('.g-folder-info-line[property="nFolders"]').text()).toBe(
+                'Contains 1 subfolders');
+            expect($('.g-folder-info-line[property="created"]').text()).toContain(
+                'Created ');
+            expect($('.g-folder-description').length).toBe(0);
+            $('.modal-footer a[data-dismiss="modal"]').click();
+        });
+        girderTest.waitForLoad();
 
         runs(function () {
             $('a.g-folder-list-link:contains("Test Folder Name")').click();

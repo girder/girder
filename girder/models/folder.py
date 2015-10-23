@@ -433,9 +433,6 @@ class Folder(AccessControlledModel):
             if existing:
                 return existing
 
-        assert '_id' in parent
-        assert public is None or type(public) is bool
-
         parentType = parentType.lower()
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, '
@@ -471,11 +468,10 @@ class Folder(AccessControlledModel):
             'size': 0
         }
 
-        # If this is a subfolder, default permissions are inherited from the
-        # parent folder. Otherwise, the creator is granted admin access.
-        if parentType == 'folder':
+        if parentType in ('folder', 'collection'):
             self.copyAccessPolicies(src=parent, dest=folder)
-        elif creator is not None:
+
+        if creator is not None:
             self.setUserAccess(folder, user=creator, level=AccessType.ADMIN)
 
         # Allow explicit public flag override if it's set.
@@ -543,6 +539,37 @@ class Folder(AccessControlledModel):
             return self.parentsToRoot(curParentObject, curPath, user=user,
                                       force=force)
 
+    def countItems(self, folder):
+        """
+        Returns the number of items within the given folder.
+        """
+        return self.childItems(folder, fields=()).count()
+
+    def countFolders(self, folder, user=None, level=None):
+        """
+        Returns the number of subfolders within the given folder. Access
+        checking is optional; to circumvent access checks, pass ``level=None``.
+
+        :param folder: The parent folder.
+        :type folder: dict
+        :param user: If performing access checks, the user to check against.
+        :type user: dict or None
+        :param level: The required access level, or None to return the raw
+            subfolder count.
+        """
+        fields = () if level is None else ('access', 'public')
+
+        folders = self.find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        }, fields=fields)
+
+        if level is None:
+            return folders.count()
+        else:
+            return sum(1 for _ in self.filterResultsByPermission(
+                cursor=folders, user=user, level=level))
+
     def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
         Return the size of the subtree rooted at the given folder. Includes
@@ -560,12 +587,7 @@ class Folder(AccessControlledModel):
         count = 1
 
         if includeItems:
-            items = self.model('item').find({
-                'folderId': folder['_id']
-            }, fields=())
-            count += items.count()
-            # subsequent operations may take a long time, so free the cursor
-            items.close()
+            count += self.countItems(folder)
 
         folders = self.find({
             'parentId': folder['_id'],
@@ -574,7 +596,7 @@ class Folder(AccessControlledModel):
 
         if level is not None:
             folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level, limit=None)
+                cursor=folders, user=user, level=level)
 
         count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
                                        user=user, level=level)
@@ -768,7 +790,7 @@ class Folder(AccessControlledModel):
             })
 
             subfolders = self.filterResultsByPermission(
-                cursor=cursor, user=user, level=AccessType.ADMIN, limit=None)
+                cursor=cursor, user=user, level=AccessType.ADMIN)
 
             for folder in subfolders:
                 self.setAccessList(

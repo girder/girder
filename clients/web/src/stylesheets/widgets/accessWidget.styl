@@ -1,9 +1,11 @@
+@import 'nib'
+
 .g-access-modal-body
   padding-top 10px
   padding-bottom 0
 
 .g-public-container
-  margin-bottom 11px
+  margin-bottom 16px
 
   .radio
     margin-top 0
@@ -18,16 +20,15 @@
       color #d0b822
 
 .g-ac-list-title
-  background-color #666
+  background-color #888
   color white
   font-weight bold
   padding 3px 10px
 
 .g-ac-list
-  border-left 1px solid #e4e4e4
-  border-right 1px solid #e4e4e4
-  border-bottom 1px solid #e4e4e4
-  background-color #fffee8
+  border 1px solid #d7d7d7
+  border-top none
+  background linear-gradient(top, #d3d3d3 0, #f0f0f0 6px)
   padding 1px 4px
 
   .g-group-access-entry,.g-user-access-entry
@@ -60,13 +61,17 @@
 
     .g-action-remove-access
       color #999
-      margin-left 15px
+      margin-left 14px
       font-size 16px
-      position relative
-      top 1px
+      display inline-block
+      vertical-align middle
 
-    .g-action-remove-access:hover
-      color #d02344
+      &:hover
+        color #d02344
+
+    select
+      display inline-block
+      width 113px
 
 .g-grant-access-container
   margin-top 5px

@@ -31,6 +31,57 @@ from girder.models.model_base import ValidationException
 from girder import logger, events
 
 BUF_LEN = 65536  # Buffer size for download stream
+boto.config.add_section('s3')
+boto.config.set('s3', 'use-sigv4', 'True')
+
+
+def authv4_determine_region_name(self, *args, **kwargs):
+    """
+    The boto method auth.S3HmacAuthV4Handler.determine_region_name fails when
+    the url is an IP address or localhost.  For testing, we need to have this
+    succeed.  This wraps the boto function and, if it fails, adds a fall-back
+    value.
+    """
+    try:
+        result = authv4_orig_determine_region_name(self, *args, **kwargs)
+    except UnboundLocalError:
+        result = 'us-east-1'
+    return result
+
+
+authv4_orig_determine_region_name = \
+    boto.auth.S3HmacAuthV4Handler.determine_region_name
+boto.auth.S3HmacAuthV4Handler.determine_region_name = \
+    authv4_determine_region_name
+
+
+def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
+                        headers=None, response_headers=None, version_id=None,
+                        iso_date=None, params=None):
+    """
+    The version of this method in boto.s3.connection.S3Connection does not
+    support signing custom query parameters, which is necessary for presigning
+    multipart upload requests. This implementation does, but should go away
+    once https://github.com/boto/boto/pull/3322 is merged and released.
+    """
+    path = self.calling_format.build_path_base(bucket, key)
+    auth_path = self.calling_format.build_auth_path(bucket, key)
+    host = self.calling_format.build_host(self.server_name(), bucket)
+
+    if host.endswith(':443'):
+        host = host[:-4]
+
+    if params is None:
+        params = {}
+
+    if version_id is not None:
+        params['VersionId'] = version_id
+
+    http_request = self.build_base_http_request(
+        method, path, auth_path, headers=headers, host=host, params=params)
+
+    return self._auth_handler.presign(http_request, expires_in,
+                                      iso_date=iso_date)
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -42,13 +93,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     CHUNK_LEN = 1024 * 1024 * 32  # Chunk size for uploading
     HMAC_TTL = 120  # Number of seconds each signed message is valid
-
-    @staticmethod
-    def fileIndexFields():
-        """
-        File documents should have an index on their verified field.
-        """
-        return ['s3Verified']
 
     @staticmethod
     def validateInfo(doc):
@@ -122,7 +166,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                                    .format(upload['name']),
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
-            'x-amz-meta-authorized-length': str(upload['size']),
             'x-amz-meta-uploader-id': str(upload['userId']),
             'x-amz-meta-uploader-ip': str(cherrypy.request.remote.ip)
         }
@@ -152,13 +195,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if chunked:
             upload['s3']['request'] = {'method': 'POST'}
-            queryParams = 'uploads'
+            alsoSignHeaders = {}
+            queryParams = {'uploads': None}
         else:
             upload['s3']['request'] = {'method': 'PUT'}
+            alsoSignHeaders = {
+                'Content-Length': upload['size']
+            }
             queryParams = None
         url = self._botoGenerateUrl(
-            method=upload['s3']['request']['method'], key=key, headers=headers,
-            queryParams=queryParams)
+            method=upload['s3']['request']['method'], key=key,
+            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams,
+            chunkedUpload=chunked)
         upload['s3']['request']['url'] = url
         upload['s3']['request']['headers'] = headers
         return upload
@@ -187,10 +235,26 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         signed URL that the client should use to upload the chunk to S3.
         """
         info = json.loads(chunk)
-        queryStr = 'partNumber={}&uploadId={}'.format(info['partNumber'],
-                                                      info['s3UploadId'])
-        url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'],
-                                    queryParams=queryStr)
+        index = int(info['partNumber']) - 1
+        length = min(self.CHUNK_LEN, upload['size'] - index * self.CHUNK_LEN)
+
+        if 'contentLength' in info and int(info['contentLength']) != length:
+            raise ValidationException('Expected chunk size %d, but got %d.' % (
+                length, info['contentLength']))
+
+        if length <= 0:
+            raise ValidationException('Invalid chunk length %d.' % length)
+
+        queryParams = {
+            'partNumber': info['partNumber'],
+            'uploadId': info['s3UploadId']
+        }
+
+        url = self._botoGenerateUrl(
+            method='PUT', key=upload['s3']['key'], queryParams=queryParams,
+            headers={
+                'Content-Length': length
+            })
 
         upload['s3']['uploadId'] = info['s3UploadId']
         upload['s3']['partNumber'] = info['partNumber']
@@ -279,7 +343,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         file['relpath'] = upload['s3']['relpath']
         file['s3Key'] = upload['s3']['key']
-        file['s3Verified'] = False
 
         if upload['s3']['chunked']:
             if upload['received'] > 0:
@@ -290,11 +353,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 mp.key_name = upload['s3']['keyName']
                 mp.complete_upload()
             else:
-                queryStr = 'uploadId=' + upload['s3']['uploadId']
+                queryParams = {'uploadId': upload['s3']['uploadId']}
                 headers = {'Content-Type': 'text/plain;charset=UTF-8'}
                 url = self._botoGenerateUrl(
                     method='POST', key=upload['s3']['key'], headers=headers,
-                    queryParams=queryStr)
+                    queryParams=queryParams)
                 file['s3FinalizeRequest'] = {
                     'method': 'POST',
                     'url': url,
@@ -336,7 +399,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return stream
 
     def importData(self, parent, parentType, params, progress, user,
-                   bucket=None):
+                   bucket=None, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
@@ -356,7 +419,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     creator=user, reuseExisting=True)
                 self.importData(parent=folder, parentType='folder', params={
                     'importPath': obj.name
-                }, progress=progress, user=user, bucket=bucket)
+                }, progress=progress, user=user, bucket=bucket, **kwargs)
             elif isinstance(obj, boto.s3.key.Key):
                 name = obj.name.rsplit('/', 1)[-1]
                 if not name:
@@ -506,7 +569,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
     def _botoGenerateUrl(self, key, method='GET', headers=None,
-                         queryParams=None):
+                         queryParams=None, chunkedUpload=False):
         """
         Generate a URL to communicate with the S3 server.  This leverages the
         boto generate_url method, but has additional parameters to compensate
@@ -517,28 +580,27 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         :param headers: if present, a dictionary of headers to encode in the
                         request.
         :param queryParams: if present, parameters to add to the query.
+        :type queryParams: dict
+        :param chunkedUpload: if True, this is a chunked upload and it may need
+                              to be adjusted for moto calls.
         :returns: a url that can be sent with the headers to the S3 server.
         """
         conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
-        if queryParams:
-            keyquery = key+'?'+queryParams
-        else:
-            keyquery = key
-        url = conn.generate_url(
-            expires_in=self.HMAC_TTL, method=method,
-            bucket=self.assetstore['bucket'], key=keyquery, headers=headers)
-        if queryParams:
-            parts = url.split('?')
-            if len(parts) == 3:
-                config = self.assetstore.get('botoConnect', {})
-                # This clause allows use to work with a moto server.  It will
-                # probably do no harm in any real scenario
-                if (queryParams == "uploads" and
-                        not config.get('is_secure', True) and
-                        config.get('host') == '127.0.0.1'):
-                    url = parts[0]+'?'+parts[1]
-                else:
-                    url = parts[0]+'?'+parts[1]+'&'+parts[2]
+
+        url = _generate_url_sigv4(
+            conn, expires_in=self.HMAC_TTL, method=method,
+            bucket=self.assetstore['bucket'], key=key, headers=headers,
+            params=queryParams)
+        # Moto doesn't work with https, so convert to http if we are testing on
+        # localhost, and multipart uploads require a very specific testing url
+        config = self.assetstore.get('botoConnect', {})
+        if (not config.get('is_secure', True) and
+                config.get('host') == '127.0.0.1'):
+            if url.startswith('https://'):
+                url = 'http' + url[5:]
+            if chunkedUpload:
+                url = url.split('?')[0] + '?uploads'
+
         return url
 
     def _anonDownloadUrl(self, key):
@@ -618,6 +680,10 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
         connect['host'] = service.groups()[2]
         if service.groups()[4] is not None:
             connect['port'] = int(service.groups()[4])
+    else:
+        # If we are using sigv4, we MUST specify a host for boto.  If no
+        # service is specified by the user, use the default used in boto
+        connect['host'] = boto.config.get('s3', 'host', 's3.amazonaws.com')
     return connect
 
 

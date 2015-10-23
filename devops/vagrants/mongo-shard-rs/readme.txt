@@ -22,4 +22,3 @@ docker start mongos1
 
 It would be nicer to do this automatically at boot, but I haven't gotten around
 to it.
-

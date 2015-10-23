@@ -21,7 +21,16 @@ if current
       | &nbsp;
     | #{current.get('name') || current.name()}
 
-if (idx > 0)
+if idx > 0
   .pull-right
-    a.g-hierarchy-level-up(title="Go up one level")
-      i.icon-level-up
+    .g-child-count-container.hide
+      .g-subfolder-count-container
+        i.icon-folder
+        .g-subfolder-count
+
+      .g-item-count-container
+        i.icon-doc-text-inv
+        .g-item-count
+    .g-level-up-button-container
+      a.g-hierarchy-level-up(title="Go up one level" placement="left")
+        i.icon-level-up
