@@ -1,0 +1,38 @@
+---
+
+  - name: install
+    apt:
+        name: "{{ item }}"
+        state: >
+            {{ "present" if (do_install|bool) else "absent" }}
+        update_cache: true
+    with_items:
+      - mongodb
+      - mongodb-server
+    when: do_install|bool
+
+  - name: service | stop
+    service:
+        name: mongodb
+        state: stopped
+    when: do_install|bool
+
+  - name: configure | log file | owner | set
+    file:
+        path: /var/log/mongodb.log
+        state: touch
+        owner: mongodb
+    when: do_install|bool
+
+  - name: configure | old log dir | remove
+    file:
+        path: /var/log/mongodb
+        state: absent
+    when: do_install|bool
+
+  - name: configure
+    template:
+        src: mongodb.conf.j2
+        dest: /etc/mongodb.conf
+    when: do_install|bool
+
