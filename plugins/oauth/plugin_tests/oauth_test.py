@@ -22,7 +22,7 @@ import json
 import re
 import six
 
-from girder.constants import SettingKey, TokenScope
+from girder.constants import SettingKey
 from server.constants import PluginSettings
 from server.providers import _deriveLogin
 from six.moves import urllib
@@ -295,20 +295,13 @@ class OauthTest(base.TestCase):
         linkParts = link.split('/')
         userId = linkParts[-3]
         tokenId = linkParts[-1]
+        tempToken = self.model('token').load(
+            tokenId, force=True, objectId=False)
 
         path = '/user/password/temporary/' + str(newUser['_id'])
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         user = resp.json['user']
-
-        self.assertTrue('girderToken' in resp.cookie)
-        authToken = resp.cookie['girderToken'].value
-        token = self.model('token').load(authToken, force=True, objectId=False)
-        self.assertEqual(token['userId'], newUser['_id'])
-        self.assertTrue(self.model('token').hasScope(token, [
-            TokenScope.USER_AUTH,
-            TokenScope.TEMPORARY_USER_AUTH
-        ]))
 
         # We should now be able to change the password
         resp = self.request(path='/user/password', method='PUT', params={
@@ -316,6 +309,10 @@ class OauthTest(base.TestCase):
             'new': 'mypasswd'
         }, user=user)
         self.assertStatusOk(resp)
+
+        # The temp token should get deleted on password change
+        token = self.model('token').load(tempToken, force=True, objectId=False)
+        self.assertEqual(token, None)
 
     def _createCsrfCookie(self, cookie):
         info = json.loads(cookie['oauthLogin'].value)
