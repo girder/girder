@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ansible.module_utils.basic import *
-import inspect
+from inspect import getmembers, ismethod, getargspec
 
 try:
     from girder_client import GirderClient, AuthenticationError
@@ -80,18 +80,20 @@ class GirderClientModule(GirderClient):
 
 
 def class_spec():
-    for fn, method in inspect.getmembers(GirderClient,
-                                         predicate=inspect.ismethod):
+    for fn, method in getmembers(GirderClient, predicate=ismethod):
 
         # Note, change to _exclude_methods
-        if not fn.startswith("_") and fn not in ['authenticate']:
-            spec = inspect.getargspec(getattr(GirderClient, fn))
+        if not fn.startswith("_") and \
+           fn not in GirderClientModule._exclude_methods:
+
+            spec = getargspec(getattr(GirderClient, fn))
             # spec.args[1:] so we don't include 'self'
             params = spec.args[1:]
-            d = len(spec.defaults) if spec.defaults is not None else len(params)
+            d = len(spec.defaults) if spec.defaults is not None else 0
+            r = len(params) - d
 
-            yield (fn, {"required": params[:d],
-                        "defaults": params[d:]})
+            yield (fn, {"required": params[:r],
+                        "defaults": params[r:]})
 
 def main():
     """Entry point for ansible girder client module
@@ -242,6 +244,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=False
     )
+
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
