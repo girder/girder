@@ -1,9 +1,5 @@
-
 [global]
-server.socket_host: "{{ hostvars[inventory_hostname]
-                                ['ansible_' + girder_net_interface]
-                                ['ipv4']
-                                ['address'] }}"
+server.socket_host: "0.0.0.0"
 server.socket_port: {{ girder_port }}
 server.thread_pool: {{ girder_thread_pool }}
 
@@ -39,4 +35,3 @@ login_regex: "{{ girder_login_regex }}"
 login_description: "{{ girder_login_description }}"
 password_regex: "{{ girder_password_regex }}"
 password_description: "{{ girder_password_description }}"
-
