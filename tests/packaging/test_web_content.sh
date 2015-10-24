@@ -25,7 +25,7 @@ fi
 # Loop until Girder is giving answers
 timeout=0
 until [ $timeout -eq 15 ]; do
-    json=$("${CURL}" -s http://localhost:${GIRDER_PORT}/api/v1/system/version)
+    json=$("${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1/system/version)
     if [ -n "$json" ]; then
         break
     fi
@@ -34,13 +34,13 @@ until [ $timeout -eq 15 ]; do
 done
 
 # Do the real tests
-"${CURL}" -s http://localhost:${GIRDER_PORT} | "${GREP}" "g-global-info-apiroot" > /dev/null
+"${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT} | "${GREP}" "g-global-info-apiroot" > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Error: Failed to load main page"
     exit $?
 fi
 
-"${CURL}" -s http://localhost:${GIRDER_PORT}/api/v1 | "${GREP}" "swagger" > /dev/null
+"${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1 | "${GREP}" "swagger" > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Error: Failed to load Swagger docs"
     exit $?
