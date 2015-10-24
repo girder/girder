@@ -26,7 +26,7 @@ from email.mime.text import MIMEText
 from mako.lookup import TemplateLookup
 from girder import events
 from girder import logger
-from girder.constants import SettingKey, ROOT_DIR
+from girder.constants import SettingKey, PACKAGE_DIR
 from .model_importer import ModelImporter
 
 
@@ -130,6 +130,6 @@ def _sendmail(event):
     logger.info('Sent email to %s', msg['To'])
 
 
-_templateDir = os.path.join(ROOT_DIR, 'girder', 'mail_templates')
+_templateDir = os.path.join(PACKAGE_DIR, 'mail_templates')
 _templateLookup = TemplateLookup(directories=[_templateDir], collection_size=50)
 events.bind('_sendmail', 'core.email', _sendmail)
