@@ -17,13 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import functools
-import mako
 import os
 import six
 
 from girder import constants
+from girder.utility.webroot import WebrootBase
 from . import docs, access
 from .rest import Resource, RestException, getApiUrl
 
@@ -167,50 +166,21 @@ class Description(object):
         return self
 
 
-class ApiDocs(object):
+class ApiDocs(WebrootBase):
     """
-    This serves up the swagger page.
+    This serves up the Swagger page.
     """
-    exposed = True
-
-    indexHtml = None
-
-    vars = {
-        'apiRoot': '',
-        'staticRoot': '',
-        'title': 'Girder - REST API Documentation'
-    }
-
     def __init__(self, templatePath=None):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR,
                                         'api', 'api_docs.mako')
-        with open(templatePath) as templateFile:
-            # This may raise an IOError, but there's no way to recover
-            self.template = templateFile.read()
+        super(ApiDocs, self).__init__(templatePath)
 
-    def updateHtmlVars(self, vars):
-        self.vars.update(vars)
-        self.indexHtml = None
-
-    def GET(self, **params):
-        if self.indexHtml is None:
-            self.indexHtml = mako.template.Template(self.template).render(
-                **self.vars)
-
-        return self.indexHtml
-
-    def DELETE(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def PATCH(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def POST(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def PUT(self, **params):
-        raise cherrypy.HTTPError(405)
+        self.vars = {
+            'apiRoot': '',
+            'staticRoot': '',
+            'title': 'Girder - REST API Documentation'
+        }
 
 
 def _cmp(a, b):
