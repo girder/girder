@@ -879,12 +879,13 @@ function _prepareTestUpload() {
     girderTest._preparedTestUpload = true;
 }
 
-girderTest.sendFile = function (uploadItem) {
+girderTest.sendFile = function (uploadItem, selector) {
     // Incantation that causes the phantom environment to send us a File.
-    $('#g-files').parent().removeClass('hide');
+    selector = selector || '#g-files';
+    $(selector).parent().removeClass('hide');
     var params = {
         action: 'uploadFile',
-        selector: '#g-files',
+        selector: selector,
         suffix: girderTest._uploadSuffix
     };
     if (uploadItem === parseInt(uploadItem)) {
