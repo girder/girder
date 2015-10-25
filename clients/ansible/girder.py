@@ -50,15 +50,12 @@ EXAMPLES = '''
 '''
 
 
-def class_spec(cls, exclude=None):
-    exclude = exclude if exclude is None else []
+def class_spec(cls, include=None):
+    include = include if include is not None else []
 
     for fn, method in getmembers(cls, predicate=ismethod):
-
-        # Note, change to _exclude_methods
-        if not fn.startswith("_") and fn not in exclude:
-
-            spec = getargspec(getattr(cls, fn))
+        if fn in include:
+            spec = getargspec(method)
             # spec.args[1:] so we don't include 'self'
             params = spec.args[1:]
             d = len(spec.defaults) if spec.defaults is not None else 0
@@ -68,15 +65,10 @@ def class_spec(cls, exclude=None):
                         "optional": params[r:]})
 
 
-class GirderClientModule(object):
+class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
-    _exclude_gc_methods = ['authenticate',
-                           'add_folder_upload_callback',
-                           'add_item_upload_callback']
-
-    # Exclude these methods from 'do' mode
-    _exclude_local_methods = ['exit']
+    _include_methods = ['get']
 
     _debug = True
 
@@ -86,77 +78,63 @@ class GirderClientModule(object):
 
         self.module.exit_json(changed=self.changed, **self.message)
 
-    # See: https://github.com/ansible/ansible/commit/31609e1b
-    def _check_required_if(self, spec):
-#        self.module.exit_json(**self.module.params)
-        if spec is None:
-            return
-        for (key, val, requirements) in spec:
-            missing = []
-            if key in self.module.params and self.module.params[key] == val:
-                for term in requirements:
-                    if term not in self.module.params or self.module.params[term] is None:
-                        missing.append(term)
-
-                if len(missing) > 0:
-                    message = "{} is {} but the following are missing: {}"
-                    self.module.fail_json(msg=message.format(key, val, ','.join(missing)))
-
-
-    def __init__(self, module, required_if):
-        self.module = module
+    def __init__(self):
         self.changed = False
-        self.message = {"msg": "Success!",
-                        "debug": {}}
+        self.message = {"msg": "Success!", "debug": {}}
 
-        self._check_required_if(required_if)
+        self.spec = dict(class_spec(self.__class__,
+                                    GirderClientModule._include_methods))
+        self.required_one_of = self.spec.keys()
 
-        self.gc = GirderClient(**{p: self.module.params[p] for p in
-                                  ['host', 'port', 'apiRoot',
-                                   'scheme', 'dryrun', 'blacklist']
-                                  if module.params[p] is not None})
+
+
+    def __call__(self, module):
+        self.module = module
+
+        super(GirderClientModule, self).__init__(
+            **{p: self.module.params[p] for p in
+               ['host', 'port', 'apiRoot',
+                'scheme', 'dryrun', 'blacklist']
+               if module.params[p] is not None})
+
         try:
-            self.gc.authenticate(
+            self.authenticate(
                 username=self.module.params['username'],
                 password=self.module.params['password'])
 
-            self.message['debug']['token'] = self.gc.token
+            self.message['debug']['token'] = self.token
 
         except AuthenticationError:
             self.module.fail_json(msg="Could not Authenticate!")
 
-        if self.module.params['raw'] is not None:
-            self._process_raw()
-        else:
-            self._process_do()
+        for method in self.required_one_of:
+            if self.module.params[method] is not None:
+                self.__process(method)
+                self.exit()
 
-        self.exit()
+        self.fail_json(msg="Could not find executable method!")
 
-    def __process(self, obj, mode, exclude):
-        spec = dict(class_spec(obj.__class__, exclude))
-        func = self.module.params[mode]
+    def __process(self, method):
         params = {}
+        args = self.module.params[method]
 
-        for param in spec[func]['required']:
-            params[param] = self.module.params[param]
+        for param in self.spec[method]['required']:
+            if param not in args.keys():
+                self.module.fail_json(
+                    msg="{} is required for {}".format(param, method))
+            params[param] = args[param]
 
-        for param in spec[func]['optional']:
-            if param in self.module.params:
-                params[param] = self.module.params[param]
+        for param in self.spec[method]['optional']:
+            if param in args.keys():
+                params[param] = args[param]
 
-        ret = getattr(obj, func)(**params)
+        ret = getattr(self, method)(**params)
 
-        # TODO: How do we actually set facts/register return variables?
-        self.message['debug']['return_value'] = ret
+        self.message['gc_return'] = ret
 
-    def _process_raw(self):
-        self.__process(self.gc, 'raw', self._exclude_gc_methods)
-
-    def _process_do(self):
-        self.__process(self, 'do', self._exclude_local_methods)
 
     def createUser(self):
-        self.message['debug']['msg'] = "Successfully got to createuser"
+        self.message['debug']['msg'] = "Successfully got to createUser!"
         pass
 
 
@@ -181,155 +159,24 @@ def main():
         # authenticate
         'username': dict(required=True),
         'password': dict(required=True),
-
-        # setFolderAccess,  inheritAccessControlRecursive(
-        'access': dict(type='dict'),
-
-        # inheritAccessControlRecursive
-        'ancestorFolderId': dict(type='str'),
-
-        # sendRestRequest, put
-        'data': dict(type='dict'),
-
-        # createItem, createFolder
-        'description': dict(type='str'),
-
-        # downloadItem, downloadFolderRecursive
-        'dest': dict(type='str'),
-
-        # downloadFile
-        'fileId': dict(type='str'),
-
-        # upload
-        'file_pattern': dict(type='str'),
-
-        # isFileCurrent
-        'filename': dict(type='str'),
-
-        # isFileCurrent, uploadFileToItem
-        'filepath': dict(type='str'),
-
-        # post, sendRestRequest
-        'files': dict(type='dict'),
-
-        # addMetadataToFolder, downloadFolderRecursive, getFolder,
-        # getFolderAccess, listItem, setFolderAcces
-        'folderId': dict(type='str'),
-
-        #load_or_create_folder
-        'folder_name': dict(type='str'),
-
-        # getResource
-        'id': dict(type='str'),
-
-        # addMetadataToItem, downloadItem, getItem, isFileCurrent, uploadFileToIte
-        'itemId': dict(type='str'),
-
-        # upload
-        'leaf_folders_as_items': dict(type='bool'),
-
-        # addMetadataToFolder, addMetadataToItem
-        'metadata': dict(type='dict'),
-
-        # sendRestRequest
-        'method': dict(type='str'),
-
-        # createFolder, createItem, downloadItem, listFolder,
-        # listItem, load_or_create_item, uploadFile
-        'name': dict(type='str'),
-
-        # delete, get, post, put, sendRestRequest
-        'parameters': dict(type='dict'),
-
-        # createResource, listResource
-        'params': dict(type='dict'),
-
-        # createItem
-        'parentFolderId': dict(type='str'),
-
-        # listFolder
-        'parentFolderType': dict(default='folder', type='str',
-                                 choices=['folder', 'user', 'collection']),
-
-        # createFolder, listFolder, uploadFile
-        'parentId': dict(type='str'),
-
-        # createFolder, uploadFile
-        # Note: createFolder and uploadFile differ on default for this,
-        #       this means ansible task MUST specify
-        # Note: 'collection' and 'user' are not appropriate for uploadFile
-        #       'item' is not appropriate for createFolder,  it is the user's
-        #       responsibility to know this!
-        'parentType': dict(type='str', choices=['folder', 'user', 'collection', 'item']),
-
-        # load_or_create_item
-        'parent_folder_id': dict(type='str',
-                                 choices=['collection', 'folder', 'user']),
-
-        # load_or_create_folder, upload
-        'parent_id': dict(type='str'),
-
-        # load_or_create_folder, upload
-        'parent_type': dict(type='str',
-                            choices=['collection', 'folder', 'user']),
-
-        # createResource, delete, downloadFile, get, getResource,
-        # listResource, post, put, sendRestReques
-        'path': dict(type='str'),
-
-        # getResrouce
-        'property': dict(type='str'),
-
-        # inheritAccessControlRecursive, setFolderAccess
-        'public': dict(type='bool'),
-
-        # load_or_create_item, upload
-        'reuse_existing': dict(type='bool'),
-
-        # uploadFile
-        'size': dict(type='str'),
-
-        # uploadFile
-        # TODO: add custom uploadFile function to GirderClientModule
-        #       to convert stream into 'file-like' object
-        'stream': dict(type='str'),
-
-        # listItem
-        'text': dict(type='str')
     }
 
-    argument_spec['raw'] = dict(choices=[])
-    argument_spec['do'] = dict(choices=[])
-    # argument_spec['func'] = dict( required=False, choices = [])
+    gcm = GirderClientModule()
 
-    required_if = []
-    for method, args in class_spec(GirderClient,
-                                   GirderClientModule._exclude_gc_methods):
-        argument_spec['raw']['choices'].append(method)
-        if len(args['required']) > 0:
-            required_if.append(("raw", method, args['required']))
-
-    for method, args in class_spec(GirderClientModule,
-                                   GirderClientModule._exclude_local_methods):
-        argument_spec['do']['choices'].append(method)
-        if len(args['required']) > 0:
-            required_if.append(("do", method, args['required']))
-
+    for method in gcm.required_one_of:
+        argument_spec[method] = dict(type='dict')
 
     module = AnsibleModule(
         argument_spec       = argument_spec,
-        mutually_exclusive  = [["raw", "do"]],
-        required_one_of     = [['raw', 'do']],
+        required_one_of     = [gcm.required_one_of],
+        mutually_exclusive  = gcm.required_one_of,
         supports_check_mode = False)
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
 
     try:
-        # Note: required_if should be moved into AnsibleModule once
-        # https://github.com/ansible/ansible/commit/31609e1b is available
-        # in a released version of Ansible.
-        GirderClientModule(module, required_if)
+        gcm(module)
 
     except HttpError as e:
         import traceback

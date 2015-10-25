@@ -2,18 +2,12 @@
   tasks:
 
     # Get current users
-#     - girder:
-#         username: "admin"
-#         password: "letmein"
-#         port: 8080
-#         raw: get
-#         path: "user"
-
     - girder:
         username: "admin"
         password: "letmein"
         port: 8080
-        do: createUser
+        get:
+          path: "user"
 
 #     - girder:
 #         username: "admin"
