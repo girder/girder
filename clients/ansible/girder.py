@@ -69,7 +69,7 @@ class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
-                        'plugins']
+                        'plugins', 'user']
 
     _debug = True
 
@@ -98,16 +98,25 @@ class GirderClientModule(GirderClient):
                ['host', 'port', 'apiRoot',
                 'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
+        # If a username and password are set
+        if self.module.params['username'] is not None:
+            try:
+                self.authenticate(
+                    username=self.module.params['username'],
+                    password=self.module.params['password'])
 
-        try:
-            self.authenticate(
-                username=self.module.params['username'],
-                password=self.module.params['password'])
+                self.message['token'] = self.token
+            except AuthenticationError:
+                self.fail("Could not Authenticate!")
 
-            self.message['debug']['token'] = self.token
+        # If a token is set
+        elif self.module.params['token'] is not None:
+            self.token = self.module['token']
 
-        except AuthenticationError:
-            self.fail("Could not Authenticate!")
+        # Else error if we're not trying to create a user
+        elif self.module.params['user'] is None:
+            self.fail("Must pass in either username & password, "
+                      "or a valid girder_client token")
 
         for method in self.required_one_of:
             if self.module.params[method] is not None:
@@ -132,7 +141,7 @@ class GirderClientModule(GirderClient):
 
             for kwarg_name in self.spec[method]['optional']:
                 if kwarg_name in params.keys():
-                    kwargs[kwarg_name] = args[kwarg_name]
+                    kwargs[kwarg_name] = params[kwarg_name]
 
         elif type(params) is list:
             args = params
@@ -193,6 +202,76 @@ class GirderClientModule(GirderClient):
 
         return ret
 
+    def user(self, login, password, firstName=None,
+             lastName=None, email=None, admin=False):
+
+        if self.module.params['state'] == 'present':
+
+            # Fail if we don't have firstName, lastName and email
+            for var_name, var in [('firstName', firstName),
+                                  ('lastName', lastName), ('email', email)]:
+                if var is None:
+                    self.fail("{} must be set if state "
+                              "is 'present'".format(var_name))
+
+            try:
+                ret = self.authenticate(username=login,
+                                        password=password)
+
+                me = self.get("user/me")
+
+                # List of fields that can actually be updated
+                updateable = ['firstName', 'lastName', 'email', 'admin']
+                passed_in = [firstName, lastName, email, admin]
+
+                # If there is actually an update to be made
+                if set([(k, v) for k, v in me.items() if k in updateable]) ^ \
+                   set(zip(updateable, passed_in)):
+
+                    self.put("user/{}".format(me['_id']),
+                             parameters={
+                                 "login": login,
+                                 "firstName": firstName,
+                                 "lastName": lastName,
+                                 "password": password,
+                                 "email": email,
+                                 "admin": "true" if admin else "false"
+                             })
+                    self.changed = True
+            # User does not exist (with this login info)
+            except AuthenticationError:
+                ret = self.post("user", parameters={
+                    "login": login,
+                    "firstName": firstName,
+                    "lastName": lastName,
+                    "password": password,
+                    "email": email,
+                    "admin": "true" if admin else "false"
+                })
+                self.changed = True
+
+        elif self.module.params['state'] == 'absent':
+            ret = []
+            try:
+                ret = self.authenticate(username=login,
+                                        password=password)
+
+                me = self.get("user/me")
+
+                self.delete('user/{}'.format(me['_id']))
+                self.changed = True
+            # User does not exist (with this login info)
+            except AuthenticationError:
+                ret = []
+
+
+
+        return ret
+
+
+
+
+
 
 def main():
     """Entry point for ansible girder client module
@@ -213,8 +292,11 @@ def main():
         'blacklist': dict(default=None),
 
         # authenticate
-        'username': dict(required=True),
-        'password': dict(required=True),
+        'username': dict(),
+        'password': dict(),
+        'token':    dict(),
+
+        # General
         'state': dict(default="present", choices=['present', 'absent'])
     }
 
@@ -225,7 +307,9 @@ def main():
 
     module = AnsibleModule(
         argument_spec       = argument_spec,
-        required_one_of     = [gcm.required_one_of],
+        required_one_of     = [gcm.required_one_of,
+                               ["token", "username", "user"]],
+        required_together   = [["username", "password"]],
         mutually_exclusive  = gcm.required_one_of,
         supports_check_mode = False)
 
