@@ -1,0 +1,162 @@
+---
+
+  - name: apt | cache | update
+    apt: update_cache=yes
+    when: do_install|bool
+
+  - name: girder | deps | install
+    apt: name={{ item }} state=present update_cache=yes
+    with_items:
+      - apt-utils
+      - autoconf
+      - build-essential
+      - curl
+      - cmake
+      - g++
+      - gfortran
+      - git
+      - gzip
+      - libbz2-dev
+      - libcppunit-dev
+      - libexpat-dev
+      - libffi-dev
+      - libjpeg-dev
+      - libpng-dev
+      - libsqlite-dev
+      - libssl-dev
+      - libtool
+      - m4
+      - make
+      - mongodb
+      - ncurses-dev
+      - openjdk-7-jdk
+      - openjdk-7-jre-headless
+      - openssh-client
+      - openssh-server
+      - python-pip
+      - python-software-properties
+      - python2.7-dev
+      - rsync
+      - sudo
+      - tar
+      - wget
+    when: do_install|bool
+
+  - name: girder | service | stop
+    service:
+        name: girder
+        state: stopped
+    ignore_errors: true
+    when: stop_services|bool
+
+
+  - name: girder | install root | delete
+    file:
+        path: "{{ girder_install_root }}"
+        state: absent
+    when: remove_install_root|bool
+
+  - name: girder | data root | delete
+    file:
+        path: "{{ girder_data_root }}"
+        state: absent
+    when: remove_data_root|bool
+
+  - name: girder | install parent | create
+    file:
+        path: "{{ girder_install_parent }}"
+        state: directory
+    when: do_install|bool
+
+  - name: girder | data root | create
+    file:
+        path: "{{ girder_data_root }}"
+        state: directory
+        mode: 0755
+    when: do_install|bool
+
+  - name: girder | data root | owner | set
+    file:
+        path: "{{ girder_data_root }}"
+        state: directory
+        group: "{{ girder_group }}"
+        owner: "{{ girder_user }}"
+        mode: 0775
+    when: do_install|bool
+
+  - name: girder | repo | sync
+    command: >
+        rsync -avz --exclude=.git
+        "{{ girder_git_work_dir }}/"
+        "{{ girder_install_root }}"
+    when: do_install|bool
+
+  - name: girder | log | perms | set
+    file:
+        path: "{{ girder_install_root }}/logs"
+        mode: 0755
+        state: directory
+    when: do_install|bool
+
+  - name: girder | pip
+    pip: requirements={{ girder_install_root }}/requirements.txt
+    when: do_install|bool
+
+  - name: girder | pip | girder_client
+    pip:
+      name: girder-client
+      version: 1.0.1
+    when: do_install|bool
+
+  - name: grunt-cli | install
+    npm:
+        executable: "{{ npm_binary }}"
+        name: grunt-cli
+        global: yes
+    when: do_install|bool
+
+  - name: npm | package.json | install
+    npm:
+        executable: "{{ npm_binary }}"
+        path: "{{ girder_install_root }}"
+    when: do_install|bool
+
+  - name: grunt | Gruntfile.js | init
+    shell: >
+        source "{{ nodejs_install_root }}/setup-env.bash" &&
+        grunt init
+    args:
+        chdir: "{{ girder_install_root }}"
+        executable: /bin/bash
+    when: do_install|bool
+
+  - name: grunt | Gruntfile.js
+    shell: >
+        source "{{ nodejs_install_root }}/setup-env.bash" &&
+        grunt
+    args:
+        chdir: "{{ girder_install_root }}"
+        executable: /bin/bash
+    when: do_install|bool
+
+  - name: girder | conf | development mode | set
+    command: python setup.py develop
+    args:
+        chdir: "{{ girder_install_root }}"
+    when: do_install|bool
+
+  - name: girder | conf | owner | set
+    file:
+        recurse: yes
+        path: "{{ girder_install_root }}"
+        group: "{{ girder_group }}"
+        mode: 0755
+        owner: "{{ girder_user }}"
+    when: do_install|bool
+
+  - name: girder | conf | girder.local.cfg | generate
+    template:
+        src: girder.local.cfg.j2
+        dest: "{{ girder_install_root }}/girder/conf/girder.local.cfg"
+        mode: 0644
+    when: do_install|bool
