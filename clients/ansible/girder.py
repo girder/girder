@@ -115,20 +115,29 @@ class GirderClientModule(GirderClient):
         self.fail_json(msg="Could not find executable method!")
 
     def __process(self, method):
-        params = {}
-        args = self.module.params[method]
+        # Paramaters from the YAML file
+        params = self.module.params[method]
 
-        for param in self.spec[method]['required']:
-            if param not in args.keys():
+        # Final list of arguments to the function
+        args = []
+        # Final list of keyword arguments to the function
+        kwargs = {}
+
+        for arg_name in self.spec[method]['required']:
+            if arg_name not in params.keys():
                 self.module.fail_json(
-                    msg="{} is required for {}".format(param, method))
-            params[param] = args[param]
+                    msg="{} is required for {}".format(arg_name, method))
+            args.append(params[arg_name])
 
-        for param in self.spec[method]['optional']:
-            if param in args.keys():
-                params[param] = args[param]
+        for kwarg_name in self.spec[method]['optional']:
+            if kwarg_name in params.keys():
+                kwargs[kwarg_name] = args[kwarg_name]
 
-        ret = getattr(self, method)(**params)
+        ret = getattr(self, method)(*args, **kwargs)
+
+        self.message['debug']['method'] = method
+        self.message['debug']['args'] = args
+        self.message['debug']['kwargs'] = kwargs
 
         self.message['gc_return'] = ret
 
