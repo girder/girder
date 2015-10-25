@@ -68,7 +68,8 @@ def class_spec(cls, include=None):
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
-    _include_methods = ['get']
+    _include_methods = ['get', 'put', 'post', 'delete',
+                        'plugins']
 
     _debug = True
 
@@ -78,6 +79,9 @@ class GirderClientModule(GirderClient):
 
         self.module.exit_json(changed=self.changed, **self.message)
 
+    def fail(self, msg):
+        self.module.fail_json(msg)
+
     def __init__(self):
         self.changed = False
         self.message = {"msg": "Success!", "debug": {}}
@@ -85,8 +89,6 @@ class GirderClientModule(GirderClient):
         self.spec = dict(class_spec(self.__class__,
                                     GirderClientModule._include_methods))
         self.required_one_of = self.spec.keys()
-
-
 
     def __call__(self, module):
         self.module = module
@@ -105,46 +107,91 @@ class GirderClientModule(GirderClient):
             self.message['debug']['token'] = self.token
 
         except AuthenticationError:
-            self.module.fail_json(msg="Could not Authenticate!")
+            self.fail("Could not Authenticate!")
 
         for method in self.required_one_of:
             if self.module.params[method] is not None:
                 self.__process(method)
                 self.exit()
 
-        self.fail_json(msg="Could not find executable method!")
+        self.fail("Could not find executable method!")
 
     def __process(self, method):
         # Paramaters from the YAML file
         params = self.module.params[method]
-
         # Final list of arguments to the function
         args = []
         # Final list of keyword arguments to the function
         kwargs = {}
 
-        for arg_name in self.spec[method]['required']:
-            if arg_name not in params.keys():
-                self.module.fail_json(
-                    msg="{} is required for {}".format(arg_name, method))
-            args.append(params[arg_name])
+        if type(params) is dict:
+            for arg_name in self.spec[method]['required']:
+                if arg_name not in params.keys():
+                    self.fail("{} is required for {}".format(arg_name, method))
+                args.append(params[arg_name])
 
-        for kwarg_name in self.spec[method]['optional']:
-            if kwarg_name in params.keys():
-                kwargs[kwarg_name] = args[kwarg_name]
+            for kwarg_name in self.spec[method]['optional']:
+                if kwarg_name in params.keys():
+                    kwargs[kwarg_name] = args[kwarg_name]
+
+        elif type(params) is list:
+            args = params
+        else:
+            args = [params]
 
         ret = getattr(self, method)(*args, **kwargs)
 
         self.message['debug']['method'] = method
         self.message['debug']['args'] = args
         self.message['debug']['kwargs'] = kwargs
+        self.message['debug']['params'] = params
 
         self.message['gc_return'] = ret
 
 
-    def createUser(self):
-        self.message['debug']['msg'] = "Successfully got to createUser!"
-        pass
+    def plugins(self, *plugins):
+        import json
+        ret = []
+
+        available_plugins = self.get("system/plugins")
+        self.message['debug']['available_plugins'] = available_plugins
+
+        plugins = set(plugins)
+        enabled_plugins = set(available_plugins['enabled'])
+
+
+        # Could maybe be expanded to handle all regular expressions?
+        if "*" in plugins:
+            plugins = set(available_plugins['all'].keys())
+
+        # Fail if plugins are passed in that are not available
+        if not plugins <= set(available_plugins["all"].keys()):
+            self.fail("{}, not available!".format(
+                ",".join(list(plugins - available_plugins))
+            ))
+
+        # If we're trying to ensure plugins are present
+        if self.module.params['state'] == 'present':
+            # If plugins is not a subset of enabled plugins:
+            if not plugins <= enabled_plugins:
+                # Put the union of enabled_plugins nad plugins
+                ret = self.put("system/plugins",
+                               {"plugins":
+                                json.dumps(list(plugins | enabled_plugins))})
+                self.changed = True
+
+        # If we're trying to ensure plugins are absent
+        elif self.module.params['state'] == 'absent':
+            # If there are plugins in the list that are enabled
+            if len(enabled_plugins & plugins):
+
+                # Put the difference of enabled_plugins and plugins
+                ret = self.put("system/plugins",
+                               {"plugins":
+                                json.dumps(list(enabled_plugins - plugins))})
+                self.changed = True
+
+        return ret
 
 
 def main():
@@ -168,12 +215,13 @@ def main():
         # authenticate
         'username': dict(required=True),
         'password': dict(required=True),
+        'state': dict(default="present", choices=['present', 'absent'])
     }
 
     gcm = GirderClientModule()
 
     for method in gcm.required_one_of:
-        argument_spec[method] = dict(type='dict')
+        argument_spec[method] = dict()
 
     module = AnsibleModule(
         argument_spec       = argument_spec,
