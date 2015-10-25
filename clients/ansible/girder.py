@@ -69,7 +69,7 @@ class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
-                        'plugins', 'user']
+                        'plugins', 'user', 'assetstore']
 
     _debug = True
 
@@ -80,7 +80,7 @@ class GirderClientModule(GirderClient):
         self.module.exit_json(changed=self.changed, **self.message)
 
     def fail(self, msg):
-        self.module.fail_json(msg)
+        self.module.fail_json(msg=msg)
 
     def __init__(self):
         self.changed = False
@@ -126,7 +126,7 @@ class GirderClientModule(GirderClient):
         self.fail("Could not find executable method!")
 
     def __process(self, method):
-        # Paramaters from the YAML file
+        # Parameters from the YAML file
         params = self.module.params[method]
         # Final list of arguments to the function
         args = []
@@ -264,7 +264,102 @@ class GirderClientModule(GirderClient):
             except AuthenticationError:
                 ret = []
 
+        return ret
 
+    assetstore_types = {
+        "filesystem": 0,
+        "girdfs": 1,
+        "s3": 2,
+        'hdfs': 'hdfs'
+    }
+
+
+    def __validate_hdfs_assetstore(self, *args, **kwargs):
+        # Check if hdfs plugin is available,  enable it if it isn't
+        pass
+
+    def assetstore(self, name, type, root=None, db=None, mongohost=None,
+                   replicaset='', bucket=None, prefix=None,
+                   accessKeyId=None, secret=None, service=None, host=None,
+                   port=None, path=None, user=None, webHdfsPort=None,
+                   readOnly=False, current=False):
+
+            # Fail if somehow we have an asset type not in assetstore_types
+        if type not in self.assetstore_types.keys():
+            self.fail("assetstore type {} is not implemented!".format(type))
+
+        argument_hash = {
+            "filesystem": {'name': name,
+                           'type': self.assetstore_types[type],
+                           'root': root},
+            "gridfs": {'name': name,
+                       'type': self.assetstore_types[type],
+                       'db': db,
+                       'mongohost': mongohost,
+                       'replicaset': replicaset},
+            "s3": {'name': name,
+                   'type': self.assetstore_types[type],
+                   'bucket': bucket,
+                   'prefix': prefix,
+                   'accessKeyId': accessKeyId,
+                   'secret': secret,
+                   'service': service},
+            'hdfs': {'name': name,
+                     'type': self.assetstore_types[type],
+                     'host': host,
+                     'port': port,
+                     'path': path,
+                     'user': user,
+                     'webHdfsPort': webHdfsPort}
+        }
+
+        # Fail if we don't have all the required attributes
+        # for this asset type
+        for k, v in argument_hash[type].items():
+            if v is None:
+                self.fail("assetstores of type "
+                          "{} require attribute {}".format(k))
+
+        argument_hash[type]['readOnly'] = readOnly
+        argument_hash[type]['current'] = current
+
+        ret = []
+        # Get the current assetstores
+        assetstores = {a['name']: a for a in self.get("assetstore")}
+
+        # If we want the assetstore to be present
+        if self.module.params['state'] == 'present':
+
+            # And the asset store exists
+            if name in assetstores.keys():
+                # Should do some kind of updateable check here
+                # So we can determine if anything changed
+
+                # This should update but for some reason it is causing
+                # errors
+
+                id = assetstores[name]['_id']
+                ret = self.put("assetstore/{}".format(id),
+                               parameters=argument_hash[type])
+
+            # And the asset store does not exist
+            else:
+                try:
+                    getattr(self, "__validate_{}_assetstore".format(type))(
+                        **arguments_hahs)
+                except AttributeError:
+                    pass
+
+                ret = self.post("assetstore",
+                                parameters=argument_hash[type])
+                self.changed = True
+        # If we want the assetstore to be gone
+        elif self.module.params['state'] == 'absent':
+            # And the assetstore exists
+            if name in assetstores.keys():
+                id = assetstores[name]['_id']
+                ret = self.delete("assetstore/{}".format(id),
+                                  parameters=argument_hash[type])
 
         return ret
 
@@ -284,12 +379,12 @@ def main():
     # Default spec for initalizing and authenticating
     argument_spec = {
         # __init__
-        'host': dict(default=None),
-        'port': dict(default=None),
-        'apiRoot': dict(default=None),
-        'scheme': dict(default=None),
-        'dryrun': dict(default=None),
-        'blacklist': dict(default=None),
+        'host': dict(),
+        'port': dict(),
+        'apiRoot': dict(),
+        'scheme': dict(),
+        'dryrun': dict(),
+        'blacklist': dict(),
 
         # authenticate
         'username': dict(),
