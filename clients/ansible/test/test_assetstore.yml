@@ -1,0 +1,57 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+
+    - name: Create filesystem assetstore
+      girder:
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp/"
+          current: true
+        state: present
+
+
+    - name: Create other temp directory
+      file:
+        path: /tmp2
+        state: directory
+        mode: 0777
+      sudo: yes
+
+
+    - name: Update filesystem assetstore
+      girder:
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp2/"
+          current: false
+        state: present
+
+
+#     - name: Delete filesystem assetstore
+#       girder:
+#         username: "admin"
+#         password: "letmein"
+#         assetstore:
+#           name: "Temp Filesystem Assetstore"
+#           type: "filesystem"
+#           root: "/tmp/"
+#         state: absent
