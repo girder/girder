@@ -88,15 +88,15 @@ class GirderClientModule(object):
 
     # See: https://github.com/ansible/ansible/commit/31609e1b
     def _check_required_if(self, spec):
+#        self.module.exit_json(**self.module.params)
         if spec is None:
             return
         for (key, val, requirements) in spec:
             missing = []
             if key in self.module.params and self.module.params[key] == val:
-                for check in requirements:
-                    count = self.module._count_terms(check)
-                    if count == 0:
-                        missing.append(check)
+                for term in requirements:
+                    if term not in self.module.params or self.module.params[term] is None:
+                        missing.append(term)
 
                 if len(missing) > 0:
                     message = "{} is {} but the following are missing: {}"
@@ -109,7 +109,7 @@ class GirderClientModule(object):
         self.message = {"msg": "Success!",
                         "debug": {}}
 
-        self._check_required_if(spec)
+        self._check_required_if(required_if)
 
         self.gc = GirderClient(**{p: self.module.params[p] for p in
                                   ['host', 'port', 'apiRoot',
@@ -122,10 +122,10 @@ class GirderClientModule(object):
 
             self.message['debug']['token'] = self.gc.token
 
-        except AuthenticationError as e:
+        except AuthenticationError:
             self.module.fail_json(msg="Could not Authenticate!")
 
-        if 'raw' in self.module.params:
+        if self.module.params['raw'] is not None:
             self._process_raw()
         else:
             self._process_do()
@@ -306,14 +306,20 @@ def main():
     for method, args in class_spec(GirderClient,
                                    GirderClientModule._exclude_gc_methods):
         argument_spec['raw']['choices'].append(method)
-        required_if.append(("raw", method, args['required']))
+        if len(args['required']) > 0:
+            required_if.append(("raw", method, args['required']))
 
+    for method, args in class_spec(GirderClientModule,
+                                   GirderClientModule._exclude_local_methods):
+        argument_spec['do']['choices'].append(method)
+        if len(args['required']) > 0:
+            required_if.append(("do", method, args['required']))
 
 
     module = AnsibleModule(
         argument_spec       = argument_spec,
         mutually_exclusive  = [["raw", "do"]],
-        require_one_of      = (['raw', 'do']),
+        required_one_of     = [['raw', 'do']],
         supports_check_mode = False)
 
     if not HAS_GIRDER_CLIENT:
