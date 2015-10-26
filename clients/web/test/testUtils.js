@@ -601,7 +601,7 @@ girderTest.waitForLoad = function (desc) {
             return false;
         }
         return !$('.modal').data('bs.modal').$backdrop;
-    }, 'for any modal dialog to be hidden' + desc);
+    }, 'any modal dialog to be hidden' + desc);
     waitsFor(function () {
         return girder.numberOutstandingRestRequests() === 0;
     }, 'rest requests to finish' + desc);
@@ -1023,9 +1023,17 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     }
     girderTest.testRoute(fragment, hasLoginDialog);
     if (hasLoginDialog) {
+        girderTest.waitForDialog();
+
         waitsFor(function () {
             return $('input#g-login').length > 0;
         }, 'login dialog to appear');
+
+        runs(function () {
+            $('.modal-header .close').click();
+        });
+
+        girderTest.waitForLoad();
     }
     girderTest.testRoute('', false);
     if (loginFunction) {
