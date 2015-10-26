@@ -27,6 +27,10 @@ from girder.constants import TerminalColor
 
 _dbClients = {}
 
+if pymongo.version_tuple < (3,):
+    raise Exception('Your pymongo version (%s) is too old. Please update to '
+                    'pymongo 3.x.' % pymongo.version)
+
 
 def getDbConfig():
     """Get the database configuration values from the cherrypy config."""
@@ -37,15 +41,22 @@ def getDbConfig():
         return {}
 
 
-def getDbConnection(uri=None, replicaSet=None):
+def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
     """
     Get a MongoClient object that is connected to the configured database.
     We lazy-instantiate a module-level singleton, the MongoClient objects
-    manage their own connection pools internally.
+    manage their own connection pools internally. Any extra kwargs you pass to
+    this method will be passed through to the MongoClient.
 
     :param uri: if specified, connect to this mongo db rather than the one in
                 the config.
     :param replicaSet: if uri is specified, use this replica set.
+    :param autoRetry: if this connection should automatically retry operations
+        in the event of an AutoReconnect exception. If you're testing the
+        connection, set this to False. If disabled, this also will not cache
+        the mongo client, so make sure to only disable if you're testing a
+        connection.
+    :type autoRetry: bool
     """
     global _dbClients
 
@@ -58,14 +69,18 @@ def getDbConnection(uri=None, replicaSet=None):
         uri = dbConf.get('uri')
         replicaSet = dbConf.get('replica_set')
     clientOptions = {
-        'connectTimeoutMS': 15000,
         # This is the maximum time between when we fetch data from a cursor.
         # If it times out, the cursor is lost and we can't reconnect.  If it
         # isn't set, we have issues with replica sets when the primary goes
         # down.  This value can be overridden in the mongodb uri connection
         # string with the socketTimeoutMS.
         'socketTimeoutMS': 60000,
-        }
+        'connectTimeoutMS': 20000,
+        'read_preference': ReadPreference.SECONDARY_PREFERRED,
+        'replicaSet': replicaSet
+    }
+    clientOptions.update(kwargs)
+
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
         print(TerminalColor.warning('WARNING: No MongoDB URI specified, using '
@@ -79,15 +94,12 @@ def getDbConnection(uri=None, replicaSet=None):
         else:
             dbUriRedacted = uri
 
-        if replicaSet:
-            client = pymongo.MongoReplicaSetClient(
-                uri, replicaSet=replicaSet,
-                read_preference=ReadPreference.SECONDARY_PREFERRED,
-                **clientOptions)
-        else:
-            client = pymongo.MongoClient(uri, **clientOptions)
-    client = MongoProxy(client, logger=logger)
-    _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
+        client = pymongo.MongoClient(uri, **clientOptions)
+
+    if autoRetry:
+        client = MongoProxy(client, logger=logger)
+        _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
+
     desc = ''
     if replicaSet:
         desc += ', replica set: %s' % replicaSet

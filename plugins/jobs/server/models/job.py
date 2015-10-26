@@ -18,12 +18,11 @@
 ###############################################################################
 
 import datetime
-import pymongo
 import six
 from bson import json_util
 
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, SortDir
 from girder.models.model_base import AccessControlledModel, ValidationException
 from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
 
@@ -32,8 +31,8 @@ class Job(AccessControlledModel):
     def initialize(self):
         self.name = 'job'
         compoundSearchIndex = (
-            ('userId', pymongo.ASCENDING),
-            ('created', pymongo.DESCENDING)
+            ('userId', SortDir.ASCENDING),
+            ('created', SortDir.DESCENDING)
         )
         self.ensureIndices([(compoundSearchIndex, {})])
 

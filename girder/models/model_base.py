@@ -23,13 +23,16 @@ import itertools
 import pymongo
 import six
 
-from girder.external.mongodb_proxy import MongoProxy
-
 from bson.objectid import ObjectId
 from girder import events
 from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
-from girder.utility.model_importer import ModelImporter
+from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
+from girder.utility.model_importer import ModelImporter
+
+# pymongo3 complains about extra kwargs to find(), so we must filter them.
+_allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
+                    'modifiers', 'manipulate')
 
 
 class Model(ModelImporter):
@@ -67,14 +70,14 @@ class Model(ModelImporter):
 
         for index in self._indices:
             if isinstance(index, (list, tuple)):
-                self.collection.ensure_index(index[0], **index[1])
+                self.collection.create_index(index[0], **index[1])
             else:
-                self.collection.ensure_index(index)
+                self.collection.create_index(index)
 
         if type(self._textIndex) is dict:
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
-                self.collection.ensure_index(
+                self.collection.create_index(
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
@@ -165,7 +168,7 @@ class Model(ModelImporter):
         fields that should be indexed in the database if there are any.
         Otherwise, it is not necessary to call this method. Elements of the list
         may also be a list or tuple, where the second element is a dictionary
-        that will be passed as kwargs to the pymongo ensure_index call.
+        that will be passed as kwargs to the pymongo create_index call.
         """
         self._indices.extend(indices)
 
@@ -197,9 +200,10 @@ class Model(ModelImporter):
         raise Exception('Must override initialize() in %s model'
                         % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query=None, offset=0, limit=0, **kwargs):
+    def find(self, query=None, offset=0, limit=0, timeout=None,
+             fields=None, sort=None, **kwargs):
         """
-        Search the collection by a set of parameters. Passes any kwargs
+        Search the collection by a set of parameters. Passes any extra kwargs
         through to the underlying pymongo.collection.find function.
 
         :param query: The search query (see general MongoDB docs for "find()")
@@ -212,21 +216,26 @@ class Model(ModelImporter):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key.
         :type fields: List of strings
+        :param timeout: Cursor timeout in ms. Default is no timeout.
+        :type timeout: int
         :returns: A pymongo database cursor.
         """
-        if not query:
-            query = {}
+        query = query or {}
+        kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
 
-        if 'timeout' not in kwargs:
-            kwargs['timeout'] = False
+        cursor = self.collection.find(
+            filter=query, skip=offset, limit=limit, projection=fields,
+            no_cursor_timeout=timeout is None, sort=sort, **kwargs)
 
-        return self.collection.find(
-            spec=query, skip=offset, limit=limit, **kwargs)
+        if timeout:
+            cursor.max_time_ms(timeout)
 
-    def findOne(self, query=None, **kwargs):
+        return cursor
+
+    def findOne(self, query=None, fields=None, **kwargs):
         """
         Search the collection by a set of parameters. Passes any kwargs
-        through to the underlying pymongo.collection.find function.
+        through to the underlying pymongo.collection.find_one function.
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
@@ -236,9 +245,9 @@ class Model(ModelImporter):
         :type fields: List of strings
         :returns: the first object that was found, or None if none found.
         """
-        if not query:
-            query = {}
-        return self.collection.find_one(query, **kwargs)
+        query = query or {}
+        kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
+        return self.collection.find_one(query, projection=fields, **kwargs)
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
                    filters=None):
@@ -298,14 +307,17 @@ class Model(ModelImporter):
             if event.defaultPrevented:
                 return document
 
-        sendCreateEvent = ('_id' not in document)
-        document['_id'] = self.collection.save(document)
+        isNew = '_id' not in document
+        if isNew:
+            document['_id'] = self.collection.insert_one(document).inserted_id
+        else:
+            self.collection.replace_one(
+                {'_id': document['_id']}, document, True)
 
         if triggerEvents:
-            if sendCreateEvent:
-                events.trigger('model.{}.save.created'.format(self.name),
-                               document)
-            events.trigger('model.{}.save.after'.format(self.name), document)
+            if isNew:
+                events.trigger('model.%s.save.created' % self.name, document)
+            events.trigger('model.%s.save.after' % self.name, document)
 
         return document
 
@@ -316,8 +328,6 @@ class Model(ModelImporter):
         this collection to a document that is being deleted from another
         collection.
 
-        This is a thin wrapper around pymongo db.collection.update().
-
         For updating a single document, use the save() model method instead.
 
         :param query: The query for finding documents to update. It's
@@ -325,8 +335,14 @@ class Model(ModelImporter):
         :type query: dict
         :param update: The update specifier.
         :type update: dict
+        :param multi: Whether to update a single document, or all matching
+            documents.
+        :type multi: bool
         """
-        self.collection.update(query, update, multi=multi)
+        if multi:
+            self.collection.update_many(query, update)
+        else:
+            self.collection.update_one(query, update)
 
     def increment(self, query, field, amount, **kwargs):
         """
@@ -360,8 +376,9 @@ class Model(ModelImporter):
                 'document': document,
                 'kwargs': kwargs
             })
+
         if not event.defaultPrevented and not kwargsEvent.defaultPrevented:
-            return self.collection.remove({'_id': document['_id']})
+            return self.collection.delete_one({'_id': document['_id']})
 
     def removeWithQuery(self, query):
         """
@@ -370,7 +387,7 @@ class Model(ModelImporter):
         """
         assert query
 
-        return self.collection.remove(query)
+        return self.collection.delete_many(query)
 
     def load(self, id, objectId=True, fields=None, exc=False):
         """

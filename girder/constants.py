@@ -165,6 +165,11 @@ class SettingDefault:
     }
 
 
+class SortDir(object):
+    ASCENDING = 1
+    DESCENDING = -1
+
+
 class TokenScope:
     """
     Constants for core token scope strings. Token scopes must not contain

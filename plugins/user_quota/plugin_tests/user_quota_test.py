@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import json
 import os
 
@@ -324,15 +325,16 @@ class QuotaTestCase(base.TestCase):
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
         self.assertStatusOk(resp)
-        params = {
+
+        # Create a broken assetstore. (Must bypass validation since it should
+        # not let us create an assetstore in a broken state).
+        self.model('assetstore').save({
             'name': 'Broken Store',
-            'type': AssetstoreType.GRIDFS,
-            'db': 'girder_assetstore_user_quota_test_broken',
-            'mongohost': 'mongodb://127.254.254.254:27016'
-        }
-        resp = self.request(path='/assetstore', method='POST', user=self.admin,
-                            params=params)
-        self.assertStatusOk(resp)
+            'type': AssetstoreType.FILESYSTEM,
+            'root': '/dev/null',
+            'created': datetime.datetime.utcnow()
+        }, validate=False)
+
         # Now get the assetstores and save their ids for later
         resp = self.request(path='/assetstore', method='GET', user=self.admin,
                             params={'sort': 'created'})

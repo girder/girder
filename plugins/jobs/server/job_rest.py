@@ -17,13 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import pymongo
-
 from girder import events
 from girder.api import access
 from girder.api.describe import Description
 from girder.api.rest import Resource, loadmodel
-from girder.constants import AccessType
+from girder.constants import AccessType, SortDir
 
 
 class Job(Resource):
@@ -38,7 +36,7 @@ class Job(Resource):
     @access.public
     def listJobs(self, params):
         limit, offset, sort = self.getPagingParameters(
-            params, 'created', pymongo.DESCENDING)
+            params, 'created', SortDir.DESCENDING)
         currentUser = self.getCurrentUser()
         userId = params.get('userId')
         if not userId:
@@ -59,7 +57,7 @@ class Job(Resource):
                'not passed or empty, will use the currently logged in user. If '
                'set to "None", will list all jobs that do not have an owning '
                'user.', required=False)
-        .pagingParams(defaultSort='created', defaultSortDir=pymongo.DESCENDING))
+        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING))
 
     @access.public
     @loadmodel(model='job', plugin='jobs', level=AccessType.READ)

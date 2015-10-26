@@ -146,7 +146,7 @@ describe('Test the assetstore page', function () {
         return null;
     };
 
-    var _testAssetstore = function (assetstore, tab, params, callback) {
+    var _testAssetstore = function (assetstore, tab, params, callback, waitCondition, waitMessage, shouldFail) {
         var storeName = 'Test ' + assetstore + ' Assetstore';
 
         it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
@@ -175,9 +175,13 @@ describe('Test the assetstore page', function () {
                 }
                 $('#'+tab+' .g-new-assetstore-submit').click();
             });
-            waitsFor(function () {
+            waitsFor(waitCondition || function () {
                 return _getAssetstoreContainer(name) !== null;
-            }, 'assetstore to be listed');
+            }, waitMessage || 'assetstore to be listed', 20000);
+
+            if (shouldFail) {
+                return;
+            }
 
             /* make this the current assetstore */
             runs(function () {
@@ -493,12 +497,15 @@ describe('Test the assetstore page', function () {
 
     /* The specified assetstore should NOT exist, and the specified mongohost
      * should NOT be present (nothing should respond on those ports). */
-    _testAssetstore('gridfs', 'g-create-gridfs-tab',
+    _testAssetstore('gridfs-rs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
                      'g-new-gridfs-db': 'girder_webclient_gridfsrs',
                      'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,'+
                         '127.0.0.2:27081,127.0.0.2:27082',
-                     'g-new-gridfs-replicaset': 'replicaset'});
+                     'g-new-gridfs-replicaset': 'replicaset'}, null, function () {
+                          return $('.g-validation-failed-message:contains(' +
+                              '"Could not connect to the database: ")').length === 1;
+                     }, 'validation failure to display', true);
 
     _testAssetstore('s3', 'g-create-s3-tab', {
         'g-new-s3-name': 'name',

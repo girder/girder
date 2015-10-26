@@ -34,13 +34,12 @@ except ImportError:
 
 EXECUTABLE_MONGO_METHODS = get_methods(pymongo.collection.Collection,
                                        pymongo.database.Database,
-                                       pymongo.Connection,
-                                       pymongo.ReplicaSetConnection,
+                                       pymongo.cursor.Cursor,
                                        MongoClient, MongoReplicaSetClient,
                                        pymongo)
 
 
-class Executable:
+class Executable(object):
     """ Wrap a MongoDB-method and handle AutoReconnect-exceptions
     using the safe_mongocall decorator.
     """
@@ -62,7 +61,14 @@ class Executable:
         i = 0
         while True:
             try:
-                return self.method(*args, **kwargs)
+                val = self.method(*args, **kwargs)
+
+                # If we get back a cursor, we need to also make sure it tries
+                # to auto-reconnect on failure.
+                if isinstance(val, pymongo.cursor.Cursor):
+                    return MongoProxy(val, self.logger, self.wait_time)
+                else:
+                    return val
             except pymongo.errors.AutoReconnect:
                 end = time.time()
                 delta = end - start
@@ -85,7 +91,7 @@ class Executable:
     def __repr__(self):
         return self.method.__repr__()
 
-class MongoProxy:
+class MongoProxy(object):
     """ Proxy for MongoDB connection.
     Methods that are executable, i.e find, insert etc, get wrapped in an
     Executable-instance that handles AutoReconnect-exceptions transparently.
@@ -134,6 +140,9 @@ class MongoProxy:
 
     def __dir__(self):
         return dir(self.conn)
+
+    def __iter__(self):
+        return self.conn.__iter__()
 
     def __str__(self):
         return self.conn.__str__()
