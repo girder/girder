@@ -270,9 +270,8 @@ class GirderClientModule(GirderClient):
         "filesystem": 0,
         "girdfs": 1,
         "s3": 2,
-        'hdfs': 'hdfs'
+        "hdfs": "hdfs"
     }
-
 
     def __validate_hdfs_assetstore(self, *args, **kwargs):
         # Check if hdfs plugin is available,  enable it if it isn't
@@ -318,8 +317,9 @@ class GirderClientModule(GirderClient):
         for k, v in argument_hash[type].items():
             if v is None:
                 self.fail("assetstores of type "
-                          "{} require attribute {}".format(k))
+                          "{} require attribute {}".format(type, k))
 
+        # Set optional arguments in the hash
         argument_hash[type]['readOnly'] = readOnly
         argument_hash[type]['current'] = current
 
@@ -327,26 +327,58 @@ class GirderClientModule(GirderClient):
         # Get the current assetstores
         assetstores = {a['name']: a for a in self.get("assetstore")}
 
+        self.message['debug']['assetstores'] = assetstores
+
         # If we want the assetstore to be present
         if self.module.params['state'] == 'present':
 
             # And the asset store exists
             if name in assetstores.keys():
-                # Should do some kind of updateable check here
-                # So we can determine if anything changed
-
-                # This should update but for some reason it is causing
-                # errors
 
                 id = assetstores[name]['_id']
-                ret = self.put("assetstore/{}".format(id),
-                               parameters=argument_hash[type])
+
+                ####
+                # Fields that could potentially be updated
+                #
+                # This is nessisary because there are fields in the assetstores
+                # that do not hash (e.g., capacity) and fields in the
+                # argument_hash that are not returned by 'GET' assetstore (e.g.
+                # readOnly). We could be more precise about this
+                # (e.g., by only checking items that are relevant to this type)
+                # but readability suffers.
+                updateable = ["root", "mongohost", "replicaset", "bucket",
+                              "prefix", "db", "accessKeyId", "secret",
+                              "service", "host", "port", "path", "user",
+                              "webHdfsPort", "current"]
+
+                # tuples of (key,  value) for fields that can be updated
+                # in the assetstore
+                assetstore_items = set((k, assetstores[name][k])
+                                       for k in updateable
+                                       if k in assetstores[name].keys())
+
+                # tuples of (key,  value) for fields that can be updated
+                # in the argument_hash for this assetstore type
+                arg_hash_items = set((k, argument_hash[type][k])
+                                     for k in updateable
+                                     if k in argument_hash[type].keys())
+
+                # if arg_hash_items not a proper subset of assetstore_items
+                if not arg_hash_items <= assetstore_items:
+                    # Update
+                    ret = self.put("assetstore/{}".format(id),
+                                   parameters=argument_hash[type])
+
+                    self.changed = True
 
             # And the asset store does not exist
             else:
                 try:
-                    getattr(self, "__validate_{}_assetstore".format(type))(
-                        **arguments_hahs)
+                    # If __validate_[type]_assetstore exists then call the
+                    # function with argument_hash. E.g.,  to check if the
+                    # HDFS plugin is enabled
+                    getattr(self, "__validate_{}_assetstore"
+                            .format(type))(**arguments_hash)
                 except AttributeError:
                     pass
 

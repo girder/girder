@@ -1,6 +1,10 @@
 - hosts: girder
   tasks:
 
+    ############
+    # Filesystem Assetstore Tests
+    #
+
     # Add an initial user - this user will be admin
     - name: Create 'admin' User
       girder:
@@ -25,6 +29,18 @@
           current: true
         state: present
 
+    # Note,  should not trigger a change
+    - name: Update filesystem assetstore with same information
+      girder:
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp/"
+          current: true
+        state: present
+
 
     - name: Create other temp directory
       file:
@@ -33,7 +49,7 @@
         mode: 0777
       sudo: yes
 
-
+    # Update should trigger a change
     - name: Update filesystem assetstore
       girder:
         username: "admin"
@@ -46,12 +62,30 @@
         state: present
 
 
-#     - name: Delete filesystem assetstore
-#       girder:
-#         username: "admin"
-#         password: "letmein"
-#         assetstore:
-#           name: "Temp Filesystem Assetstore"
-#           type: "filesystem"
-#           root: "/tmp/"
-#         state: absent
+    - name: Delete filesystem assetstore
+      girder:
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp/"
+        state: absent
+
+    ############
+    # GridFS Assetstore tests
+    #
+
+    # Untested!
+
+    ############
+    # S3 Assetstore tests
+    #
+
+    # Untested!
+
+    ############
+    # HDFS Assetstore tests
+    #
+
+    # Untested!
