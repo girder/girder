@@ -27,6 +27,10 @@ from girder.constants import TerminalColor
 
 _dbClients = {}
 
+if pymongo.version_tuple < (3,):
+    raise Exception('Your pymongo version (%s) is too old. Please update to '
+                    'pymongo 3.x.' % pymongo.version)
+
 
 def getDbConfig():
     """Get the database configuration values from the cherrypy config."""
