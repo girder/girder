@@ -75,6 +75,7 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         # down.  This value can be overridden in the mongodb uri connection
         # string with the socketTimeoutMS.
         'socketTimeoutMS': 60000,
+        'connectTimeoutMS': 20000,
         'read_preference': ReadPreference.SECONDARY_PREFERRED,
         'replicaSet': replicaSet
     }

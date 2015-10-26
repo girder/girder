@@ -155,7 +155,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             # when it automatically retries.  Therefore, log this error but
             # don't stop.
             try:
-                self.chunkColl.insert({
+                self.chunkColl.insert_one({
                     'n': n,
                     'uuid': upload['chunkUuid'],
                     'data': bson.binary.Binary(data)
@@ -174,8 +174,10 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         except ValidationException:
             # The user tried to upload too much or too little.  Delete
             # everything we added
-            self.chunkColl.remove({'uuid': upload['chunkUuid'],
-                                   'n': {'$gte': startingN}}, multi=True)
+            self.chunkColl.delete_many({
+                'uuid': upload['chunkUuid'],
+                'n': {'$gte': startingN}
+            }, multi=True)
             raise
 
         # Persist the internal state of the checksum
@@ -279,7 +281,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         matching = self.model('file').find(q, limit=2, projection=[])
         if matching.count(True) == 1:
             try:
-                self.chunkColl.remove({'uuid': file['chunkUuid']})
+                self.chunkColl.delete_many({'uuid': file['chunkUuid']})
             except pymongo.errors.AutoReconnect:
                 # we can't reach the database.  Go ahead and return; a system
                 # check will be necessary to remove the abandoned file
@@ -289,4 +291,4 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Delete all of the chunks associated with a given upload.
         """
-        self.chunkColl.remove({'uuid': upload['chunkUuid']})
+        self.chunkColl.delete_many({'uuid': upload['chunkUuid']})

@@ -306,14 +306,17 @@ class Model(ModelImporter):
             if event.defaultPrevented:
                 return document
 
-        sendCreateEvent = ('_id' not in document)
-        document['_id'] = self.collection.save(document)
+        isNew = '_id' not in document
+        if isNew:
+            document['_id'] = self.collection.insert_one(document).inserted_id
+        else:
+            self.collection.replace_one(
+                {'_id': document['_id']}, document, True)
 
         if triggerEvents:
-            if sendCreateEvent:
-                events.trigger('model.{}.save.created'.format(self.name),
-                               document)
-            events.trigger('model.{}.save.after'.format(self.name), document)
+            if isNew:
+                events.trigger('model.%s.save.created' % self.name, document)
+            events.trigger('model.%s.save.after' % self.name, document)
 
         return document
 
