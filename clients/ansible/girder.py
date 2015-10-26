@@ -34,13 +34,218 @@ version_added: "0.1"
 short_description: A module that wraps girder_client
 requirements: [ girder_client==1.1.0 ]
 description:
-   - Manage a girder instance useing the RESTful API
-   - This module implements two different modes,  'do'  and 'raw.' The raw
-     mode makes direct pass throughs to the girder client and does not attempt
-     to be idempotent,  the 'do' mode implements methods that strive to be
-     idempotent.  This is designed to give the developer the most amount of
-     flexability possible.
+   - Manage a girder instance using the RESTful API
 options:
+    host:
+        required: false
+        default: 'localhost'
+        description:
+            - domain or IP of the host running girder
+    port:
+        required: false
+        default: '80' for http, '443' for https
+        description:
+            - port the girder instance is running on
+
+    apiRoot:
+        required: false
+        default: '/api/v1'
+        description:
+            - path on server corresponding to the root of Girder REST API
+
+    scheme:
+        required: false
+        default: 'http'
+        description:
+            - A string containing the scheme for the Girder host
+
+    dryrun:
+        required: false
+        default: None (passed through)
+        description:
+            - See GirderClient.__init__()
+
+    blacklist:
+        required: false
+        default: None (passed through)
+        description:
+            - See GirderClient.__init__()
+
+    username:
+        required: true
+        description:
+            - Valid username for the system
+            - Required with password
+            - must be specified if 'token' is not specified
+                - (See note on 'user')
+
+    password:
+        required: true
+        description:
+            - Valid password for the system
+            - Required with username
+            - must be specified if 'token' is not specified
+                - (See note on 'user')
+    token:
+        required: true
+        description:
+            - A girder client token
+            - Can be retrieved by accessing the accessing the 'token' attribute
+              from a successfully authenticated call to girder in a previous task.
+            - Required if 'username' and 'password' are not specified
+                - (See note on 'user')
+    state:
+        required: false
+        default: "present"
+        choices: ["present", "absent"]
+        description:
+            - Used to indicate the presence or absence of a resource
+              - e.g.,  user, plugin, assetstore
+
+    user:
+        required: false
+        description:
+            - Takes a mapping of key value pairs
+              options:
+                  login:
+                      required: true
+                      description:
+                          - The login name of the user
+                  password:
+                      required: true
+                      description:
+                          - The password of the user
+
+                  firstName:
+                      required: false
+                      default: pass through to girder client
+                      description:
+                          - The first name of the user
+
+                  lastName:
+                      required: false
+                      default: pass through to girder client
+                      description:
+                          - The last name of the user
+                  email:
+                      required: false
+                      default: pass through to girder client
+                      description:
+                          - The email of the user
+                  admin:
+                      required: false
+                      default: false
+                      description:
+                          - If true,  make the user an administrator.
+
+
+    plugin:
+        required: false
+        description:
+            - Specify what plugins should be activated (state: present)
+              or deactivated (state: absent).
+            - Takes a list of plugin names,  incorrect names are silently
+              ignored
+
+    assetstore:
+        required: false
+        description:
+            - Specifies an assetstore
+            - Takes many options depending on 'type'
+              options:
+                  name:
+                      required: true
+                      description:
+                          - Name of the assetstore
+                  type:
+                      required: true
+                      choices: ['filesystem', 'gridfs', 's3', 'hdfs']
+                      description:
+                          - Currently only 'filesystem' has been tested
+                  readOnly:
+                      required: false
+                      default: false
+                      description:
+                          - Should the assetstore be read only?
+                  current:
+                      required: false
+                      default: false
+                      description:
+                          - Should the assetstore be set as the current assetstore?
+
+              options (filesystem):
+                  root:
+                      required: true
+                      description:
+                          -  Filesystem path to the assetstore
+
+              options (gridfs) (EXPERIMENTAL):
+                   db:
+                       required: true
+                       description:
+                           - database name
+                   mongohost:
+                       required: true
+                       description:
+                           - Mongo host URI
+
+                   replicaset:
+                       required: false
+                       default: ''
+                       description:
+                           - Replica set name
+
+              options (s3) (EXPERIMENTAL):
+                   bucket:
+                       required: true
+                       description:
+                           - The S3 bucket to store data in
+
+                   prefix:
+                       required: true
+                       description:
+                           - Optional path prefix within the bucket under which files will be stored
+
+                   accessKeyId:
+                       required: true
+                       description:
+                           - the AWS access key ID to use for authentication
+
+                   secret:
+                       required: true
+                       description:
+                           - the AWS secret key to use for authentication
+
+                   service:
+                       required: false
+                       default: s3.amazonaws.com
+                       description:
+                           - The S3 service host (for S3 type)
+                           - This can be used to specify a protocol and port
+                             -  use the form [http[s]://](host domain)[:(port)]
+                           - Do not include the bucket name here
+
+              options (hdfs) (EXPERIMENTAL):
+                   host:
+                       required: true
+                       description:
+                           - None
+                   port:
+                       required: true
+                       description:
+                           - None
+                   path:
+                       required: true
+                       description:
+                           - None
+                   user:
+                       required: true
+                       description:
+                           - None
+                   webHdfsPort
+                       required: true
+                       description:
+                           - None
 
 '''
 
@@ -278,8 +483,8 @@ class GirderClientModule(GirderClient):
         pass
 
     def assetstore(self, name, type, root=None, db=None, mongohost=None,
-                   replicaset='', bucket=None, prefix=None,
-                   accessKeyId=None, secret=None, service=None, host=None,
+                   replicaset='', bucket=None, prefix='', accessKeyId=None,
+                   secret=None, service='s3.amazonaws.com', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
                    readOnly=False, current=False):
 
@@ -340,7 +545,7 @@ class GirderClientModule(GirderClient):
                 ####
                 # Fields that could potentially be updated
                 #
-                # This is nessisary because there are fields in the assetstores
+                # This is necessary because there are fields in the assetstores
                 # that do not hash (e.g., capacity) and fields in the
                 # argument_hash that are not returned by 'GET' assetstore (e.g.
                 # readOnly). We could be more precise about this
