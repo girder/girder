@@ -21,14 +21,13 @@ import cherrypy
 import collections
 import datetime
 import json
-import pymongo
 import six
 import sys
 import traceback
 
 from . import docs
 from girder import events, logger
-from girder.constants import SettingKey, TerminalColor, TokenScope
+from girder.constants import SettingKey, TerminalColor, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -691,14 +690,14 @@ class Resource(ModelImporter):
         return requireAdmin(user)
 
     def getPagingParameters(self, params, defaultSortField=None,
-                            defaultSortDir=pymongo.ASCENDING):
+                            defaultSortDir=SortDir.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of
         the form (limit, offset, sort) whose values should be passed directly
         into the model methods that are finding the resources. If the client
         did not pass the parameters, this always uses the same defaults of
-        limit=50, offset=0, sort='name', sortdir=pymongo.ASCENDING=1.
+        limit=50, offset=0, sort='name', sortdir=SortDir.ASCENDING=1.
 
         :param params: The URL query parameters.
         :type params: dict
@@ -706,6 +705,8 @@ class Resource(ModelImporter):
             set this to choose a default sort field. If None, the results will
             be returned unsorted.
         :type defaultSortField: str or None
+        :param defaultSortDir: Sort direction.
+        :tyep defaultSortDir: girder.constants.SortDir
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))

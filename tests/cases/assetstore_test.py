@@ -339,35 +339,22 @@ class AssetstoreTestCase(base.TestCase):
         self.assertFalse(oldAssetstore['current'])
 
         # Test that we can create an assetstore with an alternate mongo host
-        # and a replica set (but don't bother using an actual replica set)
+        # and a replica set (but don't bother using an actual replica set).
+        # Since we are faking the replicaset, we have to bypass validation so
+        # we don't get exceptions from trying to connect to nonexistent hosts.
+        # We also hack to make it the current assetstore without using validate.
+        self.model('assetstore').update({'current': True},
+                                        {'$set': {'current': False}})
         params = {
             'name': 'Replica Set Name',
             'type': AssetstoreType.GRIDFS,
             'db': 'girder_assetstore_rs_create_test',
             'mongohost': 'mongodb://127.0.0.1:27080,127.0.0.1:27081,'
                          '127.0.0.1:27082',
-            'replicaset': 'replicaset'
-        }
-        resp = self.request(path='/assetstore', method='POST', user=self.admin,
-                            params=params)
-        self.assertStatusOk(resp)
-        rsassetstore = resp.json
-        self.assertEqual(rsassetstore['name'], 'Replica Set Name')
-        self.assertFalse(rsassetstore['current'])
-
-        # Set the replica set assetstore as current
-        params = {
-            'name': rsassetstore['name'],
-            'db': rsassetstore['db'],
-            'mongohost': rsassetstore['mongohost'],
-            'replicaset': rsassetstore['replicaset'],
+            'replicaset': 'replicaset',
             'current': True
         }
-        resp = self.request(path='/assetstore/{}'.format(rsassetstore['_id']),
-                            method='PUT', user=self.admin, params=params)
-        self.assertStatusOk(resp)
-        rsassetstore = self.model('assetstore').load(resp.json['_id'])
-        self.assertTrue(rsassetstore['current'])
+        self.model('assetstore').save(params, validate=False)
 
         # Neither of the old assetstores should  be current
         oldAssetstore = self.model('assetstore').load(oldAssetstore['_id'])
@@ -377,16 +364,6 @@ class AssetstoreTestCase(base.TestCase):
 
         # Getting the assetstores should succeed, even though we can't connect
         # to the replica set.
-        resp = self.request(path='/assetstore', method='GET', user=self.admin)
-        self.assertStatusOk(resp)
-
-        # Change the replica set assetstore to use the default mongo instance,
-        # which should be allowed, even though we won't be able to connect to
-        # the database.
-        params['mongohost'] = 'mongodb://127.0.0.1:27017'
-        resp = self.request(path='/assetstore/{}'.format(rsassetstore['_id']),
-                            method='PUT', user=self.admin, params=params)
-        self.assertStatusOk(resp)
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
 

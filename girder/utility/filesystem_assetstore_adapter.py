@@ -89,8 +89,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             try:
                 os.makedirs(self.tempDir)
             except OSError:
+                self.unavailable = True
                 logger.exception('Failed to create filesystem assetstore '
                                  'directories {}'.format(self.tempDir))
+        elif not os.access(assetstore['root'], os.W_OK):
+            self.unavailable = True
+            logger.error('Could not write to assetstore root: %s',
+                         assetstore['root'])
 
     def capacityInfo(self):
         """
