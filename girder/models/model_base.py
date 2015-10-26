@@ -235,7 +235,7 @@ class Model(ModelImporter):
     def findOne(self, query=None, fields=None, **kwargs):
         """
         Search the collection by a set of parameters. Passes any kwargs
-        through to the underlying pymongo.collection.find function.
+        through to the underlying pymongo.collection.find_one function.
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
@@ -246,6 +246,7 @@ class Model(ModelImporter):
         :returns: the first object that was found, or None if none found.
         """
         query = query or {}
+        kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
         return self.collection.find_one(query, projection=fields, **kwargs)
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
