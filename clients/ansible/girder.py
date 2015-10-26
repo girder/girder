@@ -105,6 +105,13 @@ options:
     user:
         required: false
         description:
+            - If using the 'user' task, you are NOT REQUIRED to pass in a
+              'username' & 'password',  or a 'token' attributes. This is because
+              the first user created on an fresh install of girder is automatically
+              made an administrative user. Once you are certain you have an admin
+              user you should use those credentials in all subsequent tasks that use
+              the 'user' task.
+
             - Takes a mapping of key value pairs
               options:
                   login:
@@ -250,8 +257,185 @@ options:
 '''
 
 EXAMPLES = '''
-# Comment about example
-- action: girder opt1=arg1 opt2=arg2
+
+
+#############
+# Example using 'user'
+###
+
+
+# Ensure "admin" user exists
+- name: Create 'admin' User
+  girder:
+    user:
+      firstName: "Chris"
+      lastName: "Kotfila"
+      login: "admin"
+      password: "letmein"
+      email: "chris.kotfila@kitware.com"
+      admin: yes
+    state: present
+
+# Ensure a 'foobar' user exists
+- name: Create 'foobar' User
+  girder:
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Foo"
+      lastName: "Bar"
+      login: "foobar"
+      password: "foobarbaz"
+      email: "foo.bar@kitware.com"
+      admin: yes
+    state: present
+
+# Remove the 'foobar' user
+- name: Remove 'foobar' User
+  username: "admin"
+  password: "letmein"
+  girder:
+    user:
+      login: "foobar"
+      password: "foobarbaz"
+    state: absent
+
+
+#############
+# Example using 'plugins'
+###
+
+# To enable or disable all plugins you may pass the "*"
+# argument.  This does not (yet) support arbitrary regexes
+- name: Disable all plugins
+  girder:
+    username: "admin"
+    password: "letmein"
+    plugins: "*"
+    state: absent
+
+- name: Enable thumbnails plugin
+  girder:
+    username: "admin"
+    password: "letmein"
+    port: 8080
+    plugins:
+      - thumbnails
+    state: present
+
+# Note that 'thumbnails'  is still enabled from the previous task,
+# the 'plugins' task ensures that plugins are enabled or disabled,
+# it does NOT define the complete list of enabled or disabled plugins.
+- name: Ensure jobs and gravatar plugins are enabled
+  girder:
+    username: "admin"
+    password: "letmein"
+    plugins:
+      - jobs
+      - gravatar
+    state: present
+
+
+
+############
+# Filesystem Assetstore Tests
+#
+
+- name: Create filesystem assetstore
+  girder:
+    username: "admin"
+     password: "letmein"
+     assetstore:
+       name: "Temp Filesystem Assetstore"
+       type: "filesystem"
+       root: "/data/"
+       current: true
+     state: present
+
+- name: Delete filesystem assetstore
+  girder:
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp/"
+    state: absent
+
+############
+# Examples using get
+#
+
+
+# Get my info
+- name: Get users from http://localhost:80/api/v1/users
+  girder:
+    username: 'admin'
+    password: 'letmein'
+    get:
+      path: "users"
+    register: ret_val
+
+# Prints debugging messages with the emails of the users
+# From the last task by accessing 'gc_return' of the registered
+# variable 'ret_val'
+- name: print emails of users
+  debug: msg="{{ item['email'] }}"
+  with_items: "{{ ret_val['gc_return'] }}"
+
+
+#############
+# Advanced usage
+#
+
+# Supports get, post, put, delete methods,  but does
+# not guarantee idempotence on these methods!
+
+- name: Restart the server
+  girder:
+    username: "admin"
+    password: "letmein"
+    put:
+      path: "system/restart"
+
+# An example of posting an item to Girder
+# Note that this is NOT idempotent. Running
+# multiple times will create "An Item", "An Item (1)",
+# "An Item (2)", etc..
+
+- name: Get Me
+  girder:
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user/me"
+  register: ret
+
+# Show use of 'token' for subsequent authentication
+- name: Get my public folder
+  girder:
+    token: "{{ ret['token'] }}"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "user"
+        parentId: "{{ ret['gc_return']['_id'] }}"
+        text: "Public"
+  register: ret
+
+
+- name: Post an item to my public folder
+  girder:
+    host: "data.kitware.com"
+    scheme: 'https'
+    token: "{{ ret['token'] }}"
+    post:
+      path: "item"
+      parameters:
+        folderId: "{{ ret['gc_return'][0]['_id'] }}"
+        name: "An Item"
+
+
 '''
 
 
@@ -310,18 +494,19 @@ class GirderClientModule(GirderClient):
                     username=self.module.params['username'],
                     password=self.module.params['password'])
 
-                self.message['token'] = self.token
             except AuthenticationError:
                 self.fail("Could not Authenticate!")
 
         # If a token is set
         elif self.module.params['token'] is not None:
-            self.token = self.module['token']
+            self.token = self.module.params['token']
 
         # Else error if we're not trying to create a user
         elif self.module.params['user'] is None:
             self.fail("Must pass in either username & password, "
                       "or a valid girder_client token")
+
+        self.message['token'] = self.token
 
         for method in self.required_one_of:
             if self.module.params[method] is not None:
