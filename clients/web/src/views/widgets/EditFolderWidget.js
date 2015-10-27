@@ -32,7 +32,9 @@ girder.views.EditFolderWidget = girder.View.extend({
             allowedExtensions: ['png', 'jpg', 'jpeg'],
             enableUploads: !!this.folder,
             parentView: this
-        });
+        }).on('g:fileUploaded', function (args) {
+            this.trigger('g:fileUploaded', args);
+        }, this);
     },
 
     render: function () {

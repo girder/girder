@@ -74,6 +74,11 @@ girder.views.MarkdownWidget = girder.View.extend({
 
             this.$('.g-upload-overlay').addClass('hide');
             this.$('.g-markdown-text').removeAttr('disabled').val(val);
+
+            this.trigger('g:fileUploaded', {
+                file: file,
+                model: fileModel
+            });
         }, this).on('g:upload.progress', function (info) {
             var currentProgress = info.startByte + info.loaded;
             this.$('.g-markdown-upload-progress>.progress-bar').css('width',
