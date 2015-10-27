@@ -116,7 +116,9 @@ setup(
             'girder-version.json',
             'conf/girder.dist.cfg',
             'mail_templates/*.mako',
-            'mail_templates/**/*.mako'
+            'mail_templates/**/*.mako',
+            'utility/webroot.mako',
+            'api/api_docs.mako'
         ]
     },
     install_requires=reqs,
