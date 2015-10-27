@@ -17,91 +17,30 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import mako
 import os
 
 from girder import constants
 
 
-class Webroot(object):
+class WebrootBase(object):
     """
-    The webroot endpoint simply serves the main index HTML file.
+    Serves a template file in response to GET requests.
+
+    This will typically be the base class of any non-API endpoints.
     """
     exposed = True
 
-    indexHtml = None
+    def __init__(self, templatePath):
+        with open(templatePath) as templateFile:
+            # This may raise an IOError, but there's no way to recover
+            self.template = templateFile.read()
 
-    vars = {
-        'plugins': [],
-        'apiRoot': '',
-        'staticRoot': '',
-        'title': 'Girder'
-    }
+        # Rendering occurs lazily on the first GET request
+        self.indexHtml = None
 
-    template = r"""
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>${title}</title>
-        <link rel="stylesheet"
-              href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
-        <link rel="stylesheet"
-              href="${staticRoot}/lib/bootstrap/css/bootstrap.min.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/lib/bootstrap/css/bootstrap-switch.min.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/lib/fontello/css/fontello.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/lib/fontello/css/animation.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/built/jsoneditor/jsoneditor.min.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/lib/jqplot/css/jquery.jqplot.min.css">
-        <link rel="stylesheet"
-              href="${staticRoot}/built/app.min.css">
-        <link rel="icon"
-              type="image/png"
-              href="${staticRoot}/img/Girder_Favicon.png">
-
-        % for plugin in pluginCss:
-            <link rel="stylesheet"
-                  href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
-        % endfor
-      </head>
-      <body>
-        <div id="g-global-info-apiroot" class="hide">${apiRoot}</div>
-        <div id="g-global-info-staticroot" class="hide">${staticRoot}</div>
-        <script src="${staticRoot}/built/libs.min.js"></script>
-        <script src="${staticRoot}/built/app.min.js"></script>
-        <script src="${staticRoot}/built/main.min.js"></script>
-
-        % for plugin in pluginJs:
-          <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js">
-          </script>
-        % endfor
-      </body>
-    </html>
-    """
-
-    def GET(self):
-        if self.indexHtml is None:
-            self.vars['pluginCss'] = []
-            self.vars['pluginJs'] = []
-            builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients',
-                                    'web', 'static', 'built', 'plugins')
-            for plugin in self.vars['plugins']:
-                if os.path.exists(os.path.join(builtDir, plugin,
-                                               'plugin.min.css')):
-                    self.vars['pluginCss'].append(plugin)
-                if os.path.exists(os.path.join(builtDir, plugin,
-                                               'plugin.min.js')):
-                    self.vars['pluginJs'].append(plugin)
-
-            self.indexHtml = mako.template.Template(self.template).render(
-                **self.vars)
-
-        return self.indexHtml
+        self.vars = {}
 
     def updateHtmlVars(self, vars):
         """
@@ -110,3 +49,55 @@ class Webroot(object):
         """
         self.vars.update(vars)
         self.indexHtml = None
+
+    def _renderHTML(self):
+        return mako.template.Template(self.template).render(**self.vars)
+
+    def GET(self, **params):
+        if self.indexHtml is None:
+            self.indexHtml = self._renderHTML()
+
+        return self.indexHtml
+
+    def DELETE(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def PATCH(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def POST(self, **params):
+        raise cherrypy.HTTPError(405)
+
+    def PUT(self, **params):
+        raise cherrypy.HTTPError(405)
+
+
+class Webroot(WebrootBase):
+    """
+    The webroot endpoint simply serves the main index HTML file.
+    """
+    def __init__(self, templatePath=None):
+        if not templatePath:
+            templatePath = os.path.join(constants.PACKAGE_DIR,
+                                        'utility', 'webroot.mako')
+        super(Webroot, self).__init__(templatePath)
+
+        self.vars = {
+            'plugins': [],
+            'apiRoot': '',
+            'staticRoot': '',
+            'title': 'Girder'
+        }
+
+    def _renderHTML(self):
+        self.vars['pluginCss'] = []
+        self.vars['pluginJs'] = []
+        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web',
+                                'static', 'built', 'plugins')
+        for plugin in self.vars['plugins']:
+            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
+                self.vars['pluginCss'].append(plugin)
+            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.js')):
+                self.vars['pluginJs'].append(plugin)
+
+        return super(Webroot, self)._renderHTML()

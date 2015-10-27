@@ -21,7 +21,7 @@ import cherrypy
 import os
 import six
 
-from girder.constants import ROOT_DIR
+from girder.constants import PACKAGE_DIR
 
 
 def _mergeConfig(filename):
@@ -42,9 +42,9 @@ def _loadConfigsByPrecedent():
     """
     configPaths = []
     configPaths.append(
-        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.dist.cfg'))
+        os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg'))
     configPaths.append(
-        os.path.join(ROOT_DIR, 'girder', 'conf', 'girder.local.cfg'))
+        os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg'))
     configPaths.append(
         os.path.join('/etc', 'girder.cfg'))
     configPaths.append(

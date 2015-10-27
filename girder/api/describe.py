@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import functools
-import mako
+import os
 import six
 
-from girder.constants import VERSION
+from girder import constants
+from girder.utility.webroot import WebrootBase
 from . import docs, access
 from .rest import Resource, RestException, getApiUrl
 
@@ -33,7 +33,7 @@ version. If we break backward compatibility in any way, we should increment the
 major version.  This value is derived from the version number given in
 the top level package.json.
 """
-API_VERSION = VERSION['apiVersion']
+API_VERSION = constants.VERSION['apiVersion']
 
 SWAGGER_VERSION = '1.2'
 
@@ -166,116 +166,21 @@ class Description(object):
         return self
 
 
-class ApiDocs(object):
+class ApiDocs(WebrootBase):
     """
-    This serves up the swagger page.
+    This serves up the Swagger page.
     """
-    exposed = True
+    def __init__(self, templatePath=None):
+        if not templatePath:
+            templatePath = os.path.join(constants.PACKAGE_DIR,
+                                        'api', 'api_docs.mako')
+        super(ApiDocs, self).__init__(templatePath)
 
-    indexHtml = None
-
-    vars = {
-        'apiRoot': '',
-        'staticRoot': '',
-        'title': 'Girder - REST API Documentation'
-    }
-
-    template = r"""
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${title}</title>
-    <link rel="stylesheet"
-        href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
-    <link rel="stylesheet"
-        href="${staticRoot}/lib/fontello/css/fontello.css">
-    <link rel="stylesheet"
-        href="${staticRoot}/built/swagger/css/reset.css">
-    <link rel="stylesheet"
-        href="${staticRoot}/built/swagger/css/screen.css">
-    <link rel="stylesheet"
-        href="${staticRoot}/built/swagger/docs.css">
-    <link rel="icon"
-        type="image/png"
-        href="${staticRoot}/img/Girder_Favicon.png">
-    <style type="text/css">
-.response_throbber {
-  content:url("${staticRoot}/built/swagger/images/throbber.gif");
-}
-    </style>
-  </head>
-  <body>
-    <div class="docs-header">
-      <span>Girder REST API Documentation</span>
-      <i class="icon-book-alt right"></i>
-      <div id="g-global-info-apiroot" style="display: none">${apiRoot}</div>
-    </div>
-    <div class="docs-body">
-      <p>Below you will find the list of all of the resource types exposed
-      by the Girder RESTful Web API. Click any of the resource links to open
-      up a list of all available endpoints related to each resource type.
-      </p>
-      <p>Clicking any of those endpoints will display detailed documentation
-      about the purpose of each endpoint and the input parameters and output
-      values. You can also call API endpoints directly from this page by
-      typing in the parameters you wish to pass and then clicking the "Try
-      it out!" button.</p>
-      <p><b>Warning:</b> This is not a sandbox&mdash;calls that you make
-      from this page are the same as calling the API with any other client,
-      so update or delete calls that you make will affect the actual data on
-      the server.</p>
-    </div>
-    <div class="swagger-section">
-      <div id="swagger-ui-container"
-          class="swagger-ui-wrap docs-swagger-container">
-      </div>
-    </div>
-    <script src="${staticRoot}/built/swagger/lib/jquery-1.8.0.min.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.slideto.min.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.wiggle.min.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.ba-bbq.min.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/handlebars-1.0.0.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/underscore-min.js">
-    </script>
-    <script src="${staticRoot}/built/swagger/lib/backbone-min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/shred.bundle.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/swagger.js"></script>
-    <script src="${staticRoot}/built/swagger/swagger-ui.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/highlight.7.3.pack.js">
-    </script>
-    <script src="${staticRoot}/girder-swagger.js"></script>
-  </body>
-</html>
-"""
-
-    def updateHtmlVars(self, vars):
-        self.vars.update(vars)
-        self.indexHtml = None
-
-    def GET(self, **params):
-        if self.indexHtml is None:
-            self.indexHtml = mako.template.Template(self.template).render(
-                **self.vars)
-
-        return self.indexHtml
-
-    def DELETE(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def PATCH(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def POST(self, **params):
-        raise cherrypy.HTTPError(405)
-
-    def PUT(self, **params):
-        raise cherrypy.HTTPError(405)
+        self.vars = {
+            'apiRoot': '',
+            'staticRoot': '',
+            'title': 'Girder - REST API Documentation'
+        }
 
 
 def _cmp(a, b):
