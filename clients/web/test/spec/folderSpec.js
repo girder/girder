@@ -64,7 +64,7 @@ function _editFolder(button, buttonText, testValidation)
         waitsFor(function () {
             return $('#g-alerts-container .alert-danger').text().indexOf(
                 'Only files with the following extensions are allowed: ' +
-                'png, jpg, jpeg.') !== -1;
+                'png, jpg, jpeg, gif.') !== -1;
         }, 'allowed extension message to show up');
 
         runs(function () {
