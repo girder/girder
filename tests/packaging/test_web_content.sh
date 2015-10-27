@@ -25,7 +25,7 @@ fi
 # Loop until Girder is giving answers
 timeout=0
 until [ $timeout -eq 15 ]; do
-    json=$("${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1/system/version)
+    json=$("${CURL}" --connect-timeout 5 --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1/system/version)
     if [ -n "$json" ]; then
         break
     fi
