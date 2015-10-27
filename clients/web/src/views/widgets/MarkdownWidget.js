@@ -148,7 +148,7 @@ girder.views.MarkdownWidget = girder.View.extend({
      *     multiple of these widgets are rendered simultaneously.
      * @param [settings.enableUploads=false] Whether to allow uploading files
      *     inline into the markdown.
-     * @param [settings.maxUploadSize=null] Max upload size in bytes.
+     * @param [settings.maxUploadSize=10 MB] Max upload size in bytes.
      * @param [settings.parent] If enableUploads is true, set this to the object
      *     into which files should be uploaded.
      * @param [settings.allowedExtensions=null] If you want to restrict to
@@ -161,7 +161,7 @@ girder.views.MarkdownWidget = girder.View.extend({
         this.prefix = settings.prefix || 'markdown';
         this.enableUploads = settings.enableUploads || false;
         this.parent = settings.parent || null;
-        this.maxUploadSize = settings.maxUploadSize || null;
+        this.maxUploadSize = settings.maxUploadSize || 1024 * 1024 * 10;
         this.allowedExtensions = settings.allowedExtensions || null;
         this.files = [];
     },

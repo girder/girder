@@ -29,7 +29,7 @@ girder.views.EditFolderWidget = girder.View.extend({
             prefix: 'folder-description',
             placeholder: 'Enter a description',
             parent: this.folder,
-            allowedExtensions: ['png', 'jpg', 'jpeg'],
+            allowedExtensions: ['png', 'jpg', 'jpeg', 'gif'],
             enableUploads: !!this.folder,
             parentView: this
         }).on('g:fileUploaded', function (args) {

@@ -56,7 +56,10 @@ $hoverBg = #fbfac0
   .g-markdown-preview
     min-height 80px
     padding 0 5px
-    overflow-x scroll
+    overflow-x auto
+
+    p
+      overflow-x auto  // necessary to override bootstrap styling
 
   .g-markdown-explanation
     display inline-block
