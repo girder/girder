@@ -41,15 +41,12 @@ function _editFolder(button, buttonText, testValidation)
     girderTest.waitForDialog();
 
     waitsFor(function () {
-        return $('#g-name').val() !== '';
-    }, 'the dialog to be populated');
-
-    waitsFor(function () {
-        return $(button).text() === buttonText;
-    }, 'the button to appear');
+        return $('#g-name').val() !== '' && $(button).text() === buttonText;
+    }, 'the dialog to be populated and the button to appear');
 
     if (testValidation) {
         runs(function () {
+            expect($('.g-upload-footer').length).toBe(1);
             oldval = $('#g-name').val();
             $('#g-name').val('');
             $('.g-save-folder').click();
@@ -57,9 +54,38 @@ function _editFolder(button, buttonText, testValidation)
         waitsFor(function () {
             return $('.g-validation-failed-message').text() === 'Folder name must not be empty.';
         }, 'the validation to fail.');
+
         runs(function () {
             $('#g-name').val(oldval);
+            girderTest.sendFile('clients/web/test/testFile.txt',
+                                '.g-markdown-drop-zone .g-file-input');
         });
+
+        waitsFor(function () {
+            return $('#g-alerts-container .alert-danger').text().indexOf(
+                'Only files with the following extensions are allowed: ' +
+                'png, jpg, jpeg, gif.') !== -1;
+        }, 'allowed extension message to show up');
+
+        runs(function () {
+            girderTest.sendFile('clients/web/test/fake.jpg',
+                                '.g-markdown-drop-zone .g-file-input');
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container .g-markdown-text').val().indexOf(
+                '![fake.jpg](' + girder.apiRoot) !== -1;
+        }, 'image to be attached to the markdown');
+
+        runs(function () {
+            expect($('#g-dialog-container .g-markdown-text').val()).toMatch(
+                /!\[fake\.jpg]\(.*\/download\)/);
+            $('#g-dialog-container .g-preview-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-markdown-preview img').length === 1;
+        }, 'preview to show the uploaded image');
     }
 
     runs(function () {
@@ -173,6 +199,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the cancel button of the folder create dialog to appear');
 
         runs(function () {
+            expect($('.g-upload-footer').length).toBe(0);
             $('.g-save-folder').click();
         });
         waitsFor(function () {

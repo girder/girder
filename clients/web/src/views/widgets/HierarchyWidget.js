@@ -303,6 +303,18 @@ girder.views.HierarchyWidget = girder.View.extend({
                 timeout: 4000
             });
             this.breadcrumbView.render();
+        }, this).on('g:fileUploaded', function (args) {
+            var item = new girder.models.ItemModel({
+                _id: args.model.get('itemId')
+            });
+
+            item.once('g:fetched', function () {
+                this.itemListView.insertItem(item);
+                if (this.parentModel.has('nItems')) {
+                    this.parentModel.increment('nItems');
+                }
+                this.updateChecked();
+            }, this).fetch();
         }, this).render();
     },
 

@@ -1,5 +1,8 @@
 @import 'nib'
 
+$hoverBorderColor = #aaa
+$hoverBg = #fbfac0
+
 .g-markdown-widget
   .g-tabs-container
     border-radius 5px
@@ -21,22 +24,42 @@
 
   .g-markdown-text
     height 100px
-    margin-bottom 4px
     padding 5px 9px
     background-color #fafafa
+    border 1px solid #ccc
     box-shadow inset 0 1px 2px rgba(0,0,0,0.075)
 
     &:focus
       background-color #fff
 
-    &[upload-enabled=true]
+    &[upload-enabled]
       border-bottom-left-radius 0
       border-bottom-right-radius 0
+      border-bottom 1px dashed #ccc
 
+    &.dragover
+      background-color $hoverBg
+      border-color $hoverBorderColor
+
+  .g-upload-footer
+    background-color #fafafa
+    color #777
+    border 1px solid #ccc
+    border-top none
+    padding 4px 10px
+    border-bottom-left-radius 3px
+    border-bottom-right-radius 3px
+
+    &.dragover
+      border-color $hoverBorderColor
 
   .g-markdown-preview
     min-height 80px
     padding 0 5px
+    overflow-x auto
+
+    p
+      overflow-x auto  // necessary to override bootstrap styling
 
   .g-markdown-explanation
     display inline-block
@@ -45,3 +68,27 @@
     right 14px
     bottom 15px
     font-size 12px
+
+  .g-upload-progress-container
+    margin-top 2px
+
+    .g-markdown-upload-progress
+      margin-bottom 9px
+
+      .progress-bar
+        transition none
+
+  .g-markdown-drop-zone
+    position relative
+
+  .g-upload-overlay
+    position absolute
+    top 0
+    right 0
+    bottom 0
+    left 0
+    padding 15px
+    background-color rgba(75,75,75,0.77)
+    border-radius 3px
+    z-index 2
+    color white

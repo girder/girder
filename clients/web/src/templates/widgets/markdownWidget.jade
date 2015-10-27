@@ -14,8 +14,21 @@
             tabindex="-1" target="_blank")  Markdown
     .tab-content
       .tab-pane.active(role="tabpanel" id="#{prefix}-write")
-        textarea.form-control.g-markdown-text(placeholder=placeholder)= text
-        if uploadEnabled
-          .g-upload-container
+        .g-markdown-drop-zone
+          textarea.form-control.g-markdown-text(
+            upload-enabled=enableUploads ? "true" : null,
+            placeholder=placeholder)= text
+          if enableUploads
+            .g-upload-overlay.hide
+              .g-upload-progress-container
+                .g-markdown-upload-progress.progress.progress-striped
+                  .progress-bar.progress-bar-info(role="progressbar")
+                .g-markdown-upload-progress-message Starting upload...
+            .g-upload-footer.
+              #[i.icon-picture] Add an image by #[a.g-browse clicking here], or drag
+              and drop one into the editor.
+            .hide
+              input.g-file-input(type="file")
+
       .tab-pane(role="tabpanel" id="#{prefix}-preview")
         .g-markdown-preview
