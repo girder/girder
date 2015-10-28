@@ -4,6 +4,7 @@
  * other than "append"). We fake the chunk request to get around this by
  * wrapping XHR.prototype.send.
  */
+/* globals girderTest, describe, it, runs, expect, waitsFor, spyOn */
 
 /* used for adjusting minimum upload size */
 var minUploadSize;
@@ -15,6 +16,7 @@ var minUploadSize;
  *                 minimums.
  */
 function _setMinimumChunkSize(minSize) {
+    var uploadChunkSize, settingSize;
     if (!minUploadSize) {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
         var resp = girder.restRequest({
@@ -26,11 +28,11 @@ function _setMinimumChunkSize(minSize) {
         minUploadSize.setting = resp.responseText;
     }
     if (!minSize) {
-        var uploadChunkSize = minUploadSize.UPLOAD_CHUNK_SIZE;
-        var settingSize = minUploadSize.setting;
+        uploadChunkSize = minUploadSize.UPLOAD_CHUNK_SIZE;
+        settingSize = minUploadSize.setting;
     } else {
-        var uploadChunkSize = minSize;
-        var settingSize = minSize;
+        uploadChunkSize = minSize;
+        settingSize = minSize;
     }
     girder.UPLOAD_CHUNK_SIZE = uploadChunkSize;
     girder.restRequest({
@@ -45,7 +47,7 @@ function _setMinimumChunkSize(minSize) {
  * Intercept window.location.assign calls so we can test the behavior of,
  * e.g. download directives that occur from js.
  */
-(function (impl) {
+(function () {
     window.location.assign = function (url) {
         girderTest._redirect = url;
     };
@@ -60,12 +62,11 @@ $(function () {
         el: 'body',
         parentView: null
     });
+    app = app;
     girder.events.trigger('g:appload.after');
 });
 
 describe('Create a data hierarchy', function () {
-    var folder;
-
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -112,7 +113,7 @@ describe('Create a data hierarchy', function () {
         girderTest.waitForDialog();
 
         runs(function () {
-            $('input#g-name').val("John's subfolder");
+            $('input#g-name').val('John\'s subfolder');
             $('.g-description-editor-container .g-markdown-text').val(
                 ' Some description');
 
@@ -126,7 +127,7 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             expect($('a.g-folder-list-link:first').text()).toBe(
-                "John's subfolder");
+                'John\'s subfolder');
             expect($('.g-folder-privacy:first').text()).toBe('Private');
         });
 
@@ -175,7 +176,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('.g-item-count').text()).toBe('1');
             expect($('.g-subfolder-count').text()).toBe('0');
-        })
+        });
     });
 
     it('download the file', function () {
@@ -243,12 +244,12 @@ describe('Create a data hierarchy', function () {
     });
     it('keyboard control of quick search box', function () {
         function sendKeyDown(code, selector) {
-            var e = $.Event("keydown");
+            var e = $.Event('keydown');
             e.which = code;
             $(selector).trigger(e);
         }
         runs(function () {
-            for (var i=1; i<=4; i++) {
+            for (var i = 1; i <= 4; i += 1) {
                 $('.g-quick-search-container input.g-search-field')
                     .val('john'.substr(0, i)).trigger('input');
             }
@@ -341,7 +342,7 @@ describe('Create a data hierarchy', function () {
         var redirect, widget;
         /* select a folder and the first item */
         runs(function () {
-            $('.g-list-checkbox').slice(0,2).click();
+            $('.g-list-checkbox').slice(0, 2).click();
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -355,8 +356,10 @@ describe('Create a data hierarchy', function () {
             spyOn(widget, 'redirectViaForm').
                   andCallFake(function (method, url, data) {
                 redirect = {method: method, url: url, data: data};
+                /* jshint scripturl: true */
                 widget.redirectViaForm.originalValue(
                     method, 'javascript: void(0)', data);
+                /* jshint scripturl: false */
             });
             $('a.g-download-checked').click();
         });
@@ -432,7 +435,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             $('.g-select-all').click();
             $('.g-select-all').click();
-            $('.g-list-checkbox').slice(-2,-1).click();
+            $('.g-list-checkbox').slice(-2, -1).click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
@@ -736,6 +739,13 @@ describe('Create a data hierarchy', function () {
         });
     });
 
+    it('upload a file by dropping', function () {
+        girderTest.testUploadDrop(10);
+    });
+    it('upload two files by dropping', function () {
+        girderTest.testUploadDrop(10, 2);
+    });
+
     it('logout from second user', girderTest.logout('logout from second user'));
 });
 
@@ -782,13 +792,13 @@ describe('Test FileModel static upload functions', function () {
     girderTest.shimBlobBuilder();
 
     it('test FileModel.uploadToFolder()', function () {
-        var ok = false, text, filename, speech, fileModel, file;
+        var text, filename, speech, fileModel, file;
 
         filename = 'hal.txt';
 
         // TODO: replace this with the "correct" mechanism for handling text
         // with Jasmine (cc @manthey).
-        girderTest._uploadData = speech = "Just what do you think you're doing, Dave?";
+        girderTest._uploadData = speech = 'Just what do you think you\'re doing, Dave?';
 
         runs(function () {
             fileModel = new girder.models.FileModel();
@@ -797,7 +807,7 @@ describe('Test FileModel static upload functions', function () {
 
         waitsFor(function () {
             return !fileModel.isNew();
-        }, "file model to become valid");
+        }, 'file model to become valid');
 
         runs(function () {
             var item;
@@ -806,8 +816,8 @@ describe('Test FileModel static upload functions', function () {
                 path: '/item',
                 type: 'GET',
                 data: {
-                    folderId: folder.get("_id"),
-                    text: filename,
+                    folderId: folder.get('_id'),
+                    text: filename
                 },
                 async: false
             });
@@ -823,7 +833,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                resp = girder.restRequest({
+                var resp = girder.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text',
@@ -835,18 +845,18 @@ describe('Test FileModel static upload functions', function () {
         });
 
         waitsFor(function () {
-            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
+            return file._id === fileModel.get('_id') && file.name === filename && text === speech;
         });
     });
 
     it('test FileModel.uploadToItem()', function () {
-        var ok = false, text, filename, speech, file, fileModel;
+        var text, filename, speech, file, fileModel;
 
         filename = 'dave.txt';
 
         // TODO: replace this with the "correct" mechanism for handling text
         // with Jasmine (cc @manthey).
-        girderTest._uploadData = speech = "Open the pod bay doors, HAL.";
+        girderTest._uploadData = speech = 'Open the pod bay doors, HAL.';
 
         runs(function () {
             fileModel = new girder.models.FileModel();
@@ -867,7 +877,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                resp = girder.restRequest({
+                var resp = girder.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text',
@@ -879,7 +889,7 @@ describe('Test FileModel static upload functions', function () {
         });
 
         waitsFor(function () {
-            return file._id === fileModel.get("_id") && file.name === filename && text === speech;
+            return file._id === fileModel.get('_id') && file.name === filename && text === speech;
         });
     });
 
