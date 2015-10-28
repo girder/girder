@@ -988,7 +988,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
  * callbacks, however.
  *
  * @param itemSize: the size of the item to drop.
- * @param multiple: if a number, try to srop this many items.  Only one item is
+ * @param multiple: if a number, try to drop this many items.  Only one item is
  *                  ever actually uploaded, because phantomjs doesn't support
  *                  multiple items at one time, but this simulates dropping
  *                  multiples.
