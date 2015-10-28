@@ -1,6 +1,8 @@
 /**
  * Contains utility functions used in the girder jasmine tests.
  */
+/* globals runs, expect, waitsFor, blanket, waits */
+
 var girderTest = girderTest || {};
 
 window.alert = function (msg) {
@@ -202,7 +204,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
             girderTest.waitForDialog();
             waitsFor(function () {
                 return $('.modal-body input#g-name').length > 0;
-            }, 'create folder dialog to appear')
+            }, 'create folder dialog to appear');
 
             runs(function () {
                 $('#g-name').val(createFolderName);
@@ -224,15 +226,15 @@ girderTest.goToGroupsPage = function () {
         girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $("a.g-nav-link[g-target='groups']:visible").length > 0;
+            return $('a.g-nav-link[g-target="groups"]:visible').length > 0;
         }, 'groups nav link to appear');
 
         runs(function () {
-            $("a.g-nav-link[g-target='groups']").click();
+            $('a.g-nav-link[g-target="groups"]').click();
         });
 
         waitsFor(function () {
-            return $(".g-group-search-form .g-search-field:visible").is(':enabled');
+            return $('.g-group-search-form .g-search-field:visible').is(':enabled');
         }, 'navigate to groups page');
         girderTest.waitForLoad();
     };
@@ -247,15 +249,15 @@ girderTest.goToUsersPage = function () {
         girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $("a.g-nav-link[g-target='users']:visible").length > 0;
+            return $('a.g-nav-link[g-target="users"]:visible').length > 0;
         }, 'users nav link to appear');
 
         runs(function () {
-            $("a.g-nav-link[g-target='users']").click();
+            $('a.g-nav-link[g-target="users"]').click();
         });
 
         waitsFor(function () {
-            return $(".g-user-search-form .g-search-field:visible").is(':enabled');
+            return $('.g-user-search-form .g-search-field:visible').is(':enabled');
         }, 'navigate to users page');
         girderTest.waitForLoad();
     };
@@ -294,7 +296,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
             waitsFor(function () {
                 return $('.g-save-group:visible').length > 0 &&
-                    $('.radio.g-selected').text().match("Public").length > 0;
+                    $('.radio.g-selected').text().match('Public').length > 0;
             }, 'access selection to be set to public');
         }
 
@@ -346,13 +348,15 @@ girderTest.testMetadata = function () {
             }
 
             for (var arrKey in value) {
-                $('.jsoneditor button.contextmenu', elem).click();
-                $('.jsoneditor-contextmenu button.insert').click();
-                $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
-                $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+                if (value.hasOwnProperty(arrKey)) {
+                    $('.jsoneditor button.contextmenu', elem).click();
+                    $('.jsoneditor-contextmenu button.insert').click();
+                    $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
+                    $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
 
-                // trigger update for JSONEditor to do internal tasks
-                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                    // trigger update for JSONEditor to do internal tasks
+                    $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                }
             }
         }
 
@@ -379,7 +383,7 @@ girderTest.testMetadata = function () {
             return $('.g-widget-metadata-toggle-button', elem).length === 1;
         }, 'the toggle metadata field to appear');
 
-        runs(function() {
+        runs(function () {
             // Toggle the action
             $('.g-widget-metadata-toggle-button', elem).click();
 
@@ -399,7 +403,7 @@ girderTest.testMetadata = function () {
             return $('input.g-widget-metadata-key-input').length === 0;
         }, 'edit fields to disappear');
 
-        runs(function() {
+        runs(function () {
             afterElem = $('.g-widget-metadata-key:contains("' + key + '")').closest('.g-widget-metadata-row');
             expect(afterElem.length).toBe(1);
             expect($('.g-widget-metadata-edit-button', afterElem).length).toBe(1);
@@ -440,7 +444,7 @@ girderTest.testMetadata = function () {
                 return $('.g-widget-metadata-add-button:visible').length === 1;
             }, 'the add metadata button to appear');
             runs(function () {
-                expectedNum = $(".g-widget-metadata-row").length;
+                expectedNum = $('.g-widget-metadata-row').length;
                 $('a.g-add-' + type  + '-metadata').click();
             });
         } else {
@@ -448,7 +452,7 @@ girderTest.testMetadata = function () {
                 elem = $('.g-widget-metadata-key:contains("' + origKey + '")').closest('.g-widget-metadata-row');
                 expect(elem.length).toBe(1);
                 expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
-                expectedNum = $(".g-widget-metadata-row").length;
+                expectedNum = $('.g-widget-metadata-row').length;
                 $('.g-widget-metadata-edit-button', elem).click();
             });
         }
@@ -519,10 +523,10 @@ girderTest.testMetadata = function () {
                  $('.jsoneditor > .outer > .tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
-            return $(".g-widget-metadata-row").length === expectedNum;
+            return $('.g-widget-metadata-row').length === expectedNum;
         }, 'the correct number of items to be listed');
         runs(function () {
-            expect($(".g-widget-metadata-row").length).toBe(expectedNum);
+            expect($('.g-widget-metadata-row').length).toBe(expectedNum);
             if (action === 'save') {
                 if (type === 'json') {
                     value = JSON.stringify(value, null, 4);
@@ -546,14 +550,14 @@ girderTest.testMetadata = function () {
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
 
-        _editMetadata(null, 'plain_json', {"some": "json"}, 'save', null, 'json');
+        _editMetadata(null, 'plain_json', {'some': 'json'}, 'save', null, 'json');
 
         _editMetadata(null, 'non_object_or_array_json', false, 'save', null, 'json');
         _toggleMetadata('non_object_or_array_json', 'json');
 
         // converting json to simple
-        _editMetadata(null, 'a_json_key', {"foo": "bar"}, 'save', null, 'json');
-        _editMetadata('a_json_key', 'a_json_key', {"foo": "bar"}, 'cancel', null, 'json');
+        _editMetadata(null, 'a_json_key', {'foo': 'bar'}, 'save', null, 'json');
+        _editMetadata('a_json_key', 'a_json_key', {'foo': 'bar'}, 'cancel', null, 'json');
         _toggleMetadata('a_json_key', 'json');
 
         // a simple key that happens to be valid JSON
@@ -639,7 +643,7 @@ girderTest.waitForDialog = function (desc) {
 girderTest.addCoveredScript = function (url) {
     if (window.blanket) {
         blanket.utils.cache[url] = {};
-        blanket.utils.attachScript({url:url}, function (content) {
+        blanket.utils.attachScript({url: url}, function (content) {
             blanket.instrument({inputFile: content, inputFileName: url},
                                function (instrumented) {
                                    blanket.utils.cache[url].loaded = true;
@@ -704,12 +708,12 @@ girderTest.folderAccessControl = function (current, action, recurse) {
     waitsFor(function () {
         switch (action) {
         case 'private':
-            if (!$('.radio.g-selected').text().match("Private").length) {
+            if (!$('.radio.g-selected').text().match('Private').length) {
                 return false;
             }
             break;
         case 'public':
-            if (!$('.radio.g-selected').text().match("Public").length) {
+            if (!$('.radio.g-selected').text().match('Public').length) {
                 return false;
             }
             break;
@@ -958,8 +962,10 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
             if (needResume === 'abort') {
                 $('.btn-default').click();
                 orig_len -= 1;
-            } else {
+            } else if ($('.g-resume-upload:visible').length > 0) {
                 $('.g-resume-upload').click();
+            } else {
+                $('.g-restart-upload').click();
             }
         });
     }
@@ -970,13 +976,129 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
-    window.callPhantom(
-        {action: 'uploadCleanup',
-         suffix: girderTest._uploadSuffix});
+    runs(function () {
+        window.callPhantom(
+            {action: 'uploadCleanup',
+             suffix: girderTest._uploadSuffix});
+    });
+};
+
+/* Test upload drop events.  The drag and drop events are artificially
+ * constructed, so this isn't a perfect test.  It will exercise the event
+ * callbacks, however.
+ *
+ * @param itemSize: the size of the item to drop.
+ * @param multiple: if a number, try to drop this many items.  Only one item is
+ *                  ever actually uploaded, because phantomjs doesn't support
+ *                  multiple items at one time, but this simulates dropping
+ *                  multiples.
+ */
+girderTest.testUploadDrop = function (itemSize, multiple) {
+    var orig_len, files = [], i;
+    multiple = multiple || 1;
+    for (i = 0; i < multiple; i += 1) {
+        files.push({
+            name: 'upload' + i + '.tmp',
+            size: itemSize
+        });
+    }
+
+    _prepareTestUpload();
+
+    waitsFor(function () {
+        return $('.g-upload-here-button').length > 0;
+    }, 'the upload here button to appear');
+
+    runs(function () {
+        orig_len = $('.g-item-list-entry').length;
+        $('.g-upload-here-button').click();
+    });
+
+    waitsFor(function () {
+        return $('.g-drop-zone:visible').length > 0 &&
+            $('.modal-dialog:visible').length > 0;
+    }, 'the upload dialog to appear');
+
+    runs(function () {
+        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $('.g-dropzone-show:visible').length > 0;
+    }, 'the drop bullseye to appear');
+
+    runs(function () {
+        $('.g-drop-zone').trigger($.Event('dragleave'));
+    });
+
+    waitsFor(function () {
+        return $('.g-dropzone-show:visible').length === 0;
+    }, 'the drop bullseye to disappear');
+
+    runs(function () {
+        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $('.g-dropzone-show:visible').length > 0;
+    }, 'the drop bullseye to appear');
+
+    runs(function () {
+        /* Try dropping nothing */
+        $('.g-drop-zone').trigger($.Event('dragover'));
+        $('.g-drop-zone').trigger($.Event('drop', {originalEvent: {dataTransfer: {files: []}}}));
+    });
+
+    waitsFor(function () {
+        return $('.g-dropzone-show:visible').length === 0;
+    }, 'the drop bullseye to disappear');
+
+    runs(function () {
+        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $('.g-dropzone-show:visible').length > 0;
+    }, 'the drop bullseye to appear');
+
+
+    runs(function () {
+        $('.g-drop-zone').trigger($.Event('drop', {originalEvent: {dataTransfer: {files: files}}}));
+    });
+
+    waitsFor(function () {
+        return $('.g-overall-progress-message').text().indexOf('Selected') >= 0;
+    }, 'the file to be listed');
+
+    runs(function () {
+        girderTest._uploadDataExtra = 0;
+        girderTest.sendFile(itemSize);
+    });
+
+    waitsFor(function () {
+        return $('.g-overall-progress-message i.icon-ok').length > 0;
+    }, 'the file to be received');
+
+    runs(function () {
+        $('#g-files').parent().addClass('hide');
+        $('.g-start-upload').click();
+    });
+
+    waitsFor(function () {
+        return $('.modal-content:visible').length === 0 &&
+            $('.g-item-list-entry').length === orig_len + 1;
+    }, 'the upload to finish');
+    girderTest.waitForLoad();
+
+    runs(function () {
+        window.callPhantom(
+            {action: 'uploadCleanup',
+             suffix: girderTest._uploadSuffix});
+    });
 };
 
 /* Wait for a dialog to be present with a confirm button, then select the
- * confirm button and wait for teh dialog to be hidden.
+ * confirm button and wait for the dialog to be hidden.
  */
 girderTest.confirmDialog = function () {
     girderTest.waitForDialog('wait for confirmation');
