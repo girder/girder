@@ -24,23 +24,32 @@ import os
 import subprocess
 import sys
 
+files = []
 
-def installReqs(file, pip):
+
+def installReqs(file):
     if not os.path.exists(file):
         return
 
-    print('\033[32m*** Installing: %s\033[0m' % file)
-    if subprocess.call([pip, 'install', '-U', '-r', file]) != 0:
-        print('\033[1;91m*** Error installing %s, stopping.\033[0m' % file,
-              file=sys.stderr)
-        sys.exit(1)
+    print('\033[32m*** Queueing requirements: %s\033[0m' % file)
+    files.append(file)
 
 
-def installFromDir(path, dev, pip):
-    installReqs(os.path.join(path, 'requirements.txt'), pip)
+def installFromDir(path, dev):
+    installReqs(os.path.join(path, 'requirements.txt'))
 
     if dev:
-        installReqs(os.path.join(path, 'requirements-dev.txt'), pip)
+        installReqs(os.path.join(path, 'requirements-dev.txt'))
+
+
+def commitInstall(pip):
+    args = [pip, 'install', '-U']
+    for file in files:
+        args.extend(['-r', file])
+
+    if subprocess.call(args) != 0:
+        print('\033[1;91m*** Error in batch installation, stopping.\033[0m',
+              file=sys.stderr)
 
 
 def main(args):
@@ -49,7 +58,7 @@ def main(args):
     isDevMode = args.mode in ('dev', 'devel', 'development')
     ignoredPlugins = [i.strip() for i in args.ignore_plugins.split(',') if i]
 
-    installFromDir(basePath, isDevMode, args.pip)
+    installFromDir(basePath, isDevMode)
 
     pluginsDir = os.path.join(basePath, 'plugins')
     for path in os.listdir(pluginsDir):
@@ -59,7 +68,9 @@ def main(args):
 
         pluginPath = os.path.join(pluginsDir, path)
         if os.path.isdir(pluginPath):
-            installFromDir(pluginPath, isDevMode, args.pip)
+            installFromDir(pluginPath, isDevMode)
+
+    commitInstall(args.pip)
 
 
 if __name__ == '__main__':
