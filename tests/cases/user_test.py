@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import collections
 import datetime
 import re
 import six
@@ -641,30 +642,35 @@ class UserTestCase(base.TestCase):
         """
         This tests the general correctness of the model save hooks
         """
-        self.ctr = 0
-
         def preSave(event):
-            if '_id' not in event.info:
-                self.ctr += 1
+            count['pre'] += 1
+
+        def createdSave(event):
+            count['created'] += 1
 
         def postSave(event):
-            self.ctr += 2
+            count['post'] += 1
 
-        with events.bound('model.user.save', 'test', preSave):
-
+        count = collections.defaultdict(int)
+        with events.bound('model.user.save.created', 'test', createdSave):
             user = self.model('user').createUser(
                 login='myuser', password='passwd', firstName='A', lastName='A',
                 email='email@email.com')
-            self.assertEqual(self.ctr, 1)
+            self.assertEqual(count['created'], 1)
 
-            with events.bound('model.user.save.after', 'test', postSave):
-                self.ctr = 0
-
+            count = collections.defaultdict(int)
+            with events.bound('model.user.save', 'test', preSave), \
+                    events.bound('model.user.save.after', 'test', postSave):
                 user = self.model('user').save(user, triggerEvents=False)
-                self.assertEqual(self.ctr, 0)
+                self.assertEqual(count['pre'], 0)
+                self.assertEqual(count['created'], 0)
+                self.assertEqual(count['post'], 0)
 
+                count = collections.defaultdict(int)
                 self.model('user').save(user)
-                self.assertEqual(self.ctr, 3)
+                self.assertEqual(count['pre'], 1)
+                self.assertEqual(count['created'], 0)
+                self.assertEqual(count['post'], 1)
 
     def testPrivateUser(self):
         """
