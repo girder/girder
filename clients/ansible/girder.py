@@ -17,7 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-from ansible.module_utils.basic import AnsibleModule
+# Ansible's module magic requires this to be
+# 'from ansible.module_utils.basic import *' otherwise it will error out. See:
+# https://github.com/ansible/ansible/blob/v1.9.4-1/lib/ansible/module_common.py#L41-L59
+# For more information on this magic. For now we noqa to prevent flake8 errors
+from ansible.module_utils.basic import *  # noqa
 from inspect import getmembers, ismethod, getargspec
 
 try:
