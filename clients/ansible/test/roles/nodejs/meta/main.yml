@@ -1,6 +1,0 @@
----
-
-dependencies:
-  - role: nodejs-variables
-  - role: nodejs-install
-

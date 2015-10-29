@@ -1,9 +1,0 @@
----
-
-dependencies:
-  - role: git-cache
-    repo: git://github.com/nodejs/node.git
-    version: "{{ nodejs_version }}"
-    variable_prefix: nodejs
-    state: present
-

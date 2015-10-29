@@ -1,4 +1,7 @@
 ---
+  - name: add nodejs ppa
+    apt_repository: repo='ppa:chris-lea/node.js'
+    sudo: yes
 
   - name: apt | cache | update
     apt: update_cache=yes
@@ -40,6 +43,7 @@
       - sudo
       - tar
       - wget
+      - nodejs
     when: do_install|bool
 
   - name: girder | service | stop
@@ -110,20 +114,17 @@
 
   - name: grunt-cli | install
     npm:
-        executable: "{{ npm_binary }}"
         name: grunt-cli
         global: yes
     when: do_install|bool
 
   - name: npm | package.json | install
     npm:
-        executable: "{{ npm_binary }}"
         path: "{{ girder_install_root }}"
     when: do_install|bool
 
   - name: grunt | Gruntfile.js | init
     shell: >
-        source "{{ nodejs_install_root }}/setup-env.bash" &&
         grunt init
     args:
         chdir: "{{ girder_install_root }}"
@@ -132,7 +133,6 @@
 
   - name: grunt | Gruntfile.js
     shell: >
-        source "{{ nodejs_install_root }}/setup-env.bash" &&
         grunt
     args:
         chdir: "{{ girder_install_root }}"

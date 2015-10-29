@@ -6,4 +6,3 @@ dependencies:
     version: "{{ girder_version }}"
     variable_prefix: girder
     state: present
-  - role: nodejs-variables

@@ -1,9 +1,6 @@
 - hosts: girder
   sudo: yes
   roles:
-    - role: nodejs
-      state: present
-
     - role: mongodb
       state: started
 
