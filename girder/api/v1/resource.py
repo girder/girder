@@ -219,7 +219,7 @@ class Resource(BaseResource):
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
                'The path of the resource.  The path must be an absolute Unix '
-               'path starting with either "/user/[user name]", for a user\'s'
+               'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
         .errorResponse('Path is invalid.')
