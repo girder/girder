@@ -29,7 +29,7 @@ girder.views.MarkdownWidget = girder.View.extend({
             e.stopPropagation();
             e.preventDefault();
             e.originalEvent.dataTransfer.dropEffect = 'copy';
-            this.$('.g-markdown-drop-zone,.g-upload-footer').addClass('dragover');
+            this.$('.g-markdown-text,.g-upload-footer').addClass('dragover');
         },
 
         'dragleave .g-markdown-drop-zone': function (e) {
