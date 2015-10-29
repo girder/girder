@@ -23,7 +23,7 @@ import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, CoreEventHandler
 from girder.utility import config
 
 
@@ -47,9 +47,10 @@ class User(AccessControlledModel):
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites'))
 
-        events.bind('model.user.save.created', 'grantSelfAccess',
-                    self._grantSelfAccess)
-        events.bind('model.user.save.created', 'addDefaultFolders',
+        events.bind('model.user.save.created',
+                    CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
+        events.bind('model.user.save.created',
+                    CoreEventHandler.USER_DEFAULT_FOLDERS,
                     self._addDefaultFolders)
 
     def filter(self, user, currentUser):

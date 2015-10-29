@@ -21,7 +21,7 @@ import datetime
 
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, CoreEventHandler
 
 
 class Group(AccessControlledModel):
@@ -66,7 +66,8 @@ class Group(AccessControlledModel):
             '_id', 'name', 'public', 'description', 'created', 'updated',
             'addAllowed'))
 
-        events.bind('model.group.save.created', 'grantCreatorAccess',
+        events.bind('model.group.save.created',
+                    CoreEventHandler.GROUP_CREATOR_ACCESS,
                     self._grantCreatorAccess)
 
     def filter(self, group, user, accessList=False, requests=False):
