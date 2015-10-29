@@ -257,10 +257,6 @@ class Folder(Resource):
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public)
 
-        if parentType in ('user', 'collection'):
-            folder = self.model('folder').setUserAccess(
-                folder, user=user, level=AccessType.ADMIN, save=True)
-
         return self.model('folder').filter(folder, user)
     createFolder.description = (
         Description('Create a new folder.')
