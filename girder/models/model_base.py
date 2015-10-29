@@ -694,26 +694,47 @@ class AccessControlledModel(Model):
     def getFullAccessList(self, doc):
         """
         Return an object representing the full access list on this document.
-        This simply includes the names of the users and groups with the access
-        list.
+        This simply includes the names of the users and groups with the ACL.
+
+        If the document contains references to users or groups that no longer
+        exist, they are simply removed from the ACL, and the modified ACL is
+        persisted at the end of this method if any removals occurred.
+
+        :param doc: The document whose ACL to return.
+        :type doc: dict
+        :returns: A dict containing `users` and `groups` keys.
         """
         acList = {
             'users': doc.get('access', {}).get('users', []),
             'groups': doc.get('access', {}).get('groups', [])
         }
 
-        for user in acList['users']:
+        dirty = False
+
+        for user in acList['users'][:]:
             userDoc = self.model('user').load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
+            if not userDoc:
+                dirty = True
+                acList['users'].remove(user)
+                continue
             user['login'] = userDoc['login']
             user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
-        for grp in acList['groups']:
+        for grp in acList['groups'][:]:
             grpDoc = self.model('group').load(
                 grp['id'], force=True, fields=['name', 'description'])
+            if not grpDoc:
+                dirty = True
+                acList['groups'].remove(grp)
+                continue
             grp['name'] = grpDoc['name']
             grp['description'] = grpDoc['description']
+
+        if dirty:
+            # If we removed invalid entries from the ACL, persist the changes.
+            self.setAccessList(doc, acList, save=True)
 
         return acList
 
