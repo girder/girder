@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import AnsibleModule
 from inspect import getmembers, ismethod, getargspec
 
 try:
@@ -91,7 +91,8 @@ options:
         description:
             - A girder client token
             - Can be retrieved by accessing the accessing the 'token' attribute
-              from a successfully authenticated call to girder in a previous task.
+              from a successfully authenticated call to girder in a previous
+              task.
             - Required if 'username' and 'password' are not specified
                 - (See note on 'user')
     state:
@@ -107,10 +108,10 @@ options:
         description:
             - If using the 'user' task, you are NOT REQUIRED to pass in a
               'username' & 'password',  or a 'token' attributes. This is because
-              the first user created on an fresh install of girder is automatically
-              made an administrative user. Once you are certain you have an admin
-              user you should use those credentials in all subsequent tasks that use
-              the 'user' task.
+              the first user created on an fresh install of girder is
+              automatically made an administrative user. Once you are certain
+              you have an admin user you should use those credentials in all
+              subsequent tasks that use the 'user' task.
 
             - Takes a mapping of key value pairs
               options:
@@ -178,7 +179,8 @@ options:
                       required: false
                       default: false
                       description:
-                          - Should the assetstore be set as the current assetstore?
+                          - Should the assetstore be set as the current
+                            assetstore?
 
               options (filesystem):
                   root:
@@ -211,7 +213,8 @@ options:
                    prefix:
                        required: true
                        description:
-                           - Optional path prefix within the bucket under which files will be stored
+                           - Optional path prefix within the bucket under which
+                             files will be stored
 
                    accessKeyId:
                        required: true
@@ -547,7 +550,6 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
-
     def plugins(self, *plugins):
         import json
         ret = []
@@ -557,7 +559,6 @@ class GirderClientModule(GirderClient):
 
         plugins = set(plugins)
         enabled_plugins = set(available_plugins['enabled'])
-
 
         # Could maybe be expanded to handle all regular expressions?
         if "*" in plugins:
@@ -625,8 +626,7 @@ class GirderClientModule(GirderClient):
                                  "lastName": lastName,
                                  "password": password,
                                  "email": email,
-                                 "admin": "true" if admin else "false"
-                             })
+                                 "admin": "true" if admin else "false"})
                     self.changed = True
             # User does not exist (with this login info)
             except AuthenticationError:
@@ -768,7 +768,7 @@ class GirderClientModule(GirderClient):
                     # function with argument_hash. E.g.,  to check if the
                     # HDFS plugin is enabled
                     getattr(self, "__validate_{}_assetstore"
-                            .format(type))(**arguments_hash)
+                            .format(type))(**argument_hash)
                 except AttributeError:
                     pass
 
@@ -784,10 +784,6 @@ class GirderClientModule(GirderClient):
                                   parameters=argument_hash[type])
 
         return ret
-
-
-
-
 
 
 def main():
@@ -823,12 +819,12 @@ def main():
         argument_spec[method] = dict()
 
     module = AnsibleModule(
-        argument_spec       = argument_spec,
-        required_one_of     = [gcm.required_one_of,
-                               ["token", "username", "user"]],
-        required_together   = [["username", "password"]],
-        mutually_exclusive  = gcm.required_one_of,
-        supports_check_mode = False)
+        argument_spec=argument_spec,
+        required_one_of=[gcm.required_one_of,
+                         ["token", "username", "user"]],
+        required_together=[["username", "password"]],
+        mutually_exclusive=gcm.required_one_of,
+        supports_check_mode=False)
 
     if not HAS_GIRDER_CLIENT:
         module.fail_json(msg="Could not import GirderClient!")
