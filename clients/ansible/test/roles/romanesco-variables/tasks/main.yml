@@ -1,0 +1,69 @@
+---
+
+  - name: romanesco | service | logic flags | compute
+    set_fact:
+        remove_data_root: "{{ state == 'absent' }}"
+        remove_install_root: "{{ state == 'absent' }}"
+        stop_services: "{{ state == 'absent' }}"
+        do_install: >
+            {{ state == "present" or state == "stopped" or
+               state == "started" or state == "restarted" or
+               state == "reloaded" }}
+        notify_services: >
+            {{ state == "stopped" or state == "started" or
+               state == "restarted" or state == "reloaded" }}
+
+  - name: romanesco | install root | default | set
+    set_fact:
+        romanesco_install_root: /opt/romanesco/{{ romanesco_git_version }}
+    when: romanesco_install_root == ""
+
+  - name: romanesco | install root | parent | probe
+    shell: dirname "{{ romanesco_install_root }}"
+    register: parent_probe
+
+  - name: romanesco | install root | parent | record
+    set_fact:
+        romanesco_install_parent: "{{ parent_probe.stdout }}"
+
+  - name: romanesco | data root | default | set
+    set_fact:
+        romanesco_data_root: /data/romanesco/{{ romanesco_git_version }}
+    when: romanesco_data_root == ""
+
+  - name: romanesco | tmp root | default | set
+    set_fact:
+        romanesco_tmp_root: "{{ romanesco_data_root }}/tmp"
+    when: romanesco_tmp_root == ""
+
+  - name: romanesco | celery broker | default | set
+    set_fact:
+        romanesco_celery_broker: >
+            amqp://{{ hostvars[groups[rabbitmq_ansible_group][0]]
+                              ["ansible_" + romanesco_net_interface]
+                              ["ipv4"]
+                              ["address"] }}
+    when: romanesco_celery_broker == ""
+
+  - name: romanesco | install root | probe
+    stat:
+        path: "{{ romanesco_install_root }}"
+    register: install_root_probe
+
+  - name: romanesco | install root | flag | record
+    set_fact:
+        create_install_root: >
+            {{ (do_install|bool) and
+                (not (install_root_probe.stat.exists|bool)) }}
+
+  - name: romanesco | initialized | probe
+    stat:
+        path: "{{ romanesco_data_root }}/.initialized"
+    register: initialized_probe
+
+  - name: romanesco | initialized | flag | record
+    set_fact:
+        do_initialization: >
+            {{ (do_install|bool) and
+                (not (initialized_probe.stat.exists|bool)) }}
+
