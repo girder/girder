@@ -343,7 +343,7 @@ class Group(AccessControlledModel):
             'requests': []
         }
 
-        self.setPublic(group, public=public)
+        self.setPublic(group, public, save=False)
 
         return self.save(group)
 

@@ -250,9 +250,8 @@ class User(AccessControlledModel):
             'groupInvites': []
         }
 
-        self.setPassword(user, password)
-
-        self.setPublic(user, public=public)
+        self.setPassword(user, password, save=False)
+        self.setPublic(user, public, save=False)
 
         return self.save(user)
 
