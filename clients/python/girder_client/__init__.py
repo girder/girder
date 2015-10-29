@@ -302,7 +302,7 @@ class GirderClient(object):
 
     def createFolder(self, parentId, name, description='', parentType='folder'):
         """
-        Creates and returns an folder
+        Creates and returns a folder
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
