@@ -650,24 +650,21 @@ class UserTestCase(base.TestCase):
         def postSave(event):
             self.ctr += 2
 
-        events.bind('model.user.save', 'test', preSave)
+        with events.bound('model.user.save', 'test', preSave):
 
-        user = self.model('user').createUser(
-            login='myuser', password='passwd', firstName='A', lastName='A',
-            email='email@email.com')
-        self.assertEqual(self.ctr, 1)
+            user = self.model('user').createUser(
+                login='myuser', password='passwd', firstName='A', lastName='A',
+                email='email@email.com')
+            self.assertEqual(self.ctr, 1)
 
-        events.bind('model.user.save.after', 'test', postSave)
-        self.ctr = 0
+            with events.bound('model.user.save.after', 'test', postSave):
+                self.ctr = 0
 
-        user = self.model('user').save(user, triggerEvents=False)
-        self.assertEqual(self.ctr, 0)
+                user = self.model('user').save(user, triggerEvents=False)
+                self.assertEqual(self.ctr, 0)
 
-        self.model('user').save(user)
-        self.assertEqual(self.ctr, 2)
-
-        events.unbind('model.user.save', 'test')
-        events.unbind('model.user.save.after', 'test')
+                self.model('user').save(user)
+                self.assertEqual(self.ctr, 3)
 
     def testPrivateUser(self):
         """

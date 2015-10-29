@@ -38,7 +38,6 @@ def tearDownModule():
 
 class FolderTestCase(base.TestCase):
     def setUp(self):
-        events.unbindAll()
         base.TestCase.setUp(self)
 
         users = ({
@@ -323,60 +322,62 @@ class FolderTestCase(base.TestCase):
             cbInfo['kwargs'] = event.info['kwargs']
             cbInfo['doc'] = event.info['document']
 
-        events.bind('model.folder.remove_with_kwargs', 'test', cb)
+        with events.bound('model.folder.remove_with_kwargs', 'test', cb):
 
-        # Requesting with no path should fail
-        resp = self.request(path='/folder', method='DELETE', user=self.admin)
-        self.assertStatus(resp, 400)
+            # Requesting with no path should fail
+            resp = self.request(path='/folder', method='DELETE',
+                                user=self.admin)
+            self.assertStatus(resp, 400)
 
-        # Grab one of the user's top level folders
-        folders = self.model('folder').childFolders(
-            parent=self.admin, parentType='user', user=self.admin, limit=1,
-            sort=[('name', SortDir.DESCENDING)])
-        folderResp = six.next(folders)
+            # Grab one of the user's top level folders
+            folders = self.model('folder').childFolders(
+                parent=self.admin, parentType='user', user=self.admin, limit=1,
+                sort=[('name', SortDir.DESCENDING)])
+            folderResp = six.next(folders)
 
-        # Add a subfolder and an item to that folder
-        subfolder = self.model('folder').createFolder(
-            folderResp, 'sub', parentType='folder', creator=self.admin)
-        item = self.model('item').createItem(
-            'item', creator=self.admin, folder=subfolder)
+            # Add a subfolder and an item to that folder
+            subfolder = self.model('folder').createFolder(
+                folderResp, 'sub', parentType='folder', creator=self.admin)
+            item = self.model('item').createItem(
+                'item', creator=self.admin, folder=subfolder)
 
-        self.assertTrue('_id' in subfolder)
-        self.assertTrue('_id' in item)
+            self.assertTrue('_id' in subfolder)
+            self.assertTrue('_id' in item)
 
-        # Delete the folder
-        resp = self.request(path='/folder/%s' % folderResp['_id'],
-                            method='DELETE', user=self.admin, params={
-                                'progress': 'true'
-        })
-        self.assertStatusOk(resp)
+            # Delete the folder
+            resp = self.request(path='/folder/%s' % folderResp['_id'],
+                                method='DELETE', user=self.admin, params={
+                                    'progress': 'true'
+            })
+            self.assertStatusOk(resp)
 
-        # Make sure the folder, its subfolder, and its item were all deleted
-        folder = self.model('folder').load(folderResp['_id'], force=True)
-        subfolder = self.model('folder').load(subfolder['_id'], force=True)
-        item = self.model('item').load(item['_id'])
+            # Make sure the folder, its subfolder, and its item were all deleted
+            folder = self.model('folder').load(folderResp['_id'], force=True)
+            subfolder = self.model('folder').load(subfolder['_id'], force=True)
+            item = self.model('item').load(item['_id'])
 
-        self.assertEqual(folder, None)
-        self.assertEqual(subfolder, None)
-        self.assertEqual(item, None)
+            self.assertEqual(folder, None)
+            self.assertEqual(subfolder, None)
+            self.assertEqual(item, None)
 
-        # Make sure progress record exists and that it is set to expire soon
-        notifs = list(self.model('notification').get(self.admin))
-        self.assertEqual(len(notifs), 1)
-        self.assertEqual(notifs[0]['type'], 'progress')
-        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
-        self.assertEqual(notifs[0]['data']['title'], 'Deleting folder Public')
-        self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 3)
-        self.assertEqual(notifs[0]['data']['current'], 3)
-        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
-                        datetime.timedelta(minutes=1))
+            # Make sure progress record exists and that it is set to expire soon
+            notifs = list(self.model('notification').get(self.admin))
+            self.assertEqual(len(notifs), 1)
+            self.assertEqual(notifs[0]['type'], 'progress')
+            self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
+            self.assertEqual(notifs[0]['data']['title'],
+                             'Deleting folder Public')
+            self.assertEqual(notifs[0]['data']['message'], 'Done')
+            self.assertEqual(notifs[0]['data']['total'], 3)
+            self.assertEqual(notifs[0]['data']['current'], 3)
+            self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
+                            datetime.timedelta(minutes=1))
 
-        # Make sure our event handler was called with expected args
-        self.assertTrue('kwargs' in cbInfo)
-        self.assertTrue('doc' in cbInfo)
-        self.assertTrue('progress' in cbInfo['kwargs'])
-        self.assertEqual(cbInfo['doc']['_id'], folderResp['_id'])
+            # Make sure our event handler was called with expected args
+            self.assertTrue('kwargs' in cbInfo)
+            self.assertTrue('doc' in cbInfo)
+            self.assertTrue('progress' in cbInfo['kwargs'])
+            self.assertEqual(cbInfo['doc']['_id'], folderResp['_id'])
 
     def testCleanFolder(self):
         folder = six.next(self.model('folder').childFolders(
