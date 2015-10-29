@@ -22,6 +22,7 @@ import os
 import re
 
 from .model_base import AccessControlledModel, ValidationException
+from girder import events
 from girder.constants import AccessType
 from girder.utility import config
 
@@ -45,6 +46,11 @@ class User(AccessControlledModel):
             'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites'))
+
+        events.bind('model.user.save.created', 'grantSelfAccess',
+                    self._grantSelfAccess)
+        events.bind('model.user.save.created', 'addDefaultFolders',
+                    self._addDefaultFolders)
 
     def filter(self, user, currentUser):
         """Preserved override for kwarg backwards compatibility."""
@@ -247,22 +253,39 @@ class User(AccessControlledModel):
         self.setPassword(user, password)
 
         self.setPublic(user, public=public)
-        # Must have already saved the user prior to calling this since we are
-        # granting the user access on himself.
+
+        return self.save(user)
+
+    def _grantSelfAccess(self, event):
+        """
+        This callback grants a user admin access to itself.
+
+        This generally should not be called or overridden directly, but it may
+        be unregistered from the `model.user.save.created` event.
+        """
+        user = event.info
+
         self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
-        # Create some default folders for the user and give the user admin
-        # access to them
+    def _addDefaultFolders(self, event):
+        """
+        This callback creates "Public" and "Private" folders on a user, after
+        it is first created.
+
+        This generally should not be called or overridden directly, but it may
+        be unregistered from the `model.user.save.created` event.
+        """
+        user = event.info
+
         publicFolder = self.model('folder').createFolder(
             user, 'Public', parentType='user', public=True, creator=user)
         privateFolder = self.model('folder').createFolder(
             user, 'Private', parentType='user', public=False, creator=user)
+        # Give the user admin access to their own folders
         self.model('folder').setUserAccess(
             publicFolder, user, AccessType.ADMIN, save=True)
         self.model('folder').setUserAccess(
             privateFolder, user, AccessType.ADMIN, save=True)
-
-        return user
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):
