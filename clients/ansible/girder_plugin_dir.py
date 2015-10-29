@@ -51,9 +51,12 @@ class GirderPluginDirModule(object):
 
     _debug = True
 
-    def exit(self):
+    def exit(self, msg=None):
         if not self._debug:
             del self.message['debug']
+
+        if msg is not None:
+            self.message['msg'] = msg
 
         self.module.exit_json(changed=self.changed, **self.message)
 
@@ -63,29 +66,37 @@ class GirderPluginDirModule(object):
     def __init__(self, module):
         self.module = module
         self.changed = False
-        self.message = {"msg": "Success!", "debug": {}}
+        self.message = {"msg": "Success!", "debug": {
+            "module_args": module.params
+        }}
 
         dist_path = os.path.join(self.module.params['girder_dir'],
                                  'girder', 'conf', 'girder.dist.cfg')
         local_path = os.path.join(self.module.params['girder_dir'],
                                   'girder', 'conf', 'girder.local.cfg')
+
+        self.message['debug']['dist_path'] = dist_path
+        self.message['debug']['local_path'] = local_path
+
         self.config = cp.ConfigParser()
         # Read in config file
         if not os.path.exists(local_path):
             try:
+                self.message['debug']['src'] = dist_path
                 self.config.read(dist_path)
             except IOError:
                 self.fail("Could not read {}!".format(dist_path))
         else:
             try:
+                self.message['debug']['src'] = local_path
                 self.config.read(local_path)
             except IOError:
                 self.fail("Could not read {}!".format(local_path))
 
-        # Add/Remove plugin directory
-        if self.module.params['state'] is 'present':
+        # Add/Remove plugin
+        if self.module.params['state'] == 'present':
             self.add_plugin_dir(self.module.params['plugin_dir'])
-        elif self.module.params['state'] is 'absent':
+        elif self.module.params['state'] == 'absent':
             self.remove_plugin_dir(self.module.params['plugin_dir'])
 
         # Write out config file
@@ -97,30 +108,40 @@ class GirderPluginDirModule(object):
 
     def add_plugin_dir(self, path):
         # If single string, convert to list
-        paths = [path] if path is isinstance(path, basestring) else path
+        if isinstance(path, basestring):
+            path = set([path])
+        else:
+            path = set(path)
 
+        girder_plugin_dir = set([os.path.join(self.module.params['girder_dir'],
+                                              "plugins")])
+
+        self.message['debug']['path'] = list(path)
         # Add the section if it doesn't alraedy exist
         if not self.config.has_section('plugins'):
             self.config.add_section('plugins')
 
         try:
-            plugin_dirs = self.config.get("plugin_directory").split(":")
-            # If paths is not a subset of plugin_dirs we
+            plugin_dirs = set(self.config.get("plugins",
+                                              "plugin_directory").split(":"))
+
+            # Remove girder_plugin_dir if it exists
+            plugin_dirs = plugin_dirs - girder_plugin_dir
+
+            # If path is not a subset of plugin_dirs we
             # are about to affect a change.
-            self.changed = not set(paths) <= set(plugin_dirs)
-
+            self.changed = not set(path) <= set(plugin_dirs)
         except cp.NoOptionError:
-            # Option doesn't exist,  make sure we've got atleast
-            # The girder_dir plugin directory before adding more
-            plugin_dirs = [os.path.join(self.module.params['girder_dir'],
-                                        "plugins")]
-
+            plugin_dirs = set([])
             self.changed = True
 
         if self.changed:
-            plugin_dirs = plugin_dirs + list(set(paths) - set(plugin_dirs))
+            plugin_dirs |= path
+            # Add girder_plugin_dir back in at the front of the list
+            plugin_dirs = list(girder_plugin_dir) + list(plugin_dirs)
 
-            self.config.set("plugins", ":".join(plugin_dirs))
+            self.config.set("plugins", "plugin_directory",
+                            ":".join(plugin_dirs))
 
         return
 
@@ -128,20 +149,46 @@ class GirderPluginDirModule(object):
         if not self.config.has_section('plugins'):
             return
 
+        girder_plugin_dir = set([os.path.join(self.module.params['girder_dir'],
+                                              "plugins")])
+
         # If single string, convert to list
-        paths = [path] if path is isinstance(path, basestring) else path
+        if isinstance(path, basestring):
+            path = set([path])
+        else:
+            path = set(path)
+
+        self.message['debug']['path'] = list(path)
 
         try:
-            plugin_dirs = self.config.get("plugin_directory").split(":")
+            plugin_dirs = set(self.config.get("plugins",
+                                              "plugin_directory").split(":"))
 
-            # If there are common paths between plugin_dirs and paths
+            # Remove girder_plugin_dir if it exists
+            plugin_dirs = plugin_dirs - girder_plugin_dir
+
+            # If there are common path between plugin_dirs and path
             # We are about to affect a change
-            self.changed = bool(len(set(plugins_dir) & set(paths)))
+            self.changed = bool(len(plugin_dirs & path))
 
             if self.changed:
-                plugin_dirs = plugin_dirs + list(set(plugin_dirs) - set(paths))
+                # We've only got the girder_plugin directory left in
+                # plugin_directory
 
-                self.config.set("plugins", ":".join(plugin_dirs))
+                leftover = plugin_dirs - path
+
+                if len(leftover) == 0:
+                    # If all we've got left is the girder plugin dirctory
+                    self.config.remove_option("plugins", "plugin_directory")
+                    # If that was it in the plugins section,  remove that too
+                    if len(self.config.items("plugins")) == 0:
+                        self.config.remove_section("plugins")
+                else:
+                    # Add girder_plugin_dir back in at the front of the list
+                    plugin_dirs = list(girder_plugin_dir) + list(leftover)
+
+                    self.config.set("plugins", "plugin_directory",
+                                    ":".join(plugin_dirs))
 
             return
 

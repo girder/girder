@@ -1,0 +1,104 @@
+- hosts: girder
+#   roles:
+#     - role: girder-variables
+#       become: yes
+#     - role: romanesco-variables
+#       rabbitmq_ansible_group: girder
+#       become: yes
+  tasks:
+    # Should not create any files,  or show a change
+    - set_fact:
+        girder_install_root: "/opt/girder/v1.3.2-367-gba25d4c"
+        romanesco_install_root: "/opt/romanesco/v0.2.0-107-g0ebed79"
+
+    - name: Remove plugin dir that does not exist
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: absent
+
+    - name: Add romanesco to plugin_dir
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: present
+
+    # Should show no change
+    - name: Add romanesco to plugin_dir again
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: present
+
+    - name: Move girder.local.cfg to _girder.local.cfg
+      become: yes
+      shell: >
+        mv "{{ girder_install_root }}/girder/conf/girder.local.cfg" \
+        "{{ girder_install_root }}/girder/conf/_girder.local.cfg"
+
+    # If girder.local.cfg doesn't exist we should create girder.local.cfg
+    - name: Add romanesco to plugin_dir again
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: present
+
+    - name: Test girder.local.cfg exists
+      stat:
+        path: "{{ girder_install_root }}/girder/conf/girder.local.cfg"
+
+    - name: Move _girder.local.cfg back
+      become: yes
+      shell: >
+        mv "{{ girder_install_root }}/girder/conf/_girder.local.cfg" \
+        "{{ girder_install_root }}/girder/conf/girder.local.cfg"
+
+    # Remove Romanesco - should leave girder.local.cfg with no plugin's section
+    - name: Remove Romanesco plugin
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: absent
+
+
+    # Test list addition
+    - name: Add a list of plugin directories
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir:
+          - "{{ romanesco_install_root }}"
+          - "/tmp"
+        state: present
+
+
+    # Remove Romanesco plugin - /tmp should be left
+    - name: Remove Romanesco plugin
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: absent
+
+    # Remove Romanesco plugin - /tmp should be left
+    - name: Add romanesco plugin back in
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir: "{{ romanesco_install_root }}"
+        state: present
+
+    # Test Removing a list - should have no plugin section at end of test
+    - name: Remove a list of plugin directories
+      become: yes
+      girder_plugin_dir:
+        girder_dir: "{{ girder_install_root }}"
+        plugin_dir:
+          - "{{ romanesco_install_root }}"
+          - "/tmp"
+        state: absent
