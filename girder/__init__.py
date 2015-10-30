@@ -75,7 +75,7 @@ def getLogPaths():
 
 def _setupLogger():
     """
-    Sets up the girder logger.
+    Sets up the Girder logger.
     """
     logger = logging.getLogger('girder')
     logger.setLevel(logging.DEBUG)

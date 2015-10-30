@@ -1,5 +1,5 @@
 /**
- * Contains utility functions used in the girder jasmine tests.
+ * Contains utility functions used in the Girder Jasmine tests.
  */
 /* globals runs, expect, waitsFor, blanket, waits */
 

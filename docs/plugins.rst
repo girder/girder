@@ -267,7 +267,7 @@ via Girder's interface.
 Once you enable the plugin, site administrators will be able to create and edit
 HDFS assetstores on the ``Assetstores`` page in the web client in the same way
 as any other assetstore type. When creating or editing an assetstore, validation
-is performed to ensure that the HDFS instance is reachable for communciation, and
+is performed to ensure that the HDFS instance is reachable for communication, and
 that the directory specified as the root path exists. If it does not exist, Girder
 will attempt to create it.
 

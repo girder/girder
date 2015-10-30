@@ -379,7 +379,7 @@ class Folder(Resource):
         .param('id', 'The ID of the original folder.', paramType='path')
         .param('parentType', "Type of the new folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
-        .param('parentId', 'The ID of the parent docuemnt.', required=False)
+        .param('parentId', 'The ID of the parent document.', required=False)
         .param('name', 'Name for the new folder.', required=False)
         .param('description', "Description for the new folder.", required=False)
         .param('public', """Whether the folder should be publicly visible.  By

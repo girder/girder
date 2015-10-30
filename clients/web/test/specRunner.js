@@ -1,9 +1,9 @@
 /**
  * Copyright Kitware Inc.
  *
- * This is the phantomjs runtime script that invokes the girder app in test
+ * This is the PhantomJS runtime script that invokes the Girder app in test
  * mode. The test mode page is built with grunt and lives at:
- * clients/web/static/built/testEnv.html. It then executes a jasmine spec within
+ * clients/web/static/built/testEnv.html. It then executes a Jasmine spec within
  * the context of that test application, and afterwards runs our custom coverage
  * handler on the coverage data.
  */
@@ -11,9 +11,9 @@
 if (phantom.args.length < 2) {
     console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
     console.error('  <page> is the path to the HTML page to load');
-    console.error('  <spec> is the path to the jasmine spec to run.');
+    console.error('  <spec> is the path to the Jasmine spec to run.');
     console.error('  <covg_output> is the path to a file to write coverage into.');
-    console.error('  <default jasmine timeout> is in milliseconds.');
+    console.error('  <default Jasmine timeout> is in milliseconds.');
     phantom.exit(2);
 }
 

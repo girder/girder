@@ -163,7 +163,7 @@ class Folder(AccessControlledModel):
     def setMetadata(self, folder, metadata):
         """
         Set metadata on a folder.  A rest exception is thrown in the cases
-        where the metadata json object is badly formed, or if any of the
+        where the metadata JSON object is badly formed, or if any of the
         metadata keys contains a period ('.').
 
         :param folder: The folder to set the metadata on.
@@ -614,7 +614,7 @@ class Folder(AccessControlledModel):
         :param path: A path prefix to add to the results.
         :type path: str
         :param includeMetadata: if True and there is any metadata, include a
-                                result which is the json string of the
+                                result which is the JSON string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the folder.
