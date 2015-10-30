@@ -31,10 +31,57 @@ author: "Chris Kotfila (chris.kotfila@kitware.com)
 version_added: "0.1"
 short_description: A module that configures the girder plugin directory
 requirements: [ girder ]
+description:
+    - Idempotently add a plugin path to the plugins_directory setting
+      in girder.local.cfg.
+    - If girder.local.cfg is not present this module will copy girder.dist.cfg
+      to girder.local.cfg and make the changes.
+    - Seamlessly adds or removes the [plugins] config section as well as the
+      default girder plugin directory.
+options:
+    girder_dir:
+        required: yes
+        description:
+            - The base directory of the girder installation
+    plugin_dir:
+        required: yes
+        description:
+            - The system directory to add to the plugin_directory setting
+              in girder.local.cfg
+    state:
+        required: no
+        default: present
+        description:
+            - Add or remove the plugin directory based on whether state
+              is 'present' or 'absent.'
 '''
 
 EXAMPLES = '''
+# Add a the romanesco path to the plugin_directory config in
+# girder_install_root
+- name: Add romanesco to plugin_dir
+  become: yes
+  girder_plugin_dir:
+    girder_dir: "{{ girder_install_root }}"
+    plugin_dir: "{{ romanesco_install_root }}"
+    state: present
 
+- name: Remove plugin dir that does not exist
+  become: yes
+  girder_plugin_dir:
+    girder_dir: "{{ girder_install_root }}"
+    plugin_dir: "{{ romanesco_install_root }}"
+    state: absent
+
+# girder_plugin_dir also accepts a list of directories
+- name: Add A list of directories
+  become: yes
+  girder_plugin_dir:
+    girder_dir: "{{ girder_install_root }}"
+    plugin_dir:
+      - "{{ romanesco_install_root }}"
+      - "/some/other/directory"
+    state: present
 
 '''
 

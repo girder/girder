@@ -1,16 +1,11 @@
 - hosts: girder
-#   roles:
-#     - role: girder-variables
-#       become: yes
-#     - role: romanesco-variables
-#       rabbitmq_ansible_group: girder
-#       become: yes
+  roles:
+    - role: girder-variables
+      become: yes
+    - role: romanesco-variables
+      rabbitmq_ansible_group: girder
+      become: yes
   tasks:
-    # Should not create any files,  or show a change
-    - set_fact:
-        girder_install_root: "/opt/girder/v1.3.2-367-gba25d4c"
-        romanesco_install_root: "/opt/romanesco/v0.2.0-107-g0ebed79"
-
     - name: Remove plugin dir that does not exist
       become: yes
       girder_plugin_dir:
