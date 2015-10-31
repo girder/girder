@@ -216,7 +216,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         Rather than processing actual bytes of the chunk, this will generate
         the signature required to upload the chunk. Clients that do not support
         direct-to-S3 upload can pass the chunk via the request body as with
-        other assetstores, and girder will proxy the data through to S3.
+        other assetstores, and Girder will proxy the data through to S3.
 
         :param chunk: This should be a JSON string containing the chunk number
             and S3 upload ID. If a normal chunk file-like object is passed,
@@ -639,7 +639,7 @@ class BotoCallingFormat(boto.s3.connection.OrdinaryCallingFormat):
 def botoConnectS3(connectParams):
     """
     Connect to the S3 server, throwing an appropriate exception if we fail.
-    :param connectParams: a dictionary of paramters to use in the connection.
+    :param connectParams: a dictionary of parameters to use in the connection.
     :returns: the boto connection object.
     """
     if 'anon' not in connectParams or not connectParams['anon']:

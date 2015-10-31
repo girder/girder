@@ -62,7 +62,7 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['apiVersion'], API_VERSION)
 
         try:
-            # Get the current git head
+            # Get the current Git head
             sha = check_output(
                 ['git', 'rev-parse', 'HEAD'],
                 cwd=ROOT_DIR

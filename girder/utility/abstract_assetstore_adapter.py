@@ -241,7 +241,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         This is called when an upload has been begun and it should be
         abandoned.  It must clean up temporary files, chunks, or whatever other
-        information the assest store contains.
+        information the assetstore contains.
         """
         raise NotImplementedError('Must override cancelUpload in %s.' %
                                   self.__class__.__name__)  # pragma: no cover
@@ -275,7 +275,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type params: dict
         :param progress: Object on which to record progress if possible.
         :type progress: :py:class:`girder.utility.progress.ProgressContext`
-        :param user: The girder user performing the import.
+        :param user: The Girder user performing the import.
         :type user: dict or None
         """
         raise NotImplementedError(

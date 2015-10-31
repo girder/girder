@@ -52,7 +52,7 @@ class SysExitException(Exception):
 
 def invokeCli(argv, username='', password=''):
     """
-    Invoke the girder python client CLI with a set of arguments.
+    Invoke the Girder Python client CLI with a set of arguments.
     """
     argsList = ['girder-client', '--port', os.environ['GIRDER_PORT'],
                 '--username', username, '--password', password] + list(argv)

@@ -116,7 +116,7 @@ image of a docker container running Girder. This container exposes Girder at
 port 8080 and requires the database URL to be passed in as an option. For more
 information, see the
 `Docker Hub Page <https://registry.hub.docker.com/u/girder/girder/>`_. Since the
-container does not run a databse, you'll need to run a command in the form: ::
+container does not run a database, you'll need to run a command in the form: ::
 
    $ docker run -p 8080:8080 girder/girder -d mongodb://db-server-external-ip:27017/girder
 

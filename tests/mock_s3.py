@@ -161,7 +161,7 @@ def _create_app(service):
 
 if __name__ == '__main__':
     """
-    Provide a simple stand-alone program so that developers can run girder with
+    Provide a simple stand-alone program so that developers can run Girder with
     a modified conf file to simulate an S3 store.
     """
     parser = argparse.ArgumentParser(

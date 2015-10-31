@@ -79,7 +79,7 @@ def handle_plugin(parser):
 
 def print_version(parser):
     """
-    Prints the girder version number.
+    Prints the Girder version number.
     """
     print(version)
 

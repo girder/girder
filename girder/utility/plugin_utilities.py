@@ -173,12 +173,12 @@ def defaultPluginDir():
     pluginDir = None
 
     # It looks if there is a plugin directory next
-    # to the girder python package.  This is the case when running from the
+    # to the Girder Python package.  This is the case when running from the
     # git repository.
     if os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
         pluginDir = os.path.join(ROOT_DIR, 'plugins')
-    # As a last resort, use plugins inside the girder python package.
-    # This is intended to occur when girder is pip installed.
+    # As a last resort, use plugins inside the Girder Python package.
+    # This is intended to occur when Girder is pip installed.
     else:
         pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
 

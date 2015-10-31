@@ -241,7 +241,7 @@ class File(Resource):
                'pass this as the index of the last byte to download. Unlike '
                'the HTTP Range header, the endByte parameter is non-inclusive, '
                'so you should set it to the index of the byte one past the '
-               'final byte you wish to recieve.', dataType='integer',
+               'final byte you wish to receive.', dataType='integer',
                required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))

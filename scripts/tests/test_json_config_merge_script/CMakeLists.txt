@@ -48,7 +48,7 @@ endforeach()
 # Add tests
 #
 
-set(expected_usage "\nThis script allows to merge multiple json config files.\n\nUsage:")
+set(expected_usage "\nThis script allows to merge multiple JSON config files.\n\nUsage:")
 
 add_json_config_merge_test(usage)
 set_tests_properties(${testname}

@@ -330,7 +330,7 @@ def endpoint(fun):
                 return val
 
         except RestException as e:
-            # Handle all user-error exceptions from the rest layer
+            # Handle all user-error exceptions from the REST layer
             cherrypy.response.status = e.code
             val = {'message': e.message, 'type': 'rest'}
             if e.extra is not None:
@@ -345,7 +345,7 @@ def endpoint(fun):
                 logger.exception('403 Error')
             val = {'message': e.message, 'type': 'access'}
         except GirderException as e:
-            # Handle general girder exceptions
+            # Handle general Girder exceptions
             logger.exception('500 Error')
             cherrypy.response.status = 500
             val = {'message': e.message, 'type': 'girder'}
@@ -706,7 +706,7 @@ class Resource(ModelImporter):
             be returned unsorted.
         :type defaultSortField: str or None
         :param defaultSortDir: Sort direction.
-        :tyep defaultSortDir: girder.constants.SortDir
+        :type defaultSortDir: girder.constants.SortDir
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))

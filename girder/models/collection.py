@@ -153,7 +153,7 @@ class Collection(AccessControlledModel):
         :param user: a user used to validate data that is returned.
         :param path: a path prefix to add to the results.
         :param includeMetadata: if True and there is any metadata, include a
-                                result which is the json string of the
+                                result which is the JSON string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the item.

@@ -1,6 +1,6 @@
 
 //
-// This script allows to conveniently expand relative path in json config file.
+// This script allows to conveniently expand relative path in JSON config file.
 //
 
 // Describe script parameters and parse arguments
@@ -12,7 +12,7 @@ var scriptname = path.basename(process.argv[1]);
 var argv = require('argv');
 
 argv.info(
-  'This script allows to expand relative path in a json config file.\n' +
+  'This script allows to expand relative path in a JSON config file.\n' +
   '\nUsage:\n' +
   '\n  ' + scriptname + ' [-v] [-b /path/to/base] -k key1 [-k key2 [...]] -i /path/to/input.js [-o /path/to/output.js]\n' +
   '\nArgument description:'
