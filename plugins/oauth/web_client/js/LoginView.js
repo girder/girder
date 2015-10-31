@@ -9,6 +9,7 @@ girder.views.oauth_LoginView = girder.View.extend({
     initialize: function (settings) {
         var redirect = settings.redirect ||
                        girder.dialogs.splitRoute(window.location.href).base;
+        this.modeText = settings.modeText || 'log in';
 
         girder.restRequest({
             path: 'oauth/provider',
@@ -36,6 +37,7 @@ girder.views.oauth_LoginView = girder.View.extend({
         }, this);
 
         this.$el.append(girder.templates.oauth_login({
+            modeText: this.modeText,
             buttons: buttons
         }));
     },
