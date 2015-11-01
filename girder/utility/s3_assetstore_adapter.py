@@ -67,7 +67,6 @@ boto.s3.connection.S3Connection._required_auth_capability = \
         boto.s3.connection.S3Connection._required_auth_capability)
 
 
-
 def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
                         headers=None, response_headers=None, version_id=None,
                         iso_date=None, params=None):
