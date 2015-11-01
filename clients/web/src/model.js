@@ -255,10 +255,14 @@ girder.models.MetadataMixin = {
             error: null
         }).done(_.bind(function (resp) {
             this.set('meta', resp.meta);
-            successCallback();
+            if (_.isFunction(successCallback)) {
+                successCallback();
+            }
         }, this)).error(_.bind(function (err) {
             err.message = err.responseJSON.message;
-            errorCallback(err);
+            if (_.isFunction(errorCallback)) {
+                errorCallback(err);
+            }
         }, this));
     },
 
@@ -267,7 +271,9 @@ girder.models.MetadataMixin = {
         datum[key] = value;
         var meta = this.get('meta');
         if (meta && _.has(meta, key)) {
-            errorCallback({message: key + ' is already a metadata key'});
+            if (_.isFunction(errorCallback)) {
+                errorCallback({message: key + ' is already a metadata key'});
+            }
             return;
         }
         this._sendMetadata(datum, successCallback, errorCallback);
@@ -286,7 +292,9 @@ girder.models.MetadataMixin = {
             this._sendMetadata(datum, successCallback, errorCallback);
         } else {
             if (_.has(this.get('meta'), newKey)) {
-                errorCallback({message: newKey + ' is already a metadata key'});
+                if (_.isFunction(errorCallback)) {
+                    errorCallback({message: newKey + ' is already a metadata key'});
+                }
                 return;
             }
             var metas = {};
