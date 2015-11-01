@@ -49,10 +49,22 @@ def authv4_determine_region_name(self, *args, **kwargs):
     return result
 
 
+def required_auth_capability_wrapper(fun):
+    def wrapper(self, *args, **kwargs):
+        if self.anon:
+            return ['anon']
+        else:
+            return fun(self, *args, **kwargs)
+    return wrapper
+
+
 authv4_orig_determine_region_name = \
     boto.auth.S3HmacAuthV4Handler.determine_region_name
 boto.auth.S3HmacAuthV4Handler.determine_region_name = \
     authv4_determine_region_name
+boto.s3.connection.S3Connection._required_auth_capability = \
+    required_auth_capability_wrapper(
+        boto.s3.connection.S3Connection._required_auth_capability)
 
 
 def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
