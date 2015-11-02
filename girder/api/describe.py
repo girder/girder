@@ -22,6 +22,7 @@ import os
 import six
 
 from girder import constants
+from girder.utility import config
 from girder.utility.webroot import WebrootBase
 from . import docs, access
 from .rest import Resource, RestException, getApiUrl
@@ -237,10 +238,14 @@ class Describe(Resource):
     def describeResource(self, resource, params):
         if resource not in docs.routes:
             raise RestException('Invalid resource: {}'.format(resource))
+        basePath = getApiUrl()
+        curConfig = config.getConfig()
+        if 'server' in curConfig and curConfig['server'].get('api_url'):
+            basePath = curConfig['server']['api_url']
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'basePath': getApiUrl(),
+            'basePath': basePath,
             'models': dict(docs.models[resource], **docs.models[None]),
             'apis': [{
                 'path': route,
