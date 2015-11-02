@@ -143,28 +143,12 @@ class Group(AccessControlledModel):
         :param group: The group document to delete.
         :type group: dict
         """
-
         # Remove references to this group from user group membership lists
         self.model('user').update({
             'groups': group['_id']
         }, {
             '$pull': {'groups': group['_id']}
         })
-
-        acQuery = {
-            'access.groups.id': group['_id']
-        }
-        acUpdate = {
-            '$pull': {
-                'access.groups': {'id': group['_id']}
-            }
-        }
-
-        # Remove references to this group from access-controlled collections.
-        self.update(acQuery, acUpdate)
-        self.model('collection').update(acQuery, acUpdate)
-        self.model('folder').update(acQuery, acUpdate)
-        self.model('user').update(acQuery, acUpdate)
 
         # Finally, delete the document itself
         AccessControlledModel.remove(self, group)

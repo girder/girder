@@ -119,31 +119,6 @@ class User(AccessControlledModel):
         :param progress: A progress context to record progress on.
         :type progress: girder.utility.progress.ProgressContext or None.
         """
-        # Remove creator references for this user.
-        creatorQuery = {
-            'creatorId': user['_id']
-        }
-        creatorUpdate = {
-            '$set': {'creatorId': None}
-        }
-        self.model('collection').update(creatorQuery, creatorUpdate)
-        self.model('folder').update(creatorQuery, creatorUpdate)
-        self.model('item').update(creatorQuery, creatorUpdate)
-
-        # Remove references to this user from access-controlled resources.
-        acQuery = {
-            'access.users.id': user['_id']
-        }
-        acUpdate = {
-            '$pull': {
-                'access.users': {'id': user['_id']}
-            }
-        }
-        self.update(acQuery, acUpdate)
-        self.model('collection').update(acQuery, acUpdate)
-        self.model('folder').update(acQuery, acUpdate)
-        self.model('group').update(acQuery, acUpdate)
-
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})
 

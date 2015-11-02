@@ -472,6 +472,55 @@ class AccessControlledModel(Model):
     resource.
     """
 
+    def __init__(self):
+        # Do the bindings before calling __init__(), in case a derived class
+        # wants to change things in initialize()
+        events.bind('model.user.remove', 'core.cleanupDeletedEntity',
+                    self._cleanupDeletedEntity)
+        events.bind('model.group.remove', 'core.cleanupDeletedEntity',
+                    self._cleanupDeletedEntity)
+        super(AccessControlledModel, self).__init__()
+
+    def _cleanupDeletedEntity(self, event):
+        """
+        This callback removes references to deleted users or groups from all
+        concrete AccessControlledModel subtypes.
+
+        This generally should not be called or overridden directly. This should
+        not be unregistered, that would allow references to non-existent users
+        and groups to remain.
+        """
+        entityType = event.name.split('.')[1]
+        entityDoc = event.info
+
+        if entityType == self.name:
+            # Avoid circular callbacks, since Users and Groups are themselves
+            # AccessControlledModels
+            return
+
+        if entityType == 'user':
+            # Remove creator references for this user entity.
+            creatorQuery = {
+                'creatorId': entityDoc['_id']
+            }
+            creatorUpdate = {
+                '$set': {'creatorId': None}
+            }
+            # If a given access-controlled resource doesn't store creatorId,
+            # this will simply do nothing
+            self.update(creatorQuery, creatorUpdate)
+
+        # Remove references to this entity from access-controlled resources.
+        acQuery = {
+            'access.%ss.id' % entityType: entityDoc['_id']
+        }
+        acUpdate = {
+            '$pull': {
+                'access.%ss' % entityType: {'id': entityDoc['_id']}
+            }
+        }
+        self.update(acQuery, acUpdate)
+
     def filter(self, doc, user, additionalKeys=None):
         """
         Filter this model for the given user according to the user's access
