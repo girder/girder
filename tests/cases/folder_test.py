@@ -24,7 +24,7 @@ import six
 from .. import base
 
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, SortDir
 from girder.models.notification import ProgressState
 
 
@@ -93,7 +93,7 @@ class FolderTestCase(base.TestCase):
                 'parentType': 'user',
                 'parentId': self.admin['_id'],
                 'sort': 'name',
-                'sortdir': -1
+                'sortdir': SortDir.DESCENDING
             })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 2)
@@ -332,7 +332,7 @@ class FolderTestCase(base.TestCase):
         # Grab one of the user's top level folders
         folders = self.model('folder').childFolders(
             parent=self.admin, parentType='user', user=self.admin, limit=1,
-            sort=[('name', -1)])
+            sort=[('name', SortDir.DESCENDING)])
         folderResp = six.next(folders)
 
         # Add a subfolder and an item to that folder
@@ -377,6 +377,40 @@ class FolderTestCase(base.TestCase):
         self.assertTrue('doc' in cbInfo)
         self.assertTrue('progress' in cbInfo['kwargs'])
         self.assertEqual(cbInfo['doc']['_id'], folderResp['_id'])
+
+    def testCleanFolder(self):
+        folder = six.next(self.model('folder').childFolders(
+            parent=self.admin, parentType='user', user=self.admin, limit=1,
+            sort=[('name', SortDir.DESCENDING)]))
+
+        # Add some data under the folder
+        subfolder = self.model('folder').createFolder(
+            folder, 'sub', parentType='folder', creator=self.admin)
+        item = self.model('item').createItem(
+            'item', creator=self.admin, folder=folder)
+        subitem = self.model('item').createItem(
+            'item', creator=self.admin, folder=subfolder)
+
+        # Clean the folder contents
+        resp = self.request(path='/folder/%s/contents' % folder['_id'],
+                            method='DELETE', user=self.admin, params={
+                                'progress': 'true'
+        })
+        self.assertStatusOk(resp)
+
+        # Make sure the subfolder and items were deleted, but that the top
+        # folder still exists.
+        old, folder = folder, self.model('folder').load(folder['_id'],
+                                                        force=True)
+        subfolder = self.model('folder').load(subfolder['_id'], force=True)
+        item = self.model('item').load(item['_id'])
+        subitem = self.model('item').load(subitem['_id'])
+
+        self.assertTrue('_id' in folder)
+        self.assertEqual(folder, old)
+        self.assertEqual(subfolder, None)
+        self.assertEqual(item, None)
+        self.assertEqual(subitem, None)
 
     def testLazyFieldComputation(self):
         """

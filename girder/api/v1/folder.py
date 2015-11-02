@@ -34,6 +34,7 @@ class Folder(Resource):
     def __init__(self):
         self.resourceName = 'folder'
         self.route('DELETE', (':id',), self.deleteFolder)
+        self.route('DELETE', (':id', 'contents'), self.deleteContents)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getFolder)
         self.route('GET', (':id', 'details'), self.getFolderDetails)
@@ -304,13 +305,13 @@ class Folder(Resource):
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title=u'Deleting folder {}'.format(folder['name']),
+                             title='Deleting folder %s' % folder['name'],
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             self.model('folder').remove(folder, progress=ctx)
-        return {'message': u'Deleted folder {}.'.format(folder['name'])}
+        return {'message': 'Deleted folder %s.' % folder['name']}
     deleteFolder.description = (
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
@@ -327,9 +328,8 @@ class Folder(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException(u'The key name {} must not contain a '
-                                    'period or begin with a dollar sign.'
-                                    .format(k))
+                raise RestException('The key name %s must not contain a '
+                                    'period or begin with a dollar sign.' % k)
 
         return self.model('folder').setMetadata(folder, metadata)
     setMetadata.description = (
@@ -363,7 +363,7 @@ class Folder(Resource):
         public = params.get('public', None)
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title=u'Copying folder {}'.format(folder['name']),
+                             title='Copying folder %s' % folder['name'],
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
@@ -393,3 +393,25 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original folder.', 403)
         .errorResponse('Write access was denied on the parent.', 403))
+
+    @access.user
+    @loadmodel(model='folder', level=AccessType.WRITE)
+    def deleteContents(self, folder, params):
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(progress, user=self.getCurrentUser(),
+                             title='Clearing folder %s' % folder['name'],
+                             message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(folder) - 1)
+            self.model('folder').clean(folder, progress=ctx)
+        return {'message': 'Cleaned folder %s.' % folder['name']}
+    deleteContents.description = (
+        Description('Remove all contents from a folder.')
+        .notes('Cleans out all the items and subfolders from under a folder, '
+               'but does not remove the folder itself.')
+        .param('id', 'The ID of the folder to clean.', paramType='path')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean', default=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied on the folder.', 403))
