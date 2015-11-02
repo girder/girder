@@ -83,7 +83,7 @@ girder.views.PluginsView = girder.View.extend({
 
     /**
      * Takes a plugin object and recursively determines if it fulfills
-     * dependencies. Meaning, it's dependencies exist in this.allPlugins.
+     * dependencies. Meaning, its dependencies exist in this.allPlugins.
      **/
     _meetsDependencies: function (plugin) {
         return _.every(plugin.dependencies, function (pluginName) {

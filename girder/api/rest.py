@@ -41,7 +41,7 @@ def getUrlParts(url=None):
 
     :param url: A URL, or None to use the current request's URL.
     :type url: str or None
-    :return: The URL's seperate components.
+    :return: The URL's separate components.
     :rtype: `urllib.parse.ParseResult`_
 
     .. note:: This is compatible with both Python 2 and 3.
