@@ -34,6 +34,7 @@ class Folder(Resource):
     def __init__(self):
         self.resourceName = 'folder'
         self.route('DELETE', (':id',), self.deleteFolder)
+        self.route('DELETE', (':id', 'contents'), self.deleteContents)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getFolder)
         self.route('GET', (':id', 'details'), self.getFolderDetails)
@@ -393,3 +394,25 @@ class Folder(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original folder.', 403)
         .errorResponse('Write access was denied on the parent.', 403))
+
+    @access.user
+    @loadmodel(model='folder', level=AccessType.WRITE)
+    def deleteContents(self, folder, params):
+        progress = self.boolParam('progress', params, default=False)
+        with ProgressContext(progress, user=self.getCurrentUser(),
+                             title='Clearing folder %s' % folder['name'],
+                             message='Calculating folder size...') as ctx:
+            # Don't do the subtree count if we weren't asked for progress
+            if progress:
+                ctx.update(total=self.model('folder').subtreeCount(folder) - 1)
+            self.model('folder').clean(folder, progress=ctx)
+        return {'message': 'Cleaned folder %s.' % folder['name']}
+    deleteContents.description = (
+        Description('Remove all contents from a folder.')
+        .notes('Cleans out all the items and subfolders from under a folder, '
+               'but does not remove the folder itself.')
+        .param('id', 'The ID of the folder to clean.', paramType='path')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean', default=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied on the folder.', 403))
