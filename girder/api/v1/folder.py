@@ -305,13 +305,13 @@ class Folder(Resource):
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title=u'Deleting folder {}'.format(folder['name']),
+                             title='Deleting folder %s' % folder['name'],
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             self.model('folder').remove(folder, progress=ctx)
-        return {'message': u'Deleted folder {}.'.format(folder['name'])}
+        return {'message': 'Deleted folder %s.' % folder['name']}
     deleteFolder.description = (
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
@@ -328,9 +328,8 @@ class Folder(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException(u'The key name {} must not contain a '
-                                    'period or begin with a dollar sign.'
-                                    .format(k))
+                raise RestException('The key name %s must not contain a '
+                                    'period or begin with a dollar sign.' % k)
 
         return self.model('folder').setMetadata(folder, metadata)
     setMetadata.description = (
@@ -364,7 +363,7 @@ class Folder(Resource):
         public = params.get('public', None)
         progress = self.boolParam('progress', params, default=False)
         with ProgressContext(progress, user=self.getCurrentUser(),
-                             title=u'Copying folder {}'.format(folder['name']),
+                             title='Copying folder %s' % folder['name'],
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
