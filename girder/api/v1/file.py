@@ -97,7 +97,7 @@ class File(Resource):
         .param('size', 'Size in bytes of the file.',
                dataType='integer', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
-        .param('linkUrl', 'If this is a link file, pass its URL instead'
+        .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)

@@ -136,7 +136,7 @@ the following environment variables set: ::
     $ export CLUSTER_NAME=hello-girder
 
 Start a new project in Google Developers Console
-(here we assume it's identifier is ``my-girder``).
+(here we assume its identifier is ``my-girder``).
 Set this as your active project with ::
 
     $ gcloud config set project my-girder
