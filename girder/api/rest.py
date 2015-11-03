@@ -65,14 +65,15 @@ def getApiUrl(url=None):
     within and outside of a proxy.
 
     :param url: URL from which to extract the base URL. If not specified, uses
-        `cherrypy.url()` or the config value from ['server']['api_url'].
+        `cherrypy.url()`.
     """
     apiPhrase = '/api/v1'
-    url = url or cherrypy.url()
     if url is None and 'Referer' in cherrypy.request.headers:
         referer = cherrypy.request.headers['Referer']
         if referer.endswith(apiPhrase) or (apiPhrase + '/') in referer:
             url = referer
+    if url is None:
+        url = cherrypy.url()
     if url.endswith(apiPhrase):
         idx = url.rfind(apiPhrase)
     else:
