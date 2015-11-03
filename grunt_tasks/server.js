@@ -50,6 +50,14 @@ module.exports = function (grunt) {
                     callback: setServerConfig
                 }
             }
+        },
+        init: {
+            'shell:readServerConfig': {
+                dependencies: ['setup']
+            }
+        },
+        'default': {
+            'shell:readServerConfig': {}
         }
     });
 };

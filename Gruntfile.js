@@ -14,17 +14,41 @@
  * limitations under the License.
  */
 
+/**
+ * This function takes an object like `grunt.config.get('init')` and
+ * returns a topologically sorted array of tasks.
+ */
+function sortTasks(obj) {
+    var toposort = require('toposort');
+    var _ = require('underscore');
+    var nodes = _.keys(obj);
+    var edges = _(obj).chain()
+        .pairs()
+        .map(function (o) {
+            return _.map(o[1].dependencies || [], function (d) { return [d, o[0]]; });
+        })
+        .flatten(true)
+        .value();
+    return toposort.array(nodes, edges);
+}
+
 module.exports = function (grunt) {
+    var fs = require('fs');
     require('colors');
 
     // Project configuration.
     grunt.config.init({
         pkg: grunt.file.readJSON('package.json'),
-        defaultTasks: []
+        pluginDir: 'plugins',
+        staticDir: 'clients/web/static',
+        init: {
+            setup: {}
+        },
+        'default': {}
     });
 
     /**
-     * Load task modules
+     * Load task modules inside `grunt_tasks`.
      */
     grunt.loadTasks('grunt_tasks');
 
@@ -38,5 +62,33 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
-    grunt.registerTask('default', grunt.config.get('defaultTasks'));
+    // This task should be run once manually at install time.
+    grunt.registerTask('setup', 'Initial install/setup tasks', function () {
+        // If the local config file doesn't exist, we make it
+        var confDir = 'girder/conf';
+        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
+            fs.writeFileSync(
+                confDir + '/girder.local.cfg',
+                fs.readFileSync(confDir + '/girder.dist.cfg')
+            );
+            console.log('Created local config file.');
+        }
+    });
+
+    /**
+     * Load `default` and `init` targets by topologically sorting the
+     * tasks given by keys the config object.  As in:
+     * {
+     *   'init': {
+     *     'jade:a': {}
+     *     'uglify:a': {
+     *       'dependencies': ['jade:a']
+     *     }
+     *   }
+     * }
+     *
+     * The init task will run `jade:a` followed by `uglify:a`.
+     */
+    grunt.registerTask('init', sortTasks(grunt.config.get('init')));
+    grunt.registerTask('default', sortTasks(grunt.config.get('default')));
 };

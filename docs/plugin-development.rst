@@ -435,6 +435,43 @@ that can be used to import content:
   plugin that doesn't fall into one of the above categories can be placed here,
   such as static images, fonts, or third-party static libraries.
 
+Installing custom dependencies from npm
+***************************************
+
+There are two types of node dependencies you may need to install for your plugin.
+Each type needs to be installed differently due to how node manages external packages.
+
+- Run time dependencies that your application relies on should be installed into
+  your plugin's ``node_modules`` directory.  These should be provided in a
+  `package.json <https://docs.npmjs.com/files/package.json>`_
+  file as they are for standalone node applications.  When such a file exists
+  in your plugin directory, ``npm install`` will be executed in a new process
+  from within your package's directory.
+
+- Build time dependencies that your grunt tasks rely on to assemble the sources
+  for deployment need to be installed into Girder's own ``node_modules`` directory.
+  These dependencies will typically be grunt extensions defining extra tasks used
+  by your build.  Such dependencies should be listed under ``grunt.dependencies``
+  as an object much like dependencies in your ``package.json``.
+
+  .. code-block:: json
+
+      {
+          "name": "MY_PLUGIN",
+          "grunt": {
+              "dependencies": {
+                  "grunt-shell": ">=0.2.1"
+              }
+          }
+      }
+
+  In addition to installing these dependencies, Girder will also load grunt extensions
+  contained in them before executing any tasks.
+
+.. note:: Packages installed into Girder's scope can possibly overwrite an alternate
+          version of the same package.  Care should be taken to only list packages here
+          that are not already provided by Girder's own build time dependencies.
+
 Executing custom Grunt build steps for your plugin
 **************************************************
 

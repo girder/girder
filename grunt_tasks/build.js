@@ -168,10 +168,30 @@ module.exports = function (grunt) {
             js_core: {
                 files: ['clients/web/src/**/*.js'],
                 tasks: ['uglify:app']
-            },
+           },
             jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
                 tasks: ['build-js']
+            }
+        },
+
+        init: {
+            'uglify:libs': {},
+            'uglify:polyfill': {},
+            'copy:swagger': {},
+            'copy:jsoneditor': {}
+        },
+
+        'default': {
+            'stylus:core': {},
+            'test-env-html': {
+                dependencies: ['shell:readServerConfig', 'uglify:app']
+            },
+            'jade:core': {
+                dependencies: ['version-info']
+            },
+            'uglify:app': {
+                dependencies: ['jade:core']
             }
         }
     });
@@ -213,38 +233,4 @@ module.exports = function (grunt) {
             apiRoot: grunt.config.get('serverConfig.apiRoot')
         }));
     });
-
-    // This task should be run once manually at install time.
-    grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        // If the local config file doesn't exist, we make it
-        var confDir = 'girder/conf';
-        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
-            fs.writeFileSync(
-                confDir + '/girder.local.cfg',
-                fs.readFileSync(confDir + '/girder.dist.cfg')
-            );
-            console.log('Created local config file.');
-        }
-    });
-
-    grunt.registerTask('build-js', [
-        'jade',
-        'version-info',
-        'uglify:app',
-        'shell:readServerConfig',
-        'test-env-html'
-    ]);
-    grunt.registerTask('init', [
-        'setup',
-        'uglify:libs',
-        'uglify:polyfill',
-        'copy:swagger',
-        'copy:jsoneditor',
-        'shell:readServerConfig'
-    ]);
-
-    var defaultTasks = grunt.config.get('defaultTasks');
-    defaultTasks.push('stylus');
-    defaultTasks.push('build-js');
-    grunt.config.set('defaultTasks', defaultTasks);
 };

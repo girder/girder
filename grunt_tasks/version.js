@@ -67,6 +67,9 @@ module.exports = function (grunt) {
                     done();
                 }
             }
+        },
+        "default": {
+            "version-info": {}
         }
     });
 
