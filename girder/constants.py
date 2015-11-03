@@ -134,6 +134,7 @@ class SettingKey:
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
+    USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
 
 class SettingDefault:
@@ -161,7 +162,8 @@ class SettingDefault:
             'open': False,
             'groups': [],
             'users': []
-        }
+        },
+        SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }
 
 

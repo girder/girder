@@ -618,6 +618,31 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertTrue(resp.json['admin'])
 
+    def testDefaultUserFolders(self):
+        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
+                                  'public_private')
+        user1 = self.model('user').createUser(
+            'folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
+        user1_folders = self.model('folder').find({
+            'parentId': user1['_id'],
+            'parentCollection': 'user'})
+        self.assertSetEqual(
+            set(folder['name'] for folder in user1_folders),
+            {'Public', 'Private'}
+        )
+
+        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
+                                  'none')
+        user2 = self.model('user').createUser(
+            'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
+        user2_folders = self.model('folder').find({
+            'parentId': user2['_id'],
+            'parentCollection': 'user'})
+        self.assertSetEqual(
+            set(folder['name'] for folder in user2_folders),
+            set()
+        )
+
     def testAdminFlag(self):
         admin = self.model('user').createUser(
             'user1', 'passwd', 'tst', 'usr', 'user@user.com')

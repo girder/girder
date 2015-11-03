@@ -51,6 +51,13 @@ form.g-settings-form(role="form")
     textarea#g-core-collection-create-policy.form-control
       = JSON.stringify(settings['core.collection_create_policy'] || defaults['core.collection_create_policy'], null, 4)
     .g-search-container
+  .form-group
+    label(for="g-core-user-default-folders") Create default folders for new users
+    select#g-core-user-default-folders.form-control.input-sm
+      option(value="none", selected=(settings['core.user_default_folders'] ===
+             "none")) No
+      option(value="public_private", selected=(settings['core.user_default_folders'] ===
+             "public_private")) Yes, "Public" and "Private"
 
   .panel-group#g-configuration-accordion
     .panel.panel-default

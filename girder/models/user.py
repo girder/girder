@@ -23,7 +23,7 @@ import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
-from girder.constants import AccessType, CoreEventHandler
+from girder.constants import AccessType, CoreEventHandler, SettingKey
 from girder.utility import config
 
 
@@ -275,17 +275,20 @@ class User(AccessControlledModel):
         This generally should not be called or overridden directly, but it may
         be unregistered from the `model.user.save.created` event.
         """
-        user = event.info
+        default_folder_setting = self.model('setting').get(
+            SettingKey.USER_DEFAULT_FOLDERS, 'public_private')
+        if default_folder_setting == 'public_private':
+            user = event.info
 
-        publicFolder = self.model('folder').createFolder(
-            user, 'Public', parentType='user', public=True, creator=user)
-        privateFolder = self.model('folder').createFolder(
-            user, 'Private', parentType='user', public=False, creator=user)
-        # Give the user admin access to their own folders
-        self.model('folder').setUserAccess(
-            publicFolder, user, AccessType.ADMIN, save=True)
-        self.model('folder').setUserAccess(
-            privateFolder, user, AccessType.ADMIN, save=True)
+            publicFolder = self.model('folder').createFolder(
+                user, 'Public', parentType='user', public=True, creator=user)
+            privateFolder = self.model('folder').createFolder(
+                user, 'Private', parentType='user', public=False, creator=user)
+            # Give the user admin access to their own folders
+            self.model('folder').setUserAccess(
+                publicFolder, user, AccessType.ADMIN, save=True)
+            self.model('folder').setUserAccess(
+                privateFolder, user, AccessType.ADMIN, save=True)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):
