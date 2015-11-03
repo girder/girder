@@ -275,9 +275,9 @@ class User(AccessControlledModel):
         This generally should not be called or overridden directly, but it may
         be unregistered from the `model.user.save.created` event.
         """
-        default_folder_setting = self.model('setting').get(
-            SettingKey.USER_DEFAULT_FOLDERS, 'public_private')
-        if default_folder_setting == 'public_private':
+        if self.model('setting').get(
+                SettingKey.USER_DEFAULT_FOLDERS, 'public_private') \
+                == 'public_private':
             user = event.info
 
             publicFolder = self.model('folder').createFolder(
