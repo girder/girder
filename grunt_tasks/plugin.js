@@ -126,8 +126,62 @@ module.exports = function (grunt) {
     grunt.file.expand(grunt.config.get('pluginDir') + '/*')
         .forEach(function (dir) {
             var plugin = path.basename(dir);
+            var json = path.resolve(dir, 'plugin.json');
+            var yml = path.resolve(dir, 'plugin.yml');
+            var config = {}, npm;
+
+            grunt.log.writeln((
+                'Found plugin: ' + plugin
+            ).bold);
+
+            // add the plugin explicitly to the plugin multitask
             grunt.config.set('plugin.' + plugin, {});
+
+            // add targets to the init task
             grunt.config.set('plugin-install.shell:plugin-install:' + plugin, {});
+
+            if (fs.existsSync(json)) {
+                config = grunt.file.readYAML(json);
+            }
+            if (fs.existsSync(yml)) {
+                config = grunt.file.readYAML(yml);
+            }
+
+            if (config.grunt) {
+                grunt.log.writeln((
+                    'Found plugin: ' + plugin + ' (custom Gruntfile)'
+                ).bold);
+
+                // install any addition npm packages during init
+                npm = _(config.grunt.dependencies || []).map(function (version, dep) {
+                    return dep + '@' + version;
+                });
+                if (npm.length) {
+                    grunt.config.set(
+                        'init.npm-install:' + npm.join(':'), {}
+                    );
+                }
+
+                // load the plugin's gruntfile
+                try {
+                    require(
+                        path.resolve(dir, config.grunt.file || 'Gruntfile.js')
+                    )(grunt);
+                } catch (e) {
+                    // the error can be safely ignored when doing `grunt init`
+                    // otherwise a default task will most likely fail later on
+                    // write out a warning to help the developers debug errors
+                    grunt.log.writeln((
+                        'Failed to load ' +  plugin + '/' + (config.grunt.file || 'Gruntfile.js') + ':'
+                    ).yellow);
+                    grunt.log.writeln('>>> ' + e.toString().split('\n').join('\n>>> ').yellow);
+                }
+
+                // add default targets
+                _(config.grunt.defaultTargets || []).each(function (target) {
+                    grunt.config.set('default.' + target, {});
+                });
+            }
         });
 
     /**

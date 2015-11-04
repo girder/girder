@@ -442,17 +442,18 @@ There are two types of node dependencies you may need to install for your plugin
 Each type needs to be installed differently due to how node manages external packages.
 
 - Run time dependencies that your application relies on should be installed into
-  your plugin's ``node_modules`` directory.  These should be provided in a
+  your plugin's **node_modules** directory.  These should be provided in a
   `package.json <https://docs.npmjs.com/files/package.json>`_
   file as they are for standalone node applications.  When such a file exists
   in your plugin directory, ``npm install`` will be executed in a new process
   from within your package's directory.
 
 - Build time dependencies that your grunt tasks rely on to assemble the sources
-  for deployment need to be installed into Girder's own ``node_modules`` directory.
+  for deployment need to be installed into Girder's own **node_modules** directory.
   These dependencies will typically be grunt extensions defining extra tasks used
   by your build.  Such dependencies should be listed under ``grunt.dependencies``
-  as an object much like dependencies in your ``package.json``.
+  as an object (much like dependencies in **package.json**) inside your
+  **plugin.json** or **plugin.yml** file.
 
   .. code-block:: json
 
