@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         init: {
             setup: {}
         },
-        'default': {}
+        default: {}
     });
 
     /**

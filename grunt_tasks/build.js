@@ -168,10 +168,10 @@ module.exports = function (grunt) {
             js_core: {
                 files: ['clients/web/src/**/*.js'],
                 tasks: ['uglify:app']
-           },
+            },
             jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['build-js']
+                tasks: ['jade:core']
             }
         },
 
@@ -182,7 +182,7 @@ module.exports = function (grunt) {
             'copy:jsoneditor': {}
         },
 
-        'default': {
+        default: {
             'stylus:core': {},
             'test-env-html': {
                 dependencies: ['shell:readServerConfig', 'uglify:app']

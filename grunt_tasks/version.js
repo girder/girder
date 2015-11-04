@@ -68,8 +68,8 @@ module.exports = function (grunt) {
                 }
             }
         },
-        "default": {
-            "version-info": {}
+        default: {
+            'version-info': {}
         }
     });
 

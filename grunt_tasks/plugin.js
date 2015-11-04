@@ -22,7 +22,6 @@ module.exports = function (grunt) {
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
-    var defaultTasks = grunt.config.get('defaultTasks');
 
     /**
      * Register a task that will npm install inside plugin directories.
@@ -51,7 +50,7 @@ module.exports = function (grunt) {
                 options: {
                     execOptions: {
                         cwd: path.resolve(process.cwd(), 'plugins')
-                    },
+                    }
                 },
                 src: ['<%= grunt.config.get("pluginDir") %>/<%= grunt.task.current.args[0] %>/package.json']
             }
@@ -112,7 +111,7 @@ module.exports = function (grunt) {
         /**
          * Set default and init targets.
          */
-        'default': {
+        default: {
             plugin: {}
         },
         init: {
@@ -202,9 +201,6 @@ module.exports = function (grunt) {
         var plugin = this.target;
 
         this.requiresConfig('pluginDir');
-
-        // absolute path to the plugin directory
-        var pluginPath = path.resolve(grunt.config.get('pluginDir'), plugin);
 
         // configure "watch" tasks
         grunt.config.set(['watch', 'plugin-' + plugin + '-jade'], {

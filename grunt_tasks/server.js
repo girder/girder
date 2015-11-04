@@ -56,7 +56,7 @@ module.exports = function (grunt) {
                 dependencies: ['setup']
             }
         },
-        'default': {
+        default: {
             'shell:readServerConfig': {}
         }
     });
