@@ -163,7 +163,7 @@ class Folder(AccessControlledModel):
     def setMetadata(self, folder, metadata):
         """
         Set metadata on a folder.  A rest exception is thrown in the cases
-        where the metadata json object is badly formed, or if any of the
+        where the metadata JSON object is badly formed, or if any of the
         metadata keys contains a period ('.').
 
         :param folder: The folder to set the metadata on.
@@ -284,9 +284,10 @@ class Folder(AccessControlledModel):
 
         return self.save(folder)
 
-    def remove(self, folder, progress=None, **kwargs):
+    def clean(self, folder, progress=None, **kwargs):
         """
-        Delete a folder recursively.
+        Delete all contents underneath a folder recursively, but leave the
+        folder itself.
 
         :param folder: The folder document to delete.
         :type folder: dict
@@ -302,7 +303,7 @@ class Folder(AccessControlledModel):
             setResponseTimeLimit()
             self.model('item').remove(item, progress=progress, **kwargs)
             if progress:
-                progress.update(increment=1, message='Deleted item ' +
+                progress.update(increment=1, message='Deleted item %s' %
                                 item['name'])
         # subsequent operations take a long time, so free the cursor's resources
         items.close()
@@ -316,6 +317,18 @@ class Folder(AccessControlledModel):
             self.remove(subfolder, progress=progress, **kwargs)
         folders.close()
 
+    def remove(self, folder, progress=None, **kwargs):
+        """
+        Delete a folder recursively.
+
+        :param folder: The folder document to delete.
+        :type folder: dict
+        :param progress: A progress context to record progress on.
+        :type progress: girder.utility.progress.ProgressContext or None.
+        """
+        # Remove the contents underneath this folder recursively.
+        self.clean(folder, progress, **kwargs)
+
         # Delete pending uploads into this folder
         uploads = self.model('upload').find({
             'parentId': folder['_id'],
@@ -328,7 +341,7 @@ class Folder(AccessControlledModel):
         # Delete this folder
         AccessControlledModel.remove(self, folder, progress=progress, **kwargs)
         if progress:
-            progress.update(increment=1, message='Deleted folder ' +
+            progress.update(increment=1, message='Deleted folder %s' %
                             folder['name'])
 
     def childItems(self, folder, limit=0, offset=0, sort=None, filters=None,
@@ -469,14 +482,15 @@ class Folder(AccessControlledModel):
         }
 
         if parentType in ('folder', 'collection'):
-            self.copyAccessPolicies(src=parent, dest=folder)
+            self.copyAccessPolicies(src=parent, dest=folder, save=False)
 
         if creator is not None:
-            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN)
+            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN,
+                               save=False)
 
         # Allow explicit public flag override if it's set.
         if public is not None and type(public) is bool:
-            self.setPublic(folder, public=public)
+            self.setPublic(folder, public, save=False)
 
         if allowRename:
             self.validate(folder, allowRename=True)
@@ -614,7 +628,7 @@ class Folder(AccessControlledModel):
         :param path: A path prefix to add to the results.
         :type path: str
         :param includeMetadata: if True and there is any metadata, include a
-                                result which is the json string of the
+                                result which is the JSON string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the folder.

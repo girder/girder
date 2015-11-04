@@ -64,12 +64,12 @@ module.exports = function (grunt) {
             console.log('API root: ' + apiRoot.bold);
         }
         catch (e) {
-            grunt.warn('Invalid json from config_parse: ' + stdout);
+            grunt.warn('Invalid JSON from config_parse: ' + stdout);
         }
         callback();
     };
 
-    // Returns a json string containing information from the current git repository.
+    // Returns a JSON string containing information from the current Git repository.
     var versionInfoObject = function () {
         var gitVersion = grunt.config.get('gitinfo');
         var local = gitVersion.local || {};

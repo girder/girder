@@ -165,7 +165,7 @@ class QuotaPolicy(Resource):
         Validate a policy JSON object.  Only a limited set of keys is
         supported, and each of them has a restricted data type.
 
-        :param policy: json object to validate.  This may also be a python
+        :param policy: JSON object to validate.  This may also be a Python
                            dictionary as if the JSON was already decoded.
         :returns: a validate policy dictionary.
         """

@@ -18,7 +18,7 @@
 ###############################################################################
 """
 This module contains functions to install optional components
-into the current girder installation.  Note that girder must
+into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
 

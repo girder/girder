@@ -88,10 +88,11 @@ class Token(AccessControlledModel):
             # force=True, so we set it to public access. This is OK since tokens
             # are not exposed externally for listing, and the _id is the secure
             # token value.
-            self.setPublic(token, True)
+            self.setPublic(token, True, save=False)
         else:
             token['userId'] = user['_id']
-            self.setUserAccess(token, user=user, level=AccessType.ADMIN)
+            self.setUserAccess(token, user=user, level=AccessType.ADMIN,
+                               save=False)
 
         return self.save(token)
 

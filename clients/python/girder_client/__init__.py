@@ -70,7 +70,7 @@ class HttpError(Exception):
 
 class GirderClient(object):
     """
-    A class for interacting with the girder restful api.
+    A class for interacting with the Girder RESTful API.
     Some simple examples of how to use this class follow:
 
     .. code-block:: python
@@ -302,7 +302,7 @@ class GirderClient(object):
 
     def createFolder(self, parentId, name, description='', parentType='folder'):
         """
-        Creates and returns an folder
+        Creates and returns a folder
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
@@ -751,7 +751,7 @@ class GirderClient(object):
         Callback functions will be called after a folder in Girder is created
         and all subfolders and items for that folder have completed uploading.
         Callback functions should take two parameters:
-        - the folder in girder
+        - the folder in Girder
         - the full path to the local folder
 
         :param callback: callback function to be called.
@@ -766,7 +766,7 @@ class GirderClient(object):
         Callback functions will be called after an item in Girder is created
         and all files for that item have been uploaded.  Callback functions
         should take two parameters:
-        - the item in girder
+        - the item in Girder
         - the full path to the local folder or file comprising the item
 
         :param callback: callback function to be called.
@@ -951,7 +951,7 @@ class GirderClient(object):
 
         :param file_pattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parent_id: id of the parent in girder.
+        :param parent_id: id of the parent in Girder.
         :param parent_type: one of (collection,folder,user), default of folder.
         :param leaf_folders_as_items: bool whether leaf folders should have all
             files uploaded as single items.

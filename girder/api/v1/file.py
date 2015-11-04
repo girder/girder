@@ -97,7 +97,7 @@ class File(Resource):
         .param('size', 'Size in bytes of the file.',
                dataType='integer', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
-        .param('linkUrl', 'If this is a link file, pass its URL instead'
+        .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
@@ -241,7 +241,7 @@ class File(Resource):
                'pass this as the index of the last byte to download. Unlike '
                'the HTTP Range header, the endByte parameter is non-inclusive, '
                'so you should set it to the index of the byte one past the '
-               'final byte you wish to recieve.', dataType='integer',
+               'final byte you wish to receive.', dataType='integer',
                required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))

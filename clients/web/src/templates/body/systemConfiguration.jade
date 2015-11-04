@@ -28,29 +28,54 @@ form.g-settings-form(role="form")
   .form-group
     label(for="g-core-registration-policy") Registration policy
     select#g-core-registration-policy.form-control.input-sm
-      option(value="open", selected=(settings['core.registration_policy'] ===
-             "open")) Open registration
-      option(value="closed", selected=(settings['core.registration_policy'] ===
-             "closed")) Closed registration
+      option(value="open",
+             selected=((settings['core.registration_policy'] ||
+                        defaults['core.registration_policy']) === "open")
+            ) Open registration
+      option(value="closed",
+             selected=((settings['core.registration_policy'] ||
+                        defaults['core.registration_policy']) === "closed")
+            ) Closed registration
   .form-group
     label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
     select#g-core-add-to-group-policy.form-control.input-sm
-      option(value="never", selected=(settings['core.add_to_group_policy'] ===
-             "never")) No - members must be invited and accept invitations
-      option(value="noadmin", selected=(settings['core.add_to_group_policy'] ===
-             "noadmin")) No, except for group administrators when enabled per group
-      option(value="nomod", selected=(settings['core.add_to_group_policy'] ===
-             "nomod")) No, except for group administrators and moderators when enabled per group
-      option(value="yesadmin", selected=(settings['core.add_to_group_policy'] ===
-             "yesadmin")) Yes, by group administrators unless disabled per group
-      option(value="yesmod", selected=(settings['core.add_to_group_policy'] ===
-             "yesmod")) Yes by group administrators and moderators unless disabled per group
+      option(value="never",
+             selected=((settings['core.add_to_group_policy'] ||
+                        defaults['core.add_to_group_policy']) === "never")
+            ) No, members must be invited and accept invitations
+      option(value="noadmin",
+             selected=((settings['core.add_to_group_policy'] ||
+                        defaults['core.add_to_group_policy']) === "noadmin")
+            ) No, except for group administrators when enabled per group
+      option(value="nomod",
+             selected=((settings['core.add_to_group_policy'] ||
+                        defaults['core.add_to_group_policy']) === "nomod")
+            ) No, except for group administrators and moderators when enabled per group
+      option(value="yesadmin",
+             selected=((settings['core.add_to_group_policy'] ||
+                        defaults['core.add_to_group_policy']) === "yesadmin")
+            ) Yes, by group administrators unless disabled per group
+      option(value="yesmod",
+             selected=((settings['core.add_to_group_policy'] ||
+                        defaults['core.add_to_group_policy']) === "yesmod")
+            ) Yes, by group administrators and moderators unless disabled per group
 
   .g-collection-create-policy-container.g-settings-form-container
     label(for="g-collection-create-policy") Collection creation policy
     textarea#g-core-collection-create-policy.form-control
       = JSON.stringify(settings['core.collection_create_policy'] || defaults['core.collection_create_policy'], null, 4)
     .g-search-container
+  .form-group
+    label(for="g-core-user-default-folders") Create default folders for new users
+    select#g-core-user-default-folders.form-control.input-sm
+      option(value="none",
+             selected=((settings['core.user_default_folders'] ||
+                        defaults['core.user_default_folders']) === "none")
+            ) No
+      option(value="public_private",
+             selected=((settings['core.user_default_folders'] ||
+                        defaults['core.user_default_folders']) === "public_private")
+            ) Yes, "Public" and "Private"
 
   .panel-group#g-configuration-accordion
     .panel.panel-default

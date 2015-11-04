@@ -198,6 +198,12 @@ class Setting(Model):
             'Upload minimum chunk size must be an integer >= 0.',
             'value')
 
+    def validateCoreUserDefaultFolders(self, doc):
+        if doc['value'] not in ('public_private', 'none'):
+            raise ValidationException(
+                'User default folders must be either "public_private" or '
+                '"none".', 'value')
+
     def get(self, key, default='__default__'):
         """
         Retrieve a setting by its key.

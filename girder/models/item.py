@@ -307,7 +307,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
     def setMetadata(self, item, metadata):
         """
         Set metadata on an item.  A rest exception is thrown in the cases where
-        the metadata json object is badly formed, or if any of the metadata
+        the metadata JSON object is badly formed, or if any of the metadata
         keys contains a period ('.').
 
         :param item: The item to set the metadata on.
@@ -408,7 +408,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param path: A path prefix to add to the results.
         :type path: str
         :param includeMetadata: If True and there is any metadata, include a
-                                result which is the json string of the
+                                result which is the JSON string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the item.

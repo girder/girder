@@ -95,7 +95,7 @@ Items for those that match folders and files on disk, by using the ``--reuse`` f
 
     python cli.py 54b6d41a8926486c0cbca367 test_folder --reuse
 
-To include a blacklist of filepatterns that will not be uploaded, pass a comma
+To include a blacklist of file patterns that will not be uploaded, pass a comma
 separated list to the ``--blacklist`` arg ::
 
     python cli.py 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store

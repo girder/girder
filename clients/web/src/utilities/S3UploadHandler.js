@@ -4,8 +4,8 @@
  * either the single-request or multi-chunk protocol depending on the size of
  * the file.
  *
- * The flow here is to make requests to girder for each required chunk of
- * the upload, which girder authorizes and signs using HMAC. Those signatures
+ * The flow here is to make requests to Girder for each required chunk of
+ * the upload, which Girder authorizes and signs using HMAC. Those signatures
  * are sent, along with the bytes, to the appropriate S3 bucket. For multi-
  * chunk uploads, one final request is required after all chunks have been
  * sent in order to create the final unified record in S3.
@@ -170,7 +170,7 @@
 
     /**
      * Internal helper method used during multichunk upload protocol. This
-     * requests a signed chunk upload request from girder, then uses that
+     * requests a signed chunk upload request from Girder, then uses that
      * authorized request to send the chunk to S3.
      */
     prototype._sendNextChunk = function () {
@@ -179,7 +179,7 @@
             this.startByte + this.params.upload.s3.chunkLength);
         this.payloadLength = data.size;
 
-        // Get the authorized request from girder
+        // Get the authorized request from Girder
         girder.restRequest({
             path: 'file/chunk',
             type: 'POST',
