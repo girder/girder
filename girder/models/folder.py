@@ -482,14 +482,15 @@ class Folder(AccessControlledModel):
         }
 
         if parentType in ('folder', 'collection'):
-            self.copyAccessPolicies(src=parent, dest=folder)
+            self.copyAccessPolicies(src=parent, dest=folder, save=False)
 
         if creator is not None:
-            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN)
+            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN,
+                               save=False)
 
         # Allow explicit public flag override if it's set.
         if public is not None and type(public) is bool:
-            self.setPublic(folder, public=public)
+            self.setPublic(folder, public, save=False)
 
         if allowRename:
             self.validate(folder, allowRename=True)

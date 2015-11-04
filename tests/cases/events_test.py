@@ -30,7 +30,6 @@ class EventsTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        events.unbindAll()
         self.ctr = 0
         self.responses = None
 
@@ -55,77 +54,85 @@ class EventsTestCase(unittest.TestCase):
     def testSynchronousEvents(self):
         name, failname = '_test.event', '_test.failure'
         handlerName = '_test.handler'
-        events.bind(name, handlerName, self._increment)
-        events.bind(failname, handlerName, self._raiseException)
+        with events.bound(name, handlerName, self._increment), \
+                events.bound(failname, handlerName, self._raiseException):
+            # Make sure our exception propagates out of the handler
+            try:
+                events.trigger(failname)
+                self.assertTrue(False)
+            except Exception as e:
+                self.assertEqual(e.args[0], 'Failure condition')
 
-        # Make sure our exception propagates out of the handler
-        try:
-            events.trigger(failname)
-            self.assertTrue(False)
-        except Exception as e:
-            self.assertEqual(e.args[0], 'Failure condition')
+            # Bind an event to increment the counter
+            self.assertEqual(self.ctr, 0)
+            event = events.trigger(name, {'amount': 2})
+            self.assertEqual(self.ctr, 2)
+            self.assertTrue(event.propagate)
+            self.assertFalse(event.defaultPrevented)
+            self.assertEqual(event.responses, [])
 
-        # Bind an event to increment the counter
-        self.assertEqual(self.ctr, 0)
-        event = events.trigger(name, {'amount': 2})
-        self.assertEqual(self.ctr, 2)
-        self.assertTrue(event.propagate)
-        self.assertFalse(event.defaultPrevented)
-        self.assertEqual(event.responses, [])
+            # The event should still be bound here if another handler unbinds
+            events.unbind(name, 'not the handler name')
+            events.trigger(name, {'amount': 2})
+            self.assertEqual(self.ctr, 4)
 
-        # The event should still be bound here if a different handler unbinds
-        events.unbind(name, 'not the handler name')
-        events.trigger(name, {'amount': 2})
-        self.assertEqual(self.ctr, 4)
-
-        # Actually unbind the event, it show now no longer execute
-        events.unbind(name, handlerName)
+        # Actually unbind the event, by going out of scope of "bound"
         events.trigger(name, {'amount': 2})
         self.assertEqual(self.ctr, 4)
 
         # Bind an event that prevents the default action and passes a response
-        events.bind(name, handlerName, self._eatEvent)
-        events.bind(name, 'other handler name', self._shouldNotBeCalled)
-        event = events.trigger(name)
-        self.assertTrue(event.defaultPrevented)
-        self.assertFalse(event.propagate)
-        self.assertEqual(event.responses, [{'foo': 'bar'}])
+        with events.bound(name, handlerName, self._eatEvent), \
+                events.bound(name, 'other handler name',
+                             self._shouldNotBeCalled):
+            event = events.trigger(name)
+            self.assertTrue(event.defaultPrevented)
+            self.assertFalse(event.propagate)
+            self.assertEqual(event.responses, [{'foo': 'bar'}])
+
+        # Test that the context manager unbinds after an unhandled exception
+        try:
+            with events.bound(failname, handlerName, self._raiseException):
+                events.trigger(failname)
+        except Exception:
+            # The event should should be unbound at this point
+            events.trigger(failname)
 
     def testAsyncEvents(self):
         name, failname = '_test.event', '_test.failure'
         handlerName = '_test.handler'
-        events.bind(failname, handlerName, self._raiseException)
-        events.bind(name, handlerName, self._incrementWithResponse)
 
         def callback(event):
             self.ctr += 1
             self.responses = event.responses
 
-        # Make sure an async handler that fails does not break the event loop
-        # and that its callback is not triggered.
-        self.assertEqual(events.daemon.eventQueue.qsize(), 0)
-        events.daemon.trigger(failname, handlerName, callback)
+        with events.bound(failname, handlerName, self._raiseException), \
+                events.bound(name, handlerName, self._incrementWithResponse):
+            # Make sure an async handler that fails does not break the event
+            # loop and that its callback is not triggered.
+            self.assertEqual(events.daemon.eventQueue.qsize(), 0)
+            events.daemon.trigger(failname, handlerName, callback)
 
-        # Triggering the event before the daemon starts should do nothing
-        self.assertEqual(events.daemon.eventQueue.qsize(), 1)
-        events.daemon.trigger(name, {'amount': 2}, callback)
-        self.assertEqual(events.daemon.eventQueue.qsize(), 2)
-        self.assertEqual(self.ctr, 0)
+            # Triggering the event before the daemon starts should do nothing
+            self.assertEqual(events.daemon.eventQueue.qsize(), 1)
+            events.daemon.trigger(name, {'amount': 2}, callback)
+            self.assertEqual(events.daemon.eventQueue.qsize(), 2)
+            self.assertEqual(self.ctr, 0)
 
-        # Now run the asynchronous event handler, which should eventually
-        # cause our counter to be incremented.
-        events.daemon.start()
-        # Ensure that all of our events have been started within a reasonable
-        # amount of time.  Also check the results in the loop, since the qsize
-        # only indicates if all events were started, not finished.
-        startTime = time.time()
-        while True:
-            if events.daemon.eventQueue.qsize() == 0:
-                if self.ctr == 3:
+            # Now run the asynchronous event handler, which should eventually
+            # cause our counter to be incremented.
+            events.daemon.start()
+            # Ensure that all of our events have been started within a
+            # reasonable amount of time.  Also check the results in the loop,
+            # since the qsize only indicates if all events were started, not
+            # finished.
+            startTime = time.time()
+            while True:
+                if events.daemon.eventQueue.qsize() == 0:
+                    if self.ctr == 3:
+                        break
+                if time.time() - startTime > 15:
                     break
-            if time.time()-startTime > 15:
-                break
-            time.sleep(0.1)
-        self.assertEqual(events.daemon.eventQueue.qsize(), 0)
-        self.assertEqual(self.ctr, 3)
-        self.assertEqual(self.responses, ['foo'])
+                time.sleep(0.1)
+            self.assertEqual(events.daemon.eventQueue.qsize(), 0)
+            self.assertEqual(self.ctr, 3)
+            self.assertEqual(self.responses, ['foo'])

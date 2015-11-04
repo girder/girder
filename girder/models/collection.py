@@ -126,8 +126,9 @@ class Collection(AccessControlledModel):
             'size': 0
         }
 
-        self.setPublic(collection, public=public)
-        self.setUserAccess(collection, user=creator, level=AccessType.ADMIN)
+        self.setPublic(collection, public, save=False)
+        self.setUserAccess(collection, user=creator, level=AccessType.ADMIN,
+                           save=False)
 
         return self.save(collection)
 

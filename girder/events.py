@@ -41,6 +41,7 @@ function to be called when the task is finished. That callback function will
 receive the Event object as its only argument.
 """
 
+import contextlib
 import threading
 import types
 
@@ -206,10 +207,28 @@ def unbind(eventName, handlerName):
 
 def unbindAll():
     """
-    Clears the entire event map. Any bound listeners will be unbound.
+    Clears the entire event map. All bound listeners will be unbound.
+
+     .. warning:: This will also disable internal event listeners, which are
+       necessary for normal Girder functionality. This function should generally
+       never be called outside of testing.
     """
     global _mapping
     _mapping = {}
+
+
+@contextlib.contextmanager
+def bound(eventName, handlerName, handler):
+    """
+    A context manager to temporarily bind an event handler within its scope.
+
+    Parameters are the same as those to :py:func:`girder.events.bind`.
+    """
+    bind(eventName, handlerName, handler)
+    try:
+        yield
+    finally:
+        unbind(eventName, handlerName)
 
 
 def trigger(eventName, info=None, pre=None, async=False):

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import collections
 import datetime
 import re
 import six
@@ -617,6 +618,31 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertTrue(resp.json['admin'])
 
+    def testDefaultUserFolders(self):
+        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
+                                  'public_private')
+        user1 = self.model('user').createUser(
+            'folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
+        user1_folders = self.model('folder').find({
+            'parentId': user1['_id'],
+            'parentCollection': 'user'})
+        self.assertSetEqual(
+            set(folder['name'] for folder in user1_folders),
+            {'Public', 'Private'}
+        )
+
+        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
+                                  'none')
+        user2 = self.model('user').createUser(
+            'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
+        user2_folders = self.model('folder').find({
+            'parentId': user2['_id'],
+            'parentCollection': 'user'})
+        self.assertSetEqual(
+            set(folder['name'] for folder in user2_folders),
+            set()
+        )
+
     def testAdminFlag(self):
         admin = self.model('user').createUser(
             'user1', 'passwd', 'tst', 'usr', 'user@user.com')
@@ -641,33 +667,35 @@ class UserTestCase(base.TestCase):
         """
         This tests the general correctness of the model save hooks
         """
-        self.ctr = 0
-
         def preSave(event):
-            if '_id' not in event.info:
-                self.ctr += 1
+            count['pre'] += 1
+
+        def createdSave(event):
+            count['created'] += 1
 
         def postSave(event):
-            self.ctr += 2
+            count['post'] += 1
 
-        events.bind('model.user.save', 'test', preSave)
+        count = collections.defaultdict(int)
+        with events.bound('model.user.save.created', 'test', createdSave):
+            user = self.model('user').createUser(
+                login='myuser', password='passwd', firstName='A', lastName='A',
+                email='email@email.com')
+            self.assertEqual(count['created'], 1)
 
-        user = self.model('user').createUser(
-            login='myuser', password='passwd', firstName='A', lastName='A',
-            email='email@email.com')
-        self.assertEqual(self.ctr, 1)
+            count = collections.defaultdict(int)
+            with events.bound('model.user.save', 'test', preSave), \
+                    events.bound('model.user.save.after', 'test', postSave):
+                user = self.model('user').save(user, triggerEvents=False)
+                self.assertEqual(count['pre'], 0)
+                self.assertEqual(count['created'], 0)
+                self.assertEqual(count['post'], 0)
 
-        events.bind('model.user.save.after', 'test', postSave)
-        self.ctr = 0
-
-        user = self.model('user').save(user, triggerEvents=False)
-        self.assertEqual(self.ctr, 0)
-
-        self.model('user').save(user)
-        self.assertEqual(self.ctr, 2)
-
-        events.unbind('model.user.save', 'test')
-        events.unbind('model.user.save.after', 'test')
+                count = collections.defaultdict(int)
+                self.model('user').save(user)
+                self.assertEqual(count['pre'], 1)
+                self.assertEqual(count['created'], 0)
+                self.assertEqual(count['post'], 1)
 
     def testPrivateUser(self):
         """

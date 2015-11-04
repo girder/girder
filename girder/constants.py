@@ -134,6 +134,7 @@ class SettingKey:
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
+    USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
 
 class SettingDefault:
@@ -161,7 +162,8 @@ class SettingDefault:
             'open': False,
             'groups': [],
             'users': []
-        }
+        },
+        SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }
 
 
@@ -179,3 +181,20 @@ class TokenScope:
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
+
+
+class CoreEventHandler(object):
+    """
+    This enum represents handler identifier strings for core event handlers.
+    If you wish to unbind a core event handler, use one of these as the
+    ``handlerName`` argument. Unbinding core event handlers can be used to
+    disable certain default functionalities.
+    """
+    # For adding a group's creator into its ACL at creation time.
+    GROUP_CREATOR_ACCESS = 'core.grantCreatorAccess'
+
+    # For creating the default Public and Private folders at user creation time.
+    USER_DEFAULT_FOLDERS = 'core.addDefaultFolders'
+
+    # For adding a user into his or her own ACL.
+    USER_SELF_ACCESS = 'core.grantSelfAccess'
