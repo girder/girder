@@ -17,10 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api.rest import RestException, getApiUrl
-from girder.models.model_base import AccessType
+from girder.api.rest import getApiUrl
 from girder.plugins.oauth import constants
-from . import ProviderBase
+from .base import ProviderBase
 from six.moves import urllib
 
 

@@ -23,7 +23,7 @@ import json
 
 from girder.constants import AccessType
 from girder.api.describe import Description
-from girder.api.rest import Resource, getApiUrl
+from girder.api.rest import Resource
 from girder.api import access
 from . import constants, providers
 
