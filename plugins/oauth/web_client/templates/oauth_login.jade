@@ -3,7 +3,7 @@
     .g-oauth-section-header-text Or #{modeText} with
 
   each button in buttons
-    .g-oauth-button(class="#{button.class}", g-provider="#{button.provider}")
+    .g-oauth-button(class=button.class, g-provider=button.provider)
       .g-oauth-button-icon
         i(class="icon-#{button.icon}")
-      .g-oauth-button-text #{button.text || button.provider}
+      .g-oauth-button-text= button.text || button.provider

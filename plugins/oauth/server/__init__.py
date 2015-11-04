@@ -18,6 +18,7 @@
 ###############################################################################
 
 from girder import events
+from girder.constants import SettingDefault
 from girder.models.model_base import ValidationException
 from . import rest, constants
 
@@ -25,15 +26,15 @@ from . import rest, constants
 def validateSettings(event):
     key, val = event.info['key'], event.info['value']
 
-    if key == constants.PluginSettings.GOOGLE_CLIENT_ID:
-        if not val:
-            raise ValidationException(
-                'Google client ID must not be empty.', 'value')
+    if key == constants.PluginSettings.PROVIDERS_ENABLED:
+        if not isinstance(val, (list, tuple)):
+            raise ValidationException('The enabled providers must be a list.',
+                                      'value')
         event.preventDefault().stopPropagation()
-    elif key == constants.PluginSettings.GOOGLE_CLIENT_SECRET:
-        if not val:
-            raise ValidationException(
-                'Google client secret must not be empty.', 'value')
+    elif key in (constants.PluginSettings.GOOGLE_CLIENT_ID,
+                 constants.PluginSettings.GITHUB_CLIENT_ID,
+                 constants.PluginSettings.GOOGLE_CLIENT_SECRET,
+                 constants.PluginSettings.GITHUB_CLIENT_SECRET):
         event.preventDefault().stopPropagation()
 
 
@@ -53,3 +54,8 @@ def load(info):
     events.bind('model.setting.validate', 'oauth', validateSettings)
     events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
     info['apiRoot'].oauth = rest.OAuth()
+
+    # Make Google on by default for backward compatibility. To turn it off,
+    # users will need to hit one of the "Save" buttons on the config page.
+    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = \
+        ['google']

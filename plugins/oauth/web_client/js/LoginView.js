@@ -36,16 +36,24 @@ girder.views.oauth_LoginView = girder.View.extend({
             }
         }, this);
 
-        this.$el.append(girder.templates.oauth_login({
-            modeText: this.modeText,
-            buttons: buttons
-        }));
+        if (buttons.length) {
+            this.$el.append(girder.templates.oauth_login({
+                modeText: this.modeText,
+                buttons: buttons
+            }));
+        }
     },
 
     _buttons: {
-        Google: {
+        google: {
             'icon': 'gplus',
+            'text': 'Google',
             'class': 'g-oauth-button-google'
+        },
+        github: {
+            'icon': 'github',
+            'text': 'GitHub',
+            'class': 'g-oauth-button-github'
         }
     }
 });

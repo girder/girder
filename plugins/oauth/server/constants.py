@@ -20,8 +20,17 @@
 
 # Constants representing the setting keys for this plugin
 class PluginSettings:
+    PROVIDERS_ENABLED = 'oauth.providers_enabled'
+    GITHUB_CLIENT_ID = 'oauth.github_client_id'
+    GITHUB_CLIENT_SECRET = 'oauth.github_client_secret'
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
     GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'
+
+GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize'
+GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
+GITHUB_USER_URL = 'https://api.github.com/user'
+GITHUB_EMAILS_URL = 'https://api.github.com/user/emails'
+GITHUB_SCOPES = ('user:email',)
 
 GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
 GOOGLE_TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
