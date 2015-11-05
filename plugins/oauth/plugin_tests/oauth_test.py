@@ -23,8 +23,6 @@ import re
 import six
 
 from girder.constants import SettingKey
-from server.constants import PluginSettings
-from server.providers import _deriveLogin
 from six.moves import urllib
 from tests import base
 
@@ -52,10 +50,13 @@ class OauthTest(base.TestCase):
             admin=True
         )
 
-    def testDeriveLogin(self):
+    def disabledTestDeriveLogin(self):
         """
-        Unit test of _deriveLogin helper method.
+        Unit test of deriveLogin helper method.
         """
+        from server.providers.google import Google
+        provider = Google(None)
+
         expect = {
             'admin@google.com': None,  # duplicate of existing admin user
             '234@mail.com': None,  # violates regex even after coercion
@@ -63,11 +64,11 @@ class OauthTest(base.TestCase):
             'first-last@mail.com': 'first-last'
         }
 
-        for input, expected in six.viewitems(expect):
-            output = _deriveLogin(input, self.model('user'))
-            self.assertEqual(output, expected)
+        self.assertEqual('foobar', provider.deriveLogin()) # TODO
 
     def testGoogleOauth(self):
+        from girder.plugins.oauth.constants import PluginSettings
+
         # Close registration to start off.
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
 
@@ -112,8 +113,8 @@ class OauthTest(base.TestCase):
         resp = self.request('/oauth/provider', params={
             'redirect': 'http://localhost/#foo/bar'})
         self.assertStatusOk(resp)
-        self.assertTrue('Google' in resp.json)
-        urlParts = urllib.parse.urlparse(resp.json['Google'])
+        self.assertTrue('google' in resp.json)
+        urlParts = urllib.parse.urlparse(resp.json['google'])
         queryParams = urllib.parse.parse_qs(urlParts.query)
         self.assertEqual(urlParts.scheme, 'https')
         self.assertEqual(urlParts.netloc, 'accounts.google.com')
@@ -320,3 +321,155 @@ class OauthTest(base.TestCase):
             'redirect': info['redirect'],
             'token': info['token'],
         }).replace('"', r'\"')
+
+    def testGitHubOauth(self):
+        from girder.plugins.oauth.constants import PluginSettings
+
+        self.model('setting').set(PluginSettings.PROVIDERS_ENABLED, ['github'])
+
+        resp = self.request('/oauth/provider', exception=True, params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatus(resp, 500)
+        self.assertTrue(
+            resp.json['message'].find(
+                'No GitHub client ID setting is present.'
+            ) >= 0
+        )
+
+        self.model('setting').set(PluginSettings.GITHUB_CLIENT_ID, 'abc')
+        self.model('setting').set(PluginSettings.GITHUB_CLIENT_SECRET, '123')
+
+        resp = self.request('/oauth/provider', exception=True, params={
+            'redirect': 'http://localhost/#foo/bar'})
+
+        self.assertStatusOk(resp)
+        self.assertTrue('github' in resp.json)
+        self.assertEqual(len(resp.json), 1)  # Only one provider enabled
+        urlParts = urllib.parse.urlparse(resp.json['github'])
+        queryParams = urllib.parse.parse_qs(urlParts.query)
+        self.assertEqual(urlParts.scheme, 'https')
+        self.assertEqual(urlParts.netloc, 'github.com')
+        self.assertEqual(urlParts.path, '/login/oauth/authorize')
+        self.assertEqual(queryParams['client_id'], ['abc'])
+        self.assertEqual(queryParams['scope'], ['user:email'])
+        self.assertEqual(queryParams['redirect_uri'],
+                         ['http://127.0.0.1/api/v1/oauth/github/callback'])
+        self.assertEqual(queryParams['state'], ['http://localhost/#foo/bar'])
+        self.assertEqual(len(resp.cookie), 1)
+
+        cookie = resp.cookie
+
+        # Test the error condition for callback
+        resp = self.request('/oauth/github/callback', params={
+            'code': None,
+            'error': 'access_denied',
+            'state': queryParams['state'][0]
+        }, exception=True)
+        self.assertStatus(resp, 500)
+        self.assertTrue(
+            resp.json['message'].find(
+                'No CSRF cookie (state="http://localhost/#foo/bar").'
+            ) >= 0
+        )
+
+        resp = self.request('/oauth/github/callback', isJson=False, params={
+            'code': None,
+            'error': 'access_denied',
+            'state': queryParams['state'][0]
+        }, cookie=self._createCsrfCookie(cookie))
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie), 1)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+
+        # Test login with a new user
+
+        # Get a fresh token since last one was destroyed
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
+        @httmock.all_requests
+        def githubMock(url, request):
+            if (url.netloc == 'github.com' and
+                    url.path == '/login/oauth/access_token'):
+                return json.dumps({
+                    'token_type': 'bearer',
+                    'access_token': 'abcd',
+                    'scope': ['user:email']
+                })
+            elif (url.netloc == 'api.github.com' and
+                    url.path == '/user'):
+                return json.dumps({
+                    'name': 'John Doe',
+                    'login': 'johndoe',
+                    'id': 1234
+                })
+            elif (url.netloc == 'api.github.com' and
+                    url.path == '/user/emails'):
+                return json.dumps([{
+                    'primary': False,
+                    'email': 'secondary@email.com',
+                    'verified': True
+                }, {
+                    'primary': True,
+                    'email': 'primary@email.com',
+                    'verified': True
+                }])
+            else:
+                raise Exception('Unexpected url %s' % str(url))
+
+        with httmock.HTTMock(githubMock):
+            resp = self.request('/oauth/github/callback', isJson=False, params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            }, cookie=self._createCsrfCookie(cookie))
+
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'],
+                         'http://localhost/#foo/bar')
+        self.assertEqual(len(resp.cookie), 2)
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+
+        resp = self.request('/user/me', token=resp.cookie['girderToken'].value)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['email'], 'primary@email.com')
+        self.assertEqual(resp.json['login'], 'johndoe')
+        self.assertEqual(resp.json['firstName'], 'John')
+        self.assertEqual(resp.json['lastName'], 'Doe')
+        newUserId = resp.json['_id']
+
+        # Test login as an existing user
+        email = 'admin@mail.com'
+
+        # Get a fresh token
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar'})
+        self.assertStatusOk(resp)
+        cookie = resp.cookie
+
+        with httmock.HTTMock(githubMock):
+            resp = self.request('/oauth/github/callback', isJson=False, params={
+                'code': '12345',
+                'state': 'http://localhost/#foo/bar'
+            }, cookie=self._createCsrfCookie(cookie))
+
+        self.assertStatus(resp, 303)
+        self.assertEqual(resp.headers['Location'],
+                         'http://localhost/#foo/bar')
+        self.assertTrue('oauthLogin' in resp.cookie)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(resp.cookie['oauthLogin'].value, '')
+
+        token = self.model('token').load(resp.cookie['girderToken'].value,
+                                         force=True, objectId=False)
+        newUser = self.model('user').load(token['userId'], force=True)
+        self.assertEqual(str(newUser['_id']), newUserId)
+        self.assertEqual(newUser['email'], 'primary@email.com')
+        self.assertEqual(newUser['oauth'], {
+            'provider': 'GitHub',
+            'id': 1234
+        })
