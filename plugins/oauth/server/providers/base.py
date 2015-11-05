@@ -122,7 +122,7 @@ class ProviderBase(model_importer.ModelImporter):
             userName = re.sub('[\W_]+', '', userName)
             yield userName
 
-            for i in range(5):
+            for i in range(1, 6):
                 yield '%s%d' % (userName, i)
 
         # Next try to use the prefix from their email address
@@ -133,8 +133,8 @@ class ProviderBase(model_importer.ModelImporter):
         # Finally try to use their first and last name
         yield '%s%s' % (firstName, lastName)
 
-        for i in range(5):
-            yield '%s%s%d' (firstName, lastName, i)
+        for i in range(1, 6):
+            yield '%s%s%d' % (firstName, lastName, i)
 
     def deriveLogin(self, email, firstName, lastName, userName=None):
         """
@@ -148,6 +148,7 @@ class ProviderBase(model_importer.ModelImporter):
         :type email: str
         """
         for login in self.generateLogins(email, firstName, lastName, userName):
+            login = login.lower()
             if self.testLogin(login):
                 return login
 

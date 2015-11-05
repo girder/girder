@@ -50,21 +50,24 @@ class OauthTest(base.TestCase):
             admin=True
         )
 
-    def disabledTestDeriveLogin(self):
+    def testDeriveLogin(self):
         """
-        Unit test of deriveLogin helper method.
+        Unit tests the deriveLogin method of the provider classes.
         """
         from server.providers.google import Google
         provider = Google(None)
 
-        expect = {
-            'admin@google.com': None,  # duplicate of existing admin user
-            '234@mail.com': None,  # violates regex even after coercion
-            'hello.world.foo@mail.com': 'helloworldfoo',
-            'first-last@mail.com': 'first-last'
-        }
+        login = provider.deriveLogin('1234@mail.com', 'John', 'Doe')
+        self.assertEqual(login, 'johndoe')
 
-        self.assertEqual('foobar', provider.deriveLogin()) # TODO
+        login = provider.deriveLogin('hello.world.foo@mail.com', 'A', 'B')
+        self.assertEqual(login, 'helloworldfoo')
+
+        login = provider.deriveLogin('hello.world@mail.com', 'A', 'B', 'user2')
+        self.assertEqual(login, 'user2')
+
+        login = provider.deriveLogin('admin@admin.com', 'A', 'B', 'admin')
+        self.assertEqual(login, 'admin1')
 
     def testGoogleOauth(self):
         from girder.plugins.oauth.constants import PluginSettings
