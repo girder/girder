@@ -25,7 +25,8 @@ import six
 
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
+from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
+    TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
@@ -475,9 +476,11 @@ class AccessControlledModel(Model):
     def __init__(self):
         # Do the bindings before calling __init__(), in case a derived class
         # wants to change things in initialize()
-        events.bind('model.user.remove', 'core.cleanupDeletedEntity',
+        events.bind('model.user.remove',
+                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
                     self._cleanupDeletedEntity)
-        events.bind('model.group.remove', 'core.cleanupDeletedEntity',
+        events.bind('model.group.remove',
+                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
                     self._cleanupDeletedEntity)
         super(AccessControlledModel, self).__init__()
 

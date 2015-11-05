@@ -198,3 +198,6 @@ class CoreEventHandler(object):
 
     # For adding a user into his or her own ACL.
     USER_SELF_ACCESS = 'core.grantSelfAccess'
+
+    # For removing deleted user/group references from AccessControlledModel
+    ACCESS_CONTROL_CLEANUP = 'core.cleanupDeletedEntity'
