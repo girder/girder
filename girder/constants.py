@@ -196,5 +196,8 @@ class CoreEventHandler(object):
     # For creating the default Public and Private folders at user creation time.
     USER_DEFAULT_FOLDERS = 'core.addDefaultFolders'
 
-    # For adding a user into his or her own ACL.
+    # For adding a user into its own ACL.
     USER_SELF_ACCESS = 'core.grantSelfAccess'
+
+    # For updating an item's size to include a new file.
+    FILE_PROPAGATE_SIZE = 'core.propagateSizeToItem'
