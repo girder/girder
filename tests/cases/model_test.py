@@ -54,9 +54,9 @@ def tearDownModule():
     base.stopServer()
 
 
-class FilterTestCase(base.TestCase):
+class ModelTestCase(base.TestCase):
     """
-    Unit test the model filtering utilities.
+    Unit test the model-related functionality and utilities.
     """
     def setUp(self):
         base.TestCase.setUp(self)
