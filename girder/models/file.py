@@ -48,7 +48,6 @@ class File(acl_mixin.AccessControlMixin, Model):
                     CoreEventHandler.FILE_PROPAGATE_SIZE,
                     self._propagateSizeToItem)
 
-
     def remove(self, file, updateItemSize=True, **kwargs):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
