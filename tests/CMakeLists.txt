@@ -5,6 +5,14 @@ set(JS_COVERAGE_MINIMUM_PASS 75)
 python_tests_init()
 javascript_tests_init()
 
+add_javascript_style_test(
+  grunt_main "${PROJECT_SOURCE_DIR}/Gruntfile.js"
+  JSHINT_EXTRA_CONFIGS "${PROJECT_SOURCE_DIR}/grunt_tasks/.jshintrc"
+)
+add_javascript_style_test(
+  grunt_modules "${PROJECT_SOURCE_DIR}/grunt_tasks"
+  JSHINT_EXTRA_CONFIGS "${PROJECT_SOURCE_DIR}/grunt_tasks/.jshintrc"
+)
 add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
 add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
