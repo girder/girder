@@ -253,7 +253,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         fileDoc = event.info
         itemId = fileDoc.get('itemId')
-        if itemId:
+        if itemId and fileDoc.get('size'):
             item = self.model('item').load(itemId, force=True)
             self.propagateSizeChange(item, fileDoc['size'])
 
