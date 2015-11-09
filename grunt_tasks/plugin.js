@@ -90,7 +90,7 @@ module.exports = function (grunt) {
                         '<%= pluginDir %>/<%= grunt.task.current.args[0] %>/web_client/js/**/*.js',
                         '<%= grunt.config.getRaw("jade.plugin.files")[0].dest %>'
                     ],
-                    dest: '<%= staticDir %>/built/plugins/<%= grunt.task.current.args[0] %>/plugin.min.css'
+                    dest: '<%= staticDir %>/built/plugins/<%= grunt.task.current.args[0] %>/plugin.min.js'
                 }]
             }
         },
