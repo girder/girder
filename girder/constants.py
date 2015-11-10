@@ -190,6 +190,12 @@ class CoreEventHandler(object):
     ``handlerName`` argument. Unbinding core event handlers can be used to
     disable certain default functionalities.
     """
+    # For removing deleted user/group references from AccessControlledModel
+    ACCESS_CONTROL_CLEANUP = 'core.cleanupDeletedEntity'
+
+    # For updating an item's size to include a new file.
+    FILE_PROPAGATE_SIZE = 'core.propagateSizeToItem'
+
     # For adding a group's creator into its ACL at creation time.
     GROUP_CREATOR_ACCESS = 'core.grantCreatorAccess'
 
@@ -198,6 +204,3 @@ class CoreEventHandler(object):
 
     # For adding a user into its own ACL.
     USER_SELF_ACCESS = 'core.grantSelfAccess'
-
-    # For updating an item's size to include a new file.
-    FILE_PROPAGATE_SIZE = 'core.propagateSizeToItem'

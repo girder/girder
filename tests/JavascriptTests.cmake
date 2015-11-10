@@ -76,18 +76,25 @@ function(add_javascript_style_test name input)
   endif()
   if(NOT EXISTS ${input})
     message(FATAL_ERROR "Failed to add javascript style tests."
-                        "Directory '${input}' does not exist.")
+                        "Directory or file '${input}' does not exist.")
+  endif()
+
+  # check if the input is a directory or file and set the working directory
+  if(IS_DIRECTORY "${input}")
+    set(test_directory "${input}")
+  else()
+    get_filename_component(test_directory "${input}" DIRECTORY)
   endif()
 
   add_test(
     NAME "jshint_${name}"
-    WORKING_DIRECTORY ${input}
+    WORKING_DIRECTORY "${test_directory}"
     COMMAND "${JSHINT_EXECUTABLE}" --config "${jshint_config}" "${input}"
   )
   add_test(
     NAME "jsstyle_${name}"
-    WORKING_DIRECTORY ${input}
-    COMMAND "${JSSTYLE_EXECUTABLE}" --config "${jsstyle_config}" "${input}"
+    WORKING_DIRECTORY "${test_directory}"
+    COMMAND "${JSSTYLE_EXECUTABLE}"  --config "${jsstyle_config}" "${input}"
   )
 endfunction()
 

@@ -5,6 +5,14 @@ set(JS_COVERAGE_MINIMUM_PASS 75)
 python_tests_init()
 javascript_tests_init()
 
+add_javascript_style_test(
+  grunt_main "${PROJECT_SOURCE_DIR}/Gruntfile.js"
+  JSHINT_EXTRA_CONFIGS "${PROJECT_SOURCE_DIR}/grunt_tasks/.jshintrc"
+)
+add_javascript_style_test(
+  grunt_modules "${PROJECT_SOURCE_DIR}/grunt_tasks"
+  JSHINT_EXTRA_CONFIGS "${PROJECT_SOURCE_DIR}/grunt_tasks/.jshintrc"
+)
 add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
 add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
 
@@ -18,12 +26,12 @@ add_python_test(collection)
 add_python_test(custom_root)
 add_python_test(events)
 add_python_test(file)
-add_python_test(filter)
 add_python_test(folder)
 add_python_test(group)
 add_python_test(install)
 add_python_test(item)
 add_python_test(mail)
+add_python_test(model)
 add_python_test(notification TIMEOUT 50)
 add_python_test(plugin_utilities)
 add_python_test(resource)

@@ -4,6 +4,11 @@
 'use strict';
 
 /*
+ * Initialize global girder object
+ */
+var girder = girder || {};
+
+/*
  * Some cross-browser globals
  */
 if (!window.console) {
