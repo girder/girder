@@ -132,3 +132,60 @@ class ModelTestCase(base.TestCase):
             'sa': 1,
             '_modelType': 'fake'
         })
+
+    def testAccessControlCleanup(self):
+        # Create documents
+        user1 = self.model('user').createUser(
+            email='guy@place.com',
+            login='someguy',
+            firstName='Some',
+            lastName='Guy',
+            password='mypassword'
+        )
+        user2 = self.model('user').createUser(
+            email='other@place.com',
+            login='otherguy',
+            firstName='Other',
+            lastName='Guy',
+            password='mypassword2'
+        )
+        group1 = self.model('group').createGroup(
+            name='agroup',
+            creator=user2
+        )
+        doc1 = {
+            'creatorId': user1['_id'],
+            'field1': 'value1',
+            'field2': 'value2'
+        }
+        doc1 = self.model('fake_ac').setUserAccess(
+            doc1, user1, level=AccessType.ADMIN)
+        doc1 = self.model('fake_ac').setUserAccess(
+            doc1, user2, level=AccessType.READ)
+        doc1 = self.model('fake_ac').setGroupAccess(
+            doc1, group1, level=AccessType.WRITE)
+        doc1 = self.model('fake_ac').save(doc1)
+        doc1Id = doc1['_id']
+
+        # Test pre-delete
+        # The raw ACL properties must be examined directly, as the
+        # "getFullAccessList" method will silently remove leftover invalid
+        # references, which this test is supposed to find
+        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        self.assertEqual(len(doc1['access']['users']), 2)
+        self.assertEqual(len(doc1['access']['groups']), 1)
+        self.assertEqual(doc1['creatorId'], user1['_id'])
+
+        # Delete user and test post-delete
+        self.model('user').remove(user1)
+        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        self.assertEqual(len(doc1['access']['users']), 1)
+        self.assertEqual(len(doc1['access']['groups']), 1)
+        self.assertIsNone(doc1.get('creatorId'))
+
+        # Delete group and test post-delete
+        self.model('group').remove(group1)
+        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        self.assertEqual(len(doc1['access']['users']), 1)
+        self.assertEqual(len(doc1['access']['groups']), 0)
+        self.assertIsNone(doc1.get('creatorId'))
