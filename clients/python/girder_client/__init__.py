@@ -75,7 +75,7 @@ class GirderClient(object):
 
     .. code-block:: python
 
-        client = GirderClient('myhost', 8080)
+        client = GirderClient(apiUrl='http://myhost:8080')
         client.authenticate('myname', 'mypass')
 
         folder_id = '53b714308926486402ac5aba'
