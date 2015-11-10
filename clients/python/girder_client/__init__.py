@@ -103,12 +103,17 @@ class GirderClient(object):
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None,
-                 dryrun=False, blacklist=None):
+                 dryrun=False, blacklist=None, apiUrl=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
-        (HTTP Basic Auth).
+        (HTTP Basic Auth). You can pass the URL in parts with the `host`,
+        `port`, `scheme`, and `apiRoot` kwargs, or simply pass it in all as
+        one URL with the `apiUrl` kwarg instead. If you pass `apiUrl`, the
+        individual part kwargs will be ignored.
 
+        :param apiUrl: The full path to the REST API of a Girder instance, e.g.
+            `http://my.girder.com/api/v1`.
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
         :param port: The port number on which to connect to Girder,
@@ -119,21 +124,18 @@ class GirderClient(object):
             the default value is 'http'; if you pass 'https' you likely want
             to pass 443 for the port
         """
-        if apiRoot is None:
-            apiRoot = '/api/v1'
+        if apiUrl is None:
+            if apiRoot is None:
+                apiRoot = '/api/v1'
 
-        if port is None:
-            if scheme == 'https':
-                port = 443
-            else:
-                port = 80
+            self.scheme = scheme or 'http'
+            self.host = host or 'localhost'
+            self.port = port or (443 if scheme == 'https' else 80)
 
-        self.scheme = scheme or 'http'
-        self.host = host or 'localhost'
-        self.port = port
-
-        self.urlBase = self.scheme + '://' + self.host + ':' + str(self.port) \
-            + apiRoot
+            self.urlBase = '%s://%s:%s%s' % (
+                self.scheme, self.host, str(self.port), apiRoot)
+        else:
+            self.urlBase = apiUrl
 
         if self.urlBase[-1] != '/':
             self.urlBase += '/'
