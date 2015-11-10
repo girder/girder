@@ -32,8 +32,8 @@ if(JAVASCRIPT_STYLE_TESTS)
     message(FATAL_ERROR "'nodejs' executable couldn't be found.\n"
                         "Consider reconfiguring passing -DNODEJS_EXECUTABLE:FILEPATH=/path/to/nodejs")
   endif()
-  find_program(JSHINT_EXECUTABLE jshint ${PROJECT_SOURCE_DIR}/node_modules/jshint/bin)
-  find_program(JSSTYLE_EXECUTABLE jscs ${PROJECT_SOURCE_DIR}/node_modules/jscs/bin)
+  find_program(JSHINT_EXECUTABLE jshint ${PROJECT_SOURCE_DIR}/node_modules/jshint/bin NO_DEFAULT_PATH)
+  find_program(JSSTYLE_EXECUTABLE jscs ${PROJECT_SOURCE_DIR}/node_modules/jscs/bin NO_DEFAULT_PATH)
 endif()
 
 if(BUILD_TESTING)
