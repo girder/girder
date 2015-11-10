@@ -34,14 +34,21 @@ Otherwise you can equivalently just invoke the module directly: ::
 Specifying the Girder Instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default host for the girder_client is `localhost`.  To specify the host
-with cli usage ::
+When constructing a Girder client, you must declare what instance of Girder
+you wish to connect to. The easiest way to do so is to pass the full URL to the
+REST API of the Girder instance you wish to connect to using the ``api-url``
+argument to ``girder-cli``. For example: ::
 
-    python cli.py --host girder.example.com
+    girder-cli --api-url http://localhost:8080/api/v1 ...
 
-To specify a host using SSL (https) ::
+You may also specify the URL in parts, using the ``host`` argument, and optional
+``scheme``, ``port``, and ``api-root`` args. ::
 
-    python cli.py --host girder.example.com --scheme https --port 443
+    girder-cli --host girder.example.com ...
+
+Or... ::
+
+    girder-cli --host girder.example.com --scheme https --port 443 --api-root /api/v1 ...
 
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,38 +59,38 @@ that is version 1.3.0 or later.
 The upload command, ``-c upload``, is the default, so the following two forms
 are equivalent ::
 
-    python cli.py
-    python cli.py -c upload
+    girder-cli
+    girder-cli -c upload
 
 To upload a folder hierarchy rooted at `test_folder` to the Girder Folder with
 id `54b6d41a8926486c0cbca367` ::
 
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder
+    girder-cli 54b6d41a8926486c0cbca367 test_folder
 
 When using the upload command, the default ``--parent-type``, meaning the type
 of resource the local folder will be created under in Girder, is Folder, so the
 following are equivalent ::
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder
-    python cli.py 54b6d41a8926486c0cbca367 test_folder --parent-type folder
+    girder-cli 54b6d41a8926486c0cbca367 test_folder
+    girder-cli 54b6d41a8926486c0cbca367 test_folder --parent-type folder
 
 To upload that same local folder to a Collection or User, specify the parent
 type as follows ::
 
-    python cli.py 54b6d41a8926486c0cbca459 test_folder --parent-type user
+    girder-cli 54b6d41a8926486c0cbca459 test_folder --parent-type user
 
 To see what local folders and files on disk would be uploaded without actually
 uploading anything, add the ``--dryrun`` flag ::
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder --dryrun
+    girder-cli 54b6d41a8926486c0cbca367 test_folder --dryrun
 
 To have leaf folders (those folders with no subfolders, only containing files)
 be uploaded to Girder as single Items with multiple Files, i.e. those leaf
 folders will be created as Items and all files within the leaf folders will be
 Files within those Items, add the ``--leaf-folders-as-items`` flag ::
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder --leaf-folders-as-items
+    girder-cli 54b6d41a8926486c0cbca367 test_folder --leaf-folders-as-items
 
 If you already have an existing Folder hierarchy in Girder which you have a
 superset of on your local disk (e.g. you previously uploaded a hierarchy to
@@ -93,12 +100,12 @@ Items for those that match folders and files on disk, by using the ``--reuse`` f
 
 ::
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder --reuse
+    girder-cli 54b6d41a8926486c0cbca367 test_folder --reuse
 
 To include a blacklist of file patterns that will not be uploaded, pass a comma
 separated list to the ``--blacklist`` arg ::
 
-    python cli.py 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store
+    girder-cli 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store
 
 Download a Folder hierarchy into a local folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -106,7 +113,7 @@ Download a Folder hierarchy into a local folder
 To download a Girder Folder hierarchy rooted at Folder id
 `54b6d40b8926486c0cbca364` under the local folder `download_folder` ::
 
-    python cli.py -c download 54b6d40b8926486c0cbca364 download_folder
+    girder-cli -c download 54b6d40b8926486c0cbca364 download_folder
 
 Downloading is only supported from a parent type of Folder.
 
@@ -125,17 +132,19 @@ id `54b43e9b8926486c0c06cb4f` and copy those to all of the descendant Folders
 .. code-block:: python
 
     import girder_client
-    gc = girder_client.GirderClient()
+    gc = girder_client.GirderClient(apiUrl='https://data.kitware.com/api/v1')
     gc.authenticate('username', 'password')
     gc.inheritAccessControlRecursive('54b43e9b8926486c0c06cb4f')
 
 Set callbacks for Folder and Item uploads
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you have a function you would like called upon the completion of an Item
 or Folder upload, you would do the following.
 
-N.B. The Item callbacks are called after the Item is created and all Files are uploaded to the Item.  The Folder callbacks are called after the Folder is created and all child Folders and Items are uploaded to the Folder.
+N.B. The Item callbacks are called after the Item is created and all Files are uploaded to
+the Item. The Folder callbacks are called after the Folder is created and all child Folders
+and Items are uploaded to the Folder.
 
 
 .. code-block:: python
