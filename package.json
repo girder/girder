@@ -42,7 +42,7 @@
     "phantomjs": "1.9.18",
     "phantomjs-polyfill": "0.0.1",
     "blanket": "1.1.6",
-    "jscs": "1.6.1"
+    "jscs": "2.5.1"
   },
   "scripts": {
     "postinstall": "grunt init && grunt"
