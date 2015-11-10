@@ -61,6 +61,10 @@ class ModelTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
+        ModelImporter.registerModel('fake_ac', FakeAcModel())
+        ModelImporter.registerModel('fake', FakeModel())
+
+    def testModelFiltering(self):
         users = ({
             'email': 'good@email.com',
             'login': 'goodlogin',
@@ -74,13 +78,9 @@ class ModelTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         })
-        self.admin, self.user = [
+        adminUser, regUser = [
             self.model('user').createUser(**user) for user in users]
 
-        ModelImporter.registerModel('fake_ac', FakeAcModel())
-        ModelImporter.registerModel('fake', FakeModel())
-
-    def testModelFiltering(self):
         fields = {
             'hidden': 1,
             'read': 1,
@@ -89,13 +89,12 @@ class ModelTestCase(base.TestCase):
             'admin': 1,
             'sa': 1
         }
-
         # Test filter behavior on access controlled model
         fakeAc = self.model('fake_ac').save(fields)
         fakeAc = self.model('fake_ac').setUserAccess(
-            fakeAc, self.user, level=AccessType.READ)
+            fakeAc, regUser, level=AccessType.READ)
 
-        filtered = self.model('fake_ac').filter(fakeAc, self.admin)
+        filtered = self.model('fake_ac').filter(fakeAc, adminUser)
         self.assertTrue('sa' in filtered)
         self.assertTrue('write' in filtered)
         self.assertFalse('hidden' in filtered)
@@ -103,7 +102,7 @@ class ModelTestCase(base.TestCase):
         self.model('fake_ac').exposeFields(
             level=AccessType.READ, fields='hidden')
 
-        filtered = self.model('fake_ac').filter(fakeAc, self.user)
+        filtered = self.model('fake_ac').filter(fakeAc, regUser)
         self.assertTrue('hidden' in filtered)
         self.assertTrue('read' in filtered)
         self.assertFalse('write' in filtered)
@@ -113,9 +112,9 @@ class ModelTestCase(base.TestCase):
         self.model('fake_ac').hideFields(level=AccessType.READ, fields='read')
 
         fakeAc = self.model('fake_ac').setUserAccess(
-            fakeAc, self.user, level=AccessType.ADMIN)
+            fakeAc, regUser, level=AccessType.ADMIN)
 
-        filtered = self.model('fake_ac').filter(fakeAc, self.user)
+        filtered = self.model('fake_ac').filter(fakeAc, regUser)
         self.assertTrue('hidden' in filtered)
         self.assertTrue('write' in filtered)
         self.assertTrue('admin' in filtered)
@@ -124,10 +123,10 @@ class ModelTestCase(base.TestCase):
 
         # Test Model implementation
         fake = self.model('fake').save(fields)
-        filtered = self.model('fake').filter(fake, self.user)
+        filtered = self.model('fake').filter(fake, regUser)
         self.assertEqual(filtered, {'read': 1, '_modelType': 'fake'})
 
-        filtered = self.model('fake').filter(fake, self.admin)
+        filtered = self.model('fake').filter(fake, adminUser)
         self.assertEqual(filtered, {
             'read': 1,
             'sa': 1,
