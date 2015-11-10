@@ -25,7 +25,9 @@ function sortTasks(obj) {
     var edges = _(obj).chain()
         .pairs()
         .map(function (o) {
-            return _.map(o[1].dependencies || [], function (d) { return [d, o[0]]; });
+            return _.map(o[1].dependencies || [], function (d) {
+                return [d, o[0]];
+            });
         })
         .flatten(true)
         .value();
