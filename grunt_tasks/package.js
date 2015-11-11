@@ -87,7 +87,8 @@ module.exports = function (grunt) {
                 filter: function (fname) {
                     return !fname.match(/\/plugin_tests/) &&
                            !fname.match(/cmake$/) &&
-                           !fname.match(/py[co]$/);
+                           !fname.match(/py[co]$/) &&
+                           !fname.match(/\/node_modules/);
                 }
             }
         }
