@@ -21,7 +21,8 @@ import cherrypy
 import datetime
 
 from .model_base import Model, ValidationException
-from ..constants import AccessType
+from girder import events
+from girder.constants import AccessType, CoreEventHandler
 from girder.utility import assetstore_utilities, acl_mixin
 
 
@@ -42,6 +43,10 @@ class File(acl_mixin.AccessControlMixin, Model):
             "size"))
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields=("assetstoreId",))
+
+        events.bind('model.file.save.created',
+                    CoreEventHandler.FILE_PROPAGATE_SIZE,
+                    self._propagateSizeToItem)
 
     def remove(self, file, updateItemSize=True, **kwargs):
         """
@@ -222,18 +227,34 @@ class File(acl_mixin.AccessControlMixin, Model):
             'assetstoreId': assetstore['_id'],
             'name': name,
             'mimeType': mimeType,
-            'size': size
+            'size': size,
+            'itemId': item['_id'] if item else None
         }
-
-        if item:
-            file['itemId'] = item['_id']
-            self.propagateSizeChange(item, size)
-        else:
-            file['itemId'] = None
 
         if saveFile:
             return self.save(file)
         return file
+
+    def _propagateSizeToItem(self, event):
+        """
+        This callback updates an item's size to include that of a newly-created
+        file.
+
+        This generally should not be called or overridden directly. This should
+        not be unregistered, as that would cause item, folder, and collection
+        sizes to be inaccurate.
+        """
+        # This task is not performed in "createFile", in case
+        # "saveFile==False". The item size should be updated only when it's
+        # certain that the file will actually be saved. It is also possible for
+        # "model.file.save" to set "defaultPrevented", which would prevent the
+        # item from being saved initially.
+
+        fileDoc = event.info
+        itemId = fileDoc.get('itemId')
+        if itemId and fileDoc.get('size'):
+            item = self.model('item').load(itemId, force=True)
+            self.propagateSizeChange(item, fileDoc['size'])
 
     def copyFile(self, srcFile, creator, item=None):
         """
