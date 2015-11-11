@@ -17,10 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
+import six
+
 from girder import events
 from girder.constants import SettingDefault
 from girder.models.model_base import ValidationException
-from . import rest, constants
+from . import rest, constants, providers
 
 
 def validateSettings(event):
@@ -40,14 +42,19 @@ def validateSettings(event):
 
 def checkOauthUser(event):
     """
-    If an OAuth user without a password tries to log in with a password, we
+    If an OAuth2 user without a password tries to log in with a password, we
     want to give them a useful error message.
     """
     user = event.info['user']
-    if 'oauth' in user:
+    if user.get('oauth'):
+
+        prettyProviderNames = ', '.join(
+            providers.idMap[providerName].getProviderName(external=True)
+            for providerName in six.viewkeys(user['oauth'])
+        )
         raise ValidationException(
-            'You don\'t have a password. Please log in with %s or use the '
-            'password reset link.' % user['oauth'].get('provider', 'OAuth'))
+            'You don\'t have a password. Please log in with %s, or use the '
+            'password reset link.' % prettyProviderNames)
 
 
 def load(info):

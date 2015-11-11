@@ -17,13 +17,20 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api.rest import getApiUrl
-from girder.plugins.oauth import constants
-from .base import ProviderBase
 from six.moves import urllib
+
+from girder.api.rest import getApiUrl, RestException
+from .base import ProviderBase
+from .. import constants
 
 
 class GitHub(ProviderBase):
+    _GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize'
+    _GITHUB_SCOPES = ('user:email',)
+    _GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
+    _GITHUB_USER_URL = 'https://api.github.com/user'
+    _GITHUB_EMAILS_URL = 'https://api.github.com/user/emails'
+
     def getClientIdSetting(self):
         return self.model('setting').get(
             constants.PluginSettings.GITHUB_CLIENT_ID)
@@ -46,50 +53,58 @@ class GitHub(ProviderBase):
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': state,
-            'scope': ','.join(constants.GITHUB_SCOPES)
+            'scope': ','.join(cls._GITHUB_SCOPES)
         })
 
-        return '?'.join((constants.GITHUB_AUTH_URL, query))
+        return '?'.join((cls._GITHUB_AUTH_URL, query))
 
-    def getUser(self, code):
+    def getToken(self, code):
         params = {
             'code': code,
             'client_id': self.clientId,
             'client_secret': self.clientSecret,
-            'redirect_uri': self.redirectUri
+            'redirect_uri': self.redirectUri,
         }
-        resp = self.getJson(method='POST', url=constants.GITHUB_TOKEN_URL,
-                            data=params, headers={
-                                'Accept': 'application/json'
-                            })
+        resp = self._getJson(method='POST', url=self._GITHUB_TOKEN_URL,
+                             data=params,
+                             headers={'Accept': 'application/json'})
+        return resp
 
+    def getUser(self, token):
         headers = {
-            'Authorization': 'token %s' % resp['access_token'],
+            'Authorization': 'token %s' % token['access_token'],
             'Accept': 'application/json'
         }
 
-        resp = self.getJson(method='GET', url=constants.GITHUB_EMAILS_URL,
-                            headers=headers)
-        email = None
-        for email in resp:
-            if email['primary']:
-                break
+        # Get user's email address
+        # In the unlikely case that a user has more than 30 email addresses,
+        # this HTTP request might have to be made multiple times with pagination
+        resp = self._getJson(method='GET', url=self._GITHUB_EMAILS_URL,
+                             headers=headers)
+        emails = [
+            email.get('email')
+            for email in resp
+            if email.get('primary')
+        ]
+        if not emails:
+            raise RestException(
+                'This GitHub user has no registered email address.', code=502)
+        # There should never be more than one primary email
+        email = emails[0]
 
-        if not email:
-            raise Exception('This GitHub user has no registered emails.')
+        # Get user's OAuth2 ID, login, and name
+        resp = self._getJson(method='GET', url=self._GITHUB_USER_URL,
+                             headers=headers)
+        oauthId = resp.get('id')
+        if not oauthId:
+            raise RestException('GitHub did not return a user ID.', code=502)
 
-        email = email['email']
-        resp = self.getJson(method='GET', url=constants.GITHUB_USER_URL,
-                            headers=headers)
+        login = resp.get('login', None)
 
-        login = resp['login']
-        names = resp['name'].split()
-        first, last = names[0], names[-1]
+        names = resp.get('name', '').split()
+        firstName = names[0] if names else ''
+        lastName = names[-1] if len(names) > 1 else ''
 
-        user = self.createOrReuseUser(email, first, last, login)
-        user['oauth'] = {
-            'provider': 'GitHub',
-            'id': resp['id']
-        }
-
-        return self.model('user').save(user)
+        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       login)
+        return user

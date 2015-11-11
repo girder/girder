@@ -30,21 +30,29 @@ from girder.utility import config, model_importer
 class ProviderBase(model_importer.ModelImporter):
     def __init__(self, redirectUri, clientId=None, clientSecret=None):
         """
-        Base class for OAuth providers. The purpose of these classes is to
+        Base class for OAuth2 providers. The purpose of these classes is to
         perform the user information lookup to their respective provider
-        services in order to return a Girder user given an OAuth code that was
+        services in order to return a Girder user given an OAuth2 code that was
         sent to us via a callback.
 
-        :param clientId: The client ID for the given OAuth provider.
+        :param clientId: The client ID for the given OAuth2 provider.
         :type clientId: str
-        :param clientSecret: The client secret for the given OAuth provider.
+        :param clientSecret: The client secret for the given OAuth2 provider.
         :type clientSecret: str
-        :param redirectUri: The redirect URI used in this OAuth flow.
+        :param redirectUri: The redirect URI used in this OAuth2 flow.
         :type redirectUri: str
         """
         self.clientId = clientId or self.getClientIdSetting()
         self.clientSecret = clientSecret or self.getClientSecretSetting()
         self.redirectUri = redirectUri
+
+    @classmethod
+    def getProviderName(cls, external=False):
+        providerName = cls.__name__
+        if external:
+            return providerName
+        else:
+            return providerName.lower()
 
     def getClientIdSetting(self):
         raise NotImplementedError()
@@ -54,9 +62,39 @@ class ProviderBase(model_importer.ModelImporter):
 
     @classmethod
     def getUrl(cls, state):
+        """
+        Return the URL to start the OAuth2 authentication flow with an external
+        provider.
+
+        This abstract function must be reimplemented by each provider.
+
+        :param state: A unique string, used to prevent CSRF and store other
+        state information. This string should not be URL-encoded (that must be
+        done in this method).
+        :return: An external absolute URL to the start point for this provider's
+        OAuth2 flow.
+        """
         raise NotImplementedError()
 
-    def getJson(self, **kwargs):
+    def getToken(self, code):
+        raise NotImplementedError()
+
+    def getUser(self, token):
+        """
+        Returns a user via this OAuth2 provider, given an OAuth2 access token.
+
+        Subclasses must implement this to retrieve a provider-specific unique
+        identifier, email address, first name, last name, and optionally a
+        login name from the OAuth2 provider, and then call
+        self._createOrReuseUser with that information to lookup or create a
+        corresponding Girder user.
+
+        :param token: The current OAuth2 access token.
+        :returns: The user document corresponding to this user.
+        """
+        raise NotImplementedError()
+
+    def _getJson(self, **kwargs):
         """
         Make an HTTP request using the specified kwargs, then parse it as JSON
         and return the value. If an error occurs, this raises an appropriate
@@ -65,7 +103,7 @@ class ProviderBase(model_importer.ModelImporter):
         resp = requests.request(**kwargs)
         content = resp.content
 
-        if not isinstance(content, six.text_type):
+        if isinstance(content, six.binary_type):
             content = content.decode('utf8')
 
         try:
@@ -81,37 +119,63 @@ class ProviderBase(model_importer.ModelImporter):
         except ValueError:
             raise RestException('Non-JSON response: %s' % content, code=502)
 
-    def getUser(self, code):
-        """
-        Returns a user via this OAuth provider given an OAuth code. Subclasses
-        must implement this to retrieve an email address, first name, last name,
-        and optionally a login name from the OAuth provider, and then call
-        self.createOrReuseUser with that information to lookup or create a
-        corresponding Girder user.
-        """
-        raise NotImplementedError()
+    def _createOrReuseUser(self, oauthId, email, firstName, lastName,
+                           userName=None):
+        providerName = self.getProviderName()
 
-    def createOrReuseUser(self, email, firstName, lastName, userName=None):
-        cursor = self.model('user').find({'email': email}, limit=1)
-        if cursor.count(True) == 0:
+        # Try finding by ID first, since a user can change their email address
+        user = self.model('user').findOne({
+            'oauthId.%s' % providerName: oauthId})
+        setId = not user
+
+        # Handle a legacy way of storing Google IDs
+        if not user and providerName == 'google':
+            user = self.model('user').findOne({
+                'oauth.provider': 'Google',
+                'oauth.id': oauthId})
+
+        # Existing users using OAuth2 for the first time will not have an ID
+        if not user:
+            user = self.model('user').findOne({'email': email})
+
+        dirty = False
+        # Create the user if it's still not found
+        if not user:
             policy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
             if policy != 'open':
                 raise RestException(
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
-            login = self.deriveLogin(email, firstName, lastName, userName)
+            login = self._deriveLogin(email, firstName, lastName, userName)
 
             user = self.model('user').createUser(
                 login=login, password=None, firstName=firstName,
                 lastName=lastName, email=email)
         else:
-            user = cursor[0]
-            user['firstName'] = firstName
-            user['lastName'] = lastName
+            # Remove legacy format
+            if 'provider' in user.get('oauth', {}):
+                del user['oauth']
+                setId = True
+            # Update user data from provider
+            if email != user['email']:
+                user['email'] = email
+                dirty = True
+            # Don't set names to empty string
+            if firstName != user['firstName'] and firstName:
+                user['firstName'] = firstName
+                dirty = True
+            if lastName != user['lastName'] and lastName:
+                user['lastName'] = lastName
+                dirty = True
+        if setId:
+            user.setdefault('oauth', {})[providerName] = oauthId
+            dirty = True
+        if dirty:
+            user = self.model('user').save(user)
 
         return user
 
-    def generateLogins(self, email, firstName, lastName, userName=None):
+    def _generateLogins(self, email, firstName, lastName, userName=None):
         """
         Generate a series of reasonable login names for a new user based on
         their basic information sent to us by the provider.
@@ -136,10 +200,10 @@ class ProviderBase(model_importer.ModelImporter):
         for i in range(1, 6):
             yield '%s%s%d' % (firstName, lastName, i)
 
-    def deriveLogin(self, email, firstName, lastName, userName=None):
+    def _deriveLogin(self, email, firstName, lastName, userName=None):
         """
         Attempt to automatically create a login name from existing user
-        information from OAuth providers. Attempts to generate it from the
+        information from OAuth2 providers. Attempts to generate it from the
         username on the provider, the email address, or first and last name. If
         not possible, returns None and it is left to the caller to generate
         their own login for the user or choose to fail.
@@ -147,14 +211,17 @@ class ProviderBase(model_importer.ModelImporter):
         :param email: The email address.
         :type email: str
         """
-        for login in self.generateLogins(email, firstName, lastName, userName):
+        # Note, the user's OAuth2 ID should never be used to form a login name,
+        # as many OAuth2 services consider that to be private data
+        for login in self._generateLogins(email, firstName, lastName, userName):
             login = login.lower()
-            if self.testLogin(login):
+            if self._testLogin(login):
                 return login
 
-        return None
+        raise Exception('Could not generate a unique login name for %s (%s %s)'
+                        % (email, firstName, lastName))
 
-    def testLogin(self, login):
+    def _testLogin(self, login):
         """
         When attempting to generate a username, use this to test if the given
         name is valid.
@@ -166,8 +233,5 @@ class ProviderBase(model_importer.ModelImporter):
             return False
 
         # See if this is already taken.
-        cursor = self.model('user').find({'login': login}, limit=1)
-        if cursor.count(True) > 0:
-            return False
-
-        return True
+        user = self.model('user').findOne({'login': login})
+        return not user

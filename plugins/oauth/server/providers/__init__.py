@@ -17,11 +17,17 @@
 #  limitations under the License.
 ###############################################################################
 
-# Import these symbols directly into this module to retain the old naming
-from .github import GitHub
-from .google import Google
+import collections
 
-idMap = {
-    'github': GitHub,
-    'google': Google
-}
+from .google import Google
+from .github import GitHub
+
+
+def addProvider(provider):
+    idMap[provider.getProviderName()] = provider
+
+idMap = collections.OrderedDict()
+
+
+addProvider(Google)
+addProvider(GitHub)

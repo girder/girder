@@ -17,13 +17,19 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api.rest import getApiUrl
-from girder.plugins.oauth import constants
-from .base import ProviderBase
 from six.moves import urllib
+
+from girder.api.rest import getApiUrl, RestException
+from .base import ProviderBase
+from .. import constants
 
 
 class Google(ProviderBase):
+    _GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
+    _GOOGLE_SCOPES = ('profile', 'email')
+    _GOOGLE_TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
+    _GOOGLE_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
+
     def getClientIdSetting(self):
         return self.model('setting').get(
             constants.PluginSettings.GOOGLE_CLIENT_ID)
@@ -48,19 +54,12 @@ class Google(ProviderBase):
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': state,
-            'scope': ' '.join(constants.GOOGLE_SCOPES)
+            'scope': ' '.join(cls._GOOGLE_SCOPES)
         })
 
-        return '?'.join((constants.GOOGLE_AUTH_URL, query))
+        return '?'.join((cls._GOOGLE_AUTH_URL, query))
 
-    def getUser(self, code):
-        """
-        Given an authorization code from an oauth callback, retrieve the user
-        information, creating or updating our user record if necessary.
-
-        :param code: The authorization code from google.
-        :returns: The user document corresponding to this google user.
-        """
+    def getToken(self, code):
         params = {
             'grant_type': 'authorization_code',
             'code': code,
@@ -68,28 +67,51 @@ class Google(ProviderBase):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri
         }
-        resp = self.getJson(method='POST', url=constants.GOOGLE_TOKEN_URL,
-                            data=params)
+        resp = self._getJson(method='POST', url=self._GOOGLE_TOKEN_URL,
+                             data=params)
+        return resp
 
+    def getUser(self, token):
         headers = {
             'Authorization': ' '.join((
-                resp['token_type'], resp['access_token']))
+                token['token_type'], token['access_token']))
         }
-        resp = self.getJson(method='GET', url=constants.GOOGLE_USER_URL,
-                            headers=headers)
+        # Note, a partial response could be requested is very large responses
+        # are ever encountered:
+        # https://developers.google.com/+/web/api/rest/#partial-response?
+        resp = self._getJson(method='GET', url=self._GOOGLE_USER_URL,
+                             headers=headers)
 
-        for email in resp['emails']:
-            if email['type'] == 'account':
-                break
-        email = email['value']
+        # Get user's OAuth2 ID
+        oauthId = resp.get('id')
+        if not oauthId:
+            raise RestException(
+                'Google Plus did not return a user ID.', code=502)
 
-        firstName = resp['name'].get('givenName', '')
-        lastName = resp['name'].get('familyName', '')
+        # Get user's email address
+        # Prefer email address with 'account' type
+        emails = [
+            email.get('value')
+            for email in resp.get('emails', [])
+            if email.get('type') == 'account'
+        ]
+        if not emails:
+            # If an 'account' email can't be found, consider them all
+            emails = [
+                email.get('value')
+                for email in resp.get('emails', [])
+            ]
+        if emails:
+            # Even if there are multiple emails, just use the first one
+            email = emails[0]
+        else:
+            raise RestException(
+                'This Google Plus user has no available email address.',
+                code=502)
 
-        user = self.createOrReuseUser(email, firstName, lastName)
-        user['oauth'] = {
-            'provider': 'Google',
-            'id': resp['id']
-        }
+        # Get user's name
+        firstName = resp.get('name', {}).get('givenName', '')
+        lastName = resp.get('name', {}).get('familyName', '')
 
-        return self.model('user').save(user)
+        user = self._createOrReuseUser(oauthId, email, firstName, lastName)
+        return user

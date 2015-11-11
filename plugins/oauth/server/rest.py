@@ -19,11 +19,11 @@
 
 import cherrypy
 import datetime
-import json
+import six
 
 from girder.constants import AccessType
 from girder.api.describe import Description
-from girder.api.rest import Resource
+from girder.api.rest import Resource, RestException
 from girder.api import access
 from . import constants, providers
 
@@ -35,83 +35,92 @@ class OAuth(Resource):
         self.route('GET', ('provider',), self.listProviders)
         self.route('GET', (':provider', 'callback'), self.callback)
 
-    def _sendCsrfToken(self, redirect):
+    def _createStateToken(self, redirect):
         csrfToken = self.model('token').createToken(days=0.25)
 
-        cookie = cherrypy.response.cookie
-        cookie['oauthLogin'] = json.dumps({
-            'redirect': redirect,
-            'token': str(csrfToken['_id'])
-        })
-        cookie['oauthLogin']['path'] = '/'
-        cookie['oauthLogin']['expires'] = 3600 * 6
+        # The delimiter is arbitrary, but a dot doesn't need to be URL-encoded
+        state = '%s.%s' % (csrfToken['_id'], redirect)
+        return state
 
-    def _validateCsrfToken(self, redirect):
+    def _validateCsrfToken(self, state):
         """
         Tests the CSRF token value in the cookie to authenticate the user as
-        the originator of the OAuth login. Raises an Exception if the token
+        the originator of the OAuth2 login. Raises a RestException if the token
         is invalid.
         """
-        cookie = cherrypy.request.cookie
-        if 'oauthLogin' not in cookie:
-            raise Exception('No CSRF cookie (state="%s").' % redirect)
-
-        info = json.loads(cookie['oauthLogin'].value)
-
-        cookie = cherrypy.response.cookie
-        cookie['oauthLogin'] = ''
-        cookie['oauthLogin']['path'] = '/'
-        cookie['oauthLogin']['expires'] = 0
-
-        if info['redirect'] != redirect:
-            raise Exception('Redirect does not match original value (%s, %s)' %
-                            (info['redirect'], redirect))
+        csrfTokenId, _, redirect = state.partition('.')
 
         token = self.model('token').load(
-            info['token'], objectId=False, level=AccessType.READ)
-
+            csrfTokenId, objectId=False, level=AccessType.READ)
         if token is None:
-            raise Exception('Invalid CSRF token (state="%s").' % redirect)
+            raise RestException('Invalid CSRF token (state="%s").' % state,
+                                code=403)
 
         self.model('token').remove(token)
 
         if token['expires'] < datetime.datetime.utcnow():
-            raise Exception('Expired CSRF token (state="%s").' % redirect)
+            raise RestException('Expired CSRF token (state="%s").' % state,
+                                code=403)
+
+        if not redirect:
+            raise RestException('No redirect location (state="%s").' % state)
+
+        return redirect
 
     @access.public
     def listProviders(self, params):
         self.requireParams(('redirect',), params)
         redirect = params['redirect']
 
-        enabled = self.model('setting').get(
+        enabledNames = self.model('setting').get(
             constants.PluginSettings.PROVIDERS_ENABLED)
 
-        self._sendCsrfToken(redirect)
+        enabledProviders = [
+            provider
+            for providerName, provider in six.viewitems(providers.idMap)
+            if providerName in enabledNames
+        ]
+        if enabledProviders:
+            # Only generate a token if there are enabled providers
+            state = self._createStateToken(redirect)
 
-        info = {}
-        for provider in enabled:
-            if provider in providers.idMap:
-                info[provider] = providers.idMap[provider].getUrl(redirect)
+            # Store as a list, so a consistent ordering can be maintained
+            info = [
+                {
+                    'id': provider.getProviderName(),
+                    'url': provider.getUrl(state)
+                }
+                for provider in enabledProviders
+            ]
+        else:
+            info = []
 
         return info
     listProviders.description = (
-        Description('Get the set of supported OAuth providers and their URLs.')
-        .notes('Will be returned as an object mapping provider name to the '
-               'corresponding URL to direct the user agent to.')
+        Description('Get the list of enabled OAuth2 providers and their URLs.')
+        .notes('Will be returned as a list of objects, each containing a '
+               'provider "id" and a "url" to direct the user agent to.')
         .param('redirect', 'Where the user should be redirected upon completion'
-               ' of the OAuth flow.'))
+               ' of the OAuth2 flow.'))
 
     @access.public
     def callback(self, provider, params):
+        if 'error' in params:
+            raise RestException("Provider returned error: '%s'." %
+                                params['error'], code=502)
+
         self.requireParams(('state', 'code'), params)
 
-        redirect, code = params['state'], params['code']
-        self._validateCsrfToken(redirect)
+        providerName = provider
+        provider = providers.idMap.get(providerName)
+        if not provider:
+            raise RestException("Unknown provider '%s'." % providerName)
 
-        if 'error' in params:
-            raise cherrypy.HTTPRedirect(redirect)
+        redirect = self._validateCsrfToken(params['state'])
 
-        user = providers.idMap[provider](cherrypy.url()).getUser(code)
+        providerObj = provider(cherrypy.url())
+        token = providerObj.getToken(params['code'])
+        user = providerObj.getUser(token)
 
         self.sendAuthTokenCookie(user)
 

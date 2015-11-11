@@ -21,6 +21,14 @@ girder.views.oauth_ConfigView = girder.View.extend({
 
     initialize: function () {
         this.providers = [{
+            id: 'google',
+            name: 'Google',
+            icon: 'gplus',
+            hasAuthorizedOrigins: true,
+            instructions: 'Client IDs and secret keys are managed in the Google ' +
+                          'Developer Console. When creating your client ID there, ' +
+                          'use the following values:'
+        }, {
             id: 'github',
             name: 'GitHub',
             icon: 'github',
@@ -29,14 +37,6 @@ girder.views.oauth_ConfigView = girder.View.extend({
                           'Applications page of your GitHub account settings. ' +
                           'Use the following as the authorization callback URL:'
 
-        }, {
-            id: 'google',
-            name: 'Google',
-            icon: 'gplus',
-            hasAuthorizedOrigins: true,
-            instructions: 'Client IDs and secret keys are managed in the Google ' +
-                          'Developer Console. When creating your client ID there, ' +
-                          'use the following values:'
         }];
         this.providerIds = _.map(this.providers, function (provider) {
             return provider.id;
