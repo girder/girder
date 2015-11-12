@@ -25,11 +25,11 @@ from .. import constants
 
 
 class GitHub(ProviderBase):
-    _GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize'
-    _GITHUB_SCOPES = ('user:email',)
-    _GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
-    _GITHUB_USER_URL = 'https://api.github.com/user'
-    _GITHUB_EMAILS_URL = 'https://api.github.com/user/emails'
+    _AUTH_URL = 'https://github.com/login/oauth/authorize'
+    _AUTH_SCOPES = ('user:email',)
+    _TOKEN_URL = 'https://github.com/login/oauth/access_token'
+    _API_USER_URL = 'https://api.github.com/user'
+    _API_EMAILS_URL = 'https://api.github.com/user/emails'
 
     def getClientIdSetting(self):
         return self.model('setting').get(
@@ -53,10 +53,9 @@ class GitHub(ProviderBase):
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': state,
-            'scope': ','.join(cls._GITHUB_SCOPES)
+            'scope': ','.join(cls._AUTH_SCOPES)
         })
-
-        return '?'.join((cls._GITHUB_AUTH_URL, query))
+        return '%s?%s' % (cls._AUTH_URL, query)
 
     def getToken(self, code):
         params = {
@@ -65,7 +64,7 @@ class GitHub(ProviderBase):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri,
         }
-        resp = self._getJson(method='POST', url=self._GITHUB_TOKEN_URL,
+        resp = self._getJson(method='POST', url=self._TOKEN_URL,
                              data=params,
                              headers={'Accept': 'application/json'})
         return resp
@@ -79,7 +78,7 @@ class GitHub(ProviderBase):
         # Get user's email address
         # In the unlikely case that a user has more than 30 email addresses,
         # this HTTP request might have to be made multiple times with pagination
-        resp = self._getJson(method='GET', url=self._GITHUB_EMAILS_URL,
+        resp = self._getJson(method='GET', url=self._API_EMAILS_URL,
                              headers=headers)
         emails = [
             email.get('email')
@@ -93,7 +92,7 @@ class GitHub(ProviderBase):
         email = emails[0]
 
         # Get user's OAuth2 ID, login, and name
-        resp = self._getJson(method='GET', url=self._GITHUB_USER_URL,
+        resp = self._getJson(method='GET', url=self._API_USER_URL,
                              headers=headers)
         oauthId = resp.get('id')
         if not oauthId:

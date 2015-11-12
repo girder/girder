@@ -20,8 +20,8 @@
 import six
 
 from girder import events
-from girder.constants import SettingDefault
-from girder.models.model_base import ValidationException
+from girder.constants import SettingDefault, SortDir
+from girder.models.model_base import ModelImporter, ValidationException
 from . import rest, constants, providers
 
 
@@ -47,19 +47,28 @@ def checkOauthUser(event):
     """
     user = event.info['user']
     if user.get('oauth'):
-
-        prettyProviderNames = ', '.join(
-            providers.idMap[providerName].getProviderName(external=True)
-            for providerName in six.viewkeys(user['oauth'])
-        )
+        if isinstance(user['oauth'], dict):
+            # Handle a legacy format where only 1 provider (Google) was stored
+            prettyProviderNames = 'Google'
+        else:
+            prettyProviderNames = ', '.join(
+                providers.idMap[val['provider']].getProviderName(external=True)
+                for val in user['oauth']
+            )
         raise ValidationException(
             'You don\'t have a password. Please log in with %s, or use the '
             'password reset link.' % prettyProviderNames)
 
 
 def load(info):
+    ModelImporter.model('user').ensureIndex((
+        (('oauth.provider', SortDir.ASCENDING),
+         ('oauth.id', SortDir.ASCENDING)), {}))
+    ModelImporter.model('user').reconnect()
+
     events.bind('model.setting.validate', 'oauth', validateSettings)
     events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
+
     info['apiRoot'].oauth = rest.OAuth()
 
     # Make Google on by default for backward compatibility. To turn it off,

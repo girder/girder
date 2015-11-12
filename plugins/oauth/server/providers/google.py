@@ -25,10 +25,11 @@ from .. import constants
 
 
 class Google(ProviderBase):
-    _GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
-    _GOOGLE_SCOPES = ('profile', 'email')
-    _GOOGLE_TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
-    _GOOGLE_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
+    _AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
+    _AUTH_SCOPES = ('profile', 'email')
+    _TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
+    _API_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
+    _API_USER_FIELDS = ('id', 'emails', 'name')
 
     def getClientIdSetting(self):
         return self.model('setting').get(
@@ -54,10 +55,9 @@ class Google(ProviderBase):
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': state,
-            'scope': ' '.join(cls._GOOGLE_SCOPES)
+            'scope': ' '.join(cls._AUTH_SCOPES)
         })
-
-        return '?'.join((cls._GOOGLE_AUTH_URL, query))
+        return '%s?%s' % (cls._AUTH_URL, query)
 
     def getToken(self, code):
         params = {
@@ -67,7 +67,7 @@ class Google(ProviderBase):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri
         }
-        resp = self._getJson(method='POST', url=self._GOOGLE_TOKEN_URL,
+        resp = self._getJson(method='POST', url=self._TOKEN_URL,
                              data=params)
         return resp
 
@@ -76,10 +76,13 @@ class Google(ProviderBase):
             'Authorization': ' '.join((
                 token['token_type'], token['access_token']))
         }
-        # Note, a partial response could be requested is very large responses
-        # are ever encountered:
-        # https://developers.google.com/+/web/api/rest/#partial-response?
-        resp = self._getJson(method='GET', url=self._GOOGLE_USER_URL,
+        # For privacy and efficiency, fetch only the specific needed fields
+        # https://developers.google.com/+/web/api/rest/#partial-response
+        query = urllib.parse.urlencode({
+            'fields': ','.join(self._API_USER_FIELDS)
+        })
+        resp = self._getJson(method='GET',
+                             url='%s?%s' % (self._API_USER_URL, query),
                              headers=headers)
 
         # Get user's OAuth2 ID

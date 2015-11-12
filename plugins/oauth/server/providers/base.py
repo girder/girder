@@ -124,15 +124,19 @@ class ProviderBase(model_importer.ModelImporter):
         providerName = self.getProviderName()
 
         # Try finding by ID first, since a user can change their email address
-        user = self.model('user').findOne({
-            'oauthId.%s' % providerName: oauthId})
+        query = {
+            # PyMongo may not properly support full embedded document queries,
+            # since the object order matters (and Python dicts are unordered),
+            # so search by individual embedded fields
+            'oauth.provider': providerName,
+            'oauth.id': oauthId
+        }
+        if providerName == 'google':
+            # The Google provider was previously stored as capitalized, and
+            # legacy databases may still have these entries
+            query['oauth.provider'] = {'$in': ['google', 'Google']}
+        user = self.model('user').findOne(query)
         setId = not user
-
-        # Handle a legacy way of storing Google IDs
-        if not user and providerName == 'google':
-            user = self.model('user').findOne({
-                'oauth.provider': 'Google',
-                'oauth.id': oauthId})
 
         # Existing users using OAuth2 for the first time will not have an ID
         if not user:
@@ -152,10 +156,10 @@ class ProviderBase(model_importer.ModelImporter):
                 login=login, password=None, firstName=firstName,
                 lastName=lastName, email=email)
         else:
-            # Remove legacy format
-            if 'provider' in user.get('oauth', {}):
-                del user['oauth']
-                setId = True
+            # Migrate from a legacy format where only 1 provider was stored
+            if isinstance(user.get('oauth'), dict):
+                user['oauth'] = [user['oauth']]
+                dirty = True
             # Update user data from provider
             if email != user['email']:
                 user['email'] = email
@@ -168,7 +172,11 @@ class ProviderBase(model_importer.ModelImporter):
                 user['lastName'] = lastName
                 dirty = True
         if setId:
-            user.setdefault('oauth', {})[providerName] = oauthId
+            user.setdefault('oauth', []).append(
+                {
+                    'provider': providerName,
+                    'id': oauthId
+                })
             dirty = True
         if dirty:
             user = self.model('user').save(user)
