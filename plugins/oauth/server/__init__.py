@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import six
-
 from girder import events
 from girder.constants import SettingDefault, SortDir
 from girder.models.model_base import ModelImporter, ValidationException

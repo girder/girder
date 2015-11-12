@@ -20,7 +20,6 @@
 import httmock
 import json
 import re
-import six
 
 from girder.constants import SettingKey
 from six.moves import urllib
@@ -142,13 +141,11 @@ class OauthTest(base.TestCase):
         self.assertEqual(queryParams['response_type'], ['code'])
         self.assertEqual(queryParams['access_type'], ['online'])
         self.assertEqual(queryParams['client_id'], ['foo'])
-        self.assertEqual(queryParams['redirect_uri'], [
-            'http://127.0.0.1:30000/api/v1/oauth/google/callback'])
+        self.assertRegexpMatches(queryParams['redirect_uri'][0],
+            r'http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback')
         self.assertEqual(queryParams['state'][0].partition('.')[2],
                          'http://localhost/#foo/bar')
         self.assertEqual(queryParams['scope'], ['profile email'])
-        # Save this valid token for later
-        csrfToken = self._getCsrfToken(resp, 'google')
 
         # Test the error condition for google callback
         resp = self.request('/oauth/google/callback', params={
@@ -205,17 +202,6 @@ class OauthTest(base.TestCase):
             self.assertTrue(resp.json['message'].startswith(
                 'Invalid CSRF token'))
 
-            # Try a correct request, using the token from earlier, which should
-            # still be valid
-            resp = self.request('/oauth/google/callback', isJson=False, params={
-                'code': '12345',
-                'state': csrfToken
-            })
-            self.assertStatus(resp, 303)
-            self.assertEqual(resp.headers['Location'],
-                             'http://localhost/#foo/bar')
-            self.assertTrue('girderToken' in resp.cookie)
-
         # Test login in with a new user
 
         # Get a fresh token
@@ -259,9 +245,7 @@ class OauthTest(base.TestCase):
         newUser = self.model('user').load(token['userId'], force=True)
         self.assertEqual(newUser['login'], 'anotheruser')
         self.assertEqual(newUser['email'], 'anotheruser@mail.com')
-        self.assertDictContainsSubset(newUser['oauth'], {
-            'google': 9876,
-        })
+        self.assertIn({'provider': 'google', 'id': 9876}, newUser['oauth'])
         self.assertEqual(newUser['firstName'], 'John')
         self.assertEqual(newUser['lastName'], 'Doe')
 
@@ -373,8 +357,8 @@ class OauthTest(base.TestCase):
         self.assertEqual(urlParts.netloc, 'github.com')
         self.assertEqual(urlParts.path, '/login/oauth/authorize')
         self.assertEqual(queryParams['client_id'], ['abc'])
-        self.assertEqual(queryParams['redirect_uri'], [
-            'http://127.0.0.1:30000/api/v1/oauth/github/callback'])
+        self.assertRegexpMatches(queryParams['redirect_uri'][0],
+            r'http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/github/callback')
         self.assertEqual(queryParams['state'][0].partition('.')[2],
                          'http://localhost/#foo/bar')
         self.assertEqual(queryParams['scope'], ['user:email'])
@@ -468,6 +452,4 @@ class OauthTest(base.TestCase):
         newUser = self.model('user').load(token['userId'], force=True)
         self.assertEqual(str(newUser['_id']), newUserId)
         self.assertEqual(newUser['email'], 'primary@email.com')
-        self.assertDictContainsSubset(newUser['oauth'], {
-            'github': 1234,
-        })
+        self.assertIn({'provider': 'github', 'id': 1234}, newUser['oauth'])
