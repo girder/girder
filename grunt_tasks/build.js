@@ -24,7 +24,6 @@ module.exports = function (grunt) {
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
 
-    // TODO make clients/web/static/built/plugins dir if it doesn't exist
 
     var uglifyOptions = {
         sourceMap: environment === 'dev',

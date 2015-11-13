@@ -58,6 +58,10 @@ module.exports = function (grunt) {
         'plugin-install': {}
     });
 
+    grunt.registerTask('plugins-builddir', 'Create the plugins build dir', function () {
+        require('mkdirp').sync(grunt.config.get('staticDir') + '/built/plugins');
+    });
+
     grunt.config.merge({
         jade: {
             /**
@@ -116,7 +120,8 @@ module.exports = function (grunt) {
             plugin: {}
         },
         init: {
-            'plugin-install': {}
+            'plugin-install': {},
+            'plugins-builddir': {}
         }
     });
 

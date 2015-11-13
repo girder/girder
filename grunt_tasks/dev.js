@@ -58,7 +58,8 @@ module.exports = function (grunt) {
         default: {
             'test-env-html': {
                 dependencies: ['uglify:app']
-            }
+            },
+            'uglify:test': {}
         }
     });
 
