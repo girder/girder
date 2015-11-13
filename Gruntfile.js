@@ -36,6 +36,7 @@ function sortTasks(obj) {
 
 module.exports = function (grunt) {
     var fs = require('fs');
+    var isSourceBuild = fs.existsSync('girder/__init__.py');
     require('colors');
 
     // Project configuration.
@@ -43,14 +44,14 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
+        isSourceBuild: isSourceBuild,
         init: {
             setup: {}
         },
         default: {}
     });
 
-    // Figure out if we are running inside a source tree or a pip installation
-    if (fs.existsSync('girder/__init__.py')) {
+    if (isSourceBuild) {
         // We are in a source tree
         grunt.config.set('girderDir', 'girder');
     } else {

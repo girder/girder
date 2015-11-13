@@ -1,7 +1,6 @@
 include LICENSE
 include setup.py
 include requirements.txt
-include config_parse.py
 include Gruntfile.js
 include girder/girder-version.json
 include package.json

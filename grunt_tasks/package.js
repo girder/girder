@@ -18,6 +18,11 @@
  * Define tasks related to packaging girder for release.
  */
 module.exports = function (grunt) {
+    if (!grunt.config.get('isSourceBuild')) {
+        // If this is a package build rather than a source build, we skip the
+        // dev build tasks.
+        return;
+    }
 
     var fs = require('fs');
 

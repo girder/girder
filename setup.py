@@ -37,11 +37,9 @@ class InstallWithOptions(install):
         install.run(self, *arg, **kw)
 
         dest = os.path.join(self.install_lib, 'girder')
-        shutil.copy('config_parse.py', dest)
         shutil.copy('Gruntfile.js', dest)
         shutil.copy('package.json', dest)
         shutil.copytree('clients', os.path.join(dest, 'clients'))
-        os.remove(os.path.join('grunt_tasks', 'dev.js'))
         shutil.copytree('grunt_tasks', os.path.join(dest, 'grunt_tasks'))
         shutil.copytree('plugins', os.path.join(dest, 'plugins'))
 
@@ -91,13 +89,13 @@ setup(
     },
     install_requires=reqs,
     zip_safe=False,
-    scripts=['girder-install'],
     cmdclass={
         'install': InstallWithOptions
     },
     entry_points={
         'console_scripts': [
-            'girder-server = girder.__main__:main'
+            'girder-server = girder.__main__:main',
+            'girder-install = girder.utility.install:main'
         ]
     }
 )

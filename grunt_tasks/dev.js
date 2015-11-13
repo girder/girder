@@ -19,9 +19,48 @@
  * build system for installed girder packages.
  */
 module.exports = function (grunt) {
+    if (!grunt.config.get('isSourceBuild')) {
+        // If this is a package build rather than a source build, we skip the
+        // dev build tasks.
+        return;
+    }
+
     var fs = require('fs');
 
+    var setServerConfig = function (err, stdout, stderr, callback) {
+        var cfg, apiRoot, staticRoot;
+
+        if (err) {
+            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
+        }
+        try {
+            cfg = JSON.parse(stdout);
+            apiRoot = ((cfg.server && cfg.server.api_root) || '/api/v1').replace(/\"/g, '');
+            staticRoot = ((cfg.server && cfg.server.static_root) || '/static').replace(/\"/g, '');
+            grunt.config.set('serverConfig', {
+                staticRoot: staticRoot,
+                apiRoot: apiRoot
+            });
+            console.log('Static root: ' + staticRoot.bold);
+            console.log('API root: ' + apiRoot.bold);
+        }
+        catch (e) {
+            grunt.warn('Invalid JSON from config_parse: ' + stdout);
+        }
+        callback();
+    };
+
     grunt.config.merge({
+        shell: {
+            readServerConfig: {
+                command: 'env python config_parse.py ' +
+                         grunt.config.get('girderDir') + '/conf/girder.local.cfg',
+                options: {
+                    stdout: false,
+                    callback: setServerConfig
+                }
+            }
+        },
         uglify: {
             test: {
                 files: {
@@ -46,10 +85,14 @@ module.exports = function (grunt) {
         },
 
         init: {
-            'uglify:polyfill': {}
+            'uglify:polyfill': {},
+            'shell:readServerConfig': {
+                dependencies: ['setup']
+            }
         },
 
         default: {
+            'shell:readServerConfig': {},
             'test-env-html': {
                 dependencies: ['shell:readServerConfig', 'uglify:app']
             }

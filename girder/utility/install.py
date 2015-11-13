@@ -200,3 +200,11 @@ def install_plugin(source=None, force=False):
     return found
 
 __all__ = ('install_plugin', 'install_web')
+
+
+def main():
+    """
+    This is an entry point exposed in the python sdist package under the name
+    "girder-install".
+    """
+    pass  # TODO port girder-install code into here
