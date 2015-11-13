@@ -54,7 +54,8 @@ module.exports = function (grunt) {
                 },
                 src: ['<%= grunt.config.get("pluginDir") %>/<%= grunt.task.current.args[0] %>/package.json']
             }
-        }
+        },
+        'plugin-install': {}
     });
 
     grunt.config.merge({

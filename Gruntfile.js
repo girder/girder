@@ -49,6 +49,15 @@ module.exports = function (grunt) {
         default: {}
     });
 
+    // Figure out if we are running inside a source tree or a pip installation
+    if (fs.existsSync('girder/__init__.py')) {
+        // We are in a source tree
+        grunt.config.set('girderDir', 'girder');
+    } else {
+        // We are in an installed package
+        grunt.config.set('girderDir', '.');
+    }
+
     /**
      * Load task modules inside `grunt_tasks`.
      */
@@ -68,7 +77,7 @@ module.exports = function (grunt) {
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         // If the local config file doesn't exist, we make it
-        var confDir = 'girder/conf';
+        var confDir = grunt.config.get('girderDir') + '/conf';
         if (!fs.existsSync(confDir + '/girder.local.cfg')) {
             fs.writeFileSync(
                 confDir + '/girder.local.cfg',

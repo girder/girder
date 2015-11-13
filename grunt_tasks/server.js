@@ -44,7 +44,8 @@ module.exports = function (grunt) {
     grunt.config.merge({
         shell: {
             readServerConfig: {
-                command: 'env python config_parse.py girder/conf/girder.local.cfg',
+                command: 'env python config_parse.py ' +
+                         grunt.config.get('girderDir') + '/conf/girder.local.cfg',
                 options: {
                     stdout: false,
                     callback: setServerConfig

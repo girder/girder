@@ -160,9 +160,9 @@ def main(args):
              'currently installed Girder release.'
     )
 
-    parsed = parser.parse_args(args[1:])
+    parsed = parser.parse_args(args)
     parsed.func(parsed)
 
 if __name__ == '__main__':
     import sys
-    main(sys.argv)
+    main(sys.argv[1:])

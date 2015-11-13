@@ -1,12 +1,18 @@
-prune clients
-prune tests
 include LICENSE
 include setup.py
 include requirements.txt
+include config_parse.py
+include Gruntfile.js
 include girder/girder-version.json
 include package.json
 include README.rst
 include girder-install
 include girder/conf/girder.dist.cfg
+recursive-include clients/web *
 recursive-include girder/mail_templates *
+recursive-include grunt_tasks *
+recursive-include plugins *
 global-exclude *.pyc *.pyo *.cmake
+prune clients/web/static/built
+prune clients/web/dev
+prune clients/web/test

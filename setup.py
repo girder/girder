@@ -18,6 +18,8 @@
 ###############################################################################
 
 import json
+import os
+import shutil
 import sys
 
 from setuptools import setup, find_packages
@@ -26,56 +28,22 @@ from pkg_resources import parse_requirements
 
 
 class InstallWithOptions(install):
-    """
-    A custom install command that recognizes extra options
-    to perform plugin and/or web client installation.
-    """
-
-    user_options = install.user_options + [
-        ('plugins', None, 'Install default plugins.'),
-        ('web', None, 'Install web client resources.')
-    ]
-
-    boolean_options = install.boolean_options + [
-        'plugins', 'web'
-    ]
-
-    def initialize_options(self, *arg, **kw):
-        install.initialize_options(self, *arg, **kw)
-        self.plugins = None
-        self.web = None
-
     def run(self, *arg, **kw):
         """
-        Runs the main installation, then installs optional
-        components.  This will fail if (for whatever reason)
-        the installation path is not in ``sys.path``.
+        We override the default install command in order to copy our required
+        package data underneath the package directory; in the egg, it is
+        adjacent to the package dir.
         """
         install.run(self, *arg, **kw)
-        if self.plugins:
-            print('Installing plugins')
-            self.girder_install('plugins')
-        if self.web:
-            print('Installing web components')
-            self.girder_install('web')
 
-    def girder_install(self, component):
-        """
-        Try to import girder_install to install
-        optional components.
-        """
-        try:
-            from girder.utility import install
-        except ImportError:
-            sys.stderr.write(
-                'Install {} failed.  '.format(component) +
-                'Could not import girder.\n'
-            )
-            return
-        if component == 'web':
-            install.install_web(force=True)
-        elif component == 'plugins':
-            install.install_plugin(force=True)
+        dest = os.path.join(self.install_lib, 'girder')
+        shutil.copy('config_parse.py', dest)
+        shutil.copy('Gruntfile.js', dest)
+        shutil.copy('package.json', dest)
+        shutil.copytree('clients', os.path.join(dest, 'clients'))
+        os.remove(os.path.join('grunt_tasks', 'dev.js'))
+        shutil.copytree('grunt_tasks', os.path.join(dest, 'grunt_tasks'))
+        shutil.copytree('plugins', os.path.join(dest, 'plugins'))
 
 with open('README.rst') as f:
     readme = f.read()
@@ -97,18 +65,18 @@ reqs = [str(req) for req in install_reqs]
 setup(
     name='girder',
     version=version,
-    description='High-performance data management platform',
+    description='Web-based data management platform',
     long_description=readme,
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     url='https://girder.readthedocs.org',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2'
+        'Programming Language :: Python'
     ],
     packages=find_packages(exclude=('tests.*', 'tests')),
     package_data={
