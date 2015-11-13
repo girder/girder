@@ -23,7 +23,6 @@ COPY Gruntfile.js /girder/Gruntfile.js
 COPY requirements.txt /girder/requirements.txt
 COPY requirements-dev.txt /girder/requirements-dev.txt
 COPY setup.py /girder/setup.py
-COPY config_parse.py /girder/config_parse.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 

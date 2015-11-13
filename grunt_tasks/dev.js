@@ -27,40 +27,7 @@ module.exports = function (grunt) {
 
     var fs = require('fs');
 
-    var setServerConfig = function (err, stdout, stderr, callback) {
-        var cfg, apiRoot, staticRoot;
-
-        if (err) {
-            grunt.fail.fatal('config_parse failed on local.server.cfg: ' + stderr);
-        }
-        try {
-            cfg = JSON.parse(stdout);
-            apiRoot = ((cfg.server && cfg.server.api_root) || '/api/v1').replace(/\"/g, '');
-            staticRoot = ((cfg.server && cfg.server.static_root) || '/static').replace(/\"/g, '');
-            grunt.config.set('serverConfig', {
-                staticRoot: staticRoot,
-                apiRoot: apiRoot
-            });
-            console.log('Static root: ' + staticRoot.bold);
-            console.log('API root: ' + apiRoot.bold);
-        }
-        catch (e) {
-            grunt.warn('Invalid JSON from config_parse: ' + stdout);
-        }
-        callback();
-    };
-
     grunt.config.merge({
-        shell: {
-            readServerConfig: {
-                command: 'env python config_parse.py ' +
-                         grunt.config.get('girderDir') + '/conf/girder.local.cfg',
-                options: {
-                    stdout: false,
-                    callback: setServerConfig
-                }
-            }
-        },
         uglify: {
             test: {
                 files: {
@@ -85,23 +52,17 @@ module.exports = function (grunt) {
         },
 
         init: {
-            'uglify:polyfill': {},
-            'shell:readServerConfig': {
-                dependencies: ['setup']
-            }
+            'uglify:polyfill': {}
         },
 
         default: {
-            'shell:readServerConfig': {},
             'test-env-html': {
-                dependencies: ['shell:readServerConfig', 'uglify:app']
+                dependencies: ['uglify:app']
             }
         }
     });
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
-        grunt.task.requires('shell:readServerConfig');
-
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
@@ -132,8 +93,8 @@ module.exports = function (grunt) {
             ],
             jsFilesUncovered: dependencies,
             jsFilesCovered: inputs,
-            staticRoot: grunt.config.get('serverConfig.staticRoot'),
-            apiRoot: grunt.config.get('serverConfig.apiRoot')
+            staticRoot: '/static',
+            apiRoot: '/api/v1'
         }));
     });
 };
