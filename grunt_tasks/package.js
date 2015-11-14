@@ -36,63 +36,19 @@ module.exports = function (grunt) {
                     callback: function (err, stdout, stderr, callback) {
                         grunt.config.requires('pkg.version');
 
-                        var fname = 'girder-' +
-                            grunt.config.get('pkg').version +
+                        var fname = 'girder-' + grunt.config.get('pkg').version +
                             '.tar.gz';
                         var stat = fs.statSync(fname);
                         if (!err && stat.isFile() && stat.size > 0) {
                             grunt.verbose.write(stdout);
-                            grunt.log
-                                .write('Created ')
-                                .write(grunt.log.wordlist([fname]))
-                                .write(' (' + stat.size + ' bytes)\n');
+                            grunt.log.write('Created ' + fname.cyan + ' (' +
+                                            stat.size + ' bytes)\n');
                         } else {
                             grunt.verbose.write(stdout).write(stderr).write('\n');
                             grunt.fail.warn('python setup.py sdist failed.');
                         }
                         callback();
                     }
-                }
-            }
-        },
-        compress: {
-            // create girder-web-[version].tar.gz
-            'package-web': {
-                options: {
-                    mode: 'tgz',
-                    archive: function () {
-                        grunt.config.requires('pkg.version');
-                        return 'girder-web-' +
-                            grunt.config.get('pkg').version +
-                            '.tar.gz';
-                    },
-                    level: 9
-                },
-                expand: true,
-                cwd: 'clients/web',
-                src: ['lib/**', 'static/**'],
-                dest: 'clients/web/'
-            },
-            // create girder-plugins-[version].tar.gz
-            'package-plugins': {
-                options: {
-                    mode: 'tgz',
-                    archive: function () {
-                        grunt.config.requires('pkg.version');
-                        return 'girder-plugins-' +
-                            grunt.config.get('pkg').version +
-                            '.tar.gz';
-                    },
-                    level: 9
-                },
-                expand: true,
-                cwd: 'plugins',
-                src: ['**'],
-                dest: '',
-                filter: function (fname) {
-                    return !fname.match(/\/plugin_tests/) &&
-                           !fname.match(/cmake$/) &&
-                           !fname.match(/py[co]$/);
                 }
             }
         }
@@ -112,8 +68,6 @@ module.exports = function (grunt) {
     // Create tarballs for distribution through pip and github releases
     grunt.registerTask('package', 'Generate a python package for distribution.', [
         'remove-packaging',
-        'compress:package-web',
-        'compress:package-plugins',
         'shell:package-server'
     ]);
 

@@ -18,13 +18,9 @@
  * Define tasks that bundle and compile files for deployment.
  */
 module.exports = function (grunt) {
-
-    var fs = require('fs');
     var path = require('path');
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
-
-
     var uglifyOptions = {
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,

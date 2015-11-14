@@ -23,128 +23,57 @@ be restarted for these changes to take effect.
 """
 
 import os
-import tempfile
-import tarfile
-import shutil
 import pip
+import subprocess
+import tempfile
 
 from girder import constants
 from girder.utility.plugin_utilities import getPluginDir
 from six.moves import urllib
 
-
 version = constants.VERSION['apiVersion']
+pluginDir = getPluginDir()
+webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
 
-# Default download location for optional features
-defaultSource = (
-    'https://github.com/girder/girder/releases/download/v%s/' % version
-)
+
+def print_version(parser):
+    print(version)
+
+
+def print_plugin_path(parser):
+    print(pluginDir)
+
+
+def print_web_root(parser):
+    print(webRoot)
 
 
 def fix_path(path):
     """
     Get an absolute path (while expanding ~).
 
-    :param str path: a filesystem path
+    :param path: a filesystem path
+    :type path: str
     :returns: an absolute path
     :rtype: str
     """
-    # first expand ~
-    path = os.path.expanduser(path)
-
-    # get the absolute path
-    return os.path.abspath(path)
+    return os.path.abspath(os.path.expanduser(path))
 
 
-def handle_source(src, dest):
+def install_web(parser):
     """
-    Stage a source specification into a temporary directory for processing.
-    Returns False if unsuccessful.
-
-    :param str src: source specification (filesystem or url)
-    :param str dest: destination path
-    :returns: True if success else False
-    :rtype: bool
+    Build and install Girder's web client. This runs `npm install` to execute
+    the entire build and install process.
     """
+    proc = subprocess.Popen(('npm', 'install', '--production', '--unsafe-perm'))
+    proc.communicate()
 
-    try:  # pragma: no cover
-        # Try to open as a url
-        request = urllib.request.urlopen(src)
-        download = tempfile.NamedTemporaryFile(suffix='.tgz')
-        download.file.write(request.read())
-        download.file.flush()
-        download.file.seek(0)
-        src = download.name
-    except (urllib.error.URLError, ValueError):
-        pass
-
-    src = fix_path(src)
-    if os.path.isdir(src):
-        # This is already a directory, so copy it.
-        pluginName = os.path.split(src)[1]
-        dest = os.path.join(dest, pluginName)
-        shutil.copytree(src, dest)
-        return True
-
-    if os.path.exists(src):
-        # Try to open as a tarball.
-        try:
-            with tarfile.open(src) as tgz:
-                tgz.extractall(dest)
-            return True
-        except tarfile.ReadError:
-            pass
-
-    # Nothing else to try
-    return False
+    if proc.returncode:
+        raise Exception('Web client install failed: npm install returned %s.' %
+                        proc.returncode)
 
 
-def install_web(source=None, force=False):  # pragma: no cover
-    """
-    Install the web client from the given source.  If no source
-    is present it will install from the current release package
-    on Github.
-
-    :param str src: source specification (filesystem or url)
-    :param bool force: allow overwriting existing files
-    :returns: True if success else False
-    :rtype: bool
-    """
-    if source is None:
-        source = defaultSource + 'girder-web-' + version + '.tar.gz'
-
-    webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
-    clients = os.path.join(constants.PACKAGE_DIR, 'clients')
-
-    result = None
-    if os.path.isdir(clients):
-        if force:
-            shutil.rmtree(clients)
-        else:
-            print(constants.TerminalColor.warning(
-                'Client files already exist at %s, use "force" to overwrite.' %
-                constants.STATIC_ROOT_DIR
-            ))
-            return False
-
-    tmp = tempfile.mkdtemp()
-    try:
-        result = handle_source(source, tmp)
-        clients = os.path.join(tmp, 'clients')
-        if result and os.path.isdir(clients):
-            shutil.copytree(clients, os.path.join(
-                constants.PACKAGE_DIR,
-                'clients'
-            ))
-            result = webRoot
-
-    finally:
-        shutil.rmtree(tmp)
-
-    return result
-
-
-def install_plugin(source=None, force=False):
+def install_plugin(parser):
     """
     Install one or more plugins from the given source.  If no
     source is given, it will install all plugins in the release
@@ -173,7 +102,7 @@ def install_plugin(source=None, force=False):
 
         for plugin in plugins:
             pluginName = os.path.split(plugin)[1]
-            pluginTarget = os.path.join(getPluginDir(), pluginName)
+            pluginTarget = os.path.join(pluginDir, pluginName)
 
             if os.path.exists(pluginTarget):
                 if force:
@@ -207,4 +136,38 @@ def main():
     This is an entry point exposed in the python sdist package under the name
     "girder-install".
     """
-    pass  # TODO port girder-install code into here
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description='Install optional Girder components.  To get help for a subcommand, '
+                    'try "%s <command> -h"' % sys.argv[0],
+        epilog='This script supports installing from a url, a tarball, '
+               'or a local path.  When installing with no sources specified, it will install '
+               'from the main Girder repository corresponding to the Girder release '
+               'currently installed.'
+    )
+
+    sub = parser.add_subparsers()
+
+    plugin = sub.add_parser('plugin', help='Install a plugin.')
+    plugin.set_defaults(func=install_plugin)
+
+    web = sub.add_parser('web', help='Install web client libraries.')
+    web.set_defaults(func=install_web)
+
+    sub.add_parser(
+        'version', help='Print the version of Girder.'
+    ).set_defaults(func=print_version)
+
+    sub.add_parser(
+        'plugin-path', help='Print the currently configured plugin path.'
+    ).set_defaults(func=print_plugin_path)
+
+    sub.add_parser(
+        'web-root', help='Print the current web root for static files.'
+    ).set_defaults(func=print_web_root)
+
+    parsed = parser.parse_args()
+    parsed.func(parsed)
+    # npm install --production --unsafe-perm

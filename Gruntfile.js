@@ -72,7 +72,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-gitinfo');
     grunt.loadNpmTasks('grunt-file-creator');
-    grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-npm-install');
 
     // This task should be run once manually at install time.
