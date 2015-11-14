@@ -17,13 +17,17 @@
 #  limitations under the License.
 ###############################################################################
 
+import collections
 
-# Constants representing the setting keys for this plugin
-class PluginSettings:
-    PROVIDERS_ENABLED = 'oauth.providers_enabled'
+from .google import Google
+from .github import GitHub
 
-    GOOGLE_CLIENT_ID = 'oauth.google_client_id'
-    GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'
 
-    GITHUB_CLIENT_ID = 'oauth.github_client_id'
-    GITHUB_CLIENT_SECRET = 'oauth.github_client_secret'
+def addProvider(provider):
+    idMap[provider.getProviderName()] = provider
+
+idMap = collections.OrderedDict()
+
+
+addProvider(Google)
+addProvider(GitHub)

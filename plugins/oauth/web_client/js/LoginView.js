@@ -1,8 +1,9 @@
 girder.views.oauth_LoginView = girder.View.extend({
     events: {
         'click .g-oauth-button': function (event) {
-            var provider = $(event.currentTarget).attr('g-provider');
-            window.location = this.providers[provider];
+            var providerId = $(event.currentTarget).attr('g-provider');
+            var provider = _.findWhere(this.providers, {id: providerId});
+            window.location = provider.url;
         }
     },
 
@@ -24,28 +25,36 @@ girder.views.oauth_LoginView = girder.View.extend({
 
     render: function () {
         var buttons = [];
-        _.each(this.providers, function (url, provider) {
-            var btn = this._buttons[provider];
+        _.each(this.providers, function (provider) {
+            var btn = this._buttons[provider.id];
 
             if (btn) {
-                btn.provider = provider;
+                btn.providerId = provider.id;
                 buttons.push(btn);
             }
             else {
-                console.warn('Unsupported OAuth provider: ' + provider);
+                console.warn('Unsupported OAuth2 provider: ' + provider);
             }
         }, this);
 
-        this.$el.append(girder.templates.oauth_login({
-            modeText: this.modeText,
-            buttons: buttons
-        }));
+        if (buttons.length) {
+            this.$el.append(girder.templates.oauth_login({
+                modeText: this.modeText,
+                buttons: buttons
+            }));
+        }
     },
 
     _buttons: {
-        Google: {
-            'icon': 'gplus',
-            'class': 'g-oauth-button-google'
+        google: {
+            icon: 'gplus',
+            text: 'Google',
+            class: 'g-oauth-button-google'
+        },
+        github: {
+            icon: 'github-circled',
+            text: 'GitHub',
+            class: 'g-oauth-button-github'
         }
     }
 });
