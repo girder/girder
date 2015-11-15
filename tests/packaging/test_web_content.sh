@@ -10,6 +10,13 @@ source "${virtualenv_activate}"
 
 girder-install web || exit 1
 
+# Make sure that our grunt targets got built
+webroot=$(girder-install web-root)
+if [ ! -f "${webroot}/static/built/plugins/jobs/plugin.min.js" ] ; then
+    echo "Error: grunt targets were not built correctly"
+    exit 1
+fi
+
 # Start Girder server
 export GIRDER_PORT=50202
 python -m girder &> /dev/null &

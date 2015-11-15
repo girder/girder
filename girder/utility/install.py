@@ -23,14 +23,12 @@ be restarted for these changes to take effect.
 """
 
 import os
-import girder
 import pip
+import shutil
 import subprocess
-import tempfile
 
 from girder import constants
 from girder.utility.plugin_utilities import getPluginDir
-from six.moves import urllib
 
 version = constants.VERSION['apiVersion']
 pluginDir = getPluginDir()
@@ -61,13 +59,13 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def install_web(parser):
+def _runNpmInstall(wd=None):
     """
-    Build and install Girder's web client. This runs `npm install` to execute
-    the entire build and install process.
+    Use this to run `npm install` inside the package.
     """
+    wd = wd or constants.PACKAGE_DIR
     args = ('npm', 'install', '--production', '--unsafe-perm')
-    proc = subprocess.Popen(args, cwd=girder.__path__[0])
+    proc = subprocess.Popen(args, cwd=wd)
     proc.communicate()
 
     if proc.returncode:
@@ -75,62 +73,48 @@ def install_web(parser):
                         proc.returncode)
 
 
-def install_plugin(parser):
+def install_web(opts):
     """
-    Install one or more plugins from the given source.  If no
-    source is given, it will install all plugins in the release
-    package on Github.  The source provided must be a directory
-    or tarball containing one or more directories which
-    will be installed as individual plugins.
-
-    :param str src: source specification (filesystem or url)
-    :param bool force: allow overwriting existing files
-    :returns: a list of plugins that were installed
-    :rtype: list
+    Build and install Girder's web client. This runs `npm install` to execute
+    the entire build and install process.
     """
-    if source is None:  # pragma: no cover
-        source = defaultSource + 'girder-plugins-' + version + '.tar.gz'
+    _runNpmInstall()
 
-    found = []
-    tmp = tempfile.mkdtemp()
-    try:
-        handle_source(source, tmp)
 
-        plugins = []
-        for pth in os.listdir(tmp):
-            pth = os.path.join(tmp, pth)
-            if os.path.isdir(pth):
-                plugins.append(pth)
+def install_plugin(opts):
+    """
+    Install a plugin into a packaged Girder environment. This first copies the
+    plugin dir recursively into the Girder primary plugin directory, then
+    installs all of its pip requirements from its requirements.txt file if one
+    exists, then runs `npm install` to build any web client targets exposed by
+    the plugin.
+    """
+    pluginPath = fix_path(opts.plugin)
+    name = os.path.basename(pluginPath)
 
-        for plugin in plugins:
-            pluginName = os.path.split(plugin)[1]
-            pluginTarget = os.path.join(pluginDir, pluginName)
+    if not os.path.isdir(pluginPath):
+        raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-            if os.path.exists(pluginTarget):
-                if force:
-                    shutil.rmtree(pluginTarget)
-                else:
-                    print(constants.TerminalColor.warning(
-                        'A plugin already exists at %s, '
-                        'use "force" to overwrite.' % pluginTarget
-                    ))
-                    continue
-            found.append(pluginName)
-            shutil.copytree(plugin, pluginTarget)
-            requirements = os.path.join(pluginTarget, 'requirements.txt')
-            if os.path.exists(requirements):  # pragma: no cover
-                print(constants.TerminalColor.info(
-                    'Attempting to install requirements for %s.\n' % pluginName
-                ))
-                if pip.main(['install', '-U', '-r', requirements]) != 0:
-                    print(constants.TerminalColor.error(
-                        'Failed to install requirements for %s.' % pluginName
-                    ))
-    finally:
-        shutil.rmtree(tmp)
-    return found
+    targetPath = os.path.join(pluginDir, name)
+    if os.path.exists(targetPath):
+        if opts.force:
+            print(constants.TerminalColor.warning(
+                'Removing existing plugin at %s.' % targetPath))
+            shutil.rmtree(targetPath)
+        else:
+            raise Exception('Plugin already exists at %s, use "--force" to '
+                            'overwrite the existing directory with this one.')
 
-__all__ = ('install_plugin', 'install_web')
+    shutil.copytree(pluginPath, targetPath)
+    requirements = os.path.join(targetPath, 'requirements.txt')
+
+    if os.path.isfile(requirements):
+        print(constants.TerminalColor.info(
+            'Installing pip requirements for the plugin.'))
+        if pip.main(['install', '-U', '-r', requirements]) != 0:
+            raise Exception('Failed to install pip requirements.')
+
+    _runNpmInstall()
 
 
 def main():
@@ -142,20 +126,18 @@ def main():
     import sys
 
     parser = argparse.ArgumentParser(
-        description='Install optional Girder components.  To get help for a subcommand, '
-                    'try "%s <command> -h"' % sys.argv[0],
-        epilog='This script supports installing from a url, a tarball, '
-               'or a local path.  When installing with no sources specified, it will install '
-               'from the main Girder repository corresponding to the Girder release '
-               'currently installed.'
-    )
+        description='Install optional Girder components. To get help for a '
+                    'subcommand, use "%s <command> -h"' % sys.argv[0])
 
     sub = parser.add_subparsers()
 
     plugin = sub.add_parser('plugin', help='Install a plugin.')
     plugin.set_defaults(func=install_plugin)
+    plugin.add_argument('-f', '--force', action='store_true',
+                        help='Overwrite plugin if it already exists.')
+    plugin.add_argument('plugin', help='Path to the plugin to install.')
 
-    web = sub.add_parser('web', help='Install web client libraries.')
+    web = sub.add_parser('web', help='Build and install web client code.')
     web.set_defaults(func=install_web)
 
     sub.add_parser(
@@ -172,4 +154,3 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
-    # npm install --production --unsafe-perm
