@@ -83,36 +83,49 @@ def install_web(opts):
 
 def install_plugin(opts):
     """
-    Install a plugin into a packaged Girder environment. This first copies the
-    plugin dir recursively into the Girder primary plugin directory, then
-    installs all of its pip requirements from its requirements.txt file if one
-    exists, then runs `npm install` to build any web client targets exposed by
-    the plugin.
+    Install a list of plugins into a packaged Girder environment. This first
+    copies the plugin dir recursively into the Girder primary plugin directory,
+    then installs all of its pip requirements from its requirements.txt file if
+    one exists. After all plugins have finished installing, we run
+    `npm install` to build all of the web client code.
+
+    :param opts: Options controlling the behavior of this function. Must be an
+        object with a "plugin" attribute containing a list of plugin paths, and
+        a boolean "force" attribute representing the force overwrite flag.
     """
-    pluginPath = fix_path(opts.plugin)
-    name = os.path.basename(pluginPath)
+    for plugin in opts.plugin:
+        pluginPath = fix_path(plugin)
+        name = os.path.basename(pluginPath)
 
-    if not os.path.isdir(pluginPath):
-        raise Exception('Invalid plugin directory: %s' % pluginPath)
+        print(constants.TerminalColor.info('Installing %s...' % name))
 
-    targetPath = os.path.join(pluginDir, name)
-    if os.path.exists(targetPath):
-        if opts.force:
-            print(constants.TerminalColor.warning(
-                'Removing existing plugin at %s.' % targetPath))
-            shutil.rmtree(targetPath)
-        else:
-            raise Exception('Plugin already exists at %s, use "--force" to '
-                            'overwrite the existing directory with this one.')
+        if not os.path.isdir(pluginPath):
+            raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-    shutil.copytree(pluginPath, targetPath)
-    requirements = os.path.join(targetPath, 'requirements.txt')
+        targetPath = os.path.join(pluginDir, name)
 
-    if os.path.isfile(requirements):
-        print(constants.TerminalColor.info(
-            'Installing pip requirements for the plugin.'))
-        if pip.main(['install', '-U', '-r', requirements]) != 0:
-            raise Exception('Failed to install pip requirements.')
+        if os.path.samefile(pluginPath, targetPath):
+            raise Exception('Plugin path and destination path (%s) are the '
+                            'same.' % pluginPath)
+
+        if os.path.exists(targetPath):
+            if opts.force:
+                print(constants.TerminalColor.warning(
+                    'Removing existing plugin at %s.' % targetPath))
+                shutil.rmtree(targetPath)
+            else:
+                raise Exception('Plugin already exists at %s, use "-f" to '
+                                'overwrite the existing directory.')
+
+        shutil.copytree(pluginPath, targetPath)
+        requirements = os.path.join(targetPath, 'requirements.txt')
+
+        if os.path.isfile(requirements):
+            print(constants.TerminalColor.info(
+                'Installing pip requirements for %s.' % name))
+            if pip.main(['install', '-U', '-r', requirements]) != 0:
+                raise Exception('Failed to install pip requirements at %s.' %
+                                requirements)
 
     _runNpmInstall()
 
@@ -131,11 +144,12 @@ def main():
 
     sub = parser.add_subparsers()
 
-    plugin = sub.add_parser('plugin', help='Install a plugin.')
+    plugin = sub.add_parser('plugin', help='Install plugins.')
     plugin.set_defaults(func=install_plugin)
     plugin.add_argument('-f', '--force', action='store_true',
-                        help='Overwrite plugin if it already exists.')
-    plugin.add_argument('plugin', help='Path to the plugin to install.')
+                        help='Overwrite plugins if they already exist.')
+    plugin.add_argument('plugin', nargs='+',
+                        help='Paths of plugins to install.')
 
     web = sub.add_parser('web', help='Build and install web client code.')
     web.set_defaults(func=install_web)
@@ -154,3 +168,6 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
+
+if __name__ == '__main__':
+    main()  # pragma: no cover
