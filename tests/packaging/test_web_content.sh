@@ -8,7 +8,7 @@ unset PYTHONPATH
 
 source "${virtualenv_activate}"
 
-girder-install -f web -s "${source_path}"/girder-web-*.tar.gz
+girder-install web || exit 1
 
 # Start Girder server
 export GIRDER_PORT=50202
@@ -37,13 +37,13 @@ done
 "${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT} | "${GREP}" "g-global-info-apiroot" > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Error: Failed to load main page"
-    exit $?
+    exit 1
 fi
 
 "${CURL}" --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1 | "${GREP}" "swagger" > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Error: Failed to load Swagger docs"
-    exit $?
+    exit 1
 fi
 
 kill -9 %+

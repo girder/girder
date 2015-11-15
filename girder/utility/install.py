@@ -23,6 +23,7 @@ be restarted for these changes to take effect.
 """
 
 import os
+import girder
 import pip
 import subprocess
 import tempfile
@@ -65,7 +66,8 @@ def install_web(parser):
     Build and install Girder's web client. This runs `npm install` to execute
     the entire build and install process.
     """
-    proc = subprocess.Popen(('npm', 'install', '--production', '--unsafe-perm'))
+    args = ('npm', 'install', '--production', '--unsafe-perm')
+    proc = subprocess.Popen(args, cwd=girder.__path__[0])
     proc.communicate()
 
     if proc.returncode:
