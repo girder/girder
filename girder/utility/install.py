@@ -31,7 +31,6 @@ from girder import constants
 from girder.utility.plugin_utilities import getPluginDir
 
 version = constants.VERSION['apiVersion']
-pluginDir = getPluginDir()
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
 
 
@@ -40,7 +39,7 @@ def print_version(parser):
 
 
 def print_plugin_path(parser):
-    print(pluginDir)
+    print(getPluginDir())
 
 
 def print_web_root(parser):
@@ -68,12 +67,12 @@ def _runNpmInstall(wd=None):
     proc = subprocess.Popen(args, cwd=wd)
     proc.communicate()
 
-    if proc.returncode:
+    if proc.returncode != 0:
         raise Exception('Web client install failed: npm install returned %s.' %
                         proc.returncode)
 
 
-def install_web(opts):
+def install_web(opts=None):
     """
     Build and install Girder's web client. This runs `npm install` to execute
     the entire build and install process.
@@ -102,11 +101,12 @@ def install_plugin(opts):
         if not os.path.isdir(pluginPath):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-        targetPath = os.path.join(pluginDir, name)
+        targetPath = os.path.join(getPluginDir(), name)
 
-        if os.path.samefile(pluginPath, targetPath):
-            raise Exception('Plugin path and destination path (%s) are the '
-                            'same.' % pluginPath)
+        if (os.path.isdir(targetPath) and
+                os.path.samefile(pluginPath, targetPath)):
+            raise Exception('Plugin path and destination path are the '
+                            'same (%s).' % pluginPath)
 
         if os.path.exists(targetPath):
             if opts.force:
