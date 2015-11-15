@@ -11,14 +11,16 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
     build-essential \
     git \
     libffi-dev \
-    libpython-dev \
-    python-pip && \
+    libpython-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py && python get-pip.py
 
 WORKDIR /girder
 COPY girder /girder/girder
 COPY clients /girder/clients
 COPY plugins /girder/plugins
+COPY scripts /girder/scripts
 COPY Gruntfile.js /girder/Gruntfile.js
 COPY requirements.txt /girder/requirements.txt
 COPY requirements-dev.txt /girder/requirements-dev.txt
@@ -26,13 +28,8 @@ COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
-RUN pip install \
-    -r requirements.txt \
-    -r requirements-dev.txt \
-    -r plugins/geospatial/requirements.txt \
-    -r plugins/metadata_extractor/requirements.txt
+RUN python /girder/scripts/InstallPythonRequirements.py --mode=dev
 
 RUN npm install -g grunt-cli && npm cache clear
-RUN npm install && npm cache clear
-RUN grunt init && grunt
+RUN npm install --unsafe-perm && npm cache clear
 ENTRYPOINT ["python", "-m", "girder"]
