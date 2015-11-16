@@ -118,6 +118,40 @@ class InstallTestCase(base.TestCase):
                 os.path.join(self.pluginDir, 'has_deps')
             ], editable=False))
 
+        # Should fail if exists as directory and editable is true
+        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            install.install_plugin(PluginOpts(force=False, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ], editable=True))
+
+        # Should be a link if force=True and editable=True
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ], editable=True))
+
+            self.assertTrue(os.path.islink(os.path.join(
+                self.pluginDir, 'has_deps')))
+
+            # Should fail if exists as link and editable is false
+            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+                install.install_plugin(PluginOpts(force=False, plugin=[
+                    os.path.join(pluginRoot, 'has_deps')
+                ], editable=False))
+
+        # Should not be a link if force=True and editable=False
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ], editable=False))
+
+            self.assertFalse(os.path.islink(os.path.join(
+                self.pluginDir, 'has_deps')))
+
+
+
+
+
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
                 self.assertRaisesRegexp(Exception, 'npm install returned 2'):
