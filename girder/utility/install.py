@@ -58,7 +58,7 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def _runNpmInstall(wd=None):
+def runNpmInstall(wd=None):
     """
     Use this to run `npm install` inside the package.
     """
@@ -77,7 +77,7 @@ def install_web(opts=None):
     Build and install Girder's web client. This runs `npm install` to execute
     the entire build and install process.
     """
-    _runNpmInstall()
+    runNpmInstall()
 
 
 def install_plugin(opts):
@@ -127,7 +127,7 @@ def install_plugin(opts):
 
         shutil.copytree(pluginPath, targetPath)
 
-    _runNpmInstall()
+    runNpmInstall()
 
 
 def main():
