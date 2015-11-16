@@ -148,10 +148,6 @@ class InstallTestCase(base.TestCase):
             self.assertFalse(os.path.islink(os.path.join(
                 self.pluginDir, 'has_deps')))
 
-
-
-
-
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
                 self.assertRaisesRegexp(Exception, 'npm install returned 2'):
