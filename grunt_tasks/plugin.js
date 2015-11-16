@@ -54,7 +54,12 @@ module.exports = function (grunt) {
                 },
                 src: ['<%= grunt.config.get("pluginDir") %>/<%= grunt.task.current.args[0] %>/package.json']
             }
-        }
+        },
+        'plugin-install': {}
+    });
+
+    grunt.registerTask('plugins-builddir', 'Create the plugins build dir', function () {
+        require('mkdirp').sync(grunt.config.get('staticDir') + '/built/plugins');
     });
 
     grunt.config.merge({
@@ -115,7 +120,8 @@ module.exports = function (grunt) {
             plugin: {}
         },
         init: {
-            'plugin-install': {}
+            'plugin-install': {},
+            'plugins-builddir': {}
         }
     });
 

@@ -6,7 +6,7 @@ virtualenv_activate="${3}"
 virtualenv_dir="${4}"
 unset PYTHONPATH
 
-"${virtualenv_pip}" uninstall girder > /dev/null
+"${virtualenv_pip}" uninstall -y girder > /dev/null
 "${virtualenv_pip}" install -U "${PROJECT_SOURCE_DIR}"/girder-[0-9].[0-9]*.tar.gz
 if [ $? -ne 0 ]; then
     echo "Error during pip install girder package"

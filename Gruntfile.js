@@ -36,6 +36,7 @@ function sortTasks(obj) {
 
 module.exports = function (grunt) {
     var fs = require('fs');
+    var isSourceBuild = fs.existsSync('girder/__init__.py');
     require('colors');
 
     // Project configuration.
@@ -43,11 +44,20 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
+        isSourceBuild: isSourceBuild,
         init: {
             setup: {}
         },
         default: {}
     });
+
+    if (isSourceBuild) {
+        // We are in a source tree
+        grunt.config.set('girderDir', 'girder');
+    } else {
+        // We are in an installed package
+        grunt.config.set('girderDir', '.');
+    }
 
     /**
      * Load task modules inside `grunt_tasks`.
@@ -62,13 +72,12 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-gitinfo');
     grunt.loadNpmTasks('grunt-file-creator');
-    grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-npm-install');
 
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
         // If the local config file doesn't exist, we make it
-        var confDir = 'girder/conf';
+        var confDir = grunt.config.get('girderDir') + '/conf';
         if (!fs.existsSync(confDir + '/girder.local.cfg')) {
             fs.writeFileSync(
                 confDir + '/girder.local.cfg',

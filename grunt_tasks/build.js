@@ -18,12 +18,9 @@
  * Define tasks that bundle and compile files for deployment.
  */
 module.exports = function (grunt) {
-
-    var fs = require('fs');
     var path = require('path');
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
-
     var uglifyOptions = {
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,
@@ -139,22 +136,6 @@ module.exports = function (grunt) {
                         'clients/web/lib/js/jquery.jqplot.js',
                         'clients/web/lib/js/jqplot.pieRenderer.js',
                         'clients/web/lib/js/sprintf.js'
-                    ],
-                    'clients/web/static/built/testing.min.js': [
-                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
-                    ],
-                    'clients/web/static/built/testing-no-cover.min.js': [
-                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
-                    ]
-                }
-            },
-            polyfill: {
-                files: {
-                    'clients/web/static/built/polyfill.min.js': [
-                        'node_modules/phantomjs-polyfill/bind-polyfill.js'
                     ]
                 }
             }
@@ -177,16 +158,12 @@ module.exports = function (grunt) {
 
         init: {
             'uglify:libs': {},
-            'uglify:polyfill': {},
             'copy:swagger': {},
             'copy:jsoneditor': {}
         },
 
         default: {
             'stylus:core': {},
-            'test-env-html': {
-                dependencies: ['shell:readServerConfig', 'uglify:app']
-            },
             'jade:core': {
                 dependencies: ['version-info']
             },
@@ -194,43 +171,5 @@ module.exports = function (grunt) {
                 dependencies: ['jade:core']
             }
         }
-    });
-
-    grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
-        grunt.task.requires('shell:readServerConfig');
-
-        var jade = require('jade');
-        var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
-        var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
-        var dependencies = [
-            '/clients/web/test/testUtils.js',
-            '/clients/web/static/built/libs.min.js'
-        ];
-        var inputs = [];
-
-        globs.forEach(function (glob) {
-            var files = grunt.file.expand(glob);
-            files.forEach(function (file) {
-                inputs.push('/' + file);
-            });
-        });
-
-        var fn = jade.compile(buffer, {
-            client: false,
-            pretty: true
-        });
-        fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
-            cssFiles: [
-                '/clients/web/static/lib/bootstrap/css/bootstrap.min.css',
-                '/clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css',
-                '/clients/web/static/lib/fontello/css/fontello.css',
-                '/clients/web/static/lib/jsoneditor/jsoneditor.min.css',
-                '/clients/web/static/built/app.min.css'
-            ],
-            jsFilesUncovered: dependencies,
-            jsFilesCovered: inputs,
-            staticRoot: grunt.config.get('serverConfig.staticRoot'),
-            apiRoot: grunt.config.get('serverConfig.apiRoot')
-        }));
     });
 };

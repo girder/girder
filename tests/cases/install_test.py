@@ -17,20 +17,28 @@
 #  limitations under the License.
 ###############################################################################
 
-import tempfile
-import shutil
+import collections
+import mock
 import os
-import tarfile
+import shutil
+import tempfile
 
 from .. import base
+from girder import constants
 from girder.utility import install, config
 
-pluginRoot = os.path.join(
-    os.path.dirname(
-        os.path.dirname(__file__)
-    ),
-    'test_plugins'
-)
+pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                          'test_plugins')
+PluginOpts = collections.namedtuple('PluginOpts', ['plugin', 'force'])
+POPEN = 'subprocess.Popen'
+
+
+class ProcMock(object):
+    def __init__(self, rc=0):
+        self.returncode = rc
+
+    def communicate(self):
+        return (None, None)
 
 
 def setUpModule():
@@ -49,31 +57,10 @@ class InstallTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        # Create temporary directories for testing installations
         self.baseDir = tempfile.mkdtemp()
-
-        self.pluginDir = os.path.join(self.baseDir, 'plugin')
+        self.pluginDir = os.path.join(self.baseDir, 'plugins')
         os.mkdir(self.pluginDir)
 
-        # dump some plugins into tarballs
-        self.singlePluginTarball = os.path.join(self.baseDir, 'single.tgz')
-        t = tarfile.TarFile(
-            name=self.singlePluginTarball,
-            mode='w'
-        )
-        t.add(os.path.join(pluginRoot, 'has_deps'), arcname='single')
-        t.close()
-
-        self.combinedPluginTarball = os.path.join(self.baseDir, 'multi.tgz')
-        t = tarfile.TarFile(
-            name=self.combinedPluginTarball,
-            mode='w'
-        )
-        t.add(os.path.join(pluginRoot, 'has_deps'), arcname='multi1')
-        t.add(os.path.join(pluginRoot, 'has_deps'), arcname='multi2')
-        t.close()
-
-        # set the plugin path
         conf = config.getConfig()
         conf['plugins'] = {'plugin_directory': self.pluginDir}
 
@@ -83,96 +70,61 @@ class InstallTestCase(base.TestCase):
         del config.getConfig()['plugins']
         shutil.rmtree(self.baseDir)
 
-    def testSinglePluginInstallFromTgz(self):
-        self.assertEqual(
-            install.install_plugin(self.singlePluginTarball),
-            ['single']
-        )
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(self.pluginDir, 'single', 'plugin.json')
-            )
-        )
+    def testInstallPlugin(self):
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_plugin(PluginOpts(force=False, plugin=[
+                os.path.join(pluginRoot, 'has_deps'),
+                os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
+            ]))
 
-        # make sure it fails when force is off
-        self.assertEqual(
-            install.install_plugin(self.singlePluginTarball),
-            []
-        )
+            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
 
-        # make sure it succeeds when force is on
-        self.assertEqual(
-            install.install_plugin(self.singlePluginTarball, force=True),
-            ['single']
-        )
+            self.assertTrue(os.path.exists(
+                os.path.join(self.pluginDir, 'jobs', 'plugin.yml')))
+            self.assertTrue(os.path.exists(
+                os.path.join(self.pluginDir, 'has_deps', 'plugin.json')))
 
-    def testSinglePluginInstallFromDir(self):
-        l = install.install_plugin(
-            os.path.join(pluginRoot, 'has_deps')
-        )
-        self.assertEqual(l, ['has_deps'])
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(self.pluginDir, 'has_deps', 'plugin.json')
-            )
-        )
+        # Should fail if exists and force=False
+        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            install.install_plugin(PluginOpts(force=False, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ]))
 
-    def testPluginWithYaml(self):
-        l = install.install_plugin(
-            os.path.join(pluginRoot, 'plugin_yaml')
-        )
-        self.assertEqual(l, ['plugin_yaml'])
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(self.pluginDir, 'plugin_yaml', 'plugin.yml')
-            )
-        )
+        # Should succeed if force=True
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ]))
 
-    def testPluginWithNoConfig(self):
-        l = install.install_plugin(
-            os.path.join(pluginRoot, 'test_plugin')
-        )
-        self.assertEqual(l, ['test_plugin'])
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(self.pluginDir, 'test_plugin', 'server.py')
-            )
-        )
+        # If npm install returns 1, should fail
+        with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
+                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_deps')
+            ]))
 
-    def testMultiPluginInstallFromTgz(self):
-        self.assertEqual(
-            sorted(install.install_plugin(self.combinedPluginTarball)),
-            ['multi1', 'multi2']
-        )
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(self.pluginDir, 'multi1', 'plugin.json')
-            )
-        )
+        # If bad path is given, should fail gracefuly
+        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                '/bad/install/path'
+            ]))
 
-        # make sure it fails when force is off
-        self.assertEqual(
-            install.install_plugin(self.combinedPluginTarball),
-            []
-        )
+        # If src == dest, we should still run npm and succeed.
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(self.pluginDir, 'has_deps')
+            ]))
 
-        # make sure it succeeds when force is on
-        self.assertEqual(
-            sorted(install.install_plugin(
-                self.combinedPluginTarball,
-                force=True
-            )),
-            ['multi1', 'multi2']
-        )
+    def testWebInstall(self):
+        with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
+                self.assertRaisesRegexp(Exception, 'npm install returned 2'):
+            install.install_web()
 
-    def testInvalidClientInstall(self):
-        self.assertFalse(
-            install.install_web('http://notvalid.kitware.com')
-        )
-        self.assertFalse(
-            install.install_web(
-                os.path.join(
-                    pluginRoot, 'has_deps', 'plugin.json'
-                )
-            )
-        )
+            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_web()
