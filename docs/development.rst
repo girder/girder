@@ -252,10 +252,10 @@ Creating a new release
 ----------------------
 
 Girder releases are uploaded to `PyPI <https://pypi.python.org/pypi/girder>`_
-for easy installation via ``pip``.  In addition, the python source package and
-optional plugin and web client packages are stored as releases inside the
-official `github repository <https://github.com/girder/girder/releases>`_.
-The recommended process for generating a new release is described here.
+for easy installation via ``pip``. In addition, the python source packages
+are stored as releases inside the official
+`github repository <https://github.com/girder/girder/releases>`_. The
+recommended process for generating a new release is described here.
 
 1.  From the target commit, set the desired version number in ``package.json``
     and ``docs/conf.py``.  Create a new commit and note the SHA; this will
@@ -267,38 +267,27 @@ The recommended process for generating a new release is described here.
     (Packaging in an old directory could cause files and plugins to be
     mistakenly included.)
 
-4.  Run ``npm install && grunt package``.  This will generate three
-    new tarballs in the current directory:
-
-     ``girder-<version>.tar.gz``
-         This is the python source distribution for the core server API.
-     ``girder-web-<version>.tar.gz``
-         This is the web client libraries.
-     ``girder-plugins-<version>.tar.gz``
-         This contains all of the plugins in the main repository.
+4.  Run ``npm install && grunt package``.  This will generate the source
+    distribution tarball with a name like ``girder-<version>.tar.gz``.
 
 5.  Create a new virtual environment and install the python package into
-    it as well as the optional web and plugin components.  This should
-    not be done in the repository directory because the wrong Girder
-    package will be imported.  ::
+    it and build the web client. This should not be done in the repository
+    directory because the wrong Girder package will be imported.  ::
 
         mkdir test && cd test
         virtualenv release
         source release/bin/activate
         pip install ../girder-<version>.tar.gz
-        girder-install web -s ../girder-web-<version>.tar.gz
-        girder-install plugin -s ../girder-plugins-<version>.tar.gz
+        girder-install web
 
-6.  Now start up the Girder server and ensure that you can browse
-    the web client, plugins, and swagger docs.
+6.  Now start up the Girder server and ensure that you can browse the web
+    client, plugins, and swagger docs.
 
 7.  When you are confident everything is working correctly, generate
     a `new release <https://github.com/girder/girder/releases/new>`_
-    on GitHub.  You must be
-    sure to use a tag version of ``v<version>``, where ``<version>``
-    is the version number as it exists in ``package.json``.  For
-    example, ``v0.2.4``.  Attach the three tarballs you generated
-    to the release.
+    on GitHub.  You must be sure to use a tag version of ``v<version>``, where
+    ``<version>`` is the version number as it exists in ``package.json``.  For
+    example, ``v0.2.4``.  Attach the tarball you generated to the release.
 
 8.  Add the tagged version to `readthedocs <https://readthedocs.org/projects/girder/>`_
     and make sure it builds correctly.
