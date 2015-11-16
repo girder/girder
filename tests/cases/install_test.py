@@ -111,9 +111,8 @@ class InstallTestCase(base.TestCase):
                 '/bad/install/path'
             ]))
 
-        # If src == dest, should fail gracefully
-        with self.assertRaisesRegexp(Exception, 'Plugin path and destination'
-                                     ' path are the same'):
+        # If src == dest, we should still run npm and succeed.
+        with mock.patch(POPEN, return_value=ProcMock()):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(self.pluginDir, 'has_deps')
             ]))
@@ -127,5 +126,5 @@ class InstallTestCase(base.TestCase):
             self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
             self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
 
-        with mock.patch(POPEN, return_value=ProcMock()) as p:
+        with mock.patch(POPEN, return_value=ProcMock()):
             install.install_web()

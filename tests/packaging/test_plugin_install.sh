@@ -16,12 +16,7 @@ fi
 girder-install plugin -f "${source_path}/plugins/thumbnails" "${source_path}/plugins/oauth" || exit 1
 
 dest_path=$(girder-install plugin-path)
-girder-install plugin -f "${dest_path}/thumbnails"
-
-if [ $? -eq 0 ] ; then
-    echo "Error: expected an error when installing a plugin to its own path"
-    exit 1
-fi
+girder-install plugin -f "${dest_path}/thumbnails" || exit 1
 
 if [ ! -f "${dest_path}/thumbnails/plugin.yml" ] ; then
     echo "Error: plugin was deleted"

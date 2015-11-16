@@ -101,12 +101,20 @@ def install_plugin(opts):
         if not os.path.isdir(pluginPath):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
+        requirements = os.path.join(pluginPath, 'requirements.txt')
+        if os.path.isfile(requirements):
+            print(constants.TerminalColor.info(
+                'Installing pip requirements for %s.' % name))
+            if pip.main(['install', '-U', '-r', requirements]) != 0:
+                raise Exception('Failed to install pip requirements at %s.' %
+                                requirements)
+
         targetPath = os.path.join(getPluginDir(), name)
 
         if (os.path.isdir(targetPath) and
                 os.path.samefile(pluginPath, targetPath)):
-            raise Exception('Plugin path and destination path are the '
-                            'same (%s).' % pluginPath)
+            # If source and dest are the same, we are done for this plugin.
+            continue
 
         if os.path.exists(targetPath):
             if opts.force:
@@ -118,14 +126,6 @@ def install_plugin(opts):
                                 'overwrite the existing directory.')
 
         shutil.copytree(pluginPath, targetPath)
-        requirements = os.path.join(targetPath, 'requirements.txt')
-
-        if os.path.isfile(requirements):
-            print(constants.TerminalColor.info(
-                'Installing pip requirements for %s.' % name))
-            if pip.main(['install', '-U', '-r', requirements]) != 0:
-                raise Exception('Failed to install pip requirements at %s.' %
-                                requirements)
 
     _runNpmInstall()
 
