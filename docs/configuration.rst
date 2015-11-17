@@ -22,14 +22,6 @@ error and info will be set to error.log and info.log within `log_root`
 respectively. The `_log_file` variables will override that setting and are
 *absolute* paths.
 
-Plugin path
------------
-
-When checking out Girder from source (recommended), the plugin directory will be
-set to the `plugins` directory by default. If Girder is installed from PyPi
-(experimental), then the plugin directory can be set in the `plugin_directory`
-of the `plugins` section.
-
 Server thread pool
 ------------------
 
