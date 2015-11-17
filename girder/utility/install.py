@@ -113,10 +113,10 @@ def install_plugin(opts):
 
         if (os.path.isdir(targetPath) and
                 os.path.samefile(pluginPath, targetPath) and not
-                opts.editable ^ os.path.islink(targetPath)):
+                opts.symlink ^ os.path.islink(targetPath)):
             # If source and dest are the same, we are done for this plugin.
             # Note: ^ is a logical xor - not xor means only continue if
-            # editable and islink() are either both false, or both true
+            # symlink and islink() are either both false, or both true
             continue
 
         if os.path.exists(targetPath):
@@ -129,7 +129,7 @@ def install_plugin(opts):
             else:
                 raise Exception('Plugin already exists at %s, use "-f" to '
                                 'overwrite the existing directory.')
-        if opts.editable:
+        if opts.symlink:
             os.symlink(pluginPath, targetPath)
         else:
             shutil.copytree(pluginPath, targetPath)
@@ -155,7 +155,7 @@ def main():
     plugin.set_defaults(func=install_plugin)
     plugin.add_argument('-f', '--force', action='store_true',
                         help='Overwrite plugins if they already exist.')
-    plugin.add_argument('-e', '--editable', action='store_true',
+    plugin.add_argument('-s', '--symlink', action='store_true',
                         help='Install by symlinking to the plugin directory.')
 
     plugin.add_argument('plugin', nargs='+',
