@@ -187,6 +187,29 @@ class Setting(Model):
             raise ValidationException(
                 'SMTP host must not be blank.', 'value')
 
+    def validateCoreSmtpPort(self, doc):
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] > 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException('SMTP port must be an integer > 0.', 'value')
+
+    def validateCoreSmtpEncryption(self, doc):
+        if not doc['value'] in ['none', 'starttls', 'ssl']:
+            raise ValidationException(
+                'SMTP encryption must be one of "none", "starttls", or "ssl".',
+                'value')
+
+    def validateCoreSmtpUsername(self, doc):
+        # any string is acceptable
+        pass
+
+    def validateCoreSmtpPassword(self, doc):
+        # any string is acceptable
+        pass
+
     def validateCoreUploadMinimumChunkSize(self, doc):
         try:
             doc['value'] = int(doc['value'])
