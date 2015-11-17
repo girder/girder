@@ -80,10 +80,10 @@ def install_web(opts=None):
     Build and install Girder's web client. This runs `npm install` to execute
     the entire build and install process.
     """
-    try:
-        runNpmInstall(dev=opts.development, npm=opts.npm)
-    except AttributeError:
+    if opts is None:
         runNpmInstall()
+    else:
+        runNpmInstall(dev=opts.development, npm=opts.npm)
 
 
 def install_plugin(opts):
