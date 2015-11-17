@@ -58,14 +58,14 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def runNpmInstall(wd=None, dev=False):
+def runNpmInstall(wd=None, dev=False, npm='npm'):
     """
     Use this to run `npm install` inside the package.
     """
     wd = wd or constants.PACKAGE_DIR
 
-    args = ('npm', 'install', '--production', '--unsafe-perm') if not dev \
-        else ('npm', 'install', '--unsafe-perm')
+    args = (npm, 'install', '--production', '--unsafe-perm') if not dev \
+        else (npm, 'install', '--unsafe-perm')
 
     proc = subprocess.Popen(args, cwd=wd)
     proc.communicate()
@@ -81,7 +81,7 @@ def install_web(opts=None):
     the entire build and install process.
     """
     try:
-        runNpmInstall(dev=opts.development)
+        runNpmInstall(dev=opts.development, npm=opts.npm)
     except AttributeError:
         runNpmInstall()
 
@@ -149,7 +149,7 @@ def install_plugin(opts):
         else:
             shutil.copytree(pluginPath, targetPath)
 
-    runNpmInstall(dev=opts.development)
+    runNpmInstall(dev=opts.development, npm=opts.npm)
 
 
 def main():
@@ -178,6 +178,9 @@ def main():
                         dest='development',
                         help='Install server/client development dependencies')
 
+    plugin.add_argument('--npm', default="npm",
+                        help='specify the full path to the npm executable.')
+
     plugin.add_argument('plugin', nargs='+',
                         help='Paths of plugins to install.')
 
@@ -186,6 +189,9 @@ def main():
     web.add_argument('--dev', action='store_true',
                      dest='development',
                      help='Install client development dependencies')
+
+    web.add_argument('--npm', default="npm",
+                     help='specify the full path to the npm executable.')
 
     web.set_defaults(func=install_web)
 

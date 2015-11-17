@@ -32,15 +32,15 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
 
 POPEN = 'subprocess.Popen'
 
+
 class PluginOpts():
     def __init__(self, plugin=None, force=False,
-                 symlink=False, dev=False):
+                 symlink=False, dev=False, npm='npm'):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
         self.development = dev
-
-
+        self.npm = npm
 
 
 class ProcMock(object):
@@ -194,9 +194,6 @@ class InstallTestCase(base.TestCase):
             self.assertTrue('--production' in p.mock_calls[0][1][0])
 
         with mock.patch(POPEN, return_value=ProcMock()) as p:
-            opts = collections.namedtuple('MockOpts', 'development')
-            opts.development = True
-
-            install.install_web(opts)
+            install.install_web(PluginOpts(dev=True))
 
             self.assertTrue('--production' not in p.mock_calls[0][1][0])
