@@ -7,11 +7,22 @@
   height 120px
 
 .g-settings-form-container
+  $bgColor = #fcfaf3
   border 1px solid #d7d7d7
-  background-color #fcfaf3
+  background-color $bgColor
   border-radius 3px
   margin-bottom 10px
   padding 10px
+
+  :first-child
+    margin-top 0
+  :last-child
+    margin-bottom 0
+  .g-settings-form-container
+    background-color darken($bgColor, 3%)
+
+.panel-heading
+  cursor pointer
 
 .g-collection-create-policy-container
   // this class is deprecated

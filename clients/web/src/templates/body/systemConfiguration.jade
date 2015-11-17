@@ -1,127 +1,129 @@
 .g-body-title System configuration
-
 form.g-settings-form(role="form")
   .form-group
     label(for="g-core-cookie-lifetime") Cookie duration (days)
     input#g-core-cookie-lifetime.form-control.input-sm(
       type="text", value="#{settings['core.cookie_lifetime'] || ''}",
-      placeholder="Default: #{defaults['core.cookie_lifetime'] || ''}",
+      placeholder="Default: #{defaults['core.cookie_lifetime'] || 'none'}",
       title="How long users will stay logged in.")
-  .form-group
-    label(for="g-core-smtp-host") SMTP host
-    input#g-core-smtp-host.form-control.input-sm(
-      type="text", value="#{settings['core.smtp_host'] || ''}",
-      placeholder="Default: #{defaults['core.smtp_host'] || ''}",
-      title="The address of the SMTP server used to send emails.")
-  .form-group
-    label(for="g-core-email-from-address") Email from address
-    input#g-core-email-from-address.form-control.input-sm(
-      type="text", value="#{settings['core.email_from_address'] || ''}",
-      placeholder="Default: #{defaults['core.email_from_address'] || ''}",
-      title="The email address the system will use when sending emails.")
-  .form-group
-    label(for="g-core-email-host") Email host
-    input#g-core-email-host.form-control.input-sm(
-      type="text", value="#{settings['core.email_host'] || ''}",
-      placeholder="Default: #{defaults['core.email_host'] || ''}",
-      title="The host email server that is shown as a link in the footer of emails.")
-  .form-group
-    label(for="g-core-registration-policy") Registration policy
-    select#g-core-registration-policy.form-control.input-sm
-      option(value="open",
-             selected=((settings['core.registration_policy'] ||
-                        defaults['core.registration_policy']) === "open")
-            ) Open registration
-      option(value="closed",
-             selected=((settings['core.registration_policy'] ||
-                        defaults['core.registration_policy']) === "closed")
-            ) Closed registration
-  .form-group
-    label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
-    select#g-core-add-to-group-policy.form-control.input-sm
-      option(value="never",
-             selected=((settings['core.add_to_group_policy'] ||
-                        defaults['core.add_to_group_policy']) === "never")
-            ) No, members must be invited and accept invitations
-      option(value="noadmin",
-             selected=((settings['core.add_to_group_policy'] ||
-                        defaults['core.add_to_group_policy']) === "noadmin")
-            ) No, except for group administrators when enabled per group
-      option(value="nomod",
-             selected=((settings['core.add_to_group_policy'] ||
-                        defaults['core.add_to_group_policy']) === "nomod")
-            ) No, except for group administrators and moderators when enabled per group
-      option(value="yesadmin",
-             selected=((settings['core.add_to_group_policy'] ||
-                        defaults['core.add_to_group_policy']) === "yesadmin")
-            ) Yes, by group administrators unless disabled per group
-      option(value="yesmod",
-             selected=((settings['core.add_to_group_policy'] ||
-                        defaults['core.add_to_group_policy']) === "yesmod")
-            ) Yes, by group administrators and moderators unless disabled per group
-
-  .g-collection-create-policy-container.g-settings-form-container
-    label(for="g-collection-create-policy") Collection creation policy
-    textarea#g-core-collection-create-policy.form-control
-      = JSON.stringify(settings['core.collection_create_policy'] || defaults['core.collection_create_policy'], null, 4)
-    .g-search-container
-  .form-group
-    label(for="g-core-user-default-folders") Create default folders for new users
-    select#g-core-user-default-folders.form-control.input-sm
-      option(value="none",
-             selected=((settings['core.user_default_folders'] ||
-                        defaults['core.user_default_folders']) === "none")
-            ) No
-      option(value="public_private",
-             selected=((settings['core.user_default_folders'] ||
-                        defaults['core.user_default_folders']) === "public_private")
-            ) Yes, "Public" and "Private"
-
+  .g-settings-form-container
+    h4 Administrative Policy
+    .form-group
+      label(for="g-core-registration-policy") Registration policy
+      select#g-core-registration-policy.form-control.input-sm
+        option(value="open",
+          selected=((settings['core.registration_policy'] ||
+          defaults['core.registration_policy']) === "open")
+          ) Open registration
+        option(value="closed",
+          selected=((settings['core.registration_policy'] ||
+          defaults['core.registration_policy']) === "closed")
+          ) Closed registration
+    .form-group
+      label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
+      select#g-core-add-to-group-policy.form-control.input-sm
+        option(value="never",
+          selected=((settings['core.add_to_group_policy'] ||
+          defaults['core.add_to_group_policy']) === "never")
+          ) No, members must be invited and accept invitations
+        option(value="noadmin",
+          selected=((settings['core.add_to_group_policy'] ||
+          defaults['core.add_to_group_policy']) === "noadmin")
+          ) No, except for group administrators when enabled per group
+        option(value="nomod",
+          selected=((settings['core.add_to_group_policy'] ||
+          defaults['core.add_to_group_policy']) === "nomod")
+          ) No, except for group administrators and moderators when enabled per group
+        option(value="yesadmin",
+          selected=((settings['core.add_to_group_policy'] ||
+          defaults['core.add_to_group_policy']) === "yesadmin")
+          ) Yes, by group administrators unless disabled per group
+        option(value="yesmod",
+          selected=((settings['core.add_to_group_policy'] ||
+          defaults['core.add_to_group_policy']) === "yesmod")
+          ) Yes, by group administrators and moderators unless disabled per group
+    .g-collection-create-policy-container.g-settings-form-container
+      label(for="g-core-collection-create-policy") Collection creation policy
+      textarea#g-core-collection-create-policy.form-control
+        = JSON.stringify(settings['core.collection_create_policy'] || defaults['core.collection_create_policy'], null, 4)
+      .g-search-container
+    .form-group
+      label(for="g-core-user-default-folders") Create default folders for new users
+      select#g-core-user-default-folders.form-control.input-sm
+        option(value="none",
+          selected=((settings['core.user_default_folders'] ||
+          defaults['core.user_default_folders']) === "none")
+          ) No
+        option(value="public_private",
+          selected=((settings['core.user_default_folders'] ||
+          defaults['core.user_default_folders']) === "public_private")
+          ) Yes, "Public" and "Private"
+  .g-settings-form-container
+    h4 Email Creation
+    .form-group
+      label(for="g-core-email-from-address") Email from address
+      input#g-core-email-from-address.form-control.input-sm(
+        type="text", value="#{settings['core.email_from_address'] || ''}",
+        placeholder="Default: #{defaults['core.email_from_address'] || 'none'}",
+        title="The email address the system will use when sending emails.")
+    .form-group
+      label(for="g-core-email-host") Email host
+      input#g-core-email-host.form-control.input-sm(
+        type="text", value="#{settings['core.email_host'] || ''}",
+        placeholder="Default: #{defaults['core.email_host'] || 'none'}",
+        title="The host email server that is shown as a link in the footer of emails.")
+  .g-settings-form-container
+    h4 Email Delivery
+    .form-group
+      label(for="g-core-smtp-host") SMTP host
+      input#g-core-smtp-host.form-control.input-sm(
+        type="text", value="#{settings['core.smtp_host'] || ''}",
+        placeholder="Default: #{defaults['core.smtp_host'] || 'none'}",
+        title="The hostname of the SMTP server used to send emails.")
   .panel-group#g-configuration-accordion
     .panel.panel-default
-      .panel-heading
+      .panel-heading(data-toggle="collapse",
+        data-parent="#g-configuration-accordion",
+        data-target="#g-advanced-settings-tab")
         .panel-title
-          a(data-toggle="collapse", data-parent="#g-configuration-accordion",
-            href="#g-advanced-settings-tab")
+          a
             b Advanced Settings
       #g-advanced-settings-tab.panel-collapse.collapse
         .panel-body
-          p
-            | These settings should only be changed if you are certain of what
-            |  you are doing.
+          p These settings should only be changed if you are certain of what you are doing.
           .form-group
             label(for="g-core-upload-minimum-chunk-size") Upload minimum chunk size (bytes)
             br
-            | This applies to Filesystem and GridFS assetstores.
+            span This applies to Filesystem and GridFS assetstores.
             input#g-core-upload-minimum-chunk-size.form-control.input-sm(
               type="text", value="#{settings['core.upload_minimum_chunk_size'] || ''}",
-              placeholder="Default: #{defaults['core.upload_minimum_chunk_size'] || ''}",
+              placeholder="Default: #{defaults['core.upload_minimum_chunk_size'] || 'none'}",
               title="For large files, the minimum size of all but the last chunk.")
-          | CORS (Cross-origin resource sharing) allows access from other
-          | websites. These settings are described in detail
-          a(href="http://girder.readthedocs.org/en/latest/security.html#cors-cross-origin-resource-sharing"
-            target="_blank")  here.
-          .form-group
-            label(for="g-core-cors-allow-origin") CORS Allowed Origins
-            input#g-core-cors-allow-origin.form-control.input-sm(
-              type="text", value="#{settings['core.cors.allow_origin'] || ''}",
-              placeholder="Default: none",
-              title="A comma-separated list of allowed base URLs that can make cross-site requests.  This may include *.")
-          .form-group
-            label(for="g-core-cors-allow-methods") CORS Allowed Methods
-            input#g-core-cors-allow-methods.form-control.input-sm(
-              type="text", value="#{settings['core.cors.allow_methods'] || ''}",
-              placeholder="Default: allow all methods",
-              title="A comma-separated list of allowed methods")
-          .form-group
-            label(for="g-core-cors-allow-headers") CORS Allowed Headers
-            input#g-core-cors-allow-headers.form-control.input-sm(
-              type="text", value="#{settings['core.cors.allow_headers'] || ''}",
-              placeholder="Default: #{defaults['core.cors.allow_headers'] || ''}",
-              title="A comma-separated list of allowed headers.")
+          .g-settings-form-container
+            h4 CORS
+            p.
+              CORS (Cross-origin resource sharing) allows access from other websites.
+              These settings are described in
+              detail #[a(href="http://girder.readthedocs.org/en/latest/security.html#cors-cross-origin-resource-sharing" target="_blank") here].
+            .form-group
+              label(for="g-core-cors-allow-origin") CORS Allowed Origins
+              input#g-core-cors-allow-origin.form-control.input-sm(
+                type="text", value="#{settings['core.cors.allow_origin'] || ''}",
+                placeholder="Default: #{defaults['core.cors.allow_origin'] || 'none'}",
+                title="A comma-separated list of allowed base URLs that can make cross-site requests. This may include *.")
+            .form-group
+              label(for="g-core-cors-allow-methods") CORS Allowed Methods
+              input#g-core-cors-allow-methods.form-control.input-sm(
+                type="text", value="#{settings['core.cors.allow_methods'] || ''}",
+                placeholder="Default: allow all methods",
+                title="A comma-separated list of allowed methods")
+            .form-group
+              label(for="g-core-cors-allow-headers") CORS Allowed Headers
+              input#g-core-cors-allow-headers.form-control.input-sm(
+                type="text", value="#{settings['core.cors.allow_headers'] || ''}",
+                placeholder="Default: #{defaults['core.cors.allow_headers'] || 'none'}",
+                title="A comma-separated list of allowed headers.")
   p
   .form-group
-    button.g-submit-settings.btn.btn-default.btn-sm
-      i.icon-ok
-      |  Save
+    button.g-submit-settings.btn.btn-default.btn-sm #[i.icon-ok]  Save
   #g-settings-error-message.g-validation-failed-message
