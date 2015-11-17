@@ -124,10 +124,10 @@ def install_plugin(opts):
                 print(constants.TerminalColor.warning(
                     'Removing existing plugin at %s.' % targetPath))
 
-                if opts.symlink:
-                    os.symlink(pluginPath, targetPath)
+                if os.path.islink(targetPath):
+                    os.unlink(targetPath)
                 else:
-                    shutil.copytree(pluginPath, targetPath)
+                    shutil.rmtree(targetPath)
 
             else:
                 raise Exception('Plugin already exists at %s, use "-f" to '
