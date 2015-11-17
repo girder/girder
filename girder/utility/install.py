@@ -58,12 +58,15 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def runNpmInstall(wd=None):
+def runNpmInstall(wd=None, dev=False):
     """
     Use this to run `npm install` inside the package.
     """
     wd = wd or constants.PACKAGE_DIR
-    args = ('npm', 'install', '--production', '--unsafe-perm')
+
+    args = ('npm', 'install', '--production', '--unsafe-perm') if not dev \
+        else ('npm', 'install', '--unsafe-perm')
+
     proc = subprocess.Popen(args, cwd=wd)
     proc.communicate()
 
@@ -77,7 +80,10 @@ def install_web(opts=None):
     Build and install Girder's web client. This runs `npm install` to execute
     the entire build and install process.
     """
-    runNpmInstall()
+    try:
+        runNpmInstall(dev=opts.development)
+    except AttributeError:
+        runNpmInstall()
 
 
 def install_plugin(opts):
@@ -101,13 +107,19 @@ def install_plugin(opts):
         if not os.path.isdir(pluginPath):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-        requirements = os.path.join(pluginPath, 'requirements.txt')
-        if os.path.isfile(requirements):
-            print(constants.TerminalColor.info(
-                'Installing pip requirements for %s.' % name))
-            if pip.main(['install', '-U', '-r', requirements]) != 0:
-                raise Exception('Failed to install pip requirements at %s.' %
-                                requirements)
+        requirements = [os.path.join(pluginPath, 'requirements.txt')]
+        if opts.development:
+            requirements.extend([os.path.join(pluginPath,
+                                              'requirements-dev.txt')])
+        for reqs in requirements:
+            if os.path.isfile(reqs):
+                print(constants.TerminalColor.info(
+                    'Installing pip requirements for %s from %s.' %
+                    (name, reqs)))
+
+                if pip.main(['install', '-U', '-r', reqs]) != 0:
+                    raise Exception(
+                        'Failed to install pip requirements at %s.' %reqs)
 
         targetPath = os.path.join(getPluginDir(), name)
 
@@ -137,7 +149,7 @@ def install_plugin(opts):
         else:
             shutil.copytree(pluginPath, targetPath)
 
-    runNpmInstall()
+    runNpmInstall(dev=opts.development)
 
 
 def main():
@@ -158,13 +170,23 @@ def main():
     plugin.set_defaults(func=install_plugin)
     plugin.add_argument('-f', '--force', action='store_true',
                         help='Overwrite plugins if they already exist.')
+
     plugin.add_argument('-s', '--symlink', action='store_true',
                         help='Install by symlinking to the plugin directory.')
+
+    plugin.add_argument('--dev', action='store_true',
+                        dest='development',
+                        help='Install server/client development dependencies')
 
     plugin.add_argument('plugin', nargs='+',
                         help='Paths of plugins to install.')
 
     web = sub.add_parser('web', help='Build and install web client code.')
+
+    web.add_argument('--dev', action='store_true',
+                     dest='development',
+                     help='Install client development dependencies')
+
     web.set_defaults(func=install_web)
 
     sub.add_parser(
