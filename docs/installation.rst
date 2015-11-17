@@ -112,3 +112,11 @@ then restart the Girder server before it will be active.
 .. note:: The ``girder-install plugin`` command can also accept a list of plugins
    to be installed. You may need to run it as root if you installed Girder at the
    system level.
+
+For development purposes it is possible to symlink (rather than copy) the plugin
+directory. This is accomplished with the ``-s`` or ``--symlink`` flag: ::
+
+     girder-install -s plugin /path/to/your/plugin
+
+Enabled plugins installed with ``-s`` may be edited in place and those changes will
+be reflected after a server restart.
