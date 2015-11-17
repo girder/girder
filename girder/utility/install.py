@@ -119,7 +119,7 @@ def install_plugin(opts):
 
                 if pip.main(['install', '-U', '-r', reqs]) != 0:
                     raise Exception(
-                        'Failed to install pip requirements at %s.' %reqs)
+                        'Failed to install pip requirements at %s.' % reqs)
 
         targetPath = os.path.join(getPluginDir(), name)
 
