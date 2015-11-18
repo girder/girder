@@ -128,8 +128,9 @@ class OauthTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertIsInstance(resp.json, list)
         for provider in resp.json:
-            self.assertHasKeys(provider, ('id', 'url'))
+            self.assertHasKeys(provider, ('id', 'name', 'url'))
             if provider['id'] == 'google':
+                self.assertEqual(provider['name'], 'Google')
                 providerUrl = provider['url']
                 break
         else:
@@ -344,8 +345,9 @@ class OauthTest(base.TestCase):
 
         self.assertStatusOk(resp)
         for provider in resp.json:
-            self.assertHasKeys(provider, ('id', 'url'))
+            self.assertHasKeys(provider, ('id', 'name', 'url'))
             if provider['id'] == 'github':
+                self.assertEqual(provider['name'], 'GitHub')
                 providerUrl = provider['url']
                 break
         else:

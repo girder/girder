@@ -87,7 +87,8 @@ class OAuth(Resource):
             # Store as a list, so a consistent ordering can be maintained
             info = [
                 {
-                    'id': provider.getProviderName(),
+                    'id': provider.getProviderName(external=False),
+                    'name': provider.getProviderName(external=True),
                     'url': provider.getUrl(state)
                 }
                 for provider in enabledProviders
