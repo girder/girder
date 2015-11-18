@@ -1,1 +1,0 @@
-../../girder_plugin_dir.py
