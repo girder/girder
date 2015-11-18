@@ -71,6 +71,7 @@ class OAuth(Resource):
     def listProviders(self, params):
         self.requireParams(('redirect',), params)
         redirect = params['redirect']
+        returnList = self.boolParam('list', params, default=False)
 
         enabledNames = self.model('setting').get(
             constants.PluginSettings.PROVIDERS_ENABLED)
@@ -81,11 +82,12 @@ class OAuth(Resource):
             if providerName in enabledNames
         ]
         if enabledProviders:
-            # Only generate a token if there are enabled providers
             state = self._createStateToken(redirect)
+        else:
+            state = None
 
-            # Store as a list, so a consistent ordering can be maintained
-            info = [
+        if returnList:
+            return [
                 {
                     'id': provider.getProviderName(external=False),
                     'name': provider.getProviderName(external=True),
@@ -94,15 +96,18 @@ class OAuth(Resource):
                 for provider in enabledProviders
             ]
         else:
-            info = []
-
-        return info
+            return {
+                provider.getProviderName(external=True): provider.getUrl(state)
+                for provider in enabledProviders
+            }
     listProviders.description = (
         Description('Get the list of enabled OAuth2 providers and their URLs.')
-        .notes('Will be returned as a list of objects, each containing a '
-               'provider "id" and a "url" to direct the user agent to.')
+        .notes('By default, returns an object mapping names of providers to '
+               'the appropriate URL.')
         .param('redirect', 'Where the user should be redirected upon completion'
-               ' of the OAuth2 flow.'))
+               ' of the OAuth2 flow.')
+        .param('list', 'Whether to return the providers as an ordered list.',
+               required=False, dataType='boolean', default=False))
 
     @access.public
     def callback(self, provider, params):

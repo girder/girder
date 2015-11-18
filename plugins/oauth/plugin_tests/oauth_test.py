@@ -123,8 +123,21 @@ class OauthTest(base.TestCase):
             PluginSettings.GOOGLE_CLIENT_SECRET: 'bar'
         })
 
+        # Make sure that if no list param is passed, we receive the old format
         resp = self.request('/oauth/provider', params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar'
+        })
+        self.assertStatusOk(resp)
+        self.assertIsInstance(resp.json, dict)
+        self.assertEqual(resp.json.keys(), ['Google'])
+        self.assertRegexpMatches(
+            resp.json['Google'],
+            r'^https://accounts\.google\.com/o/oauth2/auth')
+
+        resp = self.request('/oauth/provider', params={
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
         self.assertStatusOk(resp)
         self.assertIsInstance(resp.json, list)
         for provider in resp.json:
@@ -207,7 +220,9 @@ class OauthTest(base.TestCase):
 
         # Get a fresh token
         resp = self.request('/oauth/provider', params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
         self.assertStatusOk(resp)
         csrfToken = self._getCsrfToken(resp, 'google')
 
@@ -227,7 +242,9 @@ class OauthTest(base.TestCase):
 
         # Get a fresh token
         resp = self.request('/oauth/provider', params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
         self.assertStatusOk(resp)
         csrfToken = self._getCsrfToken(resp, 'google')
 
@@ -267,7 +284,9 @@ class OauthTest(base.TestCase):
                 status_code=403, content=json.dumps(errorContent))
 
         resp = self.request('/oauth/provider', params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
         self.assertStatusOk(resp)
         csrfToken = self._getCsrfToken(resp, 'google')
 
@@ -341,7 +360,9 @@ class OauthTest(base.TestCase):
         self.model('setting').set(PluginSettings.GITHUB_CLIENT_SECRET, '123')
 
         resp = self.request('/oauth/provider', exception=True, params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
 
         self.assertStatusOk(resp)
         for provider in resp.json:
@@ -434,7 +455,9 @@ class OauthTest(base.TestCase):
 
         # Get a fresh token
         resp = self.request('/oauth/provider', params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar',
+            'list': True
+        })
         self.assertStatusOk(resp)
         csrfToken = self._getCsrfToken(resp, 'github')
 
