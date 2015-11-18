@@ -120,7 +120,7 @@ To enable or disable all plugins you may pass the "*" argument.  This does not (
       path: "users"
     register: ret_val
 ```
-Prints debugging messages with the emails of the users from the last task by accessing ```gc_return``` of the registere variable ```ret_val```
+Prints debugging messages with the emails of the users from the last task by accessing ```gc_return``` of the registered variable ```ret_val```
 
 
 ```yaml
