@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import collections
 import mock
 import os
 import shutil
@@ -29,9 +28,18 @@ from girder.utility import install, config
 
 pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                           'test_plugins')
-PluginOpts = collections.namedtuple('PluginOpts',
-                                    ['plugin', 'force', 'symlink'])
+
 POPEN = 'subprocess.Popen'
+
+
+class PluginOpts():
+    def __init__(self, plugin=None, force=False,
+                 symlink=False, dev=False, npm='npm'):
+        self.plugin = plugin
+        self.force = force
+        self.symlink = symlink
+        self.development = dev
+        self.npm = npm
 
 
 class ProcMock(object):
@@ -72,11 +80,12 @@ class InstallTestCase(base.TestCase):
         shutil.rmtree(self.baseDir)
 
     def testInstallPlugin(self):
+
         with mock.patch(POPEN, return_value=ProcMock()) as p:
-            install.install_plugin(PluginOpts(force=False, plugin=[
+            install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps'),
                 os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
-            ], symlink=False))
+            ]))
 
             self.assertEqual(len(p.mock_calls), 1)
             self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
@@ -89,38 +98,38 @@ class InstallTestCase(base.TestCase):
 
         # Should fail if exists and force=False
         with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
-            install.install_plugin(PluginOpts(force=False, plugin=[
+            install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
-            ], symlink=False))
+            ]))
 
         # Should succeed if force=True
         with mock.patch(POPEN, return_value=ProcMock()):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
-            ], symlink=False))
+            ]))
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
                 self.assertRaisesRegexp(Exception, 'npm install returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
-            ], symlink=False))
+            ]))
 
         # If bad path is given, should fail gracefuly
         with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
-            ], symlink=False))
+            ]))
 
         # If src == dest, we should still run npm and succeed.
         with mock.patch(POPEN, return_value=ProcMock()):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(self.pluginDir, 'has_deps')
-            ], symlink=False))
+            ]))
 
         # Should fail if exists as directory and symlink is true
         with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
-            install.install_plugin(PluginOpts(force=False, plugin=[
+            install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ], symlink=True))
 
@@ -135,18 +144,37 @@ class InstallTestCase(base.TestCase):
 
             # Should fail if exists as link and symlink is false
             with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
-                install.install_plugin(PluginOpts(force=False, plugin=[
+                install.install_plugin(PluginOpts(plugin=[
                     os.path.join(pluginRoot, 'has_deps')
-                ], symlink=False))
+                ]))
 
         # Should not be a link if force=True and symlink=False
         with mock.patch(POPEN, return_value=ProcMock()):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
-            ], symlink=False))
+            ]))
 
             self.assertFalse(os.path.islink(os.path.join(
                 self.pluginDir, 'has_deps')))
+
+    def testDevDependencies(self):
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, 'has_dev_deps'),
+                os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
+            ]))
+
+            self.assertTrue(os.path.exists(
+                os.path.join(self.pluginDir, 'has_dev_deps', 'plugin.json')))
+            self.assertTrue('--production' in p.mock_calls[0][1][0])
+
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, 'has_dev_deps'),
+                os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
+            ], force=True, dev=True))
+
+            self.assertTrue('--production' not in p.mock_calls[0][1][0])
 
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
@@ -159,3 +187,12 @@ class InstallTestCase(base.TestCase):
 
         with mock.patch(POPEN, return_value=ProcMock()):
             install.install_web()
+
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_web()
+            self.assertTrue('--production' in p.mock_calls[0][1][0])
+
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_web(PluginOpts(dev=True))
+
+            self.assertTrue('--production' not in p.mock_calls[0][1][0])
