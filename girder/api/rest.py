@@ -203,7 +203,7 @@ def getBodyJson():
         raise RestException('Invalid JSON passed in request body.')
 
 
-class loadmodel(object):
+class loadmodel(ModelImporter):
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -230,9 +230,10 @@ class loadmodel(object):
         else:
             self.map = map
 
-        self.model = ModelImporter.model(model, plugin)
         self.level = level
         self.force = force
+        self.modelName = model
+        self.plugin = plugin
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -245,20 +246,22 @@ class loadmodel(object):
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
+            model = self.model(self.modelName, self.plugin)
+
             for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
-                    kwargs[converted] = self.model.load(id, force=True)
+                    kwargs[converted] = model.load(id, force=True)
                 elif self.level is not None:
-                    kwargs[converted] = self.model.load(
+                    kwargs[converted] = model.load(
                         id=id, level=self.level, user=getCurrentUser())
                 else:
-                    kwargs[converted] = self.model.load(id)
+                    kwargs[converted] = model.load(id)
 
                 if kwargs[converted] is None:
-                    raise RestException('Invalid {} id ({}).'
-                                        .format(self.model.name, id))
+                    raise RestException(
+                        'Invalid %s id (%s).' % (model.name, str(id)))
 
             return fun(*args, **kwargs)
         return wrapped
