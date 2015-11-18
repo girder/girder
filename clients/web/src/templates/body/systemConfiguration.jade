@@ -80,6 +80,36 @@ form.g-settings-form(role="form")
         type="text", value="#{settings['core.smtp_host'] || ''}",
         placeholder="Default: #{defaults['core.smtp_host'] || 'none'}",
         title="The hostname of the SMTP server used to send emails.")
+    .form-group
+      label(for="g-core-smtp-port") SMTP port
+      input#g-core-smtp-port.form-control.input-sm(
+        type="text", value="#{settings['core.smtp.port'] || ''}",
+        placeholder="Default: #{defaults['core.smtp.port'] || 'none'}",
+        title="The port number of the SMTP server used to send emails.")
+    .form-group
+      label(for="g-core-smtp-encryption") SMTP encryption
+      select#g-core-smtp-encryption.form-control.input-sm
+        option(value="none",
+          selected=((settings['core.smtp.encryption'] || defaults['core.smtp.encryption']) === "none")
+          ) None
+        option(value="starttls",
+          selected=((settings['core.smtp.encryption'] || defaults['core.smtp.encryption']) === "starttls")
+          ) Use STARTTLS
+        option(value="ssl",
+          selected=((settings['core.smtp.encryption'] || defaults['core.smtp.encryption']) === "ssl")
+          ) Use SSL/TLS
+    .form-group
+      label(for="g-core-smtp-username") SMTP username
+      input#g-core-smtp-username.form-control.input-sm(
+        type="text", value="#{settings['core.smtp.username'] || ''}",
+        placeholder="Default: #{defaults['core.smtp.username'] || 'none'}",
+        title="The username, if any, used to authenticate to the SMTP server used to send emails.")
+    .form-group
+      label(for="g-core-smtp-password") SMTP password
+      input#g-core-smtp-password.form-control.input-sm(
+        type="text", value="#{settings['core.smtp.password'] || ''}",
+        placeholder="Default: #{defaults['core.smtp.password'] || 'none'}",
+        title="The password, if any, used to authenticate to the SMTP server used to send emails.")
   .panel-group#g-configuration-accordion
     .panel.panel-default
       .panel-heading(data-toggle="collapse",

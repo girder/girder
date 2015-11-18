@@ -128,6 +128,10 @@ class SettingKey:
     EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
     SMTP_HOST = 'core.smtp_host'
+    SMTP_PORT = 'core.smtp.port'
+    SMTP_ENCRYPTION = 'core.smtp.encryption'
+    SMTP_USERNAME = 'core.smtp.username'
+    SMTP_PASSWORD = 'core.smtp.password'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
@@ -147,7 +151,9 @@ class SettingDefault:
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.REGISTRATION_POLICY: 'open',
-        SettingKey.SMTP_HOST: 'localhost:25',
+        SettingKey.SMTP_HOST: 'localhost',
+        SettingKey.SMTP_PORT: 25,
+        SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         # These headers are necessary to allow the web server to work with just
         # changes to the CORS origin

@@ -117,15 +117,49 @@ def addTemplateDirectory(dir, prepend=False):
     _templateLookup.directories.insert(idx, dir)
 
 
+class _SMTPConnection(object):
+    def __init__(self, host, port=None, encryption=None,
+                 username=None, password=None):
+        self.host = host
+        self.port = port
+        self.encryption = encryption
+        self.username = username
+        self.password = password
+
+    def __enter__(self):
+        if self.encryption == 'ssl':
+            self.connection = smtplib.SMTP_SSL(self.host, self.port)
+        else:
+            self.connection = smtplib.SMTP(self.host, self.port)
+            if self.encryption == 'starttls':
+                self.connection.starttls()
+        if self.username and self.password:
+            self.connection.login(self.username, self.password)
+        return self
+
+    def send(self, fromAddress, toAddresses, message):
+        self.connection.sendmail(fromAddress, toAddresses, message)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection.quit()
+
+
 def _sendmail(event):
     msg = event.info['message']
-    smtpHost = ModelImporter.model('setting').get(SettingKey.SMTP_HOST,
-                                                  'localhost')
-    logger.info('Sending email to %s through %s', msg['To'], smtpHost)
 
-    s = smtplib.SMTP(smtpHost)
-    s.sendmail(msg['From'], event.info['recipients'], msg.as_string())
-    s.quit()
+    setting = ModelImporter.model('setting')
+    smtp = _SMTPConnection(
+        host=setting.get(SettingKey.SMTP_HOST, 'localhost'),
+        port=setting.get(SettingKey.SMTP_PORT, None),
+        encryption=setting.get(SettingKey.SMTP_ENCRYPTION, 'none'),
+        username=setting.get(SettingKey.SMTP_USERNAME, None),
+        password=setting.get(SettingKey.SMTP_PASSWORD, None),
+    )
+
+    logger.info('Sending email to %s through %s', msg['To'], smtp.host)
+
+    with smtp:
+        smtp.send(msg['From'], event.info['recipients'], msg.as_string())
 
     logger.info('Sent email to %s', msg['To'])
 
