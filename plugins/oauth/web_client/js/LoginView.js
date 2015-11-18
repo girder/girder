@@ -30,10 +30,11 @@ girder.views.oauth_LoginView = girder.View.extend({
 
             if (btn) {
                 btn.providerId = provider.id;
+                btn.text = provider.name;
                 buttons.push(btn);
             }
             else {
-                console.warn('Unsupported OAuth2 provider: ' + provider);
+                console.warn('Unsupported OAuth2 provider: ' + provider.id);
             }
         }, this);
 
@@ -48,12 +49,10 @@ girder.views.oauth_LoginView = girder.View.extend({
     _buttons: {
         google: {
             icon: 'gplus',
-            text: 'Google',
             class: 'g-oauth-button-google'
         },
         github: {
             icon: 'github-circled',
-            text: 'GitHub',
             class: 'g-oauth-button-github'
         }
     }
