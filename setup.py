@@ -28,6 +28,12 @@ from pkg_resources import parse_requirements
 
 
 class InstallWithOptions(install):
+    def safeCopyDir(self, path, dest):
+        dest = os.path.join(dest, path)
+
+        if not os.path.isdir(dest):
+            shutil.copytree(path, dest)
+
     def run(self, *arg, **kw):
         """
         We override the default install command in order to copy our required
@@ -39,9 +45,9 @@ class InstallWithOptions(install):
         dest = os.path.join(self.install_lib, 'girder')
         shutil.copy('Gruntfile.js', dest)
         shutil.copy('package.json', dest)
-        shutil.copytree('clients', os.path.join(dest, 'clients'))
-        shutil.copytree('grunt_tasks', os.path.join(dest, 'grunt_tasks'))
-        shutil.copytree('plugins', os.path.join(dest, 'plugins'))
+        self.safeCopyDir('clients', dest)
+        self.safeCopyDir('grunt_tasks', dest)
+        self.safeCopyDir('plugins', dest)
 
 with open('README.rst') as f:
     readme = f.read()
