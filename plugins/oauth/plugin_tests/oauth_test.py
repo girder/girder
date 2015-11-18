@@ -129,7 +129,7 @@ class OauthTest(base.TestCase):
         })
         self.assertStatusOk(resp)
         self.assertIsInstance(resp.json, dict)
-        self.assertEqual(resp.json.keys(), ['Google'])
+        self.assertEqual(list(resp.json.keys()), ['Google'])
         self.assertRegexpMatches(
             resp.json['Google'],
             r'^https://accounts\.google\.com/o/oauth2/auth')
