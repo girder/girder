@@ -15,7 +15,8 @@ girder.views.oauth_LoginView = girder.View.extend({
         girder.restRequest({
             path: 'oauth/provider',
             data: {
-                redirect: redirect
+                redirect: redirect,
+                list: true
             }
         }).done(_.bind(function (resp) {
             this.providers = resp;
