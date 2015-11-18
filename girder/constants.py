@@ -145,7 +145,7 @@ class SettingDefault:
     defaults = {
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
-        SettingKey.EMAIL_FROM_ADDRESS: 'no-reply@girder.org',
+        SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.SMTP_HOST: 'localhost:25',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
