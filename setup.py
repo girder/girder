@@ -24,15 +24,18 @@ import sys
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from distutils.dir_util import copy_tree
 from pkg_resources import parse_requirements
 
 
 class InstallWithOptions(install):
-    def safeCopyDir(self, path, dest):
-        dest = os.path.join(dest, path)
-
-        if not os.path.isdir(dest):
-            shutil.copytree(path, dest)
+    def mergeDir(self, path, dest):
+        """
+        We don't want to delete the old dir, since it might contain third
+        party plugin content from previous installations; we simply want to
+        merge the existing directory with the new one.
+        """
+        copy_tree(path, os.path.join(dest, path))
 
     def run(self, *arg, **kw):
         """
@@ -45,9 +48,9 @@ class InstallWithOptions(install):
         dest = os.path.join(self.install_lib, 'girder')
         shutil.copy('Gruntfile.js', dest)
         shutil.copy('package.json', dest)
-        self.safeCopyDir('clients', dest)
-        self.safeCopyDir('grunt_tasks', dest)
-        self.safeCopyDir('plugins', dest)
+        self.mergeDir('clients', dest)
+        self.mergeDir('grunt_tasks', dest)
+        self.mergeDir('plugins', dest)
 
 with open('README.rst') as f:
     readme = f.read()
