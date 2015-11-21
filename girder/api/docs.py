@@ -62,7 +62,7 @@ def addRouteDocs(resource, route, method, info, handler):
     :param resource: The name of the resource, e.g. "item"
     :type resource: str
     :param route: The route to describe.
-    :type route: list[str]
+    :type route: tuple[str]
     :param method: The HTTP method for this route, e.g. "POST"
     :type method: str
     :param info: The information representing the API documentation, typically
@@ -87,7 +87,7 @@ def removeRouteDocs(resource, route, method, info, handler):
     :param resource: The name of the resource, e.g. "item"
     :type resource: str
     :param route: The route to describe.
-    :type route: list
+    :type route: tuple[str]
     :param method: The HTTP method for this route, e.g. "POST"
     :type method: str
     :param info: The information representing the API documentation.
