@@ -339,11 +339,12 @@ class Model(ModelImporter):
         :param multi: Whether to update a single document, or all matching
             documents.
         :type multi: bool
+        :returns: A pymongo UpdateResult object.
         """
         if multi:
-            self.collection.update_many(query, update)
+            return self.collection.update_many(query, update)
         else:
-            self.collection.update_one(query, update)
+            return self.collection.update_one(query, update)
 
     def increment(self, query, field, amount, **kwargs):
         """
