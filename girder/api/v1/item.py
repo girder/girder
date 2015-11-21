@@ -220,6 +220,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403))
 
+    @access.cookie
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
     def download(self, item, params):
@@ -236,7 +237,6 @@ class Item(Resource):
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
-    download.cookieAuth = True
     download.description = (
         Description('Download the contents of an item.')
         .param('id', 'The ID of the item.', paramType='path')

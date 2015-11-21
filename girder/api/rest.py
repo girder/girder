@@ -583,8 +583,25 @@ class Resource(ModelImporter):
             if kwargs is False:
                 continue
 
-            if hasattr(handler, 'cookieAuth') and handler.cookieAuth:
-                getCurrentToken(allowCookie=True)
+            if hasattr(handler, 'cookieAuth'):
+                if isinstance(handler.cookieAuth, tuple):
+                    cookieAuth, forceCookie = handler.cookieAuth
+                else:
+                    # previously, cookieAuth was not set by a decorator, so the
+                    # legacy way must be supported too
+                    cookieAuth = handler.cookieAuth
+                    forceCookie = False
+                if cookieAuth:
+                    if forceCookie or method in ('head', 'get'):
+                        # getCurrentToken will cache its output, so calling it
+                        # once with allowCookie will make the parameter
+                        # effectively permanent (for the request)
+                        getCurrentToken(allowCookie=True)
+                    else:
+                        print(TerminalColor.warning(
+                            'WARNING: Cannot allow cookie authentication for '
+                            'route "%s %s" without specifying "force=True"' %
+                            (method, '/'.join(path))))
 
             kwargs['params'] = params
             # Add before call for the API method. Listeners can return

@@ -226,6 +226,7 @@ class Resource(BaseResource):
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403))
 
+    @access.cookie
     @access.public
     def download(self, params):
         """
@@ -261,7 +262,6 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
-    download.cookieAuth = True
     download.description = (
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')

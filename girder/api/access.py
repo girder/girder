@@ -77,3 +77,38 @@ def token(fun):
         return fun(*args, **kwargs)
     accessDecorator.accessLevel = 'token'
     return accessDecorator
+
+
+def cookie(*args, **kwargs):
+    """
+    REST endpoints that allow the use of a cookie for authentication should be
+    wrapped in this decorator.
+
+    When used as a normal decorator, this is only effective on endpoints for
+    HEAD and GET routes (as these routes should be read-only in a RESTful API).
+
+    While allowing cookie authentication on other types of routes exposes an
+    application to Cross-Site Request Forgery (CSRF) attacks, an optional
+    ``force=True`` argument may be passed to the decorator to make it effective
+    on any type of route.
+    """
+    if len(args) == 1 and callable(args[0]):  # Used as a raw decorator
+        force = False
+        args[0].cookieAuth = (True, force)
+        return args[0]
+
+    else:  # Used with arguments
+        if len(args) == 1 and isinstance(args[0], bool):
+            force = args[0]
+        elif 'force' in kwargs:
+            force = kwargs['force']
+        elif (not args) and (not kwargs):
+            force = False
+        else:
+            raise TypeError('Unsupported extra decorator arguments.')
+
+        def decorator(fun):
+            fun.cookieAuth = (True, force)
+            return fun
+
+        return decorator
