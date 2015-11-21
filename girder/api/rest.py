@@ -580,41 +580,43 @@ class Resource(ModelImporter):
 
         for route, handler in self._routes[method][len(path)]:
             kwargs = self._matchRoute(path, route)
-            if kwargs is not False:
-                if hasattr(handler, 'cookieAuth') and handler.cookieAuth:
-                    getCurrentToken(allowCookie=True)
+            if kwargs is False:
+                continue
 
-                kwargs['params'] = params
-                # Add before call for the API method. Listeners can return
-                # their own responses by calling preventDefault() and
-                # adding a response on the event.
+            if hasattr(handler, 'cookieAuth') and handler.cookieAuth:
+                getCurrentToken(allowCookie=True)
 
-                if hasattr(self, 'resourceName'):
-                    resource = self.resourceName
-                else:
-                    resource = handler.__module__.rsplit('.', 1)[-1]
+            kwargs['params'] = params
+            # Add before call for the API method. Listeners can return
+            # their own responses by calling preventDefault() and
+            # adding a response on the event.
 
-                routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
-                eventPrefix = '.'.join(('rest', method, routeStr))
+            if hasattr(self, 'resourceName'):
+                resource = self.resourceName
+            else:
+                resource = handler.__module__.rsplit('.', 1)[-1]
 
-                event = events.trigger('.'.join((eventPrefix, 'before')),
-                                       kwargs, pre=self._defaultAccess)
-                if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses[0]
-                else:
-                    self._defaultAccess(handler)
-                    val = handler(**kwargs)
+            routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
+            eventPrefix = '.'.join(('rest', method, routeStr))
 
-                # Fire the after-call event that has a chance to augment the
-                # return value of the API method that was called. You can
-                # reassign the return value completely by adding a response to
-                # the event and calling preventDefault() on it.
-                kwargs['returnVal'] = val
-                event = events.trigger('.'.join((eventPrefix, 'after')), kwargs)
-                if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses[0]
+            event = events.trigger('.'.join((eventPrefix, 'before')),
+                                   kwargs, pre=self._defaultAccess)
+            if event.defaultPrevented and len(event.responses) > 0:
+                val = event.responses[0]
+            else:
+                self._defaultAccess(handler)
+                val = handler(**kwargs)
 
-                return val
+            # Fire the after-call event that has a chance to augment the
+            # return value of the API method that was called. You can
+            # reassign the return value completely by adding a response to
+            # the event and calling preventDefault() on it.
+            kwargs['returnVal'] = val
+            event = events.trigger('.'.join((eventPrefix, 'after')), kwargs)
+            if event.defaultPrevented and len(event.responses) > 0:
+                val = event.responses[0]
+
+            return val
 
         raise RestException('No matching route for "{} {}"'.format(
             method.upper(), '/'.join(path)))
