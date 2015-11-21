@@ -10,4 +10,4 @@ moto==0.3.6
 pep8==1.6.2
 Sphinx==1.2.2
 sphinx_rtd_theme==0.1.6
-virtualenv==1.11.6
+virtualenv==13.1.2
