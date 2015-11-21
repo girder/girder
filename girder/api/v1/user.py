@@ -33,6 +33,7 @@ class User(Resource):
     """API Endpoint for users in the system."""
 
     def __init__(self):
+        super(User, self).__init__()
         self.resourceName = 'user'
 
         self.route('DELETE', ('authentication',), self.logout)

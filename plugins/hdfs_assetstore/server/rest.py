@@ -29,6 +29,7 @@ from snakebite.errors import FileNotFoundException
 
 class HdfsAssetstoreResource(Resource):
     def __init__(self):
+        super(HdfsAssetstoreResource, self).__init__()
         self.resourceName = 'hdfs_assetstore'
         self.route('PUT', (':id', 'import'), self.importData)
 

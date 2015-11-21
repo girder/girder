@@ -29,6 +29,7 @@ from girder.api import access
 class Item(Resource):
     """API endpoint for items"""
     def __init__(self):
+        super(Item, self).__init__()
         self.resourceName = 'item'
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)

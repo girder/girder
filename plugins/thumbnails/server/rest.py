@@ -25,6 +25,7 @@ from girder.constants import AccessType
 
 class Thumbnail(Resource):
     def __init__(self):
+        super(Thumbnail, self).__init__()
         self.resourceName = 'thumbnail'
         self.route('POST', (), self.createThumbnail)
 

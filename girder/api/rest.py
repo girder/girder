@@ -438,6 +438,25 @@ class Resource(ModelImporter):
     """
     exposed = True
 
+    def __init__(self):
+        self._routes = collections.defaultdict(
+            lambda: collections.defaultdict(list))
+
+    def _ensureInit(self):
+        """
+        Calls ``Resource.__init__`` if the subclass constructor did not already
+        do so.
+
+        In the past, Resource subclasses were not expected to call their
+        superclass constructor.
+        """
+        if not hasattr(self, '_routes'):
+            Resource.__init__(self)
+            print(TerminalColor.warning(
+                'WARNING: Resource subclass "%s" did not call '
+                '"Resource__init__()" from its constructor.' %
+                self.__class__.__name__))
+
     def route(self, method, route, handler, nodoc=False, resource=None):
         """
         Define a route for your REST resource.
@@ -458,10 +477,7 @@ class Resource(ModelImporter):
         :type nodoc: bool
         :param resource: The name of the resource at the root of this route.
         """
-        if not hasattr(self, '_routes'):
-            self._routes = collections.defaultdict(
-                lambda: collections.defaultdict(list))
-
+        self._ensureInit()
         # Insertion sort to maintain routes in required order.
         nLengthRoutes = self._routes[method.lower()][len(route)]
         for i in range(len(nLengthRoutes)):
@@ -510,8 +526,7 @@ class Resource(ModelImporter):
         :type handler: function
         :param resource: the name of the resource at the root of this route.
         """
-        if not hasattr(self, '_routes'):
-            return
+        self._ensureInit()
         nLengthRoutes = self._routes[method.lower()][len(route)]
         for i in range(len(nLengthRoutes)):
             if nLengthRoutes[i][0] == route:

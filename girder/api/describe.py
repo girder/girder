@@ -190,6 +190,7 @@ def _cmp(a, b):
 
 class Describe(Resource):
     def __init__(self):
+        super(Describe, self).__init__()
         self.route('GET', (), self.listResources, nodoc=True)
         self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
