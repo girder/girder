@@ -3,7 +3,6 @@ flake8==2.2.2
 flake8-blind-except==0.1.0
 flake8-docstrings==0.2.1.post1
 httmock==1.2.2
-httpretty==0.8.6  # https://github.com/gabrielfalcao/HTTPretty/issues/228 (moto problem)
 mccabe==0.3
 mock==1.0.1
 moto==0.3.6

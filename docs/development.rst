@@ -18,8 +18,8 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-.. note:: One of the development requirements, `httpretty`, can fail to install
-   if under certain system locales (see the `error report
+.. note:: One of the development indirect requirements, `httpretty`, can fail to
+   install if under certain system locales (see the `error report
    <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
    UTF8 locale works around this problem.  For instance, on Ubuntu, you can
    change your system locale using the commands: ::
