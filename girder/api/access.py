@@ -57,11 +57,8 @@ def public(fun):
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
     """
-    @functools.wraps(fun)
-    def accessDecorator(*args, **kwargs):
-        return fun(*args, **kwargs)
-    accessDecorator.accessLevel = 'public'
-    return accessDecorator
+    fun.accessLevel = 'public'
+    return fun
 
 
 def token(fun):

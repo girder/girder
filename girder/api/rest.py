@@ -161,7 +161,7 @@ def getCurrentUser(returnToken=False):
 
     def retVal(user, token):
         if returnToken:
-            return (user, token)
+            return user, token
         else:
             return user
 
