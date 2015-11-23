@@ -9,9 +9,9 @@ div.g-plugin-restart
   .g-plugin-clear
 .g-plugin-list-container
   each plugin in allPlugins
-    - var experimental = plugin.value.version ? plugin.value.version.startsWith('0.') : true
+    - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     .g-plugin-list-item
-      input.g-plugin-switch(type="checkbox", key="#{plugin.key}",
+      input.g-plugin-switch(type="checkbox", key=plugin.key,
                             disabled=!plugin.value.meetsDependencies,
                             checked=(plugin.value.enabled ? "checked" : undefined))
       .g-plugin-name
@@ -23,8 +23,7 @@ div.g-plugin-restart
             title="WARNING: this plugin is an alpha version and is subject " +
                   "to breaking changes; use at your own risk.") Experimental
         if plugin.value.configRoute
-          a.g-plugin-config-link(g-route="#{plugin.value.configRoute}",
-                                 title="Configure Plugin")
+          a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
       .g-plugin-description #{plugin.value.description}
         if (!plugin.value.meetsDependencies)
