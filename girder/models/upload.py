@@ -182,7 +182,7 @@ class Upload(Model):
     def getTargetAssetstore(self, modelType, resource):
         """
         Get the assetstore for a particular target resource, i.e. where new
-        data within the resource should be stored. In girder core, this is
+        data within the resource should be stored. In Girder core, this is
         always just the current assetstore, but plugins may override this
         behavior to allow for more granular assetstore selection.
         """

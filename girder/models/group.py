@@ -20,7 +20,8 @@
 import datetime
 
 from .model_base import AccessControlledModel, ValidationException
-from girder.constants import AccessType
+from girder import events
+from girder.constants import AccessType, CoreEventHandler
 
 
 class Group(AccessControlledModel):
@@ -64,6 +65,10 @@ class Group(AccessControlledModel):
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'name', 'public', 'description', 'created', 'updated',
             'addAllowed'))
+
+        events.bind('model.group.save.created',
+                    CoreEventHandler.GROUP_CREATOR_ACCESS,
+                    self._grantCreatorAccess)
 
     def filter(self, group, user, accessList=False, requests=False):
         """
@@ -143,28 +148,12 @@ class Group(AccessControlledModel):
         :param group: The group document to delete.
         :type group: dict
         """
-
         # Remove references to this group from user group membership lists
         self.model('user').update({
             'groups': group['_id']
         }, {
             '$pull': {'groups': group['_id']}
         })
-
-        acQuery = {
-            'access.groups.id': group['_id']
-        }
-        acUpdate = {
-            '$pull': {
-                'access.groups': {'id': group['_id']}
-            }
-        }
-
-        # Remove references to this group from access-controlled collections.
-        self.update(acQuery, acUpdate)
-        self.model('collection').update(acQuery, acUpdate)
-        self.model('folder').update(acQuery, acUpdate)
-        self.model('user').update(acQuery, acUpdate)
 
         # Finally, delete the document itself
         AccessControlledModel.remove(self, group)
@@ -333,21 +322,29 @@ class Group(AccessControlledModel):
         group = {
             'name': name,
             'description': description,
+            'creatorId': creator['_id'],
             'created': now,
             'updated': now,
             'requests': []
         }
 
-        self.setPublic(group, public=public)
+        self.setPublic(group, public, save=False)
 
-        # Now validate and save the group
-        self.save(group)
+        return self.save(group)
 
-        # We make the creator a member of this group and also grant them
-        # admin access over the group.
+    def _grantCreatorAccess(self, event):
+        """
+        This callback makes the group creator an administrator member of the
+        group.
+
+        This generally should not be called or overridden directly, but it may
+        be unregistered from the `model.group.save.created` event.
+        """
+        group = event.info
+        creator = self.model('user').load(group['creatorId'], force=True,
+                                          exc=True)
+
         self.addUser(group, creator, level=AccessType.ADMIN)
-
-        return group
 
     def updateGroup(self, group):
         """

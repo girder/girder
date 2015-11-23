@@ -54,7 +54,7 @@ endforeach()
 # Add tests
 #
 
-set(expected_usage "\nThis script allows to expand relative path in a json config file.\n\nUsage:")
+set(expected_usage "\nThis script allows to expand relative path in a JSON config file.\n\nUsage:")
 
 add_json_config_expand_relpaths_test(usage)
 set_tests_properties(${testname}

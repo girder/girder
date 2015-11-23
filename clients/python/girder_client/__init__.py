@@ -70,12 +70,12 @@ class HttpError(Exception):
 
 class GirderClient(object):
     """
-    A class for interacting with the girder restful api.
+    A class for interacting with the Girder RESTful API.
     Some simple examples of how to use this class follow:
 
     .. code-block:: python
 
-        client = GirderClient('myhost', 8080)
+        client = GirderClient(apiUrl='http://myhost:8080')
         client.authenticate('myname', 'mypass')
 
         folder_id = '53b714308926486402ac5aba'
@@ -103,12 +103,17 @@ class GirderClient(object):
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None,
-                 dryrun=False, blacklist=None):
+                 dryrun=False, blacklist=None, apiUrl=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
-        (HTTP Basic Auth).
+        (HTTP Basic Auth). You can pass the URL in parts with the `host`,
+        `port`, `scheme`, and `apiRoot` kwargs, or simply pass it in all as
+        one URL with the `apiUrl` kwarg instead. If you pass `apiUrl`, the
+        individual part kwargs will be ignored.
 
+        :param apiUrl: The full path to the REST API of a Girder instance, e.g.
+            `http://my.girder.com/api/v1`.
         :param host: A string containing the host name where Girder is running,
             the default value is 'localhost'
         :param port: The port number on which to connect to Girder,
@@ -119,21 +124,18 @@ class GirderClient(object):
             the default value is 'http'; if you pass 'https' you likely want
             to pass 443 for the port
         """
-        if apiRoot is None:
-            apiRoot = '/api/v1'
+        if apiUrl is None:
+            if apiRoot is None:
+                apiRoot = '/api/v1'
 
-        if port is None:
-            if scheme == 'https':
-                port = 443
-            else:
-                port = 80
+            self.scheme = scheme or 'http'
+            self.host = host or 'localhost'
+            self.port = port or (443 if scheme == 'https' else 80)
 
-        self.scheme = scheme or 'http'
-        self.host = host or 'localhost'
-        self.port = port
-
-        self.urlBase = self.scheme + '://' + self.host + ':' + str(self.port) \
-            + apiRoot
+            self.urlBase = '%s://%s:%s%s' % (
+                self.scheme, self.host, str(self.port), apiRoot)
+        else:
+            self.urlBase = apiUrl
 
         if self.urlBase[-1] != '/':
             self.urlBase += '/'
@@ -302,7 +304,7 @@ class GirderClient(object):
 
     def createFolder(self, parentId, name, description='', parentType='folder'):
         """
-        Creates and returns an folder
+        Creates and returns a folder
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
@@ -751,7 +753,7 @@ class GirderClient(object):
         Callback functions will be called after a folder in Girder is created
         and all subfolders and items for that folder have completed uploading.
         Callback functions should take two parameters:
-        - the folder in girder
+        - the folder in Girder
         - the full path to the local folder
 
         :param callback: callback function to be called.
@@ -766,7 +768,7 @@ class GirderClient(object):
         Callback functions will be called after an item in Girder is created
         and all files for that item have been uploaded.  Callback functions
         should take two parameters:
-        - the item in girder
+        - the item in Girder
         - the full path to the local folder or file comprising the item
 
         :param callback: callback function to be called.
@@ -951,7 +953,7 @@ class GirderClient(object):
 
         :param file_pattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parent_id: id of the parent in girder.
+        :param parent_id: id of the parent in Girder.
         :param parent_type: one of (collection,folder,user), default of folder.
         :param leaf_folders_as_items: bool whether leaf folders should have all
             files uploaded as single items.

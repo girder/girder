@@ -1,34 +1,36 @@
 .g-config-breadcrumb-container
 
 .g-oauth-provider-list-title Configure supported providers below
+p Only fill in the information for the OAuth2 providers you wish to enable.
 
 .panel-group#g-oauth-provider-accordion
-  .panel.panel-default
-    .panel-heading
-      .panel-title
-        a(data-toggle="collapse", data-parent="#g-oauth-provider-accordion",
-          href="#g-oauth-provider-google")
-          i.icon-gplus
-          |  Google
-    #g-oauth-provider-google.panel-collapse.collapse.in
-      .panel-body
-        p.
-          Client IDs and secret keys are managed in the Google Developer Console. When
-          creating your client ID there, use the following values:
-        .g-oauth-value-container
-          b Authorized javascript origins:
-          span.g-oauth-value #{google.jsOrigin}
-        .g-oauth-value-container
-          b Authorized redirect URI:
-          span.g-oauth-value #{google.redirectUri}
-        form#g-oauth-provider-google-form(role="form")
-          .form-group
-            label.control-label(for="g-oauth-provider-google-client-id") Google client ID
-            input.input-sm.form-control#g-oauth-provider-google-client-id(
-              type="text", placeholder="Client ID")
-          .form-group
-            label.control-label(for="g-oauth-provider-google-client-secret") Google client secret
-            input.input-sm.form-control#g-oauth-provider-google-client-secret(
-              type="text", placeholder="Client secret")
-          p#g-oauth-provider-google-error-message.g-validation-failed-message
-          input.btn.btn-sm.btn-primary(type="submit", value="Save")
+  each provider in providers
+    .panel.panel-default
+      .panel-heading
+        .panel-title
+          a(data-toggle="collapse", data-parent="#g-oauth-provider-accordion",
+            href="#g-oauth-provider-#{provider.id}")
+            i(class="icon-#{provider.icon}")
+            |  #{provider.name}
+      .panel-collapse.collapse(id="g-oauth-provider-#{provider.id}")
+        .panel-body
+          p= provider.instructions
+          if provider.hasAuthorizedOrigins
+            .g-oauth-value-container
+              b Authorized javascript origins:
+              span.g-oauth-value= origin
+          .g-oauth-value-container
+            b Authorized redirect URI:
+            span.g-oauth-value= origin + apiRoot + '/oauth/' + provider.id + '/callback'
+          form.g-oauth-provider-form(role="form" id="g-oauth-provider-#{provider.id}-form"
+                                     provider-id=provider.id)
+            .form-group
+              label.control-label(for="g-oauth-provider-#{provider.id}-client-id") #{provider.name} client ID
+              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-id"
+                type="text" placeholder="Client ID")
+            .form-group
+              label.control-label(for="g-oauth-provider-#{provider.id}-client-secret") #{provider.name} client secret
+              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-secret"
+                type="text" placeholder="Client secret")
+            p.g-validation-failed-message(id="g-oauth-provider-#{provider.id}-error-message")
+            input.btn.btn-sm.btn-primary(type="submit" value="Save" provider-id=provider.id)

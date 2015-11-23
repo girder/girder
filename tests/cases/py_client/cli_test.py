@@ -50,12 +50,17 @@ class SysExitException(Exception):
     pass
 
 
-def invokeCli(argv, username='', password=''):
+def invokeCli(argv, username='', password='', useApiUrl=False):
     """
-    Invoke the girder python client CLI with a set of arguments.
+    Invoke the Girder Python client CLI with a set of arguments.
     """
-    argsList = ['girder-client', '--port', os.environ['GIRDER_PORT'],
-                '--username', username, '--password', password] + list(argv)
+    if useApiUrl:
+        apiUrl = 'http://localhost:%s/api/v1' % os.environ['GIRDER_PORT']
+        argsList = ['girder-client', '--api-url', apiUrl, '--username',
+                    username, '--password', password] + list(argv)
+    else:
+        argsList = ['girder-client', '--port', os.environ['GIRDER_PORT'],
+                    '--username', username, '--password', password] + list(argv)
     exitVal = 0
     with mock.patch.object(sys, 'argv', argsList),\
             mock.patch('sys.exit', side_effect=SysExitException) as exit,\
@@ -130,7 +135,8 @@ class PythonCliTestCase(base.TestCase):
         self.assertIn('Ignoring file hello.txt as it is blacklisted',
                       ret['stdout'])
 
-        ret = invokeCli(args, username='mylogin', password='password')
+        ret = invokeCli(args, username='mylogin', password='password',
+                        useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
             self, ret['stdout'],

@@ -6,22 +6,24 @@
     background-color #dcd6d6
     margin-bottom 16px
     font-size 12px
+    text-align center
 
   .g-oauth-section-header-text
     display inline
     background-color #fff
     position relative
     top -7px
-    left 39%
     padding 0 7px
     color #878080
 
 .g-oauth-button
+  width 160px
   border-radius 3px
   padding 7px 11px
   display inline-block
   cursor pointer
-  margin-right 18px
+  margin-right 15px
+  margin-bottom 10px
 
   .g-oauth-button-icon
     display inline-block
@@ -29,15 +31,33 @@
     border-right 1px solid white
   .g-oauth-button-text
     display inline-block
-    padding 0 20px
+    text-align center
+    width 109px
 
 .g-oauth-button-google
-  background-color #d84936
-  border 1px solid #ac3d2f
+  // https://developers.google.com/+/branding-guidelines
+  $brandColor = #dc4e41
+
+  background-color $brandColor
+  border 1px solid darken($brandColor, 30%)
   color white
 
   &:hover
-    background-color #c83926
+    background-color darken($brandColor, 15%)
 
   .g-oauth-button-icon
-    border-right-color #ac3d2f
+    border-right-color darken($brandColor, 30%)
+
+.g-oauth-button-github
+  // http://brandcolors.net?brands=76
+  $brandColor = #666666
+
+  background-color $brandColor
+  border 1px solid darken($brandColor, 30%)
+  color white
+
+  &:hover
+    background-color darken($brandColor, 15%)
+
+  .g-oauth-button-icon
+    border-right-color darken($brandColor, 30%)

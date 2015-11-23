@@ -25,7 +25,7 @@ from . import constants, job_rest
 
 def scheduleLocal(event):
     """
-    Jobs whose handler is set to "local" will be run on the girder server. They
+    Jobs whose handler is set to "local" will be run on the Girder server. They
     should contain a "module" field that specifies which python module should
     be executed, and optionally a "function" field to declare what function
     within that module should be executed. If no "function" field is specified,

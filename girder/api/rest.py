@@ -41,7 +41,7 @@ def getUrlParts(url=None):
 
     :param url: A URL, or None to use the current request's URL.
     :type url: str or None
-    :return: The URL's seperate components.
+    :return: The URL's separate components.
     :rtype: `urllib.parse.ParseResult`_
 
     .. note:: This is compatible with both Python 2 and 3.
@@ -203,7 +203,7 @@ def getBodyJson():
         raise RestException('Invalid JSON passed in request body.')
 
 
-class loadmodel(object):
+class loadmodel(ModelImporter):
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -230,9 +230,10 @@ class loadmodel(object):
         else:
             self.map = map
 
-        self.model = ModelImporter.model(model, plugin)
         self.level = level
         self.force = force
+        self.modelName = model
+        self.plugin = plugin
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -245,20 +246,22 @@ class loadmodel(object):
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
+            model = self.model(self.modelName, self.plugin)
+
             for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
-                    kwargs[converted] = self.model.load(id, force=True)
+                    kwargs[converted] = model.load(id, force=True)
                 elif self.level is not None:
-                    kwargs[converted] = self.model.load(
+                    kwargs[converted] = model.load(
                         id=id, level=self.level, user=getCurrentUser())
                 else:
-                    kwargs[converted] = self.model.load(id)
+                    kwargs[converted] = model.load(id)
 
                 if kwargs[converted] is None:
-                    raise RestException('Invalid {} id ({}).'
-                                        .format(self.model.name, id))
+                    raise RestException(
+                        'Invalid %s id (%s).' % (model.name, str(id)))
 
             return fun(*args, **kwargs)
         return wrapped
@@ -330,7 +333,7 @@ def endpoint(fun):
                 return val
 
         except RestException as e:
-            # Handle all user-error exceptions from the rest layer
+            # Handle all user-error exceptions from the REST layer
             cherrypy.response.status = e.code
             val = {'message': e.message, 'type': 'rest'}
             if e.extra is not None:
@@ -345,7 +348,7 @@ def endpoint(fun):
                 logger.exception('403 Error')
             val = {'message': e.message, 'type': 'access'}
         except GirderException as e:
-            # Handle general girder exceptions
+            # Handle general Girder exceptions
             logger.exception('500 Error')
             cherrypy.response.status = 500
             val = {'message': e.message, 'type': 'girder'}
@@ -706,7 +709,7 @@ class Resource(ModelImporter):
             be returned unsorted.
         :type defaultSortField: str or None
         :param defaultSortDir: Sort direction.
-        :tyep defaultSortDir: girder.constants.SortDir
+        :type defaultSortDir: girder.constants.SortDir
         """
         offset = int(params.get('offset', 0))
         limit = int(params.get('limit', 50))

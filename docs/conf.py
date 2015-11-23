@@ -15,6 +15,9 @@
 import os
 import sys
 
+# The full version, including alpha/beta/rc tags.
+release = '1.4.1'
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -77,12 +80,6 @@ master_doc = 'index'
 project = u'Girder'
 copyright = u'2014-2015, Kitware'
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The full version, including alpha/beta/rc tags.
-release = '1.3.2'
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 

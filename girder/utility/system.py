@@ -115,7 +115,7 @@ def _computeSlowStatus(process, status, db):
 
 def getStatus(mode='basic', user=None):
     """
-    Get a dictionary of status information regarding the girder server.
+    Get a dictionary of status information regarding the Girder server.
 
     :param mode: 'basic' returns values available to any anonymous user.
         'quick' returns only values that are cheap to acquire.

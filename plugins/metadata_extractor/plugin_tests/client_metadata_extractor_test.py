@@ -19,9 +19,8 @@
 
 import os.path
 import sys
-import time
 
-# Need to set the environment variable before importing girder
+# Need to set the environment variable before importing Girder
 os.environ['GIRDER_PORT'] = '31201'
 
 from girder.constants import ROOT_DIR

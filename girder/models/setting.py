@@ -187,6 +187,29 @@ class Setting(Model):
             raise ValidationException(
                 'SMTP host must not be blank.', 'value')
 
+    def validateCoreSmtpPort(self, doc):
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] > 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException('SMTP port must be an integer > 0.', 'value')
+
+    def validateCoreSmtpEncryption(self, doc):
+        if not doc['value'] in ['none', 'starttls', 'ssl']:
+            raise ValidationException(
+                'SMTP encryption must be one of "none", "starttls", or "ssl".',
+                'value')
+
+    def validateCoreSmtpUsername(self, doc):
+        # any string is acceptable
+        pass
+
+    def validateCoreSmtpPassword(self, doc):
+        # any string is acceptable
+        pass
+
     def validateCoreUploadMinimumChunkSize(self, doc):
         try:
             doc['value'] = int(doc['value'])
@@ -197,6 +220,12 @@ class Setting(Model):
         raise ValidationException(
             'Upload minimum chunk size must be an integer >= 0.',
             'value')
+
+    def validateCoreUserDefaultFolders(self, doc):
+        if doc['value'] not in ('public_private', 'none'):
+            raise ValidationException(
+                'User default folders must be either "public_private" or '
+                '"none".', 'value')
 
     def get(self, key, default='__default__'):
         """

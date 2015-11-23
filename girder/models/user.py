@@ -22,7 +22,8 @@ import os
 import re
 
 from .model_base import AccessControlledModel, ValidationException
-from girder.constants import AccessType
+from girder import events
+from girder.constants import AccessType, CoreEventHandler, SettingKey
 from girder.utility import config
 
 
@@ -45,6 +46,12 @@ class User(AccessControlledModel):
             'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites'))
+
+        events.bind('model.user.save.created',
+                    CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
+        events.bind('model.user.save.created',
+                    CoreEventHandler.USER_DEFAULT_FOLDERS,
+                    self._addDefaultFolders)
 
     def filter(self, user, currentUser):
         """Preserved override for kwarg backwards compatibility."""
@@ -119,31 +126,6 @@ class User(AccessControlledModel):
         :param progress: A progress context to record progress on.
         :type progress: girder.utility.progress.ProgressContext or None.
         """
-        # Remove creator references for this user.
-        creatorQuery = {
-            'creatorId': user['_id']
-        }
-        creatorUpdate = {
-            '$set': {'creatorId': None}
-        }
-        self.model('collection').update(creatorQuery, creatorUpdate)
-        self.model('folder').update(creatorQuery, creatorUpdate)
-        self.model('item').update(creatorQuery, creatorUpdate)
-
-        # Remove references to this user from access-controlled resources.
-        acQuery = {
-            'access.users.id': user['_id']
-        }
-        acUpdate = {
-            '$pull': {
-                'access.users': {'id': user['_id']}
-            }
-        }
-        self.update(acQuery, acUpdate)
-        self.model('collection').update(acQuery, acUpdate)
-        self.model('folder').update(acQuery, acUpdate)
-        self.model('group').update(acQuery, acUpdate)
-
         # Delete all authentication tokens owned by this user
         self.model('token').removeWithQuery({'userId': user['_id']})
 
@@ -244,25 +226,44 @@ class User(AccessControlledModel):
             'groupInvites': []
         }
 
-        self.setPassword(user, password)
+        self.setPassword(user, password, save=False)
+        self.setPublic(user, public, save=False)
 
-        self.setPublic(user, public=public)
-        # Must have already saved the user prior to calling this since we are
-        # granting the user access on himself.
+        return self.save(user)
+
+    def _grantSelfAccess(self, event):
+        """
+        This callback grants a user admin access to itself.
+
+        This generally should not be called or overridden directly, but it may
+        be unregistered from the `model.user.save.created` event.
+        """
+        user = event.info
+
         self.setUserAccess(user, user, level=AccessType.ADMIN, save=True)
 
-        # Create some default folders for the user and give the user admin
-        # access to them
-        publicFolder = self.model('folder').createFolder(
-            user, 'Public', parentType='user', public=True, creator=user)
-        privateFolder = self.model('folder').createFolder(
-            user, 'Private', parentType='user', public=False, creator=user)
-        self.model('folder').setUserAccess(
-            publicFolder, user, AccessType.ADMIN, save=True)
-        self.model('folder').setUserAccess(
-            privateFolder, user, AccessType.ADMIN, save=True)
+    def _addDefaultFolders(self, event):
+        """
+        This callback creates "Public" and "Private" folders on a user, after
+        it is first created.
 
-        return user
+        This generally should not be called or overridden directly, but it may
+        be unregistered from the `model.user.save.created` event.
+        """
+        if self.model('setting').get(
+                SettingKey.USER_DEFAULT_FOLDERS, 'public_private') \
+                == 'public_private':
+            user = event.info
+
+            publicFolder = self.model('folder').createFolder(
+                user, 'Public', parentType='user', public=True, creator=user)
+            privateFolder = self.model('folder').createFolder(
+                user, 'Private', parentType='user', public=False, creator=user)
+            # Give the user admin access to their own folders
+            self.model('folder').setUserAccess(
+                publicFolder, user, AccessType.ADMIN, save=True)
+            self.model('folder').setUserAccess(
+                privateFolder, user, AccessType.ADMIN, save=True)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):
@@ -273,7 +274,7 @@ class User(AccessControlledModel):
         :param user: a user used to validate data that is returned.
         :param path: a path prefix to add to the results.
         :param includeMetadata: if True and there is any metadata, include a
-                                result which is the json string of the
+                                result which is the JSON string of the
                                 metadata.  This is given a name of
                                 metadata[-(number).json that is distinct from
                                 any file within the item.

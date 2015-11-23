@@ -17,12 +17,12 @@ function(json_config_merge)
     set(inputfiles )
     foreach(configfile IN LISTS fn_INPUTFILES)
       if(NOT EXISTS ${configfile})
-        message(FATAL_ERROR "Failed to merge json config file."
+        message(FATAL_ERROR "Failed to merge JSON config file."
                             "File '${configfile}' does not exist.")
       endif()
       list(APPEND inputfiles -i ${configfile})
     endforeach()
-    
+
     execute_process(
       COMMAND ${NODEJS_EXECUTABLE} ${JSON_CONFIG_MERGE_SCRIPT}
         -o ${fn_OUTPUTFILE} ${inputfiles}

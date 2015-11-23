@@ -1,5 +1,5 @@
 /**
- * Contains utility functions used in the girder jasmine tests.
+ * Contains utility functions used in the Girder Jasmine tests.
  */
 /* globals runs, expect, waitsFor, blanket, waits */
 
@@ -994,16 +994,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
  *                  multiples.
  */
 girderTest.testUploadDrop = function (itemSize, multiple) {
-    var orig_len, files = [], i;
-    multiple = multiple || 1;
-    for (i = 0; i < multiple; i += 1) {
-        files.push({
-            name: 'upload' + i + '.tmp',
-            size: itemSize
-        });
-    }
-
-    _prepareTestUpload();
+    var orig_len;
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -1019,52 +1010,7 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
             $('.modal-dialog:visible').length > 0;
     }, 'the upload dialog to appear');
 
-    runs(function () {
-        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
-    });
-
-    waitsFor(function () {
-        return $('.g-dropzone-show:visible').length > 0;
-    }, 'the drop bullseye to appear');
-
-    runs(function () {
-        $('.g-drop-zone').trigger($.Event('dragleave'));
-    });
-
-    waitsFor(function () {
-        return $('.g-dropzone-show:visible').length === 0;
-    }, 'the drop bullseye to disappear');
-
-    runs(function () {
-        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
-    });
-
-    waitsFor(function () {
-        return $('.g-dropzone-show:visible').length > 0;
-    }, 'the drop bullseye to appear');
-
-    runs(function () {
-        /* Try dropping nothing */
-        $('.g-drop-zone').trigger($.Event('dragover'));
-        $('.g-drop-zone').trigger($.Event('drop', {originalEvent: {dataTransfer: {files: []}}}));
-    });
-
-    waitsFor(function () {
-        return $('.g-dropzone-show:visible').length === 0;
-    }, 'the drop bullseye to disappear');
-
-    runs(function () {
-        $('.g-drop-zone').trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
-    });
-
-    waitsFor(function () {
-        return $('.g-dropzone-show:visible').length > 0;
-    }, 'the drop bullseye to appear');
-
-
-    runs(function () {
-        $('.g-drop-zone').trigger($.Event('drop', {originalEvent: {dataTransfer: {files: files}}}));
-    });
+    girderTest.testUploadDropAction(itemSize, multiple);
 
     waitsFor(function () {
         return $('.g-overall-progress-message').text().indexOf('Selected') >= 0;
@@ -1094,6 +1040,80 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
         window.callPhantom(
             {action: 'uploadCleanup',
              suffix: girderTest._uploadSuffix});
+    });
+};
+
+/* Perform the drag and drop on an upload element.
+ *
+ * @param itemSize: the size of the item to drop.
+ * @param multiple: if a number, try to drop this many items.  Only one item is
+ *                  ever actually uploaded, because phantomjs doesn't support
+ *                  multiple items at one time, but this simulates dropping
+ *                  multiples.
+ * @param selector: drop zone selector.  Default is .g-drop-zone.
+ * @param dropActiveSelector: a selector that is only visible when the drop is
+ *                            targeted correctly.  Default is .g-dropzone-show.
+ */
+girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropActiveSelector) {
+    var files = [], i;
+    multiple = multiple || 1;
+    selector = selector || '.g-drop-zone';
+    dropActiveSelector = (dropActiveSelector || '.g-dropzone-show') + ':visible';
+
+    for (i = 0; i < multiple; i += 1) {
+        files.push({
+            name: 'upload' + i + '.tmp',
+            size: itemSize
+        });
+    }
+
+    _prepareTestUpload();
+
+    runs(function () {
+        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $(dropActiveSelector).length > 0;
+    }, 'the drop bullseye to appear');
+
+    runs(function () {
+        $(selector).trigger($.Event('dragleave'));
+    });
+
+    waitsFor(function () {
+        return $(dropActiveSelector).length === 0;
+    }, 'the drop bullseye to disappear');
+
+    runs(function () {
+        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $(dropActiveSelector).length > 0;
+    }, 'the drop bullseye to appear');
+
+    runs(function () {
+        /* Try dropping nothing */
+        $(selector).trigger($.Event('dragover', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: []}}}));
+    });
+
+    waitsFor(function () {
+        return $(dropActiveSelector).length === 0;
+    }, 'the drop bullseye to disappear');
+
+    runs(function () {
+        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+    });
+
+    waitsFor(function () {
+        return $(dropActiveSelector).length > 0;
+    }, 'the drop bullseye to appear');
+
+
+    runs(function () {
+        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: files}}}));
     });
 };
 

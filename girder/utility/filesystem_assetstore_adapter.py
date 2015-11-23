@@ -313,7 +313,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         file = self.model('file').createFile(
             name=name, creator=user, item=item, reuseExisting=True,
-            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size)
+            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size,
+            saveFile=False)
         file['path'] = os.path.abspath(os.path.expanduser(path))
         file['mtime'] = stat.st_mtime
         file['imported'] = True

@@ -60,6 +60,12 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
     if curConfig is None:
         curConfig = config.getConfig()
 
+    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
+        print(TerminalColor.warning(
+            'Warning: the plugin_directory setting is deprecated. Please use '
+            'the `girder-install plugin` command and remove this setting from '
+            'your config file.'))
+
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         module = imp.new_module(ROOT_PLUGINS_PACKAGE)
         girder.plugins = module
@@ -98,10 +104,10 @@ def getPluginParentDir(name, curConfig=None):
     :type name: str
     """
     for potentialParentDir in getPluginDirs(curConfig):
-        if os.path.exists(os.path.join(potentialParentDir, name)):
+        if os.path.isdir(os.path.join(potentialParentDir, name)):
             return potentialParentDir
 
-    raise Exception('Plugin directory %s does not exist' % name)
+    raise Exception('Plugin directory %s does not exist.' % name)
 
 
 def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
@@ -173,12 +179,12 @@ def defaultPluginDir():
     pluginDir = None
 
     # It looks if there is a plugin directory next
-    # to the girder python package.  This is the case when running from the
+    # to the Girder Python package.  This is the case when running from the
     # git repository.
     if os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
         pluginDir = os.path.join(ROOT_DIR, 'plugins')
-    # As a last resort, use plugins inside the girder python package.
-    # This is intended to occur when girder is pip installed.
+    # As a last resort, use plugins inside the Girder Python package.
+    # This is intended to occur when Girder is pip installed.
     else:
         pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
 

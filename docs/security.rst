@@ -94,7 +94,7 @@ sensible CORS policy (discussed above) also helps mitigate this attack vector.
 Dependent Libraries
 -------------------
 
-Another common attack vector is through libraries upon which girder depends
+Another common attack vector is through libraries upon which Girder depends
 such as Cherrypy, Jade, PyMongo, etc. Girder's library dependencies reference
 specific versions, ensuring that arbitrary upstream changes to libraries are
 not automatically accepted into Girder's environment. Conversely, during
@@ -109,7 +109,7 @@ method. Additionally, we recommend encrypting the volume where the Mongo
 database is stored as well as always connecting to Mongo using authenticated
 access. The volume containing any on-disk assetstores should also be encrypted
 to provide encryption of data at rest. We also recommend using a tool such as
-logrotate to enable the audit of girder logs in the event of a data breach.
+logrotate to enable the audit of Girder logs in the event of a data breach.
 Finally, we recommend a regular (and regularly tested) backup of the Girder
 database, configuration, and assetstores. Disaster recovery is an important
 part of any security plan.

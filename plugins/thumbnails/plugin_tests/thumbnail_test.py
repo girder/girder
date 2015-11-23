@@ -76,7 +76,7 @@ class ThumbnailsTestCase(base.TestCase):
         with open(path, 'rb') as file:
             data = file.read()
 
-        # Upload the girder logo to the admin's public folder
+        # Upload the Girder logo to the admin's public folder
         resp = self.request(
             path='/file', method='POST', user=self.admin, params={
                 'parentType': 'folder',
@@ -202,7 +202,7 @@ class ThumbnailsTestCase(base.TestCase):
         with open(path, 'rb') as file:
             data = file.read()
 
-        # Upload the girder logo to the admin's public folder
+        # Upload the Girder logo to the admin's public folder
         resp = self.request(
             path='/file', method='POST', user=self.admin, params={
                 'parentType': 'folder',

@@ -20,7 +20,7 @@
 import json
 
 from .. import base
-
+from bson.objectid import ObjectId
 from girder.constants import AccessType, SettingKey
 
 
@@ -351,3 +351,24 @@ class CollectionTestCase(base.TestCase):
         }, user=self.user)
         self.assertStatusOk(resp)
         self.assertTrue('_id' in resp.json)
+
+    def testMissingAclRefs(self):
+        # Make fake user and group documents and put them into the
+        # collection ACL.
+        collModel = self.model('collection')
+
+        coll = collModel.setAccessList(
+            self.collection, {
+                'users': [{'id': ObjectId(), 'level': AccessType.READ}],
+                'groups': [{'id': ObjectId(), 'level': AccessType.READ}]
+            }, save=True)
+        self.assertEqual(len(coll['access']['users']), 1)
+        self.assertEqual(len(coll['access']['groups']), 1)
+
+        # Bad refs should have been removed
+        acl = collModel.getFullAccessList(coll)
+        self.assertEqual(acl, {'users': [], 'groups': []})
+
+        # Changes should have been saved to the database
+        coll = collModel.load(coll['_id'], force=True)
+        self.assertEqual(acl, coll['access'])

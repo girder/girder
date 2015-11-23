@@ -25,7 +25,8 @@ import six
 
 from bson.objectid import ObjectId
 from girder import events
-from girder.constants import AccessType, TerminalColor, TEXT_SCORE_SORT_MAX
+from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
+    TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
@@ -338,11 +339,12 @@ class Model(ModelImporter):
         :param multi: Whether to update a single document, or all matching
             documents.
         :type multi: bool
+        :returns: A pymongo UpdateResult object.
         """
         if multi:
-            self.collection.update_many(query, update)
+            return self.collection.update_many(query, update)
         else:
-            self.collection.update_one(query, update)
+            return self.collection.update_one(query, update)
 
     def increment(self, query, field, amount, **kwargs):
         """
@@ -471,6 +473,57 @@ class AccessControlledModel(Model):
     It also provides methods for setting access control policies on the
     resource.
     """
+
+    def __init__(self):
+        # Do the bindings before calling __init__(), in case a derived class
+        # wants to change things in initialize()
+        events.bind('model.user.remove',
+                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    self._cleanupDeletedEntity)
+        events.bind('model.group.remove',
+                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    self._cleanupDeletedEntity)
+        super(AccessControlledModel, self).__init__()
+
+    def _cleanupDeletedEntity(self, event):
+        """
+        This callback removes references to deleted users or groups from all
+        concrete AccessControlledModel subtypes.
+
+        This generally should not be called or overridden directly. This should
+        not be unregistered, that would allow references to non-existent users
+        and groups to remain.
+        """
+        entityType = event.name.split('.')[1]
+        entityDoc = event.info
+
+        if entityType == self.name:
+            # Avoid circular callbacks, since Users and Groups are themselves
+            # AccessControlledModels
+            return
+
+        if entityType == 'user':
+            # Remove creator references for this user entity.
+            creatorQuery = {
+                'creatorId': entityDoc['_id']
+            }
+            creatorUpdate = {
+                '$set': {'creatorId': None}
+            }
+            # If a given access-controlled resource doesn't store creatorId,
+            # this will simply do nothing
+            self.update(creatorQuery, creatorUpdate)
+
+        # Remove references to this entity from access-controlled resources.
+        acQuery = {
+            'access.%ss.id' % entityType: entityDoc['_id']
+        }
+        acUpdate = {
+            '$pull': {
+                'access.%ss' % entityType: {'id': entityDoc['_id']}
+            }
+        }
+        self.update(acQuery, acUpdate)
 
     def filter(self, doc, user, additionalKeys=None):
         """
@@ -694,26 +747,47 @@ class AccessControlledModel(Model):
     def getFullAccessList(self, doc):
         """
         Return an object representing the full access list on this document.
-        This simply includes the names of the users and groups with the access
-        list.
+        This simply includes the names of the users and groups with the ACL.
+
+        If the document contains references to users or groups that no longer
+        exist, they are simply removed from the ACL, and the modified ACL is
+        persisted at the end of this method if any removals occurred.
+
+        :param doc: The document whose ACL to return.
+        :type doc: dict
+        :returns: A dict containing `users` and `groups` keys.
         """
         acList = {
             'users': doc.get('access', {}).get('users', []),
             'groups': doc.get('access', {}).get('groups', [])
         }
 
-        for user in acList['users']:
+        dirty = False
+
+        for user in acList['users'][:]:
             userDoc = self.model('user').load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
+            if not userDoc:
+                dirty = True
+                acList['users'].remove(user)
+                continue
             user['login'] = userDoc['login']
             user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
-        for grp in acList['groups']:
+        for grp in acList['groups'][:]:
             grpDoc = self.model('group').load(
                 grp['id'], force=True, fields=['name', 'description'])
+            if not grpDoc:
+                dirty = True
+                acList['groups'].remove(grp)
+                continue
             grp['name'] = grpDoc['name']
             grp['description'] = grpDoc['description']
+
+        if dirty:
+            # If we removed invalid entries from the ACL, persist the changes.
+            self.setAccessList(doc, acList, save=True)
 
         return acList
 

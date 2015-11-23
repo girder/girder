@@ -39,11 +39,11 @@
 
     p.g-frontpage-paragraph
       if versionInfo.git
-        | This instance of girder was built from git version&nbsp;
+        | This instance of Girder was built from Git version&nbsp;
         a.g-git-sha(
           target="_blank", href="https://github.com/girder/girder/tree/#{versionInfo.SHA}")= versionInfo.shortSHA
         | .
       else
-        | This instance of girder was built on #{new Date(versionInfo.date).toLocaleDateString()}.
+        | This instance of Girder was built on #{new Date(versionInfo.date).toLocaleDateString()}.
       if versionInfo.apiVersion
         |   API Version #{versionInfo.apiVersion}.

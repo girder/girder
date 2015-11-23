@@ -108,7 +108,7 @@ class Resource(BaseResource):
         :param params: a dictionary of parameters that must include 'resources'
         :param allowedModels: if present, an iterable of models that may be
                               included in the resources.
-        :returns: the json decoded resource dictionary.
+        :returns: the JSON decoded resource dictionary.
         """
         self.requireParams(('resources', ), params)
         try:
@@ -219,7 +219,7 @@ class Resource(BaseResource):
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
                'The path of the resource.  The path must be an absolute Unix '
-               'path starting with either "/user/[user name]", for a user\'s'
+               'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
         .errorResponse('Path is invalid.')
@@ -272,7 +272,7 @@ class Resource(BaseResource):
         .param('resources', 'A JSON-encoded list of types to download.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
                '(item id 2)], "folder": [(folder id 1)]}.')
-        .param('includeMetadata', 'Include any metadata in json files in the '
+        .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')

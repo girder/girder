@@ -49,12 +49,17 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.email_host',
             'core.registration_policy',
             'core.smtp_host',
+            'core.smtp.port',
+            'core.smtp.encryption',
+            'core.smtp.username',
+            'core.smtp.password',
             'core.upload_minimum_chunk_size',
             'core.cors.allow_origin',
             'core.cors.allow_methods',
             'core.cors.allow_headers',
             'core.add_to_group_policy',
-            'core.collection_create_policy'
+            'core.collection_create_policy',
+            'core.user_default_folders'
         ];
         this.settingsKeys = keys;
         girder.restRequest({

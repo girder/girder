@@ -230,7 +230,7 @@ be found in the ``clients/jquery`` directory of the source tree.
         search result is clicked.  It will be passed the result item's information
         and the API root.
 
-This plugin creates a Bootsrap dropdown menu reflecting the current contents of
+This plugin creates a Bootstrap dropdown menu reflecting the current contents of
 a Girder server as accessible by the logged-in user.  The selection on which
 this plugin is invoked should be an ``<li>`` element that is part of a Bootstrap
 navbar.  For example:

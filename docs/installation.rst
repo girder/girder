@@ -11,24 +11,20 @@ To install the Girder distribution from the python package index, simply run ::
 
     pip install girder
 
-This will install the core Girder REST API as a site package in your system
-or virtual environment.  At this point, you might want to check the
+This will install the core Girder server as a site package in your system
+or virtual environment. At this point, you might want to check the
 :doc:`configuration <configuration>` to change your plugin and logging
-paths.  In order to use the web
-interface, you must also install the web client libraries.  Girder installs
-a python script that will automatically download and install these libraries
-for you.  Just run the following command: ::
+paths.  In order to use the web interface, you must also install the web client
+libraries. Girder installs a python script that will automatically build and
+install these libraries for you. Just run the following command: ::
 
    girder-install web
 
-If you installed Girder into your system ``site-packages``, you may need to
-run this command as root.
+.. note:: Installing the web client code requires the node package manager (npm).
+   See the :doc:`prerequisites` section for instructions on installing nodejs.
 
-Optionally, you can also install a set of :ref:`plugins <plugins>` that are
-distributed with Girder.  The ``girder-install`` script can do this for you
-as well by running: ::
-
-   girder-install plugin
+.. note:: If you installed Girder into your system ``site-packages``, you may
+   need to run the above commands as root.
 
 Once this is done, you are ready to start using Girder as described in this
 section: :ref:`run-girder`.
@@ -98,3 +94,29 @@ recommended action is to create an ``Assetstore`` for your system. No users
 can upload data to the system until an assetstore is created, since all files
 in Girder must reside within an assetstore. See the :ref:`Assetstores <assetstores>` section
 for a brief overview of ``Assetstores``.
+
+Installing third-party plugins
+------------------------------
+
+Girder ships with a :ref:`standard library of plugins <plugins>` that can be
+enabled in the admin console, but it's common for Girder installations to require
+additional third-party plugins to be installed. If you're using a pip installed
+version of Girder, you can simply use the following command: ::
+
+    girder-install plugin /path/to/your/plugin
+
+That command will expose the plugin to Girder and build any web client targets
+associated with the plugin. You will still need to enable it in the console and
+then restart the Girder server before it will be active.
+
+.. note:: The ``girder-install plugin`` command can also accept a list of plugins
+   to be installed. You may need to run it as root if you installed Girder at the
+   system level.
+
+For development purposes it is possible to symlink (rather than copy) the plugin
+directory. This is accomplished with the ``-s`` or ``--symlink`` flag: ::
+
+     girder-install -s plugin /path/to/your/plugin
+
+Enabled plugins installed with ``-s`` may be edited in place and those changes will
+be reflected after a server restart.
