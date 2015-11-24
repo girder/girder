@@ -13,7 +13,10 @@ div.g-plugin-restart
     .g-plugin-list-item
       input.g-plugin-switch(type="checkbox", key=plugin.key,
                             disabled=!plugin.value.meetsDependencies,
-                            checked=(plugin.value.enabled ? "checked" : undefined))
+                            checked=(plugin.value.enabled ? "checked" : undefined),
+                            experimental=(experimental ? "true" : undefined),
+                            data-on-color=(experimental ? "warning" : "primary"),
+                            data-label-text=(experimental ? "&#xe95c;" : "&nbsp;"))
       .g-plugin-name
         span= plugin.value.name
         if plugin.value.version

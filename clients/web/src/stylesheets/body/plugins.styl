@@ -1,5 +1,7 @@
 @import 'nib'
 
+$warnColor = #f0ad4e
+
 .g-plugin-list-container
   border 1px solid #e2e2e2
   border-radius 3px
@@ -41,6 +43,10 @@
   .bootstrap-switch
     float right
 
+    .bootstrap-switch-label
+      color $warnColor
+      font-family fontello
+
 .g-plugin-restart
   visibility hidden
   button.g-plugin-restart-button
@@ -71,7 +77,7 @@
 .g-experimental-notice
   font-size 13px
   text-transform uppercase
-  background-color #ce9327
+  background-color $warnColor
   color white
   border-radius 3px
   padding 2px 5px
