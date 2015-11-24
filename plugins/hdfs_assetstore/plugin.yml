@@ -3,5 +3,5 @@ description: >
     This plugin adds a new assetstore type to the system that proxies files for
     the Hadoop Distributed Filesystem (HDFS). This also allows files on a
     pre-existing HDFS instance to be imported into the Girder data hierarchy.
-version: 0.1.0
+version: 1.0.0
 python3: false
