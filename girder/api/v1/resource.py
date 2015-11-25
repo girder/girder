@@ -226,7 +226,7 @@ class Resource(BaseResource):
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403))
 
-    @access.cookie
+    @access.cookie(force=True)
     @access.public
     def download(self, params):
         """
