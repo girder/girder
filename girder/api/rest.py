@@ -495,6 +495,16 @@ class Resource(ModelImporter):
                 'WARNING: No access level specified for route {} {}'
                 .format(method, routePath)))
 
+        if method.lower() not in ('head', 'get') \
+            and hasattr(handler, 'cookieAuth') \
+            and not (isinstance(handler.cookieAuth, tuple) and
+                     handler.cookieAuth[1]):
+            routePath = '/'.join([resource] + list(route))
+            print(TerminalColor.warning(
+                  'WARNING: Cannot allow cookie authentication for '
+                  'route {} {} without specifying "force=True"'
+                  .format(method, routePath)))
+
     def removeRoute(self, method, route, handler=None, resource=None):
         """
         Remove a route from the handler and documentation.
@@ -597,11 +607,6 @@ class Resource(ModelImporter):
                         # once with allowCookie will make the parameter
                         # effectively permanent (for the request)
                         getCurrentToken(allowCookie=True)
-                    else:
-                        print(TerminalColor.warning(
-                            'WARNING: Cannot allow cookie authentication for '
-                            'route "%s %s" without specifying "force=True"' %
-                            (method, '/'.join(path))))
 
             kwargs['params'] = params
             # Add before call for the API method. Listeners can return
