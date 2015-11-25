@@ -175,7 +175,7 @@ function(add_web_client_test case specFile)
     "ENABLED_PLUGINS=${plugins}"
     "PLUGIN_DIRS=${pluginDirs}"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
-    "GIRDER_TEST_ASSETSTORE=webclient_${testname}"
+    "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")

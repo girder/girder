@@ -316,11 +316,11 @@ class QuotaTestCase(base.TestCase):
         """
         # We want three assetstores for testing, one of which is unreachable.
         # We already have one, which is the current assetstore.
-        base.dropGridFSDatabase('girder_assetstore_user_quota_test')
+        base.dropGridFSDatabase('girder_test_user_quota_assetstore')
         params = {
             'name': 'Non-current Store',
             'type': AssetstoreType.GRIDFS,
-            'db': 'girder_assetstore_user_quota_test'
+            'db': 'girder_test_user_quota_assetstore'
         }
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
