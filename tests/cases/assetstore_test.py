@@ -305,7 +305,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(oldAssetstore['current'])
         self.assertEqual(oldAssetstore['name'], 'Test')
         # Clear any old DB data
-        base.dropGridFSDatabase('girder_assetstore_create_test')
+        base.dropGridFSDatabase('girder_test_assetstore_create_assetstore')
         params = {
             'name': 'New Name',
             'type': AssetstoreType.GRIDFS
@@ -314,7 +314,7 @@ class AssetstoreTestCase(base.TestCase):
                             params=params)
         self.assertMissingParameter(resp, 'db')
 
-        params['db'] = 'girder_assetstore_create_test'
+        params['db'] = 'girder_test_assetstore_create_assetstore'
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
         self.assertStatusOk(resp)
@@ -348,7 +348,7 @@ class AssetstoreTestCase(base.TestCase):
         params = {
             'name': 'Replica Set Name',
             'type': AssetstoreType.GRIDFS,
-            'db': 'girder_assetstore_rs_create_test',
+            'db': 'girder_test_assetstore_create_rs_assetstore',
             'mongohost': 'mongodb://127.0.0.1:27080,127.0.0.1:27081,'
                          '127.0.0.1:27082',
             'replicaset': 'replicaset',
