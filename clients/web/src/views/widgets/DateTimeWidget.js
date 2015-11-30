@@ -6,21 +6,14 @@
  */
 girder.views.DateTimeWidget = girder.View.extend({
 
-    /**
-     * @param [settings.prefix='default'] Prefix for element IDs in case
-     *     multiple DateTimeWidgets are rendered simultaneously.
-     */
-    initialize: function (settings) {
-        this.prefix = settings.prefix || 'default';
-        this.dateTimeId = '#' + this.prefix + '-datetime';
+    initialize: function () {
     },
 
     render: function () {
         this.$el.html(girder.templates.dateTimeWidget({
-            prefix: this.prefix
         }));
 
-        this.$(this.dateTimeId).datetimepicker({
+        this.$('.g-datetime-widget').datetimepicker({
             showClear: true,
             showTodayButton: true,
             useCurrent: 'day',
@@ -89,7 +82,7 @@ girder.views.DateTimeWidget = girder.View.extend({
      * Convenience function to access the datetimepicker on an element.
      */
     _picker: function () {
-        var picker = this.$(this.dateTimeId).data('DateTimePicker');
+        var picker = this.$('.g-datetime-widget').data('DateTimePicker');
         return picker;
     }
 });

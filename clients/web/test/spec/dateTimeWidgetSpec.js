@@ -5,19 +5,27 @@ describe('Test DateTimeWidget', function() {
         $('body').off();
 
         widget = new girder.views.DateTimeWidget({
-            parentView: null,
-            el: 'body',
-            prefix: 'test'
+            parentView: null
         });
         widget.render();
     });
 
     it('create the widget', function() {
-        expect($('input#test-datetime').length).toBe(1);
+        expect(widget.$('input.g-datetime-widget').length).toBe(1);
+    });
+
+    it('create multiple widgets', function() {
+        var widget2 = new girder.views.DateTimeWidget({
+            parentView: null
+        });
+        widget2.render();
+
+        expect(widget.$('input.g-datetime-widget').length).toBe(1);
+        expect(widget2.$('input.g-datetime-widget').length).toBe(1);
     });
 
     it('default initialization', function() {
-        expect($('input#test-datetime').val().length).toBe(0);
+        expect(widget.$('input.g-datetime-widget').length).toBe(1);
         expect(widget.date()).toBeNull();
         expect(widget.dateString().length).toBe(0);
     });
