@@ -161,7 +161,7 @@ def getCurrentUser(returnToken=False):
 
     def retVal(user, token):
         if returnToken:
-            return (user, token)
+            return user, token
         else:
             return user
 
@@ -447,7 +447,7 @@ class Resource(ModelImporter):
         :param route: The route, as a list of path params relative to the
             resource root. Elements of this list starting with ':' are assumed
             to be wildcards.
-        :type route: tuple
+        :type route: tuple[str]
         :param handler: The method to be called if the route and method are
             matched by a request. Wildcards in the route will be expanded and
             passed as kwargs with the same name as the wildcard identifier.
@@ -495,6 +495,16 @@ class Resource(ModelImporter):
                 'WARNING: No access level specified for route {} {}'
                 .format(method, routePath)))
 
+        if method.lower() not in ('head', 'get') \
+            and hasattr(handler, 'cookieAuth') \
+            and not (isinstance(handler.cookieAuth, tuple) and
+                     handler.cookieAuth[1]):
+            routePath = '/'.join([resource] + list(route))
+            print(TerminalColor.warning(
+                  'WARNING: Cannot allow cookie authentication for '
+                  'route {} {} without specifying "force=True"'
+                  .format(method, routePath)))
+
     def removeRoute(self, method, route, handler=None, resource=None):
         """
         Remove a route from the handler and documentation.
@@ -504,7 +514,7 @@ class Resource(ModelImporter):
         :param route: The route, as a list of path params relative to the
                       resource root. Elements of this list starting with ':'
                       are assumed to be wildcards.
-        :type route: list
+        :type route: tuple[str]
         :param handler: The method called for the route; this is necessary to
                         remove the documentation.
         :type handler: function
@@ -580,41 +590,55 @@ class Resource(ModelImporter):
 
         for route, handler in self._routes[method][len(path)]:
             kwargs = self._matchRoute(path, route)
-            if kwargs is not False:
-                if hasattr(handler, 'cookieAuth') and handler.cookieAuth:
-                    getCurrentToken(allowCookie=True)
+            if kwargs is False:
+                continue
 
-                kwargs['params'] = params
-                # Add before call for the API method. Listeners can return
-                # their own responses by calling preventDefault() and
-                # adding a response on the event.
-
-                if hasattr(self, 'resourceName'):
-                    resource = self.resourceName
+            if hasattr(handler, 'cookieAuth'):
+                if isinstance(handler.cookieAuth, tuple):
+                    cookieAuth, forceCookie = handler.cookieAuth
                 else:
-                    resource = handler.__module__.rsplit('.', 1)[-1]
+                    # previously, cookieAuth was not set by a decorator, so the
+                    # legacy way must be supported too
+                    cookieAuth = handler.cookieAuth
+                    forceCookie = False
+                if cookieAuth:
+                    if forceCookie or method in ('head', 'get'):
+                        # getCurrentToken will cache its output, so calling it
+                        # once with allowCookie will make the parameter
+                        # effectively permanent (for the request)
+                        getCurrentToken(allowCookie=True)
 
-                routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
-                eventPrefix = '.'.join(('rest', method, routeStr))
+            kwargs['params'] = params
+            # Add before call for the API method. Listeners can return
+            # their own responses by calling preventDefault() and
+            # adding a response on the event.
 
-                event = events.trigger('.'.join((eventPrefix, 'before')),
-                                       kwargs, pre=self._defaultAccess)
-                if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses[0]
-                else:
-                    self._defaultAccess(handler)
-                    val = handler(**kwargs)
+            if hasattr(self, 'resourceName'):
+                resource = self.resourceName
+            else:
+                resource = handler.__module__.rsplit('.', 1)[-1]
 
-                # Fire the after-call event that has a chance to augment the
-                # return value of the API method that was called. You can
-                # reassign the return value completely by adding a response to
-                # the event and calling preventDefault() on it.
-                kwargs['returnVal'] = val
-                event = events.trigger('.'.join((eventPrefix, 'after')), kwargs)
-                if event.defaultPrevented and len(event.responses) > 0:
-                    val = event.responses[0]
+            routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
+            eventPrefix = '.'.join(('rest', method, routeStr))
 
-                return val
+            event = events.trigger('.'.join((eventPrefix, 'before')),
+                                   kwargs, pre=self._defaultAccess)
+            if event.defaultPrevented and len(event.responses) > 0:
+                val = event.responses[0]
+            else:
+                self._defaultAccess(handler)
+                val = handler(**kwargs)
+
+            # Fire the after-call event that has a chance to augment the
+            # return value of the API method that was called. You can
+            # reassign the return value completely by adding a response to
+            # the event and calling preventDefault() on it.
+            kwargs['returnVal'] = val
+            event = events.trigger('.'.join((eventPrefix, 'after')), kwargs)
+            if event.defaultPrevented and len(event.responses) > 0:
+                val = event.responses[0]
+
+            return val
 
         raise RestException('No matching route for "{} {}"'.format(
             method.upper(), '/'.join(path)))

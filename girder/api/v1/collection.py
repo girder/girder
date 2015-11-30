@@ -101,6 +101,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403))
 
+    @access.cookie
     @access.public
     @loadmodel(model='collection', level=AccessType.READ)
     def downloadCollection(self, collection, params):
@@ -118,7 +119,6 @@ class Collection(Resource):
                     yield data
             yield zip.footer()
         return stream
-    downloadCollection.cookieAuth = True
     downloadCollection.description = (
         Description('Download an entire collection as a zip archive.')
         .param('id', 'The ID of the collection.', paramType='path')

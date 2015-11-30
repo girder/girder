@@ -207,6 +207,7 @@ class File(Resource):
         .errorResponse('You are not the user who initiated the upload.', 403)
         .errorResponse('Failed to store upload.', 500))
 
+    @access.cookie
     @access.public
     @loadmodel(model='file', level=AccessType.READ)
     def download(self, file, params):
@@ -229,7 +230,6 @@ class File(Resource):
                 endByte = int(endByte)
 
         return self.model('file').download(file, offset, endByte=endByte)
-    download.cookieAuth = True
     download.description = (
         Description('Download a file.')
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
@@ -246,10 +246,10 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403))
 
+    @access.cookie
     @access.public
     def downloadWithName(self, id, name, params):
         return self.download(id=id, params=params)
-    downloadWithName.cookieAuth = True
     downloadWithName.description = (
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')

@@ -242,7 +242,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         :param obj: The dictionary object.
         :param keys: The keys it must not contain.
-        :type keys: list
+        :type keys: list or tuple
         """
         for k in keys:
             self.assertFalse(k in obj, 'Object contains key "%s"' % k)
