@@ -112,10 +112,8 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
     },
 
     render: function () {
-        var view = this;
-
-        view.$el.html(girder.templates.dateTimeRangeWidget({
-            prefix: view.prefix
+        this.$el.html(girder.templates.dateTimeRangeWidget({
+            prefix: this.prefix
         }));
 
         // Link datetimepickers to disallow choosing range where "from" date is
@@ -137,19 +135,19 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
                 today: 'icon-target'
             }
         };
-        view.$(view.dateTimeFromId).datetimepicker(options);
+        this.$(this.dateTimeFromId).datetimepicker(options);
 
         options['useCurrent'] = false;
-        view.$(view.dateTimeToId).datetimepicker(options);
+        this.$(this.dateTimeToId).datetimepicker(options);
 
-        $(view.dateTimeFromId).on('dp.change', function (e) {
-            var picker = view._picker(view.dateTimeToId);
+        $(this.dateTimeFromId).on('dp.change', _.bind(function (e) {
+            var picker = this._picker(this.dateTimeToId);
             picker.minDate(e.date);
-        });
-        $(view.dateTimeToId).on('dp.change', function (e) {
-            var picker = view._picker(view.dateTimeFromId);
+        }, this));
+        $(this.dateTimeToId).on('dp.change', _.bind(function (e) {
+            var picker = this._picker(this.dateTimeFromId);
             picker.maxDate(e.date);
-        });
+        }, this));
 
         return this;
     },
