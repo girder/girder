@@ -242,6 +242,62 @@ def getPluginDir(curConfig=None):
 
     return pluginDir
 
+def findPluginConfig(path):
+    """
+    Given a directory representing a plugin, find its plugin configuration file
+    (e.g. girder_plugin.json or plugin.json) and return the full path to that
+    file, or ``None`` if no config file was found.
+
+    :param path: The plugin directory.
+    :type path: str
+    """
+    def searchPath():
+        yield os.path.join(path, 'girder_plugin.json')
+        yield os.path.join(path, 'girder_plugin.yml')
+        yield os.path.join(path, 'plugin.json')
+        yield os.path.join(path, 'plugin.yml')
+
+    for file in searchPath():
+        if os.path.isfile(file):
+            return file
+
+    return None
+
+
+def readPluginConfig(configFile, silent=False):
+    """
+    Given the path to a plugin's config file, read the information within it
+    and return it. Raises a ``ValueError`` if the file could not be parsed
+    according to its extension (either .json or .yml). Also raises a ValueError
+    if the file does not have a .json or .yml extension.
+
+    :param configFile: The path to the config file.
+    :type configFile: str
+    :param silent: Whether to suppress printing error messages to stdout.
+    :type silent: bool
+    """
+    with open(configFile) as fd:
+        if configFile.endswith('.json'):
+            try:
+                return json.load(fd)
+            except ValueError as e:
+                if not silent:
+                    print(TerminalColor.error(
+                        'ERROR: %s is not valid JSON.' % configFile))
+                    print(e)
+                raise
+        elif configFile.endswith('.yml'):
+            try:
+                return yaml.safe_load(fd)
+            except yaml.YAMLError as e:
+                if not silent:
+                    print(TerminalColor.error(
+                        'ERROR: %s is not valid YAML.' % configFile))
+                    print(e)
+                six.raise_from(ValueError(e), e)
+        else:
+            raise ValueError('Unknown config format: %s.' % configFile)
+
 
 def findAllPlugins(curConfig=None):
     """
@@ -260,31 +316,15 @@ def findAllPlugins(curConfig=None):
             os.path.join(pluginDir, dir))]
 
         for plugin in dirs:
-            data = {}
-            configJson = os.path.join(pluginDir, plugin, 'plugin.json')
-            configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
-            if os.path.isfile(configJson):
-                with open(configJson) as conf:
-                    try:
-                        data = json.load(conf)
-                    except ValueError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.json is not valid JSON.') % plugin))
-                        print(e)
-                        continue
-            elif os.path.isfile(configYml):
-                with open(configYml) as conf:
-                    try:
-                        data = yaml.safe_load(conf)
-                    except yaml.YAMLError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.yml is not valid YAML.') % plugin))
-                        print(e)
-                        continue
+            configFile = findPluginConfig(os.path.join(pluginDir, plugin))
+
+            if configFile:
+                try:
+                    data = readPluginConfig(configFile)
+                except ValueError:
+                    continue  # Should we skip plugin? Keeping old behavior.
+            else:
+                data = {}
 
             allPlugins[plugin] = {
                 'name': data.get('name', plugin),
