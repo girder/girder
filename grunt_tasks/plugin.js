@@ -39,7 +39,7 @@ module.exports = function (grunt) {
      *
      *  This will also add watch tasks for each of the above.
      */
-    var configure_plugin = function (plugin) {
+    var configurePlugin = function (plugin) {
         var pluginTarget = 'plugin-' + plugin,
             pluginPath = path.resolve(grunt.config.get('pluginDir'), plugin),
             staticPath = path.resolve(
@@ -182,7 +182,7 @@ module.exports = function (grunt) {
             ).bold);
 
             // merge in configuration for the main plugin build tasks
-            configure_plugin(plugin);
+            configurePlugin(plugin);
 
             if (fs.existsSync(json)) {
                 config = grunt.file.readYAML(json);
