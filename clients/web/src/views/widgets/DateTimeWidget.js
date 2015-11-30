@@ -23,7 +23,18 @@ girder.views.DateTimeWidget = girder.View.extend({
         this.$(this.dateTimeId).datetimepicker({
             showClear: true,
             showTodayButton: true,
-            useCurrent: 'day'
+            useCurrent: 'day',
+            icons: {
+                time: 'icon-clock',
+                date: 'icon-calendar',
+                up: 'icon-up-open',
+                down: 'icon-down-open',
+                previous: 'icon-left-open',
+                next: 'icon-right-open',
+                clear: 'icon-trash',
+                close: 'icon-cancel',
+                today: 'icon-target'
+            }
         });
 
         return this;
@@ -113,7 +124,18 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
         var options = {
             showClear: true,
             showTodayButton: true,
-            useCurrent: 'day'
+            useCurrent: 'day',
+            icons: {
+                time: 'icon-clock',
+                date: 'icon-calendar',
+                up: 'icon-up-open',
+                down: 'icon-down-open',
+                previous: 'icon-left-open',
+                next: 'icon-right-open',
+                clear: 'icon-trash',
+                close: 'icon-cancel',
+                today: 'icon-target'
+            }
         };
         view.$(view.dateTimeFromId).datetimepicker(options);
 
