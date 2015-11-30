@@ -94,19 +94,11 @@ girder.views.DateTimeWidget = girder.View.extend({
  */
 girder.views.DateTimeRangeWidget = girder.View.extend({
 
-    /**
-     * @param [settings.prefix='default'] Prefix for element IDs in case
-     *     multiple DateTimeRangeWidgets are rendered simultaneously.
-     */
-    initialize: function (settings) {
-        this.prefix = settings.prefix || 'default';
-        this.dateTimeFromId = '#' + this.prefix + '-datetime-from';
-        this.dateTimeToId = '#' + this.prefix + '-datetime-to';
+    initialize: function () {
     },
 
     render: function () {
         this.$el.html(girder.templates.dateTimeRangeWidget({
-            prefix: this.prefix
         }));
 
         // Link datetimepickers to disallow choosing range where "from" date is
@@ -128,17 +120,17 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
                 today: 'icon-target'
             }
         };
-        this.$(this.dateTimeFromId).datetimepicker(options);
+        this.$('.g-datetime-widget-from').datetimepicker(options);
 
         options.useCurrent = false;
-        this.$(this.dateTimeToId).datetimepicker(options);
+        this.$('.g-datetime-widget-to').datetimepicker(options);
 
-        $(this.dateTimeFromId).on('dp.change', _.bind(function (e) {
-            var picker = this._picker(this.dateTimeToId);
+        this.$('.g-datetime-widget-from').on('dp.change', _.bind(function (e) {
+            var picker = this._picker('.g-datetime-widget-to');
             picker.minDate(e.date);
         }, this));
-        $(this.dateTimeToId).on('dp.change', _.bind(function (e) {
-            var picker = this._picker(this.dateTimeFromId);
+        this.$('.g-datetime-widget-to').on('dp.change', _.bind(function (e) {
+            var picker = this._picker('.g-datetime-widget-from');
             picker.maxDate(e.date);
         }, this));
 
@@ -153,7 +145,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * @param date From date/time to display.
      */
     setFromDate: function (date) {
-        this._setDate(this.dateTimeFromId, date);
+        this._setDate('.g-datetime-widget-from', date);
     },
 
     /**
@@ -164,7 +156,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * @param date To date/time to display.
      */
     setToDate: function (date) {
-        this._setDate(this.dateTimeToId, date);
+        this._setDate('.g-datetime-widget-to', date);
     },
 
     /*
@@ -189,7 +181,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * date is set.
      */
     fromDate: function () {
-        return this._date(this.dateTimeFromId);
+        return this._date('.g-datetime-widget-from');
     },
 
     /**
@@ -197,7 +189,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * is set.
      */
     toDate: function () {
-        return this._date(this.dateTimeToId);
+        return this._date('.g-datetime-widget-to');
     },
 
     /**
@@ -205,7 +197,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * Returns the empty string if no date is set.
      */
     fromDateString: function () {
-        return this._dateString(this.dateTimeFromId);
+        return this._dateString('.g-datetime-widget-from');
     },
 
     /**
@@ -213,7 +205,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * Returns the empty string if no date is set.
      */
     toDateString: function () {
-        return this._dateString(this.dateTimeToId);
+        return this._dateString('.g-datetime-widget-to');
     },
 
     _picker: function (id) {

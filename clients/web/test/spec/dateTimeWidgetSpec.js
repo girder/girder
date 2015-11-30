@@ -97,21 +97,31 @@ describe('Test DateTimeRangeWidget', function() {
         $('body').off();
 
         widget = new girder.views.DateTimeRangeWidget({
-            parentView: null,
-            el: 'body',
-            prefix: 'test'
+            parentView: null
         });
         widget.render();
     });
 
     it('create the widget', function() {
-        expect($('input#test-datetime-from').length).toBe(1);
-        expect($('input#test-datetime-to').length).toBe(1);
+        expect(widget.$('.g-datetime-widget-from').length).toBe(1);
+        expect(widget.$('.g-datetime-widget-to').length).toBe(1);
+    });
+
+    it('create multiple widgets', function() {
+        widget2 = new girder.views.DateTimeRangeWidget({
+            parentView: null
+        });
+        widget2.render();
+
+        expect(widget.$('.g-datetime-widget-from').length).toBe(1);
+        expect(widget.$('.g-datetime-widget-to').length).toBe(1);
+        expect(widget2.$('.g-datetime-widget-from').length).toBe(1);
+        expect(widget2.$('.g-datetime-widget-to').length).toBe(1);
     });
 
     it('default initialization', function() {
-        expect($('input#test-datetime-from').val().length).toBe(0);
-        expect($('input#test-datetime-to').val().length).toBe(0);
+        expect(widget.$('.g-datetime-widget-from').val().length).toBe(0);
+        expect(widget.$('.g-datetime-widget-to').val().length).toBe(0);
         expect(widget.fromDate()).toBeNull();
         expect(widget.toDate()).toBeNull();
         expect(widget.fromDateString().length).toBe(0);
