@@ -137,7 +137,7 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
         };
         this.$(this.dateTimeFromId).datetimepicker(options);
 
-        options['useCurrent'] = false;
+        options.useCurrent = false;
         this.$(this.dateTimeToId).datetimepicker(options);
 
         $(this.dateTimeFromId).on('dp.change', _.bind(function (e) {
