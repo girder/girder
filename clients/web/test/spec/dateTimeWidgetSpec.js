@@ -10,7 +10,7 @@ describe('Test DateTimeWidget', function() {
         });
 
         it('create the widget', function() {
-            expect(widget.$('input.g-datetime-widget').length).toBe(1);
+            expect(widget.$('.g-datetime-widget').length).toBe(1);
         });
 
         it('create multiple widgets', function() {
@@ -19,12 +19,12 @@ describe('Test DateTimeWidget', function() {
             });
             widget2.render();
 
-            expect(widget.$('input.g-datetime-widget').length).toBe(1);
-            expect(widget2.$('input.g-datetime-widget').length).toBe(1);
+            expect(widget.$('.g-datetime-widget').length).toBe(1);
+            expect(widget2.$('.g-datetime-widget').length).toBe(1);
         });
 
         it('default initialization', function() {
-            expect(widget.$('input.g-datetime-widget').length).toBe(1);
+            expect(widget.$('.g-datetime-widget').length).toBe(1);
             expect(widget.date()).toBeNull();
             expect(widget.dateString().length).toBe(0);
         });
@@ -60,6 +60,38 @@ describe('Test DateTimeWidget', function() {
             widget.render();
 
             expect(widget.date()).toBeNull();
+        });
+
+        it('without icon', function() {
+            var parent = $('body').append('<div></div>');
+            widget = new girder.views.DateTimeWidget({
+                parentView: null,
+                el: parent,
+                showIcon: false
+            });
+            widget.render();
+
+            expect(widget.$('.icon-calendar').length).toBe(0);
+
+            expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
+            widget.$('input').focus();
+            expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
+        });
+
+        it('with icon', function() {
+            var parent = $('body').append('<div></div>');
+            widget = new girder.views.DateTimeWidget({
+                parentView: null,
+                el: parent,
+                showIcon: true
+            });
+            widget.render();
+
+            expect(widget.$('.icon-calendar').length).toBe(1);
+
+            expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
+            widget.$('.icon-calendar').click();
+            expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
         });
     });
 

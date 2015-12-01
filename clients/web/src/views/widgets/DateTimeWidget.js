@@ -9,13 +9,18 @@ girder.views.DateTimeWidget = girder.View.extend({
     /**
      * @param [settings.defaultDate=false] The default date/time when not set
      * explicitly. Set to false to have no default.
+     * @param [settings.showIcon=true] Whether to show a calendar icon beside
+     * the input field. When true, clicking the icon shows the popup. Otherwise,
+     * focusing the input field shows the popup.
      */
     initialize: function (settings) {
         this.defaultDate = settings.defaultDate || false;
+        this.showIcon = _.has(settings, 'showIcon') ? settings.showIcon : true;
     },
 
     render: function () {
         this.$el.html(girder.templates.dateTimeWidget({
+            showIcon: this.showIcon
         }));
 
         this.$('.g-datetime-widget').datetimepicker({
