@@ -688,16 +688,16 @@ class FileTestCase(base.TestCase):
         # Make sure metadata is updated in S3 when file info changes
         # (moto API doesn't cover this at all, so we manually mock.)
         with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
-            resp = self.request('/file/%s' % str(file['_id']), method='PUT',
-                                user=self.user, params={
-                                    'mimeType': 'application/csv',
-                                    'name': 'new name'
-                                })
+            resp = self.request(
+                '/file/%s' % str(file['_id']), method='PUT', params={
+                    'mimeType': 'application/csv',
+                    'name': 'new name'
+                }, user=self.user)
             self.assertEqual(len(m.mock_calls), 1)
             self.assertEqual(m.mock_calls[0][2], {
                 'metadata_plus': {
                     'Content-Type': 'application/csv',
-                    'Content-Disposition': 'attachment; filename="new name"'
+                    'Content-Disposition': b'attachment; filename="new name"'
                 },
                 'metadata_minus': [],
                 'preserve_acl': True
