@@ -110,14 +110,19 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * not set explicitly. Set to false to have no default.
      * @param [settings.defaultToDate=false] The default "to" date/time when not
      * set explicitly. Set to false to have no default.
+     * @param [settings.showIcon=true] Whether to show calendar icons beside
+     * the input fields. When true, clicking the icon shows the popup. Otherwise,
+     * focusing the input field shows the popup.
      */
     initialize: function (settings) {
         this.defaultFromDate = settings.defaultFromDate || false;
         this.defaultToDate = settings.defaultToDate || false;
+        this.showIcon = _.has(settings, 'showIcon') ? settings.showIcon : true;
     },
 
     render: function () {
         this.$el.html(girder.templates.dateTimeRangeWidget({
+            showIcon: this.showIcon
         }));
 
         // Link datetimepickers to disallow choosing range where "from" date is
