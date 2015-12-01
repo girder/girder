@@ -39,10 +39,10 @@ class File(acl_mixin.AccessControlMixin, Model):
         self.resourceParent = 'itemId'
 
         self.exposeFields(level=AccessType.READ, fields=(
-            "_id", "mimeType", "itemId", "exts", "name", "created", "creatorId",
-            "size"))
+            '_id', 'mimeType', 'itemId', 'exts', 'name', 'created', 'creatorId',
+            'size', 'updated', 'linkUrl'))
 
-        self.exposeFields(level=AccessType.SITE_ADMIN, fields=("assetstoreId",))
+        self.exposeFields(level=AccessType.SITE_ADMIN, fields=('assetstoreId',))
 
         events.bind('model.file.save.created',
                     CoreEventHandler.FILE_PROPAGATE_SIZE,
@@ -255,6 +255,22 @@ class File(acl_mixin.AccessControlMixin, Model):
         if itemId and fileDoc.get('size'):
             item = self.model('item').load(itemId, force=True)
             self.propagateSizeChange(item, fileDoc['size'])
+
+    def updateFile(self, file):
+        """
+        Call this when changing properties of an existing file, such as name
+        or MIME type. This causes the updated stamp to change, and also alerts
+        the underlying assetstore adapter that file information has changed.
+        """
+        file['updated'] = datetime.datetime.utcnow()
+        file = self.save(file)
+
+        if file.get('assetstoreId'):
+            assetstore = self.model('assetstore').load(file['assetstoreId'])
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            adapter.fileUpdated(file)
+
+        return file
 
     def copyFile(self, srcFile, creator, item=None):
         """

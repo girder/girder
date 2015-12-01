@@ -38,6 +38,7 @@ class File(Resource):
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('DELETE', ('upload', ':id'), self.cancelUpload)
         self.route('GET', ('offset',), self.requestOffset)
+        self.route('GET', (':id',), self.getFile)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
         self.route('POST', (), self.initUpload)
@@ -46,6 +47,11 @@ class File(Resource):
         self.route('POST', (':id', 'copy'), self.copy)
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
+
+    @access.public
+    @loadmodel(model='file', level=AccessType.READ)
+    def getFile(self, file, params):
+        return self.model('file').filter(file, self.getCurrentUser())
 
     @access.user
     def initUpload(self, params):
@@ -69,9 +75,10 @@ class File(Resource):
                                              level=AccessType.WRITE, exc=True)
 
         if 'linkUrl' in params:
-            return self.model('file').createLinkFile(
-                url=params['linkUrl'], parent=parent, name=params['name'],
-                parentType=parentType, creator=user)
+            return self.model('file').filter(
+                self.model('file').createLinkFile(
+                    url=params['linkUrl'], parent=parent, name=params['name'],
+                    parentType=parentType, creator=user), user)
         else:
             self.requireParams('size', params)
             try:
@@ -87,7 +94,8 @@ class File(Resource):
             if upload['size'] > 0:
                 return upload
             else:
-                return self.model('upload').finalizeUpload(upload)
+                return self.model('file').filter(
+                    self.model('upload').finalizeUpload(upload), user)
     initUpload.description = (
         Description('Start a new upload or create an empty or link file.')
         .responseClass('Upload')
@@ -121,7 +129,9 @@ class File(Resource):
                 'Server has only received {} bytes, but the file should be {} '
                 'bytes.'.format(upload['received'], upload['size']))
 
-        return self.model('upload').finalizeUpload(upload)
+        file = self.model('upload').finalizeUpload(upload)
+        extraKeys = file.get('additionalFinalizeKeys', ())
+        return self.model('file').filter(file, user, additionalKeys=extraKeys)
     finalizeUpload.description = (
         Description('Finalize an upload explicitly if necessary.')
         .notes('This is only required in certain non-standard upload '
@@ -295,7 +305,9 @@ class File(Resource):
         file['name'] = params.get('name', file['name']).strip()
         file['mimeType'] = params.get('mimeType',
                                       file.get('mimeType', '')).strip()
-        return self.model('file').save(file)
+        fileModel = self.model('file')
+        return fileModel.filter(
+            fileModel.updateFile(file), self.getCurrentUser())
     updateFile.description = (
         Description('Change file metadata such as name or MIME type.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -308,15 +320,17 @@ class File(Resource):
     @loadmodel(model='file', level=AccessType.WRITE)
     def updateFileContents(self, file, params):
         self.requireParams('size', params)
+        user = self.getCurrentUser()
 
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
-            file=file, user=self.getCurrentUser(), size=int(params['size']))
+            file=file, user=user, size=int(params['size']))
 
         if upload['size'] > 0:
             return upload
         else:
-            return self.model('upload').finalizeUpload(upload)
+            return self.model('file').filter(
+                self.model('upload').finalizeUpload(upload), user)
     updateFileContents.description = (
         Description('Change the contents of an existing file.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -333,7 +347,6 @@ class File(Resource):
         newFile = fileModel.copyFile(file, user, item=item)
 
         return fileModel.filter(newFile, user)
-
     copy.description = (
         Description('Copy a file.')
         .param('id', 'The ID of the file.', paramType='path')

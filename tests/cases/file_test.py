@@ -97,7 +97,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['name'], name)
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
 
-        return file
+        return self.model('file').load(file['_id'], force=True)
 
     def _testUploadFile(self, name):
         """
@@ -471,6 +471,25 @@ class FileTestCase(base.TestCase):
         resp = self.request(
             path='/file/{}/download'.format(file['_id']), method='GET')
         self.assertStatus(resp, 401)
+
+        # Make sure access control is enforced on get info
+        resp = self.request(
+            path='/file/' + str(file['_id']), method='GET')
+        self.assertStatus(resp, 401)
+
+        # Make sure we can get the file info and that it's filtered
+        resp = self.request(
+            path='/file/' + str(file['_id']), method='GET', user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['mimeType'], 'text/plain')
+        self.assertEqual(resp.json['exts'], ['json'])
+        self.assertEqual(resp.json['_modelType'], 'file')
+        self.assertEqual(resp.json['creatorId'], str(self.user['_id']))
+        self.assertEqual(resp.json['size'], file['size'])
+        self.assertTrue('itemId' in resp.json)
+        self.assertTrue('assetstoreId' in resp.json)
+        self.assertFalse('path' in resp.json)
+        self.assertFalse('sha512' in resp.json)
 
         resp = self.request(
             path='/folder/{}/download'.format(self.privateFolder['_id']),

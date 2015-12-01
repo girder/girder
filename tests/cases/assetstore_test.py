@@ -469,8 +469,12 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['size'], 1024)
         self.assertEqual(resp.json['assetstoreId'], str(assetstore['_id']))
-        self.assertTrue('s3Key' in resp.json)
-        self.assertTrue(resp.json['relpath'].startswith('/bucketname/foo/bar/'))
+        self.assertFalse('s3Key' in resp.json)
+        self.assertFalse('relpath' in resp.json)
+
+        file = self.model('file').load(resp.json['_id'], force=True)
+        self.assertTrue('s3Key' in file)
+        self.assertRegexpMatches(file['relpath'], '^/bucketname/foo/bar/')
 
         # Test init for a multi-chunk upload
         params['size'] = 1024 * 1024 * 1024 * 5

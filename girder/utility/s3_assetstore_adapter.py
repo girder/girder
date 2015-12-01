@@ -375,6 +375,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'url': url,
                     'headers': headers
                 }
+                file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
@@ -472,6 +473,30 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'bucket': self.assetstore['bucket'],
                     'key': file['s3Key']
                 })
+
+    def fileUpdated(self, file):
+        """
+        On file update, if the name or the MIME type changed, we must update
+        them accordingly on the S3 key so that the file downloads with the
+        correct name and content type.
+        """
+        if file.get('imported'):
+            return
+
+        bucket = self._getBucket()
+        key = bucket.get_key(file['s3Key'], validate=True)
+
+        if not key:
+            return
+
+        disp = 'attachment; filename="%s"' % file['name']
+        mime = file.get('mimeType', '')
+
+        if key.content_type != mime or key.content_disposition != disp:
+            key.set_remote_metadata(metadata_plus={
+                'Content-Type': mime,
+                'Content-Disposition': disp.encode('utf8')
+            }, metadata_minus=[], preserve_acl=True)
 
     def cancelUpload(self, upload):
         """
