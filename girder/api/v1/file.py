@@ -325,7 +325,7 @@ class File(Resource):
     def updateFile(self, file, params):
         file['name'] = params.get('name', file['name']).strip()
         file['mimeType'] = params.get('mimeType',
-                                      file.get('mimeType', '')).strip()
+                                      (file.get('mimeType') or '').strip())
         fileModel = self.model('file')
         return fileModel.filter(
             fileModel.updateFile(file), self.getCurrentUser())

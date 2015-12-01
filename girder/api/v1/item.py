@@ -19,7 +19,7 @@
 
 import cherrypy
 
-from ..describe import Description
+from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, loadmodel
 from girder.utility import ziputil
 from girder.constants import AccessType
@@ -207,18 +207,24 @@ class Item(Resource):
 
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
-    def getFiles(self, item, params):
-        """Get a page of files in an item."""
-        limit, offset, sort = self.getPagingParameters(params, 'name')
-        return list(self.model('item').childFiles(item=item, limit=limit,
-                                                  offset=offset, sort=sort))
-    getFiles.description = (
+    @describeRoute(
         Description('Get the files within an item.')
         .responseClass('File')
         .param('id', 'The ID of the item.', paramType='path')
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
+        .errorResponse('Read access was denied for the item.', 403)
+    )
+    def getFiles(self, item, params):
+        """Get a page of files in an item."""
+        limit, offset, sort = self.getPagingParameters(params, 'name')
+        fileModel = self.model('file')
+        user = self.getCurrentUser()
+        return [
+            fileModel.filter(f, user) for f in
+            self.model('item').childFiles(item=item, limit=limit,
+                                          offset=offset, sort=sort)
+        ]
 
     @access.cookie
     @access.public

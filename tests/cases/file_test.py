@@ -18,6 +18,7 @@
 ###############################################################################
 
 import io
+import mock
 import moto
 import os
 import shutil
@@ -677,12 +678,30 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
-        file = resp.json
+        file = self.model('file').load(resp.json['_id'], force=True)
 
         self.assertHasKeys(file, ['itemId'])
-        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['assetstoreId'], self.assetstore['_id'])
         self.assertEqual(file['name'], 'hello.txt')
         self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+        # Make sure metadata is updated in S3 when file info changes
+        # (moto API doesn't cover this at all, so we manually mock.)
+        with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
+            resp = self.request('/file/%s' % str(file['_id']), method='PUT',
+                                user=self.user, params={
+                                    'mimeType': 'application/csv',
+                                    'name': 'new name'
+                                })
+            self.assertEqual(len(m.mock_calls), 1)
+            self.assertEqual(m.mock_calls[0][2], {
+                'metadata_plus': {
+                    'Content-Type': 'application/csv',
+                    'Content-Disposition': 'attachment; filename="new name"'
+                },
+                'metadata_minus': [],
+                'preserve_acl': True
+            })
 
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5

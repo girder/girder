@@ -490,7 +490,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return
 
         disp = 'attachment; filename="%s"' % file['name']
-        mime = file.get('mimeType', '')
+        mime = file.get('mimeType') or ''
 
         if key.content_type != mime or key.content_disposition != disp:
             key.set_remote_metadata(metadata_plus={
