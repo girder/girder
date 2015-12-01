@@ -6,7 +6,12 @@
  */
 girder.views.DateTimeWidget = girder.View.extend({
 
-    initialize: function () {
+    /**
+     * @param [settings.defaultDate=false] The default date/time when not set
+     * explicitly. Set to false to have no default.
+     */
+    initialize: function (settings) {
+        this.defaultDate = settings.defaultDate || false;
     },
 
     render: function () {
@@ -27,7 +32,8 @@ girder.views.DateTimeWidget = girder.View.extend({
                 clear: 'icon-trash',
                 close: 'icon-cancel',
                 today: 'icon-target'
-            }
+            },
+            defaultDate: this.defaultDate
         });
 
         return this;
@@ -94,7 +100,15 @@ girder.views.DateTimeWidget = girder.View.extend({
  */
 girder.views.DateTimeRangeWidget = girder.View.extend({
 
-    initialize: function () {
+    /**
+     * @param [settings.defaultFromDate=false] The default "from" date/time when
+     * not set explicitly. Set to false to have no default.
+     * @param [settings.defaultToDate=false] The default "to" date/time when not
+     * set explicitly. Set to false to have no default.
+     */
+    initialize: function (settings) {
+        this.defaultFromDate = settings.defaultFromDate || false;
+        this.defaultToDate = settings.defaultToDate || false;
     },
 
     render: function () {
@@ -107,7 +121,6 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
         var options = {
             showClear: true,
             showTodayButton: true,
-            useCurrent: 'day',
             icons: {
                 time: 'icon-clock',
                 date: 'icon-calendar',
@@ -120,9 +133,12 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
                 today: 'icon-target'
             }
         };
+        options.useCurrent = 'day';
+        options.defaultDate = this.defaultFromDate;
         this.$('.g-datetime-widget-from').datetimepicker(options);
 
         options.useCurrent = false;
+        options.defaultDate = this.defaultToDate;
         this.$('.g-datetime-widget-to').datetimepicker(options);
 
         this.$('.g-datetime-widget-from').on('dp.change', _.bind(function (e) {

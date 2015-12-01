@@ -30,6 +30,39 @@ describe('Test DateTimeWidget', function() {
         });
     });
 
+    describe('custom construction', function() {
+        it('default date', function() {
+            widget = new girder.views.DateTimeWidget({
+                parentView: null,
+                defaultDate: '2015-02-01T12:00Z'
+            });
+            widget.render();
+
+            expect(widget.date()).not.toBeNull();
+            expect(widget.date().isSame(moment('2015-02-01T12:00Z'))).toBe(true);
+        });
+
+        it('null default date', function() {
+            widget = new girder.views.DateTimeWidget({
+                parentView: null,
+                defaultDate: null
+            });
+            widget.render();
+
+            expect(widget.date()).toBeNull();
+        });
+
+        it('blank default date', function() {
+            widget = new girder.views.DateTimeWidget({
+                parentView: null,
+                defaultDate: ''
+            });
+            widget.render();
+
+            expect(widget.date()).toBeNull();
+        });
+    });
+
     describe('set/get date', function() {
         beforeEach(function() {
             widget = new girder.views.DateTimeWidget({
@@ -134,6 +167,46 @@ describe('Test DateTimeRangeWidget', function() {
             expect(widget.toDate()).toBeNull();
             expect(widget.fromDateString().length).toBe(0);
             expect(widget.toDateString().length).toBe(0);
+        });
+    });
+
+    describe('custom construction', function() {
+        it('default dates', function() {
+            widget = new girder.views.DateTimeRangeWidget({
+                parentView: null,
+                defaultFromDate: '2015-02-01T12:00Z',
+                defaultToDate: '2015-03-01T12:00Z'
+            });
+            widget.render();
+
+            expect(widget.fromDate()).not.toBeNull();
+            expect(widget.fromDate().isSame(moment('2015-02-01T12:00Z'))).toBe(true);
+            expect(widget.toDate()).not.toBeNull();
+            expect(widget.toDate().isSame(moment('2015-03-01T12:00Z'))).toBe(true);
+        });
+
+        it('null default dates', function() {
+            widget = new girder.views.DateTimeRangeWidget({
+                parentView: null,
+                defaultFromDate: null,
+                defaultToDate: null
+            });
+            widget.render();
+
+            expect(widget.fromDate()).toBeNull();
+            expect(widget.toDate()).toBeNull();
+        });
+
+        it('blank default dates', function() {
+            widget = new girder.views.DateTimeRangeWidget({
+                parentView: null,
+                defaultFromDate: '',
+                defaultToDate: ''
+            });
+            widget.render();
+
+            expect(widget.fromDate()).toBeNull();
+            expect(widget.toDate()).toBeNull();
         });
     });
 
