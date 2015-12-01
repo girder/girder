@@ -20,7 +20,7 @@
 import cherrypy
 import json
 
-from ..describe import Description
+from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, loadmodel
 from ...constants import AccessType
 from girder.utility import ziputil
@@ -47,6 +47,20 @@ class Folder(Resource):
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     @access.public
+    @describeRoute(
+        Description('Search for folders by certain properties.')
+        .responseClass('Folder')
+        .param('parentType', "Type of the folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
+        .param('parentId', "The ID of the folder's parent.", required=False)
+        .param('text', 'Pass to perform a text search.', required=False)
+        .param('name', 'Pass to lookup a folder by exact name match. Must '
+               'pass parentType and parentId as well when using this.',
+               required=False)
+        .pagingParams(defaultSort='name')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent resource.', 403)
+    )
     def find(self, params):
         """
         Get a list of folders with given search parameters. Currently accepted
@@ -91,19 +105,6 @@ class Folder(Resource):
                         sort=sort)]
         else:
             raise RestException('Invalid search mode.')
-    find.description = (
-        Description('Search for folders by certain properties.')
-        .responseClass('Folder')
-        .param('parentType', "Type of the folder's parent", required=False,
-               enum=['folder', 'user', 'collection'])
-        .param('parentId', "The ID of the folder's parent.", required=False)
-        .param('text', 'Pass to perform a text search.', required=False)
-        .param('name', 'Pass to lookup a folder by exact name match. Must '
-               'pass parentType and parentId as well when using this.',
-               required=False)
-        .pagingParams(defaultSort='name')
-        .errorResponse()
-        .errorResponse('Read access was denied on the parent resource.', 403))
 
     @access.public
     @loadmodel(model='folder', level=AccessType.READ)
