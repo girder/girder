@@ -546,17 +546,17 @@ class FileTestCase(base.TestCase):
         Test usage of the GridFS assetstore type.
         """
         # Clear any old DB data
-        base.dropGridFSDatabase('girder_assetstore_test')
+        base.dropGridFSDatabase('girder_test_file_assetstore')
         # Clear the assetstore database
         conn = getDbConnection()
-        conn.drop_database('girder_assetstore_test')
+        conn.drop_database('girder_test_file_assetstore')
 
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createGridFsAssetstore(
-            name='Test', db='girder_assetstore_test')
+            name='Test', db='girder_test_file_assetstore')
         self.assetstore = assetstore
 
-        chunkColl = conn['girder_assetstore_test']['chunk']
+        chunkColl = conn['girder_test_file_assetstore']['chunk']
 
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')

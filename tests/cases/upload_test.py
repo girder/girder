@@ -249,11 +249,11 @@ class UploadTestCase(base.TestCase):
 
     def testGridFSAssetstoreUpload(self):
         # Clear any old DB data
-        base.dropGridFSDatabase('girder_assetstore_upload_test')
+        base.dropGridFSDatabase('girder_test_upload_assetstore')
         # Clear the assetstore database and create a GridFS assetstore
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createGridFsAssetstore(
-            name='Test', db='girder_assetstore_upload_test')
+            name='Test', db='girder_test_upload_assetstore')
         self.assetstore = assetstore
         self._testUpload()
 
