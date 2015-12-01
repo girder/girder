@@ -147,7 +147,10 @@ module.exports = function (grunt) {
                 tasks: ['stylus:core']
             },
             js_core: {
-                files: ['clients/web/src/**/*.js'],
+                files: [
+                    'clients/web/src/**/*.js',
+                    'clients/static/built/templates.js'
+                ],
                 tasks: ['uglify:app']
             },
             jade_core: {
