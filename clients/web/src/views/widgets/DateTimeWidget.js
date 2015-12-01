@@ -118,11 +118,15 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
         this.defaultFromDate = settings.defaultFromDate || false;
         this.defaultToDate = settings.defaultToDate || false;
         this.showIcon = _.has(settings, 'showIcon') ? settings.showIcon : true;
+        this.fromLabel = settings.fromLabel || 'From';
+        this.toLabel = settings.toLabel || 'To';
     },
 
     render: function () {
         this.$el.html(girder.templates.dateTimeRangeWidget({
-            showIcon: this.showIcon
+            showIcon: this.showIcon,
+            fromLabel: this.fromLabel,
+            toLabel: this.toLabel
         }));
 
         // Link datetimepickers to disallow choosing range where "from" date is

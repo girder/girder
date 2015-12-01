@@ -286,6 +286,18 @@ describe('Test DateTimeRangeWidget', function() {
             widget.$('.icon-calendar').eq(1).click();
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
         });
+
+        it('custom labels', function() {
+            widget = new girder.views.DateTimeRangeWidget({
+                parentView: null,
+                fromLabel: 'Custom From',
+                toLabel: 'Custom To'
+            });
+            widget.render();
+
+            expect(widget.$('label:contains("Custom From")').length).toBe(1);
+            expect(widget.$('label:contains("Custom To")').length).toBe(1);
+        });
     });
 
     describe('set/get dates', function() {
