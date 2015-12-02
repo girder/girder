@@ -25,6 +25,7 @@ from girder.api.rest import Resource
 
 class GoogleAnalytics(Resource):
     def __init__(self):
+        super(GoogleAnalytics, self).__init__()
         self.resourceName = 'google_analytics'
         self.route('GET', ('id',), self.getId)
 

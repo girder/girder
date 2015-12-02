@@ -32,6 +32,7 @@ from girder.utility.progress import ProgressContext
 class Collection(Resource):
     """API Endpoint for collections."""
     def __init__(self):
+        super(Collection, self).__init__()
         self.resourceName = 'collection'
         self.route('DELETE', (':id',), self.deleteCollection)
         self.route('GET', (), self.find)

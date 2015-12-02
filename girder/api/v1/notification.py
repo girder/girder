@@ -42,6 +42,7 @@ def sseMessage(event):
 
 class Notification(Resource):
     def __init__(self):
+        super(Notification, self).__init__()
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
 

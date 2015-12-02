@@ -28,6 +28,7 @@ from girder.api import access
 class Group(Resource):
     """API Endpoint for groups."""
     def __init__(self):
+        super(Group, self).__init__()
         self.resourceName = 'group'
         self.route('DELETE', (':id',), self.deleteGroup)
         self.route('DELETE', (':id', 'member'), self.removeFromGroup)

@@ -26,6 +26,7 @@ from girder.constants import AccessType, SortDir
 
 class Job(Resource):
     def __init__(self):
+        super(Job, self).__init__()
         self.resourceName = 'job'
 
         self.route('GET', (), self.listJobs)

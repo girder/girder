@@ -41,6 +41,7 @@ OrderedRoutes = [
 
 class DummyResource(Resource):
     def __init__(self):
+        super(DummyResource, self).__init__()
         self.resourceName = 'foo'
         for method, pathElements, testPath in OrderedRoutes:
             self.route(method, pathElements, self.handler)
@@ -74,6 +75,7 @@ docs.addModel('Global', globalModel)
 
 class ModelResource(Resource):
     def __init__(self):
+        super(ModelResource, self).__init__()
         self.resourceName = 'model'
         self.route('POST', (), self.hasModel)
 
