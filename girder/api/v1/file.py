@@ -266,7 +266,15 @@ class File(Resource):
             if endByte is not None:
                 endByte = int(endByte)
 
-        return self.model('file').download(file, offset, endByte=endByte)
+        contentDisp = params.get('contentDisposition', None)
+        allowed = ['inline', 'attachment']
+        if contentDisp is not None and contentDisp not in allowed:
+            raise RestException('Unallowed contentDisposition type "%s".' %
+                                contentDisp)
+
+        return \
+            self.model('file').download(file, offset, endByte=endByte,
+                                        contentDisposition=contentDisp)
 
     @access.cookie
     @access.public
