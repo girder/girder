@@ -50,6 +50,11 @@ form parameters, or as the value of a custom HTTP header with the key ``Girder-T
    clients can persist its value conveniently for its duration. However, for security
    reasons, merely passing the cookie value back is not sufficient for authentication.
 
+.. note:: If you are using Girder's JavaScript web client library in a CORS environment,
+   be sure to set ``girder.corsAuth = true;`` in your application prior to calling
+   ``girder.login``. This will allow users' login sessions to be saved on the origin
+   site's cookie.
+
 Upload a file
 ^^^^^^^^^^^^^
 

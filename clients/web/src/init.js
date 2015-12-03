@@ -139,7 +139,9 @@ _.extend(girder, {
 
         opts = _.extend(defaults, opts);
 
-        var token = opts.girderToken || girder.currentToken;
+        var token = opts.girderToken ||
+                    girder.currentToken ||
+                    girder.cookie.find('girderToken');
         if (token) {
             opts.headers = opts.headers || {};
             opts.headers['Girder-Token'] = token;

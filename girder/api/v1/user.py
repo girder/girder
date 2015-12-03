@@ -180,11 +180,17 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
+        user = self.model('user').filter(user, user)
+
         if currentUser is None:
             setattr(cherrypy.request, 'girderUser', user)
-            self.sendAuthTokenCookie(user)
+            token = self.sendAuthTokenCookie(user)
+            user['authToken'] = {
+                'token': token['_id'],
+                'expires': token['expires']
+            }
 
-        return self.model('user').filter(user, user)
+        return user
     createUser.description = (
         Description('Create a new user.')
         .responseClass('User')
