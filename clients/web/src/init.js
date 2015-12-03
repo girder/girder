@@ -30,7 +30,7 @@ _.extend(girder, {
     currentToken: null,
     events: _.clone(Backbone.Events),
     uploadHandlers: {},
-    corsAuth: false,
+    corsAuth: girder.corsAuth || false,
 
     /**
      * Constants and enums:
