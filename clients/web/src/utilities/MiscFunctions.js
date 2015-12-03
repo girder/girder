@@ -218,6 +218,9 @@ girder.cookie = {
     }
 };
 
+// Make sure girder.currentToken is set on startup if a cookie exists.
+girder.currentToken = girder.cookie.find('girderToken');
+
 /**
  * Restart the server, wait until it has restarted, then reload the current
  * page.
