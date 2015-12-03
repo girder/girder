@@ -27,6 +27,7 @@ _.extend(girder, {
     staticRoot: $('#g-global-info-staticroot').text().replace(
         '%HOST%', window.location.origin),
     currentUser: null,
+    allowCors: false,
     events: _.clone(Backbone.Events),
     uploadHandlers: {},
 
@@ -66,6 +67,7 @@ _.extend(girder, {
      * behavior, pass an "error" key in your opts object; this should be done
      * any time the server might throw an exception from validating user input,
      * e.g. logging in, registering, or generally filling out forms.
+     *
      * @param path The resource path, e.g. "user/login"
      * @param data The form parameter object.
      * @param [type='GET'] The HTTP method to invoke.
@@ -74,7 +76,9 @@ _.extend(girder, {
         var defaults = {
             dataType: 'json',
             type: 'GET',
-
+            xhrFields: {
+                withCredentials: girder.allowCors
+            },
             error: function (error, status) {
                 var info;
                 if (error.status === 401) {
