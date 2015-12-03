@@ -1,6 +1,14 @@
 girder.views.jobs_JobDetailsWidget = girder.View.extend({
     initialize: function (settings) {
         this.job = settings.job;
+        this.job.on('change', this.render, this);
+
+        girder.eventStream.on('g:event.job_status', function (event) {
+            var job = event.data;
+            if (job._id === this.job.id) {
+                this.job.set(job);
+            }
+        }, this);
 
         if (settings.renderImmediate) {
             this.render();
