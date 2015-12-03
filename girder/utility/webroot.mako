@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/animation.css">
     <link rel="stylesheet" href="${staticRoot}/built/jsoneditor/jsoneditor.min.css">
     <link rel="stylesheet" href="${staticRoot}/lib/jqplot/css/jquery.jqplot.min.css">
-    <link rel="stylesheet" href="${staticRoot}/built/eonasdan-bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css">
     <link rel="stylesheet" href="${staticRoot}/built/app.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
     % for plugin in pluginCss:

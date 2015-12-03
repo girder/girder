@@ -80,14 +80,6 @@ module.exports = function (grunt) {
                     src: ['img/**', 'jsoneditor.min.css'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
-            },
-            'eonasdan-bootstrap-datetimepicker': {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/eonasdan-bootstrap-datetimepicker/build',
-                    src: 'css/bootstrap-datetimepicker.min.css',
-                    dest: 'clients/web/static/built/eonasdan-bootstrap-datetimepicker'
-                }]
             }
         },
 
@@ -96,7 +88,8 @@ module.exports = function (grunt) {
                 files: {
                     'clients/web/static/built/app.min.css': [
                         'clients/web/src/stylesheets/**/*.styl',
-                        '!clients/web/src/stylesheets/apidocs/*.styl'
+                        '!clients/web/src/stylesheets/apidocs/*.styl',
+                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
                     ],
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
@@ -172,8 +165,7 @@ module.exports = function (grunt) {
         init: {
             'uglify:libs': {},
             'copy:swagger': {},
-            'copy:jsoneditor': {},
-            'copy:eonasdan-bootstrap-datetimepicker': {}
+            'copy:jsoneditor': {}
         },
 
         default: {
