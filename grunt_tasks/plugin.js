@@ -24,7 +24,7 @@ module.exports = function (grunt) {
     var path = require('path');
 
     /**
-     * Adds configuration for a plugin related multitasks:
+     * Adds configuration for plugin related multitasks:
      *
      *   * shell:plugin-<plugin name>
      *      Runs npm install in the plugin directory
@@ -32,10 +32,10 @@ module.exports = function (grunt) {
      *      Compiles jade templates into the plugin's template.js
      *   * stylus:plugin-<plugin name>
      *      Compiles stylus files into the plugin's main css file
-     *   * ugilfy:plugin-<plugin name>
+     *   * uglify:plugin-<plugin name>
      *      Compiles all javascript sources into the plugin's main js file
      *   * copy:plugin-<plugin name>
-     *      Copies an other files that are served statically
+     *      Copies any other files that are served statically
      *
      *  This will also add watch tasks for each of the above.
      */
@@ -196,7 +196,7 @@ module.exports = function (grunt) {
                     'Found plugin: ' + plugin + ' (custom Gruntfile)'
                 ).bold);
 
-                // install any addition npm packages during init
+                // install any additional npm packages during init
                 npm = _(config.grunt.dependencies || []).map(function (version, dep) {
                     return dep + '@' + version;
                 });
@@ -250,7 +250,7 @@ module.exports = function (grunt) {
     /**
      * Register a "meta" task that will configure and run other tasks
      * to build a plugin.  Keys in the config for this task should be the
-     * directory of the plugin with in the base plugins path.
+     * directory of the plugin within the base plugins path.
      */
     grunt.registerMultiTask('plugin', 'Build and configure plugins', function () {
         var plugin = this.target,
