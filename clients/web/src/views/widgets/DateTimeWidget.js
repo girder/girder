@@ -113,13 +113,17 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
      * @param [settings.showIcon=true] Whether to show calendar icons beside
      * the input fields. When true, clicking the icon shows the popup. Otherwise,
      * focusing the input field shows the popup.
+     * @param [settings.fromLabel='Start date'] The label text for the "from"
+     * input field.
+     * @param [settings.toLabel='End date'] The label text for the "to" input
+     * field.
      */
     initialize: function (settings) {
         this.defaultFromDate = settings.defaultFromDate || false;
         this.defaultToDate = settings.defaultToDate || false;
         this.showIcon = _.has(settings, 'showIcon') ? settings.showIcon : true;
-        this.fromLabel = settings.fromLabel || 'From';
-        this.toLabel = settings.toLabel || 'To';
+        this.fromLabel = settings.fromLabel || 'Start date';
+        this.toLabel = settings.toLabel || 'End date';
     },
 
     render: function () {
