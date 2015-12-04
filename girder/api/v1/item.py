@@ -69,12 +69,12 @@ class Item(Resource):
             if params.get('name'):
                 filters['name'] = params['name']
 
-            return [self.model('item').filter(item, user) for item in
+            return [self.model('item').filter(item=item, user=user) for item in
                     self.model('folder').childItems(
                         folder=folder, limit=limit, offset=offset, sort=sort,
                         filters=filters)]
         elif 'text' in params:
-            return [self.model('item').filter(item, user) for item in
+            return [self.model('item').filter(item=item, user=user) for item in
                     self.model('item').textSearch(
                         params['text'], user=user, limit=limit, offset=offset,
                         sort=sort)]

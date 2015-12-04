@@ -54,9 +54,11 @@ class Folder(AccessControlledModel):
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
 
-    def filter(self, folder, user):
+    def filter(self, *args, **kwargs):
         """Preserved override for kwarg backwards compatibility."""
-        return AccessControlledModel.filter(self, doc=folder, user=user)
+        if 'folder' in kwargs:
+            args = [kwargs.pop('folder')] + list(args)
+        return super(Folder, self).filter(*args, **kwargs)
 
     def validate(self, doc, allowRename=False):
         """

@@ -133,7 +133,7 @@ class Model(ModelImporter):
         :type user: dict or None
         :param additionalKeys: Any additional keys that should be included in
             the document for this call only.
-        :type additionalKeys: list, tuple, or None
+        :type additionalKeys: list, tuple, set, or None
         :returns: The filtered document (dict).
         """
         if doc is None:

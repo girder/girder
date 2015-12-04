@@ -53,9 +53,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
             '_id', 'size', 'updated', 'description', 'created', 'meta',
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
-    def filter(self, item, user=None):
+    def filter(self, *args, **kwargs):
         """Preserved override for kwarg backwards compatibility."""
-        return Model.filter(self, doc=item, user=user)
+        if 'item' in kwargs:
+            args = [kwargs.pop('item')] + list(args)
+        return Model.filter(self, *args, **kwargs)
 
     def _validateString(self, value):
         """
