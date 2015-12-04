@@ -219,7 +219,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
             file.get('mimeType') or 'application/octet-stream'
         if contentDisposition == 'inline':
             cherrypy.response.headers['Content-Disposition'] = \
-                contentDisposition
+                'inline; filename="%s"' % file['name']
         else:
             cherrypy.response.headers['Content-Disposition'] = \
                 'attachment; filename="%s"' % file['name']

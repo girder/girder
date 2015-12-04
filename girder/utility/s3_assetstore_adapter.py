@@ -393,11 +393,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if headers:
             if file['size'] > 0:
                 queryParams = {}
-                if contentDisposition is not None:
-                    # Tell S3 to set Content-Disposition respoinse header,
+                if contentDisposition == 'inline':
+                    # Tell S3 to set Content-Disposition response header,
                     # though this only works for non-anonymous connections.
                     queryParams['response-content-disposition'] = \
-                        contentDisposition
+                        'inline; filename="%s"' % file['name']
                 url = urlFn(key=file['s3Key'], queryParams=queryParams)
                 raise cherrypy.HTTPRedirect(url)
             else:
