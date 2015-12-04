@@ -244,6 +244,8 @@ class File(Resource):
                'so you should set it to the index of the byte one past the '
                'final byte you wish to receive.', dataType='integer',
                required=False)
+        .param('contentDisposition', 'Specify the Content-Disposition response '
+               'header disposition-type value', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
