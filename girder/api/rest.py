@@ -203,7 +203,7 @@ def getBodyJson():
         raise RestException('Invalid JSON passed in request body.')
 
 
-class loadmodel(ModelImporter):
+class loadmodel(ModelImporter):  # noqa: class name
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -292,6 +292,44 @@ def _createResponse(val):
     return json.dumps(val, sort_keys=True, cls=JsonEncoder).encode('utf8')
 
 
+def _handleRestException(e):
+    # Handle all user-error exceptions from the REST layer
+    cherrypy.response.status = e.code
+    val = {'message': e.message, 'type': 'rest'}
+    if e.extra is not None:
+        val['extra'] = e.extra
+    return val
+
+
+def _handleAccessException(e):
+    # Permission exceptions should throw a 401 or 403, depending
+    # on whether the user is logged in or not
+    if getCurrentUser() is None:
+        cherrypy.response.status = 401
+    else:
+        cherrypy.response.status = 403
+        logger.exception('403 Error')
+    return {'message': e.message, 'type': 'access'}
+
+
+def _handleGirderException(e):
+    # Handle general Girder exceptions
+    logger.exception('500 Error')
+    cherrypy.response.status = 500
+    val = {'message': e.message, 'type': 'girder'}
+    if e.identifier is not None:
+        val['identifier'] = e.identifier
+    return val
+
+
+def _handleValidationException(e):
+    cherrypy.response.status = 400
+    val = {'message': e.message, 'type': 'validation'}
+    if e.field is not None:
+        val['field'] = e.field
+    return val
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -333,33 +371,14 @@ def endpoint(fun):
                 return val
 
         except RestException as e:
-            # Handle all user-error exceptions from the REST layer
-            cherrypy.response.status = e.code
-            val = {'message': e.message, 'type': 'rest'}
-            if e.extra is not None:
-                val['extra'] = e.extra
+            val = _handleRestException(e)
         except AccessException as e:
-            # Permission exceptions should throw a 401 or 403, depending
-            # on whether the user is logged in or not
-            if self.getCurrentUser() is None:
-                cherrypy.response.status = 401
-            else:
-                cherrypy.response.status = 403
-                logger.exception('403 Error')
-            val = {'message': e.message, 'type': 'access'}
+            val = _handleAccessException(e)
         except GirderException as e:
-            # Handle general Girder exceptions
-            logger.exception('500 Error')
-            cherrypy.response.status = 500
-            val = {'message': e.message, 'type': 'girder'}
-            if e.identifier is not None:
-                val['identifier'] = e.identifier
+            val = _handleGirderException(e)
         except ValidationException as e:
-            cherrypy.response.status = 400
-            val = {'message': e.message, 'type': 'validation'}
-            if e.field is not None:
-                val['field'] = e.field
-        except cherrypy.HTTPRedirect:  # flake8: noqa
+            val = _handleValidationException(e)
+        except cherrypy.HTTPRedirect:
             raise
         except Exception:
             # These are unexpected failures; send a 500 status
@@ -801,7 +820,9 @@ class Resource(ModelImporter):
         return getCurrentUser(returnToken)
 
     def sendAuthTokenCookie(self, user, scope=None):
-        """ Helper method to send the authentication cookie """
+        """
+        Helper method to send the authentication cookie
+        """
         days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         token = self.model('token').createToken(user, days=days, scope=scope)
 
@@ -813,7 +834,9 @@ class Resource(ModelImporter):
         return token
 
     def deleteAuthTokenCookie(self):
-        """ Helper method to kill the authentication cookie """
+        """
+        Helper method to kill the authentication cookie
+        """
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = ''
         cookie['girderToken']['path'] = '/'
@@ -826,7 +849,7 @@ class Resource(ModelImporter):
 
         allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
         allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)\
-                       or 'GET, POST, PUT, HEAD, DELETE'
+            or 'GET, POST, PUT, HEAD, DELETE'
 
         cherrypy.response.headers['Access-Control-Allow-Methods'] = allowMethods
         cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
@@ -886,7 +909,7 @@ class Resource(ModelImporter):
 _sharedContext = Resource()
 
 
-class boundHandler(object):
+class boundHandler(object):  # noqa: class name
     """
     This decorator allows unbound functions to be conveniently added as route
     handlers to existing :py:class:`girder.api.rest.Resource` instances.

@@ -254,7 +254,7 @@ class Describe(Resource):
         }
 
 
-class describeRoute(object):
+class describeRoute(object):  # noqa: class name
     def __init__(self, description):
         """
         This returns a decorator that can be used in lieu of setting the
