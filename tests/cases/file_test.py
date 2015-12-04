@@ -218,6 +218,22 @@ class FileTestCase(base.TestCase):
         if contents:
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
+            self.assertEqual(resp.headers['Content-Disposition'],
+                             'attachment; filename="%s"' % file['name'])
+
+        self.assertEqual(contents, self.getBody(resp))
+
+        # Test downloading the file with contentDisposition=inline.
+        params = {'contentDisposition': 'inline'}
+        resp = self.request(path='/file/%s/download' % str(file['_id']),
+                            method='GET', user=self.user, isJson=False,
+                            params=params)
+        self.assertStatusOk(resp)
+        if contents:
+            self.assertEqual(resp.headers['Content-Type'],
+                             'text/plain;charset=utf-8')
+            self.assertEqual(resp.headers['Content-Disposition'],
+                             'inline; filename="%s"' % file['name'])
 
         self.assertEqual(contents, self.getBody(resp))
 
@@ -457,6 +473,7 @@ class FileTestCase(base.TestCase):
                             user=self.user, params={'name': ' newName.json'})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], 'newName.json')
+        file = resp.json
 
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
