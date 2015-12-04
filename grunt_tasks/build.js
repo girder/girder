@@ -22,6 +22,7 @@ module.exports = function (grunt) {
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
     var uglifyOptions = {
+        ASCIIOnly: true,
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,
         report: 'min'
@@ -34,15 +35,10 @@ module.exports = function (grunt) {
     if (debugJs) {
         console.log('Building JS in debug mode'.yellow);
         uglifyOptions.beautify = {
-            beautify: true,
-            ascii_only: true
+            beautify: true
         };
         uglifyOptions.mangle = false;
         uglifyOptions.compress = false;
-    } else {
-        uglifyOptions.beautify = {
-            ascii_only: true
-        };
     }
 
     grunt.config.merge({

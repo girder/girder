@@ -23,9 +23,16 @@ girder.views.RegisterView = girder.View.extend({
                 lastName: this.$('#g-lastName').val()
             });
             user.on('g:saved', function () {
+                var authToken = user.get('authToken') || {};
                 this.$el.modal('hide');
 
                 girder.currentUser = user;
+                girder.currentToken = authToken.token;
+
+                if (girder.corsAuth) {
+                    document.cookie = 'girderToken=' + girder.currentToken;
+                }
+
                 girder.dialogs.handleClose('register', {replace: true});
                 girder.events.trigger('g:login');
             }, this).on('g:error', function (err) {
