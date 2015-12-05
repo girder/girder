@@ -473,7 +473,7 @@ class FileTestCase(base.TestCase):
                             user=self.user, params={'name': ' newName.json'})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], 'newName.json')
-        file = resp.json
+        file['name'] = resp.json['name']
 
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
