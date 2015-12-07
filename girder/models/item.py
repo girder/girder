@@ -54,7 +54,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
     def filter(self, *args, **kwargs):
-        """Preserved override for kwarg backwards compatibility."""
+        """
+        Preserved override for kwarg backwards compatibility. Prior to the
+        refactor for centralizing model filtering, this method's first formal
+        parameter was called "item", whereas the centralized version's first
+        parameter is called "doc". This override simply detects someone using
+        the old kwarg and converts it to the new form.
+        """
         if 'item' in kwargs:
             args = [kwargs.pop('item')] + list(args)
         return Model.filter(self, *args, **kwargs)

@@ -191,6 +191,21 @@ class Folder(Resource):
     @access.user
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @filtermodel(model='folder', addFields={'access'})
+    @describeRoute(
+        Description('Update the access control list for a folder.')
+        .param('id', 'The ID of the folder.', paramType='path')
+        .param('access', 'The JSON-encoded access control list.')
+        .param('public', "Whether the folder should be publicly visible.",
+               dataType='boolean', required=False)
+        .param('recurse', 'Whether the policies should be applied to all '
+               'subfolders under this folder as well.', dataType='boolean',
+               default=False, required=False)
+        .param('progress', 'If recurse is set to True, this controls whether '
+               'progress notifications will be sent.', dataType='boolean',
+               default=False, required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the folder.', 403)
+    )
     def updateFolderAccess(self, folder, params):
         self.requireParams('access', params)
         user = self.getCurrentUser()
@@ -213,21 +228,6 @@ class Folder(Resource):
             return self.model('folder').setAccessList(
                 folder, access, save=True, recurse=recurse, user=user,
                 progress=ctx, setPublic=public)
-
-    updateFolderAccess.description = (
-        Description('Update the access control list for a folder.')
-        .param('id', 'The ID of the folder.', paramType='path')
-        .param('access', 'The JSON-encoded access control list.')
-        .param('public', "Whether the folder should be publicly visible.",
-               dataType='boolean', required=False)
-        .param('recurse', 'Whether the policies should be applied to all '
-               'subfolders under this folder as well.', dataType='boolean',
-               default=False, required=False)
-        .param('progress', 'If recurse is set to True, this controls whether '
-               'progress notifications will be sent.', dataType='boolean',
-               default=False, required=False)
-        .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied for the folder.', 403))
 
     @access.user
     @filtermodel(model='folder')

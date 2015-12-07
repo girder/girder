@@ -277,7 +277,9 @@ class filtermodel(ModelImporter):  # noqa: class name
 
         :param model: The model name.
         :type model: str
-        :param addFields: Extra fields (key names) that should be included.
+        :param addFields: Extra fields (key names) that should be included in
+            the returned document(s), in addition to any in the model's normal
+            whitelist. Only affects top level fields.
         :type addFields: set, list, tuple, or None
         """
         self.modelName = model
