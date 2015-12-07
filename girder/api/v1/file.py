@@ -22,7 +22,7 @@ import errno
 import six
 
 from ..describe import Description, describeRoute
-from ..rest import Resource, RestException, loadmodel
+from ..rest import Resource, RestException, filtermodel, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException, GirderException
 from girder.api import access
@@ -51,6 +51,7 @@ class File(Resource):
 
     @access.public
     @loadmodel(model='file', level=AccessType.READ)
+    @filtermodel(model='file')
     @describeRoute(
         Description('Get a file\'s information.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -58,7 +59,7 @@ class File(Resource):
         .errorResponse('Read access was denied on the file.', 403)
     )
     def getFile(self, file, params):
-        return self.model('file').filter(file, self.getCurrentUser())
+        return file
 
     @access.user
     @describeRoute(
@@ -315,6 +316,7 @@ class File(Resource):
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
+    @filtermodel(model='file')
     @describeRoute(
         Description('Change file metadata such as name or MIME type.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -327,9 +329,7 @@ class File(Resource):
         file['name'] = params.get('name', file['name']).strip()
         file['mimeType'] = params.get('mimeType',
                                       (file.get('mimeType') or '').strip())
-        fileModel = self.model('file')
-        return fileModel.filter(
-            fileModel.updateFile(file), self.getCurrentUser())
+        return self.model('file').updateFile(file)
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
@@ -357,14 +357,12 @@ class File(Resource):
     @access.user
     @loadmodel(model='file', level=AccessType.READ)
     @loadmodel(model='item', map={'itemId': 'item'}, level=AccessType.WRITE)
+    @filtermodel(model='file')
     @describeRoute(
         Description('Copy a file.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('itemId', 'The item to copy the file to.', required=True)
     )
     def copy(self, file, item, params):
-        user = self.getCurrentUser()
-        fileModel = self.model('file')
-        newFile = fileModel.copyFile(file, user, item=item)
-
-        return fileModel.filter(newFile, user)
+        return self.model('file').copyFile(
+            file, self.getCurrentUser(), item=item)
