@@ -21,9 +21,10 @@ import base64
 import cherrypy
 import datetime
 
-from ..rest import Resource, RestException, AccessException, loadmodel
-from ..describe import Description
+from ..describe import Description, describeRoute
 from girder.api import access
+from girder.api.rest import Resource, RestException, AccessException,\
+    filtermodel, loadmodel
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
@@ -53,42 +54,50 @@ class User(Resource):
         self.route('DELETE', ('password',), self.resetPassword)
 
     @access.public
-    def find(self, params):
-        limit, offset, sort = self.getPagingParameters(params, 'lastName')
-        currentUser = self.getCurrentUser()
-
-        return [self.model('user').filter(user, currentUser)
-                for user in self.model('user').search(
-                    text=params.get('text'), user=currentUser,
-                    offset=offset, limit=limit, sort=sort)]
-    find.description = (
+    @filtermodel(model='user')
+    @describeRoute(
         Description('List or search for users.')
         .responseClass('User')
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
-        .pagingParams(defaultSort='lastName'))
+        .pagingParams(defaultSort='lastName')
+    )
+    def find(self, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lastName')
+        return list(self.model('user').search(
+            text=params.get('text'), user=self.getCurrentUser(), offset=offset,
+            limit=limit, sort=sort))
 
     @access.public
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
-    def getUser(self, userToGet, params):
-        currentUser = self.getCurrentUser()
-        return self.model('user').filter(userToGet, currentUser)
-    getUser.description = (
+    @filtermodel(model='user')
+    @describeRoute(
         Description('Get a user by ID.')
         .responseClass('User')
         .param('id', 'The ID of the user.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('You do not have permission to see this user.', 403))
+        .errorResponse('You do not have permission to see this user.', 403)
+    )
+    def getUser(self, userToGet, params):
+        return userToGet
 
     @access.public
-    def getMe(self, params):
-        currentUser = self.getCurrentUser()
-        return self.model('user').filter(currentUser, currentUser)
-    getMe.description = (
+    @filtermodel(model='user')
+    @describeRoute(
         Description('Retrieve the currently logged-in user information.')
-        .responseClass('User'))
+        .responseClass('User')
+    )
+    def getMe(self, params):
+        return self.getCurrentUser()
 
     @access.public
+    @describeRoute(
+        Description('Log in to the system.')
+        .notes('Pass your username and password using HTTP Basic Auth. Sends'
+               ' a cookie that should be passed back in future requests.')
+        .errorResponse('Missing Authorization header.', 401)
+        .errorResponse('Invalid login or password.', 403)
+    )
     def login(self, params):
         """
         Login endpoint. Sends an auth cookie in the response on success.
@@ -138,26 +147,35 @@ class User(Resource):
             },
             'message': 'Login succeeded.'
         }
-    login.description = (
-        Description('Log in to the system.')
-        .notes('Pass your username and password using HTTP Basic Auth. Sends'
-               ' a cookie that should be passed back in future requests.')
-        .errorResponse('Missing Authorization header.', 401)
-        .errorResponse('Invalid login or password.', 403))
 
     @access.user
+    @describeRoute(
+        Description('Log out of the system.')
+        .responseClass('Token')
+        .notes('Attempts to delete your authentication cookie.')
+    )
     def logout(self, params):
-        _, token = self.getCurrentUser(True)
+        token = self.getCurrentToken()
         if token:
             self.model('token').remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
-    logout.description = (
-        Description('Log out of the system.')
-        .responseClass('Token')
-        .notes('Attempts to delete your authentication cookie.'))
 
     @access.public
+    @filtermodel(model='user', addFields={'authToken'})
+    @describeRoute(
+        Description('Create a new user.')
+        .responseClass('User')
+        .param('login', "The user's requested login.")
+        .param('email', "The user's email address.")
+        .param('firstName', "The user's first name.")
+        .param('lastName', "The user's last name.")
+        .param('password', "The user's requested password")
+        .param('admin', 'Whether this user should be a site administrator.',
+               required=False, dataType='boolean')
+        .errorResponse('A parameter was invalid, or the specified login or'
+                       ' email already exists in the system.')
+    )
     def createUser(self, params):
         self.requireParams(
             ('firstName', 'lastName', 'login', 'password', 'email'), params)
@@ -180,8 +198,6 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
-        user = self.model('user').filter(user, user)
-
         if currentUser is None:
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
@@ -191,53 +207,23 @@ class User(Resource):
             }
 
         return user
-    createUser.description = (
-        Description('Create a new user.')
-        .responseClass('User')
-        .param('login', "The user's requested login.")
-        .param('email', "The user's email address.")
-        .param('firstName', "The user's first name.")
-        .param('lastName', "The user's last name.")
-        .param('password', "The user's requested password")
-        .param('admin', 'Whether this user should be a site administrator.',
-               required=False, dataType='boolean')
-        .errorResponse('A parameter was invalid, or the specified login or'
-                       ' email already exists in the system.'))
 
     @access.user
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
-    def deleteUser(self, userToDelete, params):
-        self.model('user').remove(userToDelete)
-        return {'message': 'Deleted user %s.' % userToDelete['login']}
-    deleteUser.description = (
+    @describeRoute(
         Description('Delete a user by ID.')
         .param('id', 'The ID of the user.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('You do not have permission to delete this user.', 403))
+        .errorResponse('You do not have permission to delete this user.', 403)
+    )
+    def deleteUser(self, userToDelete, params):
+        self.model('user').remove(userToDelete)
+        return {'message': 'Deleted user %s.' % userToDelete['login']}
 
     @access.user
     @loadmodel(model='user', level=AccessType.WRITE)
-    def updateUser(self, user, params):
-        self.requireParams(('firstName', 'lastName', 'email'), params)
-
-        user['firstName'] = params['firstName']
-        user['lastName'] = params['lastName']
-        user['email'] = params['email']
-
-        currentUser = self.getCurrentUser()
-
-        # Only admins can change admin state
-        if 'admin' in params:
-            newAdminState = self.boolParam('admin', params)
-            if currentUser['admin']:
-                user['admin'] = newAdminState
-            else:
-                if newAdminState != user['admin']:
-                    raise AccessException('Only admins may change admin state.')
-
-        savedUser = self.model('user').save(user)
-        return self.model('user').filter(savedUser, currentUser)
-    updateUser.description = (
+    @filtermodel(model='user')
+    @describeRoute(
         Description("Update a user's information.")
         .param('id', 'The ID of the user.', paramType='path')
         .param('firstName', 'First name of the user.')
@@ -247,23 +233,50 @@ class User(Resource):
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('You do not have write access for this user.', 403)
-        .errorResponse('Must be an admin to create an admin.', 403))
+        .errorResponse('Must be an admin to create an admin.', 403)
+    )
+    def updateUser(self, user, params):
+        self.requireParams(('firstName', 'lastName', 'email'), params)
+
+        user['firstName'] = params['firstName']
+        user['lastName'] = params['lastName']
+        user['email'] = params['email']
+
+        # Only admins can change admin state
+        if 'admin' in params:
+            newAdminState = self.boolParam('admin', params)
+            if self.getCurrentUser()['admin']:
+                user['admin'] = newAdminState
+            else:
+                if newAdminState != user['admin']:
+                    raise AccessException('Only admins may change admin state.')
+
+        return self.model('user').save(user)
 
     @access.admin
     @loadmodel(model='user', level=AccessType.ADMIN)
-    def changeUserPassword(self, user, params):
-        self.requireParams('password', params)
-        self.model('user').setPassword(user, params['password'])
-        return {'message': 'Password changed.'}
-    changeUserPassword.description = (
+    @describeRoute(
         Description('Change a user\'s password.')
         .notes('Only administrators may use this endpoint.')
         .param('id', 'The ID of the user.', paramType='path')
         .param('password', 'The user\'s new password.')
         .errorResponse('You are not an administrator.', 403)
-        .errorResponse('The new password is invalid.'))
+        .errorResponse('The new password is invalid.')
+    )
+    def changeUserPassword(self, user, params):
+        self.requireParams('password', params)
+        self.model('user').setPassword(user, params['password'])
+        return {'message': 'Password changed.'}
 
     @access.user
+    @describeRoute(
+        Description('Change your password.')
+        .param('old', 'Your current password or a temporary access token.')
+        .param('new', 'Your new password.')
+        .errorResponse('You are not logged in.', 401)
+        .errorResponse('Your old password is incorrect.', 401)
+        .errorResponse('Your new password is invalid.')
+    )
     def changePassword(self, params):
         self.requireParams(('old', 'new'), params)
         user = self.getCurrentUser()
@@ -290,15 +303,13 @@ class User(Resource):
             self.model('token').remove(token)
 
         return {'message': 'Password changed.'}
-    changePassword.description = (
-        Description('Change your password.')
-        .param('old', 'Your current password or a temporary access token.')
-        .param('new', 'Your new password.')
-        .errorResponse('You are not logged in.', 401)
-        .errorResponse('Your old password is incorrect.', 401)
-        .errorResponse('Your new password is invalid.'))
 
     @access.public
+    @describeRoute(
+        Description('Reset a forgotten password via email.')
+        .param('email', 'Your email address.')
+        .errorResponse('That email does not exist in the system.')
+    )
     def resetPassword(self, params):
         self.requireParams('email', params)
         email = params['email'].lower().strip()
@@ -316,12 +327,14 @@ class User(Resource):
                              text=html)
         self.model('user').setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
-    resetPassword.description = (
-        Description('Reset a forgotten password via email.')
-        .param('email', 'Your email address.')
-        .errorResponse('That email does not exist in the system.'))
 
     @access.public
+    @describeRoute(
+        Description('Create a temporary access token for a user.  The user\'s '
+                    'password is not changed.')
+        .param('email', 'Your email address.')
+        .errorResponse('That email does not exist in the system.')
+    )
     def generateTemporaryPassword(self, params):
         self.requireParams('email', params)
         email = params['email'].lower().strip()
@@ -344,14 +357,18 @@ class User(Resource):
         mail_utils.sendEmail(to=email, subject='Girder: Temporary access',
                              text=html)
         return {'message': 'Sent temporary access email.'}
-    generateTemporaryPassword.description = (
-        Description('Create a temporary access token for a user.  The user\'s '
-                    'password is not changed.')
-        .param('email', 'Your email address.')
-        .errorResponse('That email does not exist in the system.'))
 
     @access.public
     @loadmodel(model='user', force=True)
+    @describeRoute(
+        Description('Check if a specified token is a temporary access token '
+                    'for the specified user.  If the token is valid, returns '
+                    'information on the token and user.')
+        .param('id', 'The user ID to check.', paramType='path')
+        .param('token', 'The token to check.')
+        .errorResponse('The token does not grant temporary access to the '
+                       'specified user.', 401)
+    )
     def checkTemporaryPassword(self, user, params):
         self.requireParams('token', params)
         token = self.model('token').load(
@@ -378,11 +395,3 @@ class User(Resource):
             },
             'message': 'Temporary access token is valid.'
         }
-    checkTemporaryPassword.description = (
-        Description('Check if a specified token is a temporary access token '
-                    'for the specified user.  If the token is valid, returns '
-                    'information on the token and user.')
-        .param('id', 'The user ID to check.', paramType='path')
-        .param('token', 'The token to check.')
-        .errorResponse('The token does not grant temporary access to the '
-                       'specified user.', 401))

@@ -289,6 +289,9 @@ class filtermodel(ModelImporter):  # noqa: class name
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
             val = fun(*args, **kwargs)
+            if val is None:
+                return None
+
             user = getCurrentUser()
             model = self.model(self.modelName)
 
