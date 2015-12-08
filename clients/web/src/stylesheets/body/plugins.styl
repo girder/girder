@@ -1,5 +1,7 @@
 @import 'nib'
 
+$warnColor = #f0ad4e
+
 .g-plugin-list-container
   border 1px solid #e2e2e2
   border-radius 3px
@@ -31,7 +33,7 @@
       margin-top 7px
       color #999
 
-    .g-plugin-warning
+    .g-plugin-error-message
       margin-top 10px
       color #d9534f
 
@@ -40,6 +42,10 @@
 
   .bootstrap-switch
     float right
+
+    .bootstrap-switch-label
+      color $warnColor
+      font-family fontello
 
 .g-plugin-restart
   visibility hidden
@@ -67,3 +73,13 @@
 
   > li.active
     color #555
+
+.g-experimental-notice
+  font-size 13px
+  text-transform uppercase
+  background-color $warnColor
+  color white
+  border-radius 3px
+  padding 2px 5px
+  margin-left 8px
+  cursor default

@@ -74,6 +74,11 @@ girder.views.PluginsView = girder.View.extend({
             placement: 'bottom',
             delay: {show: 100}
         });
+        this.$('.g-experimental-notice').tooltip({
+            container: this.$el,
+            animation: false,
+            delay: {show: 100}
+        });
         if (girder.pluginsChanged) {
             $('.g-plugin-restart').addClass('g-plugin-restart-show');
         }

@@ -73,7 +73,7 @@ getGravatar.description = (
     .notes('This should only be used if the gravatar_baseUrl property of'))
 
 
-def validateSettings(event):
+def _validateSettings(event):
     if event.info['key'] == PluginSettings.DEFAULT_IMAGE:
         event.preventDefault().stopPropagation()
 
@@ -83,7 +83,7 @@ def validateSettings(event):
         _cachedDefaultImage = None
 
 
-def userUpdate(event):
+def _userUpdate(event):
     """
     Called when the user document is being changed. If the email field changes,
     we wipe the cached gravatar URL so it will be recomputed on next request.
@@ -102,5 +102,5 @@ def load(info):
     ModelImporter.model('user').exposeFields(
         level=AccessType.READ, fields='gravatar_baseUrl')
 
-    events.bind('model.setting.validate', 'gravatar', validateSettings)
-    events.bind('rest.put.user/:id.before', 'gravatar', userUpdate)
+    events.bind('model.setting.validate', 'gravatar', _validateSettings)
+    events.bind('rest.put.user/:id.before', 'gravatar', _userUpdate)
