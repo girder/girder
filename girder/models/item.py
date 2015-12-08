@@ -347,7 +347,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item whose root to find
         :type item: dict
-        :param user: The user running the test (not required if force=True).
+        :param user: The user making the request (not required if force=True).
         :type user: dict or None
         :param force: Set to True to skip permission checking. If False, the
             returned models will be filtered.
