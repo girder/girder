@@ -19,8 +19,8 @@
 import os
 
 from girder.api import access
-from girder.api.describe import Description
-from girder.api.rest import boundHandler, Resource
+from girder.api.describe import Description, describeRoute
+from girder.api.rest import boundHandler, rawResponse, Resource
 from girder.api.v1.collection import Collection
 from girder.utility.server import staticFile
 
@@ -59,6 +59,20 @@ class Other(Resource):
         self.resourceName = 'other'
 
         self.route('GET', (), self.getResource)
+        self.route('GET', ('rawDec',), self.rawDec)
+        self.route('GET', ('rawInternal',), self.rawInternal)
+
+    @access.public
+    @rawResponse
+    @describeRoute(None)
+    def rawDec(self, params):
+        return b'this is a raw response'
+
+    @access.public
+    @describeRoute(None)
+    def rawInternal(self, params):
+        self.setRawResponse()
+        return b'this is also a raw response'
 
     @access.public
     def getResource(self, params):

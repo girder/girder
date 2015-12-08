@@ -305,12 +305,42 @@ class filtermodel(ModelImporter):  # noqa: class name
         return wrapped
 
 
+def setRawResponse(val=True):
+    """
+    Normally, non-streaming responses go through a serialization process in
+    accordance with the "Accept" request header. Endpoints that wish to return
+    a raw response without using a streaming response should call this, or use
+    its bound version on the ``Resource`` class, or add the ``rawResponse``
+    decorator on the REST route handler function.
+
+    :param val: Whether the return value should be sent raw.
+    :type val: bool
+    """
+    cherrypy.request.girderRawResponse = val
+
+
+def rawResponse(fun):
+    """
+    This is a decorator that can be placed on REST route handlers, and is
+    equivalent to calling ``setRawResponse()`` in the handler body.
+    """
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        setRawResponse()
+        return fun(*args, **kwargs)
+    return wrapped
+
+
 def _createResponse(val):
     """
     Helper that encodes the response according to the requested "Accepts"
     header from the client. Currently supports "application/json" and
-    "text/html".
+    "text/html". If ``setRawResponse(True)`` was called on the current request
+    thread, this will simply return the response raw.
     """
+    if getattr(cherrypy.request, 'girderRawResponse', False) is True:
+        return val
+
     accepts = cherrypy.request.headers.elements('Accept')
     for accept in accepts:
         if accept.value == 'application/json':
@@ -382,12 +412,6 @@ def endpoint(fun):
     """
     @six.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
-        # Note that the cyclomatic complexity of this function crosses our
-        # flake8 configuration threshold.  Because it is largely exception
-        # handling, I think that breaking it into smaller functions actually
-        # reduces readability and maintainability.  To work around this, some
-        # simple branches have been marked to be skipped in the cyclomatic
-        # analysis.
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
         try:
@@ -787,6 +811,12 @@ class Resource(ModelImporter):
         :raises AccessException: If the user is not an administrator.
         """
         return requireAdmin(user)
+
+    def setRawResponse(self, *args, **kwargs):
+        """
+        Bound alias for ``girder.api.rest.setRawResponse``.
+        """
+        return setRawResponse(*args, **kwargs)
 
     def getPagingParameters(self, params, defaultSortField=None,
                             defaultSortDir=SortDir.ASCENDING):
