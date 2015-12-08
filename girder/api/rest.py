@@ -267,6 +267,44 @@ class loadmodel(ModelImporter):  # noqa: class name
         return wrapped
 
 
+class filtermodel(ModelImporter):  # noqa: class name
+    def __init__(self, model, addFields=None):
+        """
+        This creates a decorator that will filter a model or list of models
+        returned by the wrapped function using the specified model's
+        ``filter`` method. Filters the results for the user making the current
+        request (i.e. the value of ``getCurrentUser()``).
+
+        :param model: The model name.
+        :type model: str
+        :param addFields: Extra fields (key names) that should be included in
+            the returned document(s), in addition to any in the model's normal
+            whitelist. Only affects top level fields.
+        :type addFields: set, list, tuple, or None
+        """
+        self.modelName = model
+        self.addFields = addFields
+
+    def __call__(self, fun):
+        @six.wraps(fun)
+        def wrapped(*args, **kwargs):
+            val = fun(*args, **kwargs)
+            if val is None:
+                return None
+
+            user = getCurrentUser()
+            model = self.model(self.modelName)
+
+            if isinstance(val, (list, tuple)):
+                return [model.filter(m, user, self.addFields) for m in val]
+            elif isinstance(val, dict):
+                return model.filter(val, user, self.addFields)
+            else:
+                raise Exception(
+                    'Cannot call filtermodel on return type: %s.' % type(val))
+        return wrapped
+
+
 def _createResponse(val):
     """
     Helper that encodes the response according to the requested "Accepts"

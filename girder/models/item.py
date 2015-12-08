@@ -53,9 +53,17 @@ class Item(acl_mixin.AccessControlMixin, Model):
             '_id', 'size', 'updated', 'description', 'created', 'meta',
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
 
-    def filter(self, item, user=None):
-        """Preserved override for kwarg backwards compatibility."""
-        return Model.filter(self, doc=item, user=user)
+    def filter(self, *args, **kwargs):
+        """
+        Preserved override for kwarg backwards compatibility. Prior to the
+        refactor for centralizing model filtering, this method's first formal
+        parameter was called "item", whereas the centralized version's first
+        parameter is called "doc". This override simply detects someone using
+        the old kwarg and converts it to the new form.
+        """
+        if 'item' in kwargs:
+            args = [kwargs.pop('item')] + list(args)
+        return Model.filter(self, *args, **kwargs)
 
     def _validateString(self, value):
         """
@@ -339,6 +347,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item whose root to find
         :type item: dict
+        :param user: The user making the request (not required if force=True).
+        :type user: dict or None
+        :param force: Set to True to skip permission checking. If False, the
+            returned models will be filtered.
+        :type force: bool
         :returns: an ordered list of dictionaries from root to the current item
         """
         curFolder = self.model('folder').load(
@@ -394,7 +407,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         for file in self.childFiles(item=srcItem):
             self.model('file').copyFile(file, creator=creator, item=newItem)
         events.trigger('model.item.copy.after', newItem)
-        return self.filter(newItem, creator)
+        return newItem
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
                  subpath=True):

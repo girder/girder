@@ -54,9 +54,17 @@ class Folder(AccessControlledModel):
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
 
-    def filter(self, folder, user):
-        """Preserved override for kwarg backwards compatibility."""
-        return AccessControlledModel.filter(self, doc=folder, user=user)
+    def filter(self, *args, **kwargs):
+        """
+        Preserved override for kwarg backwards compatibility. Prior to the
+        refactor for centralizing model filtering, this method's first formal
+        parameter was called "folder", whereas the centralized version's first
+        parameter is called "doc". This override simply detects someone using
+        the old kwarg and converts it to the new form.
+        """
+        if 'folder' in kwargs:
+            args = [kwargs.pop('folder')] + list(args)
+        return super(Folder, self).filter(*args, **kwargs)
 
     def validate(self, doc, allowRename=False):
         """
