@@ -52,11 +52,16 @@ def plainFn(user, params):
 
 class AccessTestResource(Resource):
     def __init__(self):
+        super(AccessTestResource, self).__init__()
         self.resourceName = 'accesstest'
         self.route('GET', ('default_access', ), self.defaultHandler)
         self.route('GET', ('admin_access', ), self.adminHandler)
         self.route('GET', ('user_access', ), self.userHandler)
         self.route('GET', ('public_access', ), self.publicHandler)
+        self.route('GET', ('cookie_auth', ), self.cookieHandler)
+        self.route('POST', ('cookie_auth', ), self.cookieHandler)
+        self.route('GET', ('cookie_force_auth', ), self.cookieForceHandler)
+        self.route('POST', ('cookie_force_auth', ), self.cookieForceHandler)
 
     # We deliberately don't have an access decorator
     def defaultHandler(self, **kwargs):
@@ -72,6 +77,16 @@ class AccessTestResource(Resource):
 
     @access.public
     def publicHandler(self, **kwargs):
+        return
+
+    @access.cookie
+    @access.user
+    def cookieHandler(self, **kwargs):
+        return
+
+    @access.cookie(force=True)
+    @access.user
+    def cookieForceHandler(self, **kwargs):
         return
 
 
@@ -145,6 +160,32 @@ class AccessTestCase(base.TestCase):
                 self.assertStatusOk(resp)
             else:
                 self.assertStatus(resp, 403)
+
+    def testCookieAuth(self):
+        # No auth should always be rejected
+        for decorator in ['cookie_auth', 'cookie_force_auth']:
+            for method in ['GET', 'POST']:
+                resp = self.request(path='/accesstest/%s' % decorator,
+                                    method=method)
+                self.assertStatus(resp, 401)
+
+        # Token auth should always still succeed
+        for decorator in ['cookie_auth', 'cookie_force_auth']:
+            for method in ['GET', 'POST']:
+                resp = self.request(path='/accesstest/%s' % decorator,
+                                    method=method, user=self.user)
+                self.assertStatusOk(resp)
+
+        # Cookie auth should succeed unless POSTing to non-force endpoint
+        cookie = 'girderToken=%s' % self._genToken(self.user)
+        for decorator in ['cookie_auth', 'cookie_force_auth']:
+            for method in ['GET', 'POST']:
+                resp = self.request(path='/accesstest/%s' % decorator,
+                                    method=method, cookie=cookie)
+                if decorator == 'cookie_auth' and method != 'GET':
+                    self.assertStatus(resp, 401)
+                else:
+                    self.assertStatusOk(resp)
 
     def testLoadModelPlainFn(self):
         resp = self.request(path='/accesstest/test_loadmodel_plain/{}'.format(

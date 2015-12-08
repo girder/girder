@@ -42,9 +42,11 @@ def sseMessage(event):
 
 class Notification(Resource):
     def __init__(self):
+        super(Notification, self).__init__()
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
 
+    @access.cookie
     @access.token
     def stream(self, params):
         """
@@ -82,7 +84,6 @@ class Notification(Resource):
 
                 time.sleep(wait)
         return streamGen
-    stream.cookieAuth = True
     stream.description = (
         Description('Stream notifications for a given user via the SSE '
                     'protocol.')

@@ -19,8 +19,8 @@
 
 import cherrypy
 
-from ..describe import Description
-from ..rest import Resource, RestException, loadmodel
+from ..describe import Description, describeRoute
+from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.utility import ziputil
 from girder.constants import AccessType
 from girder.api import access
@@ -29,6 +29,7 @@ from girder.api import access
 class Item(Resource):
     """API endpoint for items"""
     def __init__(self):
+        super(Item, self).__init__()
         self.resourceName = 'item'
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
@@ -42,6 +43,20 @@ class Item(Resource):
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
     @access.public
+    @filtermodel(model='item')
+    @describeRoute(
+        Description('Search for an item by certain properties.')
+        .responseClass('Item')
+        .param('folderId', "Pass this to list all items in a folder.",
+               required=False)
+        .param('text', "Pass this to perform a full text search for items.",
+               required=False)
+        .param('name', 'Pass to lookup an item by exact name match. Must '
+               'pass folderId as well when using this.', required=False)
+        .pagingParams(defaultSort='lowerName')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent folder.', 403)
+    )
     def find(self, params):
         """
         Get a list of items with given search parameters. Currently accepted
@@ -68,51 +83,41 @@ class Item(Resource):
             if params.get('name'):
                 filters['name'] = params['name']
 
-            return [self.model('item').filter(item, user) for item in
-                    self.model('folder').childItems(
-                        folder=folder, limit=limit, offset=offset, sort=sort,
-                        filters=filters)]
+            return list(self.model('folder').childItems(
+                folder=folder, limit=limit, offset=offset, sort=sort,
+                filters=filters))
         elif 'text' in params:
-            return [self.model('item').filter(item, user) for item in
-                    self.model('item').textSearch(
-                        params['text'], user=user, limit=limit, offset=offset,
-                        sort=sort)]
+            return list(self.model('item').textSearch(
+                params['text'], user=user, limit=limit, offset=offset,
+                sort=sort))
         else:
             raise RestException('Invalid search mode.')
-    find.description = (
-        Description('Search for an item by certain properties.')
-        .responseClass('Item')
-        .param('folderId', "Pass this to list all items in a folder.",
-               required=False)
-        .param('text', "Pass this to perform a full text search for items.",
-               required=False)
-        .param('name', 'Pass to lookup an item by exact name match. Must '
-               'pass folderId as well when using this.', required=False)
-        .pagingParams(defaultSort='lowerName')
-        .errorResponse()
-        .errorResponse('Read access was denied on the parent folder.', 403))
 
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
-    def getItem(self, item, params):
-        return self.model('item').filter(item, self.getCurrentUser())
-    getItem.description = (
+    @filtermodel(model='item')
+    @describeRoute(
         Description('Get an item by ID.')
         .responseClass('Item')
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
+        .errorResponse('Read access was denied for the item.', 403)
+    )
+    def getItem(self, item, params):
+        return item
 
     @access.user
+    @filtermodel(model='item')
+    @describeRoute(
+        Description('Create a new item.')
+        .responseClass('Item')
+        .param('folderId', 'The ID of the parent folder.')
+        .param('name', 'Name for the item.')
+        .param('description', "Description for the item.", required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent folder.', 403)
+    )
     def createItem(self, params):
-        """
-        Create a new item.
-
-        :param folderId: The _id of the parent folder.
-        :type folderId: str
-        :param name: The name of the item to create.
-        :param description: Item description.
-        """
         self.requireParams(('name', 'folderId'), params)
 
         user = self.getCurrentUser()
@@ -122,37 +127,13 @@ class Item(Resource):
         folder = self.model('folder').load(id=params['folderId'], user=user,
                                            level=AccessType.WRITE, exc=True)
 
-        item = self.model('item').createItem(
+        return self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
-
-        return self.model('item').filter(item, user=user)
-    createItem.description = (
-        Description('Create a new item.')
-        .responseClass('Item')
-        .param('folderId', 'The ID of the parent folder.')
-        .param('name', 'Name for the item.')
-        .param('description', "Description for the item.", required=False)
-        .errorResponse()
-        .errorResponse('Write access was denied on the parent folder.', 403))
 
     @access.user
     @loadmodel(model='item', level=AccessType.WRITE)
-    def updateItem(self, item, params):
-        user = self.getCurrentUser()
-        item['name'] = params.get('name', item['name']).strip()
-        item['description'] = params.get(
-            'description', item['description']).strip()
-
-        self.model('item').updateItem(item)
-
-        if 'folderId' in params:
-            folder = self.model('folder').load(
-                params['folderId'], user=user, level=AccessType.WRITE, exc=True)
-            if folder['_id'] != item['folderId']:
-                self.model('item').move(item, folder)
-
-        return self.model('item').filter(item, user=user)
-    updateItem.description = (
+    @filtermodel(model='item')
+    @describeRoute(
         Description('Edit an item or move it to another folder.')
         .responseClass('Item')
         .param('id', 'The ID of the item.', paramType='path')
@@ -161,25 +142,28 @@ class Item(Resource):
         .param('folderId', 'Pass this to move the item to a new folder.',
                required=False)
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied for the item or folder.', 403))
+        .errorResponse('Write access was denied for the item or folder.', 403)
+    )
+    def updateItem(self, item, params):
+        item['name'] = params.get('name', item['name']).strip()
+        item['description'] = params.get(
+            'description', item['description']).strip()
+
+        self.model('item').updateItem(item)
+
+        if 'folderId' in params:
+            folder = self.model('folder').load(
+                params['folderId'], user=self.getCurrentUser(),
+                level=AccessType.WRITE, exc=True)
+            if folder['_id'] != item['folderId']:
+                self.model('item').move(item, folder)
+
+        return item
 
     @access.user
     @loadmodel(model='item', level=AccessType.WRITE)
-    def setMetadata(self, item, params):
-        metadata = self.getBodyJson()
-
-        # Make sure we let user know if we can't accept a metadata key
-        for k in metadata:
-            if not len(k):
-                raise RestException('Key names must be at least one character '
-                                    'long.')
-            if '.' in k or k[0] == '$':
-                raise RestException(u'The key name {} must not contain a '
-                                    'period or begin with a dollar sign.'
-                                    .format(k))
-
-        return self.model('item').setMetadata(item, metadata)
-    setMetadata.description = (
+    @filtermodel(model='item')
+    @describeRoute(
         Description('Set metadata fields on an item.')
         .responseClass('Item')
         .notes('Set metadata fields to null in order to delete them.')
@@ -189,12 +173,26 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Invalid JSON passed in request body.')
         .errorResponse('Metadata key name was invalid.')
-        .errorResponse('Write access was denied for the item.', 403))
+        .errorResponse('Write access was denied for the item.', 403)
+    )
+    def setMetadata(self, item, params):
+        metadata = self.getBodyJson()
+
+        # Make sure we let user know if we can't accept a metadata key
+        for k in metadata:
+            if not len(k):
+                raise RestException('Key names must be at least one character '
+                                    'long.')
+            if '.' in k or k[0] == '$':
+                raise RestException('The key name %s must not contain a period '
+                                    'or begin with a dollar sign.' % k)
+
+        return self.model('item').setMetadata(item, metadata)
 
     def _downloadMultifileItem(self, item, user):
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] =\
-            u'attachment; filename="{}{}"'.format(item['name'], '.zip')
+            'attachment; filename="%s%s"' % (item['name'], '.zip')
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
@@ -207,25 +205,34 @@ class Item(Resource):
 
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
-    def getFiles(self, item, params):
-        """Get a page of files in an item."""
-        limit, offset, sort = self.getPagingParameters(params, 'name')
-        return list(self.model('item').childFiles(item=item, limit=limit,
-                                                  offset=offset, sort=sort))
-    getFiles.description = (
+    @filtermodel(model='file')
+    @describeRoute(
         Description('Get the files within an item.')
         .responseClass('File')
         .param('id', 'The ID of the item.', paramType='path')
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
+        .errorResponse('Read access was denied for the item.', 403)
+    )
+    def getFiles(self, item, params):
+        limit, offset, sort = self.getPagingParameters(params, 'name')
+        return list(self.model('item').childFiles(
+            item=item, limit=limit, offset=offset, sort=sort))
 
+    @access.cookie
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
+    @describeRoute(
+        Description('Download the contents of an item.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .param('format', 'If unspecified, items with one file are downloaded '
+               'as that file, and other items are downloaded as a zip '
+               'archive.  If \'zip\', a zip archive is always sent.',
+               required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the item.', 403)
+    )
     def download(self, item, params):
-        """
-        Defers to the underlying assetstore adapter to stream the file out.
-        """
         offset = int(params.get('offset', 0))
         user = self.getCurrentUser()
         files = list(self.model('item').childFiles(item=item, limit=2))
@@ -236,46 +243,45 @@ class Item(Resource):
             return self.model('file').download(files[0], offset)
         else:
             return self._downloadMultifileItem(item, user)
-    download.cookieAuth = True
-    download.description = (
-        Description('Download the contents of an item.')
-        .param('id', 'The ID of the item.', paramType='path')
-        .param('format', 'If unspecified, items with one file are downloaded '
-               'as that file, and other items are downloaded as a zip '
-               'archive.  If \'zip\', a zip archive is always sent.',
-               required=False)
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
 
     @access.user
     @loadmodel(model='item', level=AccessType.WRITE)
-    def deleteItem(self, item, params):
-        """
-        Delete an item and its contents.
-        """
-        self.model('item').remove(item)
-        return {'message': u'Deleted item {}.'.format(item['name'])}
-    deleteItem.description = (
+    @describeRoute(
         Description('Delete an item by ID.')
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied for the item.', 403))
+        .errorResponse('Write access was denied for the item.', 403)
+    )
+    def deleteItem(self, item, params):
+        self.model('item').remove(item)
+        return {'message': 'Deleted item %s.' % item['name']}
 
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
-    def rootpath(self, item, params):
-        """
-        Get the path to the root of the item's parent hierarchy.
-        """
-        return self.model('item').parentsToRoot(item, self.getCurrentUser())
-    rootpath.description = (
+    @describeRoute(
         Description('Get the path to the root of the item\'s hierarchy.')
         .param('id', 'The ID of the item.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
+        .errorResponse('Read access was denied for the item.', 403)
+    )
+    def rootpath(self, item, params):
+        return self.model('item').parentsToRoot(item, self.getCurrentUser())
 
     @access.user
     @loadmodel(model='item', level=AccessType.READ)
+    @filtermodel(model='item')
+    @describeRoute(
+        Description('Copy an item.')
+        .responseClass('Item')
+        .param('id', 'The ID of the original item.', paramType='path')
+        .param('folderId', 'The ID of the parent folder.', required=False)
+        .param('name', 'Name for the new item.', required=False)
+        .param('description', "Description for the new item.", required=False)
+        .errorResponse()
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the original item.', 403)
+        .errorResponse('Write access was denied on the parent folder.', 403)
+    )
     def copyItem(self, item, params):
         """
         Copy an existing item to a new item.
@@ -288,20 +294,9 @@ class Item(Resource):
         user = self.getCurrentUser()
         name = params.get('name', None)
         folderId = params.get('folderId', item['folderId'])
-        folder = self.model('folder').load(id=folderId, user=user,
-                                           level=AccessType.WRITE, exc=True)
+        folder = self.model('folder').load(
+            id=folderId, user=user, level=AccessType.WRITE, exc=True)
         description = params.get('description', None)
-        return self.model('item').copyItem(item, creator=user, name=name,
-                                           folder=folder,
-                                           description=description)
-    copyItem.description = (
-        Description('Copy an item.')
-        .responseClass('Item')
-        .param('id', 'The ID of the original item.', paramType='path')
-        .param('folderId', 'The ID of the parent folder.', required=False)
-        .param('name', 'Name for the new item.', required=False)
-        .param('description', "Description for the new item.", required=False)
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original item.', 403)
-        .errorResponse('Write access was denied on the parent folder.', 403))
+        return self.model('item').copyItem(
+            item, creator=user, name=name, folder=folder,
+            description=description)

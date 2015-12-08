@@ -50,6 +50,11 @@ form parameters, or as the value of a custom HTTP header with the key ``Girder-T
    clients can persist its value conveniently for its duration. However, for security
    reasons, merely passing the cookie value back is not sufficient for authentication.
 
+.. note:: If you are using Girder's JavaScript web client library in a CORS environment,
+   be sure to set ``girder.corsAuth = true;`` in your application prior to calling
+   ``girder.login``. This will allow users' login sessions to be saved on the origin
+   site's cookie.
+
 Upload a file
 ^^^^^^^^^^^^^
 
@@ -209,6 +214,8 @@ route handler would send 10 chunks to the client, and the full response
 body would be ``0123456789``.
 
 .. code-block:: python
+
+    from girder.api import access
 
     @access.public
     def rawExample(self, params):
@@ -420,21 +427,27 @@ Supporting web browser operations where custom headers cannot be set
 Some aspects of the web browser make it infeasible to pass the usual
 ``Girder-Token`` authentication header when making a request. For example,
 if using an ``EventSource`` object for SSE, or when you must redirect the user's
-browser to a download endpoint that serves its content as an attachment. In such
-cases, you may allow specific REST API routes to authenticate using the Cookie.
-You should only do this if the endpoint is "read-only", that is, in cases where
-it does not make modifications to data on the server, to avoid vulnerabilities
-to Cross-Site Request Forgery attacks. If your endpoint is not read-only and
-you are unable to pass the ``Girder-Token`` header to it, you can pass a ``token``
-query parameter containing the token as a last resort, but in practice this will
-probably never be the case.
+browser to a download endpoint that serves its content as an attachment.
 
-In order to allow cookie authentication for your route, simply set the
-``cookieAuth`` property on your route handler function to ``True``. Example:
+In such cases, you may allow specific REST API routes to authenticate using the
+Cookie. To avoid vulnerabilities to Cross-Site Request Forgery attacks, you
+should only do this if the endpoint is "read-only" (that is, the endpoint does
+not make modifications to data on the server). Accordingly, only routes for
+``HEAD`` and ``GET`` requests allow cookie authentication to be enabled (without
+an additional override).
+
+In order to allow cookie authentication for your route, simply add the
+``cookie`` decorator to your route handler function. Example:
 
 .. code-block:: python
 
+    from girder.api import access
+
+    @access.cookie
     @access.public
     def download(self, params):
         ...
-    download.cookieAuth = True
+
+As a last resort, if your endpoint is not read-only and you are unable to pass
+the ``Girder-Token`` header to it, you can pass a ``token`` query parameter
+containing the token , but in practice this will probably never be the case.

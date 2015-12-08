@@ -139,17 +139,18 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
+        assetstoreName = os.environ.get('GIRDER_TEST_ASSETSTORE', 'test')
         assetstorePath = os.path.join(
-            ROOT_DIR, 'tests', 'assetstore',
-            os.environ.get('GIRDER_TEST_ASSETSTORE', 'test'))
+            ROOT_DIR, 'tests', 'assetstore', assetstoreName)
         if assetstoreType == 'gridfs':
-            gridfsDbName = os.environ.get('GIRDER_TEST_ASSETSTORE',
-                                          'gridfs_assetstore_test')
+            # Name this as '_auto' to prevent conflict with assetstores created
+            # within test methods
+            gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = self.model('assetstore'). \
                 createGridFsAssetstore(name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
-            gridfsDbName = 'gridfsrs_assetstore_test'
+            gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
             mongo_replicaset.startMongoReplicaSet()
             self.assetstore = self.model('assetstore'). \
                 createGridFsAssetstore(
@@ -241,7 +242,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         :param obj: The dictionary object.
         :param keys: The keys it must not contain.
-        :type keys: list
+        :type keys: list or tuple
         """
         for k in keys:
             self.assertFalse(k in obj, 'Object contains key "%s"' % k)

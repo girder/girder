@@ -20,7 +20,6 @@
 import errno
 import getpass
 import glob
-import hashlib
 import json
 import os
 import re
@@ -386,26 +385,14 @@ class GirderClient(object):
                 next_chunk_size = min(self.MAX_CHUNK_SIZE,
                                       filesize - startbyte)
 
-    def _sha512_hasher(self, filepath):
-        """
-        Returns sha512 hash of passed in file.
-
-        :param filepath: path to file on disk.
-        """
-        hasher = hashlib.sha512()
-        for chunk, _ in self._file_chunker(filepath):
-            hasher.update(chunk)
-        return hasher.hexdigest()
-
     def isFileCurrent(self, itemId, filename, filepath):
         """
         Tests whether the passed in filepath exists in the item with itemId,
-        with a name of filename, and with the same contents as the file at
-        filepath.  Returns a tuple (file_id, current) where
-        file_id = id of the file with that filename under the item, or
-        None if no such file exists under the item.
+        with a name of filename, and with the same length.  Returns a tuple
+        (file_id, current) where file_id = id of the file with that filename
+        under the item, or None if no such file exists under the item.
         current = boolean if the file with that filename under the item
-        has the same contents as the file at filepath.
+        has the same size as the file at filepath.
 
         :param itemId: ID of parent item for file.
         :param filename: name of file to look for under the parent item.
@@ -416,15 +403,8 @@ class GirderClient(object):
         for item_file in item_files:
             if filename == item_file['name']:
                 file_id = item_file['_id']
-                if 'sha512' in item_file:
-                    if item_file['sha512'] == self._sha512_hasher(filepath):
-                        return (file_id, True)
-                    else:
-                        return (file_id, False)
-                else:
-                    # Some assetstores don't support sha512
-                    # so we'll need to upload anyway
-                    return (file_id, False)
+                size = os.path.getsize(filepath)
+                return (file_id, size == item_file['size'])
         # Some files may already be stored under a different name, we'll need
         # to upload anyway in this case also.
         return (None, False)
@@ -432,7 +412,7 @@ class GirderClient(object):
     def uploadFileToItem(self, itemId, filepath):
         """
         Uploads a file to an item, in chunks.
-        If ((the file already exists in the item with the same name and sha512)
+        If ((the file already exists in the item with the same name and size)
         or (if the file has 0 bytes), no uploading will be performed.
 
         :param itemId: ID of parent item for file.
@@ -445,7 +425,7 @@ class GirderClient(object):
         if filesize == 0:
             return
 
-        # Check if the file already exists by name and sha512 in the file.
+        # Check if the file already exists by name and size in the file.
         file_id, current = self.isFileCurrent(itemId, filename, filepath)
         if file_id is not None and current:
             print('File %s already exists in parent Item' % filename)

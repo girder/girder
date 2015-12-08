@@ -48,10 +48,30 @@ $(function () {
                 expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
                 expect($('.g-job-status-badge').text()).toContain('Inactive');
 
-                job.on('change', widget.render, widget);
-                job.set('status', girder.jobs_JobStatus.SUCCESS);
+                // Make sure view change happens when notification is sent for this job
+                girder.eventStream.trigger('g:event.job_status', {
+                    data: {
+                        _id: 'foo',
+                        status: girder.jobs_JobStatus.SUCCESS,
+                        log: 'log changed'
+                    }
+                });
 
                 expect($('.g-job-status-badge').text()).toContain('Success');
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
+
+
+                // Make sure view change only happens for the currently viewed job
+                girder.eventStream.trigger('g:event.job_status', {
+                    data: {
+                        _id: 'bar',
+                        status: girder.jobs_JobStatus.QUEUED,
+                        log: 'should not appear'
+                    }
+                });
+
+                expect($('.g-job-status-badge').text()).toContain('Success');
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
             });
         });
     });

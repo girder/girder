@@ -190,6 +190,7 @@ def _cmp(a, b):
 
 class Describe(Resource):
     def __init__(self):
+        super(Describe, self).__init__()
         self.route('GET', (), self.listResources, nodoc=True)
         self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
@@ -251,3 +252,26 @@ class Describe(Resource):
                     key=functools.cmp_to_key(self._compareRoutes))
             ]
         }
+
+
+class describeRoute(object):  # noqa: class name
+    def __init__(self, description):
+        """
+        This returns a decorator that can be used in lieu of setting the
+        description property on a route handler. Pass the Description object
+        (or None) that you want to use to describe this route. It should be
+        used like the following example:
+
+            @describeRoute(Description('Do something')
+                           .param('foo', 'Some parameter', ...)
+            )
+            def routeHandler(...)
+
+        :param description: The description for the route.
+        :type description: :py:class:`girder.api.describe.Description` or None
+        """
+        self.description = description
+
+    def __call__(self, fun):
+        fun.description = self.description
+        return fun

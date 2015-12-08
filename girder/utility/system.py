@@ -137,7 +137,7 @@ def getStatus(mode='basic', user=None):
         status['swap'] = _objectToDict(psutil.swap_memory())
         status['cpuCount'] = psutil.cpu_count()
 
-        status['processMemory'] = _objectToDict(process.get_memory_info())
+        status['processMemory'] = _objectToDict(process.memory_info())
         status['processName'] = process.name()
         status['cmdline'] = process.cmdline()
         status['exe'] = process.exe()

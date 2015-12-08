@@ -30,6 +30,7 @@ class Assetstore(Resource):
     API Endpoint for managing assetstores. Requires admin privileges.
     """
     def __init__(self):
+        super(Assetstore, self).__init__()
         self.resourceName = 'assetstore'
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getAssetstore)

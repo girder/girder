@@ -305,7 +305,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(oldAssetstore['current'])
         self.assertEqual(oldAssetstore['name'], 'Test')
         # Clear any old DB data
-        base.dropGridFSDatabase('girder_assetstore_create_test')
+        base.dropGridFSDatabase('girder_test_assetstore_create_assetstore')
         params = {
             'name': 'New Name',
             'type': AssetstoreType.GRIDFS
@@ -314,7 +314,7 @@ class AssetstoreTestCase(base.TestCase):
                             params=params)
         self.assertMissingParameter(resp, 'db')
 
-        params['db'] = 'girder_assetstore_create_test'
+        params['db'] = 'girder_test_assetstore_create_assetstore'
         resp = self.request(path='/assetstore', method='POST', user=self.admin,
                             params=params)
         self.assertStatusOk(resp)
@@ -348,7 +348,7 @@ class AssetstoreTestCase(base.TestCase):
         params = {
             'name': 'Replica Set Name',
             'type': AssetstoreType.GRIDFS,
-            'db': 'girder_assetstore_rs_create_test',
+            'db': 'girder_test_assetstore_create_rs_assetstore',
             'mongohost': 'mongodb://127.0.0.1:27080,127.0.0.1:27081,'
                          '127.0.0.1:27082',
             'replicaset': 'replicaset',
@@ -469,8 +469,12 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['size'], 1024)
         self.assertEqual(resp.json['assetstoreId'], str(assetstore['_id']))
-        self.assertTrue('s3Key' in resp.json)
-        self.assertTrue(resp.json['relpath'].startswith('/bucketname/foo/bar/'))
+        self.assertFalse('s3Key' in resp.json)
+        self.assertFalse('relpath' in resp.json)
+
+        file = self.model('file').load(resp.json['_id'], force=True)
+        self.assertTrue('s3Key' in file)
+        self.assertRegexpMatches(file['relpath'], '^/bucketname/foo/bar/')
 
         # Test init for a multi-chunk upload
         params['size'] = 1024 * 1024 * 1024 * 5
@@ -623,15 +627,16 @@ class AssetstoreTestCase(base.TestCase):
                             user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
-        file = resp.json[0]
+        self.assertFalse('imported' in resp.json[0])
+        self.assertFalse('relpath' in resp.json[0])
+        file = self.model('file').load(resp.json[0]['_id'], force=True)
         self.assertTrue(file['imported'])
         self.assertFalse('relpath' in file)
         self.assertEqual(file['size'], 0)
-        self.assertEqual(file['assetstoreId'], str(assetstore['_id']))
-
-        # Deleting an imported file should not delete it from S3
+        self.assertEqual(file['assetstoreId'], assetstore['_id'])
         self.assertTrue(bucket.get_key('/foo/bar/test') is not None)
 
+        # Deleting an imported file should not delete it from S3
         with mock.patch('girder.events.daemon.trigger') as daemon:
             resp = self.request('/item/%s' % str(item['_id']), method='DELETE',
                                 user=self.admin)

@@ -22,6 +22,7 @@ module.exports = function (grunt) {
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
     var uglifyOptions = {
+        ASCIIOnly: true,
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,
         report: 'min'
@@ -34,15 +35,10 @@ module.exports = function (grunt) {
     if (debugJs) {
         console.log('Building JS in debug mode'.yellow);
         uglifyOptions.beautify = {
-            beautify: true,
-            ascii_only: true
+            beautify: true
         };
         uglifyOptions.mangle = false;
         uglifyOptions.compress = false;
-    } else {
-        uglifyOptions.beautify = {
-            ascii_only: true
-        };
     }
 
     grunt.config.merge({
@@ -87,6 +83,7 @@ module.exports = function (grunt) {
             core: {
                 files: {
                     'clients/web/static/built/app.min.css': [
+                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
                         'clients/web/src/stylesheets/**/*.styl',
                         '!clients/web/src/stylesheets/apidocs/*.styl'
                     ],
@@ -130,6 +127,8 @@ module.exports = function (grunt) {
                         'node_modules/backbone/backbone.js',
                         'node_modules/marked/lib/marked.js',
                         'node_modules/jsoneditor/dist/jsoneditor.js',
+                        'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
+                        'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
                         'clients/web/lib/js/d3.js',
                         'clients/web/lib/js/bootstrap.js',
                         'clients/web/lib/js/bootstrap-switch.js',
@@ -147,7 +146,10 @@ module.exports = function (grunt) {
                 tasks: ['stylus:core']
             },
             js_core: {
-                files: ['clients/web/src/**/*.js'],
+                files: [
+                    'clients/web/src/**/*.js',
+                    'clients/static/built/templates.js'
+                ],
                 tasks: ['uglify:app']
             },
             jade_core: {

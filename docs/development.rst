@@ -18,8 +18,8 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-.. note:: One of the development requirements, `httpretty`, can fail to install
-   if under certain system locales (see the `error report
+.. note:: One of the development indirect requirements, `httpretty`, can fail to
+   install if under certain system locales (see the `error report
    <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
    UTF8 locale works around this problem.  For instance, on Ubuntu, you can
    change your system locale using the commands: ::
@@ -227,7 +227,6 @@ You will find many useful methods for client side testing in the ``girderTest`` 
 defined at ``/clients/web/test/testUtils.js``.
 
 
-
 Code Review
 -----------
 
@@ -246,6 +245,32 @@ developing quality software. When performing a code review, ask the following:
 6.  Does this break backward compatibility? Is that okay?
 7.  What are the security implications of this change? Does this open Girder up
     to any vulnerabilities (XSS, CSRF, DB Injection, etc)?
+
+
+Third-Party Libraries
+---------------------
+
+Girder's standard procedure is to use a tool like
+`piprot <https://github.com/sesh/piprot>`_ to check for out-of-date
+third-party library requirements on a quarterly basis (typically near the dates
+of the solstices and equinoxes). Library packages should generally be upgraded
+to the latest released version, except when:
+1. Doing so would introduce any new unfixable bugs or regressions.
+2. Other closely-affiliated projects (e.g.
+   `Romanesco <https://romanesco.readthedocs.org/>`_ use the same library *and*
+   the other project cannot also feasibly be upgraded simultaneously.
+3. The library has undergone a major API change, and development resources do
+   not permit updating Girder accordingly *or* Girder exposes parts
+   of the library as members of Girder's API surface (e.g. CherryPy) and
+   upgrading would cause incompatible API changes to be exposed. In this
+   case, the library should still be upgraded to the highest non-breaking
+   version that is available at the time.
+
+.. note:: In the event that a security vulnerability is discovered in a
+   third-party library used by Girder, the library *must* be upgraded to patch
+   the vulnerability immediately and without regard to the aforementioned
+   exceptions. However, attempts should still be made to maintain API
+   compatibility via monkey patching, wrapper classes, etc.
 
 
 Creating a new release

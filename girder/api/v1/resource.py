@@ -35,6 +35,7 @@ class Resource(BaseResource):
     API Endpoints that deal with operations across multiple resource types.
     """
     def __init__(self):
+        super(Resource, self).__init__()
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
         self.route('GET', ('lookup',), self.lookup)
@@ -226,6 +227,7 @@ class Resource(BaseResource):
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403))
 
+    @access.cookie(force=True)
     @access.public
     def download(self, params):
         """
@@ -261,7 +263,6 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
-    download.cookieAuth = True
     download.description = (
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')

@@ -280,4 +280,15 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         raise NotImplementedError(
             'The %s assetstore type does not support importing existing data.'
-            % self.__class__.__name__)  # pragma: no cover)
+            % self.__class__.__name__)  # pragma: no cover
+
+    def fileUpdated(self, file):
+        """
+        This is called when the file document has been changed. Any assetstore
+        implementation that needs to do anything when the file document changes
+        should override this method.
+
+        :param file: The updated file document.
+        :type file: dict
+        """
+        pass

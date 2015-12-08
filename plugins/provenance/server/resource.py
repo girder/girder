@@ -40,6 +40,7 @@ class ResourceExt(Resource):
         use changes.
         :param info: the info class passed to the load function.
         """
+        super(ResourceExt, self).__init__()
         self.loadInfo = info
         self.boundResources = {}
 

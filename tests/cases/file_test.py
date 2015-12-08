@@ -18,6 +18,7 @@
 ###############################################################################
 
 import io
+import mock
 import moto
 import os
 import shutil
@@ -97,7 +98,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['name'], name)
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
 
-        return file
+        return self.model('file').load(file['_id'], force=True)
 
     def _testUploadFile(self, name):
         """
@@ -472,6 +473,25 @@ class FileTestCase(base.TestCase):
             path='/file/{}/download'.format(file['_id']), method='GET')
         self.assertStatus(resp, 401)
 
+        # Make sure access control is enforced on get info
+        resp = self.request(
+            path='/file/' + str(file['_id']), method='GET')
+        self.assertStatus(resp, 401)
+
+        # Make sure we can get the file info and that it's filtered
+        resp = self.request(
+            path='/file/' + str(file['_id']), method='GET', user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['mimeType'], 'text/plain')
+        self.assertEqual(resp.json['exts'], ['json'])
+        self.assertEqual(resp.json['_modelType'], 'file')
+        self.assertEqual(resp.json['creatorId'], str(self.user['_id']))
+        self.assertEqual(resp.json['size'], file['size'])
+        self.assertTrue('itemId' in resp.json)
+        self.assertTrue('assetstoreId' in resp.json)
+        self.assertFalse('path' in resp.json)
+        self.assertFalse('sha512' in resp.json)
+
         resp = self.request(
             path='/folder/{}/download'.format(self.privateFolder['_id']),
             method='GET')
@@ -546,17 +566,17 @@ class FileTestCase(base.TestCase):
         Test usage of the GridFS assetstore type.
         """
         # Clear any old DB data
-        base.dropGridFSDatabase('girder_assetstore_test')
+        base.dropGridFSDatabase('girder_test_file_assetstore')
         # Clear the assetstore database
         conn = getDbConnection()
-        conn.drop_database('girder_assetstore_test')
+        conn.drop_database('girder_test_file_assetstore')
 
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createGridFsAssetstore(
-            name='Test', db='girder_assetstore_test')
+            name='Test', db='girder_test_file_assetstore')
         self.assetstore = assetstore
 
-        chunkColl = conn['girder_assetstore_test']['chunk']
+        chunkColl = conn['girder_test_file_assetstore']['chunk']
 
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
@@ -658,12 +678,30 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
-        file = resp.json
+        file = self.model('file').load(resp.json['_id'], force=True)
 
         self.assertHasKeys(file, ['itemId'])
-        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['assetstoreId'], self.assetstore['_id'])
         self.assertEqual(file['name'], 'hello.txt')
         self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+        # Make sure metadata is updated in S3 when file info changes
+        # (moto API doesn't cover this at all, so we manually mock.)
+        with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
+            resp = self.request(
+                '/file/%s' % str(file['_id']), method='PUT', params={
+                    'mimeType': 'application/csv',
+                    'name': 'new name'
+                }, user=self.user)
+            self.assertEqual(len(m.mock_calls), 1)
+            self.assertEqual(m.mock_calls[0][2], {
+                'metadata_plus': {
+                    'Content-Type': 'application/csv',
+                    'Content-Disposition': b'attachment; filename="new name"'
+                },
+                'metadata_minus': [],
+                'preserve_acl': True
+            })
 
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5

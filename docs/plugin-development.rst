@@ -125,23 +125,25 @@ will default to being restricted to administrators.
 
 When you start the server, you may notice a warning message appears:
 ``WARNING: No description docs present for route GET item/:id/cat``. You
-can add self-describing API documentation to your route as in the following
+can add self-describing API documentation to your route using the
+``describeRoute`` decorator and ``Description`` class as in the following
 example: ::
 
-    from girder.api.describe import Description
+    from girder.api.describe import Description, describeRoute
     from girder.api import access
 
     @access.public
+    @describeRoute(
+        Description('Retrieve the cat for a given item.')
+        .param('id', 'The item ID', paramType='path')
+        .param('cat', 'The cat value.', required=False)
+        .errorResponse())
     def myHandler(id, params):
         return {
            'itemId': id,
            'cat': params.get('cat', 'No cat param passed')
         }
-    myHandler.description = (
-        Description('Retrieve the cat for a given item.')
-        .param('id', 'The item ID', paramType='path')
-        .param('cat', 'The cat value.', required=False)
-        .errorResponse())
+
 
 That will make your route automatically appear in the Swagger documentation
 and will allow users to interact with it via that UI. See the

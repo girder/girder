@@ -21,8 +21,8 @@ import cherrypy
 import errno
 import six
 
-from ..describe import Description
-from ..rest import Resource, RestException, loadmodel
+from ..describe import Description, describeRoute
+from ..rest import Resource, RestException, filtermodel, loadmodel
 from ...constants import AccessType
 from girder.models.model_base import AccessException, GirderException
 from girder.api import access
@@ -34,10 +34,12 @@ class File(Resource):
     them.
     """
     def __init__(self):
+        super(File, self).__init__()
         self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('DELETE', ('upload', ':id'), self.cancelUpload)
         self.route('GET', ('offset',), self.requestOffset)
+        self.route('GET', (':id',), self.getFile)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'download', ':name'), self.downloadWithName)
         self.route('POST', (), self.initUpload)
@@ -47,7 +49,34 @@ class File(Resource):
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
+    @access.public
+    @loadmodel(model='file', level=AccessType.READ)
+    @filtermodel(model='file')
+    @describeRoute(
+        Description('Get a file\'s information.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .errorResponse()
+        .errorResponse('Read access was denied on the file.', 403)
+    )
+    def getFile(self, file, params):
+        return file
+
     @access.user
+    @describeRoute(
+        Description('Start a new upload or create an empty or link file.')
+        .responseClass('Upload')
+        .param('parentType', 'Type being uploaded into (folder or item).')
+        .param('parentId', 'The ID of the parent.')
+        .param('name', 'Name of the file being created.')
+        .param('size', 'Size in bytes of the file.',
+               dataType='integer', required=False)
+        .param('mimeType', 'The MIME type of the file.', required=False)
+        .param('linkUrl', 'If this is a link file, pass its URL instead '
+               'of size and mimeType using this parameter.', required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied on the parent folder.', 403)
+        .errorResponse('Failed to create upload.', 500)
+    )
     def initUpload(self, params):
         """
         Before any bytes of the actual file are sent, a request should be made
@@ -69,9 +98,10 @@ class File(Resource):
                                              level=AccessType.WRITE, exc=True)
 
         if 'linkUrl' in params:
-            return self.model('file').createLinkFile(
-                url=params['linkUrl'], parent=parent, name=params['name'],
-                parentType=parentType, creator=user)
+            return self.model('file').filter(
+                self.model('file').createLinkFile(
+                    url=params['linkUrl'], parent=parent, name=params['name'],
+                    parentType=parentType, creator=user), user)
         else:
             self.requireParams('size', params)
             try:
@@ -87,23 +117,21 @@ class File(Resource):
             if upload['size'] > 0:
                 return upload
             else:
-                return self.model('upload').finalizeUpload(upload)
-    initUpload.description = (
-        Description('Start a new upload or create an empty or link file.')
-        .responseClass('Upload')
-        .param('parentType', 'Type being uploaded into (folder or item).')
-        .param('parentId', 'The ID of the parent.')
-        .param('name', 'Name of the file being created.')
-        .param('size', 'Size in bytes of the file.',
-               dataType='integer', required=False)
-        .param('mimeType', 'The MIME type of the file.', required=False)
-        .param('linkUrl', 'If this is a link file, pass its URL instead '
-               'of size and mimeType using this parameter.', required=False)
-        .errorResponse()
-        .errorResponse('Write access was denied on the parent folder.', 403)
-        .errorResponse('Failed to create upload.', 500))
+                return self.model('file').filter(
+                    self.model('upload').finalizeUpload(upload), user)
 
     @access.user
+    @describeRoute(
+        Description('Finalize an upload explicitly if necessary.')
+        .notes('This is only required in certain non-standard upload '
+               'behaviors. Clients should know which behavior models require '
+               'the finalize step to be called in their behavior handlers.')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .errorResponse('ID was invalid.')
+        .errorResponse('The upload does not require finalization.')
+        .errorResponse('Not enough bytes have been uploaded.')
+        .errorResponse('You are not the user who initiated the upload.', 403)
+    )
     def finalizeUpload(self, params):
         self.requireParams('uploadId', params)
         user = self.getCurrentUser()
@@ -121,19 +149,17 @@ class File(Resource):
                 'Server has only received {} bytes, but the file should be {} '
                 'bytes.'.format(upload['received'], upload['size']))
 
-        return self.model('upload').finalizeUpload(upload)
-    finalizeUpload.description = (
-        Description('Finalize an upload explicitly if necessary.')
-        .notes('This is only required in certain non-standard upload '
-               'behaviors. Clients should know which behavior models require '
-               'the finalize step to be called in their behavior handlers.')
-        .param('uploadId', 'The ID of the upload record.', paramType='form')
-        .errorResponse('ID was invalid.')
-        .errorResponse('The upload does not require finalization.')
-        .errorResponse('Not enough bytes have been uploaded.')
-        .errorResponse('You are not the user who initiated the upload.', 403))
+        file = self.model('upload').finalizeUpload(upload)
+        extraKeys = file.get('additionalFinalizeKeys', ())
+        return self.model('file').filter(file, user, additionalKeys=extraKeys)
 
     @access.user
+    @describeRoute(
+        Description('Request required offset before resuming an upload.')
+        .param('uploadId', 'The ID of the upload record.')
+        .errorResponse("The ID was invalid, or the offset did not match the "
+                       "server's record.")
+    )
     def requestOffset(self, params):
         """
         This should be called when resuming an interrupted upload. It will
@@ -152,13 +178,23 @@ class File(Resource):
         else:
             return offset
 
-    requestOffset.description = (
-        Description('Request required offset before resuming an upload.')
-        .param('uploadId', 'The ID of the upload record.')
-        .errorResponse("The ID was invalid, or the offset did not match the "
-                       "server's record."))
-
     @access.user
+    @describeRoute(
+        Description('Upload a chunk of a file with multipart/form-data.')
+        .consumes('multipart/form-data')
+        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .param('offset', 'Offset of the chunk in the file.', dataType='integer',
+               paramType='form')
+        .param('chunk', 'The actual bytes of the chunk. For external upload '
+               'behaviors, this may be set to an opaque string that will be '
+               'handled by the assetstore adapter.',
+               dataType='File', paramType='body')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Received too many bytes.')
+        .errorResponse('Chunk is smaller than the minimum size.')
+        .errorResponse('You are not the user who initiated the upload.', 403)
+        .errorResponse('Failed to store upload.', 500)
+    )
     def readChunk(self, params):
         """
         After the temporary upload record has been created (see initUpload),
@@ -191,24 +227,26 @@ class File(Resource):
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
             raise
-    readChunk.description = (
-        Description('Upload a chunk of a file with multipart/form-data.')
-        .consumes('multipart/form-data')
-        .param('uploadId', 'The ID of the upload record.', paramType='form')
-        .param('offset', 'Offset of the chunk in the file.', dataType='integer',
-               paramType='form')
-        .param('chunk', 'The actual bytes of the chunk. For external upload '
-               'behaviors, this may be set to an opaque string that will be '
-               'handled by the assetstore adapter.',
-               dataType='File', paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Received too many bytes.')
-        .errorResponse('Chunk is smaller than the minimum size.')
-        .errorResponse('You are not the user who initiated the upload.', 403)
-        .errorResponse('Failed to store upload.', 500))
 
+    @access.cookie
     @access.public
     @loadmodel(model='file', level=AccessType.READ)
+    @describeRoute(
+        Description('Download a file.')
+        .notes('This endpoint also accepts the HTTP "Range" header for partial '
+               'file downloads.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within '
+               'the file.', dataType='integer', required=False)
+        .param('endByte', 'If you only wish to download part of the file, '
+               'pass this as the index of the last byte to download. Unlike '
+               'the HTTP Range header, the endByte parameter is non-inclusive, '
+               'so you should set it to the index of the byte one past the '
+               'final byte you wish to receive.', dataType='integer',
+               required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied on the parent folder.', 403)
+    )
     def download(self, file, params):
         """
         Defers to the underlying assetstore adapter to stream a file out.
@@ -229,28 +267,10 @@ class File(Resource):
                 endByte = int(endByte)
 
         return self.model('file').download(file, offset, endByte=endByte)
-    download.cookieAuth = True
-    download.description = (
-        Description('Download a file.')
-        .notes('This endpoint also accepts the HTTP "Range" header for partial '
-               'file downloads.')
-        .param('id', 'The ID of the file.', paramType='path')
-        .param('offset', 'Start downloading at this offset in bytes within '
-               'the file.', dataType='integer', required=False)
-        .param('endByte', 'If you only wish to download part of the file, '
-               'pass this as the index of the last byte to download. Unlike '
-               'the HTTP Range header, the endByte parameter is non-inclusive, '
-               'so you should set it to the index of the byte one past the '
-               'final byte you wish to receive.', dataType='integer',
-               required=False)
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the parent folder.', 403))
 
+    @access.cookie
     @access.public
-    def downloadWithName(self, id, name, params):
-        return self.download(id=id, params=params)
-    downloadWithName.cookieAuth = True
-    downloadWithName.description = (
+    @describeRoute(
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('name', 'The name of the file.  This is ignored.',
@@ -261,20 +281,30 @@ class File(Resource):
                'download clients save files based on the last part of a path, '
                'and specifying the name satisfies those clients.')
         .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the parent folder.', 403))
+        .errorResponse('Read access was denied on the parent folder.', 403)
+    )
+    def downloadWithName(self, id, name, params):
+        return self.download(id=id, params=params)
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
-    def deleteFile(self, file, params):
-        self.model('file').remove(file)
-    deleteFile.description = (
+    @describeRoute(
         Description('Delete a file by ID.')
         .param('id', 'The ID of the file.', paramType='path')
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403)
+    )
+    def deleteFile(self, file, params):
+        self.model('file').remove(file)
 
     @access.user
     @loadmodel(model='upload')
+    @describeRoute(
+        Description('Cancel a partially completed upload.')
+        .param('id', 'The ID of the upload.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('You lack permission to cancel this upload.', 403)
+    )
     def cancelUpload(self, upload, params):
         user = self.getCurrentUser()
 
@@ -283,58 +313,56 @@ class File(Resource):
 
         self.model('upload').cancelUpload(upload)
         return {'message': 'Upload canceled.'}
-    cancelUpload.description = (
-        Description('Cancel a partially completed upload.')
-        .param('id', 'The ID of the upload.', paramType='path')
-        .errorResponse('ID was invalid.')
-        .errorResponse('You lack permission to cancel this upload.', 403))
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
-    def updateFile(self, file, params):
-        file['name'] = params.get('name', file['name']).strip()
-        file['mimeType'] = params.get('mimeType',
-                                      file.get('mimeType', '')).strip()
-        return self.model('file').save(file)
-    updateFile.description = (
+    @filtermodel(model='file')
+    @describeRoute(
         Description('Change file metadata such as name or MIME type.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('name', 'The name to set on the file.', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied on the parent folder.', 403))
+        .errorResponse('Write access was denied on the parent folder.', 403)
+    )
+    def updateFile(self, file, params):
+        file['name'] = params.get('name', file['name']).strip()
+        file['mimeType'] = params.get('mimeType',
+                                      (file.get('mimeType') or '').strip())
+        return self.model('file').updateFile(file)
 
     @access.user
     @loadmodel(model='file', level=AccessType.WRITE)
-    def updateFileContents(self, file, params):
-        self.requireParams('size', params)
-
-        # Create a new upload record into the existing file
-        upload = self.model('upload').createUploadToFile(
-            file=file, user=self.getCurrentUser(), size=int(params['size']))
-
-        if upload['size'] > 0:
-            return upload
-        else:
-            return self.model('upload').finalizeUpload(upload)
-    updateFileContents.description = (
+    @describeRoute(
         Description('Change the contents of an existing file.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .notes('After calling this, send the chunks just like you would with a '
-               'normal file upload.'))
+               'normal file upload.')
+    )
+    def updateFileContents(self, file, params):
+        self.requireParams('size', params)
+        user = self.getCurrentUser()
+
+        # Create a new upload record into the existing file
+        upload = self.model('upload').createUploadToFile(
+            file=file, user=user, size=int(params['size']))
+
+        if upload['size'] > 0:
+            return upload
+        else:
+            return self.model('file').filter(
+                self.model('upload').finalizeUpload(upload), user)
 
     @access.user
     @loadmodel(model='file', level=AccessType.READ)
     @loadmodel(model='item', map={'itemId': 'item'}, level=AccessType.WRITE)
-    def copy(self, file, item, params):
-        user = self.getCurrentUser()
-        fileModel = self.model('file')
-        newFile = fileModel.copyFile(file, user, item=item)
-
-        return fileModel.filter(newFile, user)
-
-    copy.description = (
+    @filtermodel(model='file')
+    @describeRoute(
         Description('Copy a file.')
         .param('id', 'The ID of the file.', paramType='path')
-        .param('itemId', 'The item to copy the file to.', required=True))
+        .param('itemId', 'The item to copy the file to.', required=True)
+    )
+    def copy(self, file, item, params):
+        return self.model('file').copyFile(
+            file, self.getCurrentUser(), item=item)
