@@ -325,7 +325,24 @@ class Job(AccessControlledModel):
             user, job['title'], total, state=state, current=current,
             message=message, estimateTime=False)
 
-    def filter(self, job, user):
+    def filter(self, *args, **kwargs):
+        """
+        This predates the core generic model filtering utilities, so it does
+        a bunch of stuff that is not best practice but is preserved here for
+        backward compatibility. The ``jobs.filter`` event is now deprecated
+        and will be removed in the next major release in favor of the normal
+        ``exposeFields`` et al.
+        """
+        if 'job' in kwargs:
+            args = [kwargs.pop('folder')] + list(args)
+
+        job = args[0]
+
+        if 'user' in kwargs:
+            user = kwargs.pop('user')
+        else:
+            user = args[1]
+
         # Allow downstreams to filter job info as they see fit
         event = events.trigger('jobs.filter', info={
             'job': job,
@@ -334,6 +351,9 @@ class Job(AccessControlledModel):
 
         keys = ['title', 'type', 'created', 'interval', 'when', 'status',
                 'progress', 'log', 'meta', '_id', 'public', 'async', 'updated']
+
+        if 'additionalKeys' in kwargs:
+            keys.extend(kwargs.pop('additionalKeys'))
 
         if user and user['admin'] is True:
             keys.extend(('args', 'kwargs'))
@@ -344,7 +364,7 @@ class Job(AccessControlledModel):
             if 'removeFields' in resp:
                 keys = [k for k in keys if k not in resp['removeFields']]
 
-        doc = self.filterDocument(job, allow=keys)
+        doc = super(Job, self).filter(job, user, additionalKeys=keys, **kwargs)
 
         if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
             doc['kwargs'] = json_util.loads(doc['kwargs'])
