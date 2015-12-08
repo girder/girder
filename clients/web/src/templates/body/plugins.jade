@@ -30,4 +30,4 @@ div.g-plugin-restart
             i.icon-cog
       .g-plugin-description #{plugin.value.description}
         if (!plugin.value.meetsDependencies)
-          .g-plugin-warning This plugin has unmet dependencies.
+          .g-plugin-warning.g-plugin-error-message This plugin has unmet dependencies.
