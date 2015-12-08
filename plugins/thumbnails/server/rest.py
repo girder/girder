@@ -18,8 +18,8 @@
 ###############################################################################
 
 from girder.api import access
-from girder.api.describe import Description
-from girder.api.rest import loadmodel, Resource, RestException
+from girder.api.describe import Description, describeRoute
+from girder.api.rest import filtermodel, loadmodel, Resource, RestException
 from girder.constants import AccessType
 
 
@@ -31,6 +31,26 @@ class Thumbnail(Resource):
 
     @access.user
     @loadmodel(map={'fileId': 'file'}, model='file', level=AccessType.READ)
+    @filtermodel(model='job', plugin='jobs')
+    @describeRoute(
+        Description('Create a new thumbnail from an existing image file.')
+        .notes('Setting a width or height parameter of 0 will preserve the '
+               'original aspect ratio.')
+        .param('fileId', 'The ID of the source file.')
+        .param('width', 'The desired width.', required=False, dataType='int')
+        .param('height', 'The desired height.', required=False, dataType='int')
+        .param('crop', 'Whether to crop the image to preserve aspect ratio. '
+               'Only used if both width and height parameters are nonzero.',
+               dataType='boolean', required=False, default=True)
+        .param('attachToId', 'The lifecycle of this thumbnail is bound to the '
+               'resource specified by this ID.')
+        .param('attachToType', 'The type of resource to which this thumbnail is'
+               ' attached.', enum=['folder', 'user', 'collection', 'item'])
+        .errorResponse()
+        .errorResponse('Write access was denied on the attach destination.',
+                       403)
+        .errorResponse('Read access was denied on the file.', 403)
+    )
     def createThumbnail(self, file, params):
         self.requireParams(('attachToId', 'attachToType'), params)
 
@@ -69,22 +89,4 @@ class Thumbnail(Resource):
 
         self.model('job', 'jobs').scheduleJob(job)
 
-        return self.model('job', 'jobs').filter(job, user=user)
-    createThumbnail.description = (
-        Description('Create a new thumbnail from an existing image file.')
-        .notes('Setting a width or height parameter of 0 will preserve the '
-               'original aspect ratio.')
-        .param('fileId', 'The ID of the source file.')
-        .param('width', 'The desired width.', required=False, dataType='int')
-        .param('height', 'The desired height.', required=False, dataType='int')
-        .param('crop', 'Whether to crop the image to preserve aspect ratio. '
-               'Only used if both width and height parameters are nonzero.',
-               dataType='boolean', required=False, default=True)
-        .param('attachToId', 'The lifecycle of this thumbnail is bound to the '
-               'resource specified by this ID.')
-        .param('attachToType', 'The type of resource to which this thumbnail is'
-               ' attached.', enum=['folder', 'user', 'collection', 'item'])
-        .errorResponse()
-        .errorResponse('Write access was denied on the attach destination.',
-                       403)
-        .errorResponse('Read access was denied on the file.', 403))
+        return job
