@@ -293,6 +293,7 @@ class Group(Resource):
 
     @access.user
     @loadmodel(model='group', level=AccessType.ADMIN)
+    @filtermodel(model='group', addFields={'access'})
     @describeRoute(
         Description('Promote a member to be a moderator of the group.')
         .responseClass('Group')
@@ -306,6 +307,7 @@ class Group(Resource):
 
     @access.user
     @loadmodel(model='group', level=AccessType.ADMIN)
+    @filtermodel(model='group', addFields={'access'})
     @describeRoute(
         Description('Promote a member to be an administrator of the group.')
         .responseClass('Group')
@@ -317,10 +319,10 @@ class Group(Resource):
     def promoteToAdmin(self, group, params):
         return self._promote(group, params, AccessType.ADMIN)
 
-    @filtermodel(model='group', addFields={'access'})
     def _promote(self, group, params, level):
         """
         Promote a user to moderator or administrator.
+
         :param group: The group to promote within.
         :param params: Request parameters.
         :param level: Either WRITE or ADMIN, for moderator or administrator.
