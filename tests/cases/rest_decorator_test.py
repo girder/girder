@@ -43,29 +43,29 @@ class TestEndpointDecoratorException(base.TestCase):
     'Tests the endpoint decorator exception handling'
 
     @endpoint
-    def pointless_endpoint_ascii(self, path, params):
+    def pointlessEndpointAscii(self, path, params):
         raise Exception('You did something wrong.')
 
     @endpoint
-    def pointless_endpoint_unicode(self, path, params):
+    def pointlessEndpointUnicode(self, path, params):
         raise Exception(u'\u0400 cannot be converted to ascii.')
 
     @endpoint
-    def pointless_endpoint_bytes(self, path, params):
+    def pointlessEndpointBytes(self, path, params):
         raise Exception('\x80\x80 cannot be converted to unicode or ascii.')
 
-    def test_endpoint_exception_ascii(self):
-        resp = self.pointless_endpoint_ascii('', {}).decode()
+    def testEndpointExceptionAscii(self):
+        resp = self.pointlessEndpointAscii('', {}).decode()
         obj = json.loads(resp)
         self.assertEqual(obj['type'], 'internal')
 
-    def test_endpoint_exception_unicode(self):
-        resp = self.pointless_endpoint_unicode('', {}).decode('utf8')
+    def testEndpointExceptionUnicode(self):
+        resp = self.pointlessEndpointUnicode('', {}).decode('utf8')
         obj = json.loads(resp)
         self.assertEqual(obj['type'], 'internal')
 
-    def test_endpoint_exception_bytes(self):
-        resp = self.pointless_endpoint_bytes('', {}).decode('utf8')
+    def testEndpointExceptionBytes(self):
+        resp = self.pointlessEndpointBytes('', {}).decode('utf8')
         obj = json.loads(resp)
         self.assertEqual(obj['type'], 'internal')
 
@@ -82,3 +82,12 @@ class TestEndpointDecoratorException(base.TestCase):
             'name': 'collection',
             'user': None
         })
+
+    def testRawResponse(self):
+        resp = self.request('/other/rawWithDecorator', isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(self.getBody(resp), 'this is a raw response')
+
+        resp = self.request('/other/rawInternal', isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(self.getBody(resp), 'this is also a raw response')
