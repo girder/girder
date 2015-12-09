@@ -59,13 +59,13 @@ class Other(Resource):
         self.resourceName = 'other'
 
         self.route('GET', (), self.getResource)
-        self.route('GET', ('rawDec',), self.rawDec)
+        self.route('GET', ('rawWithDecorator',), self.rawWithDecorator)
         self.route('GET', ('rawInternal',), self.rawInternal)
 
     @access.public
     @rawResponse
     @describeRoute(None)
-    def rawDec(self, params):
+    def rawWithDecorator(self, params):
         return b'this is a raw response'
 
     @access.public

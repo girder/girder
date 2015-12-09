@@ -84,7 +84,7 @@ class TestEndpointDecoratorException(base.TestCase):
         })
 
     def testRawResponse(self):
-        resp = self.request('/other/rawDec', isJson=False)
+        resp = self.request('/other/rawWithDecorator', isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), b'this is a raw response')
 
