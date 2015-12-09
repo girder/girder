@@ -268,7 +268,7 @@ class loadmodel(ModelImporter):  # noqa: class name
 
 
 class filtermodel(ModelImporter):  # noqa: class name
-    def __init__(self, model, addFields=None):
+    def __init__(self, model, plugin='_core', addFields=None):
         """
         This creates a decorator that will filter a model or list of models
         returned by the wrapped function using the specified model's
@@ -277,12 +277,15 @@ class filtermodel(ModelImporter):  # noqa: class name
 
         :param model: The model name.
         :type model: str
+        :param plugin: The plugin name if this is a plugin model.
+        :type plugin: str
         :param addFields: Extra fields (key names) that should be included in
             the returned document(s), in addition to any in the model's normal
             whitelist. Only affects top level fields.
         :type addFields: set, list, tuple, or None
         """
         self.modelName = model
+        self.plugin = plugin
         self.addFields = addFields
 
     def __call__(self, fun):
@@ -293,7 +296,7 @@ class filtermodel(ModelImporter):  # noqa: class name
                 return None
 
             user = getCurrentUser()
-            model = self.model(self.modelName)
+            model = self.model(self.modelName, self.plugin)
 
             if isinstance(val, (list, tuple)):
                 return [model.filter(m, user, self.addFields) for m in val]
