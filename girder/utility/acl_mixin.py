@@ -88,8 +88,10 @@ class AccessControlMixin(object):
                 perm = 'Read'
             elif level == AccessType.WRITE:
                 perm = 'Write'
-            else:
+            elif level in (AccessType.ADMIN, AccessType.SITE_ADMIN):
                 perm = 'Admin'
+            else:
+                perm = 'Unknown level'
             if user:
                 userid = str(user.get('_id', ''))
             else:

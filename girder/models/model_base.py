@@ -823,28 +823,28 @@ class AccessControlledModel(Model):
         :type level: AccessType
         :returns: Whether the access is granted.
         """
-        if user is None:
-            # Short-circuit the case of anonymous users
-            return level == AccessType.READ and doc.get('public', False) is True
-        elif user.get('admin', False) is True:
+        if level <= AccessType.READ and doc.get('public', False) is True:
+            # Short-circuit the case of public resources
+            return True
+        elif user is None:
+            # Anonymous users can only see public resources
+            return False
+
+        if user.get('admin', False) is True:
             # Short-circuit the case of admins
             return True
-        else:
-            # Short-circuit the case of public resources
-            if level == AccessType.READ and doc.get('public', False) is True:
+
+        # If all that fails, descend into real permission checking.
+        if 'access' in doc:
+            perms = doc['access']
+            if self._hasGroupAccess(perms.get('groups', []),
+                                    user.get('groups', []), level):
+                return True
+            elif self._hasUserAccess(perms.get('users', []),
+                                     user['_id'], level):
                 return True
 
-            # If all that fails, descend into real permission checking.
-            if 'access' in doc:
-                perms = doc['access']
-                if self._hasGroupAccess(perms.get('groups', []),
-                                        user.get('groups', []), level):
-                    return True
-                elif self._hasUserAccess(perms.get('users', []),
-                                         user['_id'], level):
-                    return True
-
-            return False
+        return False
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
@@ -856,8 +856,10 @@ class AccessControlledModel(Model):
                 perm = 'Read'
             elif level == AccessType.WRITE:
                 perm = 'Write'
-            else:
+            elif level in (AccessType.ADMIN, AccessType.SITE_ADMIN):
                 perm = 'Admin'
+            else:
+                perm = 'Unknown level'
             if user:
                 userid = str(user.get('_id', ''))
             else:
