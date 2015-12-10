@@ -38,17 +38,16 @@ class Job(AccessControlledModel):
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
-            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated'})
+            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated',
+            'timestamps'})
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={
             'args', 'kwargs'})
 
     def validate(self, job):
-        job['status'] = int(job['status'])
-
         if not JobStatus.isValid(job['status']):
-            raise ValidationException('Invalid job status {}.'.format(
-                                      job.get['status']), field='status')
+            raise ValidationException(
+                'Invalid job status %s.' % job['status'], field='status')
 
         return job
 
@@ -170,7 +169,8 @@ class Job(AccessControlledModel):
             'log': '',
             'meta': {},
             'handler': handler,
-            'async': async
+            'async': async,
+            'timestamps': []
         }
 
         self.setPublic(job, public=public)
@@ -248,6 +248,7 @@ class Job(AccessControlledModel):
         :param progressTotal: Max progress value for this job.
         """
         changed = False
+        now = datetime.datetime.utcnow()
 
         if log is not None:
             changed = True
@@ -256,16 +257,23 @@ class Job(AccessControlledModel):
             else:
                 job['log'] += log
         if status is not None:
-            changed = True
-            job['status'] = status
+            status = int(status)
 
-            if notify and job['userId']:
-                user = self.model('user').load(job['userId'], force=True)
-                expires = (datetime.datetime.utcnow() +
-                           datetime.timedelta(seconds=30))
-                self.model('notification').createNotification(
-                    type='job_status', data=self.filter(job, user), user=user,
-                    expires=expires)
+            if status != job['status']:
+                changed = True
+                job['status'] = status
+                job['timestamps'] = job.get('timestamps', [])
+                job['timestamps'].append({
+                    'status': status,
+                    'time': now
+                })
+
+                if notify and job['userId']:
+                    user = self.model('user').load(job['userId'], force=True)
+                    expires = now + datetime.timedelta(seconds=30)
+                    self.model('notification').createNotification(
+                        type='job_status', data=self.filter(job, user),
+                        user=user, expires=expires)
         if (progressMessage is not None or progressCurrent is not None or
                 progressTotal is not None):
             changed = True
@@ -273,7 +281,7 @@ class Job(AccessControlledModel):
                                     progressMessage, notify)
 
         if changed:
-            job['updated'] = datetime.datetime.utcnow()
+            job['updated'] = now
             job = self.save(job)
 
         return job
@@ -361,15 +369,20 @@ class Job(AccessControlledModel):
         if 'additionalKeys' in kwargs:
             keys.extend(kwargs.pop('additionalKeys'))
 
+        removeFields = set()
         for resp in event.responses:
             if 'exposeFields' in resp:
                 keys.extend(resp['exposeFields'])
             if 'removeFields' in resp:
-                keys = [k for k in keys if k not in resp['removeFields']]
+                removeFields |= set(resp['removeFields'])
 
         doc = super(Job, self).filter(job, user, additionalKeys=keys, **kwargs)
 
         if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
             doc['kwargs'] = json_util.loads(doc['kwargs'])
+
+        for field in removeFields:
+            if field in doc:
+                del doc[field]
 
         return doc
