@@ -20,12 +20,10 @@
 import json
 import os
 import shutil
-import sys
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 from distutils.dir_util import copy_tree
-from pkg_resources import parse_requirements
 
 
 class InstallWithOptions(install):
@@ -58,15 +56,17 @@ with open('README.rst') as f:
 with open('package.json') as f:
     version = json.load(f)['version']
 
-# parse_requirements() returns generator of pip.req.InstallRequirement objects
-install_reqs = []
-try:
-    install_reqs = parse_requirements(open('requirements.txt').read())
-except Exception:
-    pass
-
-# reqs is a list of requirement
-reqs = [str(req) for req in install_reqs]
+install_reqs = [
+    'bcrypt',
+    'boto',
+    'CherryPy',
+    'Mako',
+    'pymongo>=3',
+    'PyYAML',
+    'requests',
+    'psutil',
+    'six'
+]
 
 # perform the install
 setup(
@@ -96,7 +96,7 @@ setup(
             'api/api_docs.mako'
         ]
     },
-    install_requires=reqs,
+    install_requires=install_reqs,
     zip_safe=False,
     cmdclass={
         'install': InstallWithOptions
