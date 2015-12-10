@@ -20,6 +20,7 @@
 import json
 import os
 import shutil
+import sys
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -68,6 +69,29 @@ install_reqs = [
     'six'
 ]
 
+extras_reqs = {
+    'celery_jobs': ['celery'],
+    'geospatial': ['geojson'],
+    'thumbnails': ['Pillow'],
+    'plugins': ['celery', 'geojson', 'Pillow']
+}
+
+if sys.version_info[0] == 2:
+    extras_reqs.update({
+        'hdfs_assetstore': ['snakebite'],
+        'metadata_extractor': [
+            'hachoir-core',
+            'hachoir-metadata',
+            'hachoir-parser'
+        ],
+        'plugins': extras_reqs['plugins'] + [
+            'snakebite',
+            'hachoir-core',
+            'hachoir-metadata',
+            'hachoir-parser'
+        ]
+    })
+
 # perform the install
 setup(
     name='girder',
@@ -97,6 +121,7 @@ setup(
         ]
     },
     install_requires=install_reqs,
+    extras_require=extras_reqs,
     zip_safe=False,
     cmdclass={
         'install': InstallWithOptions
