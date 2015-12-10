@@ -31,8 +31,7 @@ before_install:
     - npm install -g npm
     - npm --version
 install:
-    - scripts/InstallPythonRequirements.py --mode=dev --ignore-plugins=${IGNORE_PLUGINS}
-    - npm install grunt grunt-cli
+    - pip install -r requirements.txt -r requirements-dev.txt -e .
     - npm install
 script:
     - mkdir _build
