@@ -19,7 +19,8 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
         this.$el.html(girder.templates.jobs_jobDetails({
             job: this.job,
             statusText: girder.jobs_JobStatus.text(this.job.get('status')),
-            girder: girder
+            girder: girder,
+            _: _
         }));
 
         return this;

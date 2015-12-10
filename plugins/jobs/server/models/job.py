@@ -36,6 +36,13 @@ class Job(AccessControlledModel):
         )
         self.ensureIndices([(compoundSearchIndex, {})])
 
+        self.exposeFields(level=AccessType.READ, fields={
+            'title', 'type', 'created', 'interval', 'when', 'status',
+            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated'})
+
+        self.exposeFields(level=AccessType.SITE_ADMIN, fields={
+            'args', 'kwargs'})
+
     def validate(self, job):
         job['status'] = int(job['status'])
 
@@ -349,14 +356,10 @@ class Job(AccessControlledModel):
             'user': user
         })
 
-        keys = ['title', 'type', 'created', 'interval', 'when', 'status',
-                'progress', 'log', 'meta', '_id', 'public', 'async', 'updated']
+        keys = []
 
         if 'additionalKeys' in kwargs:
             keys.extend(kwargs.pop('additionalKeys'))
-
-        if user and user['admin'] is True:
-            keys.extend(('args', 'kwargs'))
 
         for resp in event.responses:
             if 'exposeFields' in resp:
