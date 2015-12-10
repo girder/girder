@@ -23,7 +23,42 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
             _: _
         }));
 
+        this._renderTimelineWidget();
+
         return this;
+    },
+
+    _renderTimelineWidget: function () {
+        var timestamps = this.job.get('timestamps');
+
+        if (!timestamps || !timestamps.length) {
+            return;
+        }
+
+        var segments = [{
+            start: this.job.get('created'),
+            end: timestamps[0].time,
+            class: 'g-job-color-inactive',
+            tooltip: 'Inactive: %r s'
+        }];
+
+        segments = segments.concat(_.map(timestamps.slice(0, -1), function (stamp, i) {
+            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            return {
+                start: stamp.time,
+                end: timestamps[i + 1].time,
+                tooltip: statusText + ': %r s',
+                class: 'g-job-color-' + statusText.toLowerCase()
+            };
+        }, this));
+
+        new girder.views.TimelineWidget({
+            el: this.$('.g-job-timeline-container'),
+            parentView: this,
+            segments: segments,
+            startTime: this.job.get('created'),
+            endTime: timestamps[timestamps.length - 1].time
+        }).render();
     }
 });
 
