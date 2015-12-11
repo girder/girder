@@ -6,7 +6,7 @@
         style="left: #{segment.left}; width: #{segment.width};")
     each point in points
       .g-timeline-point(
-        title=point.tooltip, class=point.class, style="left: #{point.left}")
+        title=point.tooltip, class=point.class, style="left: calc(#{point.left} - 10px);")
   if startLabel !== undefined || endLabel !== undefined
     .g-timeline-labels-container
       if startLabel !== undefined

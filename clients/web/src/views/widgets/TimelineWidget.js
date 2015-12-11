@@ -142,7 +142,8 @@ girder.views.TimelineWidget = girder.View.extend({
         }));
 
         this.$('.g-tooltip').tooltip({
-            delay: 100
+            delay: 100,
+            container: this.$el
         });
 
         return this;

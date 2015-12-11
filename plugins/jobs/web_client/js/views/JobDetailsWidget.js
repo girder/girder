@@ -52,12 +52,30 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
                 class: 'g-job-color-' + statusText.toLowerCase()
             };
         }, this));
+
+        var points = [{
+            time: startTime,
+            class: 'g-job-color-inactive',
+            tooltip: 'Created at ' + new Date(startTime).toISOString()
+        }];
+
+        points = points.concat(_.map(timestamps, function (stamp) {
+            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            return {
+                time: stamp.time,
+                tooltip: 'Moved to ' + statusText + ' at ' +
+                         new Date(stamp.time).toISOString(),
+                class: 'g-job-color-' + statusText.toLowerCase()
+            };
+        }, this));
+
         var endTime = timestamps[timestamps.length - 1].time;
         var elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
 
         new girder.views.TimelineWidget({
             el: this.$('.g-job-timeline-container'),
             parentView: this,
+            points: points,
             segments: segments,
             startTime: startTime,
             endTime: endTime,
