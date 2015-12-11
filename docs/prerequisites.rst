@@ -7,6 +7,7 @@ The following software packages are required to be installed on your system:
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `Node.js <http://nodejs.org/>`_
+* `curl <http://curl.haxx.se/>`_
 
 Additionally, in order to send out emails to users, Girder will need to be able
 to communicate with an SMTP server. Proper installation and configuration of
