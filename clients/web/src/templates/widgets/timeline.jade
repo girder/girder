@@ -1,5 +1,5 @@
 .g-timeline-widget-wrapper
-  .g-timeline-container(style="background-color: #{defaultColor};")
+  .g-timeline-container
     each segment in segments
       .g-timeline-segment(
         title=segment.tooltip, class=segment.class,
@@ -7,3 +7,9 @@
     each point in points
       .g-timeline-point(
         title=point.tooltip, class=point.class, style="left: #{point.left}")
+  if startLabel !== undefined || endLabel !== undefined
+    .g-timeline-labels-container
+      if startLabel !== undefined
+        .g-timeline-start-label= startLabel
+      if endLabel !== undefined
+        .g-timeline-end-label= endLabel

@@ -35,8 +35,9 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
             return;
         }
 
+        var startTime = this.job.get('created');
         var segments = [{
-            start: this.job.get('created'),
+            start: startTime,
             end: timestamps[0].time,
             class: 'g-job-color-inactive',
             tooltip: 'Inactive: %r s'
@@ -51,13 +52,17 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
                 class: 'g-job-color-' + statusText.toLowerCase()
             };
         }, this));
+        var endTime = timestamps[timestamps.length - 1].time;
+        var elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
 
         new girder.views.TimelineWidget({
             el: this.$('.g-job-timeline-container'),
             parentView: this,
             segments: segments,
-            startTime: this.job.get('created'),
-            endTime: timestamps[timestamps.length - 1].time
+            startTime: startTime,
+            endTime: endTime,
+            startLabel: '0 s',
+            endLabel: elapsed + ' s'
         }).render();
     }
 });

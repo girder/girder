@@ -1,5 +1,17 @@
 /**
- * This widget displays a colorful timeline of events.
+ * This widget displays a timeline of events. This is visualized as a line (a bar)
+ * with two sorts of primitives overlaid:
+ *
+ * 1. Segments: spans of time, with a start and end.
+ * 2. Points: a single point in time. Points always display on top of segments.
+ *
+ * Any number of these primitives can be displayed on the timeline, so long as they
+ * are bounded between the specified startTime and endTime. The time values for
+ * startTime, endTime, and for the primitives can be specified either as numeric
+ * values (i.e. a relative offset in time), or as date strings that can be parsed
+ * by JavaScript, or as Date objects. For obvious reasons, in a single instance of
+ * this widget, it is not possible to mix the numeric/relative values with datestamp
+ * values.
  */
 girder.views.TimelineWidget = girder.View.extend({
     /**
@@ -13,16 +25,16 @@ girder.views.TimelineWidget = girder.View.extend({
      * @param [settings.numeric=false] If the time values being passed in are simply
      *    relative, scalar values (e.g. number of seconds since start) rather than
      *    timestamps, set this to true.
-     * @param [settings.showLabels=false] Whether to show start and end time labels below
-     *    the timeline.
-     * @param [settings.defaultColor='#aaa'] A CSS color string to use for points
-     *    or segments that do not specify a color property.
+     * @param [settings.startLabel] Pass to show a label for the start of the timeline.
+     * @param [settings.endLabel] Pass to show a label for the end of the timeline.
+     * @param [settings.defaultClass='g-default-timeline-class'] A CSS class for
+     *     to be set on any segment or point that does not specify a class.
      * @param [settings.segments=[]] A list of segments. Each element of the list
      *    should be an object with the following keys:
      *      - start: A number or timestamp representing
      *      - end: A numer of timestamp representing the end of this segment.
      *      - [class]: A CSS color string used to color the segment. Uses the
-     *                 widget's defaultColor if this key is not set.
+     *                 widget's defaultClass if this key is not set.
      *      - [tooltip]: A tooltip value for this segment. Tooltips containing the
      *                   special token "%r" will have that token expanded into the
      *                   elapsed time between start and end.
@@ -40,8 +52,9 @@ girder.views.TimelineWidget = girder.View.extend({
         this.segments = settings.segments || [];
         this.points = settings.points || [];
         this.numeric = !!settings.numeric;
-        this.showLabels = !!settings.showLabels;
-        this.defaultClass = '';
+        this.startLabel = settings.startLabel;
+        this.endLabel = settings.endLabel;
+        this.defaultClass = settings.defaultClass || 'g-default-timeline-class';
 
         this._processData();
     },
@@ -122,9 +135,10 @@ girder.views.TimelineWidget = girder.View.extend({
     render: function () {
         this.$el.html(girder.templates.timeline({
             showLabels: this.showLabels,
-            defaultColor: this.defaultColor,
             segments: this._processedSegments,
-            points: this._processedPoints
+            points: this._processedPoints,
+            startLabel: this.startLabel,
+            endLabel: this.endLabel
         }));
 
         this.$('.g-tooltip').tooltip({
