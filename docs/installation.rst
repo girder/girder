@@ -29,6 +29,28 @@ install these libraries for you. Just run the following command: ::
 Once this is done, you are ready to start using Girder as described in this
 section: :ref:`run-girder`.
 
+Installing extra dependencies with pip
+--------------------------------------
+
+Girder comes bundled with a number of :doc:`plugins` that require extra python
+dependencies in order to use.  By default, none of these dependencies will be
+installed; however, you can tell pip to install them using pip's
+"`extras`_ " syntax.  Each girder plugin requiring extra python dependencies
+can be specified during the pip install.  For example, installing girder with
+support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
+
+   pip install girder[celery_jobs,geospatial]
+
+There is also an extra you can use to install the depencies for all bundled
+plugins supported in the current python environment called ``plugins``: ::
+
+   pip install girder[plugins]
+
+.. warning:: Not all plugins are available in every python version and platform.
+   Specifying a plugin for in an unsupported environment will raise an error.
+
+.. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
+
 Install from Git Checkout
 -------------------------
 
@@ -41,7 +63,19 @@ Obtain the Girder source code by cloning the Git repository on
 To run the server, you must install some external Python package
 dependencies: ::
 
-    pip install -r requirements.txt
+    pip install -e .
+
+or: ::
+
+    pip install -e .[plugins]
+
+to install the plugins as well.
+
+.. note:: This will install the most recent versions of all dependencies.
+   You can also try to run ``pip install -r requirements.txt`` to duplicate
+   the exact versions used by our CI testing environment; however, this
+   can lead to problems if you are installing other libraries in the same
+   virtual or system environment.
 
 To build the client-side code project, cd into the root of the repository
 and run: ::
