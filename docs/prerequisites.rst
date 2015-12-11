@@ -158,9 +158,8 @@ From a command prompt, install pip: ::
     easy_install pip
 
 If bcrypt fails to install using pip (e.g., with Windows 7 x64 and Python
-2.7), you need to remove the line for bcrypt from the ``requirements.txt``
-file and manually install it. You can build the package from source or
-download a wheel file from
+2.7), you need to manually install it prior to installing girder. You can
+build the package from source or download a wheel file from
 `<https://bitbucket.org/alexandrul/py-bcrypt/downloads>`_ and install it
 with the following: ::
 

@@ -71,7 +71,7 @@ GeoJSON properties of the features are added to the created items as metadata.
 The plugin requires the `geojson <https://pypi.python.org/pypi/geojson/>`__
 Python package, which may be installed using **pip**: ::
 
-    pip install -r plugins/geospatial/requirements.txt
+    pip install -e .[geospatial]
 
 Once the package is installed, the plugin may be enabled via the admin console.
 
@@ -102,18 +102,13 @@ The server-side plugin requires several `Hachoir <https://bitbucket.org/haypo/ha
 Python packages to parse files and extract metadata from them. These packages
 may be installed using **pip** as follows: ::
 
-    pip install -r plugins/metadata_extractor/requirements.txt
+    pip install -e .[metadata_extractor]
 
 Once the packages are installed, the plugin may be enabled via the admin
 console on the server.
 
-The remote client requires the same Python packages as the server plugin, but
-additionally requires the `Requests <http://docs.python-requests.org/en/latest>`_ Python
-package to communicate with the server using the Girder Python client. These
-packages may be installed using **pip** as follows: ::
-
-    pip install requests -r plugins/metadata_extractor/requirements.txt
-
+In this example, we use the girder :doc:`python client <python-client>` to
+interact with the plugin's python API.
 Assuming ``girder_client.py`` and ``metadata_extractor.py`` are located in
 the module path, the following code fragment will extract metadata from a file
 located at ``path`` on the remote filesystem that has been uploaded to
