@@ -4,6 +4,41 @@ Installation
 Before you install, see the :doc:`prerequisites` guide to make sure you
 have all required system packages installed.
 
+Creating a virtual environment
+------------------------------
+
+While not strictly required, it is recommended to install Girder within
+its own `virtual environment <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
+to isolate its dependencies from other python packages.  To generate a new
+virtual environment, first install/update the ``virtualenv`` and ``pip``
+packages ::
+
+   sudo pip install -U virtualenv pip
+
+Now create a virtual environment using the
+`virtualenv command <http://virtualenv.readthedocs.org/en/latest/userguide.html>`_.
+You can place the virtual environment directory wherever you want, but it should
+not be moved.  The following command will generate a new directory called
+``girder_env`` in your home directory: ::
+
+   virtualenv ~/girder_env
+
+Now you can run ``source ~/girder_env/bin/activate`` to *enter* the new
+virtual environment.  Inside the virtual environment you can use ``pip``,
+``python``, and any other python script installed in your path as usual.
+You can exit the virtual environment by running the shell function
+``deactivate``.  The shell variable ``VIRTUAL_ENV`` will also list the
+absolute path to the current virtual environment.  Entering a virtual
+environment only persists for your current shell, so you must source
+the activation script again whenever you wish to enter within a
+new shell session.  Users and developers needing to work on several virtual
+environments should consider using other packages that help manage them such as
+`virtualenvwrapper <http://virtualenvwrapper.readthedocs.org/en/latest/index.html>`_,
+`autoenv <https://github.com/kennethreitz/autoenv>`_,
+`pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv>`_, or
+`pyenv-virtualenvwrapper <https://github.com/yyuu/pyenv-virtualenvwrapper>`_.
+
+
 Install with pip
 ----------------
 
