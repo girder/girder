@@ -93,3 +93,20 @@ set_property(TEST packaging_plugin_install
 set_property(TEST packaging_plugin_install
   PROPERTY RESOURCE_LOCK "packaging_virtualenv"
 )
+
+add_test(
+  NAME packaging_extras_install
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_extras_install.sh"
+          "${virtualenv_pip}"
+          "${PROJECT_SOURCE_DIR}"
+          "${virtualenv_activate}"
+          "${virtualenv_dir}"
+)
+
+set_property(TEST packaging_install
+  PROPERTY DEPENDS "packaging_generate"
+)
+set_property(TEST packaging_install
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
+)
