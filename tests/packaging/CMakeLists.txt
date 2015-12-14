@@ -51,6 +51,9 @@ add_test(
 set_property(TEST packaging_install
   PROPERTY DEPENDS "packaging_generate"
 )
+set_property(TEST packaging_install
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
+)
 
 add_test(
   NAME packaging_rest_api
@@ -60,6 +63,9 @@ add_test(
 
 set_property(TEST packaging_rest_api
   PROPERTY DEPENDS "packaging_install"
+)
+set_property(TEST packaging_rest_api
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
 )
 
 add_test(
@@ -71,6 +77,9 @@ add_test(
 set_property(TEST packaging_web_install
   PROPERTY DEPENDS "packaging_install"
 )
+set_property(TEST packaging_web_install
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
+)
 
 add_test(
   NAME packaging_plugin_install
@@ -80,4 +89,24 @@ add_test(
 
 set_property(TEST packaging_plugin_install
   PROPERTY DEPENDS "packaging_install"
+)
+set_property(TEST packaging_plugin_install
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
+)
+
+add_test(
+  NAME packaging_extras_install
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_extras_install.sh"
+          "${virtualenv_pip}"
+          "${PROJECT_SOURCE_DIR}"
+          "${virtualenv_activate}"
+          "${virtualenv_dir}"
+)
+
+set_property(TEST packaging_install
+  PROPERTY DEPENDS "packaging_generate"
+)
+set_property(TEST packaging_install
+  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
 )
