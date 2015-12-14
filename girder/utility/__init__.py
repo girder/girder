@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import json
 import re
 
@@ -41,4 +42,6 @@ class JsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
             return tuple(obj)
+        elif isinstance(obj, datetime.datetime):
+            return obj.isoformat()
         return str(obj)
