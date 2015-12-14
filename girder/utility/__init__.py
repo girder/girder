@@ -19,6 +19,7 @@
 
 import datetime
 import json
+import pytz
 import re
 
 
@@ -43,5 +44,5 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(obj, set):
             return tuple(obj)
         elif isinstance(obj, datetime.datetime):
-            return obj.isoformat()
+            return obj.replace(tzinfo=pytz.UTC).isoformat()
         return str(obj)
