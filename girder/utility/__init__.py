@@ -17,7 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import json
+import pytz
 import re
 
 
@@ -41,4 +43,6 @@ class JsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
             return tuple(obj)
+        elif isinstance(obj, datetime.datetime):
+            return obj.replace(tzinfo=pytz.UTC).isoformat()
         return str(obj)
