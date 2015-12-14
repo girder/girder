@@ -30,9 +30,19 @@ $(function () {
                     title: 'My batch job',
                     status: girder.jobs_JobStatus.INACTIVE,
                     log: 'Hello world\ngoodbye world',
-                    updated: '2015-01-12T12:00:00',
-                    created: '2015-01-12T12:00:00',
-                    when: '2015-01-12T12:00:00'
+                    updated: '2015-01-12T12:00:12Z',
+                    created: '2015-01-12T12:00:00Z',
+                    when: '2015-01-12T12:00:00Z',
+                    timestamps: [{
+                        status: girder.jobs_JobStatus.QUEUED,
+                        time: '2015-01-12T12:00:02Z'
+                    }, {
+                        status: girder.jobs_JobStatus.RUNNING,
+                        time: '2015-01-12T12:00:03Z'
+                    }, {
+                        status: girder.jobs_JobStatus.SUCCESS,
+                        time: '2015-01-12T12:00:12Z'
+                    }]
                 });
 
                 var widget = new girder.views.jobs_JobDetailsWidget({
@@ -48,6 +58,12 @@ $(function () {
                 expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
                 expect($('.g-job-status-badge').text()).toContain('Inactive');
 
+                expect($('.g-timeline-segment').length).toBe(3);
+                expect($('.g-timeline-point').length).toBe(4);
+                expect($('.g-timeline-start-label').text()).toBe('0 s');
+                expect($('.g-timeline-end-label').text()).toBe('12 s');
+                expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
+
                 // Make sure view change happens when notification is sent for this job
                 girder.eventStream.trigger('g:event.job_status', {
                     data: {
@@ -59,7 +75,6 @@ $(function () {
 
                 expect($('.g-job-status-badge').text()).toContain('Success');
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
-
 
                 // Make sure view change only happens for the currently viewed job
                 girder.eventStream.trigger('g:event.job_status', {

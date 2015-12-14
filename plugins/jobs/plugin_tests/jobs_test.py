@@ -200,6 +200,7 @@ class JobsTestCase(base.TestCase):
         path = '/job/%s' % job['_id']
         resp = self.request(path)
         self.assertEqual(resp.json['progress'], None)
+        self.assertEqual(resp.json['timestamps'], [])
 
         resp = self.request(path, method='PUT', user=self.users[1], params={
             'progressTotal': 100,
@@ -215,6 +216,21 @@ class JobsTestCase(base.TestCase):
             'message': 'Started',
             'notificationId': None
         })
+
+        # The status update should make it so we now have a timestamp
+        self.assertEqual(len(resp.json['timestamps']), 1)
+        self.assertEqual(
+            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
+        self.assertIn('time', resp.json['timestamps'][0])
+
+        # If the status does not change on update, no timestamp should be added
+        resp = self.request(path, method='PUT', user=self.users[1], params={
+            'status': JobStatus.RUNNING
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['timestamps']), 1)
+        self.assertEqual(
+            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
 
         # We passed notify=false, so we should not have any notifications
         resp = self.request(path='/notification/stream', method='GET',
