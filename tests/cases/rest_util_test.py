@@ -88,4 +88,4 @@ class RestUtilTestCase(unittest.TestCase):
         self.assertEqual(json.loads(resp), {'key': [1, 2, 3]})
 
         resp = resource.returnsDate().decode('utf8')
-        self.assertEqual(json.loads(resp), {'key': str(date)})
+        self.assertEqual(json.loads(resp), {'key': date.isoformat()})
