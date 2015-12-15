@@ -44,8 +44,8 @@
     notify:
       - restart mongodb
 
-  - name: install girder requirements
-    pip: requirements=/vagrant/requirements.txt
+  - name: install girder
+    pip: name='file:///vagrant/girder[plugins]' editable=yes
     sudo: yes
 
   - name: install grunt and globally
@@ -63,10 +63,6 @@
 
   - name: run grunt
     command: grunt chdir=/vagrant
-
-  - name: install girder for development
-    command: python setup.py develop chdir=/vagrant
-    sudo: yes
 
   - name: disable default nginx site
     command: rm /etc/nginx/sites-enabled/default removes=/etc/nginx/sites-enabled/default

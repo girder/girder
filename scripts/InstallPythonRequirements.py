@@ -73,4 +73,9 @@ if __name__ == '__main__':
                         'set of plugins (comma separated)', default='')
     args = parser.parse_args()
 
+    print(
+        '\033[33;7m⚠⚠⚠ WARNING: This script is depreciated '
+        'and will be removed in the future. ⚠⚠⚠\033[0m',
+        file=sys.stderr
+    )
     main(args)
