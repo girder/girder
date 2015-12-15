@@ -66,6 +66,7 @@ install_reqs = [
     'PyYAML',
     'requests',
     'psutil',
+    'pytz',
     'six'
 ]
 
