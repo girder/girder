@@ -7,6 +7,7 @@ The following software packages are required to be installed on your system:
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `Node.js <http://nodejs.org/>`_
+* `curl <http://curl.haxx.se/>`_
 
 Additionally, in order to send out emails to users, Girder will need to be able
 to communicate with an SMTP server. Proper installation and configuration of
@@ -157,9 +158,8 @@ From a command prompt, install pip: ::
     easy_install pip
 
 If bcrypt fails to install using pip (e.g., with Windows 7 x64 and Python
-2.7), you need to remove the line for bcrypt from the ``requirements.txt``
-file and manually install it. You can build the package from source or
-download a wheel file from
+2.7), you need to manually install it prior to installing girder. You can
+build the package from source or download a wheel file from
 `<https://bitbucket.org/alexandrul/py-bcrypt/downloads>`_ and install it
 with the following: ::
 

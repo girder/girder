@@ -22,13 +22,11 @@ COPY clients /girder/clients
 COPY plugins /girder/plugins
 COPY scripts /girder/scripts
 COPY Gruntfile.js /girder/Gruntfile.js
-COPY requirements.txt /girder/requirements.txt
-COPY requirements-dev.txt /girder/requirements-dev.txt
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
-RUN python /girder/scripts/InstallPythonRequirements.py --mode=dev
+RUN pip install -e .[plugins]
 
 RUN npm install -g grunt-cli && npm cache clear
 RUN npm install --unsafe-perm && npm cache clear

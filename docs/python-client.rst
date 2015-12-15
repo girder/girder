@@ -1,3 +1,6 @@
+
+.. _python-client:
+
 Python Client and Girder CLI
 ============================
 

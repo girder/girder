@@ -19,21 +19,14 @@
 
 
 from setuptools import setup, find_packages
-from pkg_resources import parse_requirements
 
 
 CLIENT_VERSION = '1.1.1'
 
-# parse_requirements() returns generator of pip.req.InstallRequirement objects
-install_reqs = []
-try:
-    install_reqs = parse_requirements(open('requirements.txt').read())
-except Exception:
-    pass
-
-# reqs is a list of requirement
-reqs = [str(req) for req in install_reqs]
-
+install_reqs = [
+    'requests',
+    'six'
+]
 with open('README.rst') as f:
     readme = f.read()
 
@@ -55,7 +48,7 @@ setup(
         'Programming Language :: Python :: 2'
     ],
     packages=find_packages(exclude=('tests.*', 'tests')),
-    install_requires=reqs,
+    install_requires=install_reqs,
     zip_safe=False,
     entry_points={
         'console_scripts': [
