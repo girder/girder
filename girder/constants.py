@@ -116,6 +116,14 @@ class AccessType:
     ADMIN = 2
     SITE_ADMIN = 100
 
+    @classmethod
+    def validate(cls, level):
+        level = int(level)
+        if level in (cls.NONE, cls.READ, cls.WRITE, cls.ADMIN, cls.SITE_ADMIN):
+            return level
+        else:
+            raise ValueError('Invalid AccessType: %d.' % level)
+
 
 class SettingKey:
     """

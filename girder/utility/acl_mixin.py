@@ -20,7 +20,7 @@
 import itertools
 import six
 
-from ..models.model_base import Model, AccessException
+from ..models.model_base import AccessControlledModel, Model, AccessException
 from ..constants import AccessType
 
 
@@ -136,3 +136,6 @@ class AccessControlMixin(object):
                 if key in result:
                     del result[key]
             yield result
+
+    def textSearch(self, *args, **kwargs):
+        return AccessControlledModel.textSearch(self, *args, **kwargs)

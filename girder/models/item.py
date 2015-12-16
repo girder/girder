@@ -232,22 +232,6 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None):
-        """
-        Custom override of Model.textSearch to filter items by permissions
-        of the parent folder.
-        """
-        if not filters:
-            filters = {}
-
-        # get the non-filtered search result from Model.textSearch
-        cursor = Model.textSearch(self, query=query, sort=sort,
-                                  filters=filters)
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
-
     def createItem(self, name, creator, folder, description='',
                    reuseExisting=False):
         """
