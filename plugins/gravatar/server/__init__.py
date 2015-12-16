@@ -83,6 +83,7 @@ def _validateSettings(event):
         _cachedDefaultImage = None
 
 
+@access.user
 def _userUpdate(event):
     """
     Called when the user document is being changed. If the email field changes,

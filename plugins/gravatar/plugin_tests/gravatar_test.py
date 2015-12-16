@@ -95,3 +95,21 @@ class GravatarTest(base.TestCase):
         self.assertStatusOk(resp)
         self.admin = self.model('user').load(self.admin['_id'], force=True)
         self.assertFalse('gravatar_baseUrl' in self.admin)
+
+    def testUserInfoUpdate(self):
+        user = self.model('user').createUser(
+            email='normaluser@mail.com',
+            login='normal',
+            firstName='normal',
+            lastName='normal',
+            password='password',
+            admin=False
+        )
+
+        resp = self.request('/user/%s' % str(user['_id']), method='PUT',
+                            user=user, params={
+                                'email': 'newemail@mail.com',
+                                'firstName': 'normal',
+                                'lastName': 'normal'
+                            })
+        self.assertStatusOk(resp)
