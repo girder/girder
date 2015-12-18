@@ -102,48 +102,10 @@
         state: directory
     when: do_install|bool
 
-  - name: girder | pip
-    pip: requirements={{ girder_install_root }}/requirements.txt
-    when: do_install|bool
-
-  - name: girder | pip | girder_client
+  - name: pip | upgrade
     pip:
-      name: girder-client
-      version: 1.0.1
-    when: do_install|bool
-
-  - name: grunt-cli | install
-    npm:
-        name: grunt-cli
-        global: yes
-    when: do_install|bool
-
-  - name: npm | package.json | install
-    npm:
-        path: "{{ girder_install_root }}"
-    when: do_install|bool
-
-  - name: grunt | Gruntfile.js | init
-    shell: >
-        grunt init
-    args:
-        chdir: "{{ girder_install_root }}"
-        executable: /bin/bash
-    when: do_install|bool
-
-  - name: grunt | Gruntfile.js
-    shell: >
-        grunt
-    args:
-        chdir: "{{ girder_install_root }}"
-        executable: /bin/bash
-    when: do_install|bool
-
-  - name: girder | conf | development mode | set
-    command: python setup.py develop
-    args:
-        chdir: "{{ girder_install_root }}"
-    when: do_install|bool
+      name: pip
+      extra_args: "-U"
 
   - name: girder | conf | owner | set
     file:
@@ -153,6 +115,24 @@
         mode: 0755
         owner: "{{ girder_user }}"
     when: do_install|bool
+
+  - name: girder | install | develop
+    pip:
+      name: "{{ girder_install_root }}"
+      extra_args: "-U -e"
+
+  - name: girder | build
+    shell: "girder-install web"
+    args:
+      chdir: "{{ girder_install_root }}"
+    become_user: girder
+
+  - name: girder | pip | girder_client
+    pip:
+      name: girder-client
+      version: 1.1.1
+    when: do_install|bool
+
 
   - name: girder | conf | girder.local.cfg | generate
     template:
