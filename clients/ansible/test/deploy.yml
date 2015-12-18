@@ -1,0 +1,15 @@
+- hosts: girder
+  sudo: yes
+  roles:
+    - role: mongodb
+      state: started
+
+    - role: girder
+      mongodb_ansible_group: girder
+      girder_admin_user: girder
+      girder_admin_password: girder
+      state: started
+
+    - role: romanesco
+      rabbitmq_ansible_group: girder
+      state: started
