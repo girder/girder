@@ -1037,6 +1037,7 @@ class AccessControlledModel(Model):
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 
+
 class AccessException(Exception):
     """
     Represents denial of access to a resource.

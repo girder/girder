@@ -20,7 +20,7 @@
 import itertools
 import six
 
-from ..models.model_base import AccessControlledModel, Model, AccessException
+from ..models.model_base import Model, AccessException
 from ..constants import AccessType
 
 
@@ -137,5 +137,11 @@ class AccessControlMixin(object):
                     del result[key]
             yield result
 
-    def textSearch(self, *args, **kwargs):
-        return AccessControlledModel.textSearch(self, *args, **kwargs)
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                   sort=None, fields=None, level=AccessType.READ):
+        filters = filters or {}
+
+        cursor = Model.textSearch(
+            self, query=query, filters=filters, sort=sort, fields=fields)
+        return self.filterResultsByPermission(
+            cursor, user=user, level=level, limit=limit, offset=offset)
