@@ -461,11 +461,93 @@ def class_spec(cls, include=None):
                         "optional": params[r:]})
 
 
+class Resource(object):
+    known_resources = ['collection', 'folder']
+
+    def __init__(self, client, resource_type):
+        self._resources = None
+        self._resources_by_name = None
+        self.client = client
+
+        if resource_type in self.known_resources:
+            self.resource_type = resource_type
+        else:
+            raise Exception("{} is an unknown resource!".format(resource_type))
+
+    @property
+    def resources(self):
+        if self._resources is None:
+            self._resources = {r['_id']: r for r
+                               in self.client.get(self.resource_type)}
+        return self._resources
+
+    @property
+    def resources_by_name(self):
+        if self._resources_by_name is None:
+            self._resources_by_name = {r['name']: r
+                                       for r in self.resources.values()}
+
+        return self._resources_by_name
+
+    def __apply(self, _id, func, *args, **kwargs):
+        if _id in self.resources.keys():
+            ret = func("{}/{}".format(self.resource_type, _id),
+                       *args, **kwargs)
+            self.client.changed = True
+        return ret
+
+    def id_exists(self, _id):
+        return _id in self.resources.keys()
+
+    def name_exists(self, _name):
+        return _name in self.resources_by_name.keys()
+
+    def create(self, *args, **kwargs):
+        try:
+            ret = self.client.post(self.resource_type, *args, **kwargs)
+            self.client.changed = True
+        except HttpError as htErr:
+            try:
+                # If we can't create the item,  try and return
+                # The item with the same name
+                ret = self.resource_by_name[args['name']]
+            except KeyError:
+                raise htErr
+        return ret
+
+    def read(self, _id):
+        return self.resources[_id]
+
+    def read_by_name(self, name):
+        return self.resources_by_name[name]['_id']
+
+    def update(self, _id, body, **kwargs):
+        if _id in self.resources:
+            current = self.resources[_id]
+            # if body is a subset of current we don't actually need to update
+            if set(body.items()) <= set(current.items()):
+                return current
+            else:
+                return self.__apply(_id, self.client.put, body, **kwargs)
+        else:
+            raise Exception("{} does not exist!".format(_id))
+
+    def update_by_name(self, name, body, **kwargs):
+        return self.update(self.resources_by_name[name]['_id'],
+                           body, **kwargs)
+
+    def delete(self, _id):
+        return self.__apply(_id, self.client.delete)
+
+    def delete_by_name(self, name):
+        return self.delete(self.resources_by_name[name]['_id'])
+
+
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
-                        'plugins', 'user', 'assetstore']
+                        'plugins', 'user', 'assetstore', 'collection']
 
     _debug = True
 
@@ -553,6 +635,37 @@ class GirderClientModule(GirderClient):
         self.message['debug']['params'] = params
 
         self.message['gc_return'] = ret
+
+
+
+
+    def collection(self, name, id=None, description=None, public=True, access=None):
+        ret = []
+        r = Resource(self, "collection")
+
+        if self.module.params['state'] == 'present':
+            description = description if not None \
+                        else r.resources[id]['description']
+
+            if id is not None:
+                if r.id_exists(id):
+                    ret = r.update(id, {"name": name,
+                                        "description": description})
+                else:
+                    raise Exception("{} does not exist!".format(id))
+            else:
+                if r.name_exists(name):
+                    ret = r.update_by_name(name,
+                                           {"name": name,
+                                            "description": description})
+                else:
+                    ret = r.create({"name": name, "description": description})
+
+        elif self.module.params['state'] == 'absent':
+            ret = r.delete(id) if id is not None else r.delete(name)
+
+        return ret
+
 
     def plugins(self, *plugins):
         import json
