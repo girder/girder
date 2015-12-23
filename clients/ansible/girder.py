@@ -681,25 +681,13 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
-
-    def folder(self, name=None, id=None, description=None, parentType=None,
+    def folder(self, name, description=None, parentType=None,
                parentId=None, public=True, access=None, debug=False):
 
         if debug:
             from pudb.remote import set_trace; set_trace(term_size=(209, 49))
 
         ret = {}
-        # Handle special case right off the bat - if we are deleting
-        # and we have id then we don't have have parentId or parentType
-        # here so we need to bypass the FolderResource object and
-        # just delete it.
-        if self.module.params['state'] == 'absent' and  id is not None:
-            ret = self.delete("folder/{}".format(id))
-            self.changed = True
-            return ret
-
-        assert name is not None or id is not None, \
-            "name or id is required"
 
         assert parentType in ['collection', 'folder'], \
             "parentType must collection or folder"
@@ -714,54 +702,36 @@ class GirderClientModule(GirderClient):
                         ("parentId", parentId)]
 
         if self.module.params['state'] == 'present':
-            if id is not None:
-                if r.id_exists(id):
-
-                    ret = r.update(id, {k: v for k, v in valid_fields
-                                        if v is not None})
-                else:
-                    raise Exception("{} does not exist!".format(id))
+            if r.name_exists(name):
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
             else:
-                if r.name_exists(name):
-                    ret = r.update_by_name(name, {k: v for k, v in valid_fields
-                                                  if v is not None})
-                else:
-                    valid_fields = valid_fields + [("public", public)]
-                    ret = r.create({k: v for k, v in valid_fields
-                                    if v is not None})
+                valid_fields = valid_fields + [("public", public)]
+                ret = r.create({k: v for k, v in valid_fields
+                                if v is not None})
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
 
         return ret
 
-    def collection(self, name=None, id=None, description=None,
+    def collection(self, name, description=None,
                    public=True, access=None):
         ret = {}
         r = CollectionResource(self)
-
-        assert name is not None or id is not None, "name or id is required"
+        valid_fields = [("name", name),
+                        ("description", description)]
 
         if self.module.params['state'] == 'present':
-            description = description if not None \
-                else r.resources[id]['description']
-
-            if id is not None:
-                if r.id_exists(id):
-                    ret = r.update(id, {"name": name,
-                                        "description": description})
-                else:
-                    raise Exception("{} does not exist!".format(id))
+            if r.name_exists(name):
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
             else:
-                if r.name_exists(name):
-                    ret = r.update_by_name(name,
-                                           {"name": name,
-                                            "description": description})
-                else:
-                    ret = r.create({"name": name, "description": description})
+                ret = r.create({k: v for k, v in valid_fields
+                                if v is not None})
 
         elif self.module.params['state'] == 'absent':
-            ret = r.delete(id) if id is not None else r.delete_by_name(name)
+            ret = r.delete_by_name(name)
 
         return ret
 

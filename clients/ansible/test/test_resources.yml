@@ -59,28 +59,6 @@
           description: "A test collection with a different description"
       register: test_collection
 
-    - name: Change the test collection name by using 'id'
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        collection:
-          id: "{{ test_collection['gc_return']['_id'] }}"
-          name: "Test Collection (different name)"
-          description: "A test collection"
-      register: test_collection
-
-
-    - name: Change the test collection description by using just the 'id'
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        collection:
-          id: "{{ test_collection['gc_return']['_id'] }}"
-          description: "A test collection (changed without name)"
-      register: test_collection
-
 
     - name: Delete the test collection
       girder:
@@ -89,8 +67,7 @@
         password: "letmein"
         collection:
           id: "{{ test_collection['gc_return']['_id'] }}"
-          name: "Test Collection (different name)"
-          description: "A test collection"
+          name: "Test Collection"
         state: absent
       register: test_collection
 
@@ -155,42 +132,6 @@
       register: subfolder
 
 
-    - name: Update subfolder name by id
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        folder:
-          parentType: "folder"
-          parentId: "{{test_folder['gc_return']['_id'] }}"
-          id: "{{ subfolder['gc_return']['_id'] }}"
-          name: "test subfolder (differnt name)"
-          description: "A test subfolder (different description)"
-
-    - name: Delete the subfolder by id (no parent info)
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        folder:
-          id: "{{ subfolder['gc_return']['_id'] }}"
-          name: "test subfolder (differnt name)"
-          description: "A test subfolder (different description)"
-        state: absent
-
-
-    - name: Create a new subfolder
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        folder:
-          parentType: "folder"
-          parentId: "{{test_folder['gc_return']['_id'] }}"
-          name: "new test subfolder"
-          description: "A new test subfolder"
-      register: new_subfolder
-
     - name: Delete the subfolder from the collection
       girder:
         port: 8080
@@ -199,7 +140,7 @@
         folder:
           parentType: "folder"
           parentId: "{{test_folder['gc_return']['_id'] }}"
-          name: "new test subfolder"
+          name: "test subfolder"
         state: absent
 
     - name: Delete the test collection
@@ -209,6 +150,5 @@
         password: "letmein"
         collection:
           id: "{{ test_collection['gc_return']['_id'] }}"
-          name: "Test Collection (different name)"
-          description: "A test collection"
+          name: "Test Collection"
         state: absent
