@@ -681,8 +681,8 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
-    def folder(self, name, description=None, parentType=None,
-               parentId=None, public=True, access=None, debug=False):
+    def folder(self, name, parentId, parentType, description=None,
+               public=True, access=None, debug=False):
 
         if debug:
             from pudb.remote import set_trace; set_trace(term_size=(209, 49))
@@ -691,9 +691,6 @@ class GirderClientModule(GirderClient):
 
         assert parentType in ['collection', 'folder'], \
             "parentType must collection or folder"
-
-        assert parentId is not None, \
-            "parentId must be set!"
 
         r = FolderResource(self, parentType, parentId)
         valid_fields = [("name", name),
