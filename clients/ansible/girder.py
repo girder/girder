@@ -462,7 +462,7 @@ def class_spec(cls, include=None):
 
 
 class Resource(object):
-    known_resources = ['collection', 'folder']
+    known_resources = ['collection', 'folder', 'item']
 
     def __init__(self, client, resource_type):
         self._resources = None
@@ -543,9 +543,14 @@ class Resource(object):
         return self.delete(self.resources_by_name[name]['_id'])
 
 
+class CollectionResource(Resource):
+    def __init__(self, client):
+        super(CollectionResource, self).__init__(client, "collection")
+
+
 class FolderResource(Resource):
-    def __init__(self, client, resource_type, parentType, parentId):
-        super(FolderResource, self).__init__(client, resource_type)
+    def __init__(self, client, parentType, parentId):
+        super(FolderResource, self).__init__(client, "folder")
         self.parentType = parentType
         self.parentId = parentId
 
@@ -567,12 +572,27 @@ class FolderResource(Resource):
         return self._resources
 
 
+class ItemResource(Resource):
+    def __init__(self, client, folderId):
+        super(FolderResource, self).__init__(client, "item")
+        self.folderId = folderId
+
+    @property
+    def resources(self):
+        if self._resources is None:
+            self._resources = {r['_id']: r for r
+                               in self.client.get(self.resource_type, {
+                                   "folderId": self.folderId
+                               })}
+        return self._resources
+
+
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
                         'plugins', 'user', 'assetstore',
-                        'collection', 'folder']
+                        'collection', 'folder', 'item']
 
     _debug = True
 
@@ -687,7 +707,7 @@ class GirderClientModule(GirderClient):
         assert parentId is not None, \
             "parentId must be set!"
 
-        r = FolderResource(self, "folder", parentType, parentId)
+        r = FolderResource(self, parentType, parentId)
         valid_fields = [("name", name),
                         ("description", description),
                         ("parentType", parentType),
@@ -718,7 +738,7 @@ class GirderClientModule(GirderClient):
     def collection(self, name=None, id=None, description=None,
                    public=True, access=None):
         ret = {}
-        r = Resource(self, "collection")
+        r = CollectionResource(self)
 
         assert name is not None or id is not None, "name or id is required"
 
