@@ -246,3 +246,72 @@
           name: "test item"
           description: "A test item"
       register: test_item
+
+
+    - name: Upload files (should add test1.txt and test2.txt)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        files:
+          itemId: "{{ test_item['gc_return']['_id'] }}"
+          sources:
+            - /tmp/data/test1.txt
+            - /tmp/data/test2.txt
+      register: retval
+
+    - debug: msg="{{ retval['gc_return'] }}"
+
+    - name: Upload files same files (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        files:
+          itemId: "{{ test_item['gc_return']['_id'] }}"
+          sources:
+            - /tmp/data/test1.txt
+            - /tmp/data/test2.txt
+      register: retval
+
+    - debug: msg="{{ retval['gc_return'] }}"
+
+
+    - name: Upload files (should remove test2.txt)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        files:
+          itemId: "{{ test_item['gc_return']['_id'] }}"
+          sources:
+            - /tmp/data/test1.txt
+      register: retval
+
+    - debug: msg="{{ retval['gc_return'] }}"
+
+    - name: Upload files (should add test3.txt)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        files:
+          itemId: "{{ test_item['gc_return']['_id'] }}"
+          sources:
+            - /tmp/data/test1.txt
+            - /tmp/data/test3.txt
+      register: retval
+
+    - debug: msg="{{ retval['gc_return'] }}"
+
+    - name: Remove all files
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        files:
+          itemId: "{{ test_item['gc_return']['_id'] }}"
+        state: absent
+      register: retval
+
+    - debug: msg="{{ retval['gc_return'] }}"

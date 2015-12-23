@@ -571,7 +571,6 @@ class FolderResource(Resource):
                     self._resources[_id]['parentCollection']
         return self._resources
 
-
 class ItemResource(Resource):
     def __init__(self, client, folderId):
         super(ItemResource, self).__init__(client, "item")
@@ -586,17 +585,13 @@ class ItemResource(Resource):
                                })}
         return self._resources
 
-    def get_files(self, name):
-        _id =  self.resources_by_name[name]['_id']
-        return self.get("{}/{}/files".format(self.resource_type, _id))
-
 
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
                         'plugins', 'user', 'assetstore',
-                        'collection', 'folder', 'item']
+                        'collection', 'folder', 'item', 'files']
 
     _debug = True
 
@@ -685,6 +680,42 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
+    def files(self, itemId, sources=None):
+        ret = {"added": [],
+               "removed": []}
+
+        files = self.get("item/{}/files".format(itemId))
+
+        if self.module.params['state'] == 'present':
+
+            file_dict = {f['name']: f for f in files}
+
+            source_dict = {os.path.basename(s):{
+                "path": s,
+                "name": os.path.basename(s),
+                "size": os.path.getsize(s)} for s in sources}
+
+            source_names = set([(s['name'], s['size'])
+                                for s in source_dict.values()])
+            file_names = set([(f['name'], f['size']) for f in file_dict.values()])
+
+            for n, _ in (file_names - source_names):
+                self.delete("file/{}".format(file_dict[n]['_id']))
+                ret['removed'].append(file_dict[n])
+
+            for n, _ in (source_names - file_names):
+                self.uploadFileToItem(itemId, source_dict[n]['path'])
+                ret['added'].append(source_dict[n])
+
+        elif self.module.params['state'] == 'absent':
+            for f in files:
+                self.delete("file/{}".format(f['_id']))
+                ret['removed'].append(f)
+
+        if len(ret['added']) != 0 or len(ret['removed']) != 0:
+            self.changed = True
+
+        return ret
 
     def item(self, name, folderId, description=None, files=None, access=None, debug=False):
         if debug:
