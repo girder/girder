@@ -29,6 +29,9 @@
           admin: yes
         state: present
 
+    ############
+    # Collection tests
+    #
     - name: Create collection
       girder:
         port: 8080
@@ -71,6 +74,9 @@
         state: absent
       register: test_collection
 
+    ############
+    # Folder tests
+    #
 
     - name: Create collection for folder
       girder:
@@ -152,3 +158,91 @@
           id: "{{ test_collection['gc_return']['_id'] }}"
           name: "Test Collection"
         state: absent
+
+    ############
+    # Item tests
+    #
+    - name: Create collection for folder for an item
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+      register: test_collection
+
+
+    - name: Create a folder for an item
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        folder:
+          parentType: "collection"
+          parentId: "{{test_collection['gc_return']['_id'] }}"
+          name: "test folder"
+          description: "A test folder"
+      register: test_folder
+
+    - name: Create an item
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        item:
+          folderId: "{{test_folder['gc_return']['_id'] }}"
+          name: "test item"
+          description: "A test item"
+      register: test_item
+
+    - name: Create an item (should not show change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        item:
+          folderId: "{{test_folder['gc_return']['_id'] }}"
+          name: "test item"
+          description: "A test item"
+      register: test_item
+
+    - name: Update item (different description)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        item:
+          folderId: "{{test_folder['gc_return']['_id'] }}"
+          name: "test item"
+          description: "A test item (different description)"
+      register: test_item
+
+    - name: Delete item
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        item:
+          folderId: "{{test_folder['gc_return']['_id'] }}"
+          name: "test item"
+        state: absent
+
+    ############
+    # Item upload tests
+    #
+    - name: Copy data/ folder to known location on VM
+      copy:
+        src: data/
+        dest: /tmp/data/
+
+    - name: Create an item
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        item:
+          folderId: "{{test_folder['gc_return']['_id'] }}"
+          name: "test item"
+          description: "A test item"
+      register: test_item

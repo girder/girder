@@ -574,7 +574,7 @@ class FolderResource(Resource):
 
 class ItemResource(Resource):
     def __init__(self, client, folderId):
-        super(FolderResource, self).__init__(client, "item")
+        super(ItemResource, self).__init__(client, "item")
         self.folderId = folderId
 
     @property
@@ -585,6 +585,10 @@ class ItemResource(Resource):
                                    "folderId": self.folderId
                                })}
         return self._resources
+
+    def get_files(self, name):
+        _id =  self.resources_by_name[name]['_id']
+        return self.get("{}/{}/files".format(self.resource_type, _id))
 
 
 class GirderClientModule(GirderClient):
@@ -681,6 +685,33 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
+
+    def item(self, name, folderId, description=None, files=None, access=None, debug=False):
+        if debug:
+            from pudb.remote import set_trace; set_trace(term_size=(209, 49))
+
+        ret = {}
+        r = ItemResource(self, folderId)
+        valid_fields = [("name", name),
+                        ("description", description),
+                        ('folderId', folderId)]
+
+        if self.module.params['state'] == 'present':
+            if r.name_exists(name):
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
+            else:
+                ret = r.create({k: v for k, v in valid_fields
+                                if v is not None})
+
+
+            # handle files here
+
+        elif self.module.params['state'] == 'absent':
+            ret = r.delete_by_name(name)
+
+        return ret
+
     def folder(self, name, parentId, parentType, description=None,
                public=True, access=None, debug=False):
 
@@ -707,6 +738,8 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
+            # handle access here
+
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
 
@@ -726,6 +759,8 @@ class GirderClientModule(GirderClient):
             else:
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
+
+            # handle access here
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
