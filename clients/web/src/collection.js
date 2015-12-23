@@ -104,10 +104,6 @@ girder.Collection = Backbone.Collection.extend({
 
             this.offset += list.length;
 
-            list.forEach(function (item) {
-                item.id = item._id;
-            });
-
             if (list.length > 0 || reset) {
                 if (this.append && !reset) {
                     this.add(list);
