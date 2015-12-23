@@ -502,9 +502,9 @@ class Resource(object):
     def name_exists(self, _name):
         return _name in self.resources_by_name.keys()
 
-    def create(self, *args, **kwargs):
+    def create(self, body, **kwargs):
         try:
-            ret = self.client.post(self.resource_type, *args, **kwargs)
+            ret = self.client.post(self.resource_type, body, **kwargs)
             self.client.changed = True
         except HttpError as htErr:
             try:
@@ -543,11 +543,36 @@ class Resource(object):
         return self.delete(self.resources_by_name[name]['_id'])
 
 
+class FolderResource(Resource):
+    def __init__(self, client, resource_type, parentType, parentId):
+        super(FolderResource, self).__init__(client, resource_type)
+        self.parentType = parentType
+        self.parentId = parentId
+
+    @property
+    def resources(self):
+        if self._resources is None:
+            self._resources = {r['_id']: r for r
+                               in self.client.get(self.resource_type, {
+                                   "parentType": self.parentType,
+                                   "parentId": self.parentId
+                               })}
+            # parentType is stored as parrentCollection in database
+            # We need parentType to be available so we can do set
+            # comparison to check if we are updating parentType (e.g.
+            # Moving a subfolder from a folder to a collection)
+            for _id in self._resources.keys():
+                self._resources[_id]['parentType'] = \
+                    self._resources[_id]['parentCollection']
+        return self._resources
+
+
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
-                        'plugins', 'user', 'assetstore', 'collection']
+                        'plugins', 'user', 'assetstore',
+                        'collection', 'folder']
 
     _debug = True
 
@@ -637,15 +662,69 @@ class GirderClientModule(GirderClient):
         self.message['gc_return'] = ret
 
 
+    def folder(self, name=None, id=None, description=None, parentType=None,
+               parentId=None, public=True, access=None, debug=False):
 
+        if debug:
+            from pudb.remote import set_trace; set_trace(term_size=(209, 49))
 
-    def collection(self, name, id=None, description=None, public=True, access=None):
-        ret = []
+        ret = {}
+        # Handle special case right off the bat - if we are deleting
+        # and we have id then we don't have have parentId or parentType
+        # here so we need to bypass the FolderResource object and
+        # just delete it.
+        if self.module.params['state'] == 'absent' and  id is not None:
+            ret = self.delete("folder/{}".format(id))
+            self.changed = True
+            return ret
+
+        assert name is not None or id is not None, \
+            "name or id is required"
+
+        assert parentType in ['collection', 'folder'], \
+            "parentType must collection or folder"
+
+        assert parentId is not None, \
+            "parentId must be set!"
+
+        r = FolderResource(self, "folder", parentType, parentId)
+        valid_fields = [("name", name),
+                        ("description", description),
+                        ("parentType", parentType),
+                        ("parentId", parentId)]
+
+        if self.module.params['state'] == 'present':
+            if id is not None:
+                if r.id_exists(id):
+
+                    ret = r.update(id, {k: v for k, v in valid_fields
+                                        if v is not None})
+                else:
+                    raise Exception("{} does not exist!".format(id))
+            else:
+                if r.name_exists(name):
+                    ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                                  if v is not None})
+                else:
+                    valid_fields = valid_fields + [("public", public)]
+                    ret = r.create({k: v for k, v in valid_fields
+                                    if v is not None})
+
+        elif self.module.params['state'] == 'absent':
+            ret = r.delete_by_name(name)
+
+        return ret
+
+    def collection(self, name=None, id=None, description=None,
+                   public=True, access=None):
+        ret = {}
         r = Resource(self, "collection")
+
+        assert name is not None or id is not None, "name or id is required"
 
         if self.module.params['state'] == 'present':
             description = description if not None \
-                        else r.resources[id]['description']
+                else r.resources[id]['description']
 
             if id is not None:
                 if r.id_exists(id):
@@ -662,7 +741,7 @@ class GirderClientModule(GirderClient):
                     ret = r.create({"name": name, "description": description})
 
         elif self.module.params['state'] == 'absent':
-            ret = r.delete(id) if id is not None else r.delete(name)
+            ret = r.delete(id) if id is not None else r.delete_by_name(name)
 
         return ret
 
