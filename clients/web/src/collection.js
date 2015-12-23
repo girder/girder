@@ -73,8 +73,8 @@ girder.Collection = Backbone.Collection.extend({
      * @param reset Set this to true to re-fetch the current page.
      */
     fetch: function (params, reset) {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your collection.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or resourceName on your collection.');
             return;
         }
 
