@@ -86,10 +86,10 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
             cssFiles: [
-                '/clients/web/static/lib/bootstrap/css/bootstrap.min.css',
-                '/clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css',
                 '/clients/web/static/lib/fontello/css/fontello.css',
-                '/clients/web/static/lib/jsoneditor/jsoneditor.min.css',
+                '/clients/web/static/built/bootstrap.min.css',
+                '/clients/web/static/built/bootstrap-switch.min.css',
+                '/clients/web/static/built/ext.min.css',
                 '/clients/web/static/built/app.min.css'
             ],
             jsFilesUncovered: dependencies,

@@ -4,11 +4,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
-    <link rel="stylesheet" href="${staticRoot}/lib/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="${staticRoot}/lib/bootstrap/css/bootstrap-switch.min.css">
+    <link rel="stylesheet" href="${staticRoot}/built/bootstrap.min.css">
+    <link rel="stylesheet" href="${staticRoot}/built/bootstrap-switch.min.css">
     <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/animation.css">
-    <link rel="stylesheet" href="${staticRoot}/built/jsoneditor/jsoneditor.min.css">
+    <link rel="stylesheet" href="${staticRoot}/built/ext.min.css">
     <link rel="stylesheet" href="${staticRoot}/lib/jqplot/css/jquery.jqplot.min.css">
     <link rel="stylesheet" href="${staticRoot}/built/app.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
