@@ -1,0 +1,8 @@
+---
+
+dependencies:
+  - role: romanesco-variables
+  - role: romanesco-install
+  - role: romanesco-service-install
+  - role: romanesco-service
+
