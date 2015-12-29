@@ -48,7 +48,7 @@ class Resource(BaseResource):
 
     @access.public
     @describeRoute(
-        Description('Text search for resources in the system.')
+        Description('Search for resources in the system.')
         .param('q', 'The search query.')
         .param('mode', 'The search mode. Can use either a text search or a '
                'prefix-based search.', enum=('text', 'prefix'), required=False,
@@ -86,7 +86,7 @@ class Resource(BaseResource):
         results = {}
         for modelName in types:
             if modelName not in allowedTypes:
-                raise RestException('Invalid model type: %s.' % modelName)
+                continue
 
             model = self.model(modelName)
 

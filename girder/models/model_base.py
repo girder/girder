@@ -50,7 +50,7 @@ class Model(ModelImporter):
         self._indices = []
         self._textIndex = None
         self._textLanguage = None
-        self.prefixSearchFields = ('lowerName',)
+        self.prefixSearchFields = ('lowerName', 'name')
 
         self._filterKeys = {
             AccessType.READ: set(),

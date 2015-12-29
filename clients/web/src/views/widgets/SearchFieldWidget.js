@@ -5,23 +5,12 @@
  */
 girder.views.SearchFieldWidget = girder.View.extend({
     events: {
-        'input .g-search-field': function () {
-            var q = this.$('.g-search-field').val();
-
-            if (!q) {
-                this.hideResults();
-                return;
-            }
-
-            if (this.ajaxLock) {
-                this.pending = q;
-            } else {
-                this._doSearch(q);
-            }
-        },
+        'input .g-search-field': 'search',
 
         'click .g-search-mode-radio': function (e) {
             this.currentMode = $(e.target).val();
+            this.hideResults().search();
+
             window.setTimeout(_.bind(function () {
                 this.$('.g-search-mode-choose').popover('hide');
             }, this), 250);
@@ -58,6 +47,23 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 }
             }
         }
+    },
+
+    search: function () {
+        var q = this.$('.g-search-field').val();
+
+        if (!q) {
+            this.hideResults();
+            return;
+        }
+
+        if (this.ajaxLock) {
+            this.pending = q;
+        } else {
+            this._doSearch(q);
+        }
+
+        return this;
     },
 
     _resultClicked: function (link) {

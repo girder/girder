@@ -75,6 +75,8 @@ class Collection(AccessControlledModel):
             raise ValidationException('A collection with that name already '
                                       'exists.', 'name')
 
+        doc['lowerName'] = doc['name'].lower()
+
         return doc
 
     def remove(self, collection, progress=None, **kwargs):
