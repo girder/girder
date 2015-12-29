@@ -218,7 +218,7 @@ class GirderClient(object):
         })
 
         # If success, return the json object. Otherwise throw an exception.
-        if result.status_code == 200:
+        if result.status_code in [200, 201]:
             return result.json()
         # TODO handle 300-level status (follow redirect?)
         else:
