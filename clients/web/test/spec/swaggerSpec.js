@@ -25,7 +25,7 @@ function jasmineTests() {
                 return $('#system_getVersion:visible').length > 0;
             }, 'end points to be visible');
             runs(function () {
-                $('#system_getVersion h3 a').click();
+                $('#system_getVersion h3 a:first').click();
             });
             waitsFor(function () {
                 return $('#system_getVersion .sandbox_header input.submit[name="commit"]:visible').length > 0;

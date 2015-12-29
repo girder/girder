@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
     <style type="text/css">
       .response_throbber {
-        content: url("${staticRoot}/built/swagger/images/throbber.gif");
+        background-image: url("${staticRoot}/built/swagger/images/throbber.gif") !important;
       }
     </style>
   </head>
