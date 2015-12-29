@@ -29,6 +29,9 @@ from girder.utility import acl_mixin
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
+# Plugins can modify this set to allow other types to be searched
+allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
+
 
 class Resource(BaseResource):
     """
@@ -66,7 +69,7 @@ class Resource(BaseResource):
         mode = params.get('mode', 'text')
         level = AccessType.validate(params.get('level', AccessType.READ))
         user = self.getCurrentUser()
-        allowedTypes = {'collection', 'folder', 'group', 'item', 'user'}
+
         limit = int(params.get('limit', 10))
         offset = int(params.get('offset', 0))
 
@@ -85,10 +88,14 @@ class Resource(BaseResource):
 
         results = {}
         for modelName in types:
-            if modelName not in allowedTypes:
+            if modelName not in allowedSearchTypes:
                 continue
 
-            model = self.model(modelName)
+            if '.' in modelName:
+                name, plugin = modelName.rsplit('.', 1)
+                model = self.model(name, plugin)
+            else:
+                model = self.model(modelName)
 
             results[modelName] = [
                 model.filter(d, user) for d in getattr(model, method)(
