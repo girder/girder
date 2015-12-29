@@ -117,7 +117,7 @@ def install_plugin(opts):
                     'Installing pip requirements for %s from %s.' %
                     (name, reqs)))
 
-                if pip.main(['install', '-U', '-r', reqs]) != 0:
+                if pip.main(['install', '-r', reqs]) != 0:
                     raise Exception(
                         'Failed to install pip requirements at %s.' % reqs)
 

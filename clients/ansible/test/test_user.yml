@@ -1,0 +1,64 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Should show 'ok' rather than 'changed' because
+    # There is no actual update
+    - name: Update 'admin' User (No actual update)
+      girder:
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Should show 'changed'  because we update the name
+    # Note that 'login' and 'password' cannot but updated
+    - name: Update 'admin' User (Chris => Christopher)
+      girder:
+        user:
+          firstName: "Christopher"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Create a 'foobar' user
+    - name: Create 'foobar' User
+      girder:
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Foo"
+          lastName: "Bar"
+          login: "foobar"
+          password: "foobarbaz"
+          email: "foo.bar@kitware.com"
+          admin: yes
+        state: present
+
+    # Remove the 'foobar' user
+    - name: Remove 'foobar' User
+      girder:
+        username: "admin"
+        password: "letmein"
+        user:
+          login: "foobar"
+          password: "foobarbaz"
+        state: absent

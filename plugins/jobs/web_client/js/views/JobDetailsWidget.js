@@ -19,10 +19,69 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
         this.$el.html(girder.templates.jobs_jobDetails({
             job: this.job,
             statusText: girder.jobs_JobStatus.text(this.job.get('status')),
-            girder: girder
+            girder: girder,
+            _: _
         }));
 
+        this._renderTimelineWidget();
+
         return this;
+    },
+
+    _renderTimelineWidget: function () {
+        var timestamps = this.job.get('timestamps');
+
+        if (!timestamps || !timestamps.length) {
+            return;
+        }
+
+        var startTime = this.job.get('created');
+        var segments = [{
+            start: startTime,
+            end: timestamps[0].time,
+            class: 'g-job-color-inactive',
+            tooltip: 'Inactive: %r s'
+        }];
+
+        segments = segments.concat(_.map(timestamps.slice(0, -1), function (stamp, i) {
+            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            return {
+                start: stamp.time,
+                end: timestamps[i + 1].time,
+                tooltip: statusText + ': %r s',
+                class: 'g-job-color-' + statusText.toLowerCase()
+            };
+        }, this));
+
+        var points = [{
+            time: startTime,
+            class: 'g-job-color-inactive',
+            tooltip: 'Created at ' + new Date(startTime).toISOString()
+        }];
+
+        points = points.concat(_.map(timestamps, function (stamp) {
+            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            return {
+                time: stamp.time,
+                tooltip: 'Moved to ' + statusText + ' at ' +
+                         new Date(stamp.time).toISOString(),
+                class: 'g-job-color-' + statusText.toLowerCase()
+            };
+        }, this));
+
+        var endTime = timestamps[timestamps.length - 1].time;
+        var elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
+
+        new girder.views.TimelineWidget({
+            el: this.$('.g-job-timeline-container'),
+            parentView: this,
+            points: points,
+            segments: segments,
+            startTime: startTime,
+            endTime: endTime,
+            startLabel: '0 s',
+            endLabel: elapsed + ' s'
+        }).render();
     }
 });
 
