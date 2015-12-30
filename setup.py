@@ -67,7 +67,7 @@ install_reqs = [
     'requests',
     'psutil',
     'pytz',
-    'six'
+    'six>=1.9'
 ]
 
 extras_reqs = {
