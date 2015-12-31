@@ -1,21 +1,21 @@
 ---
+  - name: Add MongoDB repo key
+    command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    sudo: yes
+    tags: girder
 
-  - name: install
-    apt:
-        name: "{{ item }}"
-        state: >
-            {{ "present" if (do_install|bool) else "absent" }}
-        update_cache: true
+  - name: Add MongoDB repo
+    apt_repository: repo='deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' update_cache=yes
+    sudo: yes
+    tags: girder
+
+
+  - name: Install MongoDb
+    apt: name={{ item }} state=present
+    sudo: yes
     with_items:
-      - mongodb
-      - mongodb-server
-    when: do_install|bool
-
-  - name: service | stop
-    service:
-        name: mongodb
-        state: stopped
-    when: do_install|bool
+      - mongodb-org-server
+      - mongodb-org-shell
 
   - name: configure | log file | owner | set
     file:
@@ -35,4 +35,3 @@
         src: mongodb.conf.j2
         dest: /etc/mongodb.conf
     when: do_install|bool
-
