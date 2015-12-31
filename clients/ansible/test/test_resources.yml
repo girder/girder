@@ -231,6 +231,19 @@
     ############
     # Item upload tests
     #
+
+    - name: Create filesystem assetstore
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp/"
+          current: true
+        state: present
+
     - name: Copy data/ folder to known location on VM
       copy:
         src: data/
