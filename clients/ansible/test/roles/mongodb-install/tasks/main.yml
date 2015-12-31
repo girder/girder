@@ -33,5 +33,5 @@
   - name: configure
     template:
         src: mongodb.conf.j2
-        dest: /etc/mongodb.conf
+        dest: /etc/mongod.conf
     when: do_install|bool
