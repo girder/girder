@@ -694,14 +694,16 @@ class GirderClientModule(GirderClient):
 
             file_dict = {f['name']: f for f in files}
 
-            source_dict = {os.path.basename(s):{
+            source_dict = {os.path.basename(s): {
                 "path": s,
                 "name": os.path.basename(s),
                 "size": os.path.getsize(s)} for s in sources}
 
             source_names = set([(s['name'], s['size'])
                                 for s in source_dict.values()])
-            file_names = set([(f['name'], f['size']) for f in file_dict.values()])
+
+            file_names = set([(f['name'], f['size'])
+                              for f in file_dict.values()])
 
             for n, _ in (file_names - source_names):
                 self.delete("file/{}".format(file_dict[n]['_id']))
