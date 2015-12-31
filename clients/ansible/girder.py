@@ -30,6 +30,9 @@ try:
 except ImportError:
     HAS_GIRDER_CLIENT = False
 
+
+__version__ = "0.2.0"
+
 DOCUMENTATION = '''
 ---
 module: girder
@@ -571,6 +574,7 @@ class FolderResource(Resource):
                     self._resources[_id]['parentCollection']
         return self._resources
 
+
 class ItemResource(Resource):
     def __init__(self, client, folderId):
         super(ItemResource, self).__init__(client, "item")
@@ -717,10 +721,8 @@ class GirderClientModule(GirderClient):
 
         return ret
 
-    def item(self, name, folderId, description=None, files=None, access=None, debug=False):
-        if debug:
-            from pudb.remote import set_trace; set_trace(term_size=(209, 49))
-
+    def item(self, name, folderId, description=None, files=None,
+             access=None, debug=False):
         ret = {}
         r = ItemResource(self, folderId)
         valid_fields = [("name", name),
@@ -735,8 +737,7 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
-
-            # handle files here
+        # handle files here
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
@@ -745,9 +746,6 @@ class GirderClientModule(GirderClient):
 
     def folder(self, name, parentId, parentType, description=None,
                public=True, access=None, debug=False):
-
-        if debug:
-            from pudb.remote import set_trace; set_trace(term_size=(209, 49))
 
         ret = {}
 
@@ -797,7 +795,6 @@ class GirderClientModule(GirderClient):
             ret = r.delete_by_name(name)
 
         return ret
-
 
     def plugins(self, *plugins):
         import json
