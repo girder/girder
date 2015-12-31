@@ -731,8 +731,16 @@ class GirderClientModule(GirderClient):
 
         return ret
 
-    def group(self, name, description, users=None):
-        ret = {}
+    def _get_user_by_login(self, login):
+        try:
+            user = self.get("/resource/lookup",
+                            {"path": "/user/{}".format(login)})
+        except HttpError:
+            user = None
+        return user
+
+    def group(self, name, description, users=None, debug=False):
+
         r = GroupResource(self)
         valid_fields = [("name", name),
                         ("description", description)]
@@ -745,8 +753,120 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
+            # Manage users
+            if debug:
+                from pudb.remote import set_trace
+                set_trace(term_size=(186, 52))
 
-            # manage users here
+            if users is not None:
+                ret["added"] = []
+                ret["removed"] = []
+                ret["updated"] = []
+
+                group_id = ret['_id']
+
+                # Note: if additional types are added o girder this will
+                # have to be updated!
+                types = {"member": 0, "moderator": 1, "admin": 2}
+
+                # Validate and normalize the user list
+                for user in users:
+                    assert "login" in user.keys(), \
+                        "User list must have a login attribute"
+
+                    user['type'] = types.get(user.get('type', 'member'),
+                                             "member")
+
+                # dict of passed in login -> type
+                user_levels = {u['login']: u['type'] for u in users}
+
+                # dict of current login -> user information for this group
+                members = {m['login']: m for m in
+                           self.get('group/{}/member'.format(group_id))}
+
+                # Add these users
+                for login in (set(user_levels.keys()) - set(members.keys())):
+                    user = self._get_user_by_login(login)
+                    if user is not None:
+                        # add user at level
+                        self.post("group/{}/invitation".format(group_id),
+                                  {"userId": user["_id"],
+                                   "level": user_levels[login],
+                                   "quiet": True,
+                                   "force": True})
+                        ret['added'].append(user)
+                    else:
+                        raise Exception('{} is not a valid login!'.format(login))
+
+                # Remove these users
+                for login in (set(members.keys()) - set(user_levels.keys())):
+                    self.delete("/group/{}/member".format(group_id),
+                                {"userId": members[login]['_id']})
+                    ret['removed'].append(members[login])
+
+                # Set of users that potentially need to be updated
+                if len(set(members.keys()) & set(user_levels.keys())):
+
+                    group_access = self.get('group/{}/access'.format(group_id))
+                    # dict of current login -> access information for this group
+                    user_access = {m['login']: m
+                                   for m in group_access['access']['users']}
+
+                    # dict of login -> level for the current group
+                    # Note:
+                    #  Here we join members with user_access - if the member
+                    #  is not in user_access then the member has a level of 0 by
+                    #  default. This gives us  a complete list of every login,
+                    #  and its access level, including those that are IN the
+                    #  group, but have no permissions ON the group.
+                    member_levels = {m['login']:
+                                     user_access.get(m['login'],
+                                                     {"level": 0})['level']
+                                     for m in members.values()}
+
+                    reverse_type = {v: k for k, v in types.items()}
+
+                    for login in (set(members.keys()) &
+                                  set(user_levels.keys())):
+                        user = self._get_user_by_login(login)
+                        _id = user["_id"]
+
+                        # We're promoting
+                        if member_levels[login] < user_levels[login]:
+                            resource = reverse_type[user_levels[login]]
+                            self.post("group/{}/{}"
+                                      .format(group_id, resource),
+                                      {"userId": _id})
+
+                            user['from_level'] = member_levels[login]
+                            user['to_level'] = user_levels[login]
+                            ret['updated'].append(user)
+
+                        # We're demoting
+                        elif member_levels[login] > user_levels[login]:
+                            resource = reverse_type[member_levels[login]]
+                            self.delete("group/{}/{}"
+                                        .format(group_id, resource),
+                                        {"userId": _id})
+
+                            # In case we're not demoting to member make sure
+                            # to update to promote to whatever level we ARE
+                            # demoting too now that our user is a only a member
+                            if user_levels[login] != 0:
+                                resource = reverse_type[user_levels[login]]
+                                self.post("group/{}/{}"
+                                          .format(group_id, resource),
+                                          {"userId": _id})
+
+                            user['from_level'] = member_levels[login]
+                            user['to_level'] = user_levels[login]
+                            ret['updated'].append(user)
+
+                # Make sure 'changed' is handled correctly if we've
+                # manipulated the group's users in any way
+                if (len(ret['added']) != 0 or len(ret['removed']) != 0 or
+                        len(ret['updated']) != 0):
+                    self.changed = True
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
