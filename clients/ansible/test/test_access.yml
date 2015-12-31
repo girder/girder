@@ -1,0 +1,105 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        port: 8080
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Create an 'alice' user
+    - name: Create 'alice' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Alice"
+          lastName: "Test"
+          login: "alice"
+          password: "letmein"
+          email: "alice.test@kitware.com"
+        state: present
+
+    # Create an 'bill' user
+    - name: Create 'bill' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Bill"
+          lastName: "Test"
+          login: "bill"
+          password: "letmein"
+          email: "bill.test@kitware.com"
+        state: present
+
+    # Create an 'chris' user
+    - name: Create 'chris' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Chris"
+          lastName: "Test"
+          login: "chris"
+          password: "letmein"
+          email: "chris.test@kitware.com"
+        state: present
+
+
+###
+# Groups
+
+    - name: Create a test group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+        state: present
+
+    # Should show no change
+    - name: Create a test group (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+        state: present
+
+    # Change group description
+    - name: Change group description
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group (different description)"
+        state: present
+
+
+    # Remove test Group
+    - name: Remove test group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group (different description)"
+        state: absent

@@ -465,7 +465,7 @@ def class_spec(cls, include=None):
 
 
 class Resource(object):
-    known_resources = ['collection', 'folder', 'item']
+    known_resources = ['collection', 'folder', 'item', 'group']
 
     def __init__(self, client, resource_type):
         self._resources = None
@@ -551,6 +551,11 @@ class CollectionResource(Resource):
         super(CollectionResource, self).__init__(client, "collection")
 
 
+class GroupResource(Resource):
+    def __init__(self, client):
+        super(GroupResource, self).__init__(client, "group")
+
+
 class FolderResource(Resource):
     def __init__(self, client, parentType, parentId):
         super(FolderResource, self).__init__(client, "folder")
@@ -595,7 +600,8 @@ class GirderClientModule(GirderClient):
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete',
                         'plugins', 'user', 'assetstore',
-                        'collection', 'folder', 'item', 'files']
+                        'collection', 'folder', 'item', 'files',
+                        'group']
 
     _debug = True
 
@@ -684,6 +690,8 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
+
+
     def files(self, itemId, sources=None):
         ret = {"added": [],
                "removed": []}
@@ -723,6 +731,28 @@ class GirderClientModule(GirderClient):
 
         return ret
 
+    def group(self, name, description, users=None):
+        ret = {}
+        r = GroupResource(self)
+        valid_fields = [("name", name),
+                        ("description", description)]
+
+        if self.module.params['state'] == 'present':
+            if r.name_exists(name):
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
+            else:
+                ret = r.create({k: v for k, v in valid_fields
+                                if v is not None})
+
+
+            # manage users here
+
+        elif self.module.params['state'] == 'absent':
+            ret = r.delete_by_name(name)
+
+        return ret
+
     def item(self, name, folderId, description=None, files=None,
              access=None, debug=False):
         ret = {}
@@ -738,7 +768,6 @@ class GirderClientModule(GirderClient):
             else:
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
-
         # handle files here
 
         elif self.module.params['state'] == 'absent':
@@ -791,7 +820,7 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
-            # handle access here
+                # handle access here
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
