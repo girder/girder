@@ -16,9 +16,11 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
     },
 
     render: function () {
+        var status = this.job.get('status');
         this.$el.html(girder.templates.jobs_jobDetails({
             job: this.job,
-            statusText: girder.jobs_JobStatus.text(this.job.get('status')),
+            statusText: girder.jobs_JobStatus.text(status),
+            colorClass: 'g-job-color-' + girder.jobs_JobStatus.classAffix(status),
             girder: girder,
             _: _
         }));
@@ -49,7 +51,7 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
                 start: stamp.time,
                 end: timestamps[i + 1].time,
                 tooltip: statusText + ': %r s',
-                class: 'g-job-color-' + statusText.toLowerCase()
+                class: 'g-job-color-' + girder.jobs_JobStatus.classAffix(stamp.status)
             };
         }, this));
 
@@ -65,7 +67,7 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
                          new Date(stamp.time).toISOString(),
-                class: 'g-job-color-' + statusText.toLowerCase()
+                class: 'g-job-color-' + girder.jobs_JobStatus.classAffix(stamp.status)
             };
         }, this));
 
