@@ -20,6 +20,13 @@ girder.jobs_JobStatus = {
     },
 
     /**
+     * Convert this status text into a value appropriate for an HTML class name.
+     */
+    classAffix: function (status) {
+        return this.text(status).toLowerCase().replace(/ /g, '-');
+    },
+
+    /**
      * Add new job statuses. The argument should be an object mapping the enum
      * symbol name to an information object for that status. The info object
      * must include a "value" field (its integer value), a "text" field, which
