@@ -54,7 +54,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
 
         if (!q) {
             this.hideResults();
-            return;
+            return this;
         }
 
         if (this.ajaxLock) {
