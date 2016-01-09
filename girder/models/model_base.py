@@ -218,7 +218,7 @@ class Model(ModelImporter):
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key.
-        :type fields: List of strings
+        :type fields: list[str]
         :param timeout: Cursor timeout in ms. Default is no timeout.
         :type timeout: int
         :returns: A pymongo database cursor.
@@ -933,7 +933,7 @@ class AccessControlledModel(Model):
         """
 
         # Ensure we load access and public, these are needed by requireAccess
-        loadFields = None
+        loadFields = fields
         if not force and fields:
             loadFields = list(set(fields) | {'access', 'public'})
 
