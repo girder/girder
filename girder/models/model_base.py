@@ -21,6 +21,7 @@ import copy
 import functools
 import itertools
 import pymongo
+import re
 import six
 
 from bson.objectid import ObjectId
@@ -49,6 +50,7 @@ class Model(ModelImporter):
         self._indices = []
         self._textIndex = None
         self._textLanguage = None
+        self.prefixSearchFields = ('lowerName', 'name')
 
         self._filterKeys = {
             AccessType.READ: set(),
@@ -262,10 +264,8 @@ class Model(ModelImporter):
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
-        if not filters:
-            filters = {}
-        if not fields:
-            fields = {}
+        filters = filters or {}
+        fields = fields or {}
 
         fields['_textScore'] = {'$meta': 'textScore'}
         filters['$text'] = {'$search': query}
@@ -280,6 +280,45 @@ class Model(ModelImporter):
             cursor.sort([('_textScore', {'$meta': 'textScore'})])
 
         return cursor
+
+    def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None,
+                     filters=None, prefixSearchFields=None):
+        """
+        Search for documents in this model's collection by a prefix string.
+        The fields that will be searched based on this prefix must be set as
+        the ``prefixSearchFields`` attribute of this model, which must be an
+        iterable. Elements of this iterable must be either a string representing
+        the field name, or a 2-tuple in which the first element is the field
+        name, and the second element is a string representing the regex search
+        options.
+
+        :param query: The prefix string to look for.
+        :type query: str
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param prefixSearchFields: To override the model's prefixSearchFields
+            attribute for this invocation, pass an alternate iterable.
+        :returns: A pymongo cursor. It is left to the caller to build the
+            results from the cursor.
+        """
+        filters = filters or {}
+        filters['$or'] = filters.get('$or', [])
+
+        for field in (prefixSearchFields or self.prefixSearchFields):
+            if isinstance(field, (list, tuple)):
+                filters['$or'].append({
+                    field[0]: {
+                        '$regex': '^%s' % re.escape(query),
+                        '$options': field[1]
+                    }
+                })
+            else:
+                filters['$or'].append({
+                    field: {'$regex': '^%s' % re.escape(query)}
+                })
+
+        return self.find(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields)
 
     def save(self, document, validate=True, triggerEvents=True):
         """
@@ -963,21 +1002,40 @@ class AccessControlledModel(Model):
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None):
+                   sort=None, fields=None, level=AccessType.READ):
         """
         Custom override of Model.textSearch to also force permission-based
         filtering. The parameters are the same as Model.textSearch.
 
         :param user: The user to apply permission filtering for.
+        :type user: dict or None
+        :param level: The access level to require.
+        :type level: girder.constants.AccessType
         """
-        if not filters:
-            filters = {}
+        filters = filters or {}
 
         cursor = Model.textSearch(
             self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
-            cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
+            cursor, user=user, level=level, limit=limit, offset=offset)
+
+    def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                     sort=None, fields=None, level=AccessType.READ):
+        """
+        Custom override of Model.prefixSearch to also force permission-based
+        filtering. The parameters are the same as Model.prefixSearch.
+
+        :param user: The user to apply permission filtering for.
+        :type user: dict or None
+        :param level: The access level to require.
+        :type level: girder.constants.AccessType
+        """
+        filters = filters or {}
+
+        cursor = Model.prefixSearch(
+            self, query=query, filters=filters, sort=sort, fields=fields)
+        return self.filterResultsByPermission(
+            cursor, user=user, level=level, limit=limit, offset=offset)
 
 
 class AccessException(Exception):

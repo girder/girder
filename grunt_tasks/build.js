@@ -73,8 +73,21 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     cwd: 'node_modules/jsoneditor/dist',
-                    src: ['img/**', 'jsoneditor.min.css'],
+                    src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
+                }]
+            },
+            bootstrap: {
+                files: [{
+                    expand: true,
+                    cwd: 'node_modules/bootstrap/dist/css',
+                    src: ['bootstrap.min.css'],
+                    dest: 'clients/web/static/built'
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/bootstrap-switch/dist/css/bootstrap3',
+                    src: ['bootstrap-switch.min.css'],
+                    dest: 'clients/web/static/built'
                 }]
             }
         },
@@ -83,12 +96,19 @@ module.exports = function (grunt) {
             core: {
                 files: {
                     'clients/web/static/built/app.min.css': [
-                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
                         'clients/web/src/stylesheets/**/*.styl',
                         '!clients/web/src/stylesheets/apidocs/*.styl'
                     ],
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
+                    ]
+                }
+            },
+            ext: {
+                files: {
+                    'clients/web/static/built/ext.min.css': [
+                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
+                        'node_modules/jsoneditor/dist/jsoneditor.css'
                     ]
                 }
             }
@@ -127,11 +147,11 @@ module.exports = function (grunt) {
                         'node_modules/backbone/backbone.js',
                         'node_modules/marked/lib/marked.js',
                         'node_modules/jsoneditor/dist/jsoneditor.js',
+                        'node_modules/bootstrap/dist/js/bootstrap.js',
+                        'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
                         'clients/web/lib/js/d3.js',
-                        'clients/web/lib/js/bootstrap.js',
-                        'clients/web/lib/js/bootstrap-switch.js',
                         'clients/web/lib/js/jquery.jqplot.js',
                         'clients/web/lib/js/jqplot.pieRenderer.js',
                         'clients/web/lib/js/sprintf.js'
@@ -160,8 +180,10 @@ module.exports = function (grunt) {
 
         init: {
             'uglify:libs': {},
+            'copy:bootstrap': {},
             'copy:swagger': {},
-            'copy:jsoneditor': {}
+            'copy:jsoneditor': {},
+            'stylus:ext': {}
         },
 
         default: {

@@ -566,7 +566,7 @@ describe('Test the plugins page', function () {
             expect(target.find('.bootstrap-switch-disabled').length > 0).toBe(true);
             expect(target.find('.g-plugin-warning').length > 0).toBe(true);
 
-            target.find('.bootstrap-switch-label').click();
+            target.find('.g-plugin-switch').click();
 
             expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
         });
@@ -576,7 +576,7 @@ describe('Test the plugins page', function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
             expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
-            $('.g-plugin-list-item:contains(Metadata extractor) .bootstrap-switch-label').click();
+            $('.g-plugin-list-item:contains(Metadata extractor) .g-plugin-switch').click();
         });
         waitsFor(function () {
             return $('.g-plugin-restart').css('visibility') !== 'hidden';
@@ -616,7 +616,7 @@ describe('Test the plugins page', function () {
     });
     it('Disable a plugin', function () {
         runs(function () {
-            $('.g-plugin-list-item:contains(Metadata extractor) .bootstrap-switch-label').click();
+            $('.g-plugin-list-item:contains(Metadata extractor) .g-plugin-switch').click();
         });
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
