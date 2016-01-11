@@ -1,0 +1,21 @@
+{
+    "extends": "semistandard",
+    "rules": {
+        "indent": [2, 4, {"SwitchCase": 1}],
+        "space-before-function-paren": [2, {"anonymous": "always", "named": "never"}],
+        "one-var": 0,
+        "no-throw-literal": 1
+    },
+    "env": {
+        "browser": true,
+        "jquery": true
+    },
+    "globals": {
+        "_": true,
+        "girder": true,
+        "Backbone": true,
+        "marked": true,
+        "JSONEditor": true,
+        "sprintf": true
+    }
+}

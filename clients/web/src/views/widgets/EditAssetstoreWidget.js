@@ -122,4 +122,4 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
         }
     };
-}) ();
+})();

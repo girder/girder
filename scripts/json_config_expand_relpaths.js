@@ -97,7 +97,7 @@ var config = json.parse(fs.readFileSync(inputfile, {encoding: 'utf8'}).toString(
 // Expand relative paths
 
 if (typeof String.prototype.startsWith !== 'function') {
-    String.prototype.startsWith = function (str) {
+    String.prototype.startsWith = function (str) { // eslint-disable-line no-extend-native
         return this.slice(0, str.length) === str;
     };
 }
@@ -113,7 +113,6 @@ var expand_relative_path = function (key, value) {
 };
 
 var expand_relative_paths = function (arr1, current_key) {
-
     var idx = '';
 
     if (arr1 && Object.prototype.toString.call(arr1) === '[object Array]') {

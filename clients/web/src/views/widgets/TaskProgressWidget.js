@@ -27,7 +27,7 @@ girder.views.TaskProgressWidget = girder.View.extend({
                 width = Math.round(percent) + '%';
                 percentText = percent.toFixed(1) + '%';
                 var timeLeft = parseInt(this.progress.estimatedTotalTime - (
-                    this.progress.updatedTime - this.progress.startTime));
+                    this.progress.updatedTime - this.progress.startTime), 10);
                 if (timeLeft >= 3600) {
                     timeLeftText = sprintf('%d:%02d:%02d left',
                         timeLeft / 3600, (timeLeft / 60) % 60, timeLeft % 60);

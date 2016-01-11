@@ -180,8 +180,8 @@ girder.assetstoreImportViewMap[girder.AssetstoreType.S3] = 'S3ImportView';
 
 girder.router.route('assetstores', 'assetstores', function (params) {
     girder.events.trigger('g:navigateTo', girder.views.AssetstoresView, {
-        assetstoreEdit: params.dialog === 'assetstoreedit' ?
-                        params.dialogid : false
+        assetstoreEdit: params.dialog === 'assetstoreedit'
+                        ? params.dialogid : false
     });
 });
 

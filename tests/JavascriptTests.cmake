@@ -27,6 +27,33 @@ endfunction()
 include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
 include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigMerge.cmake)
 
+function(add_eslint_test name input)
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
+  set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
+  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  if(fn_ESLINT_IGNORE_FILE)
+    set(ignore_file "${fn_ESLINT_IGNORE_FILE}")
+  else()
+    set(ignore_file "${PROJECT_SOURCE_DIR}/.eslintignore")
+  endif()
+
+  if(fn_ESLINT_CONFIG_FILE)
+    set(config_file "${fn_ESLINT_CONFIG_FILE}")
+  else()
+    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc")
+  endif()
+
+  add_test(
+    NAME "eslint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
+  )
+endfunction()
+
 function(add_javascript_style_test name input)
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()

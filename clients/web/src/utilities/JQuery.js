@@ -2,7 +2,6 @@
  * Define jQuery plugins within this scope.
  */
 (function ($) {
-
     /**
      * This should be used instead of calling bootstrap's modal() jQuery
      * method directly. This unbinds all previous events from the dialog,

@@ -146,7 +146,6 @@ girder.views.SystemConfigurationView = girder.View.extend({
 
             this.$('#g-core-collection-create-policy').val(
                 JSON.stringify(settingValue, null, 4));
-
         }, this).render();
 
         return this;

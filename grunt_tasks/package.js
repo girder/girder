@@ -70,5 +70,4 @@ module.exports = function (grunt) {
         'remove-packaging',
         'shell:package-server'
     ]);
-
 };

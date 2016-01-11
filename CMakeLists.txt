@@ -34,6 +34,7 @@ if(JAVASCRIPT_STYLE_TESTS)
   endif()
   find_program(JSHINT_EXECUTABLE jshint ${PROJECT_SOURCE_DIR}/node_modules/jshint/bin NO_DEFAULT_PATH)
   find_program(JSSTYLE_EXECUTABLE jscs ${PROJECT_SOURCE_DIR}/node_modules/jscs/bin NO_DEFAULT_PATH)
+  find_program(ESLINT_EXECUTABLE eslint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
 endif()
 
 if(BUILD_TESTING)

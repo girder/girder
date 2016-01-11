@@ -68,7 +68,6 @@ girder.views.GroupsView = girder.View.extend({
             girder.currentUser.set('groups', userGroups);
 
             girder.router.navigate('group/' + group.get('_id'), {trigger: true});
-
         }, this).render();
     },
 

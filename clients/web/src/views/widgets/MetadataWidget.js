@@ -158,7 +158,6 @@ girder.views.MetadatumWidget = girder.View.extend({
         if (_.has(newMode, 'validation') &&
             _.has(newMode.validation, 'from') &&
             _.has(newMode.validation.from, from)) {
-
             var validate = newMode.validation.from[from][0];
             var msg = newMode.validation.from[from][1];
 
@@ -177,8 +176,8 @@ girder.views.MetadatumWidget = girder.View.extend({
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
         var fromEditorMode =
-                (existingEditor instanceof girder.views.JsonMetadatumEditWidget) ?
-                'json' : 'simple';
+                (existingEditor instanceof girder.views.JsonMetadatumEditWidget)
+                    ? 'json' : 'simple';
         var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
         if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
             return;
