@@ -42,9 +42,10 @@ assuming Girder is hosted at ``/girder``:
     <script src="/girder/static/built/libs.min.js"></script>
     <script src="/girder/static/built/app.min.js"></script>
 
-Note that ``libs.min.js`` includes requirements for Girder including jQuery,
-Bootstrap, Underscore, and Backbone. You may wish to use your own versions of
-these separately and not include ``libs.min.js``.
+.. note::
+   ``libs.min.js`` includes requirements for Girder, including jQuery,
+   Bootstrap, Underscore, and Backbone. You may wish to use your own versions
+   of these separately and not include ``libs.min.js``.
 
 Initializing Girder
 ^^^^^^^^^^^^^^^^^^^
@@ -61,8 +62,9 @@ be set before performing any Girder API calls:
         // Your app code here
     });
 
-Note that ``girder.router.enabled(false)`` must be set to false to disable URL routing
-behavior specific to the full Girder web application.
+.. note::
+   ``girder.router.enabled(false)`` must be set to false to disable URL routing
+   behavior specific to the full Girder web application.
 
 Using Girder Register and Login UI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
