@@ -76,6 +76,13 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
+            },
+            // Provide a copy of ext.min.js under an old name, for compatibility
+            legacy_libs: {
+                files: [{
+                    src: ['clients/web/static/built/ext.min.js'],
+                    dest: 'clients/web/static/built/libs.min.js'
+                }]
             }
         },
 
@@ -171,7 +178,10 @@ module.exports = function (grunt) {
             'uglify:ext': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'stylus:ext': {}
+            'stylus:ext': {},
+            'copy:legacy_libs': {
+                dependencies: ['stylus:ext']
+            }
         },
 
         default: {
