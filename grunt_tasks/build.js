@@ -97,14 +97,23 @@ module.exports = function (grunt) {
                         'clients/web/src/stylesheets/apidocs/*.styl'
                     ]
                 }
+            }
+        },
+
+        concat: {
+            options: {
+                stripBanners: {
+                    block: true,
+                    line: true
+                }
             },
-            ext: {
+            ext_css: {
                 files: {
                     'clients/web/static/built/ext.min.css': [
-                        'node_modules/bootstrap/dist/css/bootstrap.css',
-                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
-                        'node_modules/jsoneditor/dist/jsoneditor.css'
+                        'node_modules/bootstrap/dist/css/bootstrap.min.css',
+                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
+                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
+                        'node_modules/jsoneditor/dist/jsoneditor.min.css'
                     ]
                 }
             }
@@ -134,7 +143,7 @@ module.exports = function (grunt) {
                     ]
                 }
             },
-            ext: {
+            ext_js: {
                 files: {
                     'clients/web/static/built/ext.min.js': [
                         'node_modules/jquery/dist/jquery.js',
@@ -175,12 +184,12 @@ module.exports = function (grunt) {
         },
 
         init: {
-            'uglify:ext': {},
+            'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'stylus:ext': {},
+            'concat:ext_css': {},
             'copy:legacy_libs': {
-                dependencies: ['stylus:ext']
+                dependencies: ['concat:ext_css']
             }
         },
 
