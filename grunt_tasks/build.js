@@ -149,7 +149,7 @@ module.exports = function (grunt) {
                         'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
-                        'clients/web/lib/js/d3.js',
+                        'node_modules/d3/d3.js',
                         'clients/web/lib/js/jquery.jqplot.js',
                         'clients/web/lib/js/jqplot.pieRenderer.js',
                         'clients/web/lib/js/sprintf.js'
