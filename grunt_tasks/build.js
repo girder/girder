@@ -76,13 +76,6 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
-            },
-            // Provide a copy of ext.min.js under an old name, for compatibility
-            legacy_libs: {
-                files: [{
-                    src: ['clients/web/static/built/ext.min.js'],
-                    dest: 'clients/web/static/built/libs.min.js'
-                }]
             }
         },
 
@@ -165,6 +158,24 @@ module.exports = function (grunt) {
             }
         },
 
+        symlink: {
+            options: {
+                overwrite: true
+            },
+            legacy_names: {
+                // Provide static files under old names, for compatibility
+                files: [{
+                    src: ['clients/web/static/built/ext.min.js'],
+                    dest: 'clients/web/static/built/libs.min.js'
+                }, {
+                    // This provides more than just Bootstrap, but that no
+                    // longer exists as a standalone file
+                    src: ['clients/web/static/built/ext.min.css'],
+                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
+                }]
+            }
+        },
+
         watch: {
             stylus_core: {
                 files: ['clients/web/src/stylesheets/**/*.styl'],
@@ -188,8 +199,8 @@ module.exports = function (grunt) {
             'copy:swagger': {},
             'copy:jsoneditor': {},
             'concat:ext_css': {},
-            'copy:legacy_libs': {
-                dependencies: ['concat:ext_css']
+            'symlink:legacy_names': {
+                dependencies: ['uglify:ext_js', 'concat:ext_css']
             }
         },
 
