@@ -39,4 +39,4 @@ class WebRootTestCase(base.TestCase):
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
         self.assertTrue('app.min.js' in body)
-        self.assertTrue('libs.min.js' in body)
+        self.assertTrue('ext.min.js' in body)

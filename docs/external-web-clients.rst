@@ -39,13 +39,13 @@ assuming Girder is hosted at ``/girder``:
 
 .. code-block:: html
 
-    <script src="/girder/static/built/libs.min.js"></script>
+    <script src="/girder/static/built/ext.min.js"></script>
     <script src="/girder/static/built/app.min.js"></script>
 
 .. note::
-   ``libs.min.js`` includes requirements for Girder, including jQuery,
+   ``ext.min.js`` includes requirements for Girder, including jQuery,
    Bootstrap, Underscore, and Backbone. You may wish to use your own versions
-   of these separately and not include ``libs.min.js``.
+   of these separately and not include ``ext.min.js``.
 
 Initializing Girder
 ^^^^^^^^^^^^^^^^^^^

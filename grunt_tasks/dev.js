@@ -69,7 +69,7 @@ module.exports = function (grunt) {
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
         var dependencies = [
             '/clients/web/test/testUtils.js',
-            '/clients/web/static/built/libs.min.js'
+            '/clients/web/static/built/ext.min.js'
         ];
         var inputs = [];
 
