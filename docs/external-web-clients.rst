@@ -69,15 +69,20 @@ be set before performing any Girder API calls:
 Using Girder Register and Login UI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To use Girder UI components, you will need Bootstrap and Girder CSS in your HTML:
+To use Girder UI components, you will need the following CSS files in your HTML:
 
 .. code-block:: html
 
-    <link rel="stylesheet" href="/girder/static/built/bootstrap.min.css">
+    <link rel="stylesheet" href="/girder/static/built/ext.min.css">
     <link rel="stylesheet" href="/girder/static/built/app.min.css">
 
-To make login and logout controls, provide a dialog container and login/logout/register links,
-and a container where the dialogs will be rendered:
+.. note::
+   ``ext.min.css`` includes requirements for Girder, including Bootstrap and
+   some additional Bootstrap extensions. You may wish to use your own versions
+   of these separately and not include ``ext.min.css``.
+
+To make login and logout controls, provide a dialog container and
+login/logout/register links, and a container where the dialogs will be rendered:
 
 .. code-block:: html
 

@@ -76,19 +76,6 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
-            },
-            bootstrap: {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/bootstrap/dist/css',
-                    src: ['bootstrap.min.css'],
-                    dest: 'clients/web/static/built'
-                }, {
-                    expand: true,
-                    cwd: 'node_modules/bootstrap-switch/dist/css/bootstrap3',
-                    src: ['bootstrap-switch.min.css'],
-                    dest: 'clients/web/static/built'
-                }]
             }
         },
 
@@ -107,6 +94,8 @@ module.exports = function (grunt) {
             ext: {
                 files: {
                     'clients/web/static/built/ext.min.css': [
+                        'node_modules/bootstrap/dist/css/bootstrap.css',
+                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css',
                         'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
                         'node_modules/jsoneditor/dist/jsoneditor.css'
                     ]
@@ -180,7 +169,6 @@ module.exports = function (grunt) {
 
         init: {
             'uglify:libs': {},
-            'copy:bootstrap': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
             'stylus:ext': {}
