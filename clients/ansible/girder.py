@@ -545,8 +545,29 @@ class Resource(object):
     def delete_by_name(self, name):
         return self.delete(self.resources_by_name[name]['_id'])
 
+class AccessMixin(object):
 
-class CollectionResource(Resource):
+    def get_access(self, _id):
+        return self.client.get("{}/{}/access"
+                               .format(self.resource_type, _id))
+
+    def put_access(self, _id, access, public=True):
+        current_access = self.get_access(_id)
+
+        if set([tuple(u.values()) for u in access['users']])  ^ \
+           set([(u["id"], u['level']) for u in current_access['users']]):
+            self.client.changed = True
+
+        if set([tuple(g.values()) for g in access['groups']])  ^ \
+           set([(u["id"], u['level']) for u in current_access['groups']]):
+            self.client.changed = True
+
+        return self.client.put("{}/{}/access"
+                               .format(self.resource_type, _id),
+                               dict(access=json.dumps(access),
+                                    public="true" if public else "false"))
+
+class CollectionResource(AccessMixin, Resource):
     def __init__(self, client):
         super(CollectionResource, self).__init__(client, "collection")
 
@@ -556,7 +577,7 @@ class GroupResource(Resource):
         super(GroupResource, self).__init__(client, "group")
 
 
-class FolderResource(Resource):
+class FolderResource(AccessMixin, Resource):
     def __init__(self, client, parentType, parentId):
         super(FolderResource, self).__init__(client, "folder")
         self.parentType = parentType
@@ -621,6 +642,11 @@ class GirderClientModule(GirderClient):
         self.spec = dict(class_spec(self.__class__,
                                     GirderClientModule._include_methods))
         self.required_one_of = self.spec.keys()
+
+        # Note: if additional types are added o girder this will
+        # have to be updated!
+        self.access_types = {"member": 0, "moderator": 1, "admin": 2}
+
 
     def __call__(self, module):
         self.module = module
@@ -737,6 +763,15 @@ class GirderClientModule(GirderClient):
             user = None
         return user
 
+    def _get_group_by_name(self, name):
+        try:
+            # Could potentially fail if we have more 50 groups
+            group = {g['name']:g for g in self.get("group")}['name']
+        except KeyError, HttpError:
+            group = None
+        return group
+
+
     def group(self, name, description, users=None, debug=False):
 
         r = GroupResource(self)
@@ -751,10 +786,6 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
-            # Manage users
-            if debug:
-                from pudb.remote import set_trace
-                set_trace(term_size=(186, 52))
 
             if users is not None:
                 ret["added"] = []
@@ -763,17 +794,14 @@ class GirderClientModule(GirderClient):
 
                 group_id = ret['_id']
 
-                # Note: if additional types are added o girder this will
-                # have to be updated!
-                types = {"member": 0, "moderator": 1, "admin": 2}
 
                 # Validate and normalize the user list
                 for user in users:
                     assert "login" in user.keys(), \
                         "User list must have a login attribute"
 
-                    user['type'] = types.get(user.get('type', 'member'),
-                                             "member")
+                    user['type'] = self.access_types.get(
+                        user.get('type', 'member'), "member")
 
                 # dict of passed in login -> type
                 user_levels = {u['login']: u['type'] for u in users}
@@ -822,8 +850,8 @@ class GirderClientModule(GirderClient):
                                                      {"level": 0})['level']
                                      for m in members.values()}
 
-                    ret = self._promote_or_demote(ret, member_levels,
-                                                  user_levels, types, group_id)
+                    ret = self._promote_or_demote_in_group(ret, member_levels,
+                                                           user_levels, group_id)
 
                 # Make sure 'changed' is handled correctly if we've
                 # manipulated the group's users in any way
@@ -836,8 +864,8 @@ class GirderClientModule(GirderClient):
 
         return ret
 
-    def _promote_or_demote(self, ret, member_levels, user_levels,
-                           types, group_id):
+    def _promote_or_demote_in_group(self, ret, member_levels, user_levels,
+                                    group_id):
         """Promote or demote a set of users.
 
         :param ret: the current dict of return values
@@ -849,7 +877,7 @@ class GirderClientModule(GirderClient):
 
         """
 
-        reverse_type = {v: k for k, v in types.items()}
+        reverse_type = {v: k for k, v in self.access_types.items()}
 
         for login in (set(member_levels.keys()) &
                       set(user_levels.keys())):
@@ -935,14 +963,52 @@ class GirderClientModule(GirderClient):
                                 if v is not None})
 
             # handle access here
+            if access is not None:
+                _id = ret['_id']
+                ret['access'] = self._access(r, access, _id, public=public)
+
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
 
         return ret
 
+    def _access(self, r, access, _id, public=True):
+        access_list = {"users": [], "groups": []}
+        users = access.get("users", None)
+        groups = access.get("groups", None)
+
+        if groups is not None:
+            assert set(g['type'] for g in groups) <= \
+                set(self.access_types.keys()), "Invalid access type!"
+
+            # Hash of name -> group information
+            # used to get user id's for access control lists
+            all_groups = {g['name']:g for g in self.get("group")}
+
+            access_list['groups'] = [{'id': all_groups[g['name']]["_id"],
+                                      'level': self.access_types[g['type']]}
+                                     for g in groups]
+
+        if users is not None:
+
+            assert set(u['type'] for u in users) <= \
+                set(self.access_types.keys()), "Invalid access type!"
+
+            # Hash of login -> user information
+            # used to get user id's for access control lists
+            current_users = {u['login']: self._get_user_by_login(u['login'])
+                             for u in users}
+
+            access_list['users'] = [{'id': current_users[u['login']]["_id"],
+                                     "level": self.access_types[u['type']]}
+                                    for u in users]
+
+        return r.put_access(_id, access_list, public=public)
+
     def collection(self, name, description=None,
-                   public=True, access=None):
+                   public=True, access=None, debug=False):
+
         ret = {}
         r = CollectionResource(self)
         valid_fields = [("name", name),
@@ -956,7 +1022,9 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
-                # handle access here
+        if access is not None:
+            _id = ret['_id']
+            ret['access'] = self._access(r, access, _id, public=public)
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
