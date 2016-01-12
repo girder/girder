@@ -34,7 +34,7 @@ class InstallWithOptions(install):
         party plugin content from previous installations; we simply want to
         merge the existing directory with the new one.
         """
-        copy_tree(path, os.path.join(dest, path))
+        copy_tree(path, os.path.join(dest, path), preserve_symlinks=True)
 
     def run(self, *arg, **kw):
         """
