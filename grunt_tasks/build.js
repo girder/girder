@@ -172,6 +172,12 @@ module.exports = function (grunt) {
                     // longer exists as a standalone file
                     src: ['clients/web/static/built/ext.min.css'],
                     dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
+                }, {
+                    src: ['clients/web/static/built/ext.min.css'],
+                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css'
+                }, {
+                    src: ['clients/web/static/built/ext.min.css'],
+                    dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
                 }]
             }
         },
@@ -200,7 +206,8 @@ module.exports = function (grunt) {
             'copy:jsoneditor': {},
             'concat:ext_css': {},
             'symlink:legacy_names': {
-                dependencies: ['uglify:ext_js', 'concat:ext_css']
+                dependencies: [
+                    'uglify:ext_js', 'concat:ext_css', 'copy:jsoneditor']
             }
         },
 
