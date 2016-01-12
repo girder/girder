@@ -106,7 +106,8 @@ module.exports = function (grunt) {
                         'node_modules/bootstrap/dist/css/bootstrap.min.css',
                         'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
                         'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
-                        'node_modules/jsoneditor/dist/jsoneditor.min.css'
+                        'node_modules/jsoneditor/dist/jsoneditor.min.css',
+                        'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
                     ]
                 }
             }
@@ -150,8 +151,8 @@ module.exports = function (grunt) {
                         'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
                         'node_modules/d3/d3.js',
-                        'clients/web/lib/js/jquery.jqplot.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.js',
+                        'node_modules/as-jqplot/dist/jquery.jqplot.js',
+                        'node_modules/as-jqplot/dist/plugins/jqplot.pieRenderer.js',
                         'clients/web/lib/js/sprintf.js'
                     ]
                 }
@@ -178,6 +179,9 @@ module.exports = function (grunt) {
                 }, {
                     src: ['clients/web/static/built/ext.min.css'],
                     dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
+                }, {
+                    src: ['clients/web/static/built/ext.min.css'],
+                    dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
                 }]
             }
         },
