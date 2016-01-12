@@ -690,8 +690,6 @@ class GirderClientModule(GirderClient):
 
         self.message['gc_return'] = ret
 
-
-
     def files(self, itemId, sources=None):
         ret = {"added": [],
                "removed": []}
@@ -796,7 +794,8 @@ class GirderClientModule(GirderClient):
                                    "force": True})
                         ret['added'].append(user)
                     else:
-                        raise Exception('{} is not a valid login!'.format(login))
+                        raise Exception('{} is not a valid login!'
+                                        .format(login))
 
                 # Remove these users
                 for login in (set(members.keys()) - set(user_levels.keys())):
@@ -806,7 +805,6 @@ class GirderClientModule(GirderClient):
 
                 # Set of users that potentially need to be updated
                 if len(set(members.keys()) & set(user_levels.keys())):
-
                     group_access = self.get('group/{}/access'.format(group_id))
                     # dict of current login -> access information for this group
                     user_access = {m['login']: m
@@ -824,43 +822,8 @@ class GirderClientModule(GirderClient):
                                                      {"level": 0})['level']
                                      for m in members.values()}
 
-                    reverse_type = {v: k for k, v in types.items()}
-
-                    for login in (set(members.keys()) &
-                                  set(user_levels.keys())):
-                        user = self._get_user_by_login(login)
-                        _id = user["_id"]
-
-                        # We're promoting
-                        if member_levels[login] < user_levels[login]:
-                            resource = reverse_type[user_levels[login]]
-                            self.post("group/{}/{}"
-                                      .format(group_id, resource),
-                                      {"userId": _id})
-
-                            user['from_level'] = member_levels[login]
-                            user['to_level'] = user_levels[login]
-                            ret['updated'].append(user)
-
-                        # We're demoting
-                        elif member_levels[login] > user_levels[login]:
-                            resource = reverse_type[member_levels[login]]
-                            self.delete("group/{}/{}"
-                                        .format(group_id, resource),
-                                        {"userId": _id})
-
-                            # In case we're not demoting to member make sure
-                            # to update to promote to whatever level we ARE
-                            # demoting too now that our user is a only a member
-                            if user_levels[login] != 0:
-                                resource = reverse_type[user_levels[login]]
-                                self.post("group/{}/{}"
-                                          .format(group_id, resource),
-                                          {"userId": _id})
-
-                            user['from_level'] = member_levels[login]
-                            user['to_level'] = user_levels[login]
-                            ret['updated'].append(user)
+                    ret = self._promote_or_demote(ret, member_levels,
+                                                  user_levels, types, group_id)
 
                 # Make sure 'changed' is handled correctly if we've
                 # manipulated the group's users in any way
@@ -870,6 +833,59 @@ class GirderClientModule(GirderClient):
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
+
+        return ret
+
+    def _promote_or_demote(self, ret, member_levels, user_levels,
+                           types, group_id):
+        """Promote or demote a set of users.
+
+        :param ret: the current dict of return values
+        :param members_levels: the current access levels of each member
+        :param user_levels: the desired levels of each member
+        :param types: a mapping between resource names and access levels
+        :returns: info about what has (or has not) been updated
+        :rtype: dict
+
+        """
+
+        reverse_type = {v: k for k, v in types.items()}
+
+        for login in (set(member_levels.keys()) &
+                      set(user_levels.keys())):
+            user = self._get_user_by_login(login)
+            _id = user["_id"]
+
+            # We're promoting
+            if member_levels[login] < user_levels[login]:
+                resource = reverse_type[user_levels[login]]
+                self.post("group/{}/{}"
+                          .format(group_id, resource),
+                          {"userId": _id})
+
+                user['from_level'] = member_levels[login]
+                user['to_level'] = user_levels[login]
+                ret['updated'].append(user)
+
+            # We're demoting
+            elif member_levels[login] > user_levels[login]:
+                resource = reverse_type[member_levels[login]]
+                self.delete("group/{}/{}"
+                            .format(group_id, resource),
+                            {"userId": _id})
+
+                # In case we're not demoting to member make sure
+                # to update to promote to whatever level we ARE
+                # demoting too now that our user is a only a member
+                if user_levels[login] != 0:
+                    resource = reverse_type[user_levels[login]]
+                    self.post("group/{}/{}"
+                              .format(group_id, resource),
+                              {"userId": _id})
+
+                    user['from_level'] = member_levels[login]
+                    user['to_level'] = user_levels[login]
+                    ret['updated'].append(user)
 
         return ret
 

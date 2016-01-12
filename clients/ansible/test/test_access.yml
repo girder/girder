@@ -125,7 +125,7 @@
         state: present
 
 
-    - name: ReCreate a test group with users (should show no change)
+    - name: Recreate a test group with users (should show no change)
       girder:
         port: 8080
         username: "admin"
