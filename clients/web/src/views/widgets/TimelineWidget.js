@@ -134,7 +134,6 @@ girder.views.TimelineWidget = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.timeline({
-            showLabels: this.showLabels,
             segments: this._processedSegments,
             points: this._processedPoints,
             startLabel: this.startLabel,
