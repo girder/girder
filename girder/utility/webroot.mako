@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
     <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/animation.css">
-    <link rel="stylesheet" href="${staticRoot}/built/ext.min.css">
-    <link rel="stylesheet" href="${staticRoot}/built/app.min.css">
+    <link rel="stylesheet" href="${staticRoot}/built/girder.ext.min.css">
+    <link rel="stylesheet" href="${staticRoot}/built/girder.app.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
     % for plugin in pluginCss:
     <link rel="stylesheet" href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
@@ -16,9 +16,9 @@
   <body>
     <div id="g-global-info-apiroot" class="hide">${apiRoot}</div>
     <div id="g-global-info-staticroot" class="hide">${staticRoot}</div>
-    <script src="${staticRoot}/built/ext.min.js"></script>
-    <script src="${staticRoot}/built/app.min.js"></script>
-    <script src="${staticRoot}/built/main.min.js"></script>
+    <script src="${staticRoot}/built/girder.ext.min.js"></script>
+    <script src="${staticRoot}/built/girder.app.min.js"></script>
+    <script src="${staticRoot}/built/girder.main.min.js"></script>
     % for plugin in pluginJs:
     <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js"></script>
     % endfor

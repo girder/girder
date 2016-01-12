@@ -82,7 +82,7 @@ module.exports = function (grunt) {
         stylus: {
             core: {
                 files: {
-                    'clients/web/static/built/app.min.css': [
+                    'clients/web/static/built/girder.app.min.css': [
                         'clients/web/src/stylesheets/**/*.styl',
                         '!clients/web/src/stylesheets/apidocs/*.styl'
                     ],
@@ -102,7 +102,7 @@ module.exports = function (grunt) {
             },
             ext_css: {
                 files: {
-                    'clients/web/static/built/ext.min.css': [
+                    'clients/web/static/built/girder.ext.min.css': [
                         'node_modules/bootstrap/dist/css/bootstrap.min.css',
                         'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
                         'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
@@ -117,7 +117,7 @@ module.exports = function (grunt) {
             options: uglifyOptions,
             app: {
                 files: {
-                    'clients/web/static/built/app.min.js': [
+                    'clients/web/static/built/girder.app.min.js': [
                         'clients/web/static/built/templates.js',
                         'clients/web/src/init.js',
                         'clients/web/src/girder-version.js',
@@ -132,14 +132,14 @@ module.exports = function (grunt) {
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'
                     ],
-                    'clients/web/static/built/main.min.js': [
+                    'clients/web/static/built/girder.main.min.js': [
                         'clients/web/src/main.js'
                     ]
                 }
             },
             ext_js: {
                 files: {
-                    'clients/web/static/built/ext.min.js': [
+                    'clients/web/static/built/girder.ext.min.js': [
                         'node_modules/jquery/dist/jquery.js',
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
@@ -166,21 +166,32 @@ module.exports = function (grunt) {
             legacy_names: {
                 // Provide static files under old names, for compatibility
                 files: [{
-                    src: ['clients/web/static/built/ext.min.js'],
+                    src: ['clients/web/static/built/girder.app.min.js'],
+                    dest: 'clients/web/static/built/app.min.js'
+                }, {
+                    src: ['clients/web/static/built/girder.app.min.css'],
+                    dest: 'clients/web/static/built/app.min.css'
+                }, {
+                    src: ['clients/web/static/built/girder.main.min.js'],
+                    dest: 'clients/web/static/built/main.min.js'
+                }, {
+                    src: ['clients/web/static/built/girder.ext.min.js'],
                     dest: 'clients/web/static/built/libs.min.js'
                 }, {
                     // This provides more than just Bootstrap, but that no
                     // longer exists as a standalone file
-                    src: ['clients/web/static/built/ext.min.css'],
+                    // Note, girder.ext.min.css was never released as another
+                    // name
+                    src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
                 }, {
-                    src: ['clients/web/static/built/ext.min.css'],
+                    src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css'
                 }, {
-                    src: ['clients/web/static/built/ext.min.css'],
+                    src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
                 }, {
-                    src: ['clients/web/static/built/ext.min.css'],
+                    src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
                 }]
             }
@@ -208,11 +219,7 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'concat:ext_css': {},
-            'symlink:legacy_names': {
-                dependencies: [
-                    'uglify:ext_js', 'concat:ext_css', 'copy:jsoneditor']
-            }
+            'concat:ext_css': {}
         },
 
         default: {
@@ -222,6 +229,9 @@ module.exports = function (grunt) {
             },
             'uglify:app': {
                 dependencies: ['jade:core']
+            },
+            'symlink:legacy_names': {
+                dependencies: ['uglify:app']
             }
         }
     });
