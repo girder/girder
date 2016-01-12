@@ -27,21 +27,24 @@ girder.views.TimelineWidget = girder.View.extend({
      *    timestamps, set this to true.
      * @param [settings.startLabel] Pass to show a label for the start of the timeline.
      * @param [settings.endLabel] Pass to show a label for the end of the timeline.
-     * @param [settings.defaultClass='g-default-timeline-class'] A CSS class for
-     *     to be set on any segment or point that does not specify a class.
+     * @param [settings.defaultSegmentClass='g-segment-default'] A CSS class set
+     *     on segments that do not specify a class.
+     * @param [settings.defaultPointClass='g-point-default'] A CSS class set
+     *     on points that do not specify a class.
      * @param [settings.segments=[]] A list of segments. Each element of the list
      *    should be an object with the following keys:
      *      - start: A number or timestamp representing
      *      - end: A numer of timestamp representing the end of this segment.
-     *      - [class]: A CSS color string used to color the segment. Uses the
-     *                 widget's defaultClass if this key is not set.
+     *      - [class]: A CSS class name to apply to the segment. Uses the
+     *                 widget's defaultSegmentClass if this key is not set.
      *      - [tooltip]: A tooltip value for this segment. Tooltips containing the
      *                   special token "%r" will have that token expanded into the
      *                   elapsed time between start and end.
      * @param [settings.points=[]] A list of points. Each element of the list should
      *    be an object with the following keys:
      *      - time: A number or timestamp representing the location of the point.
-     *      - [class]: A CSS class name to apply to the point.
+     *      - [class]: A CSS class name to apply to the point. Uses the
+     *                 widget's defaultPointClass if this key is not set.
      *      - [tooltip]: A tooltip value for this point. Tooltips containing the
      *                   special token "%t" will have that token expanded into the
      *                   time value for that point.
@@ -54,7 +57,8 @@ girder.views.TimelineWidget = girder.View.extend({
         this.numeric = !!settings.numeric;
         this.startLabel = settings.startLabel;
         this.endLabel = settings.endLabel;
-        this.defaultClass = settings.defaultClass || 'g-default-timeline-class';
+        this.defaultSegmentClass = settings.defaultSegmentClass || 'g-segment-default';
+        this.defaultPointClass = settings.defaultPointClass || 'g-point-default';
 
         this._processData();
     },
@@ -78,7 +82,7 @@ girder.views.TimelineWidget = girder.View.extend({
         this._processedSegments = _.map(this.segments, function (segment) {
             var start = this.numeric ? segment.start : new Date(segment.start);
             var end = this.numeric ? segment.end : new Date(segment.end);
-            var classes = segment.class ? [segment.class] : ['g-segment-default'];
+            var classes = segment.class ? [segment.class] : [this.defaultSegmentClass];
 
             if (segment.tooltip) {
                 classes.push('g-tooltip');
@@ -96,7 +100,7 @@ girder.views.TimelineWidget = girder.View.extend({
 
         this._processedPoints = _.map(this.points, function (point) {
             var time = this.numeric ? point.time : new Date(point.time);
-            var classes = point.class ? [point.class] : ['g-point-default'];
+            var classes = point.class ? [point.class] : [this.defaultPointClass];
 
             if (point.tooltip) {
                 classes.push('g-tooltip');
