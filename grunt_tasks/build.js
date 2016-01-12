@@ -153,7 +153,7 @@ module.exports = function (grunt) {
                         'node_modules/d3/d3.js',
                         'node_modules/as-jqplot/dist/jquery.jqplot.js',
                         'node_modules/as-jqplot/dist/plugins/jqplot.pieRenderer.js',
-                        'clients/web/lib/js/sprintf.js'
+                        'node_modules/sprintf-js/src/sprintf.js'
                     ]
                 }
             }
