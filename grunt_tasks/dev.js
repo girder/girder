@@ -66,10 +66,10 @@ module.exports = function (grunt) {
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
-        var globs = grunt.config('uglify.app.files')['clients/web/static/built/app.min.js'];
+        var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];
         var dependencies = [
             '/clients/web/test/testUtils.js',
-            '/clients/web/static/built/libs.min.js'
+            '/clients/web/static/built/girder.ext.min.js'
         ];
         var inputs = [];
 
@@ -87,10 +87,8 @@ module.exports = function (grunt) {
         fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
             cssFiles: [
                 '/clients/web/static/lib/fontello/css/fontello.css',
-                '/clients/web/static/built/bootstrap.min.css',
-                '/clients/web/static/built/bootstrap-switch.min.css',
-                '/clients/web/static/built/ext.min.css',
-                '/clients/web/static/built/app.min.css'
+                '/clients/web/static/built/girder.ext.min.css',
+                '/clients/web/static/built/girder.app.min.css'
             ],
             jsFilesUncovered: dependencies,
             jsFilesCovered: inputs,
