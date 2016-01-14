@@ -188,14 +188,11 @@ function(add_web_client_test case specFile)
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
   endif()
-  #if(fn_RESOURCE_LOCKS)
-  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy ${fn_RESOURCE_LOCKS})
-  #else()
-  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
-  #endif()
+
   if(fn_TIMEOUT)
     set_property(TEST ${testname} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()
+
   if(fn_BASEURL)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
         "BASEURL=${fn_BASEURL}"
