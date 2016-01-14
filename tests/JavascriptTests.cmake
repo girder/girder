@@ -168,6 +168,10 @@ function(add_web_client_test case specFile)
   set_property(TEST ${testname} PROPERTY FAIL_REGULAR_EXPRESSION
     "View created with no parentView property")
 
+  # Treat plugins as a space separated string for the environment variable
+  # to be set properly
+  string(REPLACE ";" " " plugins "${plugins}")
+
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
     "SPEC_FILE=${specFile}"
     "ASSETSTORE_TYPE=${assetstoreType}"
