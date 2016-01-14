@@ -125,8 +125,8 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT ENABLEDPLUGINS)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT)
+  set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PLUGIN)
