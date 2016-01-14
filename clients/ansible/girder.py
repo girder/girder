@@ -543,7 +543,10 @@ class Resource(object):
         return self.__apply(_id, self.client.delete)
 
     def delete_by_name(self, name):
-        return self.delete(self.resources_by_name[name]['_id'])
+        try:
+            return self.delete(self.resources_by_name[name]['_id'])
+        except KeyError:
+            return {}
 
 class AccessMixin(object):
 

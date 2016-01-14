@@ -74,6 +74,18 @@
         state: absent
       register: test_collection
 
+    - name: Try to delete the text collection again (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          id: "{{ test_collection['gc_return']['_id'] }}"
+          name: "Test Collection"
+        state: absent
+      register: test_collection
+
+
     ############
     # Folder tests
     #
