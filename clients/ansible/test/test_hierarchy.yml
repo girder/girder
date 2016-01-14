@@ -1,0 +1,162 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        port: 8080
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Create an 'alice' user
+    # Don't forget folder list is idempotent, if you
+    # want alice to have public and private folders you
+    # must make sure to specify them!
+    - name: Create 'alice' User with a Test Folder
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Alice"
+          lastName: "Test"
+          login: "alice"
+          password: "letmein"
+          email: "alice.test@kitware.com"
+          folders:
+            - name: "Public"
+            - name: "Private"
+              public: no
+            - name: "Test Folder"
+              description: "A test user folder"
+        state: present
+
+    # Create an 'bill' user
+    - name: Create 'bill' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Bill"
+          lastName: "Test"
+          login: "bill"
+          password: "letmein"
+          email: "bill.test@kitware.com"
+        state: present
+
+    # Create an 'chris' user
+    - name: Create 'chris' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Chris"
+          lastName: "Test"
+          login: "chris"
+          password: "letmein"
+          email: "chris.test@kitware.com"
+        state: present
+
+    - name: Create a test group with users
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: member
+            - login: chris
+              type: admin
+        state: present
+
+
+    - name: Make sure collection is not present
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+        state: absent
+
+    - name: Create collection with a folder
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          folders:
+            - name: "test folder"
+              description: "A test folder"
+      register: test_collection
+
+
+    - name: Add a second folder
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          folders:
+            - name: "test folder"
+              description: "A test folder"
+            - name: "test folder 2"
+              description: "A test folder"
+
+
+    - name: Remove a folder, add another folder
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          folders:
+            - name: "test folder"
+              description: "A test folder"
+            - name: "test folder 3"
+              description: "A test folder"
+
+
+    - name: Remove Test Collection
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+        state: absent
+
+    - name: Create collection with a folder
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          folders:
+            - name: "test folder"
+              description: "A test folder"
+              folders:
+                - name: "test subfolder"
+                - name: "test subfolder 2"
+      register: test_collection

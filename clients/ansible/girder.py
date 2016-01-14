@@ -548,6 +548,7 @@ class Resource(object):
         except KeyError:
             return {}
 
+
 class AccessMixin(object):
 
     def get_access(self, _id):
@@ -557,11 +558,11 @@ class AccessMixin(object):
     def put_access(self, _id, access, public=True):
         current_access = self.get_access(_id)
 
-        if set([tuple(u.values()) for u in access['users']])  ^ \
+        if set([tuple(u.values()) for u in access['users']]) ^ \
            set([(u["id"], u['level']) for u in current_access['users']]):
             self.client.changed = True
 
-        if set([tuple(g.values()) for g in access['groups']])  ^ \
+        if set([tuple(g.values()) for g in access['groups']]) ^ \
            set([(u["id"], u['level']) for u in current_access['groups']]):
             self.client.changed = True
 
@@ -569,6 +570,7 @@ class AccessMixin(object):
                                .format(self.resource_type, _id),
                                dict(access=json.dumps(access),
                                     public="true" if public else "false"))
+
 
 class CollectionResource(AccessMixin, Resource):
     def __init__(self, client):
@@ -649,7 +651,6 @@ class GirderClientModule(GirderClient):
         # Note: if additional types are added o girder this will
         # have to be updated!
         self.access_types = {"member": 0, "moderator": 1, "admin": 2}
-
 
     def __call__(self, module):
         self.module = module
@@ -769,11 +770,10 @@ class GirderClientModule(GirderClient):
     def _get_group_by_name(self, name):
         try:
             # Could potentially fail if we have more 50 groups
-            group = {g['name']:g for g in self.get("group")}['name']
-        except KeyError, HttpError:
+            group = {g['name']: g for g in self.get("group")}['name']
+        except (KeyError, HttpError):
             group = None
         return group
-
 
     def group(self, name, description, users=None, debug=False):
 
@@ -789,14 +789,12 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
-
             if users is not None:
                 ret["added"] = []
                 ret["removed"] = []
                 ret["updated"] = []
 
                 group_id = ret['_id']
-
 
                 # Validate and normalize the user list
                 for user in users:
@@ -853,8 +851,10 @@ class GirderClientModule(GirderClient):
                                                      {"level": 0})['level']
                                      for m in members.values()}
 
-                    ret = self._promote_or_demote_in_group(ret, member_levels,
-                                                           user_levels, group_id)
+                    ret = self._promote_or_demote_in_group(ret,
+                                                           member_levels,
+                                                           user_levels,
+                                                           group_id)
 
                 # Make sure 'changed' is handled correctly if we've
                 # manipulated the group's users in any way
@@ -943,12 +943,12 @@ class GirderClientModule(GirderClient):
         return ret
 
     def folder(self, name, parentId, parentType, description=None,
-               public=True, access=None, debug=False):
+               public=True, folders=None, access=None, debug=False):
 
         ret = {}
 
-        assert parentType in ['collection', 'folder'], \
-            "parentType must collection or folder"
+        assert parentType in ['collection', 'folder', 'user'], \
+            "parentType must be collection or folder"
 
         r = FolderResource(self, parentType, parentId)
         valid_fields = [("name", name),
@@ -965,11 +965,13 @@ class GirderClientModule(GirderClient):
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
+            if folders is not None:
+                self._process_folders(folders, ret["_id"], "folder")
+
             # handle access here
             if access is not None:
                 _id = ret['_id']
                 ret['access'] = self._access(r, access, _id, public=public)
-
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
@@ -987,7 +989,7 @@ class GirderClientModule(GirderClient):
 
             # Hash of name -> group information
             # used to get user id's for access control lists
-            all_groups = {g['name']:g for g in self.get("group")}
+            all_groups = {g['name']: g for g in self.get("group")}
 
             access_list['groups'] = [{'id': all_groups[g['name']]["_id"],
                                       'level': self.access_types[g['type']]}
@@ -1009,8 +1011,44 @@ class GirderClientModule(GirderClient):
 
         return r.put_access(_id, access_list, public=public)
 
+    def _process_folders(self, folders, parentId, parentType):
+        """Process a list of folders from a user or collection.
+
+        :param folders: List of folders passed as attribute
+                        to user or collection
+        :param parentId: ID of the user or the collection
+        :param parentType: one of 'user' or 'collection'
+        :returns: Nothing
+        :rtype: None
+
+        """
+
+        current_folders = {f['name']: f for f in
+                           self.get("folder", {"parentType": parentType,
+                                               "parentId": parentId})}
+        # Add, update or noop listed folders
+        for folder in folders:
+            # some validation of folder here would be a good idea
+            kwargs = folder.copy()
+            del kwargs['name']
+            self.folder(folder['name'],
+                        parentId=parentId,
+                        parentType=parentType,
+                        **kwargs)
+
+        # Make sure we remove folders not listed
+        for name in (set(current_folders.keys()) -
+                     set([f['name'] for f in folders])):
+
+            original_state = self.module.params['state']
+            self.module.params['state'] = "absent"
+            self.folder(name,
+                        parentId=parentId,
+                        parentType=parentType)
+            self.module.params['state'] = original_state
+
     def collection(self, name, description=None,
-                   public=True, access=None, debug=False):
+                   public=True, access=None, folders=None, debug=False):
 
         ret = {}
         r = CollectionResource(self)
@@ -1024,6 +1062,8 @@ class GirderClientModule(GirderClient):
             else:
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
+        if folders is not None:
+            self._process_folders(folders, ret["_id"], "collection")
 
         if access is not None:
             _id = ret['_id']
@@ -1078,7 +1118,7 @@ class GirderClientModule(GirderClient):
         return ret
 
     def user(self, login, password, firstName=None,
-             lastName=None, email=None, admin=False):
+             lastName=None, email=None, admin=False, folders=None):
 
         if self.module.params['state'] == 'present':
 
@@ -1123,6 +1163,11 @@ class GirderClientModule(GirderClient):
                     "admin": "true" if admin else "false"
                 })
                 self.changed = True
+
+            if folders is not None:
+                _id = self.get("resource/lookup",
+                               {"path": "/user/{}".format(login)})["_id"]
+                self._process_folders(folders, _id, "user")
 
         elif self.module.params['state'] == 'absent':
             ret = []
