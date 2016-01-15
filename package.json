@@ -59,6 +59,6 @@
   },
   "scripts": {
     "postinstall": "grunt init && grunt",
-    "lint": "eslint --cache ."
+    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts"
   }
 }
