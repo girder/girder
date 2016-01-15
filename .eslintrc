@@ -4,12 +4,20 @@
         "indent": [2, 4, {"SwitchCase": 1}],
         "space-before-function-paren": [2, {"anonymous": "always", "named": "never"}],
         "one-var": 0,
-        "no-throw-literal": 1
+        "no-throw-literal": 1,
+        "backbone/collection-model": 1,
+        "backbone/model-defaults": 1,
+        "backbone/no-model-attributes": 1,
+        "backbone/no-view-onoff-binding": 1,
+        "backbone/no-view-collection-models": 1
     },
     "env": {
         "browser": true,
         "jquery": true
     },
+    "plugins": [
+        "backbone"
+    ],
     "globals": {
         "_": true,
         "girder": true,
@@ -17,5 +25,19 @@
         "marked": true,
         "JSONEditor": true,
         "sprintf": true
+    },
+    "settings": {
+        "backbone": {
+            "Collection": [
+                "girder.Collection"
+            ],
+            "Model": [
+                "girder.Model"
+            ],
+            "View": [
+                "girder.View",
+                "girder.views.MetadatumEditWidget"
+            ]
+        }
     }
 }
