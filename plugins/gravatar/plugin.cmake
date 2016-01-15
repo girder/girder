@@ -4,7 +4,7 @@ add_python_style_test(
   "${PROJECT_SOURCE_DIR}/plugins/gravatar/server"
 )
 
-add_javascript_style_test(
+add_eslint_test(
     gravatar
     "${PROJECT_SOURCE_DIR}/plugins/gravatar/web_client/js"
 )

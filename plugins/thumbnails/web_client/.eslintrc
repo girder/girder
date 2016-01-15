@@ -1,0 +1,6 @@
+{
+    "extends": "../../../.eslintrc",
+    "rules": {
+        "new-cap": 0
+    }
+}

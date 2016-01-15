@@ -59,6 +59,10 @@ function(add_javascript_style_test name input)
     return()
   endif()
 
+  message(
+    AUTHOR_WARNING
+    "The use of 'add_javascript_style_test' is deprecated.  Use 'add_eslint_test' for JavaScript static analysis."
+  )
   set(_args JSHINT_EXTRA_CONFIGS JSSTYLE_EXTRA_CONFIGS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
