@@ -440,7 +440,7 @@ that can be used to import content:
 Linting and Style Checking Client-Side Code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Girder's uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
+Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
 own JavaScript files.  Developers can easily add the same static analysis
 tests to their own plugins using a CMake function call defined by Girder.
 
