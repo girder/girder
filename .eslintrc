@@ -9,14 +9,34 @@
         "backbone/model-defaults": 1,
         "backbone/no-model-attributes": 1,
         "backbone/no-view-onoff-binding": 1,
-        "backbone/no-view-collection-models": 1
+        "backbone/no-view-collection-models": 1,
+        "underscore/collection-return": 2,
+        "underscore/matches-shorthand": [2, "always"],
+        "underscore/no-unnecessary-bind": 2,
+        "underscore/prefer-compact": 2,
+        "underscore/prefer-constant": 2,
+        "underscore/prefer-filter": 2,
+        "underscore/prefer-findwhere": 2,
+        "underscore/prefer-invoke": 2,
+        "underscore/prefer-map": 2,
+        "underscore/prefer-matches": 2,
+        "underscore/prefer-noop": 1,
+        "underscore/prefer-pluck": 2,
+        "underscore/prefer-reject": 2,
+        "underscore/prefer-times": 2,
+        "underscore/prefer-underscore-method": 1,
+        "underscore/prefer-underscore-typecheck": 1,
+        "underscore/prefer-where": 2,
+        "underscore/preferred-alias": 2,
+        "underscore/prop-shorthand": [2, "always"]
     },
     "env": {
         "browser": true,
         "jquery": true
     },
     "plugins": [
-        "backbone"
+        "backbone",
+        "underscore"
     ],
     "globals": {
         "_": true,
