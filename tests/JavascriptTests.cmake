@@ -111,9 +111,9 @@ function(add_web_client_test case specFile)
   #     running the test.  Defaults to 'filesystem'
   # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
   #     'true'
-  # ENABLEDPLUGINS (list of plugins): A list of plugins to load.  If PLUGIN is
-  #     specified, this overrides loading that plugin, so it probably should be
-  #     included in this list, too.
+  # ENABLEDPLUGINS (list of plugins): A list of plugins to load. This overrides the
+  # PLUGIN parameter, so if you intend to load PLUGIN it must be included in this
+  # list.
   # RESOURCE_LOCKS (list of resources): A list of resources that this test
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.

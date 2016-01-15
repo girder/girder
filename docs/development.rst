@@ -223,6 +223,14 @@ and then run in your build directory ::
 
 before running your tests.
 
+A client side test can specify several options, including which plugins should be loaded at the time of the test, for example ::
+
+    add_web_client_test(some_client_test "someSpec.js" ENABLEDPLUGINS "gravatar" "jobs")
+
+would add a test which ensured the gravatar and jobs plugins were loaded when run.
+
+.. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
+
 You will find many useful methods for client side testing in the ``girderTest`` object
 defined at ``/clients/web/test/testUtils.js``.
 
