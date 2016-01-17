@@ -255,16 +255,18 @@ Girder's standard procedure is to use a tool like
 third-party library requirements on a quarterly basis (typically near the dates
 of the solstices and equinoxes). Library packages should generally be upgraded
 to the latest released version, except when:
-1. Doing so would introduce any new unfixable bugs or regressions.
-2. Other closely-affiliated projects (e.g.
-   `Romanesco <https://romanesco.readthedocs.org/>`_ use the same library *and*
-   the other project cannot also feasibly be upgraded simultaneously.
-3. The library has undergone a major API change, and development resources do
-   not permit updating Girder accordingly *or* Girder exposes parts
-   of the library as members of Girder's API surface (e.g. CherryPy) and
-   upgrading would cause incompatible API changes to be exposed. In this
-   case, the library should still be upgraded to the highest non-breaking
-   version that is available at the time.
+
+* Doing so would introduce any new unfixable bugs or regressions.
+* Other closely-affiliated projects (e.g.
+  `Romanesco <https://romanesco.readthedocs.org/>`_,
+  `Minerva <https://minervadocs.readthedocs.org/>`_) use the same library *and*
+  the other project cannot also feasibly be upgraded simultaneously.
+* The library has undergone a major API change, and development resources do
+  not permit updating Girder accordingly *or* Girder exposes parts of the
+  library as members of Girder's API surface (e.g. CherryPy) and upgrading
+  would cause incompatible API changes to be exposed. In this case, the library
+  should still be upgraded to the highest non-breaking version that is
+  available at the time.
 
 .. note:: In the event that a security vulnerability is discovered in a
    third-party library used by Girder, the library *must* be upgraded to patch
