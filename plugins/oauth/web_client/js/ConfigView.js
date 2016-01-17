@@ -31,7 +31,7 @@ girder.views.oauth_ConfigView = girder.View.extend({
         }, {
             id: 'github',
             name: 'GitHub',
-            icon: 'github',
+            icon: 'github-circled',
             hasAuthorizedOrigins: false,
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your GitHub account settings. ' +
