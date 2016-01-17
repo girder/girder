@@ -20,6 +20,7 @@
 import random
 
 from .. import base
+from girder.constants import SettingKey, TokenScope
 from girder.models.token import genToken
 
 
@@ -42,7 +43,7 @@ class TokensTestCase(base.TestCase):
 
         self.assertNotEqual(token1, token2)
 
-    def testGetAndDeleteSessiona(self):
+    def atestGetAndDeleteSessiona(self):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
         token = resp.json['token']
@@ -74,4 +75,47 @@ class TokensTestCase(base.TestCase):
         self.assertStatusOk(resp)
         # Now the token is gone, so it should fail
         resp = self.request(path='/token/session', method='DELETE', token=token)
+        self.assertStatus(resp, 401)
+
+    def testTokenScopes(self):
+        admin = self.model('user').createUser(
+            email='admin@admin.com', firstName='admin', lastName='admin',
+            login='admin', password='passwd')
+        nonadmin = self.model('user').createUser(
+            email='normal@normal.com', firstName='normal', lastName='normal',
+            login='normal', password='passwd')
+        adminSettingToken = self.model('token').createToken(
+            user=admin, scope=TokenScope.READ_SETTINGS)
+        adminEmailToken = self.model('token').createToken(
+            user=admin, scope=TokenScope.USER_EMAIL_READ)
+        nonadminToken = self.model('token').createToken(
+            user=nonadmin, scope=TokenScope.READ_SETTINGS)
+
+        # Reading settings as admin should work
+        params = {'key': SettingKey.SMTP_PORT}
+        path = '/system/setting'
+        resp = self.request(path=path, params=params, user=admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 25)
+
+        # Reading setting as non-admin should fail
+        resp = self.request(path=path, params=params, user=nonadmin)
+        self.assertStatus(resp, 403)
+
+        # Reading settings with a properly scoped token should work
+        resp = self.request(path=path, params=params, token=adminSettingToken)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 25)
+
+        # Reading settings with an improperly scoped token should fail
+        resp = self.request(path=path, params=params, token=adminEmailToken)
+        self.assertStatus(resp, 401)
+
+        # Non-admin user with this token scope should still not work
+        resp = self.request(path=path, params=params, token=nonadminToken)
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Administrator access required.')
+
+        # The setting-scope token should not grant access to other endpoints
+        resp = self.request(path='/assetstore', token=adminSettingToken)
         self.assertStatus(resp, 401)

@@ -170,7 +170,8 @@ def getCurrentUser(returnToken=False):
         return retVal(None, token)
     else:
         try:
-            ensureTokenScopes(token, TokenScope.USER_AUTH)
+            ensureTokenScopes(token, getattr(
+                cherrypy.request, 'requiredScopes', TokenScope.USER_AUTH))
         except AccessException:
             return retVal(None, token)
 
@@ -479,6 +480,9 @@ def ensureTokenScopes(token, scope):
     :type scope: str or list of str
     """
     tokenModel = ModelImporter.model('token')
+    if tokenModel.hasScope(token, TokenScope.USER_AUTH):
+        return
+
     if not tokenModel.hasScope(token, scope):
         setattr(cherrypy.request, 'girderUser', None)
         if isinstance(scope, six.string_types):
@@ -697,6 +701,9 @@ class Resource(ModelImporter):
             kwargs = self._matchRoute(path, route)
             if kwargs is False:
                 continue
+
+            cherrypy.request.requiredScopes = getattr(
+                handler, 'requiredScopes', None) or TokenScope.USER_AUTH
 
             if hasattr(handler, 'cookieAuth'):
                 if isinstance(handler.cookieAuth, tuple):

@@ -46,11 +46,10 @@ def admin(*args, **kwargs):
         def dec(fun):
             @six.wraps(fun)
             def wrapped(*iargs, **ikwargs):
-                token = rest.getCurrentToken()
-                if not _tokenModel.hasScope(token, kwargs.get('scope')):
-                    rest.requireAdmin(rest.getCurrentUser())
+                rest.requireAdmin(rest.getCurrentUser())
                 return fun(*iargs, **ikwargs)
             wrapped.accessLevel = 'admin'
+            wrapped.requiredScopes = kwargs.get('scope')
             return wrapped
         return dec
 
