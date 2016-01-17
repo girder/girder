@@ -10,9 +10,11 @@
       label.control-label(for="g-role") Select a role for this user
       .panel-group#g-invite-role-container
         .panel.panel-default
-          .panel-heading: .panel-title
-            a(data-toggle="collapse", data-parent="#g-invite-role-container",
-              href="#g-invite-role-member") Invite as member
+          .panel-heading(data-toggle="collapse",
+                         data-parent="#g-invite-role-container",
+                         data-target="#g-invite-role-member")
+            .panel-title
+              a Invite as member
           #g-invite-role-member.panel-collapse.collapse.in
             .panel-body
               p.
@@ -29,9 +31,11 @@
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
-            .panel-heading: .panel-title
-              a(data-toggle="collapse", data-parent="#g-invite-role-container",
-                href="#g-invite-role-moderator") Invite as moderator
+            .panel-heading(data-toggle="collapse",
+                           data-parent="#g-invite-role-container",
+                           data-target="#g-invite-role-moderator")
+              .panel-title
+                a Invite as moderator
             #g-invite-role-moderator.panel-collapse.collapse
               .panel-body
                 p.
@@ -47,9 +51,11 @@
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
-            .panel-heading: .panel-title
-              a(data-toggle="collapse", data-parent="#g-invite-role-container",
-                href="#g-invite-role-admin") Invite as administrator
+            .panel-heading(data-toggle="collapse",
+                           data-parent="#g-invite-role-container",
+                           data-target="#g-invite-role-moderator")
+              .panel-title
+                a Invite as administrator
             #g-invite-role-admin.panel-collapse.collapse
               .panel-body
                 p.

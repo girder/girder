@@ -6,10 +6,11 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
 .panel-group#g-oauth-provider-accordion
   each provider in providers
     .panel.panel-default
-      .panel-heading
+      .panel-heading(data-toggle="collapse",
+                     data-parent="#g-oauth-provider-accordion",
+                     data-target="#g-oauth-provider-#{provider.id}")
         .panel-title
-          a(data-toggle="collapse", data-parent="#g-oauth-provider-accordion",
-            href="#g-oauth-provider-#{provider.id}")
+          a
             i(class="icon-#{provider.icon}")
             |  #{provider.name}
       .panel-collapse.collapse(id="g-oauth-provider-#{provider.id}")

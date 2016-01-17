@@ -1,9 +1,10 @@
 .panel-group#g-assetstore-accordion
   .panel.panel-default
-    .panel-heading
+    .panel-heading(data-toggle="collapse",
+                   data-parent="#g-assetstore-accordion",
+                   data-target="#g-create-fs-tab")
       .panel-title
-        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
-          href="#g-create-fs-tab")
+        a
           i.icon-hdd
           |  Create new
           b  Filesystem
@@ -33,10 +34,11 @@
 
 
   .panel.panel-default
-    .panel-heading
+    .panel-heading(data-toggle="collapse",
+                   data-parent="#g-assetstore-accordion",
+                   data-target="#g-create-gridfs-tab")
       .panel-title
-        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
-          href="#g-create-gridfs-tab")
+        a
           i.icon-leaf
           |  Create new
           b  GridFS
@@ -74,10 +76,11 @@
 
 
   .panel.panel-default
-    .panel-heading
+    .panel-heading(data-toggle="collapse",
+                   data-parent="#g-assetstore-accordion",
+                   data-target="#g-create-s3-tab")
       .panel-title
-        a(data-toggle="collapse", data-parent="#g-assetstore-accordion",
-          href="#g-create-s3-tab")
+        a
           i.icon-upload-cloud
           |  Create new
           b  Amazon S3
