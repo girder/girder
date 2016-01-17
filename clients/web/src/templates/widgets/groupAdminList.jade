@@ -1,6 +1,6 @@
 .g-group-admins-header.g-group-list-header(title="Group administrators can edit group properties and can add, invite, and remove group members, moderators, and administrators.")
   i.icon-star
-  |  Administrators
+  span Administrators
 
 .g-group-admins-body
   ul.g-group-admins
@@ -8,7 +8,7 @@
       li(userid="#{userAccess.id}", username="#{userAccess.name}")
         a.g-member-name
           i.icon-user
-          |  #{userAccess.name} (#{userAccess.login})
+          span #{userAccess.name} (#{userAccess.login})
         .g-group-member-controls.pull-right
           if level >= accessType.ADMIN
             span.dropdown
@@ -28,4 +28,4 @@
     if (!admins.length)
       .g-member-list-empty
         i.icon-info-circled
-        |  There are no administrators in this group.
+        span There are no administrators in this group.

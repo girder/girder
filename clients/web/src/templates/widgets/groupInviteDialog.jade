@@ -5,9 +5,9 @@
       h4.modal-title Invite user to group
       .g-dialog-subtitle
         i.icon-user
-        | #{user.text}
+        span #{user.text}
     .modal-body
-      label.control-label(for="g-role") Select a role for this user
+      label.control-label Select a role for this user
       .panel-group#g-invite-role-container
         .panel.panel-default
           .panel-heading(data-toggle="collapse",
@@ -23,11 +23,11 @@
                 group, but may not change properties of the group.
               .g-invite-as-member.btn.btn-primary
                 i.icon-mail
-                |  Invite as member
+                span Invite as member
               if mayAdd
                 .g-add-as-member.btn.btn-warning.g-add-user-button
                   i.icon-plus
-                  | Add as member
+                  span Add as member
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
@@ -43,11 +43,11 @@
                   granted the power to add and remove users from the group.
                 .g-invite-as-moderator.btn.btn-primary
                   i.icon-mail
-                  |  Invite as moderator
+                  span Invite as moderator
                 if mayAdd
                   .g-add-as-moderator.btn.btn-warning.g-add-user-button
                     i.icon-plus
-                    | Add as moderator
+                    span Add as moderator
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
@@ -65,11 +65,11 @@
                   group entirely.
                 .g-invite-as-admin.btn.btn-primary
                   i.icon-mail
-                  |  Invite as administrator
+                  span Invite as administrator
                 if mayAdd
                   .g-add-as-admin.btn.btn-warning.g-add-user-button
                     i.icon-plus
-                    | Add as administrator
+                    span Add as administrator
 
       .g-validation-failed-message
     .modal-footer

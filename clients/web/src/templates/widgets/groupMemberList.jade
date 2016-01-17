@@ -1,6 +1,6 @@
 .g-group-members-header.g-group-list-header
   i.icon-users
-  |  Members
+  span Members
   if level >= accessType.WRITE
     form.g-group-invite-form.form-inline(role="form")
       span: i.icon-mail-alt
@@ -12,12 +12,12 @@
       li(cid="#{member.cid}")
         a.g-member-name
           i.icon-user
-          |  #{member.name()} (#{member.get('login')})
+          span #{member.name()} (#{member.get('login')})
         .g-group-member-controls.pull-right
           if level >= accessType.ADMIN
             span.dropdown
               a.g-group-member-promote.dropdown-toggle(title="Promote user",
-                data-toggle="dropdown")
+                                                       data-toggle="dropdown")
                 i.icon-up-big
                 i.icon-down-dir
               ul.dropdown-menu.pull-right(role="menu")
@@ -33,4 +33,4 @@
     if (!members.length)
       .g-member-list-empty
         i.icon-info-circled
-        |  There are no members in this group.
+        span There are no members in this group.

@@ -12,7 +12,7 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
         .panel-title
           a
             i(class="icon-#{provider.icon}")
-            |  #{provider.name}
+            span #{provider.name}
       .panel-collapse.collapse(id="g-oauth-provider-#{provider.id}")
         .panel-body
           p= provider.instructions
