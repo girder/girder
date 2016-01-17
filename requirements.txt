@@ -36,4 +36,3 @@ kombu==3.0.33
 MarkupSafe==0.23
 protobuf==2.6.1
 pycparser==2.14
-wheel==0.24.0
