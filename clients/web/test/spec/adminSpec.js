@@ -152,7 +152,7 @@ describe('Test the assetstore page', function () {
         it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[href='#"+tab+"']").click();
+                $("[data-target='#"+tab+"']").click();
             });
             waitsFor(function () {
                 return $('#'+tab+' .g-new-assetstore-submit:visible').length > 0;
