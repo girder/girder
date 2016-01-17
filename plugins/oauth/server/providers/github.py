@@ -89,7 +89,7 @@ class GitHub(ProviderBase):
         emails = [
             email.get('email')
             for email in resp
-            if email.get('primary')
+            if email.get('primary') and email.get('verified')
         ]
         if not emails:
             raise RestException(
