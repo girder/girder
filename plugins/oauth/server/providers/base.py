@@ -111,8 +111,8 @@ class ProviderBase(model_importer.ModelImporter):
             resp.raise_for_status()
         except requests.HTTPError:
             raise RestException(
-                'Got %s from %s, response="%s".' % (
-                    resp.status_code, kwargs['url'], content
+                'Got %s code from provider, response="%s".' % (
+                    resp.status_code, content
                 ), code=502)
 
         try:
