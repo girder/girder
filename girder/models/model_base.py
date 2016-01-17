@@ -25,6 +25,7 @@ import re
 import six
 
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
     TEXT_SCORE_SORT_MAX
@@ -446,12 +447,12 @@ class Model(ModelImporter):
         :returns: The matching document, or None.
         """
         if not id:
-            raise Exception('Attempt to load null ObjectId: %s' % id)
+            raise ValidationException('Attempt to load null ObjectId: %s' % id)
 
         if objectId and type(id) is not ObjectId:
             try:
                 id = ObjectId(id)
-            except Exception:
+            except InvalidId:
                 raise ValidationException('Invalid ObjectId: {}'.format(id),
                                           field='id')
         doc = self.findOne({'_id': id}, fields=fields)
