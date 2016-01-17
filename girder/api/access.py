@@ -76,11 +76,11 @@ def user(*args, **kwargs):
             @six.wraps(fun)
             def wrapped(*iargs, **ikwargs):
                 token = rest.getCurrentToken()
-                if (not _tokenModel.hasScope(token, kwargs.get('scope')) and
-                        not rest.getCurrentUser()):
+                if not rest.getCurrentUser():
                     raise AccessException('You must be logged in.')
                 return fun(*iargs, **ikwargs)
             wrapped.accessLevel = 'user'
+            wrapped.requiredScopes = kwargs.get('scope')
             return wrapped
         return dec
 
