@@ -417,7 +417,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 400,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             try:
@@ -428,7 +428,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 401,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             try:
@@ -441,7 +441,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 400,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             returnQuery = urllib.parse.urlencode({
@@ -468,7 +468,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 401,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             try:
@@ -490,7 +490,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 400,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             return json.dumps({
@@ -519,7 +519,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 401,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             return json.dumps({
@@ -614,7 +614,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 404,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             try:
@@ -628,7 +628,7 @@ class OauthTest(base.TestCase):
                     ['user:email'])
             except (KeyError, AssertionError) as e:
                 returnQuery = urllib.parse.urlencode({
-                    'error': e.message,
+                    'error': repr(e),
                 })
             else:
                 returnQuery = urllib.parse.urlencode({
@@ -655,7 +655,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 404,
                     'content': json.dumps({
-                        'error': e.message
+                        'error': repr(e)
                     })
                 }
             try:
@@ -672,8 +672,8 @@ class OauthTest(base.TestCase):
                     providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
-                    'error': e.message,
-                    'error_description': e.message
+                    'error': repr(e),
+                    'error_description': repr(e)
                 })
             else:
                 returnBody = json.dumps({
@@ -704,7 +704,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 401,
                     'content': json.dumps({
-                        'message': e.message
+                        'message': repr(e)
                     })
                 }
             return json.dumps({
@@ -728,7 +728,7 @@ class OauthTest(base.TestCase):
                 return {
                     'status_code': 401,
                     'content': json.dumps({
-                        'message': e.message
+                        'message': repr(e)
                     })
                 }
             return json.dumps([
