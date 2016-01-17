@@ -75,7 +75,6 @@ def user(*args, **kwargs):
         def dec(fun):
             @six.wraps(fun)
             def wrapped(*iargs, **ikwargs):
-                token = rest.getCurrentToken()
                 if not rest.getCurrentUser():
                     raise AccessException('You must be logged in.')
                 return fun(*iargs, **ikwargs)
@@ -106,26 +105,30 @@ def token(*args, **kwargs):
         def dec(fun):
             @six.wraps(fun)
             def wrapped(*iargs, **ikwargs):
-                token = rest.getCurrentToken()
-                if not _tokenModel.hasScope(token, kwargs.get('scope')):
+                if not rest.getCurrentToken():
                     raise AccessException(
                         'You must be logged in or have a valid auth token.')
                 return fun(*iargs, **ikwargs)
             wrapped.accessLevel = 'token'
+            wrapped.requiredScopes = kwargs.get('scope')
             return wrapped
         return dec
 
 
-def public(fun):
+def public(*args, **kwargs):
     """
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
     """
-    @six.wraps(fun)
-    def accessDecorator(*args, **kwargs):
-        return fun(*args, **kwargs)
-    accessDecorator.accessLevel = 'public'
-    return accessDecorator
+    if len(args) == 1 and callable(args[0]):  # Raw decorator
+        args[0].accessLevel = 'public'
+        return args[0]
+    else:  # We should return a decorator
+        def dec(fun):
+            fun.accessLevel = 'public'
+            fun.requiredScopes = kwargs.get('scope')
+            return fun
+        return dec
 
 
 def cookie(*args, **kwargs):
