@@ -1,7 +1,8 @@
 div(class="g-#{type}-access-entry", resourceid="#{entry.id}")
   .g-access-col-left
     - var icon = type === 'group' ? 'users' : 'user';
-    .g-access-icon: i(class="icon-#{icon}")
+    .g-access-icon
+      i(class="icon-#{icon}")
     .g-access-desc
       .g-desc-title #{entry.title}
       .g-desc-subtitle #{entry.subtitle}

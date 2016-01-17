@@ -17,12 +17,14 @@
                 i.icon-down-big
                 i.icon-down-dir
               ul.dropdown-menu.pull-right(role="menu")
-                li(role="presentation"): a.g-demote-moderator(role="menuitem")
-                  i.icon-minus
-                  | Demote to moderator
-                li(role="presentation"): a.g-demote-member(role="menuitem")
-                  i.icon-minus
-                  | Demote to member
+                li(role="presentation")
+                  a.g-demote-moderator(role="menuitem")
+                    i.icon-minus
+                    span Demote to moderator
+                li(role="presentation")
+                  a.g-demote-member(role="menuitem")
+                    i.icon-minus
+                    span Demote to member
             a.g-group-admin-remove(title="Remove user from the group")
               i.icon-block
     if (!admins.length)
