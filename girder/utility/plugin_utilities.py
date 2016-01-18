@@ -38,6 +38,7 @@ import yaml
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
+from girder.models.model_base import ValidationException
 from girder.utility import mail_utils, config
 
 
@@ -101,6 +102,10 @@ def getToposortedPlugins(plugins, curConfig=None):
     visited = set()
 
     def addDeps(plugin):
+        if plugin not in allPlugins:
+            raise ValidationException(
+                'Required plugin %s does not exist.' % plugin)
+
         deps = allPlugins[plugin]['dependencies']
         dag[plugin] = deps
 
@@ -297,7 +302,6 @@ def findAllPlugins(curConfig=None):
                                 ('ERROR: Plugin "%s": '
                                  'plugin.json is not valid JSON.') % plugin))
                         print(e)
-                        continue
             elif os.path.isfile(configYml):
                 with open(configYml) as conf:
                     try:
@@ -308,7 +312,6 @@ def findAllPlugins(curConfig=None):
                                 ('ERROR: Plugin "%s": '
                                  'plugin.yml is not valid YAML.') % plugin))
                         print(e)
-                        continue
 
             allPlugins[plugin] = {
                 'name': data.get('name', plugin),

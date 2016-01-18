@@ -22,7 +22,7 @@ import cherrypy
 import six
 
 from ..constants import SettingDefault
-from .model_base import Model, ValidationException, GirderException
+from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 from bson.objectid import ObjectId
 
