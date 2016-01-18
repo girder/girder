@@ -121,7 +121,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, curConfig=curConfig)
+        plugins, root, appconf, root.api.v1, curConfig=curConfig,
+        buildDag=False)
 
     return root, appconf
 

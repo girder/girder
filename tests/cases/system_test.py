@@ -259,8 +259,8 @@ class SystemTestCase(base.TestCase):
                                   'test_plugins')
         conf = config.getConfig()
         conf['plugins'] = {'plugin_directory': pluginRoot}
-        # Try to enable a good plugin and a bad plugin.  Only the good plugin
-        # should be enabled.
+
+        # Enabling plugins with bad JSON/YML should still work.
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
             params={'plugins': '["test_plugin","bad_json","bad_yaml"]'})
