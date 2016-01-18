@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-
+from girder import events
 from girder.models.notification import ProgressState
 
 JOB_HANDLER_LOCAL = 'jobs._local'
@@ -34,6 +34,11 @@ class JobStatus(object):
 
     @staticmethod
     def isValid(status):
+        event = events.trigger('jobs.status.validate', info=status)
+
+        if event.defaultPrevented and len(event.responses):
+            return event.responses[-1]
+
         return status in (JobStatus.INACTIVE, JobStatus.QUEUED,
                           JobStatus.RUNNING, JobStatus.SUCCESS, JobStatus.ERROR,
                           JobStatus.CANCELED)

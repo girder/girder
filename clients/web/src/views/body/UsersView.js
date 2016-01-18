@@ -27,6 +27,7 @@ girder.views.UsersView = girder.View.extend({
         this.searchWidget = new girder.views.SearchFieldWidget({
             placeholder: 'Search users...',
             types: ['user'],
+            modes: 'prefix',
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
     },

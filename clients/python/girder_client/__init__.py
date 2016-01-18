@@ -218,7 +218,7 @@ class GirderClient(object):
         })
 
         # If success, return the json object. Otherwise throw an exception.
-        if result.status_code == 200:
+        if result.status_code in [200, 201]:
             return result.json()
         # TODO handle 300-level status (follow redirect?)
         else:
@@ -229,8 +229,9 @@ class GirderClient(object):
     def get(self, path, parameters=None):
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None):
-        return self.sendRestRequest('POST', path, parameters, files=files)
+    def post(self, path, parameters=None, files=None, data=None):
+        return self.sendRestRequest('POST', path, parameters, files=files,
+                                    data=data)
 
     def put(self, path, parameters=None, data=None):
         return self.sendRestRequest('PUT', path, parameters, data=data)

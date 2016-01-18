@@ -138,11 +138,14 @@ class Description(object):
                    required=False, dataType='int')
         self.param('offset', 'Offset into result set.', default=0,
                    required=False, dataType='int')
-        self.param('sort', 'Field to sort the result set by.',
-                   default=defaultSort, required=False)
-        self.param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
-                   required=False, dataType='int', enum=(1, -1),
-                   default=defaultSortDir)
+
+        if defaultSort is not None:
+            self.param('sort', 'Field to sort the result set by.',
+                       default=defaultSort, required=False)
+            self.param(
+                'sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+                required=False, dataType='int', enum=(1, -1),
+                default=defaultSortDir)
         return self
 
     def consumes(self, value):

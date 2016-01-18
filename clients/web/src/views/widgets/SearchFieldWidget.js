@@ -5,19 +5,15 @@
  */
 girder.views.SearchFieldWidget = girder.View.extend({
     events: {
-        'input .g-search-field': function () {
-            var q = this.$('.g-search-field').val();
+        'input .g-search-field': 'search',
 
-            if (!q) {
-                this.hideResults();
-                return;
-            }
+        'click .g-search-mode-radio': function (e) {
+            this.currentMode = $(e.target).val();
+            this.hideResults().search();
 
-            if (this.ajaxLock) {
-                this.pending = q;
-            } else {
-                this._doSearch(q);
-            }
+            window.setTimeout(_.bind(function () {
+                this.$('.g-search-mode-choose').popover('hide');
+            }, this), 250);
         },
 
         'click .g-search-result>a': function (e) {
@@ -53,6 +49,23 @@ girder.views.SearchFieldWidget = girder.View.extend({
         }
     },
 
+    search: function () {
+        var q = this.$('.g-search-field').val();
+
+        if (!q) {
+            this.hideResults();
+            return this;
+        }
+
+        if (this.ajaxLock) {
+            this.pending = q;
+        } else {
+            this._doSearch(q);
+        }
+
+        return this;
+    },
+
     _resultClicked: function (link) {
         this.trigger('g:resultClicked', {
             type: link.attr('resourcetype'),
@@ -63,11 +76,15 @@ girder.views.SearchFieldWidget = girder.View.extend({
     },
 
     /**
-     * @param [placeholder="Search..."] The placeholder text for the input field.
-     * @param [getInfoCallback] For custom resource types, this callback can
+     * @param [settings.placeholder="Search..."] The placeholder text for the input field.
+     * @param [settings.getInfoCallback] For custom resource types, this callback can
      *        be passed in to resolve their title and icon. This callback should
      *        return an object with "icon" and "text" fields if it can resolve
      *        the result, or return falsy otherwise.
+     * @param [settings.modes=["text", "prefix"]] A string or list of strings
+     *        representing the allowed search modes. Supported modes: "text", "prefix".
+     *        If multiple are allowed, users are able to select which one to use
+     *        via a dropdown.
      */
     initialize: function (settings) {
         this.ajaxLock = false;
@@ -76,11 +93,20 @@ girder.views.SearchFieldWidget = girder.View.extend({
         this.placeholder = settings.placeholder || 'Search...';
         this.getInfoCallback = settings.getInfoCallback || null;
         this.types = settings.types || [];
+        this.modes = settings.modes || ['text', 'prefix'];
+
+        if (!(this.modes instanceof Array)) {
+            this.modes = [this.modes];
+        }
+
+        this.currentMode = this.modes[0];
     },
 
     render: function () {
         this.$el.html(girder.templates.searchField({
-            placeholder: this.placeholder
+            placeholder: this.placeholder,
+            modes: this.modes,
+            currentMode: this.currentMode
         }));
 
         this.$('[title]').tooltip({
@@ -89,11 +115,33 @@ girder.views.SearchFieldWidget = girder.View.extend({
 
         this.$('.g-search-options-button').popover({
             trigger: 'manual',
-            placement: 'bottom',
             html: true,
-            content: girder.templates.searchHelp()
-        }).blur(function () {
-            $(this).popover('hide');
+            viewport: {
+                selector: 'body',
+                padding: 10
+            },
+            content: _.bind(function () {
+                return girder.templates.searchHelp({
+                    mode: this.currentMode
+                });
+            }, this)
+        }).click(function () {
+            $(this).popover('toggle');
+        });
+
+        this.$('.g-search-mode-choose').popover({
+            trigger: 'manual',
+            html: true,
+            viewport: {
+                selector: 'body',
+                padding: 10
+            },
+            content: _.bind(function () {
+                return girder.templates.searchModeSelect({
+                    modes: this.modes,
+                    currentMode: this.currentMode
+                });
+            }, this)
         }).click(function () {
             $(this).popover('toggle');
         });
@@ -133,6 +181,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
             path: 'resource/search',
             data: {
                 q: q,
+                mode: this.currentMode,
                 types: JSON.stringify(this.types)
             }
         }).done(_.bind(function (results) {

@@ -136,3 +136,30 @@ class AccessControlMixin(object):
                 if key in result:
                     del result[key]
             yield result
+
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                   sort=None, fields=None, level=AccessType.READ):
+        filters = filters or {}
+
+        cursor = Model.textSearch(
+            self, query=query, filters=filters, sort=sort, fields=fields)
+        return self.filterResultsByPermission(
+            cursor, user=user, level=level, limit=limit, offset=offset)
+
+    def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                     sort=None, fields=None, level=AccessType.READ):
+        """
+        Custom override of Model.prefixSearch to also force permission-based
+        filtering. The parameters are the same as Model.prefixSearch.
+
+        :param user: The user to apply permission filtering for.
+        :type user: dict or None
+        :param level: The access level to require.
+        :type level: girder.constants.AccessType
+        """
+        filters = filters or {}
+
+        cursor = Model.prefixSearch(
+            self, query=query, filters=filters, sort=sort, fields=fields)
+        return self.filterResultsByPermission(
+            cursor, user=user, level=level, limit=limit, offset=offset)

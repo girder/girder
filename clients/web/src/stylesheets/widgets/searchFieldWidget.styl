@@ -1,3 +1,8 @@
+$buttonBg = #eee
+$buttonBorder = 1px solid #ccc
+$buttonHoverBg = linear-gradient(to bottom, #e2e2e2 0%, #eee 80%)
+$borderRadius = 3px
+
 .g-search-wrapper
   display table-row
   color #333
@@ -5,25 +10,52 @@
   .popover-title
     display none
 
+  .popover .radio
+    display block
+    min-height 20px
+    margin-top 10px
+    margin-bottom 10px
+    vertical-align middle
+
+    input[type="radio"]
+      margin-right 3px
+      margin-top 3px
+
   .g-search-options-button
     color #333
     display table-cell
-    border-radius 3px 0 0 3px
+    border-radius $borderRadius 0 0 $borderRadius
     margin-right 0
-    border 1px solid #ccc
-    background-color #eee
+    border $buttonBorder
+    background-color $buttonBg
 
     &:hover
-      background-image linear-gradient(to bottom,#e2e2e2 0%,#eee 80%)
+      background-image $buttonHoverBg
 
   .g-search-field
     display table-cell
-    border-radius 0 3px 3px 0
+    border-radius 0 $borderRadius $borderRadius 0
     margin-left 0
     border-left none
 
+    &[mode-select="on"]
+      border-radius 0
+
   .g-search-result.g-search-selected
     background-color #ccc
+
+  .g-search-mode-choose
+    color #333
+    background-color $buttonBg
+    border $buttonBorder
+    border-left none
+    display table-cell
+    border-radius 0 $borderRadius $borderRadius 0
+    padding-left 4px
+    padding-right 4px
+
+    &:hover
+      background-image $buttonHoverBg
 
 .g-search-help-text
   line-height 1.25

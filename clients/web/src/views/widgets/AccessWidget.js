@@ -31,6 +31,7 @@ girder.views.AccessWidget = girder.View.extend({
 
         this.searchWidget = new girder.views.SearchFieldWidget({
             placeholder: 'Start typing a name...',
+            modes: ['prefix', 'text'],
             types: ['group', 'user'],
             parentView: this
         }).on('g:resultClicked', this.addEntry, this);

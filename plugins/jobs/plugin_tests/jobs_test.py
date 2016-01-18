@@ -21,6 +21,7 @@ import time
 
 from tests import base
 from girder import events
+from girder.models.model_base import ValidationException
 
 
 JobStatus = None
@@ -313,3 +314,20 @@ class JobsTestCase(base.TestCase):
 
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertEqual(job['log'], 'job failed')
+
+    def testValidateCustomStatus(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+
+        def validateStatus(event):
+            if event.info == 1234:
+                event.preventDefault().addResponse(True)
+
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=1234)  # Should fail
+
+        with events.bound('jobs.status.validate', 'test', validateStatus):
+            jobModel.updateJob(job, status=1234)  # Should work
+
+            with self.assertRaises(ValidationException):
+                jobModel.updateJob(job, status=4321)  # Should fail

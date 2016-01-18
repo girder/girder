@@ -35,6 +35,9 @@ class User(AccessControlledModel):
     def initialize(self):
         self.name = 'user'
         self.ensureIndices(['login', 'email', 'groupInvites.groupId'])
+        self.prefixSearchFields = (
+            'login', ('firstName', 'i'), ('lastName', 'i'))
+
         self.ensureTextIndex({
             'login': 1,
             'firstName': 1,
