@@ -73,25 +73,49 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
 
     print(TerminalColor.info('Resolving plugin dependencies...'))
 
-    filteredDepGraph = {
-        pluginName: info['dependencies']
-        for pluginName, info in six.viewitems(findAllPlugins(curConfig))
-        if pluginName in plugins
-    }
-
-    for pset in toposort(filteredDepGraph):
-        for plugin in pset:
-            try:
-                root, appconf, apiRoot = loadPlugin(
-                    plugin, root, appconf, apiRoot, curConfig=curConfig)
-                print(TerminalColor.success('Loaded plugin "{}"'
-                                            .format(plugin)))
-            except Exception:
-                print(TerminalColor.error(
-                    'ERROR: Failed to load plugin "{}":'.format(plugin)))
-                traceback.print_exc()
+    for plugin in getToposortedPlugins(plugins, curConfig):
+        try:
+            root, appconf, apiRoot = loadPlugin(
+                plugin, root, appconf, apiRoot, curConfig=curConfig)
+            print(TerminalColor.success('Loaded plugin "{}"'
+                                        .format(plugin)))
+        except Exception:
+            print(TerminalColor.error(
+                'ERROR: Failed to load plugin "%s":' % plugin))
+            girder.logger.exception('Plugin load failure: %s' % plugin)
+            traceback.print_exc()
 
     return root, appconf, apiRoot
+
+
+def getToposortedPlugins(plugins, curConfig=None):
+    """
+    Given a set of plugins to load, construct the full DAG of required plugins
+    to load and yields them in toposorted order.
+    """
+    curConfig = curConfig or config.getConfig()
+    plugins = set(plugins)
+
+    allPlugins = findAllPlugins(curConfig)
+    dag = {}
+    visited = set()
+
+    def addDeps(plugin):
+        deps = allPlugins[plugin]['dependencies']
+        dag[plugin] = deps
+
+        for dep in deps:
+            if dep in visited:
+                return
+            visited.add(dep)
+            addDeps(dep)
+
+    for plugin in plugins:
+        addDeps(plugin)
+
+    for pset in toposort(dag):
+        for plugin in pset:
+            yield plugin
 
 
 def getPluginParentDir(name, curConfig=None):
