@@ -58,6 +58,9 @@ module.exports = function (grunt) {
                 'plugin-install': {}
             };
 
+        // create the plugin's build directory under the web-root
+        grunt.file.mkdir(staticPath);
+
         cfg.shell[pluginTarget] = {
             command: function () {
 
@@ -122,7 +125,7 @@ module.exports = function (grunt) {
         cfg.copy[pluginTarget] = {
             files: [{
                 expand: true,
-                cwd: pluginPath,
+                cwd: pluginPath + '/web_client',
                 src: ['extra/**'],
                 dest: staticPath
             }]
@@ -153,17 +156,12 @@ module.exports = function (grunt) {
         grunt.config.merge(cfg);
     };
 
-    grunt.registerTask('plugins-builddir', 'Create the plugins build dir', function () {
-        require('mkdirp').sync(grunt.config.get('staticDir') + '/built/plugins');
-    });
-
     grunt.config.merge({
         default: {
             plugin: {}
         },
         init: {
-            'plugin-install': {},
-            'plugins-builddir': {}
+            'plugin-install': {}
         }
     });
 
