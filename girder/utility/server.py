@@ -105,6 +105,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
                                default=())
 
+    plugins = list(plugin_utilities.getToposortedPlugins(plugins, curConfig))
     root.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
         'staticRoot': curConfig['server']['static_root'],
