@@ -394,9 +394,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         self._buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
+        # Python2 will not match Unicode URLs
+        url = str(prefix + path)
         try:
-            response = request.run(method, prefix + path, qs, 'HTTP/1.1',
-                                   headers, fd)
+            response = request.run(method, url, qs, 'HTTP/1.1', headers, fd)
         finally:
             if fd:
                 fd.close()
@@ -465,9 +466,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)
+        # Python2 will not match Unicode URLs
+        url = str(prefix + path)
         try:
-            response = request.run(method, prefix + path, None, 'HTTP/1.1',
-                                   headers, fd)
+            response = request.run(method, url, None, 'HTTP/1.1', headers, fd)
         finally:
             fd.close()
 
