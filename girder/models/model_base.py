@@ -26,6 +26,7 @@ import six
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from pymongo.errors import WriteError
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
     TEXT_SCORE_SORT_MAX
@@ -349,11 +350,15 @@ class Model(ModelImporter):
                 return document
 
         isNew = '_id' not in document
-        if isNew:
-            document['_id'] = self.collection.insert_one(document).inserted_id
-        else:
-            self.collection.replace_one(
-                {'_id': document['_id']}, document, True)
+        try:
+            if isNew:
+                document['_id'] = \
+                    self.collection.insert_one(document).inserted_id
+            else:
+                self.collection.replace_one(
+                    {'_id': document['_id']}, document, True)
+        except WriteError as e:
+            raise ValidationException('Database save failed: %s' % e.details)
 
         if triggerEvents:
             if isNew:
