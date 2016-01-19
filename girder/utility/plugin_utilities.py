@@ -85,7 +85,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     print(TerminalColor.info('Resolving plugin dependencies...'))
 
     if buildDag:
-        plugins = getToposortedPlugins(plugins, curConfig)
+        plugins = getToposortedPlugins(plugins, curConfig, ignoreMissing=True)
 
     for plugin in plugins:
         try:
@@ -102,7 +102,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     return root, appconf, apiRoot
 
 
-def getToposortedPlugins(plugins, curConfig=None):
+def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
     """
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
@@ -116,8 +116,13 @@ def getToposortedPlugins(plugins, curConfig=None):
 
     def addDeps(plugin):
         if plugin not in allPlugins:
-            raise ValidationException(
-                'Required plugin %s does not exist.' % plugin)
+            message = 'Required plugin %s does not exist.' % plugin
+            if ignoreMissing:
+                print(TerminalColor.error(message))
+                girder.logger.error(message)
+                return
+            else:
+                raise ValidationException(message)
 
         deps = allPlugins[plugin]['dependencies']
         dag[plugin] = deps
