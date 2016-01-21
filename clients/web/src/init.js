@@ -202,8 +202,8 @@ _.extend(girder, {
             girder.currentUser = null;
             girder.currentToken = null;
 
-            girder.events.trigger('g:login', null);
             girder.events.trigger('g:logout.success');
+            girder.events.trigger('g:logout');
         }, function (jqxhr) {
             girder.events.trigger('g:logout.error', jqxhr.status, jqxhr);
         });
