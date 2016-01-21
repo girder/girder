@@ -395,7 +395,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 queryParams = {}
                 if contentDisposition == 'inline':
                     # Tell S3 to set Content-Disposition response header,
-                    # though this only works for non-anonymous connections.
+                    # though AWS only will set the response header for
+                    # non-anonymous connections.
+                    # Girder sets the Content-Disposition for files uploaded
+                    # to S3 to be 'attachment; filename="{}"'.
                     queryParams['response-content-disposition'] = \
                         'inline; filename="%s"' % file['name']
                 url = urlFn(key=file['s3Key'], queryParams=queryParams)
