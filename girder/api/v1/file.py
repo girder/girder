@@ -246,7 +246,7 @@ class File(Resource):
                required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value', required=False,
-               enum=['inline', 'attachment'])
+               enum=['inline', 'attachment'], default='attachment')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -270,8 +270,8 @@ class File(Resource):
                 endByte = int(endByte)
 
         contentDisp = params.get('contentDisposition', None)
-        allowed = ['inline', 'attachment']
-        if contentDisp is not None and contentDisp not in allowed:
+        if (contentDisp is not None and
+           contentDisp not in {'inline', 'attachment'}):
             raise RestException('Unallowed contentDisposition type "%s".' %
                                 contentDisp)
 

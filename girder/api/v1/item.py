@@ -231,7 +231,8 @@ class Item(Resource):
                required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value, only applied for single file '
-               'items.', required=False, enum=['inline', 'attachment'])
+               'items.', required=False, enum=['inline', 'attachment'],
+               default='attachment')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -244,8 +245,8 @@ class Item(Resource):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
             contentDisp = params.get('contentDisposition', None)
-            allowed = ['inline', 'attachment']
-            if contentDisp is not None and contentDisp not in allowed:
+            if (contentDisp is not None and
+               contentDisp not in {'inline', 'attachment'}):
                 raise RestException('Unallowed contentDisposition type "%s".' %
                                     contentDisp)
             return self.model('file').download(files[0], offset,
