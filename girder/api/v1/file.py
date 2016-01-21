@@ -244,6 +244,9 @@ class File(Resource):
                'so you should set it to the index of the byte one past the '
                'final byte you wish to receive.', dataType='integer',
                required=False)
+        .param('contentDisposition', 'Specify the Content-Disposition response '
+               'header disposition-type value', required=False,
+               enum=['inline', 'attachment'], default='attachment')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -266,7 +269,14 @@ class File(Resource):
             if endByte is not None:
                 endByte = int(endByte)
 
-        return self.model('file').download(file, offset, endByte=endByte)
+        contentDisp = params.get('contentDisposition', None)
+        if (contentDisp is not None and
+           contentDisp not in {'inline', 'attachment'}):
+            raise RestException('Unallowed contentDisposition type "%s".' %
+                                contentDisp)
+
+        return self.model('file').download(file, offset, endByte=endByte,
+                                           contentDisposition=contentDisp)
 
     @access.cookie
     @access.public

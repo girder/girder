@@ -546,6 +546,18 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 303)
         six.assertRegex(self, resp.headers['Location'], s3Regex)
 
+        # Test download of a non-empty file, with Content-Disposition=inline.
+        # Expect the special S3 header response-content-disposition.
+        params = {'contentDisposition': 'inline'}
+        inlineRegex = r'response-content-disposition=' + \
+                      'inline%3B\+filename%3D%22My\+File.txt%22'
+        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+                            user=self.admin, method='GET', isJson=False,
+                            params=params)
+        self.assertStatus(resp, 303)
+        six.assertRegex(self, resp.headers['Location'], s3Regex)
+        six.assertRegex(self, resp.headers['Location'], inlineRegex)
+
         # Test download as part of a streaming zip
         @httmock.all_requests
         def s3_pipe_mock(url, request):

@@ -227,7 +227,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             return os.path.join(self.assetstore['root'], file['path'])
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     **kwargs):
+                     contentDisposition=None, **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         disk to the response.
@@ -245,7 +245,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if headers:
             cherrypy.response.headers['Accept-Ranges'] = 'bytes'
-            self.setContentHeaders(file, offset, endByte)
+            self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         def stream():
             bytesRead = offset

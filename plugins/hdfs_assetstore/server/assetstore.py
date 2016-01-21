@@ -114,13 +114,13 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             }
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     **kwargs):
+                     contentDisposition=None, **kwargs):
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 
         if headers:
             cherrypy.response.headers['Accept-Ranges'] = 'bytes'
-            self.setContentHeaders(file, offset, endByte)
+            self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         if file['hdfs'].get('imported'):
             path = file['hdfs']['path']

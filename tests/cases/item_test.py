@@ -114,8 +114,19 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/{}/download'.format(item['_id']),
                             method='GET', user=user, isJson=False)
         self.assertStatusOk(resp)
-
         self.assertEqual(contents, self.getBody(resp))
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="file_1"')
+
+        # Test downloading the item with contentDisposition=inline.
+        params = {'contentDisposition': 'inline'}
+        resp = self.request(path='/item/{}/download'.format(item['_id']),
+                            method='GET', user=user, isJson=False,
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(contents, self.getBody(resp))
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'inline; filename="file_1"')
 
         # Test downloading with an offset
         resp = self.request(path='/item/{}/download'.format(item['_id']),
