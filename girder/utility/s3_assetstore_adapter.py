@@ -398,7 +398,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     # though AWS only will set the response header for
                     # non-anonymous connections.
                     # Girder sets the Content-Disposition for files uploaded
-                    # to S3 to be 'attachment; filename="{}"'.
+                    # to S3 to be 'attachment; filename="{}"' by default.
                     queryParams['response-content-disposition'] = \
                         'inline; filename="%s"' % file['name']
                 url = urlFn(key=file['s3Key'], queryParams=queryParams)
