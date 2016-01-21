@@ -231,7 +231,7 @@ class Item(Resource):
                required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value, only applied for single file '
-               'items.', required=False)
+               'items.', required=False, enum=['inline', 'attachment'])
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )

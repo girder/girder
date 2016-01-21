@@ -245,7 +245,8 @@ class File(Resource):
                'final byte you wish to receive.', dataType='integer',
                required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
-               'header disposition-type value', required=False)
+               'header disposition-type value', required=False,
+               enum=['inline', 'attachment'])
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -274,9 +275,8 @@ class File(Resource):
             raise RestException('Unallowed contentDisposition type "%s".' %
                                 contentDisp)
 
-        return \
-            self.model('file').download(file, offset, endByte=endByte,
-                                        contentDisposition=contentDisp)
+        return self.model('file').download(file, offset, endByte=endByte,
+                                           contentDisposition=contentDisp)
 
     @access.cookie
     @access.public
