@@ -95,7 +95,8 @@ class GirderClient(object):
         'GET': requests.get,
         'POST': requests.post,
         'PUT': requests.put,
-        'DELETE': requests.delete
+        'DELETE': requests.delete,
+        'PATCH': requests.patch
     }
 
     # The current maximum chunk size for uploading file chunks
@@ -238,6 +239,9 @@ class GirderClient(object):
 
     def delete(self, path, parameters=None):
         return self.sendRestRequest('DELETE', path, parameters)
+
+    def patch(self, path, parameters=None, data=None):
+        return self.sendRestRequest('PATCH', path, parameters, data=data)
 
     def createResource(self, path, params):
         """
