@@ -1,12 +1,10 @@
 .panel.panel-default
-  .panel-heading
+  .panel-heading(data-toggle="collapse",
+                 data-parent="#g-assetstore-accordion"
+                 data-target="#g-create-hdfs-tab")
     .panel-title
-      a(data-toggle="collapse" data-parent="#g-assetstore-accordion"
-        href="#g-create-hdfs-tab")
-        i.icon-share
-        |  Create new
-        b  HDFS
-        |  assetstore
+      a
+        i.icon-share Create new #[b HDFS] assetstore
   #g-create-hdfs-tab.panel-collapse.collapse
     .panel-body
       p.
