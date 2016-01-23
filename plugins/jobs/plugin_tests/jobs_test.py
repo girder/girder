@@ -43,7 +43,7 @@ class JobsTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [self.model('user').createUser(
-            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%s@u.com' % n)
+            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@u.com' % n)
             for n in range(3)]
 
     def testJobs(self):

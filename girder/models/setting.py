@@ -153,7 +153,7 @@ class Setting(Model):
             host = '://'.join((cherrypy.request.scheme,
                                cherrypy.request.local.name))
             if cherrypy.request.local.port != 80:
-                host += ':%s' % cherrypy.request.local.port
+                host += ':%d' % cherrypy.request.local.port
             return host
 
     def validateCoreRegistrationPolicy(self, doc):
