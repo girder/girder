@@ -53,7 +53,7 @@ girder.views.MetadataWidget = girder.View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.accessLevel = settings.accessLevel;
-        this.item.on('g:changed', function () {
+        this.item.on('g:fetched', function () {
             this.render();
         }, this);
         this.render();

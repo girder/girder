@@ -55,6 +55,8 @@ form parameters, or as the value of a custom HTTP header with the key ``Girder-T
    ``girder.login``. This will allow users' login sessions to be saved on the origin
    site's cookie.
 
+.. _upload-a-file:
+
 Upload a file
 ^^^^^^^^^^^^^
 
