@@ -2,7 +2,7 @@ girder.views.geospatial_ItemWidget = girder.View.extend({
     initialize: function (settings) {
         this.accessLevel = settings.accessLevel;
         this.item = settings.item;
-        this.item.on('g:changed', function () {
+        this.item.on('g:fetched', function () {
             this.render();
         }, this);
         this.render();
