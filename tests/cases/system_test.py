@@ -26,7 +26,7 @@ from subprocess import check_output, CalledProcessError
 
 from .. import base
 from girder.api.describe import API_VERSION
-from girder.constants import SettingKey, SettingDefault, ROOT_DIR, TokenScope
+from girder.constants import SettingKey, SettingDefault, ROOT_DIR
 from girder.utility import config
 
 
