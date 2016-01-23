@@ -137,12 +137,11 @@ class Group(AccessControlledModel):
 
     def listMembers(self, group, offset=0, limit=0, sort=None):
         """
-        List members of the group, with names, ids, and logins.
+        List members of the group.
         """
-        fields = ['_id', 'firstName', 'lastName', 'login']
         return self.model('user').find({
             'groups': group['_id']
-        }, fields=fields, limit=limit, offset=offset, sort=sort)
+        }, limit=limit, offset=offset, sort=sort)
 
     def remove(self, group, **kwargs):
         """
@@ -276,8 +275,7 @@ class Group(AccessControlledModel):
         """
         return self.model('user').find(
             {'groupInvites.groupId': group['_id']},
-            limit=limit, offset=offset, sort=sort,
-            fields=['_id', 'firstName', 'lastName', 'login'])
+            limit=limit, offset=offset, sort=sort)
 
     def removeUser(self, group, user):
         """
