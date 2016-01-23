@@ -23,15 +23,20 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
           .g-oauth-value-container
             b Authorized redirect URI:
             span.g-oauth-value= origin + apiRoot + '/oauth/' + provider.id + '/callback'
-          form.g-oauth-provider-form(role="form" id="g-oauth-provider-#{provider.id}-form"
+          form.g-oauth-provider-form(role="form",
+                                     id="g-oauth-provider-#{provider.id}-form",
                                      provider-id=provider.id)
             .form-group
               label.control-label(for="g-oauth-provider-#{provider.id}-client-id") #{provider.name} client ID
-              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-id"
-                type="text" placeholder="Client ID")
+              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-id",
+                                          type="text",
+                                          placeholder="Client ID")
             .form-group
               label.control-label(for="g-oauth-provider-#{provider.id}-client-secret") #{provider.name} client secret
-              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-secret"
-                type="text" placeholder="Client secret")
+              input.input-sm.form-control(id="g-oauth-provider-#{provider.id}-client-secret",
+                                          type="text",
+                                          placeholder="Client secret")
             p.g-validation-failed-message(id="g-oauth-provider-#{provider.id}-error-message")
-            input.btn.btn-sm.btn-primary(type="submit" value="Save" provider-id=provider.id)
+            input.btn.btn-sm.btn-primary(type="submit",
+                                         value="Save",
+                                         provider-id=provider.id)
