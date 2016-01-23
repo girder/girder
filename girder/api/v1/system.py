@@ -202,7 +202,7 @@ class System(Resource):
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_READ)
     @describeRoute(
         Description('Get a list of uploads that have not been finished.')
-        .notes("Must be a system administrator to call this.")
+        .notes('Must be a system administrator to call this.')
         .param('uploadId', 'List only a specific upload.', required=False)
         .param('userId', 'Restrict listing uploads to those started by a '
                'specific user.', required=False)
