@@ -170,8 +170,8 @@ class Folder(AccessControlledModel):
 
     def setMetadata(self, folder, metadata):
         """
-        Set metadata on a folder.  A rest exception is thrown in the cases
-        where the metadata JSON object is badly formed, or if any of the
+        Set metadata on a folder.  A `ValidationException` is thrown in the
+        cases where the metadata JSON object is badly formed, or if any of the
         metadata keys contains a period ('.').
 
         :param folder: The folder to set the metadata on.
