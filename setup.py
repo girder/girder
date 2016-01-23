@@ -47,7 +47,8 @@ class InstallWithOptions(install):
         dest = os.path.join(self.install_lib, 'girder')
         shutil.copy('Gruntfile.js', dest)
         shutil.copy('package.json', dest)
-        self.mergeDir('clients', dest)
+        self.mergeDir(os.path.join('clients', 'web', 'src'), dest)
+        self.mergeDir(os.path.join('clients', 'web', 'static'), dest)
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
 
