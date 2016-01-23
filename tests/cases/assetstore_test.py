@@ -551,7 +551,7 @@ class AssetstoreTestCase(base.TestCase):
         params = {'contentDisposition': 'inline'}
         inlineRegex = r'response-content-disposition=' + \
                       'inline%3B\+filename%3D%22My\+File.txt%22'
-        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+        resp = self.request(path='/file/%s/download' % largeFile['_id'],
                             user=self.admin, method='GET', isJson=False,
                             params=params)
         self.assertStatus(resp, 303)

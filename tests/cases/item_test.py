@@ -120,7 +120,7 @@ class ItemTestCase(base.TestCase):
 
         # Test downloading the item with contentDisposition=inline.
         params = {'contentDisposition': 'inline'}
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             method='GET', user=user, isJson=False,
                             params=params)
         self.assertStatusOk(resp)
