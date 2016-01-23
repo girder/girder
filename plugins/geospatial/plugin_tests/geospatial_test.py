@@ -119,7 +119,7 @@ class GeospatialItemTestCase(base.TestCase):
         newName = 'RTP'
         newItem = self.model('item').createItem(newName, self._creator,
                                                 self._privateFolder)
-        path = '/item/{}/geospatial'.format(newItem['_id'])
+        path = '/item/%s/geospatial' % newItem['_id']
         newGeometry = {
             'type': 'Point',
             'coordinates': [-78.863640, 35.899168]  # [longitude, latitude]

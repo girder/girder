@@ -50,7 +50,7 @@ class GroupTestCase(base.TestCase):
             group, self.users[1], AccessType.WRITE))
 
         # Admin user can add user 1 directly if they pass force=True.
-        resp = self.request(path='/group/{}/invitation'.format(group['_id']),
+        resp = self.request(path='/group/%s/invitation' % group['_id'],
                             method='POST', user=self.users[0],
                             params={
                                 'force': 'true',
@@ -67,7 +67,7 @@ class GroupTestCase(base.TestCase):
         self.assertTrue(group['_id'] in user1['groups'])
 
         # User 1 should not be able to use the force option.
-        resp = self.request(path='/group/{}/invitation'.format(group['_id']),
+        resp = self.request(path='/group/%s/invitation' % group['_id'],
                             method='POST', user=self.users[1],
                             params={
                                 'force': 'true',
@@ -116,7 +116,7 @@ class GroupTestCase(base.TestCase):
             'public ', self.users[0], public=True)
 
         # Error: Invalid GET URL
-        resp = self.request(path='/group/{}/foo'.format(publicGroup['_id']),
+        resp = self.request(path='/group/%s/foo' % publicGroup['_id'],
                             method='GET')
         self.assertStatus(resp, 400)
 
@@ -200,7 +200,7 @@ class GroupTestCase(base.TestCase):
             'description': ' a description. '
         }
 
-        resp = self.request(path='/group/{}'.format(group['_id']),
+        resp = self.request(path='/group/%s' % group['_id'],
                             method='PUT', user=self.users[0], params=params)
         self.assertStatusOk(resp)
 
@@ -282,7 +282,7 @@ class GroupTestCase(base.TestCase):
 
         # We should see the invitation in the list
         resp = self.request(
-            path='/group/{}/invitation'.format(privateGroup['_id']),
+            path='/group/%s/invitation' % privateGroup['_id'],
             user=self.users[0], method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
@@ -324,7 +324,7 @@ class GroupTestCase(base.TestCase):
 
         # User 1 should not yet be in the member list
         resp = self.request(
-            path='/group/{}/member'.format(privateGroup['_id']),
+            path='/group/%s/member' % privateGroup['_id'],
             user=self.users[0], method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
@@ -338,7 +338,7 @@ class GroupTestCase(base.TestCase):
 
         # User 1 should now be in the member list
         resp = self.request(
-            path='/group/{}/member'.format(privateGroup['_id']),
+            path='/group/%s/member' % privateGroup['_id'],
             user=self.users[0], method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 2)
@@ -365,7 +365,7 @@ class GroupTestCase(base.TestCase):
 
         # We promote user 1 to moderator
         resp = self.request(
-            path='/group/{}/moderator'.format(privateGroup['_id']),
+            path='/group/%s/moderator' % privateGroup['_id'],
             user=self.users[0], method='POST', params={
                 'userId': self.users[1]['_id']
             })
@@ -381,13 +381,13 @@ class GroupTestCase(base.TestCase):
         # User 1 should be able to invite someone with write access
         params['level'] = AccessType.WRITE
         resp = self.request(
-            path='/group/{}/invitation'.format(privateGroup['_id']),
+            path='/group/%s/invitation' % privateGroup['_id'],
             user=self.users[1], method='POST', params=params)
         self.assertStatusOk(resp)
 
         # Have user 2 join the group
         resp = self.request(
-            path='/group/{}/member'.format(privateGroup['_id']), method='POST',
+            path='/group/%s/member' % privateGroup['_id'], method='POST',
             user=self.users[2])
         self.assertStatusOk(resp)
 
@@ -410,7 +410,7 @@ class GroupTestCase(base.TestCase):
 
         # We promote user 1 to admin
         resp = self.request(
-            path='/group/{}/admin'.format(privateGroup['_id']),
+            path='/group/%s/admin' % privateGroup['_id'],
             user=self.users[0], method='POST', params={
                 'userId': self.users[1]['_id']
             })
@@ -422,7 +422,7 @@ class GroupTestCase(base.TestCase):
 
         # User 1 should now be able to promote and demote members
         resp = self.request(
-            path='/group/{}/admin'.format(privateGroup['_id']),
+            path='/group/%s/admin' % privateGroup['_id'],
             user=self.users[1], method='POST', params={
                 'userId': self.users[2]['_id']
             })
@@ -433,7 +433,7 @@ class GroupTestCase(base.TestCase):
                                                       AccessType.ADMIN))
 
         resp = self.request(
-            path='/group/{}/admin'.format(privateGroup['_id']),
+            path='/group/%s/admin' % privateGroup['_id'],
             user=self.users[1], method='DELETE', params={
                 'userId': self.users[2]['_id']
             })
@@ -448,7 +448,7 @@ class GroupTestCase(base.TestCase):
             self.users[2]['_id'], force=True)
         self.assertTrue(privateGroup['_id'] in self.users[2]['groups'])
         resp = self.request(
-            path='/group/{}/member'.format(privateGroup['_id']),
+            path='/group/%s/member' % privateGroup['_id'],
             user=self.users[2], method='DELETE')
         self.assertStatusOk(resp)
         self.users[2] = self.model('user').load(
@@ -474,8 +474,8 @@ class GroupTestCase(base.TestCase):
             path='/group/%s' % privateGroup['_id'], user=self.users[0],
             method='DELETE')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], 'Deleted the group {}.'.format(
-            privateGroup['name']))
+        self.assertEqual(resp.json['message'],
+                         'Deleted the group %s.' % privateGroup['name'])
         privateGroup = self.model('group').load(privateGroup['_id'], force=True)
         self.assertTrue(privateGroup is None)
 
@@ -529,7 +529,7 @@ class GroupTestCase(base.TestCase):
                                                 public=True)
         for user in [1, 2, 3]:
             resp = self.request(
-                path='/group/{}/invitation'.format(group['_id']),
+                path='/group/%s/invitation' % group['_id'],
                 params={
                     'force': 'true',
                     'userId': self.users[user]['_id'],
@@ -550,7 +550,7 @@ class GroupTestCase(base.TestCase):
                 self.assertStatusOk(resp)
                 for user in range(5):
                     resp = self.request(
-                        path='/group/{}/invitation'.format(group['_id']),
+                        path='/group/%s/invitation' % group['_id'],
                         params={
                             'force': 'true',
                             'userId': self.users[5]['_id'],

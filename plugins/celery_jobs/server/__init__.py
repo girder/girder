@@ -57,7 +57,7 @@ def getCeleryUser():
     user = ModelImporter.model('user').load(userId, force=True)
 
     if not user:
-        raise Exception('Celery user does not exist ({}).'.format(userId))
+        raise Exception('Celery user does not exist (%s).' % userId)
 
     return user
 

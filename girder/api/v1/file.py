@@ -146,8 +146,8 @@ class File(Resource):
         # complete the upload.
         if upload['received'] != upload['size'] and 'behavior' not in upload:
             raise RestException(
-                'Server has only received {} bytes, but the file should be {} '
-                'bytes.'.format(upload['received'], upload['size']))
+                'Server has only received %s bytes, but the file should be %s '
+                'bytes.' % (upload['received'], upload['size']))
 
         file = self.model('upload').finalizeUpload(upload)
         extraKeys = file.get('additionalFinalizeKeys', ())
@@ -216,8 +216,8 @@ class File(Resource):
 
         if upload['received'] != offset:
             raise RestException(
-                'Server has received {} bytes, but client sent offset {}.'
-                .format(upload['received'], offset))
+                'Server has received %s bytes, but client sent offset %s.' % (
+                    upload['received'], offset))
         try:
             if type(chunk) == cherrypy._cpreqbody.Part:
                 return self.model('upload').handleChunk(upload, chunk.file)

@@ -144,8 +144,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 conn.get_bucket(bucket_name=doc['bucket'], validate=True)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to connect to bucket "{}".'
-                                          .format(doc['bucket']), 'bucket')
+                raise ValidationException('Unable to connect to bucket "%s".' %
+                                          doc['bucket'], 'bucket')
         else:
             try:
                 bucket = conn.get_bucket(bucket_name=doc['bucket'],
@@ -156,8 +156,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 testKey.set_contents_from_string('')
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to write into bucket "{}".'
-                                          .format(doc['bucket']), 'bucket')
+                raise ValidationException('Unable to write into bucket "%s".' %
+                                          doc['bucket'], 'bucket')
 
         return doc
 
@@ -174,8 +174,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def _getRequestHeaders(self, upload):
         return {
-            'Content-Disposition': 'attachment; filename="{}"'
-                                   .format(upload['name']),
+            'Content-Disposition': 'attachment; filename="%s"' % upload['name'],
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),
@@ -192,7 +191,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         uid = uuid.uuid4().hex
         key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
                        uid[0:2], uid[2:4], uid)))
-        path = '/{}/{}'.format(self.assetstore['bucket'], key)
+        path = '/%s/%s' % (self.assetstore['bucket'], key)
         headers = self._getRequestHeaders(upload)
 
         chunked = upload['size'] > self.CHUNK_LEN

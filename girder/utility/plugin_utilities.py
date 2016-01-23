@@ -91,8 +91,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
         try:
             root, appconf, apiRoot = loadPlugin(
                 plugin, root, appconf, apiRoot, curConfig=curConfig)
-            print(TerminalColor.success('Loaded plugin "{}"'
-                                        .format(plugin)))
+            print(TerminalColor.success('Loaded plugin "%s"' % plugin))
         except Exception:
             print(TerminalColor.error(
                 'ERROR: Failed to load plugin "%s":' % plugin))
@@ -177,7 +176,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
-        raise Exception('Plugin directory does not exist: {}'.format(pluginDir))
+        raise Exception('Plugin directory does not exist: %s' % pluginDir)
     if not isPluginDir and not isPluginFile:
         # This plugin does not have any server-side python code.
         return root, appconf, apiRoot

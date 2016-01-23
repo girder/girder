@@ -137,7 +137,7 @@ class Folder(Resource):
         """
         cherrypy.response.headers['Content-Type'] = 'application/zip'
         cherrypy.response.headers['Content-Disposition'] = \
-            u'attachment; filename="{}{}"'.format(folder['name'], '.zip')
+            'attachment; filename="%s%s"' % (folder['name'], '.zip')
 
         user = self.getCurrentUser()
 

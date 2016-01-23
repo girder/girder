@@ -236,7 +236,7 @@ class Assetstore(Resource):
     @loadmodel(model='assetstore')
     def deleteAssetstore(self, assetstore, params):
         self.model('assetstore').remove(assetstore)
-        return {'message': 'Deleted assetstore {}.'.format(assetstore['name'])}
+        return {'message': 'Deleted assetstore %s.' % assetstore['name']}
     deleteAssetstore.description = (
         Description('Delete an assetstore.')
         .notes('This will fail if there are any files in the assetstore.')

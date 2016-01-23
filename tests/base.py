@@ -97,8 +97,7 @@ def dropTestDatabase(dropModels=True):
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
 
     if 'girder_test_' not in dbName:
-        raise Exception('Expected a testing database name, but got {}'
-                        .format(dbName))
+        raise Exception('Expected a testing database name, but got %s' % dbName)
     db_connection.drop_database(dbName)
 
     if dropModels:
@@ -331,7 +330,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         if basicAuth is not None:
             auth = base64.b64encode(basicAuth.encode('utf8'))
-            headers.append((authHeader, 'Basic {}'.format(auth.decode())))
+            headers.append((authHeader, 'Basic %s' % auth.decode()))
 
     def request(self, path='/', method='GET', params=None, user=None,
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
@@ -395,9 +394,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         self._buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
+        # Python2 will not match Unicode URLs
+        url = str(prefix + path)
         try:
-            response = request.run(method, prefix + path, qs, 'HTTP/1.1',
-                                   headers, fd)
+            response = request.run(method, url, qs, 'HTTP/1.1', headers, fd)
         finally:
             if fd:
                 fd.close()
@@ -466,9 +466,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)
+        # Python2 will not match Unicode URLs
+        url = str(prefix + path)
         try:
-            response = request.run(method, prefix + path, None, 'HTTP/1.1',
-                                   headers, fd)
+            response = request.run(method, url, None, 'HTTP/1.1', headers, fd)
         finally:
             fd.close()
 
@@ -497,7 +498,7 @@ class MultipartFormdataEncoder(object):
     def __init__(self):
         self.boundary = uuid.uuid4().hex
         self.contentType = \
-            'multipart/form-data; boundary={}'.format(self.boundary)
+            'multipart/form-data; boundary=%s' % self.boundary
 
     @classmethod
     def u(cls, s):
@@ -511,9 +512,9 @@ class MultipartFormdataEncoder(object):
         encoder = codecs.getencoder('utf-8')
         for (key, value) in fields:
             key = self.u(key)
-            yield encoder('--{}\r\n'.format(self.boundary))
+            yield encoder('--%s\r\n' % self.boundary)
             yield encoder(self.u('Content-Disposition: form-data; '
-                                 'name="{}"\r\n').format(key))
+                                 'name="%s"\r\n') % key)
             yield encoder('\r\n')
             if isinstance(value, int) or isinstance(value, float):
                 value = str(value)
@@ -522,15 +523,15 @@ class MultipartFormdataEncoder(object):
         for (key, filename, content) in files:
             key = self.u(key)
             filename = self.u(filename)
-            yield encoder('--{}\r\n'.format(self.boundary))
-            yield encoder(self.u('Content-Disposition: form-data; name="{}";'
-                          ' filename="{}"\r\n').format(key, filename))
+            yield encoder('--%s\r\n' % self.boundary)
+            yield encoder(self.u('Content-Disposition: form-data; name="%s";'
+                          ' filename="%s"\r\n' % (key, filename)))
             yield encoder('Content-Type: application/octet-stream\r\n')
             yield encoder('\r\n')
 
             yield (content, len(content))
             yield encoder('\r\n')
-        yield encoder('--{}--\r\n'.format(self.boundary))
+        yield encoder('--%s--\r\n' % self.boundary)
 
     def encode(self, fields, files):
         body = io.BytesIO()

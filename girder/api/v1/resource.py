@@ -177,7 +177,7 @@ class Resource(BaseResource):
                 return candidateChild, candidateModel
 
         # if no folder, item, or file matches, give up
-        raise RestException('Child resource not found: {}({})->{}'.format(
+        raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
     def _lookUpPath(self, path, user):
@@ -190,7 +190,7 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                raise RestException('User not found: {}'.format(username))
+                raise RestException('User not found: %s' % username)
 
         elif model == 'collection':
             collectionName = pathArray[1]
@@ -198,7 +198,7 @@ class Resource(BaseResource):
 
             if parent is None:
                 raise RestException(
-                    'Collection not found: {}'.format(collectionName))
+                    'Collection not found: %s' % collectionName)
 
         else:
             raise RestException('Invalid path format')
@@ -210,7 +210,7 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            raise RestException('Path not found: {}'.format(path))
+            raise RestException('Path not found: %s' % path)
 
         result = self.model(model).filter(document, user)
         return result
@@ -385,7 +385,7 @@ class Resource(BaseResource):
                     if not doc:
                         raise RestException('Resource %s %s not found.' %
                                             (kind, id))
-                    ctx.update(message=u'Moving {} {}'.format(
+                    ctx.update(message='Moving %s %s' % (
                         kind, doc.get('name', '')))
                     if kind == 'item':
                         if parent['_id'] != doc['folderId']:
@@ -438,9 +438,9 @@ class Resource(BaseResource):
                 for id in resources[kind]:
                     doc = model.load(id=id, user=user, level=AccessType.READ)
                     if not doc:
-                        raise RestException('Resource not found.  No {} with '
-                                            'id {}'.format(kind, id))
-                    ctx.update(message=u'Copying {} {}'.format(
+                        raise RestException('Resource not found. No %s with '
+                                            'id %s' % (kind, id))
+                    ctx.update(message='Copying %s %s' % (
                         kind, doc.get('name', '')))
                     if kind == 'item':
                         model.copyItem(doc, folder=parent, creator=user)
@@ -451,8 +451,8 @@ class Resource(BaseResource):
                             creator=user, progress=ctx)
     copyResources.description = (
         Description('Copy a set of items and folders.')
-        .param('resources', 'A JSON-encoded list of types to copy.  Each type '
-               'is a list of ids.  Only folders and items may be specified.  '
+        .param('resources', 'A JSON-encoded list of types to copy. Each type '
+               'is a list of ids. Only folders and items may be specified.  '
                'For example: {"item": [(item id 1), (item id2)], "folder": '
                '[(folder id 1)]}.')
         .param('parentType', 'Parent type for the new parent of these '

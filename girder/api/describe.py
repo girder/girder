@@ -202,7 +202,7 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'apis': [{'path': '/{}'.format(resource)}
+            'apis': [{'path': '/%s' % resource}
                      for resource in sorted(six.viewkeys(docs.routes))]
         }
 
@@ -240,7 +240,7 @@ class Describe(Resource):
     @access.public
     def describeResource(self, resource, params):
         if resource not in docs.routes:
-            raise RestException('Invalid resource: {}'.format(resource))
+            raise RestException('Invalid resource: %s' % resource)
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,

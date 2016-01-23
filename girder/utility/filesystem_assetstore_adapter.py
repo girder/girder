@@ -63,11 +63,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             try:
                 os.makedirs(doc['root'])
             except OSError:
-                raise ValidationException('Could not make directory "{}".'
-                                          .format(doc['root'], 'root'))
+                raise ValidationException(
+                    'Could not make directory "%s".' % doc['root'])
         if not os.access(doc['root'], os.W_OK):
-            raise ValidationException('Unable to write into directory "{}".'
-                                      .format(doc['root'], 'root'))
+            raise ValidationException(
+                'Unable to write into directory "%s".' % doc['root'])
 
     @staticmethod
     def fileIndexFields():
@@ -91,7 +91,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             except OSError:
                 self.unavailable = True
                 logger.exception('Failed to create filesystem assetstore '
-                                 'directories {}'.format(self.tempDir))
+                                 'directories %s' % self.tempDir)
         elif not os.access(assetstore['root'], os.W_OK):
             self.unavailable = True
             logger.error('Could not write to assetstore root: %s',

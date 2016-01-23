@@ -114,13 +114,13 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['name'], 'New collection')
 
         # Test collection get
-        resp = self.request(path='/collection/{}'.format(newCollId),
+        resp = self.request(path='/collection/%s' % newCollId,
                             user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_accessLevel'], AccessType.ADMIN)
 
         # Test collection update
-        resp = self.request(path='/collection/{}'.format(newCollId),
+        resp = self.request(path='/collection/%s' % newCollId,
                             method='PUT', user=self.admin,
                             params={'id': newCollId,
                                     'name': 'New collection name'})

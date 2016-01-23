@@ -247,7 +247,7 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'Invalid ObjectId: bad_id')
 
-        resp = self.request(path='/user/{}'.format(user['_id']))
+        resp = self.request(path='/user/%s' % user['_id'])
         self._verifyUserDocument(resp.json, admin=False)
 
         params = {
@@ -255,13 +255,13 @@ class UserTestCase(base.TestCase):
             'firstName': 'NewFirst ',
             'lastName': ' New Last ',
         }
-        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+        resp = self.request(path='/user/%s' % user['_id'], method='PUT',
                             user=user, params=params)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'Invalid email address.')
 
         params['email'] = 'valid@email.com '
-        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+        resp = self.request(path='/user/%s' % user['_id'], method='PUT',
                             user=user, params=params)
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
@@ -276,7 +276,7 @@ class UserTestCase(base.TestCase):
             'lastName': ' New Last ',
             'admin': 'true'
         }
-        resp = self.request(path='/user/{}'.format(user['_id']), method='PUT',
+        resp = self.request(path='/user/%s' % user['_id'], method='PUT',
                             user=user, params=params)
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
@@ -284,7 +284,7 @@ class UserTestCase(base.TestCase):
 
         # test admin flag as non-admin
         params['admin'] = 'true'
-        resp = self.request(path='/user/{}'.format(nonAdminUser['_id']),
+        resp = self.request(path='/user/%s' % nonAdminUser['_id'],
                             method='PUT', user=nonAdminUser, params=params)
         self.assertStatus(resp, 403)
 

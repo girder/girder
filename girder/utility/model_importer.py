@@ -35,14 +35,14 @@ def _loadModel(model, module, plugin):
     try:
         imported = importlib.import_module(module)
     except ImportError:
-        logger.exception('Could not load model "{}".'.format(module))
+        logger.exception('Could not load model "%s".' % module)
         raise
 
     try:
         constructor = getattr(imported, className)
     except AttributeError:  # pragma: no cover
-        raise Exception('Incorrect model class name "{}" for model "{}".'
-                        .format(className, module))
+        raise Exception('Incorrect model class name "%s" for model "%s".' % (
+            className, module))
 
     _modelInstances[plugin][model] = constructor()
 
@@ -86,9 +86,9 @@ class ModelImporter(object):
 
         if model not in _modelInstances[plugin]:
             if plugin == '_core':
-                module = 'girder.models.{}'.format(model)
+                module = 'girder.models.%s' % model
             else:
-                module = 'girder.plugins.{}.models.{}'.format(plugin, model)
+                module = 'girder.plugins.%s.models.%s' % (plugin, model)
 
             _loadModel(model, module, plugin)
 
