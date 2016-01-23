@@ -8,7 +8,7 @@ Developer Documentation
    development
    plugin-development
    developer-cookbook
-   client-event-catalog
+   web-client-event-catalog
    external-web-clients
    python-client
    security
