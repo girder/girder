@@ -195,11 +195,12 @@ class TokenScope:
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
-    READ_SETTINGS = 'core.setting.read'
-    READ_ASSETSTORES = 'core.assetstore.read'
+    PLUGINS_ENABLED_READ = 'core.plugins.read'
+    SETTINGS_READ = 'core.setting.read'
+    ASSETSTORES_READ = 'core.assetstore.read'
     PARTIAL_UPLOAD_READ = 'core.partial_upload.read'
     PARTIAL_UPLOAD_CLEAN = 'core.partial_upload.clean'
-    USER_EMAIL_READ = 'core.user_email_read'
+    DATA_READ = 'core.data_read'
 
 
 class CoreEventHandler(object):

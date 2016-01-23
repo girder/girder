@@ -109,7 +109,7 @@ class System(Resource):
 
         return True
 
-    @access.admin(scope=TokenScope.READ_SETTINGS)
+    @access.admin(scope=TokenScope.SETTINGS_READ)
     @describeRoute(
         Description('Get the value of a system setting, or a list of them.')
         .notes('Must be a system administrator to call this.')
@@ -147,7 +147,7 @@ class System(Resource):
             self.requireParams('key', params)
             return getFunc(params['key'], **funcParams)
 
-    @access.admin(scope=TokenScope.READ_SETTINGS)
+    @access.admin(scope=TokenScope.PLUGINS_ENABLED_READ)
     @describeRoute(
         Description('Get the lists of all available and all enabled plugins.')
         .notes('Must be a system administrator to call this.')

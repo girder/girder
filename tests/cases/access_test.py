@@ -66,6 +66,9 @@ class AccessTestResource(Resource):
         self.route('GET', ('fn_admin', ), self.fnAdmin)
         self.route('GET', ('raw_user', ), self.rawUser)
         self.route('GET', ('scoped_user', ), self.scopedUser)
+        self.route('GET', ('raw_public', ), self.rawPublic)
+        self.route('GET', ('fn_public', ), self.fnPublic)
+        self.route('GET', ('scoped_public', ), self.scopedPublic)
 
     # We deliberately don't have an access decorator
     def defaultHandler(self, **kwargs):
@@ -105,9 +108,21 @@ class AccessTestResource(Resource):
     def rawUser(self, **kwargs):
         return
 
-    @access.user(scope=TokenScope.USER_EMAIL_READ)
+    @access.user(scope=TokenScope.DATA_READ)
     def scopedUser(self, **kwargs):
         return
+
+    @access.public
+    def rawPublic(self, **kwargs):
+        return self.getCurrentUser()
+
+    @access.public()
+    def fnPublic(self, **kwargs):
+        return self.getCurrentUser()
+
+    @access.public(scope=TokenScope.SETTINGS_READ)
+    def scopedPublic(self, **kwargs):
+        return self.getCurrentUser()
 
 
 def setUpModule():
@@ -219,11 +234,11 @@ class AccessTestCase(base.TestCase):
 
     def testAdminTokenScopes(self):
         adminSettingToken = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.READ_SETTINGS)
+            user=self.admin, scope=TokenScope.SETTINGS_READ)
         adminEmailToken = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.USER_EMAIL_READ)
+            user=self.admin, scope=TokenScope.DATA_READ)
         nonadminToken = self.model('token').createToken(
-            user=self.user, scope=TokenScope.READ_SETTINGS)
+            user=self.user, scope=TokenScope.SETTINGS_READ)
 
         # Reading settings as admin should work
         params = {'key': SettingKey.SMTP_PORT}
@@ -269,7 +284,7 @@ class AccessTestCase(base.TestCase):
         self.assertStatus(resp, 403)
 
         token = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.READ_SETTINGS)
+            user=self.admin, scope=TokenScope.SETTINGS_READ)
 
         resp = self.request(path='/accesstest/raw_admin', token=token)
         self.assertStatus(resp, 401)
@@ -279,7 +294,7 @@ class AccessTestCase(base.TestCase):
 
         # Make sure user scoped access works
         token = self.model('token').createToken(
-            user=self.user, scope=TokenScope.USER_EMAIL_READ)
+            user=self.user, scope=TokenScope.DATA_READ)
 
         resp = self.request(path='/accesstest/raw_user', user=self.user)
         self.assertStatusOk(resp)
@@ -292,3 +307,25 @@ class AccessTestCase(base.TestCase):
 
         resp = self.request(path='/accesstest/scoped_user', token=token)
         self.assertStatusOk(resp)
+
+        # Test public access
+        authToken = self.model('token').createToken(user=self.user)
+
+        for route in ('raw_public', 'fn_public', 'scoped_public'):
+            path = '/accesstest/%s' % route
+
+            for t in (token, None):
+                resp = self.request(path=path, token=t)
+                self.assertStatusOk(resp)
+                self.assertEqual(resp.json, None)
+
+            resp = self.request(path=path, token=authToken)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_id'], str(self.user['_id']))
+
+        # Make a correctly scoped token, should work.
+        token = self.model('token').createToken(
+            user=self.user, scope=TokenScope.SETTINGS_READ)
+        resp = self.request(path=path, token=token)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_id'], str(self.user['_id']))
