@@ -345,7 +345,7 @@ class Model(ModelImporter):
             document = self.validate(document)
 
         if triggerEvents:
-            event = events.trigger('model.{}.save'.format(self.name), document)
+            event = events.trigger('model.%s.save' % self.name, document)
             if event.defaultPrevented:
                 return document
 
@@ -458,13 +458,13 @@ class Model(ModelImporter):
             try:
                 id = ObjectId(id)
             except InvalidId:
-                raise ValidationException('Invalid ObjectId: {}'.format(id),
+                raise ValidationException('Invalid ObjectId: %s' % id,
                                           field='id')
         doc = self.findOne({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('No such {}: {}'.format(
-                                      self.name, id), field='id')
+            raise ValidationException('No such %s: %s' % (self.name, id),
+                                      field='id')
 
         return doc
 

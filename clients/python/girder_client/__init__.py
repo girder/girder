@@ -59,8 +59,7 @@ class HttpError(Exception):
     Raised if the server returns an error status code from a request.
     """
     def __init__(self, status, text, url, method):
-        Exception.__init__(self, 'HTTP error {}: {} {}'.format(
-                           status, method, url))
+        Exception.__init__(self, 'HTTP error %s: %s %s' % (status, method, url))
         self.status = status
         self.responseText = text
         self.url = url

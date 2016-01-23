@@ -80,9 +80,9 @@ class ResourceExt(Resource):
         self.unbindModels(resources)
         for resource in resources:
             if resource not in self.boundResources:
-                events.bind('model.{}.save'.format(resource), 'provenance',
+                events.bind('model.%s.save' % resource, 'provenance',
                             self.resourceSaveHandler)
-                events.bind('model.{}.copy.prepare'.format(resource),
+                events.bind('model.%s.copy.prepare' % resource,
                             'provenance', self.resourceCopyHandler)
                 if hasattr(self.loadInfo['apiRoot'], resource):
                     getattr(self.loadInfo['apiRoot'], resource).route(
@@ -97,8 +97,8 @@ class ResourceExt(Resource):
         for oldresource in list(six.viewkeys(self.boundResources)):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
-                events.unbind('model.{}.save'.format(oldresource), 'provenance')
-                events.unbind('model.{}.copy.prepare'.format(oldresource),
+                events.unbind('model.%s.save' % oldresource, 'provenance')
+                events.unbind('model.%s.copy.prepare' % oldresource,
                               'provenance')
                 if hasattr(self.loadInfo['apiRoot'], oldresource):
                     getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(

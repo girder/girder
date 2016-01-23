@@ -469,7 +469,7 @@ class FileTestCase(base.TestCase):
         file = self._testUploadFile('helloWorld1.txt')
 
         # Test editing of the file info
-        resp = self.request(path='/file/{}'.format(file['_id']), method='PUT',
+        resp = self.request(path='/file/%s' % file['_id'], method='PUT',
                             user=self.user, params={'name': ' newName.json'})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], 'newName.json')
@@ -487,7 +487,7 @@ class FileTestCase(base.TestCase):
 
         # Make sure access control is enforced on download
         resp = self.request(
-            path='/file/{}/download'.format(file['_id']), method='GET')
+            path='/file/%s/download' % file['_id'], method='GET')
         self.assertStatus(resp, 401)
 
         # Make sure access control is enforced on get info
@@ -510,7 +510,7 @@ class FileTestCase(base.TestCase):
         self.assertFalse('sha512' in resp.json)
 
         resp = self.request(
-            path='/folder/{}/download'.format(self.privateFolder['_id']),
+            path='/folder/%s/download' % self.privateFolder['_id'],
             method='GET')
         self.assertStatus(resp, 401)
 
@@ -525,7 +525,7 @@ class FileTestCase(base.TestCase):
         # Test updating of the file contents
         newContents = 'test'
         resp = self.request(
-            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            path='/file/%s/contents' % file['_id'], method='PUT',
             user=self.user, params={'size': len(newContents)})
         self.assertStatusOk(resp)
 
@@ -548,7 +548,7 @@ class FileTestCase(base.TestCase):
 
         # Test updating an empty file
         resp = self.request(
-            path='/file/{}/contents'.format(file['_id']), method='PUT',
+            path='/file/%s/contents' % file['_id'], method='PUT',
             user=self.user, params={'size': 1})
         self.assertStatusOk(resp)
 
@@ -795,14 +795,14 @@ class FileTestCase(base.TestCase):
 
         # Attempt to download the link file, make sure we are redirected
         resp = self.request(
-            path='/file/{}/download'.format(file['_id']), method='GET',
+            path='/file/%s/download' % file['_id'], method='GET',
             isJson=False, user=self.user)
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], params['linkUrl'].strip())
 
         # Download containing folder as zip file
         resp = self.request(
-            path='/folder/{}/download'.format(self.privateFolder['_id']),
+            path='/folder/%s/download' % self.privateFolder['_id'],
             method='GET', user=self.user, isJson=False)
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
         body = self.getBody(resp, text=False)

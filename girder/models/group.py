@@ -376,7 +376,7 @@ class Group(AccessControlledModel):
             yield {
                 'id': userId,
                 'login': user['login'],
-                'name': '{} {}'.format(user['firstName'], user['lastName'])
+                'name': '%s %s' % (user['firstName'], user['lastName'])
             }
 
     def hasAccess(self, doc, user=None, level=AccessType.READ):

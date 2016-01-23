@@ -188,8 +188,8 @@ class AccessTestCase(base.TestCase):
                     self.assertStatusOk(resp)
 
     def testLoadModelPlainFn(self):
-        resp = self.request(path='/accesstest/test_loadmodel_plain/{}'.format(
-                            self.user['_id']), method='GET')
+        resp = self.request(path='/accesstest/test_loadmodel_plain/%s' %
+                                 self.user['_id'], method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], str(self.user['_id']))
 

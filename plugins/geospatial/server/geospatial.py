@@ -91,9 +91,9 @@ class GeospatialItem(Resource):
                     raise RestException('Property names must be at least one'
                                         ' character long.')
                 if '.' in key or key[0] == '$':
-                    raise RestException('The property name {} must not contain'
-                                        ' a period or begin with a dollar sign.'
-                                        .format(key))
+                    raise RestException('The property name %s must not contain'
+                                        ' a period or begin with a dollar'
+                                        ' sign.' % key)
 
             data.append({'name': name,
                          'description': description,
@@ -190,10 +190,10 @@ class GeospatialItem(Resource):
             raise RestException("Invalid GeoJSON passed as 'geometry'"
                                 " parameter.")
 
-        if params['field'][:3] == '{}.'.format(GEOSPATIAL_FIELD):
+        if params['field'][:3] == '%s.' % GEOSPATIAL_FIELD:
             field = params['field'].strip()
         else:
-            field = '{}.{}'.format(GEOSPATIAL_FIELD, params['field'].strip())
+            field = '%s.%s' % (GEOSPATIAL_FIELD, params['field'].strip())
 
         query = {
             field: {
@@ -263,15 +263,15 @@ class GeospatialItem(Resource):
                         raise ValueError
 
                 except ValueError:
-                    raise RestException("Parameter '{}' must be a number."
-                                        .format(param))
+                    raise RestException("Parameter '%s' must be a number." %
+                                        param)
 
                 condition['$'+param] = distance
 
-        if params['field'][:3] == '{}.'.format(GEOSPATIAL_FIELD):
+        if params['field'][:3] == '%s.' % GEOSPATIAL_FIELD:
             field = params['field'].strip()
         else:
-            field = '{}.{}'.format(GEOSPATIAL_FIELD, params['field'].strip())
+            field = '%s.%s' % (GEOSPATIAL_FIELD, params['field'].strip())
 
         if params.get('ensureIndex', False):
             user = self.getCurrentUser()
@@ -292,8 +292,8 @@ class GeospatialItem(Resource):
         try:
             items = self._find(query, limit, offset, sort)
         except OperationFailure:
-            raise RestException("Field '{}' must be indexed by a 2dsphere"
-                                " index.".format(field))
+            raise RestException("Field '%s' must be indexed by a 2dsphere"
+                                " index." % field)
 
         return items
 
@@ -386,10 +386,10 @@ class GeospatialItem(Resource):
             raise RestException("Either parameter 'geometry' or both parameters"
                                 " 'center' and 'radius' are required.")
 
-        if params['field'][:3] == '{}.'.format(GEOSPATIAL_FIELD):
+        if params['field'][:3] == '%s.' % GEOSPATIAL_FIELD:
             field = params['field'].strip()
         else:
-            field = '{}.{}'.format(GEOSPATIAL_FIELD, params['field'].strip())
+            field = '%s.%s' % (GEOSPATIAL_FIELD, params['field'].strip())
 
         limit, offset, sort = self.getPagingParameters(params, 'lowerName')
 
@@ -463,16 +463,14 @@ class GeospatialItem(Resource):
 
         for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
-                raise RestException('Geospatial key name {} must not contain a'
-                                    ' period or begin with a dollar sign.'
-                                    .format(k))
+                raise RestException('Geospatial key name %s must not contain a'
+                                    ' period or begin with a dollar sign.' % k)
             if v:
                 try:
                     GeoJSON.to_instance(v, strict=True)
                 except ValueError:
-                    raise RestException('Geospatial field with key {} does not'
-                                        ' contain valid GeoJSON: {}'
-                                        .format(k, v))
+                    raise RestException('Geospatial field with key %s does not'
+                                        ' contain valid GeoJSON: %s' % (k, v))
 
         if GEOSPATIAL_FIELD not in item:
             item[GEOSPATIAL_FIELD] = dict()

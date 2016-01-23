@@ -204,7 +204,7 @@ class OauthTest(base.TestCase):
                     'id': 9876
                 })
             else:
-                raise Exception('Unexpected url {}'.format(url))
+                raise Exception('Unexpected url %s' % url)
 
         with httmock.HTTMock(googleMock):
             # Try a request where the CSRF token is incorrect
