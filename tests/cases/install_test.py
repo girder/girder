@@ -80,16 +80,18 @@ class InstallTestCase(base.TestCase):
         shutil.rmtree(self.baseDir)
 
     def testInstallPlugin(self):
-
         with mock.patch(POPEN, return_value=ProcMock()) as p:
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps'),
                 os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
             ]))
 
-            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(len(p.mock_calls), 2)
             self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
             self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+
+            self.assertEqual(p.mock_calls[1][1][0][:3], ('npm', 'run', 'build'))
+            self.assertEqual(p.mock_calls[1][2]['cwd'], constants.PACKAGE_DIR)
 
             self.assertTrue(os.path.exists(
                 os.path.join(self.pluginDir, 'jobs', 'plugin.yml')))
@@ -110,7 +112,7 @@ class InstallTestCase(base.TestCase):
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
-                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+                self.assertRaisesRegexp(Exception, 'npm install .* returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ]))
@@ -178,7 +180,7 @@ class InstallTestCase(base.TestCase):
 
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
-                self.assertRaisesRegexp(Exception, 'npm install returned 2'):
+                self.assertRaisesRegexp(Exception, 'npm install .* returned 2'):
             install.install_web()
 
             self.assertEqual(len(p.mock_calls), 1)

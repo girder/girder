@@ -48,21 +48,11 @@
     pip: name='file:///vagrant/girder[plugins]' editable=yes
     sudo: yes
 
-  - name: install grunt and globally
-    npm: name={{ item }} global=yes
-    with_items:
-      - grunt
-      - grunt-cli
-    sudo: yes
-
   - name: run npm install
     npm: path=/vagrant
 
-  - name: run grunt init
-    command: grunt init chdir=/vagrant
-
-  - name: run grunt
-    command: grunt chdir=/vagrant
+  - name: run npm build
+    command: npm run build chdir=/vagrant
 
   - name: disable default nginx site
     command: rm /etc/nginx/sites-enabled/default removes=/etc/nginx/sites-enabled/default
