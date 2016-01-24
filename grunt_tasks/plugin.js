@@ -25,8 +25,6 @@ module.exports = function (grunt) {
     /**
      * Adds configuration for plugin related multitasks:
      *
-     *   * shell:plugin-<plugin name>
-     *      Runs npm install in the plugin directory
      *   * jade:plugin-<plugin name>
      *      Compiles jade templates into the plugin's template.js
      *   * stylus:plugin-<plugin name>
@@ -44,42 +42,18 @@ module.exports = function (grunt) {
             staticPath = path.resolve(
                 grunt.config.get('staticDir'), 'built', 'plugins', plugin
             ),
-            packageJson = path.resolve(pluginPath, 'package.json'),
             cfg = {
-                shell: {},
                 jade: {},
                 stylus: {},
                 uglify: {},
                 copy: {},
                 watch: {},
                 default: {},
-                plugin: {},
-                'plugin-install': {}
+                plugin: {}
             };
 
         // create the plugin's build directory under the web-root
         grunt.file.mkdir(staticPath);
-
-        cfg.shell[pluginTarget] = {
-            command: function () {
-                // do nothing if it has no package.json file
-                if (!fs.existsSync(packageJson)) {
-                    grunt.verbose.writeln('Skipping npm install');
-                    return 'true';
-                }
-                return 'npm install';
-            },
-            options: {
-                execOptions: {
-                    cwd: pluginPath
-                }
-            },
-            src: [packageJson]
-        };
-        cfg.watch[pluginTarget + '-shell'] = {
-            files: [packageJson],
-            tasks: ['shell:' + pluginTarget]
-        };
 
         cfg.jade[pluginTarget] = {
             files: [{
@@ -145,21 +119,12 @@ module.exports = function (grunt) {
             ]
         };
 
-        // finally, 'plugin-install:<plugin name>' is a task alias for
-        // tasks that are run with `grunt init`
-        cfg['plugin-install'][plugin] = {
-            tasks: ['shell:' + pluginTarget]
-        };
-
         grunt.config.merge(cfg);
     };
 
     grunt.config.merge({
         default: {
             plugin: {}
-        },
-        init: {
-            'plugin-install': {}
         }
     });
 
@@ -244,25 +209,6 @@ module.exports = function (grunt) {
                 });
             }
         });
-
-    /**
-     * Create a multi-task for all plugin npm installs.
-     */
-    grunt.registerMultiTask(
-        'plugin-install',
-        'Run npm install in plugin directories',
-        function () {
-            var plugin = this.target,
-                tasks = 'plugin-install.' + plugin + '.tasks';
-
-            this.requiresConfig(tasks);
-
-            // queue the install tasks
-            grunt.config.get(tasks).forEach(function (task) {
-                grunt.task.run(task);
-            });
-        }
-    );
 
     /**
      * Register a "meta" task that will configure and run other tasks

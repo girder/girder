@@ -30,6 +30,7 @@ before_install:
 install:
     - pip install -r requirements.txt -r requirements-dev.txt -e .
     - npm install
+    - npm run build
 script:
     - mkdir _build
     - cd _build
