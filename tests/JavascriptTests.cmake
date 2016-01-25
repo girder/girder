@@ -103,8 +103,9 @@ function(add_web_client_test case specFile)
   # :param case: the name of this test case
   # :param specFile: the path of the spec file to run
   # Optional parameters:
-  # PLUGIN (name of plugin) : this plugin is loaded (unless overridden with
-  #     ENABLEDPLUGINS) and the test name includes the plugin name
+  # PLUGIN (name of plugin) : this plugin and all dependencies are loaded
+  # (unless overridden with ENABLEDPLUGINS) and the test name includes the
+  # plugin name
   # PLUGIN_DIRS (list of plugin dirs) : A list of directories plugins
   # should live in.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
@@ -113,7 +114,7 @@ function(add_web_client_test case specFile)
   #     'true'
   # ENABLEDPLUGINS (list of plugins): A list of plugins to load. This overrides the
   # PLUGIN parameter, so if you intend to load PLUGIN it must be included in this
-  # list.
+  # list. All dependencies of ENABLEDPLUGINS are also loaded.
   # RESOURCE_LOCKS (list of resources): A list of resources that this test
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.
