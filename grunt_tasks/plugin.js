@@ -185,13 +185,13 @@ module.exports = function (grunt) {
             }
 
             var doAutoConfig = (
-                typeof config.grunt !== "object" ||
-                config.grunt.autoconf === (void 0) ||
-                config.grunt.autoconf === (null) ||
+               !_.isObject(config.grunt) ||
+                _.isUndefined(config.grunt.autoconf) ||
+                _.isNull(config.grunt.autoconf) ||
               !!config.grunt.autoconf
             );
 
-            if(doAutoConfig) {
+            if (doAutoConfig) {
                 // merge in configuration for the main plugin build tasks
                 configurePlugin(plugin);
             }
