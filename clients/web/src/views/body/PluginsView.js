@@ -44,7 +44,7 @@ girder.views.PluginsView = girder.View.extend({
                 info.configRoute = girder.getPluginConfigRoute(name);
             }
 
-            info.meetsDependencies = this._meetsDependencies(info);
+            info.unmetDependencies = this._unmetDependencies(info);
         }, this);
 
         this.$el.html(girder.templates.plugins({
@@ -88,13 +88,17 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     /**
-     * Takes a plugin object and recursively determines if it fulfills
-     * dependencies. Meaning, its dependencies exist in this.allPlugins.
+     * Takes a plugin object and determines if it has any top level
+     * unmet dependencies.
+     *
+     * Given A depends on B, and B depends on C, and C is not present:
+     * A will have unmet dependencies of ['B'], and B will have unmet dependencies
+     * of ['C'].
      **/
-    _meetsDependencies: function (plugin) {
-        return _.every(plugin.dependencies, function (pluginName) {
+    _unmetDependencies: function (plugin) {
+        return _.reject(plugin.dependencies, function (pluginName) {
             return _.has(this.allPlugins, pluginName) &&
-                this._meetsDependencies(this.allPlugins[pluginName]);
+                _.isEmpty(this._unmetDependencies(this.allPlugins[pluginName]));
         }, this);
     },
 

@@ -12,7 +12,7 @@ div.g-plugin-restart
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     .g-plugin-list-item
       input.g-plugin-switch(type="checkbox", key=plugin.key,
-                            disabled=!plugin.value.meetsDependencies,
+                            disabled=plugin.value.unmetDependencies.length > 0,
                             checked=(plugin.value.enabled ? "checked" : undefined),
                             experimental=(experimental ? "true" : undefined),
                             data-on-color=(experimental ? "warning" : "primary"),
@@ -29,5 +29,6 @@ div.g-plugin-restart
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
       .g-plugin-description #{plugin.value.description}
-        if (!plugin.value.meetsDependencies)
-          .g-plugin-warning.g-plugin-error-message This plugin has unmet dependencies.
+        if (plugin.value.unmetDependencies.length)
+          .g-plugin-warning.g-plugin-error-message
+            | This plugin has unmet dependencies: #{plugin.value.unmetDependencies.join(', ')}.
