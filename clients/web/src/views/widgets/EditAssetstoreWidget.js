@@ -16,6 +16,10 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         }
     },
 
+    initialize: function (settings) {
+        this.model = settings.model || null;
+    },
+
     /**
      * This maps each type of assetstore to a function to getter and setter
      * functions. The set functions are reponsible for populating the dialog
@@ -32,10 +36,6 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
      * we set them after this class rather than inline with object creation syntax.
      */
     fieldsMap: {},
-
-    initialize: function (settings) {
-        this.model = settings.model || null;
-    },
 
     render: function () {
         var view = this;

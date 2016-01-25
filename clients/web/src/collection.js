@@ -3,6 +3,7 @@
  * provides nice utilities for pagination and sorting.
  */
 girder.Collection = Backbone.Collection.extend({
+    model: girder.Model,
     resourceName: null,
 
     sortField: 'name',

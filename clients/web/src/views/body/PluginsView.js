@@ -129,9 +129,7 @@ girder.views.PluginsView = girder.View.extend({
                 this.$('.g-plugin-switch[key="' + plugin + '"]')
                     .attr('checked', 'checked').bootstrapSwitch('state', true, true);
             }, this);
-        }, this)).error(_.bind(function () {
-            // TODO acknowledge?
-        }, this));
+        }, this));  // TODO acknowledge?
     }
 });
 

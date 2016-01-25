@@ -6,6 +6,7 @@
 // Describe script parameters and parse arguments
 
 var path = require('path');
+var _ = require('underscore');
 
 var scriptname = path.basename(process.argv[1]);
 
@@ -96,7 +97,7 @@ var config = json.parse(fs.readFileSync(inputfile, {encoding: 'utf8'}).toString(
 
 // Expand relative paths
 
-if (typeof String.prototype.startsWith !== 'function') {
+if (!_.isFunction(String.prototype.startsWith)) {
     String.prototype.startsWith = function (str) { // eslint-disable-line no-extend-native
         return this.slice(0, str.length) === str;
     };
@@ -125,7 +126,7 @@ var expand_relative_paths = function (arr1, current_key) {
         for (idx in arr1) {
             if (arr1.hasOwnProperty(idx)) {
                 if (idx in arr1) {
-                    if (typeof arr1[idx] === 'object') {
+                    if (_.isObject(arr1[idx])) {
                         arr1[idx] = expand_relative_paths(arr1[idx], idx);
                     } else {
                         arr1[idx] = expand_relative_path(idx, arr1[idx]);

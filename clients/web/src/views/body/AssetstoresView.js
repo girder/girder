@@ -33,7 +33,7 @@ girder.views.AssetstoresView = girder.View.extend({
             return;
         }
         this.$el.html(girder.templates.assetstores({
-            assetstores: this.collection.models,
+            assetstores: this.collection.toArray(),
             types: girder.AssetstoreType,
             importableTypes: this.importableTypes,
             getAssetstoreImportRoute: this.getAssetstoreImportRoute

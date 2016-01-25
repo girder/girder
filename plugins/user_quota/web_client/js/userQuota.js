@@ -178,10 +178,6 @@ girder.views.QuotaPolicies = girder.View.extend({
         'change #g-sizeUnits': '_selectCustomQuota'
     },
 
-    _selectCustomQuota: function () {
-        $('#g-customQuota').prop('checked', true);
-    },
-
     initialize: function (settings) {
         this.model = settings.model;
         this.modelType = settings.modelType;
@@ -189,6 +185,10 @@ girder.views.QuotaPolicies = girder.View.extend({
             function () {
                 this.render();
             }, this).fetchQuotaPolicy();
+    },
+
+    _selectCustomQuota: function () {
+        $('#g-customQuota').prop('checked', true);
     },
 
     capacityChart: function (view, el) {

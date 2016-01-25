@@ -38,7 +38,7 @@ girder.views.GroupsView = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.groupList({
-            groups: this.collection.models,
+            groups: this.collection.toArray(),
             girder: girder
         }));
 

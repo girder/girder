@@ -37,7 +37,7 @@ girder.views.FolderListWidget = girder.View.extend({
     render: function () {
         this.checked = [];
         this.$el.html(girder.templates.folderList({
-            folders: this.collection.models,
+            folders: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             checkboxes: this._checkboxes
         }));
@@ -77,7 +77,7 @@ girder.views.FolderListWidget = girder.View.extend({
 
         this.checked = [];
         if (checked) {
-            _.each(this.collection.models, function (model) {
+            this.collection.each(function (model) {
                 this.checked.push(model.cid);
             }, this);
         }

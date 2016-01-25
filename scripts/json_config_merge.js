@@ -6,6 +6,7 @@
 // Describe script parameters and parse arguments
 
 var path = require('path');
+var _ = require('underscore');
 
 var scriptname = path.basename(process.argv[1]);
 
@@ -104,7 +105,7 @@ function array_merge_recursive(arr1, arr2) {
         for (idx in arr2) {
             if (arr2.hasOwnProperty(idx)) {
                 if (idx in arr1) {
-                    if (typeof arr1[idx] === 'object' && typeof arr2 === 'object') {
+                    if (_.isObject(arr1[idx]) && _.isObject(arr2)) {
                         arr1[idx] = array_merge_recursive(arr1[idx], arr2[idx]);
                     } else {
                         arr1[idx] = arr2[idx];
