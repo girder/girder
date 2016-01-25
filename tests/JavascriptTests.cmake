@@ -134,17 +134,18 @@ function(add_web_client_test case specFile)
   # :param case: the name of this test case
   # :param specFile: the path of the spec file to run
   # Optional parameters:
-  # PLUGIN (name of plugin) : this plugin is loaded (unless overridden with
-  #     ENABLEDPLUGINS) and the test name includes the plugin name
+  # PLUGIN (name of plugin) : this plugin and all dependencies are loaded
+  # (unless overridden with ENABLEDPLUGINS) and the test name includes the
+  # plugin name
   # PLUGIN_DIRS (list of plugin dirs) : A list of directories plugins
   # should live in.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
   # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
   #     'true'
-  # ENABLEDPLUGINS (list of plugins): A list of plugins to load.  If PLUGIN is
-  #     specified, this overrides loading that plugin, so it probably should be
-  #     included in this list, too.
+  # ENABLEDPLUGINS (list of plugins): A list of plugins to load. This overrides the
+  # PLUGIN parameter, so if you intend to load PLUGIN it must be included in this
+  # list. All dependencies of ENABLEDPLUGINS are also loaded.
   # RESOURCE_LOCKS (list of resources): A list of resources that this test
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.
@@ -156,8 +157,8 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT ENABLEDPLUGINS)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT)
+  set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PLUGIN)
@@ -199,6 +200,10 @@ function(add_web_client_test case specFile)
   set_property(TEST ${testname} PROPERTY FAIL_REGULAR_EXPRESSION
     "View created with no parentView property")
 
+  # Treat plugins as a space separated string for the environment variable
+  # to be set properly
+  string(REPLACE ";" " " plugins "${plugins}")
+
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
     "SPEC_FILE=${specFile}"
     "ASSETSTORE_TYPE=${assetstoreType}"
@@ -215,14 +220,11 @@ function(add_web_client_test case specFile)
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
   endif()
-  #if(fn_RESOURCE_LOCKS)
-  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy ${fn_RESOURCE_LOCKS})
-  #else()
-  #  set_property(TEST ${testname} PROPERTY RESOURCE_LOCK mongo cherrypy)
-  #endif()
+
   if(fn_TIMEOUT)
     set_property(TEST ${testname} PROPERTY TIMEOUT ${fn_TIMEOUT})
   endif()
+
   if(fn_BASEURL)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
         "BASEURL=${fn_BASEURL}"

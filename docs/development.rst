@@ -223,6 +223,20 @@ and then run in your build directory ::
 
 before running your tests.
 
+An example of a very simple client side test would be as follows ::
+
+    add_web_client_test(some_client_test "someSpec.js" PLUGIN "my_plugin")
+
+The ``PLUGIN`` argument indicates that "my_plugin" is the owner of ``some_client_test``, at the time of the test my_plugin and all of its dependencies will be loaded.
+
+If additional plugins are needed for a specific test, that can be achieved using the ``ENABLEDPLUGINS`` argument ::
+
+    add_web_client_test(another_client_test "anotherSpec.js" PLUGIN "my_plugin" ENABLEDPLUGINS "my_plugin" "jobs")
+
+Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded, along with their dependencies at the time of ``another_client_test``.
+
+.. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
+
 You will find many useful methods for client side testing in the ``girderTest`` object
 defined at ``/clients/web/test/testUtils.js``.
 
