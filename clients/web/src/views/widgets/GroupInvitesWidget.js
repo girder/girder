@@ -36,7 +36,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
     render: function () {
         this.$el.html(girder.templates.groupInviteList({
             level: this.group.get('_accessLevel'),
-            invitees: this.collection.models,
+            invitees: this.collection.toArray(),
             accessType: girder.AccessType
         }));
 

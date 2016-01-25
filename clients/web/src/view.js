@@ -1,5 +1,5 @@
 girder.View = Backbone.View.extend({
-    constructor: function (opts) {
+    constructor: function (opts) { // eslint-disable-line backbone/no-constructor
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
                 opts.parentView.registerChildView(this);

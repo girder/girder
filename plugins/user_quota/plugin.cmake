@@ -21,5 +21,5 @@ add_web_client_test(
     user_quota
     "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests/userQuotaSpec.js"
     PLUGIN user_quota)
-add_javascript_style_test(
+add_eslint_test(
     user_quota "${PROJECT_SOURCE_DIR}/plugins/user_quota/web_client/js")

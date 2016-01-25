@@ -13,8 +13,8 @@ var girder = girder || {};
  */
 if (!window.console) {
     var console = {
-        log: function () {},
-        error: function () {}
+        log: $.noop,
+        error: $.noop
     };
 }
 

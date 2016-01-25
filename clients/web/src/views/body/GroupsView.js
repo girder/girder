@@ -38,7 +38,7 @@ girder.views.GroupsView = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.groupList({
-            groups: this.collection.models,
+            groups: this.collection.toArray(),
             girder: girder
         }));
 
@@ -68,7 +68,6 @@ girder.views.GroupsView = girder.View.extend({
             girder.currentUser.set('groups', userGroups);
 
             girder.router.navigate('group/' + group.get('_id'), {trigger: true});
-
         }, this).render();
     },
 

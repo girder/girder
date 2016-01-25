@@ -52,6 +52,31 @@ girder.views.MarkdownWidget = girder.View.extend({
         }
     },
 
+    /**
+     * @param [settings.text=''] Initial markdown text.
+     * @param [settings.placeholder=''] Text area placeholder.
+     * @param [settings.prefix='markdown'] Prefix for element IDs in case
+     *     multiple of these widgets are rendered simultaneously.
+     * @param [settings.enableUploads=false] Whether to allow uploading files
+     *     inline into the markdown.
+     * @param [settings.maxUploadSize=10 MB] Max upload size in bytes.
+     * @param [settings.parent] If enableUploads is true, set this to the object
+     *     into which files should be uploaded.
+     * @param [settings.allowedExtensions=null] If you want to restrict to
+     *     certain file extensions, set this to a list of (lowercase) extensions,
+     *     not including periods. E.g.: ["png", "jpg", "jpeg"]
+     */
+    initialize: function (settings) {
+        this.text = settings.text || '';
+        this.placeholder = settings.placeholder || '';
+        this.prefix = settings.prefix || 'markdown';
+        this.enableUploads = settings.enableUploads || false;
+        this.parent = settings.parent || null;
+        this.maxUploadSize = settings.maxUploadSize || 1024 * 1024 * 10;
+        this.allowedExtensions = settings.allowedExtensions || null;
+        this.files = [];
+    },
+
     filesAdded: function () {
         try {
             this.validateFiles();
@@ -139,31 +164,6 @@ girder.views.MarkdownWidget = girder.View.extend({
                          this.allowedExtensions.join(', ') + '.'
             };
         }
-    },
-
-    /**
-     * @param [settings.text=''] Initial markdown text.
-     * @param [settings.placeholder=''] Text area placeholder.
-     * @param [settings.prefix='markdown'] Prefix for element IDs in case
-     *     multiple of these widgets are rendered simultaneously.
-     * @param [settings.enableUploads=false] Whether to allow uploading files
-     *     inline into the markdown.
-     * @param [settings.maxUploadSize=10 MB] Max upload size in bytes.
-     * @param [settings.parent] If enableUploads is true, set this to the object
-     *     into which files should be uploaded.
-     * @param [settings.allowedExtensions=null] If you want to restrict to
-     *     certain file extensions, set this to a list of (lowercase) extensions,
-     *     not including periods. E.g.: ["png", "jpg", "jpeg"]
-     */
-    initialize: function (settings) {
-        this.text = settings.text || '';
-        this.placeholder = settings.placeholder || '';
-        this.prefix = settings.prefix || 'markdown';
-        this.enableUploads = settings.enableUploads || false;
-        this.parent = settings.parent || null;
-        this.maxUploadSize = settings.maxUploadSize || 1024 * 1024 * 10;
-        this.allowedExtensions = settings.allowedExtensions || null;
-        this.files = [];
     },
 
     render: function () {

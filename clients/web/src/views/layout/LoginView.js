@@ -8,14 +8,14 @@ girder.views.LoginView = girder.View.extend({
 
             girder.login(this.$('#g-login').val(), this.$('#g-password').val());
 
-            girder.events.once('g:login.success', _.bind(function () {
+            girder.events.once('g:login.success', function () {
                 this.$el.modal('hide');
-            }, this));
+            }, this);
 
-            girder.events.once('g:login.error', _.bind(function (status, err) {
+            girder.events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
-            }, this));
+            }, this);
 
             this.$('#g-login-button').addClass('disabled');
             this.$('.g-validation-failed-message').text('');

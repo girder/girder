@@ -49,6 +49,33 @@ girder.views.SearchFieldWidget = girder.View.extend({
         }
     },
 
+    /**
+     * @param [settings.placeholder="Search..."] The placeholder text for the input field.
+     * @param [settings.getInfoCallback] For custom resource types, this callback can
+     *        be passed in to resolve their title and icon. This callback should
+     *        return an object with "icon" and "text" fields if it can resolve
+     *        the result, or return falsy otherwise.
+     * @param [settings.modes=["text", "prefix"]] A string or list of strings
+     *        representing the allowed search modes. Supported modes: "text", "prefix".
+     *        If multiple are allowed, users are able to select which one to use
+     *        via a dropdown.
+     */
+    initialize: function (settings) {
+        this.ajaxLock = false;
+        this.pending = null;
+
+        this.placeholder = settings.placeholder || 'Search...';
+        this.getInfoCallback = settings.getInfoCallback || null;
+        this.types = settings.types || [];
+        this.modes = settings.modes || ['text', 'prefix'];
+
+        if (!_.isArray(this.modes)) {
+            this.modes = [this.modes];
+        }
+
+        this.currentMode = this.modes[0];
+    },
+
     search: function () {
         var q = this.$('.g-search-field').val();
 
@@ -73,33 +100,6 @@ girder.views.SearchFieldWidget = girder.View.extend({
             text: link.text().trim(),
             icon: link.attr('g-icon')
         });
-    },
-
-    /**
-     * @param [settings.placeholder="Search..."] The placeholder text for the input field.
-     * @param [settings.getInfoCallback] For custom resource types, this callback can
-     *        be passed in to resolve their title and icon. This callback should
-     *        return an object with "icon" and "text" fields if it can resolve
-     *        the result, or return falsy otherwise.
-     * @param [settings.modes=["text", "prefix"]] A string or list of strings
-     *        representing the allowed search modes. Supported modes: "text", "prefix".
-     *        If multiple are allowed, users are able to select which one to use
-     *        via a dropdown.
-     */
-    initialize: function (settings) {
-        this.ajaxLock = false;
-        this.pending = null;
-
-        this.placeholder = settings.placeholder || 'Search...';
-        this.getInfoCallback = settings.getInfoCallback || null;
-        this.types = settings.types || [];
-        this.modes = settings.modes || ['text', 'prefix'];
-
-        if (!(this.modes instanceof Array)) {
-            this.modes = [this.modes];
-        }
-
-        this.currentMode = this.modes[0];
     },
 
     render: function () {

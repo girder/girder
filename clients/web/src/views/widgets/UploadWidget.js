@@ -219,8 +219,8 @@ girder.views.UploadWidget = girder.View.extend({
             return;
         }
 
-        this.currentFile = this.parentType === 'file' ?
-                this.parent : new girder.models.FileModel();
+        this.currentFile = this.parentType === 'file'
+                ? this.parent : new girder.models.FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
             this.currentIndex += 1;

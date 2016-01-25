@@ -53,7 +53,7 @@ girder.views.CollectionsView = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.collectionList({
-            collections: this.collection.models,
+            collections: this.collection.toArray(),
             girder: girder
         }));
 

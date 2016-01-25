@@ -51,4 +51,4 @@
             this._eventSource = null;
         }
     };
-} ());
+}());

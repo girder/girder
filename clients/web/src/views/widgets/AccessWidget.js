@@ -67,8 +67,8 @@ girder.views.AccessWidget = girder.View.extend({
             };
         }
 
-        var template = this.modal ? girder.templates.accessEditor :
-                                    girder.templates.accessEditorNonModal;
+        var template = this.modal ? girder.templates.accessEditor
+                                  : girder.templates.accessEditorNonModal;
         this.$el.html(template({
             model: this.model,
             modelType: this.modelType,
