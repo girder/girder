@@ -223,11 +223,12 @@ and then run in your build directory ::
 
 before running your tests.
 
-A client side test can specify several options, including which plugins should be loaded at the time of the test, for example ::
+A client side test can specify several options, for example ::
 
-    add_web_client_test(some_client_test "someSpec.js" ENABLEDPLUGINS "gravatar" "jobs")
+    add_web_client_test(some_client_test "someSpec.js" PLUGIN "my_plugin" ENABLEDPLUGINS "my_plugin" "gravatar" "jobs")
 
-would add a test which ensured the gravatar and jobs plugins were loaded when run.
+The ``PLUGIN`` argument indicates that "my_plugin" is the owner of ``some_client_test``, while ``ENABLEDPLUGINS`` determines which plugins are going to be loaded when running
+``some_client_test``. In this case my_plugin, gravatar, jobs, and all of their dependencies will be loaded in the proper order at the time of this test.
 
 .. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
 
