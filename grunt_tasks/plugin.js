@@ -177,14 +177,23 @@ module.exports = function (grunt) {
                 'Found plugin: ' + plugin
             ).bold);
 
-            // merge in configuration for the main plugin build tasks
-            configurePlugin(plugin);
-
             if (fs.existsSync(json)) {
                 config = grunt.file.readYAML(json);
             }
             if (fs.existsSync(yml)) {
                 config = grunt.file.readYAML(yml);
+            }
+
+            var doAutoConfig = (
+                typeof config.grunt !== "object" ||
+                config.grunt.autoconf === (void 0) ||
+                config.grunt.autoconf === (null) ||
+              !!config.grunt.autoconf
+            );
+
+            if(doAutoConfig) {
+                // merge in configuration for the main plugin build tasks
+                configurePlugin(plugin);
             }
 
             if (config.grunt) {
