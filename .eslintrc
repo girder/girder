@@ -25,7 +25,7 @@
         "underscore/prefer-invoke": 2,
         "underscore/prefer-map": 2,
         "underscore/prefer-matches": 2,
-        "underscore/prefer-noop": 2,
+        "underscore/prefer-noop": 0,
         "underscore/prefer-pluck": 2,
         "underscore/prefer-reject": 2,
         "underscore/prefer-times": 2,

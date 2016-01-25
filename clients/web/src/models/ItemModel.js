@@ -7,7 +7,7 @@ girder.models.ItemModel = girder.Model.extend({
      * already been fetched).
      */
     getAccessLevel: function (callback) {
-        callback = callback || _.noop;
+        callback = callback || $.noop;
 
         if (this.has('_accessLevel')) {
             callback(this.get('_accessLevel'));
