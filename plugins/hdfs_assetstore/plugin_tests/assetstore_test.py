@@ -250,7 +250,7 @@ class HdfsAssetstoreTest(base.TestCase):
             'total': 1000
         })
 
-        path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
+        path = '/hdfs_assetstore/%s/import' % assetstore['_id']
         params = {
             'progress': 'true',
             'parentType': 'user',
@@ -300,13 +300,13 @@ class HdfsAssetstoreTest(base.TestCase):
             item=helloItem, user=self.admin).next()
 
         # Download the file
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body().strip(), 'hello')
 
         # Test download with range header
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False,
                             additionalHeaders=[('Range', 'bytes=1-3')])
         self.assertStatus(resp, 206)
@@ -316,7 +316,7 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertEqual(resp.headers['Content-Range'], 'bytes 1-3/6')
 
         # Test download with range header with skipped chunk
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False,
                             additionalHeaders=[('Range', 'bytes=4-')])
         self.assertStatus(resp, 206)
@@ -402,7 +402,7 @@ class HdfsAssetstoreTest(base.TestCase):
             file = resp.json
 
         # Download the file
-        resp = self.request('/file/{}/download'.format(file['_id']),
+        resp = self.request('/file/%s/download' % file['_id'],
                             isJson=False, user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body(), chunk1 + chunk2)

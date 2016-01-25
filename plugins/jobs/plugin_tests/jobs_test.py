@@ -43,7 +43,7 @@ class JobsTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [self.model('user').createUser(
-            'usr' + str(n), 'passwd', 'tst', 'usr', 'u{}@u.com'.format(n))
+            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@u.com' % n)
             for n in range(3)]
 
     def testJobs(self):
@@ -72,7 +72,7 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(self.job['status'], JobStatus.RUNNING)
 
         # Since the job is not public, user 2 should not have access
-        path = '/job/{}'.format(job['_id'])
+        path = '/job/%s' % job['_id']
         resp = self.request(path, user=self.users[2])
         self.assertStatus(resp, 403)
         resp = self.request(path, user=self.users[2], method='PUT')
@@ -169,14 +169,14 @@ class JobsTestCase(base.TestCase):
         job['_some_other_field'] = 'foo'
         job = self.model('job', 'jobs').save(job)
 
-        resp = self.request('/job/{}'.format(job['_id']))
+        resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('created' in resp.json)
         self.assertTrue('_some_other_field' not in resp.json)
         self.assertTrue('kwargs' not in resp.json)
         self.assertTrue('args' not in resp.json)
 
-        resp = self.request('/job/{}'.format(job['_id']), user=self.users[0])
+        resp = self.request('/job/%s' % job['_id'], user=self.users[0])
         self.assertTrue('kwargs' in resp.json)
         self.assertTrue('args' in resp.json)
 
@@ -189,7 +189,7 @@ class JobsTestCase(base.TestCase):
 
         events.bind('jobs.filter', 'test', filterJob)
 
-        resp = self.request('/job/{}'.format(job['_id']))
+        resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_some_other_field'], 'bar')
         self.assertTrue('created' not in resp.json)

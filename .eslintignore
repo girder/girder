@@ -1,0 +1,12 @@
+**/node_modules/
+**/bower_component/
+docs/
+scripts/tests/*/data/
+clients/jquery/
+clients/web-external/
+clients/web/lib/
+clients/web/dev/
+clients/web/static/
+clients/web/test/
+build/
+_build/

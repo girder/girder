@@ -34,7 +34,7 @@ girder.views.UsersView = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.userList({
-            users: this.collection.models,
+            users: this.collection.toArray(),
             girder: girder
         }));
 

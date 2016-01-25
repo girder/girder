@@ -118,14 +118,14 @@ class ProvenanceTestCase(base.TestCase):
         if version is not None:
             params = {'version': version}
         resp = self.request(
-            path='/{}/{}/provenance'.format(resource, item['_id']),
+            path='/%s/%s/provenance' % (resource, item['_id']),
             method='GET', user=user, type='application/json', params=params)
         if checkOk:
             self.assertStatusOk(resp)
         return resp
 
     def _getProvenanceAfterMetadata(self, item, meta, user):
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=user, body=json.dumps(meta),
                             type='application/json')
         self.assertStatusOk(resp)
@@ -199,7 +199,7 @@ class ProvenanceTestCase(base.TestCase):
 
         # Change the item name and description
         params = {'name': 'Renamed object', 'description': 'New description'}
-        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+        resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             user=admin, params=params)
         self.assertStatusOk(resp)
         params['lowerName'] = params['name'].lower()
@@ -207,7 +207,7 @@ class ProvenanceTestCase(base.TestCase):
 
         # Copy the item and check that we marked it as copied
         params = {'name': 'Copied object'}
-        resp = self.request(path='/item/{}/copy'.format(item['_id']),
+        resp = self.request(path='/item/%s/copy' % item['_id'],
                             method='POST', user=admin, params=params)
         self.assertStatusOk(resp)
         newItem = resp.json
@@ -248,7 +248,7 @@ class ProvenanceTestCase(base.TestCase):
                                                 'size': len(fileData1),
                                                 'name': fileName1}})
         # Edit the file name
-        resp = self.request(path='/file/{}'.format(file1['_id']), method='PUT',
+        resp = self.request(path='/file/%s' % file1['_id'], method='PUT',
                             user=admin, params={'name': fileName2})
         self.assertStatusOk(resp)
         self._checkProvenance(None, item, 3, admin, 'fileUpdate',
@@ -256,7 +256,7 @@ class ProvenanceTestCase(base.TestCase):
                                         'old': {'name': fileName1},
                                         'new': {'name': fileName2}})
         # Reupload the file
-        resp = self.request(path='/file/{}/contents'.format(file1['_id']),
+        resp = self.request(path='/file/%s/contents' % file1['_id'],
                             method='PUT', user=admin,
                             params={'size': len(fileData2)})
         self.assertStatusOk(resp)
@@ -272,7 +272,7 @@ class ProvenanceTestCase(base.TestCase):
                                         'old': {'size': len(fileData1)},
                                         'new': {'size': len(fileData2)}})
         # Delete the file
-        resp = self.request(path='/file/{}'.format(file1['_id']),
+        resp = self.request(path='/file/%s' % file1['_id'],
                             method='DELETE', user=admin)
         self.assertStatusOk(resp)
         self._checkProvenance(None, item, 5, admin, 'fileRemoved',
@@ -292,7 +292,7 @@ class ProvenanceTestCase(base.TestCase):
                               resource='folder')
         # Edit the folder and check again
         params1 = {'name': 'Renamed folder', 'description': 'New description'}
-        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+        resp = self.request(path='/folder/%s' % folder1['_id'],
                             method='PUT', user=user, params=params1)
         self.assertStatusOk(resp)
         params1['lowerName'] = params1['name'].lower()
@@ -308,7 +308,7 @@ class ProvenanceTestCase(base.TestCase):
         # While folder provenance is off, create a second folder and edit the
         # first folder
         params2 = {'name': 'Renamed Again', 'description': 'Description 2'}
-        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+        resp = self.request(path='/folder/%s' % folder1['_id'],
                             method='PUT', user=user, params=params2)
         self.assertStatusOk(resp)
         params2['lowerName'] = params2['name'].lower()
@@ -329,7 +329,7 @@ class ProvenanceTestCase(base.TestCase):
         # Changing folder1 again should now show this change, and the old value
         # should show the gap in the data
         params3 = {'name': 'Renamed C', 'description': 'Description 3'}
-        resp = self.request(path='/folder/{}'.format(folder1['_id']),
+        resp = self.request(path='/folder/%s' % folder1['_id'],
                             method='PUT', user=user, params=params3)
         self.assertStatusOk(resp)
         params3['lowerName'] = params3['name'].lower()
@@ -343,7 +343,7 @@ class ProvenanceTestCase(base.TestCase):
         # Edit the new folder; it should show the unknown history followed by
         # the edit
         params4 = {'description': 'Folder 2 Description'}
-        resp = self.request(path='/folder/{}'.format(folder2['_id']),
+        resp = self.request(path='/folder/%s' % folder2['_id'],
                             method='PUT', user=user, params=params4)
         self.assertStatusOk(resp)
         resp = self._getProvenance(folder2, user, 1, resource='folder')
@@ -378,7 +378,7 @@ class ProvenanceTestCase(base.TestCase):
             'notification': False,
             'unknown': True}
         for key in checkList:
-            eventName = 'model.{}.save'.format(key)
+            eventName = 'model.%s.save' % key
             self.assertTrue((eventName in events._mapping and 'provenance' in
                             [h['name'] for h in events._mapping[eventName]])
                             is checkList[key])
@@ -387,7 +387,7 @@ class ProvenanceTestCase(base.TestCase):
         self.model('setting').set(
             constants.PluginSettings.PROVENANCE_RESOURCES, '')
         for key in checkList:
-            eventName = 'model.{}.save'.format(key)
+            eventName = 'model.%s.save' % key
             self.assertTrue((eventName in events._mapping and 'provenance' in
                             [h['name'] for h in events._mapping[eventName]])
                             is (key == 'item'))

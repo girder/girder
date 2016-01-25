@@ -229,6 +229,10 @@ class Item(Resource):
                'as that file, and other items are downloaded as a zip '
                'archive.  If \'zip\', a zip archive is always sent.',
                required=False)
+        .param('contentDisposition', 'Specify the Content-Disposition response '
+               'header disposition-type value, only applied for single file '
+               'items.', required=False, enum=['inline', 'attachment'],
+               default='attachment')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -240,7 +244,13 @@ class Item(Resource):
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
-            return self.model('file').download(files[0], offset)
+            contentDisp = params.get('contentDisposition', None)
+            if (contentDisp is not None and
+               contentDisp not in {'inline', 'attachment'}):
+                raise RestException('Unallowed contentDisposition type "%s".' %
+                                    contentDisp)
+            return self.model('file').download(files[0], offset,
+                                               contentDisposition=contentDisp)
         else:
             return self._downloadMultifileItem(item, user)
 

@@ -94,7 +94,8 @@ class ProviderBase(model_importer.ModelImporter):
         """
         raise NotImplementedError()
 
-    def _getJson(self, **kwargs):
+    @staticmethod
+    def _getJson(**kwargs):
         """
         Make an HTTP request using the specified kwargs, then parse it as JSON
         and return the value. If an error occurs, this raises an appropriate
@@ -110,8 +111,8 @@ class ProviderBase(model_importer.ModelImporter):
             resp.raise_for_status()
         except requests.HTTPError:
             raise RestException(
-                'Got %s from %s, response="%s".' % (
-                    resp.status_code, kwargs['url'], content
+                'Got %s code from provider, response="%s".' % (
+                    resp.status_code, content
                 ), code=502)
 
         try:
@@ -119,9 +120,10 @@ class ProviderBase(model_importer.ModelImporter):
         except ValueError:
             raise RestException('Non-JSON response: %s' % content, code=502)
 
-    def _createOrReuseUser(self, oauthId, email, firstName, lastName,
+    @classmethod
+    def _createOrReuseUser(cls, oauthId, email, firstName, lastName,
                            userName=None):
-        providerName = self.getProviderName()
+        providerName = cls.getProviderName()
 
         # Try finding by ID first, since a user can change their email address
         query = {
@@ -135,24 +137,24 @@ class ProviderBase(model_importer.ModelImporter):
             # The Google provider was previously stored as capitalized, and
             # legacy databases may still have these entries
             query['oauth.provider'] = {'$in': ['google', 'Google']}
-        user = self.model('user').findOne(query)
+        user = cls.model('user').findOne(query)
         setId = not user
 
         # Existing users using OAuth2 for the first time will not have an ID
         if not user:
-            user = self.model('user').findOne({'email': email})
+            user = cls.model('user').findOne({'email': email})
 
         dirty = False
         # Create the user if it's still not found
         if not user:
-            policy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
+            policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
             if policy != 'open':
                 raise RestException(
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
-            login = self._deriveLogin(email, firstName, lastName, userName)
+            login = cls._deriveLogin(email, firstName, lastName, userName)
 
-            user = self.model('user').createUser(
+            user = cls.model('user').createUser(
                 login=login, password=None, firstName=firstName,
                 lastName=lastName, email=email)
         else:
@@ -179,11 +181,12 @@ class ProviderBase(model_importer.ModelImporter):
                 })
             dirty = True
         if dirty:
-            user = self.model('user').save(user)
+            user = cls.model('user').save(user)
 
         return user
 
-    def _generateLogins(self, email, firstName, lastName, userName=None):
+    @classmethod
+    def _generateLogins(cls, email, firstName, lastName, userName=None):
         """
         Generate a series of reasonable login names for a new user based on
         their basic information sent to us by the provider.
@@ -208,7 +211,8 @@ class ProviderBase(model_importer.ModelImporter):
         for i in range(1, 6):
             yield '%s%s%d' % (firstName, lastName, i)
 
-    def _deriveLogin(self, email, firstName, lastName, userName=None):
+    @classmethod
+    def _deriveLogin(cls, email, firstName, lastName, userName=None):
         """
         Attempt to automatically create a login name from existing user
         information from OAuth2 providers. Attempts to generate it from the
@@ -221,15 +225,16 @@ class ProviderBase(model_importer.ModelImporter):
         """
         # Note, the user's OAuth2 ID should never be used to form a login name,
         # as many OAuth2 services consider that to be private data
-        for login in self._generateLogins(email, firstName, lastName, userName):
+        for login in cls._generateLogins(email, firstName, lastName, userName):
             login = login.lower()
-            if self._testLogin(login):
+            if cls._testLogin(login):
                 return login
 
         raise Exception('Could not generate a unique login name for %s (%s %s)'
                         % (email, firstName, lastName))
 
-    def _testLogin(self, login):
+    @classmethod
+    def _testLogin(cls, login):
         """
         When attempting to generate a username, use this to test if the given
         name is valid.
@@ -241,5 +246,5 @@ class ProviderBase(model_importer.ModelImporter):
             return False
 
         # See if this is already taken.
-        user = self.model('user').findOne({'login': login})
+        user = cls.model('user').findOne({'login': login})
         return not user

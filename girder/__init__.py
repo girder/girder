@@ -52,8 +52,9 @@ class LogFormatter(logging.Formatter):
             '  Query string: ' + cherrypy.request.query_string,
             '  Remote IP: ' + cherrypy.request.remote.ip
         ))
-        return '%s\nAdditional info:\n%s' % (
-            logging.Formatter.formatException(self, exc), info)
+        return ('%s\n'
+                'Additional info:\n'
+                '%s' % (logging.Formatter.formatException(self, exc), info))
 
 
 def getLogPaths():

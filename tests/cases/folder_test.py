@@ -103,7 +103,7 @@ class FolderTestCase(base.TestCase):
 
         # Change properties of a folder
         resp = self.request(
-            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            path='/folder/%s' % publicFolder['_id'], method='PUT',
             user=self.admin, params={
                 'name': 'New name ',
                 'description': ' A description '
@@ -114,7 +114,7 @@ class FolderTestCase(base.TestCase):
 
         # Move should fail with a bogus parent
         resp = self.request(
-            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            path='/folder/%s' % publicFolder['_id'], method='PUT',
             user=self.admin, params={
                 'parentType': 'badParent',
                 'parentId': privateFolder['_id']
@@ -123,7 +123,7 @@ class FolderTestCase(base.TestCase):
 
         # Move the public folder underneath the private folder
         resp = self.request(
-            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            path='/folder/%s' % publicFolder['_id'], method='PUT',
             user=self.admin, params={
                 'parentType': 'folder',
                 'parentId': privateFolder['_id']
@@ -140,7 +140,7 @@ class FolderTestCase(base.TestCase):
         publicFolder = self.model('folder').setUserAccess(
             publicFolder, self.user, AccessType.WRITE, save=True)
         resp = self.request(
-            path='/folder/{}'.format(publicFolder['_id']), method='PUT',
+            path='/folder/%s' % publicFolder['_id'], method='PUT',
             user=self.user, params={
                 'parentId': self.admin['_id'],
                 'parentType': 'user'
@@ -259,7 +259,7 @@ class FolderTestCase(base.TestCase):
         folder = resp.json
 
         # Test that bad json fails
-        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+        resp = self.request(path='/folder/%s/metadata' % folder['_id'],
                             method='PUT', user=self.admin,
                             body='badJSON', type='application/json')
         self.assertStatus(resp, 400)
@@ -269,7 +269,7 @@ class FolderTestCase(base.TestCase):
             'foo': 'bar',
             'test': 2
         }
-        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+        resp = self.request(path='/folder/%s/metadata' % folder['_id'],
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
 
@@ -280,7 +280,7 @@ class FolderTestCase(base.TestCase):
         # Edit and remove metadata
         metadata['test'] = None
         metadata['foo'] = 'baz'
-        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+        resp = self.request(path='/folder/%s/metadata' % folder['_id'],
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
 
@@ -293,7 +293,7 @@ class FolderTestCase(base.TestCase):
         metadata = {
             'foo.bar': 'notallowed'
         }
-        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+        resp = self.request(path='/folder/%s/metadata' % folder['_id'],
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
@@ -306,7 +306,7 @@ class FolderTestCase(base.TestCase):
         metadata = {
             '$foobar': 'alsonotallowed'
         }
-        resp = self.request(path='/folder/{}/metadata'.format(folder['_id']),
+        resp = self.request(path='/folder/%s/metadata' % folder['_id'],
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
@@ -484,7 +484,7 @@ class FolderTestCase(base.TestCase):
             name='Folder')
 
         resp = self.request(
-            path='/folder/{}/access'.format(folder['_id']), method='GET',
+            path='/folder/%s/access' % folder['_id'], method='GET',
             user=self.admin)
         self.assertStatusOk(resp)
         access = resp.json
@@ -493,24 +493,24 @@ class FolderTestCase(base.TestCase):
                 'login': self.admin['login'],
                 'level': AccessType.ADMIN,
                 'id': str(self.admin['_id']),
-                'name': '{} {}'.format(self.admin['firstName'],
-                                       self.admin['lastName'])}],
+                'name': '%s %s' % (
+                    self.admin['firstName'], self.admin['lastName'])}],
             'groups': []
         })
         self.assertTrue(not folder.get('public'))
         # Setting the access list with bad json should throw an error
         resp = self.request(
-            path='/folder/{}/access'.format(folder['_id']), method='PUT',
+            path='/folder/%s/access' % folder['_id'], method='PUT',
             user=self.admin, params={'access': 'badJSON'})
         self.assertStatus(resp, 400)
         # Change the access to public
         resp = self.request(
-            path='/folder/{}/access'.format(folder['_id']), method='PUT',
+            path='/folder/%s/access' % folder['_id'], method='PUT',
             user=self.admin,
             params={'access': json.dumps(access), 'public': True})
         self.assertStatusOk(resp)
         resp = self.request(
-            path='/folder/{}'.format(folder['_id']), method='GET',
+            path='/folder/%s' % folder['_id'], method='GET',
             user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['public'], True)
@@ -554,12 +554,12 @@ class FolderTestCase(base.TestCase):
             'Sub Item', creator=self.admin, folder=subFolder)
         metadata = {'key': 'value'}
         resp = self.request(
-            path='/folder/{}/metadata'.format(mainFolder['_id']), method='PUT',
+            path='/folder/%s/metadata' % mainFolder['_id'], method='PUT',
             user=self.admin, body=json.dumps(metadata),
             type='application/json')
         self.assertStatusOk(resp)
         resp = self.request(
-            path='/folder/{}/copy'.format(mainFolder['_id']), method='POST',
+            path='/folder/%s/copy' % mainFolder['_id'], method='POST',
             user=self.admin, type='application/json', body='')
         self.assertStatusOk(resp)
         # Check our new folder name
@@ -567,7 +567,7 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(newFolder['name'], 'Main Folder (1)')
         # Check its metadata
         resp = self.request(
-            path='/folder/{}'.format(newFolder['_id']), method='GET',
+            path='/folder/%s' % newFolder['_id'], method='GET',
             user=self.admin, type='application/json')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['meta'], metadata)
@@ -601,7 +601,7 @@ class FolderTestCase(base.TestCase):
         self.assertNotEqual(str(newSubItem['_id']), str(subItem['_id']))
         # Test copying the subFolder
         resp = self.request(
-            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            path='/folder/%s/copy' % subFolder['_id'], method='POST',
             user=self.admin, params={'public': 'original', 'progress': True})
         self.assertStatusOk(resp)
         # Check our new folder name
@@ -609,12 +609,12 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(newSubFolder['name'], 'Sub Folder (1)')
         # Test that a bogus parentType throws an error
         resp = self.request(
-            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            path='/folder/%s/copy' % subFolder['_id'], method='POST',
             user=self.admin, params={'parentType': 'badValue'})
         self.assertStatus(resp, 400)
         # Test that when we copy a folder into itself we don't recurse
         resp = self.request(
-            path='/folder/{}/copy'.format(subFolder['_id']), method='POST',
+            path='/folder/%s/copy' % subFolder['_id'], method='POST',
             user=self.admin, params={
                 'progress': True,
                 'parentType': 'folder',

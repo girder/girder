@@ -25,6 +25,8 @@ import re
 import six
 
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
+from pymongo.errors import WriteError
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
     TEXT_SCORE_SORT_MAX
@@ -343,16 +345,20 @@ class Model(ModelImporter):
             document = self.validate(document)
 
         if triggerEvents:
-            event = events.trigger('model.{}.save'.format(self.name), document)
+            event = events.trigger('model.%s.save' % self.name, document)
             if event.defaultPrevented:
                 return document
 
         isNew = '_id' not in document
-        if isNew:
-            document['_id'] = self.collection.insert_one(document).inserted_id
-        else:
-            self.collection.replace_one(
-                {'_id': document['_id']}, document, True)
+        try:
+            if isNew:
+                document['_id'] = \
+                    self.collection.insert_one(document).inserted_id
+            else:
+                self.collection.replace_one(
+                    {'_id': document['_id']}, document, True)
+        except WriteError as e:
+            raise ValidationException('Database save failed: %s' % e.details)
 
         if triggerEvents:
             if isNew:
@@ -446,19 +452,19 @@ class Model(ModelImporter):
         :returns: The matching document, or None.
         """
         if not id:
-            raise Exception('Attempt to load null ObjectId: %s' % id)
+            raise ValidationException('Attempt to load null ObjectId: %s' % id)
 
         if objectId and type(id) is not ObjectId:
             try:
                 id = ObjectId(id)
-            except Exception:
-                raise ValidationException('Invalid ObjectId: {}'.format(id),
+            except InvalidId:
+                raise ValidationException('Invalid ObjectId: %s' % id,
                                           field='id')
         doc = self.findOne({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('No such {}: {}'.format(
-                                      self.name, id), field='id')
+            raise ValidationException('No such %s: %s' % (self.name, id),
+                                      field='id')
 
         return doc
 

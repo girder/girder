@@ -58,7 +58,7 @@ class GravatarTest(base.TestCase):
         self.model('setting').set(PluginSettings.DEFAULT_IMAGE, 'mm')
 
         # Gravatar base URL should be computed on user creation
-        resp = self.request('/user/{}'.format(self.admin['_id']))
+        resp = self.request('/user/%s' % self.admin['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('gravatar_baseUrl' in resp.json)
 
@@ -69,13 +69,13 @@ class GravatarTest(base.TestCase):
             'https://www.gravatar.com/avatar/%s?d=identicon&s=64' % md5)
 
         # We should now have the gravatar_baseUrl cached on the user
-        resp = self.request('/user/{}'.format(self.admin['_id']))
+        resp = self.request('/user/%s' % self.admin['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('gravatar_baseUrl' in resp.json)
         oldBaseUrl = resp.json['gravatar_baseUrl']
 
         # Changing the email address should change the cached value
-        resp = self.request('/user/{}'.format(self.admin['_id']), method='PUT',
+        resp = self.request('/user/%s' % self.admin['_id'], method='PUT',
                             user=self.admin, params={
                                 'firstName': 'first',
                                 'lastName': 'last',

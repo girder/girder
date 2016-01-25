@@ -37,7 +37,7 @@ def sseMessage(event):
     """
     Serializes an event into the server-sent events protocol.
     """
-    return 'data: {}\n\n'.format(json.dumps(event, default=str))
+    return 'data: %s\n\n' % json.dumps(event, default=str)
 
 
 class Notification(Resource):

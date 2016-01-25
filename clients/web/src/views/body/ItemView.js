@@ -1,5 +1,4 @@
 (function () {
-
     /**
      * This view shows a single item's page.
      */

@@ -50,8 +50,8 @@ def combine_report(args):
     report them into the desired output format(s).
     """
     if not os.path.exists(args.coverage_dir):
-        raise Exception('Coverage directory {} does not exist.'.format(
-            args.coverage_dir))
+        raise Exception('Coverage directory %s does not exist.' %
+                        args.coverage_dir)
 
     # Step 1: Read and combine intermediate reports
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
@@ -95,7 +95,7 @@ def report(args, combined, stats):
     directory.
     """
     percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
-    print('Overall total: {} / {} ({:.2f}%)'.format(
+    print('Overall total: %s / %s (%.2f%%)' % (
         stats['totalHits'], stats['totalSloc'], percent))
 
     coverageEl = ET.Element('coverage', {
@@ -134,7 +134,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print('FAIL: Coverage below threshold ({}%)'.format(args.threshold))
+        print('FAIL: Coverage below threshold (%s%)' % args.threshold)
         sys.exit(1)
 
 if __name__ == '__main__':

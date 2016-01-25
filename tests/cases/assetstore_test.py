@@ -116,7 +116,7 @@ class AssetstoreTestCase(base.TestCase):
             'root': assetstore['root'],
             'current': True
         }
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
         assetstore = self.model('assetstore').load(resp.json['_id'])
@@ -260,7 +260,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(current['_id'], assetstore['_id'])
 
         # Anonymous user should not be able to delete assetstores
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='DELETE')
         self.assertStatus(resp, 401)
 
@@ -274,18 +274,18 @@ class AssetstoreTestCase(base.TestCase):
             size=1, assetstore=assetstore, mimeType='text/plain')
         file['sha512'] = 'x'  # add this dummy value to simulate real file
 
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='DELETE', user=self.admin)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'You may not delete an '
                          'assetstore that contains files.')
         # Delete the offending file, we can now delete the assetstore
         self.model('file').remove(file)
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='DELETE', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'],
-                         'Deleted assetstore {}.'.format(assetstore['name']))
+                         'Deleted assetstore %s.' % assetstore['name'])
 
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
@@ -328,7 +328,7 @@ class AssetstoreTestCase(base.TestCase):
             'db': assetstore['db'],
             'current': True
         }
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
         assetstore = self.model('assetstore').load(resp.json['_id'])
@@ -425,7 +425,7 @@ class AssetstoreTestCase(base.TestCase):
         # Set the assetstore to current.  This is really to test the edit
         # assetstore code.
         params['current'] = True
-        resp = self.request(path='/assetstore/{}'.format(assetstore['_id']),
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
 
@@ -532,7 +532,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertFalse('s3' in resp.json)
 
         # Test download for an empty file
-        resp = self.request(path='/file/{}/download'.format(emptyFile['_id']),
+        resp = self.request(path='/file/%s/download' % emptyFile['_id'],
                             user=self.admin, method='GET', isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), '')
@@ -541,10 +541,22 @@ class AssetstoreTestCase(base.TestCase):
                          'attachment; filename="My File.txt"')
 
         # Test download of a non-empty file
-        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+        resp = self.request(path='/file/%s/download' % largeFile['_id'],
                             user=self.admin, method='GET', isJson=False)
         self.assertStatus(resp, 303)
         six.assertRegex(self, resp.headers['Location'], s3Regex)
+
+        # Test download of a non-empty file, with Content-Disposition=inline.
+        # Expect the special S3 header response-content-disposition.
+        params = {'contentDisposition': 'inline'}
+        inlineRegex = r'response-content-disposition=' + \
+                      'inline%3B\+filename%3D%22My\+File.txt%22'
+        resp = self.request(path='/file/%s/download' % largeFile['_id'],
+                            user=self.admin, method='GET', isJson=False,
+                            params=params)
+        self.assertStatus(resp, 303)
+        six.assertRegex(self, resp.headers['Location'], s3Regex)
+        six.assertRegex(self, resp.headers['Location'], inlineRegex)
 
         # Test download as part of a streaming zip
         @httmock.all_requests
@@ -553,11 +565,11 @@ class AssetstoreTestCase(base.TestCase):
                     url.scheme == 'https'):
                 return 'dummy file contents'
             else:
-                raise Exception('Unexpected url {}'.format(url))
+                raise Exception('Unexpected url %s' % url)
 
         with httmock.HTTMock(s3_pipe_mock):
             resp = self.request(
-                '/folder/{}/download'.format(parentFolder['_id']),
+                '/folder/%s/download' % parentFolder['_id'],
                 method='GET', user=self.admin, isJson=False)
             self.assertStatusOk(resp)
             zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)),
@@ -651,12 +663,12 @@ class AssetstoreTestCase(base.TestCase):
         key.set_contents_from_string("test")
 
         # Test delete for a non-empty file
-        resp = self.request(path='/file/{}'.format(largeFile['_id']),
+        resp = self.request(path='/file/%s' % largeFile['_id'],
                             user=self.admin, method='DELETE')
         self.assertStatusOk(resp)
 
         # The file should be gone now
-        resp = self.request(path='/file/{}/download'.format(largeFile['_id']),
+        resp = self.request(path='/file/%s/download' % largeFile['_id'],
                             user=self.admin, method='GET', isJson=False)
         self.assertStatus(resp, 400)
         # The actual delete may still be in the event queue, so we want to

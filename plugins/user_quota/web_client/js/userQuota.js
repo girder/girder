@@ -178,10 +178,6 @@ girder.views.QuotaPolicies = girder.View.extend({
         'change #g-sizeUnits': '_selectCustomQuota'
     },
 
-    _selectCustomQuota: function () {
-        $('#g-customQuota').prop('checked', true);
-    },
-
     initialize: function (settings) {
         this.model = settings.model;
         this.modelType = settings.modelType;
@@ -189,6 +185,10 @@ girder.views.QuotaPolicies = girder.View.extend({
             function () {
                 this.render();
             }, this).fetchQuotaPolicy();
+    },
+
+    _selectCustomQuota: function () {
+        $('#g-customQuota').prop('checked', true);
     },
 
     capacityChart: function (view, el) {
@@ -284,8 +284,8 @@ girder.views.QuotaPolicies = girder.View.extend({
             quotaPolicy: view.model.get('quotaPolicy'),
             sizeValue: sizeInfo.sizeValue,
             sizeUnits: sizeInfo.sizeUnits,
-            assetstoreList: (girder.currentUser.get('admin') ?
-                view.model.get('assetstoreList').models : undefined),
+            assetstoreList: (girder.currentUser.get('admin')
+                ? view.model.get('assetstoreList').models : undefined),
             capacityString: ' ' + this.capacityString(),
             defaultQuotaString: defaultQuotaString
         })).girderModal(this).on('shown.bs.modal', function () {
@@ -326,7 +326,7 @@ girder.userQuota = {
     sizeToValueAndUnits: function (sizeValue) {
         var sizeUnits = 0;
         if (sizeValue) {
-            for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024) *
+            for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024, 10) *
                     1024 === sizeValue; sizeUnits += 1) {
                 sizeValue /= 1024;
             }
@@ -361,10 +361,10 @@ girder.userQuota = {
                     }
                 }
             }
-            for (i = 0; i < parseInt(sizeUnits); i += 1) {
+            for (i = 0; i < parseInt(sizeUnits, 10); i += 1) {
                 sizeBytes *= 1024;
             }
-            sizeBytes = parseInt(sizeBytes);
+            sizeBytes = parseInt(sizeBytes, 10);
         }
         return sizeBytes;
     }

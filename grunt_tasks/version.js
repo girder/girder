@@ -53,16 +53,13 @@ module.exports = function (grunt) {
                 'clients/web/src/girder-version.js': function (fs, fd, done) {
                     var girderVersion = versionInfoObject();
                     fs.writeSync(
-                        fd,
-                        [
-                            '/* jshint ignore: start */',
-                            '//jscs:disable',
+                        fd, [
+                            '/*eslint-disable */',
                             'girder.versionInfo = ',
                             girderVersion,
                             ';',
-                            '/* jshint ignore: end */',
-                            '//jscs:enable\n'
-                        ].join('\n')
+                            '/*eslint-enable */'
+                        ].join('\n') + '\n'
                     );
                     done();
                 }

@@ -419,4 +419,4 @@ class Group(Resource):
     )
     def deleteGroup(self, group, params):
         self.model('group').remove(group)
-        return {'message': 'Deleted the group {}.'.format(group['name'])}
+        return {'message': 'Deleted the group %s.' % group['name']}

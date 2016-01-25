@@ -2,6 +2,24 @@
  * This widget shows a list of metadata in a given item.
  */
 girder.views.MetadataWidget = girder.View.extend({
+    events: {
+        'click .g-add-json-metadata': function (event) {
+            this.addMetadata(event, 'json');
+        },
+        'click .g-add-simple-metadata': function (event) {
+            this.addMetadata(event, 'simple');
+        }
+    },
+
+    initialize: function (settings) {
+        this.item = settings.item;
+        this.accessLevel = settings.accessLevel;
+        this.item.on('g:changed', function () {
+            this.render();
+        }, this);
+        this.render();
+    },
+
     modes: {
         simple: {
             editor: function (args) {
@@ -41,24 +59,6 @@ girder.views.MetadataWidget = girder.View.extend({
         }
     },
 
-    events: {
-        'click .g-add-json-metadata': function (event) {
-            this.addMetadata(event, 'json');
-        },
-        'click .g-add-simple-metadata': function (event) {
-            this.addMetadata(event, 'simple');
-        }
-    },
-
-    initialize: function (settings) {
-        this.item = settings.item;
-        this.accessLevel = settings.accessLevel;
-        this.item.on('g:changed', function () {
-            this.render();
-        }, this);
-        this.render();
-    },
-
     setItem: function (item) {
         this.item = item;
         return this;
@@ -66,7 +66,7 @@ girder.views.MetadataWidget = girder.View.extend({
 
     // Does not support modal editing
     getModeFromValue: function (value) {
-        return (typeof value === 'string') ? 'simple' : 'json';
+        return _.isString(value) ? 'simple' : 'json';
     },
 
     addMetadata: function (event, mode) {
@@ -158,7 +158,6 @@ girder.views.MetadatumWidget = girder.View.extend({
         if (_.has(newMode, 'validation') &&
             _.has(newMode.validation, 'from') &&
             _.has(newMode.validation.from, from)) {
-
             var validate = newMode.validation.from[from][0];
             var msg = newMode.validation.from[from][1];
 
@@ -177,8 +176,8 @@ girder.views.MetadatumWidget = girder.View.extend({
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
         var fromEditorMode =
-                (existingEditor instanceof girder.views.JsonMetadatumEditWidget) ?
-                'json' : 'simple';
+                (existingEditor instanceof girder.views.JsonMetadatumEditWidget)
+                    ? 'json' : 'simple';
         var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
         if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
             return;
@@ -222,7 +221,7 @@ girder.views.MetadatumWidget = girder.View.extend({
             try {
                 var jsonValue = JSON.parse(row.attr('g-value'));
 
-                if (jsonValue !== undefined && typeof jsonValue !== 'object') {
+                if (jsonValue !== undefined && !_.isObject(jsonValue)) {
                     opts.value = jsonValue;
                 }
             } catch (e) {}
@@ -270,6 +269,14 @@ girder.views.MetadatumEditWidget = girder.View.extend({
                 value: this.getCurrentValue()
             });
         }
+    },
+
+    initialize: function (settings) {
+        this.item = settings.item;
+        this.key = settings.key || '';
+        this.value = (settings.value !== undefined) ? settings.value : '';
+        this.accessLevel = settings.accessLevel;
+        this.newDatum = settings.newDatum;
     },
 
     editTemplate: girder.templates.metadatumEditWidget,
@@ -349,14 +356,6 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         } else {
             this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
         }
-    },
-
-    initialize: function (settings) {
-        this.item = settings.item;
-        this.key = settings.key || '';
-        this.value = (settings.value !== undefined) ? settings.value : '';
-        this.accessLevel = settings.accessLevel;
-        this.newDatum = settings.newDatum;
     },
 
     render: function () {

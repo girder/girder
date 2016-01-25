@@ -56,19 +56,19 @@ girder.views.PluginsView = girder.View.extend({
             offText: '&nbsp;'
         }).off('switchChange.bootstrapSwitch')
           .on('switchChange.bootstrapSwitch', function (event, state) {
-                var plugin = $(event.currentTarget).attr('key');
-                if (state === true) {
-                    view.enabled.push(plugin);
-                } else {
-                    var idx;
-                    while ((idx = view.enabled.indexOf(plugin)) >= 0) {
-                        view.enabled.splice(idx, 1);
-                    }
-                }
-                girder.pluginsChanged = true;
-                $('.g-plugin-restart').addClass('g-plugin-restart-show');
-                view._updatePlugins();
-            });
+              var plugin = $(event.currentTarget).attr('key');
+              if (state === true) {
+                  view.enabled.push(plugin);
+              } else {
+                  var idx;
+                  while ((idx = view.enabled.indexOf(plugin)) >= 0) {
+                      view.enabled.splice(idx, 1);
+                  }
+              }
+              girder.pluginsChanged = true;
+              $('.g-plugin-restart').addClass('g-plugin-restart-show');
+              view._updatePlugins();
+          });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
             animation: false,
@@ -133,9 +133,7 @@ girder.views.PluginsView = girder.View.extend({
                 this.$('.g-plugin-switch[key="' + plugin + '"]')
                     .attr('checked', 'checked').bootstrapSwitch('state', true, true);
             }, this);
-        }, this)).error(_.bind(function () {
-            // TODO acknowledge?
-        }, this));
+        }, this));  // TODO acknowledge?
     }
 });
 

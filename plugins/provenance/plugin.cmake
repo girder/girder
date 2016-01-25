@@ -21,5 +21,5 @@ add_web_client_test(
     provenance
     "${PROJECT_SOURCE_DIR}/plugins/provenance/plugin_tests/provenanceSpec.js"
     PLUGIN provenance)
-add_javascript_style_test(
+add_eslint_test(
     provenance "${PROJECT_SOURCE_DIR}/plugins/provenance/web_client/js")

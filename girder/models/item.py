@@ -298,9 +298,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
     def setMetadata(self, item, metadata):
         """
-        Set metadata on an item.  A rest exception is thrown in the cases where
-        the metadata JSON object is badly formed, or if any of the metadata
-        keys contains a period ('.').
+        Set metadata on an item.  A `ValidationException` is thrown in the
+        cases where the metadata JSON object is badly formed, or if any of the
+        metadata keys contains a period ('.').
 
         :param item: The item to set the metadata on.
         :type item: dict

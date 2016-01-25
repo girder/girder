@@ -40,7 +40,7 @@ CHUNK_SIZE = 2097152
 
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
-    This assetstore type stores files within mongoDB using the GridFS data
+    This assetstore type stores files within MongoDB using the GridFS data
     model.
     """
 
@@ -216,7 +216,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     **kwargs):
+                     contentDisposition=None, **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         the database to the response.
@@ -226,7 +226,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if headers:
             cherrypy.response.headers['Accept-Ranges'] = 'bytes'
-            self.setContentHeaders(file, offset, endByte)
+            self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         # If the file is empty, we stop here
         if endByte - offset <= 0:

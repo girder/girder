@@ -51,11 +51,12 @@ girder.Model = Backbone.Model.extend({
          * instance, if the metadata of an item has keys that contain non-ascii
          * values, they won't get handled the the rest call. */
         var data = {};
-        _.each(this.attributes, function (value, key) {
-            if (typeof value !== 'object') {
+        _.each(this.keys(), function (key) {
+            var value = this.get(key);
+            if (!_.isObject(value)) {
                 data[key] = value;
             }
-        });
+        }, this);
 
         girder.restRequest({
             path: path,

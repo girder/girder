@@ -90,7 +90,7 @@
             };
 
             xhr.upload.addEventListener('progress', function (event) {
-                handler._xhrProgress.call(handler, event);
+                handler._xhrProgress(event);
             });
 
             xhr.addEventListener('error', function (event) {
@@ -149,7 +149,7 @@
             if (xhr.status === 200) {
                 handler.s3UploadId =
                     xhr.responseText.match(/<UploadId>(.*)<\/UploadId>/).pop();
-                handler._sendNextChunk.call(handler);
+                handler._sendNextChunk();
             } else {
                 handler.trigger('g:upload.error', {
                     message: 'Error while initializing multichunk S3 upload.',
@@ -211,9 +211,9 @@
                     handler.chunkN += 1;
 
                     if (handler.startByte < handler.params.file.size) {
-                        handler._sendNextChunk.call(handler);
+                        handler._sendNextChunk();
                     } else {
-                        handler._finalizeMultiChunkUpload.call(handler);
+                        handler._finalizeMultiChunkUpload();
                     }
                 } else {
                     handler.trigger('g:upload.error', {
@@ -224,7 +224,7 @@
             };
 
             xhr.upload.addEventListener('progress', function (event) {
-                handler._xhrProgress.call(handler, event);
+                handler._xhrProgress(event);
             });
 
             xhr.addEventListener('error', function (event) {

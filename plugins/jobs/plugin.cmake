@@ -7,5 +7,5 @@ add_web_client_test(
     jobs
     "${PROJECT_SOURCE_DIR}/plugins/jobs/plugin_tests/jobsSpec.js"
     PLUGIN jobs)
-add_javascript_style_test(
+add_eslint_test(
     jobs "${PROJECT_SOURCE_DIR}/plugins/jobs/web_client/js")

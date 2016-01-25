@@ -38,22 +38,33 @@ import yaml
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
+from girder.models.model_base import ValidationException
 from girder.utility import mail_utils, config
 
 
-def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
+def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
+                buildDag=True):
     """
-    Loads a set of plugins into the application. The list passed in should not
-    already contain dependency information; dependent plugins will be loaded
-    automatically.
+    Loads a set of plugins into the application.
 
     :param plugins: The set of plugins to load, by directory name.
     :type plugins: list
     :param root: The root node of the server tree.
+    :type root: object
     :param appconf: The server's cherrypy configuration object.
     :type appconf: dict
-    :returns: A list of plugins that were actually loaded, once dependencies
-              were resolved and topological sort was performed.
+    :param apiRoot: The cherrypy api root object.
+    :type apiRoot: object or None
+    :param curConfig: A girder config object to use.
+    :type curConfig: dict or None
+    :param buildDag: If the ``plugins`` parameter is already a topo-sorted list
+        with all dependencies resolved, set this to False and it will skip
+        rebuilding the DAG. Otherwise the dependency resolution and sorting
+        will occur within this method.
+    :type buildDag: bool
+    :returns: A 3-tuple containing the modified root, config, and apiRoot
+        objects.
+    :rtype tuple:
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
@@ -73,25 +84,60 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None):
 
     print(TerminalColor.info('Resolving plugin dependencies...'))
 
-    filteredDepGraph = {
-        pluginName: info['dependencies']
-        for pluginName, info in six.viewitems(findAllPlugins(curConfig))
-        if pluginName in plugins
-    }
+    if buildDag:
+        plugins = getToposortedPlugins(plugins, curConfig, ignoreMissing=True)
 
-    for pset in toposort(filteredDepGraph):
-        for plugin in pset:
-            try:
-                root, appconf, apiRoot = loadPlugin(
-                    plugin, root, appconf, apiRoot, curConfig=curConfig)
-                print(TerminalColor.success('Loaded plugin "{}"'
-                                            .format(plugin)))
-            except Exception:
-                print(TerminalColor.error(
-                    'ERROR: Failed to load plugin "{}":'.format(plugin)))
-                traceback.print_exc()
+    for plugin in plugins:
+        try:
+            root, appconf, apiRoot = loadPlugin(
+                plugin, root, appconf, apiRoot, curConfig=curConfig)
+            print(TerminalColor.success('Loaded plugin "%s"' % plugin))
+        except Exception:
+            print(TerminalColor.error(
+                'ERROR: Failed to load plugin "%s":' % plugin))
+            girder.logger.exception('Plugin load failure: %s' % plugin)
+            traceback.print_exc()
 
     return root, appconf, apiRoot
+
+
+def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
+    """
+    Given a set of plugins to load, construct the full DAG of required plugins
+    to load and yields them in toposorted order.
+    """
+    curConfig = curConfig or config.getConfig()
+    plugins = set(plugins)
+
+    allPlugins = findAllPlugins(curConfig)
+    dag = {}
+    visited = set()
+
+    def addDeps(plugin):
+        if plugin not in allPlugins:
+            message = 'Required plugin %s does not exist.' % plugin
+            if ignoreMissing:
+                print(TerminalColor.error(message))
+                girder.logger.error(message)
+                return
+            else:
+                raise ValidationException(message)
+
+        deps = allPlugins[plugin]['dependencies']
+        dag[plugin] = deps
+
+        for dep in deps:
+            if dep in visited:
+                return
+            visited.add(dep)
+            addDeps(dep)
+
+    for plugin in plugins:
+        addDeps(plugin)
+
+    for pset in toposort(dag):
+        for plugin in pset:
+            yield plugin
 
 
 def getPluginParentDir(name, curConfig=None):
@@ -130,7 +176,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     if not os.path.exists(pluginDir):
-        raise Exception('Plugin directory does not exist: {}'.format(pluginDir))
+        raise Exception('Plugin directory does not exist: %s' % pluginDir)
     if not isPluginDir and not isPluginFile:
         # This plugin does not have any server-side python code.
         return root, appconf, apiRoot
@@ -273,7 +319,6 @@ def findAllPlugins(curConfig=None):
                                 ('ERROR: Plugin "%s": '
                                  'plugin.json is not valid JSON.') % plugin))
                         print(e)
-                        continue
             elif os.path.isfile(configYml):
                 with open(configYml) as conf:
                     try:
@@ -284,7 +329,6 @@ def findAllPlugins(curConfig=None):
                                 ('ERROR: Plugin "%s": '
                                  'plugin.yml is not valid YAML.') % plugin))
                         print(e)
-                        continue
 
             allPlugins[plugin] = {
                 'name': data.get('name', plugin),

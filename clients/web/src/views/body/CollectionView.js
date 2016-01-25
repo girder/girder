@@ -178,5 +178,4 @@
                 itemCreate: params.dialog === 'itemcreate'
             });
         });
-
 }());

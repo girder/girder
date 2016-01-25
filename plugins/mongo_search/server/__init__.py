@@ -43,7 +43,7 @@ class ResourceExt(Resource):
         events.trigger('mongo_search.allowed_collections', info=allowed)
 
         if coll not in allowed:
-            raise RestException('Invalid resource type: {}'.format(coll))
+            raise RestException('Invalid resource type: %s' % coll)
 
         try:
             query = bson.json_util.loads(params['q'])
