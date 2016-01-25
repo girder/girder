@@ -192,10 +192,16 @@ module.exports = function (grunt) {
                     'Found plugin: ' + plugin + ' (custom Gruntfile)'
                 ).bold);
 
-                // install any additional npm packages during init
-                npm = _(config.grunt.dependencies || []).map(function (version, dep) {
-                    return dep + '@' + version;
-                });
+                npm = (
+                    _(config.grunt.dependencies || [])
+                        .map(function (version, dep) {
+                            return [
+                                dep,
+                                version.replace(/\./g, "\\.")
+                            ].join("@");
+                        })
+                );
+
                 if (npm.length) {
                     grunt.config.set(
                         'init.npm-install:' + npm.join(':'), {}
