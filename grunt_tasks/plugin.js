@@ -197,8 +197,8 @@ module.exports = function (grunt) {
                         .map(function (version, dep) {
                             return [
                                 dep,
-                                version.replace(/\./g, "\\.")
-                            ].join("@");
+                                version.replace(/\./g, '\\.')
+                            ].join('@');
                         })
                 );
 
