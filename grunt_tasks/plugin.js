@@ -184,14 +184,14 @@ module.exports = function (grunt) {
                 config = grunt.file.readYAML(yml);
             }
 
-            var doAutoConfig = (
+            var doAutoBuild = (
                !_.isObject(config.grunt) ||
-                _.isUndefined(config.grunt.autoconf) ||
-                _.isNull(config.grunt.autoconf) ||
-              !!config.grunt.autoconf
+                _.isUndefined(config.grunt.autobuild) ||
+                _.isNull(config.grunt.autobuild) ||
+              !!config.grunt.autobuild
             );
 
-            if (doAutoConfig) {
+            if (doAutoBuild) {
                 // merge in configuration for the main plugin build tasks
                 configurePlugin(plugin);
             }

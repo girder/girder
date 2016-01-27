@@ -534,7 +534,7 @@ key to your **plugin.json** file.
         {
         "file" : "Gruntfile.js",
         "defaultTargets": [ "MY_PLUGIN_TASK" ],
-        "autoconf": true
+        "autobuild": true
         }
     }
 
@@ -547,7 +547,7 @@ and add any target to the default one using the "defaultTargets" array.
 
 .. note:: Girder creates a number of grunt build tasks that expect plugins to be
    organized according to a certain convention.  To opt out of these tasks, add
-   an **autoconf** key (default: **true**) within the **grunt** object and set
+   an **autobuild** key (default: **true**) within the **grunt** object and set
    it to **false**.
 
 All paths within your custom Grunt tasks must be relative to the root directory
