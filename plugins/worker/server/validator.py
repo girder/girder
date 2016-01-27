@@ -9,7 +9,7 @@ class Validator(Resource):
         self.resourceName = 'worker_validator'
         self.route('GET', (), self.listValidators)
 
-    @access.public
+    @access.admin
     @describeRoute(
         Description('List or search for validators.')
         .param('type', 'Find validators with this type.', required=False)
