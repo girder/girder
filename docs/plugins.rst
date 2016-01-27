@@ -9,6 +9,9 @@ their own plugins should see the :ref:`Plugin Development <plugindevelopment>` s
 a listing and brief documentation of some of Girder's standard plugins that come
 pre-packaged with the application.
 
+
+.. _jobsplugin:
+
 Jobs
 -----------
 
@@ -295,3 +298,27 @@ being downloaded, but still must reside in the same location on HDFS.
 Duplicates (that is, pre-existing files with the same name in the same location
 in the Girder hierarchy) will be ignored if, for instance, you import the same
 hierarchy into the same location twice in a row.
+
+Batch Worker
+------------
+
+This plugin should be enabled if you want to use the Girder worker distributed
+processing engine to execute batch jobs initiated by the server. This is useful
+for deploying service architectures that involve both data management and
+scalable batch processing. This plugin provides utilities for sending generic tasks
+to worker nodes for execution. The worker itself uses
+`celery <http://www.celeryproject.org/>`_ to manage the distribution of tasks,
+and builds in some useful Girder integrations on top of celery. Namely,
+
+* **Data management**: This plugin provides python functions for building task
+  input and output specs that refer to data stored on the Girder server, making
+  it easy to run processing on specific folders, items, or files. The worker itself
+  knows how to authenticate and download data from the server, and upload results
+  back to it.
+* **Job management**: This plugin depends on the :ref:`Jobs plugin <jobsplugin>`.
+  Tasks are specified as python dictionaries inside of a job document and then
+  scheduled via celery. The worker automatically updates the status of jobs
+  as they are received and executed so that they can be monitored via the jobs
+  UI in real time. If the script prints any logging information, it is automatically
+  collected in the job log on the server, and if the script raises an exception,
+  the job status is automatically set to an error state.
