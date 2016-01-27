@@ -533,7 +533,8 @@ key to your **plugin.json** file.
     "grunt":
         {
         "file" : "Gruntfile.js",
-        "defaultTargets": [ "MY_PLUGIN_TASK" ]
+        "defaultTargets": [ "MY_PLUGIN_TASK" ],
+        "autoconf": true
         }
     }
 
@@ -543,6 +544,11 @@ and add any target to the default one using the "defaultTargets" array.
 .. note:: The **file** key within the **grunt** object must be a path that is
    relative to the root directory of your plugin. It does not have to be called
    ``Gruntfile.js``, it can be called anything you want.
+
+.. note:: Girder creates a number of grunt build tasks that expect plugins to be
+   organized according to a certain convention.  To opt out of these tasks, add
+   an **autoconf** key (default: **true**) within the **grunt** object and set
+   it to **false**.
 
 All paths within your custom Grunt tasks must be relative to the root directory
 of the Girder source repository, rather than relative to the plugin directory.
