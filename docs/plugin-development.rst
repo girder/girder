@@ -389,6 +389,18 @@ You can use all of the testing utilities provided by the ``base.TestCase`` class
 from core. You will also get coverage results for your plugin aggregated with
 the main Girder coverage results if coverage is enabled.
 
+Plugins can also use the external data interface provided by Girder as described
+in :ref:`use_external_data`.  For plugins, the data key files should be placed
+inside a directory called ``plugin_tests/data/``.  When referencing the
+files, they must be prefixed by your plugin name as follows
+
+.. code-block:: cmake
+
+    add_python_test(my_test EXTERNAL_DATA plugins/cats/test_file.txt)
+
+Then inside your unittest, the file will be available under the main data path
+as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
+
 Extending the Client-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

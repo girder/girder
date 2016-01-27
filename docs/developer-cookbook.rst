@@ -400,6 +400,44 @@ run.
 
        add_python_test(my_test RESOURCE_LOCKS cherrypy mongo)
 
+.. _use_external_data:
+
+Downloading external data files for test cases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some cases, it is necessary to perform a test on a file that is too big store
+inside a repository.  For tests such as these, Girder provides a way to link to
+test files served at `https://midas3.kitware.com`_ and have them automatically
+downloaded and cached during the build stage.  To add a new external file, first
+make an account at `https://midas3.kitware.com`_ and upload a publically accessible
+file.  When viewing the items containing those files on Midas, there will be a
+link to "Download key file" appearing as a key icon.  This file contains the
+the MD5 hash of the file contents and can be committed inside the
+``tests/data/`` directory of Girder's repository.  This file can then be
+listed as an optional ``EXTERNAL_DATA`` arguement to the ``add_python_test``
+function to have the file downloaded as an extra build step.  As an example,
+consider the file currently used for testing called ``tests/data/test_file.txt.md5``.
+To use this file in you test, you would add the test as follows
+
+.. code-block:: cmake
+
+    add_python_test(my_test EXTERNAL_DATA test_file.txt)
+
+The ``EXTERNAL_DATA`` keyword argument can take a list of files or even directories.
+When a directory is provided, it will download all files that exist in the given path.
+Inside your unit test, you can access these files under the path given
+by the environment variable ``GIRDER_TEST_DATA_PREFIX`` as follows
+
+.. code-block:: python
+
+    import os
+    test_file = os.path.join(
+        os.environ['GIRDER_TEST_DATA_PREFIX'],
+        'test_file.txt'
+    )
+    with open(test_file, 'r') as f:
+        content = f.read() # The content of the downloaded test file
+
 Serving a custom app from the server root
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
