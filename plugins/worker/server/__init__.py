@@ -4,7 +4,6 @@ import celery
 from girder import events
 from girder.constants import AccessType
 from girder.plugins.jobs.constants import JobStatus
-from girder.plugins.worker.validator import Validator
 from girder.utility.model_importer import ModelImporter
 
 _celeryapp = None
@@ -100,8 +99,6 @@ def validateJobStatus(event):
 
 
 def load(info):
-    info['apiRoot'].worker_validator = Validator(getCeleryApp())
-
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
     events.bind('model.setting.validate', 'worker', validateSettings)
