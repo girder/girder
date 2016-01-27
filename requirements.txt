@@ -1,13 +1,13 @@
 # girder core
 bcrypt==2.0.0
-boto==2.38.0
+boto==2.39.0
 cffi==1.5.0
-CherryPy==3.8.0
+CherryPy==4.0.0
 Mako==1.0.3
 pymongo==3.2
 PyYAML==3.11
 requests==2.9.1
-psutil==3.2.2
+psutil==3.4.2
 pytz==2015.7
 six==1.10.0
 
@@ -18,7 +18,7 @@ celery==3.1.19
 geojson==1.3.1
 
 # hdfs_assetstore
-snakebite==2.5.1 ; python_version < '3.0'
+snakebite==2.7.3 ; python_version < '3.0'
 
 # metadata_extractor
 hachoir-core==1.3.3     ; python_version < '3.0'
