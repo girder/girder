@@ -15,8 +15,7 @@ div.g-plugin-restart
                             disabled=plugin.value.unmetDependencies.length > 0,
                             checked=(plugin.value.enabled ? "checked" : undefined),
                             experimental=(experimental ? "true" : undefined),
-                            data-on-color=(experimental ? "warning" : "primary"),
-                            data-label-text=(experimental ? "&#xe95c;" : "&nbsp;"))
+                            data-on-color=(experimental ? "warning" : "primary"))
       .g-plugin-name
         span= plugin.value.name
         if plugin.value.version
