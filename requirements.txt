@@ -12,10 +12,10 @@ pytz==2015.7
 six==1.10.0
 
 # celery_jobs
-celery==3.1.19
+celery==3.1.20
 
 # geospatial
-geojson==1.3.1
+geojson==1.3.2
 
 # hdfs_assetstore
 snakebite==2.7.3 ; python_version < '3.0'
