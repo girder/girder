@@ -791,21 +791,16 @@ girderTest.testRoute = function (route, hasDialog, testFunc) {
         if (route.indexOf('#') === 0) {
             route = route.substr(1);
         }
-        window.location.hash = route;
+        girder.router.navigate(route, {trigger: true});
     });
-    /* We need to let the window have a chance to reload, so we just release
-     * our time slice. */
-    waits(1);
+
     if (hasDialog) {
-        girderTest.waitForDialog('route: ' + route);
+        girderTest.waitForDialog('testRoute: waitForDialog failed, route=' + route);
     } else {
-        girderTest.waitForLoad('route: ' + route);
+        girderTest.waitForLoad('testRoute: waitForLoad failed, route=' + route);
     }
     if (testFunc) {
-        waitsFor(testFunc, 'route: ' + route);
-        runs(function () {
-            expect(testFunc()).toBe(true);
-        });
+        waitsFor(testFunc, 'testRoute: test function failed, route=' + route);
     }
 };
 

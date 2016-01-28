@@ -391,8 +391,6 @@ describe('Test internal javascript functions', function () {
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
-                console.log($.param(testVals[i]));
-                console.log($.param(girder.parseQueryString($.param(testVals[i]))));
                 expect($.param(girder.parseQueryString(encode))).toBe(encode);
             }
         });
