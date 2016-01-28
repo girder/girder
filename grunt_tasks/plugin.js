@@ -202,9 +202,21 @@ module.exports = function (grunt) {
                 ).bold);
 
                 // install any additional npm packages during init
-                npm = _(config.grunt.dependencies || []).map(function (version, dep) {
-                    return dep + '@' + version;
-                });
+                npm = (
+                    _(config.grunt.dependencies || [])
+                        .map(function (version, dep) {
+                            // escape any periods in the dependency version so
+                            // that grunt.config.set does not descend on each
+                            // version number component
+                            var escapedVersion = version.replace(/\./g, '\\.');
+
+                            return [
+                                dep,
+                                escapedVersion
+                            ].join('@');
+                        })
+                );
+
                 if (npm.length) {
                     grunt.config.set(
                         'init.npm-install:' + npm.join(':'), {}

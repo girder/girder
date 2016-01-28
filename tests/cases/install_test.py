@@ -80,7 +80,6 @@ class InstallTestCase(base.TestCase):
         shutil.rmtree(self.baseDir)
 
     def testInstallPlugin(self):
-
         with mock.patch(POPEN, return_value=ProcMock()) as p:
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps'),
@@ -175,6 +174,80 @@ class InstallTestCase(base.TestCase):
             ], force=True, dev=True))
 
             self.assertTrue('--production' not in p.mock_calls[0][1][0])
+
+    def testGruntDependencies(self):
+        with mock.patch(POPEN, return_value=ProcMock()) as p:
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ]))
+
+            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+
+            self.assertTrue(os.path.exists(
+                os.path.join(self.pluginDir, 'has_grunt_deps', 'plugin.json')))
+
+        # Should fail if exists and force=False
+        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ]))
+
+        # Should succeed if force=True
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ]))
+
+        # If npm install returns 1, should fail
+        with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
+                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ]))
+
+        # If bad path is given, should fail gracefuly
+        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                '/bad/install/path'
+            ]))
+
+        # If src == dest, we should still run npm and succeed.
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(self.pluginDir, 'has_grunt_deps')
+            ]))
+
+        # Should fail if exists as directory and symlink is true
+        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ], symlink=True))
+
+        # Should be a link if force=True and symlink=True
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ], symlink=True))
+
+            self.assertTrue(os.path.islink(os.path.join(
+                self.pluginDir, 'has_grunt_deps')))
+
+            # Should fail if exists as link and symlink is false
+            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+                install.install_plugin(PluginOpts(plugin=[
+                    os.path.join(pluginRoot, 'has_grunt_deps')
+                ]))
+
+        # Should not be a link if force=True and symlink=False
+        with mock.patch(POPEN, return_value=ProcMock()):
+            install.install_plugin(PluginOpts(force=True, plugin=[
+                os.path.join(pluginRoot, 'has_grunt_deps')
+            ]))
+
+            self.assertFalse(os.path.islink(os.path.join(
+                self.pluginDir, 'has_grunt_deps')))
 
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
