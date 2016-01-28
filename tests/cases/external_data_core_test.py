@@ -36,7 +36,7 @@ class ExternalDataCoreTest(unittest.TestCase):
 
         hash = hashlib.md5()
         with open(filepath, 'r') as f:
-            hash.update(f.read())
+            hash.update(f.read().encode('utf-8'))
             self.assertEqual(
                 hash.hexdigest(),
                 '169293f7c9138e4b50ebcab4358dc509',

@@ -38,7 +38,7 @@ class ExternalDataPluginTest(ExternalDataCoreTest):
 
         hash = hashlib.md5()
         with open(filepath, 'r') as f:
-            hash.update(f.read())
+            hash.update(f.read().encode('utf-8'))
             self.assertEqual(
                 hash.hexdigest(),
                 '41b5b2ede7a20b5f1c466db54615132e',
