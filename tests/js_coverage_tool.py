@@ -134,7 +134,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print('FAIL: Coverage below threshold (%s%)' % args.threshold)
+        print('FAIL: Coverage below threshold (%s%%)' % args.threshold)
         sys.exit(1)
 
 if __name__ == '__main__':
