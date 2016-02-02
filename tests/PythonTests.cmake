@@ -11,6 +11,12 @@ else()
   set(_py_branch_cov False)
 endif()
 
+if(RUN_CORE_TESTS)
+  set(_omit_python_covg "girder/external/*")
+else()
+  set(_omit_python_covg "girder/*,clients/python/*")
+endif()
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc.in"
   "${py_coverage_rc}"
