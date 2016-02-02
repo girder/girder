@@ -18,15 +18,6 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-.. note:: One of the development indirect requirements, `httpretty`, can fail to
-   install if under certain system locales (see the `error report
-   <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
-   UTF8 locale works around this problem.  For instance, on Ubuntu, you can
-   change your system locale using the commands: ::
-
-        locale-gen en_US.UTF-8
-        export LANG=en_US.utf8
-
 During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 

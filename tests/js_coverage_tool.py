@@ -57,12 +57,16 @@ def combine_report(args):
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
     currentSource = None
     files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
+
     for file in files:
+        skip = False
         with open(file) as f:
             for line in f:
                 if line[0] == 'F':
-                    currentSource = combined[line[1:].strip()]
-                elif line[0] == 'L':
+                    path = line[1:].strip()
+                    currentSource = combined[path]
+                    skip = args.skipCore and path.startswith('clients')
+                elif not skip and line[0] == 'L':
                     lineNum, hit = [int(x) for x in line[1:].split()]
                     currentSource[lineNum] |= bool(hit)
 
@@ -134,7 +138,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print('FAIL: Coverage below threshold (%s%)' % args.threshold)
+        print('FAIL: Coverage below threshold (%s%%)' % args.threshold)
         sys.exit(1)
 
 if __name__ == '__main__':
@@ -144,6 +148,13 @@ if __name__ == '__main__':
                         'coverage level, as a percent.', default=0)
     parser.add_argument('--source', help='The root directory of the source '
                         'repository')
+    parser.add_argument(
+        '--include-core', dest='skipCore', help='Include core JS files in '
+        'the coverage calculations', action='store_false')
+    parser.add_argument(
+        '--skip-core', dest='skipCore', help='Skip core JS files in the '
+        'coverage calculations', action='store_true')
+    parser.set_defaults(skipCore=True)
     parser.add_argument('task', help='The task to perform.',
                         choices=['reset', 'combine_report',
                                  'combine_report_skip'])

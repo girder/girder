@@ -3,4 +3,4 @@
 branch = @_py_branch_cov@
 
 [report]
-omit = girder/external/*
+omit = @_omit_python_covg@
