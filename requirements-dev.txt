@@ -1,6 +1,6 @@
 # girder core
 coverage==4.0.3
-flake8==2.5.1
+flake8==2.5.2
 flake8-blind-except==0.1.0
 flake8-docstrings==0.2.4
 httmock==1.2.4
