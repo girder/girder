@@ -14,6 +14,8 @@ option(PYTHON_COVERAGE "Run tests with coverage.py" ON)
 option(PYTHON_BRANCH_COVERAGE "Use branch-level coverage instead of line-level" OFF)
 option(JAVASCRIPT_STYLE_TESTS "Run Javascript style tests with jslint" ON)
 option(BUILD_JAVASCRIPT_TESTS "Build Javascript tests" ON)
+option(RUN_CORE_TESTS "Whether to run the core unit tests" ON)
+set(TEST_PLUGINS "" CACHE STRING "List of plugins to test. Leave empty to test all plugins")
 
 if(PYTHON_COVERAGE)
   find_program(PYTHON_COVERAGE_EXECUTABLE coverage)

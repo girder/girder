@@ -5,6 +5,12 @@ function(javascript_tests_init)
     return()
   endif()
 
+  if(RUN_CORE_TESTS)
+    set(_core_cov_flag "--include-core")
+  else()
+    set(_core_cov_flag "--skip-core")
+  endif()
+
   add_test(
     NAME js_coverage_reset
     COMMAND "${PYTHON_EXECUTABLE}"
@@ -19,6 +25,7 @@ function(javascript_tests_init)
             "${PROJECT_SOURCE_DIR}/tests/js_coverage_tool.py"
             "--threshold=${JS_COVERAGE_MINIMUM_PASS}"
             "--source=${PROJECT_SOURCE_DIR}"
+            "${_core_cov_flag}"
             combine_report
             "${PROJECT_BINARY_DIR}/js_coverage"
   )
