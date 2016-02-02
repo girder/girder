@@ -12,10 +12,6 @@ _celeryapp = None
 class PluginSettings(object):
     BROKER = 'worker.broker'
     BACKEND = 'worker.backend'
-    FULL_ACCESS_USERS = 'worker.full_access_users'
-    FULL_ACCESS_GROUPS = 'worker.full_access_groups'
-    REQUIRE_AUTH = 'worker.require_auth'
-    SAFE_FOLDERS = 'worker.safe_folders'
 
 
 class CustomJobStatus(object):
