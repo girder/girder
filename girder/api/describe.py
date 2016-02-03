@@ -252,8 +252,18 @@ class Description(object):
         This helper will build an errorResponse declaration for you. Many
         endpoints will be able to use the default parameter values for one of
         their responses.
+
+        :param reason: The reason or list of reasons why the error occurred.
+        :type reason: str, list, or tuple
+        :param code: HTTP status code.
+        :type code: int
         """
         code = str(code)
+
+        # Combine list of reasons into a single string.
+        # swagger-ui renders the description using Markdown.
+        if not isinstance(reason, six.string_types):
+            reason = '\n\n'.join(reason)
 
         if code in self._responses:
             print(TerminalColor.warning(

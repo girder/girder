@@ -170,9 +170,9 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON passed in request body.')
-        .errorResponse('Metadata key name was invalid.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
     def setMetadata(self, item, params):
@@ -287,10 +287,10 @@ class Item(Resource):
         .param('folderId', 'The ID of the parent folder.', required=False)
         .param('name', 'Name for the new item.', required=False)
         .param('description', "Description for the new item.", required=False)
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original item.', 403)
-        .errorResponse('Write access was denied on the parent folder.', 403)
+        .errorResponse(('A parameter was invalid.',
+                        'ID was invalid.'))
+        .errorResponse('Read access was denied on the original item.\n\n'
+                       'Write access was denied on the parent folder.', 403)
     )
     def copyItem(self, item, params):
         """

@@ -336,9 +336,9 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON passed in request body.')
-        .errorResponse('Metadata key name was invalid.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the folder.', 403)
     )
     def setMetadata(self, folder, params):
@@ -371,10 +371,10 @@ class Folder(Resource):
                required=False, enum=[True, False, 'original'])
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original folder.', 403)
-        .errorResponse('Write access was denied on the parent.', 403)
+        .errorResponse(('A parameter was invalid.',
+                        'ID was invalid.'))
+        .errorResponse('Read access was denied on the original folder.\n\n'
+                       'Write access was denied on the parent.', 403)
     )
     def copyFolder(self, folder, params):
         user = self.getCurrentUser()
