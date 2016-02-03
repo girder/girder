@@ -195,22 +195,39 @@ static, so you can also just do the following anywhere:
 
     ModelImporter.model('folder')...
 
-Send a raw/streaming HTTP response body
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Send a raw or streaming HTTP response body
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For consistency, the default behavior of a REST endpoint in Girder is to take
 the return value of the route handler and encode it in the format specified
 by the client in the ``Accepts`` header, usually ``application/json``. However,
 in some cases you may want to force your endpoint to send a raw response body
-back to the client. A common example would be downloading a file from the server;
-we want to send just the data, not try to encode it in JSON.
+back to the client.
 
-If you want to send a raw response, simply make your route handler return a
-generator function. In Girder, a raw response is also automatically a streaming
-response, giving developers full control of the buffer size of the response
-body. That is, each time you ``yield`` data in your generator function, the
+If you want to send a raw response, you can simply decorate your route handler
+with the ``girder.api.rest.rawResponse`` decorator, or call
+``girder.api.rest.setRawResponse()`` within the body of the route handler.
+For example:
+
+.. code-block:: python
+
+    from girder.api import access, rest
+
+    @access.public
+    @rest.rawResponse
+    def rawExample(self, params):
+        return 'raw string'
+
+That will make the response body precisely the string ``raw string``. If the data
+size being sent to the client is large or unbounded, you should use a streaming
+response.
+
+If you want to send a streaming response, simply make your route handler return a
+generator function. A streaming response is automatically sent as a raw response.
+Developers have full control of the buffer size of the streamed response
+body; each time you ``yield`` data in your generator function, the
 buffer will be flushed to the client. As a minimal example, the following
-route handler would send 10 chunks to the client, and the full response
+route handler would flush 10 chunks to the client, and the full response
 body would be ``0123456789``.
 
 .. code-block:: python
@@ -218,7 +235,7 @@ body would be ``0123456789``.
     from girder.api import access
 
     @access.public
-    def rawExample(self, params):
+    def streamingExample(self, params):
         def gen():
             for i in range(10):
                 yield str(i)
