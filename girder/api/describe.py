@@ -22,6 +22,7 @@ import six
 
 from girder import constants
 from girder.constants import TerminalColor
+from girder.utility import config
 from girder.utility.webroot import WebrootBase
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
@@ -288,10 +289,14 @@ class ApiDocs(WebrootBase):
                                         'api', 'api_docs.mako')
         super(ApiDocs, self).__init__(templatePath)
 
+        curConfig = config.getConfig()
+        mode = curConfig['server'].get('mode', '')
+
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder - REST API Documentation'
+            'title': 'Girder - REST API Documentation',
+            'mode': mode
         }
 
 
