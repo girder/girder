@@ -1,4 +1,5 @@
 from girder.api.rest import getApiUrl
+from girder.utility.model_importer import ModelImporter
 
 
 def girderInputSpec(resource, resourceType='file', name=None, token=None,
@@ -75,17 +76,20 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
     }
 
 
-def jobInfoSpec(job, token, logPrint=True):
+def jobInfoSpec(job, token=None, logPrint=True):
     """
     Build the jobInfo specification for a task to write status and log output
     back to a Girder job.
 
     :param job: The job document representing the worker task.
     :type job: dict
-    :param token: The token
+    :param token: The token to use. Creates a job token if not passed.
     :type token: str or dict
     :param logPrint: Whether standard output from the job should be
     """
+    if token is None:
+        token = ModelImporter.model('job', 'jobs').createJobToken(job)
+
     if type(token) is dict:
         token = token['_id']
 

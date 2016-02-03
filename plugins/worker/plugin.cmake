@@ -1,3 +1,5 @@
+add_python_test(worker PLUGIN worker)
+
 add_python_style_test(
     python_static_analysis_worker "${PROJECT_SOURCE_DIR}/plugins/worker/server")
 
