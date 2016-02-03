@@ -25,10 +25,35 @@ $(function () {
         docExpansion: "none",
         jsonEditor: false,
         apisSorter: "alpha",
+        operationsSorter: sortOperations,
         defaultModelRendering: "schema",
         showRequestHeaders: false,
         validatorUrl: null
     });
+
+    var methodOrder = ['get', 'put', 'post', 'patch', 'delete'];
+
+    // Comparator to sort operations by path and method.
+    // Methods not in the pre-defined ordered list are placed at the end and
+    // sorted alphabetically.
+    function sortOperations(op1, op2) {
+        var pathCmp = op1.path.localeCompare(op2.path);
+        if (pathCmp !== 0) {
+            return pathCmp;
+        }
+        var index1 = methodOrder.indexOf(op1.method);
+        var index2 = methodOrder.indexOf(op2.method);
+        if (index1 > -1 && index2 > -1) {
+            return index1 > index2 ? 1 : (index1 < index2 ? -1 : 0);
+        }
+        if (index1 > -1) {
+            return -1;
+        }
+        if (index2 > -1) {
+            return 1;
+        }
+        return op1.method.localeCompare(op2.method);
+    }
 
     function addApiKeyAuthorization() {
         var cookieParams = document.cookie.split(';').map(function (m) {
