@@ -126,7 +126,7 @@ class File(Resource):
         .notes('This is only required in certain non-standard upload '
                'behaviors. Clients should know which behavior models require '
                'the finalize step to be called in their behavior handlers.')
-        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .param('uploadId', 'The ID of the upload record.', paramType='formData')
         .errorResponse(('ID was invalid.',
                         'The upload does not require finalization.',
                         'Not enough bytes have been uploaded.'))
@@ -182,13 +182,13 @@ class File(Resource):
     @describeRoute(
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
-        .param('uploadId', 'The ID of the upload record.', paramType='form')
+        .param('uploadId', 'The ID of the upload record.', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
-               paramType='form')
+               paramType='formData')
         .param('chunk', 'The actual bytes of the chunk. For external upload '
                'behaviors, this may be set to an opaque string that will be '
                'handled by the assetstore adapter.',
-               dataType='file', paramType='body')
+               dataType='file', paramType='formData')
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))
