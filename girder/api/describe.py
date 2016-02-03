@@ -73,6 +73,7 @@ class Description(object):
         self._responses = {}
         self._consumes = []
         self._responseClass = None
+        self._responseClassArray = False
         self._notes = None
 
     def asDict(self):
@@ -88,15 +89,23 @@ class Description(object):
                 'description': 'Success'
             }
         if self._responseClass is not None:
-            self._responses['200']['schema'] = {
+            schema = {
                 '$ref': '#/definitions/%s' % self._responseClass
             }
+            if self._responseClassArray:
+                schema = {
+                    'type': 'array',
+                    'items': schema
+                }
+            self._responses['200']['schema'] = schema
 
         resp = {
             'summary': self._summary,
-            'parameters': self._params,
             'responses': self._responses
         }
+
+        if self._params:
+            resp['parameters'] = self._params
 
         if self._notes is not None:
             resp['description'] = self._notes
@@ -106,8 +115,9 @@ class Description(object):
 
         return resp
 
-    def responseClass(self, obj):
+    def responseClass(self, obj, array=False):
         self._responseClass = obj
+        self._responseClassArray = array
         return self
 
     def param(self, name, description, paramType='query', dataType='string',

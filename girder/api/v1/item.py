@@ -46,7 +46,7 @@ class Item(Resource):
     @filtermodel(model='item')
     @describeRoute(
         Description('Search for an item by certain properties.')
-        .responseClass('Item')
+        .responseClass('Item', array=True)
         .param('folderId', "Pass this to list all items in a folder.",
                required=False)
         .param('text', "Pass this to perform a full text search for items.",
@@ -208,7 +208,7 @@ class Item(Resource):
     @filtermodel(model='file')
     @describeRoute(
         Description('Get the files within an item.')
-        .responseClass('File')
+        .responseClass('File', array=True)
         .param('id', 'The ID of the item.', paramType='path')
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')

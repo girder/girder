@@ -57,7 +57,7 @@ class User(Resource):
     @filtermodel(model='user')
     @describeRoute(
         Description('List or search for users.')
-        .responseClass('User')
+        .responseClass('User', array=True)
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
         .pagingParams(defaultSort='lastName')

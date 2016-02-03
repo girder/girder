@@ -51,7 +51,7 @@ class Folder(Resource):
     @filtermodel(model='folder')
     @describeRoute(
         Description('Search for folders by certain properties.')
-        .responseClass('Folder')
+        .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
