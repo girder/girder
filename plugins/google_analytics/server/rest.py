@@ -19,7 +19,7 @@
 
 from . import constants
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 
 
@@ -30,10 +30,10 @@ class GoogleAnalytics(Resource):
         self.route('GET', ('id',), self.getId)
 
     @access.public
+    @describeRoute(
+        Description('Public url for getting the Google Analytics tracking id.')
+    )
     def getId(self, params):
         trackingId = self.model('setting').get(
             constants.PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID)
         return {'google_analytics_id': trackingId}
-    getId.description = (
-        Description('Public url for getting the Google Analytics tracking id.')
-    )

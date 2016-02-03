@@ -26,7 +26,7 @@ from pymongo import GEOSPHERE
 from pymongo.errors import OperationFailure
 
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import loadmodel, Resource, RestException
 from girder.constants import AccessType
 
@@ -40,6 +40,25 @@ class GeospatialItem(Resource):
     """
 
     @access.user
+    @describeRoute(
+        Description('Create new items from a GeoJSON feature or feature'
+                    ' collection.')
+        .param('folderId', 'The ID of the parent folder.', required=True,
+               paramType='query')
+        .param('geoJSON', 'A GeoJSON object containing the features or feature'
+                          ' collection to add.', required=True,
+               paramType='query')
+        .errorResponse()
+        .errorResponse('Invalid GeoJSON was passed in request body.')
+        .errorResponse('GeoJSON feature or feature collection was not passed in'
+                       ' request body.')
+        .errorResponse("GeoJSON feature did not contain a property named"
+                       " 'name'.")
+        .errorResponse('Property name was invalid.')
+        .errorResponse('Write access was denied on the parent folder.', 403)
+        .notes("All GeoJSON features must contain a property named 'name' from"
+               " which the name of each created item is taken.")
+    )
     def create(self, params):
         """
         Create new items from a GeoJSON feature or feature collection. All
@@ -117,26 +136,16 @@ class GeospatialItem(Resource):
 
         return [self._filter(item) for item in items]
 
-    create.description = (
-        Description('Create new items from a GeoJSON feature or feature'
-                    ' collection.')
-        .param('folderId', 'The ID of the parent folder.', required=True,
-               paramType='query')
-        .param('geoJSON', 'A GeoJSON object containing the features or feature'
-                          ' collection to add.', required=True,
-               paramType='query')
-        .errorResponse()
-        .errorResponse('Invalid GeoJSON was passed in request body.')
-        .errorResponse('GeoJSON feature or feature collection was not passed in'
-                       ' request body.')
-        .errorResponse("GeoJSON feature did not contain a property named"
-                       " 'name'.")
-        .errorResponse('Property name was invalid.')
-        .errorResponse('Write access was denied on the parent folder.', 403)
-        .notes("All GeoJSON features must contain a property named 'name' from"
-               " which the name of each created item is taken."))
-
     @access.public
+    @describeRoute(
+        Description('Search for an item by geospatial data.')
+        .param('q', 'Search query as a JSON object.', required=True)
+        .param('limit', 'Result set size limit (default=50).', required=False,
+               dataType='integer')
+        .param('offset', 'Offset into result set (default=0).', required=False,
+               dataType='integer')
+        .errorResponse()
+    )
     def find(self, params):
         """
         Search for an item by geospatial data.
@@ -159,16 +168,19 @@ class GeospatialItem(Resource):
 
         return self._find(query, limit, offset, sort)
 
-    find.description = (
-        Description('Search for an item by geospatial data.')
-        .param('q', 'Search query as a JSON object.', required=True)
+    @access.public
+    @describeRoute(
+        Description('Search for items that intersects with a GeoJSON object.')
+        .param('field', 'Name of field containing GeoJSON on which to search.',
+               required=True)
+        .param('geometry', 'Search query condition as a GeoJSON object.',
+               required=True)
         .param('limit', 'Result set size limit (default=50).', required=False,
                dataType='integer')
         .param('offset', 'Offset into result set (default=0).', required=False,
                dataType='integer')
-        .errorResponse())
-
-    @access.public
+        .errorResponse()
+    )
     def intersects(self, params):
         """
         Search for items that intersects with a GeoJSON object.
@@ -207,19 +219,6 @@ class GeospatialItem(Resource):
 
         return self._find(query, limit, offset, sort)
 
-    intersects.description = (
-        Description('Search for items that intersects with a GeoJSON object.')
-        .param('field', 'Name of field containing GeoJSON on which to search.',
-               required=True)
-        .param('geometry', 'Search query condition as a GeoJSON object.',
-               required=True)
-        .param('limit', 'Result set size limit (default=50).', required=False,
-               dataType='integer')
-        .param('offset', 'Offset into result set (default=0).', required=False,
-               dataType='integer')
-        .errorResponse()
-    )
-
     def _getGeometry(self, params):
         try:
             geometry = bson.json_util.loads(params['geometry'])
@@ -234,6 +233,33 @@ class GeospatialItem(Resource):
                                 " parameter.")
 
     @access.public
+    @describeRoute(
+        Description('Search for items that are in proximity to a GeoJSON'
+                    ' point.')
+        .param('field', 'Name of field containing GeoJSON on which to search.',
+               required=True)
+        .param('geometry', 'Search query condition as a GeoJSON point.',
+               required=True)
+        .param('maxDistance', 'Limits results to items that are at most this'
+                              ' distance in meters from the GeoJSON point.',
+               required=False, dataType='number')
+        .param('minDistance', 'Limits results to items that are at least this'
+                              ' distance in meters from the GeoJSON point.',
+               required=False, dataType='number')
+        .param('ensureIndex', 'Create a 2dsphere index on the field on which to'
+                              ' search if one does not exist.', required=False,
+               dataType='boolean')
+        .param('limit', 'Result set size limit (default=50).', required=False,
+               dataType='integer')
+        .param('offset', 'Offset into result set (default=0).', required=False,
+               dataType='integer')
+        .errorResponse()
+        .errorResponse('Field on which to search was not indexed.')
+        .errorResponse('Index creation was denied.', 403)
+        .notes("Field on which to search be indexed by a 2dsphere index."
+               " Anonymous users may not use 'ensureIndex' to create such an"
+               " index.")
+    )
     def near(self, params):
         """
         Search for items that are in proximity to a GeoJSON point. The field on
@@ -297,37 +323,28 @@ class GeospatialItem(Resource):
 
         return items
 
-    near.description = (
-        Description('Search for items that are in proximity to a GeoJSON'
-                    ' point.')
+    _RADIUS_OF_EARTH = 6378137.0  # average in meters
+
+    @access.public
+    @describeRoute(
+        Description('Search for items that are entirely within either a GeoJSON'
+                    ' polygon or a circular region.')
         .param('field', 'Name of field containing GeoJSON on which to search.',
                required=True)
-        .param('geometry', 'Search query condition as a GeoJSON point.',
-               required=True)
-        .param('maxDistance', 'Limits results to items that are at most this'
-                              ' distance in meters from the GeoJSON point.',
-               required=False, dataType='number')
-        .param('minDistance', 'Limits results to items that are at least this'
-                              ' distance in meters from the GeoJSON point.',
-               required=False, dataType='number')
-        .param('ensureIndex', 'Create a 2dsphere index on the field on which to'
-                              ' search if one does not exist.', required=False,
-               dataType='boolean')
+        .param('geometry', 'Search query condition as a GeoJSON polygon.',
+               required=False)
+        .param('center', 'Center of search radius as a GeoJSON point.',
+               required=False)
+        .param('radius', 'Search radius in meters.', required=False,
+               dataType='number')
         .param('limit', 'Result set size limit (default=50).', required=False,
                dataType='integer')
         .param('offset', 'Offset into result set (default=0).', required=False,
                dataType='integer')
         .errorResponse()
-        .errorResponse('Field on which to search was not indexed.')
-        .errorResponse('Index creation was denied.', 403)
-        .notes("Field on which to search be indexed by a 2dsphere index."
-               " Anonymous users may not use 'ensureIndex' to create such an"
-               " index.")
+        .notes("Either parameter 'geometry' or both parameters 'center' "
+               " and 'radius' are required.")
     )
-
-    _RADIUS_OF_EARTH = 6378137.0  # average in meters
-
-    @access.public
     def within(self, params):
         """
         Search for items that are entirely within either a GeoJSON polygon or a
@@ -401,28 +418,14 @@ class GeospatialItem(Resource):
 
         return self._find(query, limit, offset, sort)
 
-    within.description = (
-        Description('Search for items that are entirely within either a GeoJSON'
-                    ' polygon or a circular region.')
-        .param('field', 'Name of field containing GeoJSON on which to search.',
-               required=True)
-        .param('geometry', 'Search query condition as a GeoJSON polygon.',
-               required=False)
-        .param('center', 'Center of search radius as a GeoJSON point.',
-               required=False)
-        .param('radius', 'Search radius in meters.', required=False,
-               dataType='number')
-        .param('limit', 'Result set size limit (default=50).', required=False,
-               dataType='integer')
-        .param('offset', 'Offset into result set (default=0).', required=False,
-               dataType='integer')
-        .errorResponse()
-        .notes("Either parameter 'geometry' or both parameters 'center' "
-               " and 'radius' are required.")
-    )
-
     @access.public
     @loadmodel(model='item', level=AccessType.READ)
+    @describeRoute(
+        Description('Get an item and its geospatial data by ID.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the item.', 403)
+    )
     def getGeospatial(self, item, params):
         """
         Get an item and its geospatial data by ID.
@@ -438,14 +441,20 @@ class GeospatialItem(Resource):
         """
         return self._filter(item)
 
-    getGeospatial.description = (
-        Description('Get an item and its geospatial data by ID.')
-        .param('id', 'The ID of the item.', paramType='path')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the item.', 403))
-
     @access.user
     @loadmodel(model='item', level=AccessType.WRITE)
+    @describeRoute(
+        Description('Set geospatial fields on an item.')
+        .notes('Set geospatial fields to null to delete them.')
+        .param('id', 'The ID of the item.', paramType='path')
+        .param('body', 'A JSON object containing the geospatial fields to add.',
+               paramType='body')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Invalid JSON was passed in request body.')
+        .errorResponse('Geospatial key name was invalid.')
+        .errorResponse('Geospatial field did not contain valid GeoJSON.')
+        .errorResponse('Write access was denied for the item.', 403)
+    )
     def setGeospatial(self, item, params):
         """
         Set geospatial data on an item.
@@ -485,18 +494,6 @@ class GeospatialItem(Resource):
         item = self.model('item').updateItem(item)
 
         return self._filter(item)
-
-    setGeospatial.description = (
-        Description('Set geospatial fields on an item.')
-        .notes('Set geospatial fields to null to delete them.')
-        .param('id', 'The ID of the item.', paramType='path')
-        .param('body', 'A JSON object containing the geospatial fields to add.',
-               paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON was passed in request body.')
-        .errorResponse('Geospatial key name was invalid.')
-        .errorResponse('Geospatial field did not contain valid GeoJSON.')
-        .errorResponse('Write access was denied for the item.', 403))
 
     def _filter(self, item):
         """

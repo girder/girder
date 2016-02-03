@@ -21,7 +21,7 @@ import cherrypy
 import json
 import time
 
-from ..describe import Description
+from ..describe import Description, describeRoute
 from ..rest import Resource
 from girder.api import access
 
@@ -48,6 +48,21 @@ class Notification(Resource):
 
     @access.cookie
     @access.token
+    @describeRoute(
+        Description('Stream notifications for a given user via the SSE '
+                    'protocol.')
+        .notes('This uses long-polling to keep the connection open for '
+               'several minutes at a time (or longer) and should be requested '
+               'with an EventSource object or other SSE-capable client. '
+               '<p>Notifications are returned within a few seconds of when '
+               'they occur.  When no notification occurs for the timeout '
+               'duration, the stream is closed. '
+               '<p>This connection can stay open indefinitely long.')
+        .param('timeout', 'The duration without a notification before the '
+               'stream is closed.', dataType='integer', required=False)
+        .errorResponse()
+        .errorResponse('You are not logged in.', 403)
+    )
     def stream(self, params):
         """
         Streams notifications using the server-sent events protocol. Closes
@@ -84,17 +99,3 @@ class Notification(Resource):
 
                 time.sleep(wait)
         return streamGen
-    stream.description = (
-        Description('Stream notifications for a given user via the SSE '
-                    'protocol.')
-        .notes('This uses long-polling to keep the connection open for '
-               'several minutes at a time (or longer) and should be requested '
-               'with an EventSource object or other SSE-capable client. '
-               '<p>Notifications are returned within a few seconds of when '
-               'they occur.  When no notification occurs for the timeout '
-               'duration, the stream is closed. '
-               '<p>This connection can stay open indefinitely long.')
-        .param('timeout', 'The duration without a notification before the '
-               'stream is closed.', dataType='integer', required=False)
-        .errorResponse()
-        .errorResponse('You are not logged in.', 403))

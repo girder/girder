@@ -27,20 +27,20 @@ from girder.utility.server import staticFile
 
 @access.public
 @boundHandler()
+@describeRoute(None)
 def unboundHandlerDefault(self, params):
     self.requireParams('val', params)
     return not self.boolParam('val', params)
-unboundHandlerDefault.description = None
 
 
 @access.public
 @boundHandler(Collection())
+@describeRoute(None)
 def unboundHandlerExplicit(self, params):
     return {
         'user': self.getCurrentUser(),
         'name': self.resourceName
     }
-unboundHandlerExplicit.description = None
 
 
 class CustomAppRoot(object):
@@ -75,9 +75,11 @@ class Other(Resource):
         return b'this is also a raw response'
 
     @access.public
+    @describeRoute(
+        Description('Get something.')
+    )
     def getResource(self, params):
         return ['custom REST route']
-    getResource.description = Description('Get something.')
 
 
 def load(info):

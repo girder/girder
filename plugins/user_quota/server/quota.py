@@ -23,7 +23,7 @@ import six
 from bson.objectid import ObjectId, InvalidId
 from girder import logger
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, loadmodel
 from girder.constants import AccessType
 from girder.models.model_base import GirderException
@@ -194,6 +194,12 @@ class QuotaPolicy(Resource):
 
     @access.public
     @loadmodel(model='collection', level=AccessType.READ)
+    @describeRoute(
+        Description('Get quota and assetstore policies for the collection.')
+        .param('id', 'The collection ID', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read permission denied on the collection.', 403)
+    )
     def getCollectionQuota(self, collection, params):
         if QUOTA_FIELD not in collection:
             collection[QUOTA_FIELD] = {}
@@ -201,51 +207,49 @@ class QuotaPolicy(Resource):
             '_currentFileSizeQuota'] = self._getFileSizeQuota(
             'collection', collection)
         return self._filter('collection', collection)
-    getCollectionQuota.description = (
-        Description('Get quota and assetstore policies for the collection.')
-        .param('id', 'The collection ID', paramType='path')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the collection.', 403))
 
     @access.public
     @loadmodel(model='collection', level=AccessType.ADMIN)
-    def setCollectionQuota(self, collection, params):
-        return self._setResourceQuota('collection', collection, params)
-    setCollectionQuota.description = (
+    @describeRoute(
         Description('Set quota and assetstore policies for the collection.')
         .param('id', 'The collection ID', paramType='path')
         .param('policy', 'A JSON object containing the policies.  This is a '
                'dictionary of keys and values.  Any key that is not specified '
                'does not change.', required=True)
         .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the collection.', 403))
+        .errorResponse('Read permission denied on the collection.', 403)
+    )
+    def setCollectionQuota(self, collection, params):
+        return self._setResourceQuota('collection', collection, params)
 
     @access.public
     @loadmodel(model='user', level=AccessType.READ)
+    @describeRoute(
+        Description('Get quota and assetstore policies for the user.')
+        .param('id', 'The user ID', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read permission denied on the user.', 403)
+    )
     def getUserQuota(self, user, params):
         if QUOTA_FIELD not in user:
             user[QUOTA_FIELD] = {}
         user[QUOTA_FIELD]['_currentFileSizeQuota'] = self._getFileSizeQuota(
             'user', user)
         return self._filter('user', user)
-    getUserQuota.description = (
-        Description('Get quota and assetstore policies for the user.')
-        .param('id', 'The user ID', paramType='path')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the user.', 403))
 
     @access.public
     @loadmodel(model='user', level=AccessType.ADMIN)
-    def setUserQuota(self, user, params):
-        return self._setResourceQuota('user', user, params)
-    setUserQuota.description = (
+    @describeRoute(
         Description('Set quota and assetstore policies for the user.')
         .param('id', 'The user ID', paramType='path')
         .param('policy', 'A JSON object containing the policies.  This is a '
                'dictionary of keys and values.  Any key that is not specified '
                'does not change.', required=True)
         .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the user.', 403))
+        .errorResponse('Read permission denied on the user.', 403)
+    )
+    def setUserQuota(self, user, params):
+        return self._setResourceQuota('user', user, params)
 
     def _checkAssetstore(self, assetstoreSpec):
         """

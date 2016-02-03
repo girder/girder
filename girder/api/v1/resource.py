@@ -216,11 +216,7 @@ class Resource(BaseResource):
         return result
 
     @access.public
-    def lookup(self, params):
-        self.requireParams('path', params)
-        return self._lookUpPath(params['path'], self.getCurrentUser())
-
-    lookup.description = (
+    @describeRoute(
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
                'The path of the resource.  The path must be an absolute Unix '
@@ -229,10 +225,32 @@ class Resource(BaseResource):
                'under a collection.')
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
-        .errorResponse('Read access was denied for the resource.', 403))
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
+    def lookup(self, params):
+        self.requireParams('path', params)
+        return self._lookUpPath(params['path'], self.getCurrentUser())
 
     @access.cookie(force=True)
     @access.public
+    @describeRoute(
+        Description('Download a set of items, folders, collections, and users '
+                    'as a zip archive.')
+        .notes('This route is also exposed via the POST method because the '
+               'request parameters can be quite long, and encoding them in the '
+               'URL (as is standard when using the GET method) can cause the '
+               'URL to become too long, which causes errors.')
+        .param('resources', 'A JSON-encoded list of types to download.  Each '
+               'type is a list of ids.  For example: {"item": [(item id 1), '
+               '(item id 2)], "folder": [(folder id 1)]}.')
+        .param('includeMetadata', 'Include any metadata in JSON files in the '
+               'archive.', required=False, dataType='boolean', default=False)
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('Read access was denied for a resource.', 403)
+    )
     def download(self, params):
         """
         Returns a generator function that will be used to stream out a zip
@@ -267,25 +285,21 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
-    download.description = (
-        Description('Download a set of items, folders, collections, and users '
-                    'as a zip archive.')
-        .notes('This route is also exposed via the POST method because the '
-               'request parameters can be quite long, and encoding them in the '
-               'URL (as is standard when using the GET method) can cause the '
-               'URL to become too long, which causes errors.')
-        .param('resources', 'A JSON-encoded list of types to download.  Each '
+
+    @access.user
+    @describeRoute(
+        Description('Delete a set of items, folders, or other resources.')
+        .param('resources', 'A JSON-encoded list of types to delete.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
-               '(item id 2)], "folder": [(folder id 1)]}.')
-        .param('includeMetadata', 'Include any metadata in JSON files in the '
-               'archive.', required=False, dataType='boolean', default=False)
+               '(item id2)], "folder": [(folder id 1)]}.')
+        .param('progress', 'Whether to record progress on this task.',
+               default=False, required=False, dataType='boolean')
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('Read access was denied for a resource.', 403))
-
-    @access.user
+        .errorResponse('Admin access was denied for a resource.', 403)
+    )
     def delete(self, params):
         """
         Delete a set of resources.
@@ -323,20 +337,15 @@ class Resource(BaseResource):
                         if ctx.progress['data']['current'] != current:
                             ctx.update(current=current,
                                        message='Deleted ' + kind)
-    delete.description = (
-        Description('Delete a set of items, folders, or other resources.')
-        .param('resources', 'A JSON-encoded list of types to delete.  Each '
-               'type is a list of ids.  For example: {"item": [(item id 1), '
-               '(item id2)], "folder": [(folder id 1)]}.')
-        .param('progress', 'Whether to record progress on this task.',
-               default=False, required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('Admin access was denied for a resource.', 403))
 
     @access.admin
+    @describeRoute(
+        Description('Get any resource by ID.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
     def getResource(self, id, params):
         model = self._getResourceModel(params['type'])
         if (isinstance(model, (acl_mixin.AccessControlMixin,
@@ -344,12 +353,6 @@ class Resource(BaseResource):
             user = self.getCurrentUser()
             return model.load(id=id, user=user, level=AccessType.READ)
         return model.load(id=id)
-    getResource.description = (
-        Description('Get any resource by ID.')
-        .param('id', 'The ID of the resource.', paramType='path')
-        .param('type', 'The type of the resource (item, file, etc.).')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the resource.', 403))
 
     def _prepareMoveOrCopy(self, params):
         user = self.getCurrentUser()
@@ -366,6 +369,24 @@ class Resource(BaseResource):
         return user, resources, parent, parentType, progress
 
     @access.user
+    @describeRoute(
+        Description('Move a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to move.  Each type '
+               'is a list of ids.  Only folders and items may be specified.  '
+               'For example: {"item": [(item id 1), (item id2)], "folder": '
+               '[(folder id 1)]}.')
+        .param('parentType', 'Parent type for the new parent of these '
+               'resources.')
+        .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('Resource type not supported.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('ID was invalid.')
+    )
     def moveResources(self, params):
         """
         Move the specified resources to a new parent folder, user, or
@@ -395,10 +416,12 @@ class Resource(BaseResource):
                                 (doc['parentCollection'], doc['parentId'])):
                             model.move(doc, parent, parentType)
                     ctx.update(increment=1)
-    moveResources.description = (
-        Description('Move a set of items and folders.')
-        .param('resources', 'A JSON-encoded list of types to move.  Each type '
-               'is a list of ids.  Only folders and items may be specified.  '
+
+    @access.user
+    @describeRoute(
+        Description('Copy a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to copy. Each type '
+               'is a list of ids. Only folders and items may be specified.  '
                'For example: {"item": [(item id 1), (item id2)], "folder": '
                '[(folder id 1)]}.')
         .param('parentType', 'Parent type for the new parent of these '
@@ -411,9 +434,8 @@ class Resource(BaseResource):
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))
-
-    @access.user
+        .errorResponse('ID was invalid.')
+    )
     def copyResources(self, params):
         """
         Copy the specified resources to a new parent folder, user, or
@@ -449,20 +471,3 @@ class Resource(BaseResource):
                         model.copyFolder(
                             doc, parent=parent, parentType=parentType,
                             creator=user, progress=ctx)
-    copyResources.description = (
-        Description('Copy a set of items and folders.')
-        .param('resources', 'A JSON-encoded list of types to copy. Each type '
-               'is a list of ids. Only folders and items may be specified.  '
-               'For example: {"item": [(item id 1), (item id2)], "folder": '
-               '[(folder id 1)]}.')
-        .param('parentType', 'Parent type for the new parent of these '
-               'resources.')
-        .param('parentId', 'Parent ID for the new parent of these resources.')
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('Resource type not supported.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))
