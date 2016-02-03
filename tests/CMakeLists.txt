@@ -68,18 +68,26 @@ if(RUN_CORE_TESTS)
   add_subdirectory(packaging)
 endif()
 
+# Use a macro instead of a function because web client tests actually write
+# into the parent scope to avoid port collisions.
+macro(_add_plugin pluginName pluginDir)
+  if(EXISTS "${pluginDir}/plugin.cmake")
+    message(STATUS "Including plugin.cmake from \"${pluginName}\"")
+    include("${pluginDir}/plugin.cmake")
+  endif()
+endmacro()
+
 # Look for plugin.cmake in plugin dirs, include if they exist
 file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
 foreach(pluginDir ${pluginDirs})
   get_filename_component(pluginName "${pluginDir}" NAME)
+
   if(TEST_PLUGINS)
     list(FIND TEST_PLUGINS ${pluginName} _testPlugin)
-    if(_testPlugin EQUAL -1)
-      continue()
+    if(NOT _testPlugin EQUAL -1)
+      _add_plugin(${pluginName} "${pluginDir}")
     endif()
-  endif()
-  if(EXISTS "${pluginDir}/plugin.cmake")
-    message(STATUS "Including plugin.cmake from \"${pluginName}\"")
-    include("${pluginDir}/plugin.cmake")
+  else()
+    _add_plugin(${pluginName} "${pluginDir}")
   endif()
 endforeach()
