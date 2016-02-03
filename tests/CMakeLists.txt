@@ -1,6 +1,5 @@
-# Set this variable to the minimum coverage percentage to be considered passing
-set(COVERAGE_MINIMUM_PASS 90)
-set(JS_COVERAGE_MINIMUM_PASS 75)
+set(COVERAGE_MINIMUM_PASS 90 CACHE STRING "Minimum python coverage threshold percent")
+set(JS_COVERAGE_MINIMUM_PASS 75 CACHE STRING "Minimum JS coverage threshold percent")
 
 python_tests_init()
 javascript_tests_init()
