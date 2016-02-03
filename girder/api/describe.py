@@ -275,16 +275,10 @@ class ApiDocs(WebrootBase):
         }
 
 
-def _cmp(a, b):
-    # Since cmp was removed in py3, we use this polyfill instead
-    return (a > b) - (a < b)
-
-
 class Describe(Resource):
     def __init__(self):
         super(Describe, self).__init__()
         self.route('GET', (), self.listResources, nodoc=True)
-        self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
     @access.public
     def listResources(self, params):
@@ -333,56 +327,6 @@ class Describe(Resource):
             'tags': tags,
             'paths': paths,
             'definitions': definitions
-        }
-
-    def _compareRoutes(self, routeOp1, routeOp2):
-        """
-        Order routes based on path.  Alphabetize this, treating parameters as
-        before fixed paths.
-        :param routeOp1: tuple of (route, op) to compare
-        :param routeOp2: tuple of (route, op) to compare
-        :returns: negative if routeOp1<routeOp2, positive if routeOp1>routeOp2.
-        """
-        # replacing { with ' ' is a simple way to make ASCII sort do what we
-        # want for routes.  We would have to do more work if we allow - in
-        # routes
-        return _cmp(routeOp1[0].replace('{', ' '),
-                    routeOp2[0].replace('{', ' '))
-
-    def _compareOperations(self, op1, op2):
-        """
-        Order operations in our preferred method order.  methods not in our
-        list are put afterwards and sorted alphabetically.
-        :param op1: first operation dictionary to compare.
-        :param op2: second operation dictionary to compare.
-        :returns: negative if op1<op2, positive if op1>op2.
-        """
-        methodOrder = ['GET', 'PUT', 'POST', 'PATCH', 'DELETE']
-        method1 = op1.get('httpMethod', '')
-        method2 = op2.get('httpMethod', '')
-        if method1 in methodOrder and method2 in methodOrder:
-            return _cmp(methodOrder.index(method1), methodOrder.index(method2))
-        if method1 in methodOrder or method2 in methodOrder:
-            return _cmp(method1 not in methodOrder, method2 not in methodOrder)
-        return _cmp(method1, method2)
-
-    @access.public
-    def describeResource(self, resource, params):
-        if resource not in docs.routes:
-            raise RestException('Invalid resource: %s' % resource)
-        return {
-            'apiVersion': API_VERSION,
-            'swaggerVersion': SWAGGER_VERSION,
-            'basePath': getApiUrl(),
-            'models': dict(docs.models[resource], **docs.models[None]),
-            'apis': [{
-                'path': route,
-                'operations': sorted(
-                    op, key=functools.cmp_to_key(self._compareOperations))
-                } for route, op in sorted(
-                    six.viewitems(docs.routes[resource]),
-                    key=functools.cmp_to_key(self._compareRoutes))
-            ]
         }
 
 
