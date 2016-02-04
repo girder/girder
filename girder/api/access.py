@@ -141,26 +141,16 @@ def cookie(*args, **kwargs):
 
     While allowing cookie authentication on other types of routes exposes an
     application to Cross-Site Request Forgery (CSRF) attacks, an optional
-    ``force=True`` argument may be passed to the decorator to make it effective
+    ``force=True`` kwarg may be passed to the decorator to make it effective
     on any type of route.
     """
     if len(args) == 1 and callable(args[0]):  # Used as a raw decorator
         force = False
         args[0].cookieAuth = (True, force)
         return args[0]
-
     else:  # Used with arguments
-        if len(args) == 1 and isinstance(args[0], bool):
-            force = args[0]
-        elif 'force' in kwargs:
-            force = kwargs['force']
-        elif (not args) and (not kwargs):
-            force = False
-        else:
-            raise TypeError('Unsupported extra decorator arguments.')
-
         def decorator(fun):
-            fun.cookieAuth = (True, force)
+            fun.cookieAuth = (True, kwargs.get('force', False))
             return fun
 
         return decorator
