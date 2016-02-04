@@ -62,11 +62,8 @@ class AccessTestResource(Resource):
         self.route('POST', ('cookie_auth', ), self.cookieHandler)
         self.route('GET', ('cookie_force_auth', ), self.cookieForceHandler)
         self.route('POST', ('cookie_force_auth', ), self.cookieForceHandler)
-        self.route('GET', ('raw_admin', ), self.rawAdmin)
         self.route('GET', ('fn_admin', ), self.fnAdmin)
-        self.route('GET', ('raw_user', ), self.rawUser)
         self.route('GET', ('scoped_user', ), self.scopedUser)
-        self.route('GET', ('raw_public', ), self.rawPublic)
         self.route('GET', ('fn_public', ), self.fnPublic)
         self.route('GET', ('scoped_public', ), self.scopedPublic)
 
@@ -84,7 +81,7 @@ class AccessTestResource(Resource):
 
     @access.public
     def publicHandler(self, **kwargs):
-        return
+        return self.getCurrentUser()
 
     @access.cookie
     @access.user
@@ -96,25 +93,13 @@ class AccessTestResource(Resource):
     def cookieForceHandler(self, **kwargs):
         return
 
-    @access.admin
-    def rawAdmin(self, **kwargs):
-        return
-
     @access.admin()
     def fnAdmin(self, **kwargs):
-        return
-
-    @access.user
-    def rawUser(self, **kwargs):
         return
 
     @access.user(scope=TokenScope.DATA_READ)
     def scopedUser(self, **kwargs):
         return
-
-    @access.public
-    def rawPublic(self, **kwargs):
-        return self.getCurrentUser()
 
     @access.public()
     def fnPublic(self, **kwargs):
@@ -271,10 +256,10 @@ class AccessTestCase(base.TestCase):
 
     def testArtificialScopedAccess(self):
         # Make sure raw decorator is equivalent to returned decorator.
-        resp = self.request(path='/accesstest/raw_admin', user=self.admin)
+        resp = self.request(path='/accesstest/admin_access', user=self.admin)
         self.assertStatusOk(resp)
 
-        resp = self.request(path='/accesstest/raw_admin', user=self.user)
+        resp = self.request(path='/accesstest/admin_access', user=self.user)
         self.assertStatus(resp, 403)
 
         resp = self.request(path='/accesstest/fn_admin', user=self.admin)
@@ -286,7 +271,7 @@ class AccessTestCase(base.TestCase):
         token = self.model('token').createToken(
             user=self.admin, scope=TokenScope.SETTINGS_READ)
 
-        resp = self.request(path='/accesstest/raw_admin', token=token)
+        resp = self.request(path='/accesstest/admin_access', token=token)
         self.assertStatus(resp, 401)
 
         resp = self.request(path='/accesstest/fn_admin', token=token)
@@ -296,13 +281,13 @@ class AccessTestCase(base.TestCase):
         token = self.model('token').createToken(
             user=self.user, scope=TokenScope.DATA_READ)
 
-        resp = self.request(path='/accesstest/raw_user', user=self.user)
+        resp = self.request(path='/accesstest/user_access', user=self.user)
         self.assertStatusOk(resp)
 
         resp = self.request(path='/accesstest/scoped_user', user=self.user)
         self.assertStatusOk(resp)
 
-        resp = self.request(path='/accesstest/raw_user', token=token)
+        resp = self.request(path='/accesstest/user_access', token=token)
         self.assertStatus(resp, 401)
 
         resp = self.request(path='/accesstest/scoped_user', token=token)
@@ -311,7 +296,7 @@ class AccessTestCase(base.TestCase):
         # Test public access
         authToken = self.model('token').createToken(user=self.user)
 
-        for route in ('raw_public', 'fn_public', 'scoped_public'):
+        for route in ('public_access', 'fn_public', 'scoped_public'):
             path = '/accesstest/%s' % route
 
             for t in (token, None):
