@@ -239,9 +239,9 @@ class Folder(Resource):
         .param('parentId', "The ID of the folder's parent.")
         .param('name', "Name of the folder.")
         .param('description', "Description for the folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible. By
-               default, inherits the value from parent folder, or in the
-               case of user or collection parentType, defaults to False.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the "
+               "case of user or collection parentType, defaults to False.",
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
@@ -364,10 +364,10 @@ class Folder(Resource):
         .param('parentId', 'The ID of the parent document.', required=False)
         .param('name', 'Name for the new folder.', required=False)
         .param('description', "Description for the new folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible.  By
-               default, inherits the value from parent folder, or in the case
-               of user or collection parentType, defaults to False.  If
-               'original', use the value of the original folder.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the case "
+               "of user or collection parentType, defaults to False. If "
+               "'original', use the value of the original folder.",
                required=False, enum=[True, False, 'original'])
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
