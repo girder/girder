@@ -171,7 +171,8 @@ _.extend(girder, {
             path: '/user/authentication',
             headers: {
                 'Girder-Authorization': auth
-            }
+            },
+            error: null
         }).then(function (response) {
             response.user.token = response.authToken;
 
