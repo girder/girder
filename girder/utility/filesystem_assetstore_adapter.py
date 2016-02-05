@@ -27,7 +27,7 @@ import tempfile
 
 from six import BytesIO
 from hashlib import sha512
-from . import sha512_state
+from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
@@ -123,7 +123,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         fd, path = tempfile.mkstemp(dir=self.tempDir)
         os.close(fd)  # Must close this file descriptor or it will leak
         upload['tempFile'] = path
-        upload['sha512state'] = sha512_state.serializeHex(sha512())
+        upload['sha512state'] = hash_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -140,7 +140,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = sha512_state.restoreHex(upload['sha512state'])
+        checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
 
         if self.requestOffset(upload) > upload['received']:
             # This probably means the server died midway through writing last
@@ -173,7 +173,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise
 
         # Persist the internal state of the checksum
-        upload['sha512state'] = sha512_state.serializeHex(checksum)
+        upload['sha512state'] = hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
@@ -188,7 +188,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Moves the file into its permanent content-addressed location within the
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
-        hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'],
+                                     'sha512').hexdigest()
         dir = os.path.join(hash[0:2], hash[2:4])
         absdir = os.path.join(self.assetstore['root'], dir)
 
