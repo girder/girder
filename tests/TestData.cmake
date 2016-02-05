@@ -93,15 +93,15 @@ endfunction()
 # locally scoped variables such as the mirror list and the data source
 # root directory.
 #   See https://cmake.org/cmake/help/v3.3/module/ExternalData.html#module-functions
-function(girder_add_test)
+function(girder_ExternalData_add_test)
   ExternalData_add_test(${ARGN})
 endfunction()
 
-function(girder_add_target)
+function(girder_ExternalData_add_target)
   ExternalData_add_target(${ARGN})
 endfunction()
 
-function(girder_expand_arguments)
+function(girder_ExternalData_expand_arguments)
   ExternalData_Expand_Arguments(${ARGN})
 endfunction()
 
