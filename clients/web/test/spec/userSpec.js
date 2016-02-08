@@ -45,7 +45,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'new user page to appear');
 
         runs(function () {
-            expect(girder.currentUser.name().toBe('Admin Admin'));
+            expect(girder.currentUser.get('login')).toBe('admin');
         });
     });
 
