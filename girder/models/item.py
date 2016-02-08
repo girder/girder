@@ -466,7 +466,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                     progress.update(message='Removing orphaned items')
                 for item in lostItems:
                     setResponseTimeLimit()
-                    self.collection.remove({'_id': item['_id']})
+                    self.collection.delete_one({'_id': item['_id']})
                     if progress is not None:
                         itemsLeft -= 1
                         progress.update(increment=1, message='Removing '

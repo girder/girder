@@ -2,6 +2,10 @@
   .g-user-pagination
   form.g-user-search-form.form-inline(role="form")
     .form-group.g-users-search-container
+  if girder.currentUser && girder.currentUser.get('admin')
+    button.g-user-create-button.btn.btn-sm.btn-default
+      i.icon-plus-squared
+      |  Create user
 
 each user in users
   .g-user-list-entry
@@ -16,8 +20,8 @@ each user in users
           | Currently using
           span.g-user-space-used  #{girder.formatSize(user.get('size'))}
     .g-user-title
-      a.g-user-link(g-user-cid="#{user.cid}")
-        b #{user.get('firstName')} #{user.get('lastName')}
+      a.g-user-link(g-user-cid=user.cid)
+        b= user.name()
     .g-user-subtitle
       span.g-user-login  #{user.get('login')}
     .g-clear-right

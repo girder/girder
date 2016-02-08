@@ -7,12 +7,13 @@ girder.views.UsersView = girder.View.extend({
             var cid = $(event.currentTarget).attr('g-user-cid');
             girder.router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
+        'click button.g-user-create-button': 'createUserDialog',
         'submit .g-user-search-form': function (event) {
             event.preventDefault();
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         girder.cancelRestRequests('fetch');
         this.collection = new girder.collections.UserCollection();
         this.collection.on('g:changed', function () {
@@ -30,6 +31,9 @@ girder.views.UsersView = girder.View.extend({
             modes: 'prefix',
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
+
+        this.register = settings.dialog === 'register' && girder.currentUser &&
+                        girder.currentUser.get('admin');
     },
 
     render: function () {
@@ -40,6 +44,10 @@ girder.views.UsersView = girder.View.extend({
 
         this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
         this.searchWidget.setElement(this.$('.g-users-search-container')).render();
+
+        if (this.register) {
+            this.createUserDialog();
+        }
 
         return this;
     },
@@ -53,10 +61,21 @@ girder.views.UsersView = girder.View.extend({
         user.set('_id', result.id).on('g:fetched', function () {
             girder.router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
+    },
+
+    createUserDialog: function () {
+        var container = $('#g-dialog-container');
+
+        new girder.views.RegisterView({
+            el: container,
+            parentView: this
+        }).on('g:userCreated', function (info) {
+            girder.router.navigate('user/' + info.user.id, {trigger: true});
+        }, this).render();
     }
 });
 
-girder.router.route('users', 'users', function () {
-    girder.events.trigger('g:navigateTo', girder.views.UsersView);
+girder.router.route('users', 'users', function (params) {
+    girder.events.trigger('g:navigateTo', girder.views.UsersView, params || {});
     girder.events.trigger('g:highlightItem', 'UsersView');
 });
