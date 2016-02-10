@@ -39,7 +39,7 @@ import yaml
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
 from girder.models.model_base import ValidationException
-from girder.utility import mail_utils, config
+from girder.utility import config, mail_utils, mkdir
 
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
@@ -250,15 +250,13 @@ def getPluginDirs(curConfig=None):
         pluginDirs = [defaultPluginDir()]
 
     for pluginDir in pluginDirs:
-        if not os.path.exists(pluginDir):
-            try:
-                os.makedirs(pluginDir)
-            except OSError:
-                if not os.path.exists(pluginDir):
-                    print(TerminalColor.warning(
-                        'Could not create plugin directory %s.' % pluginDir))
+        try:
+            mkdir(pluginDir)
+        except Exception:
+            print(TerminalColor.warning(
+                'Could not create plugin directory %s.' % pluginDir))
 
-                    failedPluginDirs.add(pluginDir)
+            failedPluginDirs.add(pluginDir)
 
     return [dir for dir in pluginDirs if dir not in failedPluginDirs]
 
