@@ -62,7 +62,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         try:
             mkdir(doc['root'])
-        except Exception:
+        except OSError:
             msg = 'Could not make directory "%s".' % doc['root']
             logger.exception(msg)
             raise ValidationException(msg)

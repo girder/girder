@@ -252,7 +252,7 @@ def getPluginDirs(curConfig=None):
     for pluginDir in pluginDirs:
         try:
             mkdir(pluginDir)
-        except Exception:
+        except OSError:
             print(TerminalColor.warning(
                 'Could not create plugin directory %s.' % pluginDir))
 
