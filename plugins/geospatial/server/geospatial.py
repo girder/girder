@@ -125,13 +125,13 @@ class GeospatialItem(Resource):
         .param('geoJSON', 'A GeoJSON object containing the features or feature'
                           ' collection to add.', required=True,
                paramType='query')
-        .errorResponse()
-        .errorResponse('Invalid GeoJSON was passed in request body.')
-        .errorResponse('GeoJSON feature or feature collection was not passed in'
-                       ' request body.')
-        .errorResponse("GeoJSON feature did not contain a property named"
-                       " 'name'.")
-        .errorResponse('Property name was invalid.')
+        .errorResponse(("A parameter was invalid.",
+                        "Invalid GeoJSON was passed in request body.",
+                        "GeoJSON feature or feature collection was not passed "
+                        "in request body.",
+                        "GeoJSON feature did not contain a property named"
+                        " 'name'.",
+                        "Property name was invalid."))
         .errorResponse('Write access was denied on the parent folder.', 403)
         .notes("All GeoJSON features must contain a property named 'name' from"
                " which the name of each created item is taken."))
@@ -317,8 +317,8 @@ class GeospatialItem(Resource):
                dataType='integer')
         .param('offset', 'Offset into result set (default=0).', required=False,
                dataType='integer')
-        .errorResponse()
-        .errorResponse('Field on which to search was not indexed.')
+        .errorResponse(('A parameter was invalid.',
+                        'Field on which to search was not indexed.'))
         .errorResponse('Index creation was denied.', 403)
         .notes("Field on which to search be indexed by a 2dsphere index."
                " Anonymous users may not use 'ensureIndex' to create such an"
@@ -492,10 +492,10 @@ class GeospatialItem(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('body', 'A JSON object containing the geospatial fields to add.',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON was passed in request body.')
-        .errorResponse('Geospatial key name was invalid.')
-        .errorResponse('Geospatial field did not contain valid GeoJSON.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON was passed in request body.',
+                        'Geospatial key name was invalid.',
+                        'Geospatial field did not contain valid GeoJSON.'))
         .errorResponse('Write access was denied for the item.', 403))
 
     def _filter(self, item):

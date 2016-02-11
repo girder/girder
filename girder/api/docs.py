@@ -23,9 +23,10 @@ import six
 from girder.constants import TerminalColor
 
 models = collections.defaultdict(dict)
-# routes is dict of dicts of lists
+# routes is dict of dicts of dicts
+# e.g. routes[resource][path][method]
 routes = collections.defaultdict(
-    functools.partial(collections.defaultdict, list))
+    functools.partial(collections.defaultdict, dict))
 
 
 def _toRoutePath(resource, route):
@@ -42,14 +43,18 @@ def _toRoutePath(resource, route):
     return path
 
 
-def _toOperation(info, method, handler):
+def _toOperation(info, resource, handler):
     """
     Augment route info, returning a Swagger-compatible operation description.
     """
     operation = dict(info)
-    operation['httpMethod'] = method.upper()
-    if 'nickname' not in operation:
-        operation['nickname'] = handler.__name__
+    operation['tags'] = [resource]
+
+    # Operation Object spec:
+    # Unique string used to identify the operation. The id MUST be unique among
+    # all operations described in the API.
+    if 'operationId' not in operation:
+        operation['operationId'] = resource + '_' + handler.__name__
     return operation
 
 
@@ -73,11 +78,11 @@ def addRouteDocs(resource, route, method, info, handler):
     """
     path = _toRoutePath(resource, route)
 
-    operation = _toOperation(info, method, handler)
+    operation = _toOperation(info, resource, handler)
 
     # Add the operation to the given route
-    if operation not in routes[resource][path]:
-        routes[resource][path].append(operation)
+    if method not in routes[resource][path]:
+        routes[resource][path][method] = operation
 
 
 def removeRouteDocs(resource, route, method, info, handler):
@@ -103,10 +108,8 @@ def removeRouteDocs(resource, route, method, info, handler):
     if path not in routes[resource]:
         return
 
-    operation = _toOperation(info, method, handler)
-
-    if info in routes[resource][path]:
-        routes[resource][path].remove(operation)
+    if method in routes[resource][path]:
+        del routes[resource][path][method]
         # Clean up any empty route paths
         if not routes[resource][path]:
             del routes[resource][path]
@@ -138,9 +141,9 @@ def addModel(name, model, resources=None, silent=False):
         after v1.3.2. The previous implementation did not include a resources
         parameter.
 
-    .. _Swagger Model documentation: https://github.com/swagger-api/
-       swagger-spec/blob/d79c205485d702302003d4de2f2c980d1caf10f9/
-       versions/1.2.md#527-model-object
+    .. _Swagger Model documentation: https://github.com/OAI/
+        OpenAPI-Specification/blob/0122c22e7fb93b571740dd3c6e141c65563a18be/
+        versions/2.0.md#definitionsObject
     """
     if resources:
         if isinstance(resources, six.string_types):
