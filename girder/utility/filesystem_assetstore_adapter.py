@@ -31,7 +31,7 @@ from . import sha512_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
-from girder.utility import progress
+from girder.utility import mkdir, progress
 
 BUF_SIZE = 65536
 
@@ -59,12 +59,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.path.isabs(doc['root']):
             raise ValidationException('You must provide an absolute path '
                                       'for the root directory.', 'root')
-        if not os.path.isdir(doc['root']):
-            try:
-                os.makedirs(doc['root'])
-            except OSError:
-                raise ValidationException(
-                    'Could not make directory "%s".' % doc['root'])
+
+        try:
+            mkdir(doc['root'])
+        except OSError:
+            msg = 'Could not make directory "%s".' % doc['root']
+            logger.exception(msg)
+            raise ValidationException(msg)
         if not os.access(doc['root'], os.W_OK):
             raise ValidationException(
                 'Unable to write into directory "%s".' % doc['root'])
@@ -85,14 +86,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(assetstore['root'], 'temp')
-        if not os.path.exists(self.tempDir):
-            try:
-                os.makedirs(self.tempDir)
-            except OSError:
-                self.unavailable = True
-                logger.exception('Failed to create filesystem assetstore '
-                                 'directories %s' % self.tempDir)
-        elif not os.access(assetstore['root'], os.W_OK):
+        try:
+            mkdir(self.tempDir)
+        except OSError:
+            self.unavailable = True
+            logger.exception('Failed to create filesystem assetstore '
+                             'directories %s' % self.tempDir)
+        if not os.access(assetstore['root'], os.W_OK):
             self.unavailable = True
             logger.error('Could not write to assetstore root: %s',
                          assetstore['root'])
@@ -195,8 +195,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         path = os.path.join(dir, hash)
         abspath = os.path.join(self.assetstore['root'], path)
 
-        if not os.path.exists(absdir):
-            os.makedirs(absdir)
+        mkdir(absdir)
 
         if os.path.exists(abspath):
             # Already have this file stored, just delete temp file.
