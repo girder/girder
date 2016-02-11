@@ -19,6 +19,7 @@
 
 import mock
 import os
+import six
 import shutil
 import tempfile
 
@@ -86,9 +87,7 @@ class InstallTestCase(base.TestCase):
                 os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
             ]))
 
-            self.assertEqual(len(p.mock_calls), 1)
-            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
-            self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+            self._ensureNpmInstallAndBuild(p)
 
             self.assertTrue(os.path.exists(
                 os.path.join(self.pluginDir, 'jobs', 'plugin.yml')))
@@ -96,7 +95,7 @@ class InstallTestCase(base.TestCase):
                 os.path.join(self.pluginDir, 'has_deps', 'plugin.json')))
 
         # Should fail if exists and force=False
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ]))
@@ -109,13 +108,15 @@ class InstallTestCase(base.TestCase):
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
-                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+                six.assertRaisesRegex(self, Exception,
+                                      'npm install .* returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ]))
 
         # If bad path is given, should fail gracefuly
-        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+        with six.assertRaisesRegex(self, Exception,
+                                   'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
             ]))
@@ -127,7 +128,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
         # Should fail if exists as directory and symlink is true
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ], symlink=True))
@@ -142,7 +143,8 @@ class InstallTestCase(base.TestCase):
                 self.pluginDir, 'has_deps')))
 
             # Should fail if exists as link and symlink is false
-            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            with six.assertRaisesRegex(self, Exception,
+                                       'Plugin already exists'):
                 install.install_plugin(PluginOpts(plugin=[
                     os.path.join(pluginRoot, 'has_deps')
                 ]))
@@ -163,6 +165,7 @@ class InstallTestCase(base.TestCase):
                 os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
             ]))
 
+            self._ensureNpmInstallAndBuild(p)
             self.assertTrue(os.path.exists(
                 os.path.join(self.pluginDir, 'has_dev_deps', 'plugin.json')))
             self.assertTrue('--production' in p.mock_calls[0][1][0])
@@ -181,15 +184,13 @@ class InstallTestCase(base.TestCase):
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ]))
 
-            self.assertEqual(len(p.mock_calls), 1)
-            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
-            self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+            self._ensureNpmInstallAndBuild(p)
 
             self.assertTrue(os.path.exists(
                 os.path.join(self.pluginDir, 'has_grunt_deps', 'plugin.json')))
 
         # Should fail if exists and force=False
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ]))
@@ -202,13 +203,15 @@ class InstallTestCase(base.TestCase):
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
-                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+                six.assertRaisesRegex(self, Exception,
+                                      'npm install.* returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ]))
 
         # If bad path is given, should fail gracefuly
-        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+        with six.assertRaisesRegex(self, Exception,
+                                   'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
             ]))
@@ -220,7 +223,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
         # Should fail if exists as directory and symlink is true
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ], symlink=True))
@@ -235,7 +238,8 @@ class InstallTestCase(base.TestCase):
                 self.pluginDir, 'has_grunt_deps')))
 
             # Should fail if exists as link and symlink is false
-            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            with six.assertRaisesRegex(self, Exception,
+                                       'Plugin already exists'):
                 install.install_plugin(PluginOpts(plugin=[
                     os.path.join(pluginRoot, 'has_grunt_deps')
                 ]))
@@ -251,7 +255,8 @@ class InstallTestCase(base.TestCase):
 
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
-                self.assertRaisesRegexp(Exception, 'npm install returned 2'):
+                six.assertRaisesRegex(self, Exception,
+                                      'npm install.* returned 2'):
             install.install_web()
 
             self.assertEqual(len(p.mock_calls), 1)
@@ -269,3 +274,11 @@ class InstallTestCase(base.TestCase):
             install.install_web(PluginOpts(dev=True))
 
             self.assertTrue('--production' not in p.mock_calls[0][1][0])
+
+    def _ensureNpmInstallAndBuild(self, proc):
+        self.assertEqual(len(proc.mock_calls), 2)
+        self.assertEqual(proc.mock_calls[0][1][0][:2], ('npm', 'install'))
+        self.assertEqual(proc.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
+
+        self.assertEqual(proc.mock_calls[1][1][0][:3], ('npm', 'run', 'build'))
+        self.assertEqual(proc.mock_calls[1][2]['cwd'], constants.PACKAGE_DIR)

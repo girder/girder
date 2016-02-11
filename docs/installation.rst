@@ -115,7 +115,7 @@ to install the plugins as well.
 To build the client-side code project, cd into the root of the repository
 and run: ::
 
-    npm install
+    npm install && npm run build
 
 This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
 the Javascript and CSS files needed to run the web client application.
