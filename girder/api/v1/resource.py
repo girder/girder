@@ -227,8 +227,8 @@ class Resource(BaseResource):
                'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
-        .errorResponse('Path is invalid.')
-        .errorResponse('Path refers to a resource that does not exist.')
+        .errorResponse(('Path is invalid.',
+                        'Path refers to a resource that does not exist.'))
         .errorResponse('Read access was denied for the resource.', 403))
 
     @access.cookie(force=True)
@@ -279,10 +279,10 @@ class Resource(BaseResource):
                '(item id 2)], "folder": [(folder id 1)]}.')
         .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
+        .errorResponse(('Unsupported or unknown resource type.',
+                        'Invalid resources format.',
+                        'No resources specified.',
+                        'Resource not found.'))
         .errorResponse('Read access was denied for a resource.', 403))
 
     @access.user
@@ -330,10 +330,10 @@ class Resource(BaseResource):
                '(item id2)], "folder": [(folder id 1)]}.')
         .param('progress', 'Whether to record progress on this task.',
                default=False, required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
+        .errorResponse(('Unsupported or unknown resource type.',
+                        'Invalid resources format.',
+                        'No resources specified.',
+                        'Resource not found.'))
         .errorResponse('Admin access was denied for a resource.', 403))
 
     @access.admin
@@ -406,12 +406,12 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('Resource type not supported.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))
+        .errorResponse(('Unsupported or unknown resource type.',
+                        'Invalid resources format.',
+                        'Resource type not supported.',
+                        'No resources specified.',
+                        'Resource not found.',
+                        'ID was invalid.')))
 
     @access.user
     def copyResources(self, params):
@@ -460,9 +460,9 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('Resource type not supported.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))
+        .errorResponse(('Unsupported or unknown resource type.',
+                        'Invalid resources format.',
+                        'Resource type not supported.',
+                        'No resources specified.',
+                        'Resource not found.',
+                        'ID was invalid.')))
