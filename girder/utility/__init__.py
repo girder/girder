@@ -37,7 +37,7 @@ def camelcase(value):
                    re.split("[._]+", value))
 
 
-def mkdir(path, mode=0o777, recurse=True, safe=True):
+def mkdir(path, mode=0o777, recurse=True, existOk=True):
     """
     Create a new directory or ensure a directory already exists.
 
@@ -47,15 +47,15 @@ def mkdir(path, mode=0o777, recurse=True, safe=True):
     :type mode: int
     :param recurse: Whether intermediate missing dirs should be created.
     :type recurse: bool
-    :param safe: Set to True to suppress the error if the dir already exists.
-    :type safe: bool
+    :param existOk: Set to True to suppress the error if the dir exists.
+    :type existOk: bool
     """
     method = os.makedirs if recurse else os.mkdir
 
     try:
         method(path, mode)
     except OSError as exc:
-        if safe and exc.errno == errno.EEXIST and os.path.isdir(path):
+        if existOk and exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
             raise
