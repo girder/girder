@@ -20,6 +20,7 @@
 from .. import base
 from girder.utility import hash_state
 import hashlib
+import sys
 
 
 def setUpModule():
@@ -73,5 +74,10 @@ class HashStateTestCase(base.TestCase):
         """
         Test all the base algorithms against Python's hashlib
         """
-        for algo in hashlib.algorithms:
+        if sys.version_info <= (3, 2):
+            algorithms = hashlib.algorithms
+        else:
+            algorithms = hashlib.algorithms_guaranteed
+
+        for algo in algorithms:
             self._simpleHashingTest(algo)
