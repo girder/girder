@@ -78,7 +78,7 @@ function(add_python_test case)
 
   set(_options BIND_SERVER PY2_ONLY)
   set(_args PLUGIN)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -119,8 +119,10 @@ function(add_python_test case)
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${_db_name}"
     "GIRDER_TEST_ASSETSTORE=${name}"
     "GIRDER_TEST_PORT=${server_port}"
+    "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
   )
   set_property(TEST ${name} PROPERTY COST 50)
+
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
   endif()
@@ -135,5 +137,14 @@ function(add_python_test case)
   if(PYTHON_COVERAGE)
     set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
     set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
+  endif()
+
+  if(fn_EXTERNAL_DATA)
+    set(_data_files "")
+    foreach(_data_file ${fn_EXTERNAL_DATA})
+      list(APPEND _data_files "DATA{${GIRDER_EXTERNAL_DATA_BUILD_PATH}/${_data_file}}")
+    endforeach()
+    girder_ExternalData_expand_arguments("${name}_data" _tmp ${_data_files})
+    girder_ExternalData_add_target("${name}_data")
   endif()
 endfunction()

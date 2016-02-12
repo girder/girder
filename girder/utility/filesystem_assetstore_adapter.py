@@ -27,11 +27,11 @@ import tempfile
 
 from six import BytesIO
 from hashlib import sha512
-from . import sha512_state
+from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
 from girder import logger
-from girder.utility import progress
+from girder.utility import mkdir, progress
 
 BUF_SIZE = 65536
 
@@ -59,12 +59,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.path.isabs(doc['root']):
             raise ValidationException('You must provide an absolute path '
                                       'for the root directory.', 'root')
-        if not os.path.isdir(doc['root']):
-            try:
-                os.makedirs(doc['root'])
-            except OSError:
-                raise ValidationException(
-                    'Could not make directory "%s".' % doc['root'])
+
+        try:
+            mkdir(doc['root'])
+        except OSError:
+            msg = 'Could not make directory "%s".' % doc['root']
+            logger.exception(msg)
+            raise ValidationException(msg)
         if not os.access(doc['root'], os.W_OK):
             raise ValidationException(
                 'Unable to write into directory "%s".' % doc['root'])
@@ -85,14 +86,13 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(assetstore['root'], 'temp')
-        if not os.path.exists(self.tempDir):
-            try:
-                os.makedirs(self.tempDir)
-            except OSError:
-                self.unavailable = True
-                logger.exception('Failed to create filesystem assetstore '
-                                 'directories %s' % self.tempDir)
-        elif not os.access(assetstore['root'], os.W_OK):
+        try:
+            mkdir(self.tempDir)
+        except OSError:
+            self.unavailable = True
+            logger.exception('Failed to create filesystem assetstore '
+                             'directories %s' % self.tempDir)
+        if not os.access(assetstore['root'], os.W_OK):
             self.unavailable = True
             logger.error('Could not write to assetstore root: %s',
                          assetstore['root'])
@@ -123,7 +123,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         fd, path = tempfile.mkstemp(dir=self.tempDir)
         os.close(fd)  # Must close this file descriptor or it will leak
         upload['tempFile'] = path
-        upload['sha512state'] = sha512_state.serializeHex(sha512())
+        upload['sha512state'] = hash_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -140,7 +140,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = sha512_state.restoreHex(upload['sha512state'])
+        checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
 
         if self.requestOffset(upload) > upload['received']:
             # This probably means the server died midway through writing last
@@ -173,7 +173,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise
 
         # Persist the internal state of the checksum
-        upload['sha512state'] = sha512_state.serializeHex(checksum)
+        upload['sha512state'] = hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
@@ -188,15 +188,15 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Moves the file into its permanent content-addressed location within the
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
-        hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'],
+                                     'sha512').hexdigest()
         dir = os.path.join(hash[0:2], hash[2:4])
         absdir = os.path.join(self.assetstore['root'], dir)
 
         path = os.path.join(dir, hash)
         abspath = os.path.join(self.assetstore['root'], path)
 
-        if not os.path.exists(absdir):
-            os.makedirs(absdir)
+        mkdir(absdir)
 
         if os.path.exists(abspath):
             # Already have this file stored, just delete temp file.

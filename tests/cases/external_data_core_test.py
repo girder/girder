@@ -17,36 +17,28 @@
 #  limitations under the License.
 ###############################################################################
 
-from . import hash_state
+import unittest
+import hashlib
+import os
 
 
-def serialize(sha512Object):
-    """
-    .. deprecated:: 1.5
-    Use :py:func:`girder.utility.hash_state.serialize`.
-    """
-    return hash_state.serialize(sha512Object)
+class ExternalDataCoreTest(unittest.TestCase):
+    def testExternalDataFile(self):
+        """Asserts that the external data file was correctly downloaded."""
+        filepath = os.path.join(
+            os.environ['GIRDER_TEST_DATA_PREFIX'],
+            'test_file.txt'
+        )
+        self.assertTrue(
+            os.path.exists(filepath),
+            'The test file does not exist.'
+        )
 
-
-def restore(data):
-    """
-    .. deprecated:: 1.5
-    Use :py:func:`girder.utility.hash_state.restore`.
-    """
-    return hash_state.restore(data, 'sha512')
-
-
-def serializeHex(o):
-    """
-    .. deprecated:: 1.5
-    Use :py:func:`girder.utility.hash_state.serializeHex`.
-    """
-    return hash_state.serializeHex(o)
-
-
-def restoreHex(d):
-    """
-    .. deprecated:: 1.5
-    Use :py:func:`girder.utility.hash_state.restoreHex`.
-    """
-    return hash_state.restoreHex(d, 'sha512')
+        hash = hashlib.md5()
+        with open(filepath, 'r') as f:
+            hash.update(f.read().encode('utf-8'))
+            self.assertEqual(
+                hash.hexdigest(),
+                '169293f7c9138e4b50ebcab4358dc509',
+                'Invalid test file content.'
+            )

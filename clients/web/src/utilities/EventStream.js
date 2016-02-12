@@ -8,7 +8,8 @@
      */
     girder.EventStream = function (settings) {
         var defaults = {
-            timeout: null
+            timeout: null,
+            streamPath: '/notification/stream'
         };
 
         this.settings = _.extend(defaults, settings);
@@ -21,7 +22,7 @@
     prototype.open = function () {
         if (window.EventSource) {
             var stream = this,
-                url = girder.apiRoot + '/notification/stream';
+                url = girder.apiRoot + this.settings.streamPath;
 
             if (this.settings.timeout) {
                 url += '?timeout=' + this.settings.timeout;

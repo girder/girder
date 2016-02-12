@@ -40,6 +40,7 @@ if(JAVASCRIPT_STYLE_TESTS)
 endif()
 
 if(BUILD_TESTING)
+  include(tests/TestData.cmake)
   include(tests/PythonTests.cmake)
   include(tests/JavascriptTests.cmake)
   add_subdirectory(scripts/tests)

@@ -24,6 +24,7 @@ if(RUN_CORE_TESTS)
   add_python_test(file)
   add_python_test(folder)
   add_python_test(group)
+  add_python_test(hash_state)
   add_python_test(install)
   add_python_test(item)
   add_python_test(mail)
@@ -67,11 +68,22 @@ if(RUN_CORE_TESTS)
   add_subdirectory(packaging)
 endif()
 
+# Add tests for the local TestData module
+add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
+add_python_test(external_data_core
+  EXTERNAL_DATA "test_file.txt"
+)
+add_python_test(external_data_plugin
+  EXTERNAL_DATA "test_file.txt" "plugins/has_external_data/test_file.txt"
+)
+
+
 # Use a macro instead of a function because web client tests actually write
 # into the parent scope to avoid port collisions.
 macro(_add_plugin pluginName pluginDir)
   if(EXISTS "${pluginDir}/plugin.cmake")
     message(STATUS "Including plugin.cmake from \"${pluginName}\"")
+    add_plugin_data_path("${pluginName}" "${pluginDir}")
     include("${pluginDir}/plugin.cmake")
   endif()
 endmacro()
