@@ -299,13 +299,13 @@ Duplicates (that is, pre-existing files with the same name in the same location
 in the Girder hierarchy) will be ignored if, for instance, you import the same
 hierarchy into the same location twice in a row.
 
-Batch Worker
-------------
+Remote Worker
+-------------
 
 This plugin should be enabled if you want to use the Girder worker distributed
 processing engine to execute batch jobs initiated by the server. This is useful
 for deploying service architectures that involve both data management and
-scalable batch processing. This plugin provides utilities for sending generic tasks
+scalable offline processing. This plugin provides utilities for sending generic tasks
 to worker nodes for execution. The worker itself uses
 `celery <http://www.celeryproject.org/>`_ to manage the distribution of tasks,
 and builds in some useful Girder integrations on top of celery. Namely,

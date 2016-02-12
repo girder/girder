@@ -40,7 +40,7 @@ girder.views.worker_ConfigView = girder.View.extend({
 
         if (!this.breadcrumb) {
             this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
-                pluginName: 'Batch worker',
+                pluginName: 'Remote worker',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
             });
