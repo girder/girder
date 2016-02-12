@@ -27,6 +27,7 @@ import zipfile
 from hashlib import sha512
 from .. import base, mock_s3
 
+from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
@@ -78,6 +79,14 @@ class FileTestCase(base.TestCase):
         }
         self.secondUser = self.model('user').createUser(**secondUser)
 
+        self.testForFinalizeUpload = False
+        self.finalizeUploadBeforeCalled = False
+        self.finalizeUploadAfterCalled = False
+        events.bind('model.file.finalizeUpload.before',
+                    '_testFinalizeUploadBefore', self._testFinalizeUploadBefore)
+        events.bind('model.file.finalizeUpload.after',
+                    '_testFinalizeUploadAfter', self._testFinalizeUploadAfter)
+
     def _testEmptyUpload(self, name):
         """
         Uploads an empty file to the server.
@@ -100,10 +109,30 @@ class FileTestCase(base.TestCase):
 
         return self.model('file').load(file['_id'], force=True)
 
+    def _testFinalizeUploadBefore(self, event):
+        self.finalizeUploadBeforeCalled = True
+        self._testFinalizeUpload(event)
+
+    def _testFinalizeUploadAfter(self, event):
+        self.finalizeUploadAfterCalled = True
+        self._testFinalizeUpload(event)
+
+    def _testFinalizeUpload(self, event):
+        self.assertTrue('file' in event.info)
+        self.assertTrue('upload' in event.info)
+
+        file = event.info['file']
+        upload = event.info['upload']
+        self.assertEqual(file['name'], upload['name'])
+        self.assertEqual(file['creatorId'], upload['userId'])
+        self.assertEqual(file['size'], upload['size'])
+
     def _testUploadFile(self, name):
         """
         Uploads a non-empty file to the server.
         """
+        self.testForFinalizeUpload = True
+
         # Initialize the upload
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
@@ -812,3 +841,13 @@ class FileTestCase(base.TestCase):
         # The file should just contain the URL of the link
         extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())
+
+    def tearDown(self):
+        if self.testForFinalizeUpload:
+            self.assertTrue(self.finalizeUploadBeforeCalled)
+            self.assertTrue(self.finalizeUploadAfterCalled)
+
+            events.unbind('model.file.finalizeUpload.before',
+                          '_testFinalizeUploadBefore')
+            events.unbind('model.file.finalizeUpload.after',
+                          '_testFinalizeUploadAfter')
