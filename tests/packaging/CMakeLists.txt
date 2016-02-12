@@ -46,38 +46,14 @@ add_test(
           "${PROJECT_SOURCE_DIR}"
           "${virtualenv_activate}"
           "${virtualenv_dir}"
+          "${CURL_EXECUTABLE}"
+          "${GREP_EXECUTABLE}"
 )
 
 set_property(TEST packaging_install
   PROPERTY DEPENDS "packaging_generate"
 )
 set_property(TEST packaging_install
-  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
-)
-
-add_test(
-  NAME packaging_rest_api
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_rest_api.sh" "${virtualenv_activate}" "${CURL_EXECUTABLE}"
-)
-
-set_property(TEST packaging_rest_api
-  PROPERTY DEPENDS "packaging_install"
-)
-set_property(TEST packaging_rest_api
-  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
-)
-
-add_test(
-  NAME packaging_web_install
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_web_content.sh" "${virtualenv_activate}" "${PROJECT_SOURCE_DIR}" "${CURL_EXECUTABLE}" "${GREP_EXECUTABLE}"
-)
-
-set_property(TEST packaging_web_install
-  PROPERTY DEPENDS "packaging_install"
-)
-set_property(TEST packaging_web_install
   PROPERTY RESOURCE_LOCK "packaging_virtualenv"
 )
 
