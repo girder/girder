@@ -66,44 +66,15 @@ set_property(TEST packaging_install
 add_test(
   NAME packaging_plugin_install
   WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_plugin_install.sh" "${virtualenv_activate}" "${PROJECT_SOURCE_DIR}"
+  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_plugin_install.sh"
+          "${virtualenv_activate}"
+          "${PROJECT_SOURCE_DIR}"
+          "${virtualenv_pip}"
 )
 
 set_property(TEST packaging_plugin_install
   PROPERTY DEPENDS "packaging_install"
 )
 set_property(TEST packaging_plugin_install
-  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
-)
-
-add_test(
-  NAME packaging_extras_install
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_extras_install.sh"
-          "${virtualenv_pip}"
-          "${PROJECT_SOURCE_DIR}"
-          "${virtualenv_activate}"
-          "${virtualenv_dir}"
-)
-
-set_property(TEST packaging_install
-  PROPERTY DEPENDS "packaging_generate"
-)
-set_property(TEST packaging_install
-  PROPERTY RESOURCE_LOCK "packaging_virtualenv"
-)
-
-add_test(
-  NAME packaging_plugin_copy_extras
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/test_plugin_copy_extras.sh"
-          "${virtualenv_activate}"
-          "${PROJECT_SOURCE_DIR}"
-)
-
-set_property(TEST packaging_plugin_copy_extras
-  PROPERTY DEPENDS "packaging_generate"
-)
-set_property(TEST packaging_plugin_copy_extras
   PROPERTY RESOURCE_LOCK "packaging_virtualenv"
 )
