@@ -27,3 +27,6 @@ class PluginSettings:
 
     GITHUB_CLIENT_ID = 'oauth.github_client_id'
     GITHUB_CLIENT_SECRET = 'oauth.github_client_secret'
+
+    LINKEDIN_CLIENT_ID = 'oauth.linkedin_client_id'
+    LINKEDIN_CLIENT_SECRET = 'oauth.linkedin_client_secret'

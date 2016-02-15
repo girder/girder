@@ -49,11 +49,11 @@ class OauthTest(base.TestCase):
         from girder.plugins.oauth.constants import PluginSettings
 
         self.adminUser = self.model('user').createUser(
-            email='admin@mail.com',
-            login='admin',
-            firstName='first',
-            lastName='last',
-            password='password',
+            email='rocky@phila.pa.us',
+            login='rocky',
+            firstName='Robert',
+            lastName='Balboa',
+            password='adrian',
             admin=True
         )
 
@@ -77,8 +77,10 @@ class OauthTest(base.TestCase):
                                           'user2')
         self.assertEqual(login, 'user2')
 
-        login = ProviderBase._deriveLogin('admin@admin.com', 'A', 'B', 'admin')
-        self.assertEqual(login, 'admin1')
+        # This should conflict with the saved admin user
+        login = ProviderBase._deriveLogin('rocky@phila.pa.us', 'Robert',
+                                          'Balboa', 'rocky')
+        self.assertEqual(login, 'rocky1')
 
     def _testOauth(self, providerInfo):
         # Close registration to start off, and simulate a new user
@@ -385,14 +387,15 @@ class OauthTest(base.TestCase):
                     'auth_code': 'google_new_auth_code',
                     'access_token': 'google_new_test_token',
                     'user': {
-                        # this login will be created internally by _deriveLogin
-                        'login': 'googleuser',
-                        'email': 'google_user@mail.com',
-                        'firstName': 'John',
-                        'lastName': 'Doe',
+                        # this login is not provided by Google, but will be
+                        # created internally by _deriveLogin
+                        'login': 'creed',
+                        'email': 'creed@la.ca.us',
+                        'firstName': 'Apollo',
+                        'lastName': 'Creed',
                         'oauth': {
                             'provider': 'google',
-                            'id': '9876'
+                            'id': 'the1best'
                         }
                     }
                 }
@@ -531,7 +534,7 @@ class OauthTest(base.TestCase):
                 'emails': [
                     {
                         'type': 'other',
-                        'value': 'secondary@email.com'
+                        'value': 'styx@hades.gov'
                     }, {
                         'type': 'account',
                         'value': account['user']['email']
@@ -585,13 +588,13 @@ class OauthTest(base.TestCase):
                         # login may be provided externally by GitHub; for
                         # simplicity here, do not use a username with whitespace
                         # or underscores
-                        'login': 'jane83',
-                        'email': 'github_user@mail.com',
-                        'firstName': 'Jane',
-                        'lastName': 'Doe',
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
                         'oauth': {
                             'provider': 'github',
-                            'id': 1234
+                            'id': 1985
                         }
                     }
                 }
@@ -733,7 +736,7 @@ class OauthTest(base.TestCase):
             return json.dumps([
                 {
                     'primary': False,
-                    'email': 'secondary@email.com',
+                    'email': 'drago@siberia.ussr.gov',
                     'verified': True
                 }, {
                     'primary': True,
@@ -747,6 +750,198 @@ class OauthTest(base.TestCase):
             mockGithubToken,
             mockGithubApiUser,
             mockGithubApiEmail,
+            # Must keep "mockOtherRequest" last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testLinkedinOauth(self):  # noqa
+        providerInfo = {
+            'id': 'linkedin',
+            'name': 'LinkedIn',
+            'client_id': {
+                'key': PluginSettings.LINKEDIN_CLIENT_ID,
+                'value': 'linkedin_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.LINKEDIN_CLIENT_SECRET,
+                'value': 'linkedin_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/linkedin/callback$',
+            'url_re': r'^https://www\.linkedin\.com/uas/oauth2/authorization',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'linkedin_existing_auth_code',
+                    'access_token': 'linkedin_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'linkedin',
+                            'id': '42kD-5H'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'linkedin_new_auth_code',
+                    'access_token': 'linkedin_new_test_token',
+                    'user': {
+                        # this login is not provided by LinkedIn, but will be
+                        # created internally by _deriveLogin
+                        'login': 'clubber',
+                        'email': 'clubber@streets.chi.il.us',
+                        'firstName': 'James',
+                        'lastName': 'Lang',
+                        'oauth': {
+                            'provider': 'linkedin',
+                            'id': '634pity-fool4'
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^www.linkedin.com$',
+                          path='^/uas/oauth2/authorization$', method='GET')
+        def mockLinkedinRedirect(url, request):
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 200,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(
+                    params['response_type'],
+                    ['code'])
+                self.assertEqual(
+                    params['scope'][0].split(' '),
+                    ['r_basicprofile', 'r_emailaddress'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (params['redirect_uri'][0],
+                                           returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^www.linkedin.com$',
+                          path='^/uas/oauth2/accessToken$', method='POST')
+        def mockLinkedinToken(url, request):
+            try:
+                self.assertEqual(request.headers['Content-Type'],
+                                 'application/x-www-form-urlencoded')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(
+                    params['grant_type'],
+                    ['authorization_code'])
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(
+                    params['client_secret'],
+                    [providerInfo['client_secret']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            return json.dumps({
+                'access_token': account['access_token'],
+                'expires_in': datetime.timedelta(days=60).seconds
+            })
+
+        @httmock.urlmatch(scheme='https', netloc='^api.linkedin.com$',
+                          path='^/v1/people/~(?::\(.+\)?)$', method='GET')
+        def mockLinkedinApi(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'errorCode': 0,
+                        'message': repr(e)
+                    })
+                }
+            try:
+                fieldsRe = re.match(r'^.+:\((.+)\)$', url.path)
+                self.assertTrue(fieldsRe)
+                self.assertSetEqual(
+                    set(fieldsRe.group(1).split(',')),
+                    {'id', 'emailAddress', 'firstName', 'lastName'})
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(params['format'], ['json'])
+            except AssertionError as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'errorCode': 0,
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'id': account['user']['oauth']['id'],
+                'firstName': account['user']['firstName'],
+                'lastName': account['user']['lastName'],
+                'emailAddress': account['user']['email']
+            })
+
+        with httmock.HTTMock(
+            mockLinkedinRedirect,
+            mockLinkedinToken,
+            mockLinkedinApi,
             # Must keep "mockOtherRequest" last
             self.mockOtherRequest
         ):
