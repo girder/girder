@@ -1,0 +1,16 @@
+.g-config-breadcrumb-container
+
+p.
+  Configure how Girder should connect to the celery worker.
+
+form#g-worker-settings-form(role="form")
+  .form-group
+    label.control-label(for="g-worker-broker") Celery broker URL
+    input.input-sm.form-control#g-worker-broker(
+      type="text", placeholder="Broker (default: amqp://guest@localhost/)")
+  .form-group
+    label.control-label(for="g-worker-backend") Celery backend URL
+    input.input-sm.form-control#g-worker-backend(
+      type="text", placeholder="Backend (default: amqp://guest@localhost/)")
+  p#g-worker-settings-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
