@@ -92,7 +92,7 @@ class ThumbnailsTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', fields=fields, files=files, user=self.admin)
         self.assertStatusOk(resp)
-        itemId = resp.json['itemId']
+        self.assertIn('itemId', resp.json)
         fileId = resp.json['_id']
 
         params = {
@@ -177,7 +177,7 @@ class ThumbnailsTestCase(base.TestCase):
     def testCreateThumbnailOverride(self):
         def override(event):
             # Override thumbnail creation -- just grab the first 4 bytes
-            file = event.info['file']
+            self.assertIn('file', event.info)
 
             streamFn = event.info['streamFn']
             stream = streamFn()
@@ -218,7 +218,7 @@ class ThumbnailsTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', fields=fields, files=files, user=self.admin)
         self.assertStatusOk(resp)
-        itemId = resp.json['itemId']
+        self.assertIn('itemId', resp.json)
         fileId = resp.json['_id']
 
         # Attach a thumbnail to the admin's public folder
@@ -236,7 +236,8 @@ class ThumbnailsTestCase(base.TestCase):
         # Download the new thumbnail
         folder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(len(folder['_thumbnails']), 1)
-        thumbnail = self.model('file').load(folder['_thumbnails'][0], force=True)
+        thumbnail = self.model('file').load(folder['_thumbnails'][0],
+                                            force=True)
 
         self.assertEqual(thumbnail['attachedToType'], 'folder')
         self.assertEqual(thumbnail['attachedToId'], folder['_id'])
