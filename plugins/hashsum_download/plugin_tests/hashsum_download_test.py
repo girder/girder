@@ -121,6 +121,15 @@ class HashsumDownloadTest(base.TestCase):
                 self.assertEqual(self.publicData,
                                  self.getBody(resp, text=False))
 
+                # Also test upper case hashAlgorithm
+                otherResp = self.request(
+                    path='/file/hashsum/%s/%s/download' % (
+                        hashAlgorithm.upper(), hashValue),
+                    method='GET', isJson=False)
+                self.assertStatusOk(otherResp)
+                self.assertEqual(self.publicData,
+                                 self.getBody(otherResp, text=False))
+
             # Test a non-existent file (in this case, one that's empty)
             resp = self.request(
                 path='/file/hashsum/%s/%s/download' % (

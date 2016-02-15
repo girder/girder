@@ -47,6 +47,7 @@ class HashedFile(File):
         .errorResponse('Read access was denied on the file.', 403)
     )
     def downloadWithHash(self, algo, hash, params):
+        algo = algo.lower()
         if algo not in self.SupportedAlgorithms:
             msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
                   % (algo, self.SupportedAlgorithms)
