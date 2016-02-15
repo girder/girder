@@ -1,0 +1,5 @@
+{
+"name": "Content addressed download",
+"description": "Allows users to download file using the file's hash.",
+"version": "0.1.0"
+}
