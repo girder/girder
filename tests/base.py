@@ -175,7 +175,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         Stop any services that we started just for this test.
         """
-        if self.assetstoreType == 'gridfsrs':
+        # If "self.setUp" is overridden, "self.assetstoreType" may not be set
+        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
             mongo_replicaset.stopMongoReplicaSet()
 
     def assertStatusOk(self, response):
