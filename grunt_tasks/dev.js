@@ -86,7 +86,7 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
             cssFiles: [
-                '/clients/web/static/lib/fontello/css/fontello.css',
+                '/clients/web/static/built/fontello/css/fontello.css',
                 '/clients/web/static/built/girder.ext.min.css',
                 '/clients/web/static/built/girder.app.min.css'
             ],

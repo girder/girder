@@ -93,6 +93,18 @@ module.exports = function (grunt) {
             }
         },
 
+        fontello: {
+            ext_font: {
+                options: {
+                    config: 'clients/web/fontello.config.json',
+                    fonts: 'clients/web/static/built/fontello/font',
+                    styles: 'clients/web/static/built/fontello/css',
+                    // Create output directories
+                    force: true
+                }
+            }
+        },
+
         concat: {
             options: {
                 stripBanners: {
@@ -193,6 +205,9 @@ module.exports = function (grunt) {
                 }, {
                     src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
+                }, {
+                    src: ['clients/web/static/built/fontello'],
+                    dest: 'clients/web/static/lib/fontello'
                 }]
             }
         },
@@ -219,7 +234,8 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'concat:ext_css': {}
+            'concat:ext_css': {},
+            'fontello:ext_font': {}
         },
 
         default: {
