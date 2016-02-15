@@ -127,8 +127,7 @@ class HashsumDownloadTest(base.TestCase):
                     hashAlgorithm,
                     self._hashSum(b'', hashAlgorithm)),
                 method='GET', isJson=False)
-            # TODO: shouldn't this be 404?
-            self.assertStatus(resp, 400)
+            self.assertStatus(resp, 404)
 
             # Test a private file anonymously
             resp = self.request(
@@ -191,8 +190,8 @@ class HashsumDownloadTest(base.TestCase):
             for resp in [respHeader, respQuery]:
                 self.assertStatus(resp, 206)
                 self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
-                self.assertEqual(resp.headers['Content-Length'], 30 - 10 + 1)
+                self.assertEqual(resp.headers['Content-Length'], 30 - 10)
                 self.assertEqual(resp.headers['Content-Range'],
-                                 'bytes 10-30/%d' % len(self.publicData))
+                                 'bytes 10-29/%d' % len(self.publicData))
                 self.assertEqual(self.publicData[10:30],
                                  self.getBody(resp, text=False))

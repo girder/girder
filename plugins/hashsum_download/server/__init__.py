@@ -19,9 +19,15 @@
 
 from girder.api import access
 from girder.api.describe import describeRoute, Description
+from girder.api.rest import RestException
 from girder.api.v1.file import File
 
+
 class HashedFile(File):
+
+    SupportedAlgorithms = [
+        'sha512',
+    ]
 
     def __init__(self, apiRoot):
         super(File, self).__init__()
@@ -34,17 +40,26 @@ class HashedFile(File):
     @describeRoute(
         Description('Download a file by its hashsum.')
         .param('algo', 'The type of the given hashsum.',
-               paramType='path', enum=['sha521'])
-        .param('hash', 'The hashsum of the file to download.',
-                paramType='path')
+               paramType='path', enum=SupportedAlgorithms)
+        .param('hash', 'The hashsum of the file to do wnload.',
+               paramType='path')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
     def downloadWithHash(self, algo, hash, params):
-        query = { algo : hash }
+        if algo not in self.SupportedAlgorithms:
+            msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
+                  % (algo, self.SupportedAlgorithms)
+            raise RestException(msg, code=400)
+
+        query = {algo: hash.lower()}  # Always convert to lower case
         fileModel = self.model('file')
         file = fileModel.findOne(query)
-        return fileModel.download(file)
+        if not file:
+            raise RestException('File not found.', code=404)
+
+        return self.download(id=file['_id'], params=params)
+
 
 def load(info):
     HashedFile(info['apiRoot'])
