@@ -27,15 +27,15 @@ class HashedFile(File):
         super(File, self).__init__()
 
         self.resourceName = 'file'
-        apiRoot.file.route('GET', ('content', ':algo', ':hash', 'download'),
+        apiRoot.file.route('GET', ('hashsum', ':algo', ':hash', 'download'),
                            self.downloadWithHash)
 
     @access.public
     @describeRoute(
-        Description('Download a file by its hash.')
-        .param('algo', 'The type of the given hash.',
+        Description('Download a file by its hashsum.')
+        .param('algo', 'The type of the given hashsum.',
                paramType='path', enum=['sha521'])
-        .param('hash', 'The hash of the file to download.',
+        .param('hash', 'The hashsum of the file to download.',
                 paramType='path')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)

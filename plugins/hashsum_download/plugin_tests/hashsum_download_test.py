@@ -20,7 +20,7 @@
 from tests import base
 
 def setUpModule():
-    base.enabledPlugins.append('content_addressed_download')
+    base.enabledPlugins.append('hashsum_download')
     base.startServer()
 
 
@@ -28,7 +28,7 @@ def tearDownModule():
     base.stopServer()
 
 
-class ContentAddressedDownloadTest(base.TestCase):
+class HashsumDownloadTest(base.TestCase):
 
     def setUp(self):
         base.TestCase.setUp(self)
