@@ -39,6 +39,12 @@ function runtest {
   mkdir -p "$b/girder-${PYENV_VERSION}"
   virtualenv "$b/girder-${PYENV_VERSION}/test-venv"
   source "$b/girder-${PYENV_VERSION}/test-venv/bin/activate"
+
+  # Create a virtualenv for packaging.  For some reason, trying to install
+  # the virtualenv fails on garant during the build.  Instead, we just create
+  # it manually here.
+  virtualenv "$b/girder-${PYENV_VERSION}/env"
+
   export PYTHON_EXECUTABLE="$(pyenv which python)"
   export VIRTUALENV_EXECUTABLE="$(pyenv which virtualenv)"
   export PIP_EXECUTABLE="$(pyenv which pip)"
