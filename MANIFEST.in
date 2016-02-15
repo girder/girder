@@ -5,6 +5,7 @@ include girder/girder-version.json
 include package.json
 include README.rst
 include girder/conf/girder.dist.cfg
+recursive-exclude tests *
 recursive-include clients/web *
 recursive-include girder/mail_templates *
 recursive-include grunt_tasks *
@@ -13,3 +14,4 @@ global-exclude *.pyc *.pyo *.cmake
 prune clients/web/static/built
 prune clients/web/dev
 prune clients/web/test
+prune plugins/*/plugin_tests

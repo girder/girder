@@ -115,7 +115,9 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4'
     ],
-    packages=find_packages(exclude=('tests.*', 'tests')),
+    packages=find_packages(
+        exclude=('tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
+    ),
     package_data={
         'girder': [
             'girder-version.json',
