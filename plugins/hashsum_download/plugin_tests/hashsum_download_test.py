@@ -17,7 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+import six
+import hashlib
+
 from tests import base
+
 
 def setUpModule():
     base.enabledPlugins.append('hashsum_download')
@@ -29,11 +33,166 @@ def tearDownModule():
 
 
 class HashsumDownloadTest(base.TestCase):
-
     def setUp(self):
-        base.TestCase.setUp(self)
+        base.TestCase.setUp(self, assetstoreType='filesystem')
 
-    def test1(self):
-        # TODO
-        pass
+        self.user = self.model('user').createUser(
+            login='leeloo',
+            password='multipass',
+            firstName='Leeloominai',
+            lastName='Sebat',
+            email='quinque@universe.org'
+        )
 
+        for folder in self.model('folder').childFolders(
+                parent=self.user, parentType='user', user=self.user):
+            if folder['public'] is True:
+                self.publicFolder = folder
+            else:
+                self.privateFolder = folder
+
+        self.publicData = u'\u266a Il dolce suono mi ' \
+                          u'colp\u00ec di sua voce! \u266a'.encode('utf8')
+        self.publicFile = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(self.publicData),
+            size=len(self.publicData),
+            name='Il dolce suono',
+            parentType='folder',
+            parent=self.publicFolder,
+            user=self.user,
+            mimeType='audio/flac'
+        )
+
+        self.privateData = u'\u2641 \u2600 \u2601 \u2614 \u2665'.encode('utf8')
+        self.privateFile = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(self.privateData),
+            size=len(self.privateData),
+            name='Powers combined',
+            parentType='folder',
+            parent=self.privateFolder,
+            user=self.user,
+            mimeType='image/png'
+        )
+
+        self.otherUser = self.model('user').createUser(
+            login='zorg',
+            password='mortis',
+            firstName='Jean-Baptiste',
+            lastName='Zorg',
+            email='nullus@universe.org'
+        )
+
+    @staticmethod
+    def _hashSum(value, algorithm):
+        hasher = hashlib.new(algorithm)
+        hasher.update(value)
+        return hasher.hexdigest()
+
+    def testDownload(self):
+        # Test an invalid algorithm
+        resp = self.request(
+            path='/file/hashsum/%s/%s/download' % ('crc32', '1a2b3c4d'),
+            method='GET', user=self.user, isJson=False,
+        )
+        self.assertStatus(resp, 400)
+
+        for hashAlgorithm in ['sha512']:
+            publicDataHash = self._hashSum(self.publicData, hashAlgorithm)
+            privateDataHash = self._hashSum(self.privateData, hashAlgorithm)
+
+            # Test normal use
+            for hashValue in [
+                publicDataHash.lower(),
+                publicDataHash.upper()
+            ]:
+                resp = self.request(
+                    path='/file/hashsum/%s/%s/download' % (
+                        hashAlgorithm, hashValue),
+                    method='GET', isJson=False)
+                self.assertStatusOk(resp)
+                self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+                self.assertEqual(resp.headers['Content-Disposition'],
+                                 'attachment; filename="%s"' %
+                                 self.publicFile['name'])
+                self.assertEqual(resp.headers['Content-Length'],
+                                 self.publicFile['size'])
+                self.assertEqual(resp.headers['Content-Type'],
+                                 self.publicFile['mimeType'])
+                self.assertEqual(self.publicData,
+                                 self.getBody(resp, text=False))
+
+            # Test a non-existent file (in this case, one that's empty)
+            resp = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm,
+                    self._hashSum(b'', hashAlgorithm)),
+                method='GET', isJson=False)
+            # TODO: shouldn't this be 404?
+            self.assertStatus(resp, 400)
+
+            # Test a private file anonymously
+            resp = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, privateDataHash),
+                method='GET', user=None, isJson=False)
+            self.assertStatus(resp, 401)
+
+            # Test a private file when unauthorized
+            resp = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, privateDataHash),
+                method='GET', user=self.otherUser, isJson=False)
+            self.assertStatus(resp, 403)
+
+            # Test a private file when authorized
+            resp = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, privateDataHash),
+                method='GET', user=self.user, isJson=False)
+            self.assertStatusOk(resp)
+            self.assertEqual(self.privateData, self.getBody(resp, text=False))
+
+            # Test specified content dispositions
+            for contentDisposition in ['attachment', 'inline']:
+                resp = self.request(
+                    path='/file/hashsum/%s/%s/download' % (
+                        hashAlgorithm, publicDataHash),
+                    method='GET', isJson=False, params={
+                        'contentDisposition': contentDisposition
+                    })
+                self.assertStatusOk(resp)
+                self.assertEqual(resp.headers['Content-Disposition'],
+                                 '%s; filename="%s"' %
+                                 (contentDisposition, self.publicFile['name']))
+                self.assertEqual(self.publicData,
+                                 self.getBody(resp, text=False))
+
+            # Test downloading with an offset
+            resp = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, publicDataHash),
+                method='GET', isJson=False, params={
+                    'offset': 15})
+            self.assertStatus(resp, 206)
+            self.assertEqual(self.publicData[15:],
+                             self.getBody(resp, text=False))
+
+            # Test downloading with a range header and query range params
+            respHeader = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, publicDataHash),
+                method='GET', isJson=False, additionalHeaders=[
+                    ('Range', 'bytes=10-29')])
+            respQuery = self.request(
+                path='/file/hashsum/%s/%s/download' % (
+                    hashAlgorithm, publicDataHash),
+                method='GET', isJson=False, params={
+                    'offset': 10, 'endByte': 30})
+            for resp in [respHeader, respQuery]:
+                self.assertStatus(resp, 206)
+                self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+                self.assertEqual(resp.headers['Content-Length'], 30 - 10 + 1)
+                self.assertEqual(resp.headers['Content-Range'],
+                                 'bytes 10-30/%d' % len(self.publicData))
+                self.assertEqual(self.publicData[10:30],
+                                 self.getBody(resp, text=False))
