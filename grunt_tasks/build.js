@@ -205,6 +205,9 @@ module.exports = function (grunt) {
                 }, {
                     src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
+                }, {
+                    src: ['clients/web/static/built/fontello'],
+                    dest: 'clients/web/static/lib/fontello'
                 }]
             }
         },
