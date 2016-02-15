@@ -61,7 +61,6 @@ class OauthTest(base.TestCase):
         # redirect to a provider will simulate authentication for
         self.accountType = None
 
-
     def testDeriveLogin(self):
         """
         Unit tests the _deriveLogin method of the provider classes.
@@ -74,12 +73,12 @@ class OauthTest(base.TestCase):
         login = ProviderBase._deriveLogin('hello.world.foo@mail.com', 'A', 'B')
         self.assertEqual(login, 'helloworldfoo')
 
-        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B', 'user2')
+        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B',
+                                          'user2')
         self.assertEqual(login, 'user2')
 
         login = ProviderBase._deriveLogin('admin@admin.com', 'A', 'B', 'admin')
         self.assertEqual(login, 'admin1')
-
 
     def _testOauth(self, providerInfo):
         # Close registration to start off, and simulate a new user
@@ -264,7 +263,7 @@ class OauthTest(base.TestCase):
         # 'new' account
         params = getCallbackParams(getProviderResp())
         resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                     params=params)
+                            params=params)
         self.assertStatus(resp, 400)
         self.assertTrue(
             resp.json['message'].startswith(
@@ -275,7 +274,7 @@ class OauthTest(base.TestCase):
             self.accountType = accountType
             params = getCallbackParams(getProviderResp())
             resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                         params=params, isJson=False)
+                                params=params, isJson=False)
             self.assertStatus(resp, 303)
             self.assertEqual(resp.headers['Location'],
                              'http://localhost/#foo/bar')
@@ -284,13 +283,17 @@ class OauthTest(base.TestCase):
             resp = self.request('/user/me',
                                 token=resp.cookie['girderToken'].value)
             self.assertStatusOk(resp)
-            self.assertEqual(resp.json['email'],
+            self.assertEqual(
+                resp.json['email'],
                 providerInfo['accounts'][accountType]['user']['email'])
-            self.assertEqual(resp.json['login'],
+            self.assertEqual(
+                resp.json['login'],
                 providerInfo['accounts'][accountType]['user']['login'])
-            self.assertEqual(resp.json['firstName'],
+            self.assertEqual(
+                resp.json['firstName'],
                 providerInfo['accounts'][accountType]['user']['firstName'])
-            self.assertEqual(resp.json['lastName'],
+            self.assertEqual(
+                resp.json['lastName'],
                 providerInfo['accounts'][accountType]['user']['lastName'])
 
         # Try callback for the 'existing' account, which should succeed
@@ -310,8 +313,8 @@ class OauthTest(base.TestCase):
 
         # Reset password for 'new' OAuth-only user should work
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-        resp = self.request('/user/password/temporary',
-            method='PUT', params={
+        resp = self.request(
+            '/user/password/temporary', method='PUT', params={
                 'email': providerInfo['accounts']['new']['user']['email']})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], 'Sent temporary access email.')
@@ -326,15 +329,14 @@ class OauthTest(base.TestCase):
         tempToken = self.model('token').load(
             tokenId, force=True, objectId=False)
         resp = self.request('/user/password/temporary/' + userId,
-            method='GET', params={
-                'token': tokenId})
+                            method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['user']['login'], newUser['login'])
         # We should now be able to change the password
         resp = self.request('/user/password',
-            method='PUT', user=resp.json['user'], params={
-                'old': tokenId,
-                'new': 'mypasswd'})
+                            method='PUT', user=resp.json['user'], params={
+                                'old': tokenId,
+                                'new': 'mypasswd'})
         self.assertStatusOk(resp)
         # The temp token should get deleted on password change
         token = self.model('token').load(tempToken, force=True, objectId=False)
@@ -345,13 +347,11 @@ class OauthTest(base.TestCase):
                             basicAuth='%s:mypasswd' % newUser['login'])
         self.assertStatusOk(resp)
 
-
     @httmock.all_requests
     def mockOtherRequest(self, url, request):
         raise Exception('Unexpected url %s' % str(request.url))
 
-
-    def testGoogleOauth(self):
+    def testGoogleOauth(self):  # noqa
         providerInfo = {
             'id': 'google',
             'name': 'Google',
@@ -548,8 +548,7 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
-
-    def testGithubOauth(self):
+    def testGithubOauth(self):  # noqa
         providerInfo = {
             'id': 'github',
             'name': 'GitHub',
@@ -633,7 +632,8 @@ class OauthTest(base.TestCase):
             else:
                 returnQuery = urllib.parse.urlencode({
                     'state': state,
-                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
                 })
             return {
                 'status_code': 302,
@@ -688,7 +688,6 @@ class OauthTest(base.TestCase):
                 },
                 'content': returnBody
             }
-
 
         @httmock.urlmatch(scheme='https', netloc='^api.github.com$',
                           path='^/user$', method='GET')

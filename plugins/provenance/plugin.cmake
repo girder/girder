@@ -15,8 +15,10 @@
 ###############################################################################
 
 add_python_test(provenance PLUGIN provenance)
-add_python_style_test(pep8_style_provenance
+add_python_style_test(python_static_analysis_provenance
                       "${PROJECT_SOURCE_DIR}/plugins/provenance/server")
+add_python_style_test(python_static_analysis_provenance_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/provenance/plugin_tests")
 add_web_client_test(
     provenance
     "${PROJECT_SOURCE_DIR}/plugins/provenance/plugin_tests/provenanceSpec.js"

@@ -26,6 +26,7 @@ from girder.models.model_base import ValidationException
 
 JobStatus = None
 
+
 def setUpModule():
     base.enabledPlugins.append('jobs')
     base.startServer()
@@ -48,6 +49,7 @@ class JobsTestCase(base.TestCase):
 
     def testJobs(self):
         self.job = None
+
         def schedule(event):
             self.job = event.info
             if self.job['handler'] == 'my_handler':

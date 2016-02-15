@@ -15,8 +15,10 @@
 ###############################################################################
 
 add_python_test(user_quota PLUGIN user_quota)
-add_python_style_test(pep8_style_user_quota
+add_python_style_test(python_static_analysis_user_quota
                       "${PROJECT_SOURCE_DIR}/plugins/user_quota/server")
+add_python_style_test(python_static_analysis_user_quota_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests")
 add_web_client_test(
     user_quota
     "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests/userQuotaSpec.js"

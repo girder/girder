@@ -19,3 +19,5 @@ add_python_test(server_metadata_extractor PLUGIN metadata_extractor RESOURCE_LOC
 
 add_python_style_test(python_static_analysis_metadata_extractor
                       "${PROJECT_SOURCE_DIR}/plugins/metadata_extractor/server")
+add_python_style_test(python_static_analysis_metadata_extractor_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/metadata_extractor/plugin_tests")
