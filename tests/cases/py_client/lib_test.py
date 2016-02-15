@@ -289,7 +289,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(eventList[0]['file']['_id'],
                             eventList[1]['file']['_id'])
 
-        open(path, 'ab').write('test')
+        open(path, 'ab').write(b'test')
         size = os.path.getsize(path)
         client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                 reference='test3_reference')
