@@ -93,6 +93,18 @@ module.exports = function (grunt) {
             }
         },
 
+        fontello: {
+            ext_font: {
+                options: {
+                    config: 'clients/web/fontello.config.json',
+                    fonts: 'clients/web/static/built/fontello/font',
+                    styles: 'clients/web/static/built/fontello/css',
+                    // Create output directories
+                    force: true
+                }
+            }
+        },
+
         concat: {
             options: {
                 stripBanners: {
@@ -219,7 +231,8 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'concat:ext_css': {}
+            'concat:ext_css': {},
+            'fontello:ext_font': {}
         },
 
         default: {

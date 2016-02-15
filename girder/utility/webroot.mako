@@ -4,8 +4,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
-    <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/fontello.css">
-    <link rel="stylesheet" href="${staticRoot}/lib/fontello/css/animation.css">
+    <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
+    <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
     <link rel="stylesheet" href="${staticRoot}/built/girder.ext.min.css">
     <link rel="stylesheet" href="${staticRoot}/built/girder.app.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">

@@ -49,6 +49,8 @@ class InstallWithOptions(install):
         shutil.copy('package.json', dest)
         self.mergeDir(os.path.join('clients', 'web', 'src'), dest)
         self.mergeDir(os.path.join('clients', 'web', 'static'), dest)
+        shutil.copy(os.path.join('clients', 'web', 'fontello.config.json'),
+                    os.path.join(dest, 'clients', 'web'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
 
