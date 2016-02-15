@@ -24,7 +24,7 @@ import os
 import shutil
 import six
 
-from girder import config
+from girder import config, events
 from tests import base
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
@@ -252,3 +252,50 @@ class PythonClientTestCase(base.TestCase):
 
         files = list(self.model('item').childFiles(items[0]))
         self.assertEqual(len(files), 1)
+
+    def testUploadReference(self):
+        eventList = []
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        # Register a user
+        user = client.createResource('user', params={
+            'firstName': 'First',
+            'lastName': 'Last',
+            'login': 'mylogin',
+            'password': 'password',
+            'email': 'email@email.com'
+        })
+        client.authenticate('mylogin', 'password')
+        folders = client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public')
+        publicFolder = folders[0]
+
+        def processEvent(event):
+            eventList.append(event.info)
+
+        events.bind('data.process', 'lib_test', processEvent)
+
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+        client.uploadFile(publicFolder['_id'], open(path), name='test1',
+                          size=size, parentType='folder',
+                          reference='test1_reference')
+        self.assertEqual(len(eventList), 1)
+        self.assertEqual(eventList[0]['reference'], 'test1_reference')
+
+        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                reference='test2_reference')
+        self.assertEqual(len(eventList), 2)
+        self.assertEqual(eventList[1]['reference'], 'test2_reference')
+        self.assertNotEqual(eventList[0]['file']['_id'],
+                            eventList[1]['file']['_id'])
+
+        open(path, 'ab').write(b'test')
+        size = os.path.getsize(path)
+        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                reference='test3_reference')
+        self.assertEqual(len(eventList), 3)
+        self.assertEqual(eventList[2]['reference'], 'test3_reference')
+        self.assertNotEqual(eventList[0]['file']['_id'],
+                            eventList[2]['file']['_id'])
+        self.assertEqual(eventList[1]['file']['_id'],
+                         eventList[2]['file']['_id'])

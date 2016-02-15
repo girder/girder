@@ -130,7 +130,7 @@
   - name: girder | pip | girder_client
     pip:
       name: girder-client
-      version: 1.1.1
+      version: 1.1.2
     when: do_install|bool
 
 
