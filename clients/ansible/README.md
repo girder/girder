@@ -8,7 +8,7 @@ The girder ansible module relies on the girder-client to do most of the heavy li
 
 ```yaml
 - name: install girder-client pip package
-  pip: name=girder-client version=1.1.1
+  pip: name=girder-client version=1.1.2
   sudo: yes
 
   # Code that uses girder module
