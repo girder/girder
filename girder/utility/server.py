@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import mimetypes
 import os
 
 import girder.events
@@ -56,6 +57,11 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'tools.staticdir.dir': 'clients/web/static'
         }
     }
+    # Add MIME types for serving Fontello files from staticdir;
+    # these may be missing or incorrect in the OS
+    mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
+    mimetypes.add_type('application/x-font-ttf', '.ttf')
+    mimetypes.add_type('application/font-woff', '.woff')
 
     if test:
         appconf['/src'] = {
