@@ -96,6 +96,7 @@ def jobInfoSpec(job, token=None, logPrint=True):
     return {
         'method': 'PUT',
         'url': '/'.join((getApiUrl(), 'job', str(job['_id']))),
+        'reference': str(job['_id']),
         'headers': {'Girder-Token': token},
         'logPrint': logPrint
     }

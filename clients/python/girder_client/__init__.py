@@ -413,7 +413,7 @@ class GirderClient(object):
         # to upload anyway in this case also.
         return (None, False)
 
-    def uploadFileToItem(self, itemId, filepath):
+    def uploadFileToItem(self, itemId, filepath, reference=None):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and size)
@@ -421,6 +421,8 @@ class GirderClient(object):
 
         :param itemId: ID of parent item for file.
         :param filepath: path to file on disk.
+        :param reference: optional reference to send along with the upload.
+        :type reference: str
         """
         filename = os.path.basename(filepath)
         filepath = os.path.abspath(filepath)
@@ -441,6 +443,8 @@ class GirderClient(object):
             params = {
                 'size': filesize
             }
+            if reference:
+                params['reference'] = reference
             obj = self.put(path, params)
             if '_id' in obj:
                 uploadId = obj['_id']
@@ -456,6 +460,8 @@ class GirderClient(object):
                 'name': filename,
                 'size': filesize
             }
+            if reference:
+                params['reference'] = reference
             obj = self.post('file', params)
             if '_id' in obj:
                 uploadId = obj['_id']
@@ -481,7 +487,7 @@ class GirderClient(object):
                                 json.dumps(obj))
 
     def uploadFile(self, parentId, stream, name, size, parentType='item',
-                   progressCallback=None):
+                   progressCallback=None, reference=None):
         """
         Uploads a file into an item or folder.
 
@@ -501,14 +507,19 @@ class GirderClient(object):
             with progress information. It passes a single positional argument
             to the callable which is a dict of information about progress.
         :type progressCallback: callable
+        :param reference: optional reference to send along with the upload.
+        :type reference: str
         :returns: The file that was created on the server.
         """
-        obj = self.post('file', {
+        params = {
             'parentType': parentType,
             'parentId': parentId,
             'name': name,
-            'size': size
-        })
+            'size': size,
+        }
+        if reference is not None:
+            params['reference'] = reference
+        obj = self.post('file', params)
         if '_id' in obj:
             uploadId = obj['_id']
         else:
