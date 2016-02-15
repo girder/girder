@@ -22,13 +22,24 @@ import bson.json_util
 from girder import events
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.api import access
 
 
 class ResourceExt(Resource):
     @access.public
+    @describeRoute(
+        Description('Run any search against a set of mongo collections.')
+        .notes('Results will be filtered by permissions.')
+        .param('type', 'The name of the collection to search, e.g. "item".')
+        .param('q', 'The search query as a JSON object.')
+        .param('limit', "Result set size limit (default=50).", required=False,
+               dataType='int')
+        .param('offset', "Offset into result set (default=0).", required=False,
+               dataType='int')
+        .errorResponse()
+    )
     def mongoSearch(self, params):
         self.requireParams(('type', 'q'), params)
         allowed = {
@@ -60,17 +71,6 @@ class ResourceExt(Resource):
         else:
             return list(model.find(query, fields=allowed[coll], limit=limit,
                                    offset=offset))
-
-    mongoSearch.description = (
-        Description('Run any search against a set of mongo collections.')
-        .notes('Results will be filtered by permissions.')
-        .param('type', 'The name of the collection to search, e.g. "item".')
-        .param('q', 'The search query as a JSON object.')
-        .param('limit', "Result set size limit (default=50).", required=False,
-               dataType='int')
-        .param('offset', "Offset into result set (default=0).", required=False,
-               dataType='int')
-        .errorResponse())
 
 
 def load(info):

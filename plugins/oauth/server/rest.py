@@ -22,7 +22,7 @@ import datetime
 import six
 
 from girder.constants import AccessType
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.api import access
 from . import constants, providers
@@ -69,6 +69,15 @@ class OAuth(Resource):
         return redirect
 
     @access.public
+    @describeRoute(
+        Description('Get the list of enabled OAuth2 providers and their URLs.')
+        .notes('By default, returns an object mapping names of providers to '
+               'the appropriate URL.')
+        .param('redirect', 'Where the user should be redirected upon completion'
+               ' of the OAuth2 flow.')
+        .param('list', 'Whether to return the providers as an ordered list.',
+               required=False, dataType='boolean', default=False)
+    )
     def listProviders(self, params):
         self.requireParams(('redirect',), params)
         redirect = params['redirect']
@@ -101,16 +110,9 @@ class OAuth(Resource):
                 provider.getProviderName(external=True): provider.getUrl(state)
                 for provider in enabledProviders
             }
-    listProviders.description = (
-        Description('Get the list of enabled OAuth2 providers and their URLs.')
-        .notes('By default, returns an object mapping names of providers to '
-               'the appropriate URL.')
-        .param('redirect', 'Where the user should be redirected upon completion'
-               ' of the OAuth2 flow.')
-        .param('list', 'Whether to return the providers as an ordered list.',
-               required=False, dataType='boolean', default=False))
 
     @access.public
+    @describeRoute(None)
     def callback(self, provider, params):
         if 'error' in params:
             raise RestException("Provider returned error: '%s'." %
@@ -132,4 +134,3 @@ class OAuth(Resource):
         self.sendAuthTokenCookie(user)
 
         raise cherrypy.HTTPRedirect(redirect)
-    callback.description = None

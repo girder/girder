@@ -632,11 +632,10 @@ class Resource(ModelImporter):
             resource = self.resourceName
         elif resource is None:
             resource = handler.__module__.rsplit('.', 1)[-1]
-        if handler and hasattr(handler, 'description'):
-            if handler.description is not None:
-                docs.removeRouteDocs(
-                    resource=resource, route=route, method=method,
-                    info=handler.description.asDict(), handler=handler)
+        if handler and getattr(handler, 'description', None) is not None:
+            docs.removeRouteDocs(
+                resource=resource, route=route, method=method,
+                info=handler.description.asDict(), handler=handler)
 
     def _shouldInsertRoute(self, a, b):
         """

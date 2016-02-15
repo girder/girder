@@ -25,7 +25,7 @@ import time
 
 from girder import config
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import ROOT_DIR
 from girder.utility.progress import ProgressContext
@@ -68,6 +68,13 @@ class WebClientTestEndpoints(Resource):
         self.stop = False
 
     @access.token
+    @describeRoute(
+        Description('Test progress contexts from the web')
+        .param('test', 'Name of test to run.  These include "success" and '
+               '"failure".', required=False)
+        .param('duration', 'Duration of the test in seconds', required=False,
+               dataType='int')
+    )
     def testProgress(self, params):
         test = params.get('test', 'success')
         duration = int(params.get('duration', 10))
@@ -84,20 +91,16 @@ class WebClientTestEndpoints(Resource):
                     time.sleep(wait)
             if test == 'error':
                 raise RestException('Progress error test.')
-    testProgress.description = (
-        Description('Test progress contexts from the web')
-        .param('test', 'Name of test to run.  These include "success" and '
-               '"failure".', required=False)
-        .param('duration', 'Duration of the test in seconds', required=False,
-               dataType='int'))
 
     @access.token
+    @describeRoute(
+        Description('Halt all progress tests')
+    )
     def testProgressStop(self, params):
         self.stop = True
-    testProgressStop.description = (
-        Description('Halt all progress tests'))
 
     @access.user
+    @describeRoute(None)
     def uploadFile(self, params):
         """
         Providing this works around a limitation in phantom that makes us
@@ -119,7 +122,6 @@ class WebClientTestEndpoints(Resource):
             file = self.model('upload').handleChunk(upload, fd)
 
         return file
-    uploadFile.description = None
 
 
 class WebClientTestCase(base.TestCase):

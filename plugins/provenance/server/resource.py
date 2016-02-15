@@ -24,7 +24,7 @@ import six
 from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
@@ -128,6 +128,16 @@ class ResourceExt(Resource):
         return getattr(self, key)
 
     @access.public
+    @describeRoute(
+        Description('Get the provenance for a given resource.')
+        .param('id', 'The resource ID', paramType='path')
+        .param('version', 'The provenance version for the resource.  If not '
+               'specified, the latest provenance data is returned.  If "all" '
+               'is specified, a list of all provenance data is returned.  '
+               'Negative indices can also be used (-1 is the latest '
+               'provenance, -2 second latest, etc.).', required=False)
+        .errorResponse()
+    )
     def provenanceGetHandler(self, id, params, resource=None):
         user = self.getCurrentUser()
         model = self.model(resource)
@@ -161,15 +171,6 @@ class ResourceExt(Resource):
             'resourceId': id,
             'provenance': result
         }
-    provenanceGetHandler.description = (
-        Description('Get the provenance for a given resource.')
-        .param('id', 'The resource ID', paramType='path')
-        .param('version', 'The provenance version for the resource.  If not '
-               'specified, the latest provenance data is returned.  If "all" '
-               'is specified, a list of all provenance data is returned.  '
-               'Negative indices can also be used (-1 is the latest '
-               'provenance, -2 second latest, etc.).', required=False)
-        .errorResponse())
 
     # These methods maintain the provenance
 

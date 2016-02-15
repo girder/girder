@@ -19,7 +19,7 @@
 
 from .. import base
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import SettingKey, SettingDefault
 
@@ -52,12 +52,13 @@ class DummyResource(Resource):
         self.route('PATCH', ('test', ), self.handler)
 
     @access.public
+    @describeRoute(
+        Description('Dummy handler.')
+    )
     def handler(self, **kwargs):
         return kwargs
     # We want to test adding and removing documentation when we add and remove
     # routes.
-    handler.description = (
-        Description('Dummy handler.'))
 
 
 class RoutesTestCase(base.TestCase):
