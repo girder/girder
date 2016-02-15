@@ -42,8 +42,9 @@ class Description(object):
     """
     This class provides convenient chainable semantics to allow api route
     handlers to describe themselves to the documentation. A route handler
-    function can set a description property on itself to an instance of this
-    class in order to describe itself.
+    function can apply the :py:class:`girder.api.describe.describeRoute`
+    decorator to itself (called with an instance of this class) in order to
+    describe itself.
     """
     def __init__(self, summary):
         self._summary = summary
@@ -260,13 +261,13 @@ class Describe(Resource):
 class describeRoute(object):  # noqa: class name
     def __init__(self, description):
         """
-        This returns a decorator that can be used in lieu of setting the
-        description property on a route handler. Pass the Description object
-        (or None) that you want to use to describe this route. It should be
-        used like the following example:
+        This returns a decorator to set the API documentation on a route
+        handler. Pass the Description object (or None) that you want to use to
+        describe this route. It should be used like the following example:
 
-            @describeRoute(Description('Do something')
-                           .param('foo', 'Some parameter', ...)
+            @describeRoute(
+                Description('Do something')
+               .param('foo', 'Some parameter', ...)
             )
             def routeHandler(...)
 

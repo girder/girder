@@ -150,10 +150,10 @@ and will allow users to interact with it via that UI. See the
 :ref:`RESTful API docs<restapi>` for more information about the Swagger page.
 
 If you are creating routes that you explicitly do not wish to be exposed in the
-Swagger documentation for whatever reason, you can set the handler's description
-to ``None``, and then no warning will appear. ::
+Swagger documentation for whatever reason, you can pass ``None`` to the
+``describeRoute`` decorator, and no warning will appear. ::
 
-    myHandler.description = None
+    @describeRoute(None)
 
 Adding a new resource type to the web API
 *****************************************
