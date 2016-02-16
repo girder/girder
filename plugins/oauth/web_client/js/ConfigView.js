@@ -37,6 +37,16 @@ girder.views.oauth_ConfigView = girder.View.extend({
                           'Applications page of your GitHub account settings. ' +
                           'Use the following as the authorization callback URL:'
 
+        }, {
+            id: 'linkedin',
+            name: 'LinkedIn',
+            icon: 'linkedin',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed at the ' +
+                          'Applications page of the LinkedIn Developers site. ' +
+                          'Select the "r_basicprofile" and "r_emailaddress" ' +
+                          'Default Application Permissions, and use the ' +
+                          'following as an OAuth 2.0 Authorized Redirect URL:'
         }];
         this.providerIds = _.map(this.providers, function (provider) {
             return provider.id;

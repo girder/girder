@@ -21,6 +21,7 @@ import collections
 
 from .google import Google
 from .github import GitHub
+from .linkedin import LinkedIn
 
 
 def addProvider(provider):
@@ -31,3 +32,4 @@ idMap = collections.OrderedDict()
 
 addProvider(Google)
 addProvider(GitHub)
+addProvider(LinkedIn)
