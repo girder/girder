@@ -23,6 +23,7 @@ import mock
 import os
 import shutil
 import six
+import time
 
 from girder import config, events
 from tests import base
@@ -56,6 +57,9 @@ class PythonClientTestCase(base.TestCase):
         # make some temp dirs and files
         self.libTestDir = os.path.join(os.path.dirname(__file__),
                                        '_libTestDir')
+        # unlink old temp dirs and files first
+        shutil.rmtree(self.libTestDir, ignore_errors=True)
+
         os.mkdir(self.libTestDir)
         writeFile(self.libTestDir)
         for subDir in range(0, 3):
@@ -279,11 +283,18 @@ class PythonClientTestCase(base.TestCase):
         client.uploadFile(publicFolder['_id'], open(path), name='test1',
                           size=size, parentType='folder',
                           reference='test1_reference')
+        starttime = time.time()
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
         self.assertEqual(len(eventList), 1)
         self.assertEqual(eventList[0]['reference'], 'test1_reference')
 
         client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                 reference='test2_reference')
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
         self.assertEqual(len(eventList), 2)
         self.assertEqual(eventList[1]['reference'], 'test2_reference')
         self.assertNotEqual(eventList[0]['file']['_id'],
@@ -293,6 +304,9 @@ class PythonClientTestCase(base.TestCase):
         size = os.path.getsize(path)
         client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                 reference='test3_reference')
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
         self.assertEqual(len(eventList), 3)
         self.assertEqual(eventList[2]['reference'], 'test3_reference')
         self.assertNotEqual(eventList[0]['file']['_id'],
