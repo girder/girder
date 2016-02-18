@@ -120,6 +120,10 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     _updatePlugins: function () {
+        // Remove any missing plugins from the enabled list. Can happen
+        // if the directory of an enabled plugin disappears.
+        this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
+
         girder.restRequest({
             path: 'system/plugins',
             type: 'PUT',
