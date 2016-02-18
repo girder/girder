@@ -146,6 +146,9 @@ Python API for RESTful web API
 
 Base Classes and Helpers
 ^^^^^^^^^^^^^^^^^^^^^^^^
+.. automodule:: girder.api.describe
+   :members:
+
 .. automodule:: girder.api.api_main
    :members:
 
