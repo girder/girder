@@ -68,8 +68,8 @@ module.exports = function (grunt) {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];
         var dependencies = [
-            '/clients/web/test/testUtils.js',
-            '/clients/web/static/built/girder.ext.min.js'
+            '/clients/web/static/built/girder.ext.min.js',
+            '/clients/web/test/testUtils.js'
         ];
         var inputs = [];
 
