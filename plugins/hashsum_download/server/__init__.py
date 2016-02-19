@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import RestException
 from girder.api.v1.file import File
+from girder.constants import AccessType
 
 
 class HashedFile(File):
@@ -41,12 +42,29 @@ class HashedFile(File):
         Description('Download a file by its hashsum.')
         .param('algo', 'The type of the given hashsum.',
                paramType='path', enum=SupportedAlgorithms)
-        .param('hash', 'The hashsum of the file to do wnload.',
+        .param('hash', 'The hashsum of the file to download.',
                paramType='path')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
     def downloadWithHash(self, algo, hash, params):
+        file = self._getFirstFileByHash(algo, hash)
+        if not file:
+            raise RestException('File not found.', code=404)
+
+        return self.download(id=file['_id'], params=params)
+
+    def _getFirstFileByHash(self, algo, hash, user=None):
+        """
+        Return the first file that the user has access to given a hash and an
+        algorithm.
+
+        :param algo: Algorithm the given hash is encoded.
+        :param hash: Hash of the file to find.
+        :param user: User to test access against.
+         Default (none) is the current user.
+        :return: A file document.
+        """
         algo = algo.lower()
         if algo not in self.SupportedAlgorithms:
             msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
@@ -55,11 +73,16 @@ class HashedFile(File):
 
         query = {algo: hash.lower()}  # Always convert to lower case
         fileModel = self.model('file')
-        file = fileModel.findOne(query)
-        if not file:
-            raise RestException('File not found.', code=404)
+        cursor = fileModel.find(query)
 
-        return self.download(id=file['_id'], params=params)
+        if not user:
+            user = self.getCurrentUser()
+
+        for file in cursor:
+            if fileModel.hasAccess(file, user, AccessType.READ):
+                return file
+
+        return None
 
 
 def load(info):
