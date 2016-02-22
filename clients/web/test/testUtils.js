@@ -1177,3 +1177,23 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         loginFunction();
     }
 };
+
+/*
+ * Provide an alternate path to injecting a test spec as a url query parameter.
+ *
+ * To use, start girder in testing mode: `python -m girder --testing` and
+ * browse to the test html with a spec provided:
+ *
+ *   http://localhost:8080/static/built/testEnv.html?spec=%2Fclients%2Fweb%2Ftest%2Fspec%2FversionSpec.js
+ *
+ * Note: the path to the spec file must be url encoded.
+ */
+$(function () {
+    var specs = [];
+    document.location.search.substring(1).split('&').forEach(function (query) {
+        query = query.split('=');
+        if (query.length > 1 && query[0] === 'spec') {
+            specs.push($.getScript(decodeURIComponent(query[1])));
+        }
+    });
+});
