@@ -35,6 +35,9 @@ import six
 import sys
 import traceback
 import yaml
+import importlib
+
+from pkg_resources import iter_entry_points
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
@@ -171,10 +174,25 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if apiRoot is None:
         apiRoot = root.api.v1
 
-    pluginParentDir = getPluginParentDir(name, curConfig)
+    try:
+        pluginParentDir = getPluginParentDir(name, curConfig)
+    except Exception:
+        pluginParentDir = ''
+
     pluginDir = os.path.join(pluginParentDir, name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
+    pluginLoadMethod = None
+
+    if not os.path.exists(pluginDir):
+        # Try to load the plugin as an entry_point
+        for entry_point in iter_entry_points(group='girder.plugin', name=name):
+            pluginLoadMethod = entry_point.load()
+            pluginDir = os.path.dirname(
+                importlib.import_module(entry_point.module_name).__file__
+            )
+            isPluginDir = True
+
     if not os.path.exists(pluginDir):
         raise Exception('Plugin directory does not exist: %s' % pluginDir)
     if not isPluginDir and not isPluginFile:
@@ -191,23 +209,29 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if moduleName not in sys.modules:
         fp = None
         try:
-            fp, pathname, description = imp.find_module('server', [pluginDir])
-            module = imp.load_module(moduleName, fp, pathname, description)
-            module.PLUGIN_ROOT_DIR = pluginDir
-            girder.plugins.__dict__[name] = module
+            info = {
+                'name': name,
+                'config': appconf,
+                'serverRoot': root,
+                'apiRoot': apiRoot,
+                'pluginRootDir': os.path.abspath(pluginDir)
+            }
 
-            if hasattr(module, 'load'):
-                info = {
-                    'name': name,
-                    'config': appconf,
-                    'serverRoot': root,
-                    'apiRoot': apiRoot,
-                    'pluginRootDir': os.path.abspath(pluginDir)
-                }
-                module.load(info)
+            if pluginLoadMethod is None:
+                fp, pathname, description = imp.find_module(
+                    'server', [pluginDir]
+                )
+                module = imp.load_module(moduleName, fp, pathname, description)
+                module.PLUGIN_ROOT_DIR = pluginDir
+                girder.plugins.__dict__[name] = module
+                pluginLoadMethod = getattr(module, 'load', None)
 
-                root, appconf, apiRoot = (
-                    info['serverRoot'], info['config'], info['apiRoot'])
+            if pluginLoadMethod is not None:
+                pluginLoadMethod(info)
+
+            root, appconf, apiRoot = (
+                info['serverRoot'], info['config'], info['apiRoot'])
+
         finally:
             if fp:
                 fp.close()
@@ -293,10 +317,23 @@ def findAllPlugins(curConfig=None):
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
+
+    # look for plugins enabled via setuptools `entry_points`
+    for entry_point in iter_entry_points(group='girder.plugin'):
+        # set defaults
+        allPlugins[entry_point.name] = {
+            'name': entry_point.name,
+            'description': '',
+            'version': '',
+            'dependencies': set()
+        }
+        allPlugins[entry_point.name].update(
+            getattr(entry_point.load(), 'config', {})
+        )
+
     pluginDirs = getPluginDirs(curConfig)
     if not pluginDirs:
-        print(TerminalColor.warning('Plugin directory not found. No plugins '
-              'loaded.'))
+        print(TerminalColor.warning('Plugin directory not found.'))
         return allPlugins
 
     for pluginDir in pluginDirs:
