@@ -220,6 +220,7 @@ function(add_web_client_test case specFile)
   string(REPLACE ";" " " plugins "${plugins}")
 
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
+    "PYTHONPATH=$ENV{PYTHONPATH}"
     "SPEC_FILE=${specFile}"
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
