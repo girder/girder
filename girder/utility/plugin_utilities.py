@@ -42,7 +42,7 @@ from pkg_resources import iter_entry_points
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
 from girder.models.model_base import ValidationException
-from girder.utility import config, mail_utils, mkdir
+from girder.utility import config as _config, mail_utils, mkdir
 
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
@@ -72,7 +72,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
         print(TerminalColor.warning(
@@ -109,7 +109,7 @@ def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
     """
-    curConfig = curConfig or config.getConfig()
+    curConfig = curConfig or _config.getConfig()
     plugins = set(plugins)
 
     allPlugins = findAllPlugins(curConfig)
@@ -266,7 +266,7 @@ def getPluginDirs(curConfig=None):
     failedPluginDirs = set()
 
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
         pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
@@ -296,7 +296,7 @@ def getPluginDir(curConfig=None):
     Returns a /path/to the directory plugins should be installed in.
     """
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     pluginDirs = getPluginDirs(curConfig)
 
@@ -433,3 +433,25 @@ def addChildNode(node, name, obj=None):
         hiddenNode = type('', (), dict(exposed=False))()
         setattr(node, name, hiddenNode)
         return hiddenNode
+
+
+class config(object):  # noqa: class name
+    """
+    Wrap a plugin's ``load`` method appending plugin metadata.
+
+    :param name str: The plugin's name
+    :param description str: A brief description of the plugin.
+    :param version str: A semver compatible version string.
+    :param dependencies list: A list of plugins required by this plugin.
+    :param python3 bool: Whether this plugin supports python3.
+    :returns: A decorator that appends the metadata to the method
+    """
+    def __init__(self, **kw):
+        self.config = kw
+
+    def __call__(self, func):
+        @six.wraps(func)
+        def wrapped(*arg, **kw):
+            return func(*arg, **kw)
+        wrapped.config = self.config
+        return wrapped
