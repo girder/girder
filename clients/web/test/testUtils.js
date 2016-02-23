@@ -1179,6 +1179,53 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
 };
 
 /*
+ * Instrument ajax calls to record all communication with the server
+ * so we can print the log after a test failure.
+ */
+(function () {
+    var ajax_calls = [];
+    var backbone_ajax = Backbone.ajax;
+
+    Backbone.ajax = function () {
+        var opts = {}, record;
+
+        if (arguments.length === 1) {
+            opts = arguments[0];
+            if (typeof opts === 'string') {
+                opts = {url: opts};
+            }
+        } else if (arguments.length === 2) {
+            opts = arguments[1];
+            opts.url = arguments[0];
+        }
+
+        record = {
+            opts: opts
+        };
+
+        ajax_calls.push(record);
+
+        return backbone_ajax(opts).done(
+            function (data, textStatus) {
+                record.status = textStatus;
+                record.result = data;
+            }
+        ).fail(function (jqxhr, textStatus, errorThrown) {
+                record.status = textStatus;
+                record.errorThrown = errorThrown;
+        });
+    };
+
+    girderTest.ajaxLog = function (reset) {
+        var calls = ajax_calls;
+        if (reset) {
+            ajax_calls = [];
+        }
+        return calls;
+    };
+}());
+
+/*
  * Provide an alternate path to injecting a test spec as a url query parameter.
  *
  * To use, start girder in testing mode: `python -m girder --testing` and

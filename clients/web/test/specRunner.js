@@ -63,6 +63,11 @@ page.onConsoleMessage = function (msg) {
 
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
             fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
+
+        console.log('Dumping ajax trace:')
+        console.log(page.evaluate(function () {
+            return JSON.stringify(girderTest.ajaxLog(true), null, '  ');
+        }));
         return;
     }
 
