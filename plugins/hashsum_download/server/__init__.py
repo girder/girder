@@ -40,9 +40,11 @@ class HashedFile(File):
     @access.public
     @describeRoute(
         Description('Download a file by its hashsum.')
-        .param('algo', 'The type of the given hashsum.',
+        .param('algo', 'The type of the given hashsum. '
+                       'This parameter is case insensitive.',
                paramType='path', enum=SupportedAlgorithms)
-        .param('hash', 'The hashsum of the file to download.',
+        .param('hash', 'The hexadcimal hashsum of the file to download. '
+                       'This parameter is case insensitive.',
                paramType='path')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
