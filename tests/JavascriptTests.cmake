@@ -157,6 +157,8 @@ function(add_web_client_test case specFile)
   #     needs exclusive access to.  Defaults to mongo and cherrypy.
   # TIMEOUT (seconds): An overall test timeout.
   # BASEURL (url): The base url to load for the test.
+  # TEST_MODULE (python module path): Run this module rather than the default
+  #     "tests.web_client_test"
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
   endif()
@@ -164,7 +166,7 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT TEST_MODULE)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -197,10 +199,16 @@ function(add_web_client_test case specFile)
     list(APPEND plugins ${fn_ENABLEDPLUGINS})
   endif()
 
+  if(fn_TEST_MODULE)
+    set(test_module ${fn_TEST_MODULE})
+  else()
+    set(test_module "tests.web_client_test")
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v tests.web_client_test
+      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v "${test_module}"
   )
 
   # Catch view leaks and report them as test failures.
@@ -212,6 +220,7 @@ function(add_web_client_test case specFile)
   string(REPLACE ";" " " plugins "${plugins}")
 
   set_property(TEST ${testname} PROPERTY ENVIRONMENT
+    "PYTHONPATH=$ENV{PYTHONPATH}"
     "SPEC_FILE=${specFile}"
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
