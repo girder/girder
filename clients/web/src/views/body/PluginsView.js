@@ -39,12 +39,16 @@ girder.views.PluginsView = girder.View.extend({
 
     render: function () {
         _.each(this.allPlugins, function (info, name) {
-            if (this.enabled.indexOf(name) >= 0) {
+            info.unmetDependencies = this._unmetDependencies(info);
+            if (!_.isEmpty(info.unmetDependencies)) {
+                // Disable any plugins with unmet dependencies.
+                this.enabled = _.without(this.enabled, name);
+            }
+
+            if (_.contains(this.enabled, name)) {
                 info.enabled = true;
                 info.configRoute = girder.getPluginConfigRoute(name);
             }
-
-            info.unmetDependencies = this._unmetDependencies(info);
         }, this);
 
         this.$el.html(girder.templates.plugins({
