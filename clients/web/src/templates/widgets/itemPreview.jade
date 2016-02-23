@@ -1,0 +1,14 @@
+// For now, the only supported item preview is image previews. 
+
+- var imageExt = /(jpg|jpeg|png|gif)$/i
+- if (items.find(function(item){return imageExt.test(item.get('name'))}))
+
+    .g-widget-itempreview-header
+      i.icon-eye
+      |  Preview
+
+    .g-widget-itempreview-container
+        each item in items
+          - if ( /(jpg|jpeg|png|gif)$/i.test(item.get('name')) )
+              a.g-item-preview-link(g-item-name="#{item.get('name')}")
+                img(src="#{item.downloadUrl()}")
