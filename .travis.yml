@@ -38,7 +38,7 @@ before_install:
     - pip install -U pip virtualenv
 install:
     - if [ "$GIRDER_TEST_GROUP" == "server" -o "$GIRDER_TEST_GROUP" == "client" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
-    - if [ "$GIRDER_TEST_GROUP" == "packaging" -o "$GIRDER_TEST_GROUP" == "client" -o "$GIRDER_TEST_GROUP" == "other" ] ; then npm install ; fi
+    - npm install
 script:
     - mkdir _build
     - cd _build
