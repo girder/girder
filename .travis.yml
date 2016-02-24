@@ -30,8 +30,11 @@ before_install:
     - mongod --version || true
     - CACHE=$HOME/.cache CMAKE_VERSION=3.4.3 CMAKE_SHORT_VERSION=3.4 source ./scripts/install_cmake.sh
     - cmake --version
+    - mkdir -p $HOME/.cache/node_modules || true
+    - ln -sf $HOME/.cache/node_modules .
     - npm install -g npm
     - npm --version
+    - npm prune
     - pip install -U pip virtualenv
 install:
     - if [ "$GIRDER_TEST_GROUP" == "server" -o "$GIRDER_TEST_GROUP" == "client" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
