@@ -34,12 +34,19 @@ add_test(
   COMMAND "${PROJECT_SOURCE_DIR}/node_modules/.bin/grunt" package
 )
 
+set_property(TEST packaging_generate
+  PROPERTY LABELS girder_packaging
+)
+
 add_test(
   NAME packaging_verify_contents
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
   COMMAND "${PYTHON_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tests/packaging/test_package_contents.py"
 )
 
+set_property(TEST packaging_verify_contents
+  PROPERTY LABELS girder_packaging
+)
 set_property(TEST packaging_verify_contents
   PROPERTY DEPENDS packaging_generate
 )
@@ -57,6 +64,9 @@ add_test(
 )
 
 set_property(TEST packaging_install
+  PROPERTY LABELS girder_packaging
+)
+set_property(TEST packaging_install
   PROPERTY DEPENDS "packaging_generate"
 )
 set_property(TEST packaging_install
@@ -72,6 +82,9 @@ add_test(
           "${virtualenv_pip}"
 )
 
+set_property(TEST packaging_plugin_install
+  PROPERTY LABELS girder_packaging
+)
 set_property(TEST packaging_plugin_install
   PROPERTY DEPENDS "packaging_install"
 )
