@@ -28,7 +28,7 @@ before_install:
     - mkdir /tmp/db
     - (mongod --dbpath=/tmp/db >/dev/null 2>/dev/null || true ) &
     - mongod --version || true
-    - CACHE=$HOME/.cache CMAKE_VERSION=3.1.0 CMAKE_SHORT_VERSION=3.1 source ./scripts/install_cmake.sh
+    - CACHE=$HOME/.cache CMAKE_VERSION=3.4.3 CMAKE_SHORT_VERSION=3.4 source ./scripts/install_cmake.sh
     - cmake --version
     - npm install -g npm
     - npm --version

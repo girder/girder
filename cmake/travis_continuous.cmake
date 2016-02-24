@@ -2,27 +2,28 @@ set(CTEST_SOURCE_DIRECTORY "$ENV{TRAVIS_BUILD_DIR}")
 set(CTEST_BINARY_DIRECTORY "$ENV{TRAVIS_BUILD_DIR}/_build")
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
+set(test_group "$ENV{GIRDER_TEST_GROUP}")
 set(CTEST_SITE "Travis")
-set(CTEST_BUILD_NAME "Linux-$ENV{TRAVIS_BRANCH}-Mongo-$ENV{MONGO_VERSION}-$ENV{GIRDER_TEST_GROUP}")
+set(CTEST_BUILD_NAME "Linux-$ENV{TRAVIS_BRANCH}-Mongo-$ENV{MONGO_VERSION}-${test_group}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set(include_label ".*")
 set(exclude_label "")
 
-if(ENV{GIRDER_TEST_GROUP} STREQUAL server)
+if(test_group STREQUAL server)
   set(include_label "girder_server")
-elseif(ENV{GIRDER_TEST_GROUP STREQUAL client)
+elseif(test_group STREQUAL client)
   set(include_label "girder_client")
-elseif(ENV{GIRDER_TEST_GROUP STREQUAL packaging)
+elseif(test_group STREQUAL packaging)
   set(include_label "girder_packaging")
-elseif(ENV{GIRDER_TEST_GROUP STREQUAL other)
+elseif(test_group STREQUAL other)
   set(exclude_label "(girder_server|girder_client|girder_packaging)")
 endif()
 
 ctest_start("Continuous")
-ctest_configure(OPTIONS "${config_opts}")
+ctest_configure()
 ctest_build()
 
-if(ENV{GIRDER_TEST_GROUP STREQUAL other)
+if(test_group STREQUAL other)
   ctest_test(
     PARALLEL_LEVEL 4 RETURN_VALUE res
     EXCLUDE_LABEL "${exclude_label}"
