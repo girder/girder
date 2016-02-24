@@ -35,7 +35,13 @@ else()
   )
 endif()
 
-ctest_coverage()
+if(test_group STREQUAL "server")
+  ctest_coverage()
+elseif(test_group STREQUAL "client")
+  file(RENAME "${CTEST_BINARY_DIRECTORY}/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
+  ctest_coverage()
+endif()
+
 file(REMOVE "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 ctest_submit()
 
