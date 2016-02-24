@@ -109,3 +109,6 @@ def _setupLogger():
     return logger
 
 logger = _setupLogger()
+
+# alias girder.plugin => girder.utility.plugin_utilities
+from girder.utility import plugin_utilities as plugin  # noqa
