@@ -1,6 +1,6 @@
-from girder.utility.plugin_utilities import config
+from girder import plugin
 
 
-@config(name='Plugin using entry_point')
+@plugin.config(name='Plugin using entry_point')
 def load(info):
     pass
