@@ -93,12 +93,24 @@ def combine_report(args):
     report(args, combined, stats)
 
 
+def safe_divide(numerator, denominator):
+    """
+    Return numerator / denominator or 0 if denominator <= 0.
+    """
+    numerator = float(numerator)
+    denominator = float(denominator)
+    if denominator > 0:
+        return numerator / denominator
+    else:
+        return 0
+
+
 def report(args, combined, stats):
     """
     Generate a cobertura-compliant XML coverage report in the current working
     directory.
     """
-    percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
+    percent = safe_divide(stats['totalHits'], stats['totalSloc']) * 100
     print('Overall total: %s / %s (%.2f%%)' % (
         stats['totalHits'], stats['totalSloc'], percent))
 
@@ -118,8 +130,8 @@ def report(args, combined, stats):
     classesEl = ET.SubElement(packageEl, 'classes')
 
     for file, data in six.viewitems(combined):
-        lineRate = (float(stats['files'][file]['hits']) /
-                    float(stats['files'][file]['sloc']))
+        lineRate = safe_divide(stats['files'][file]['hits'],
+                               stats['files'][file]['sloc'])
         classEl = ET.SubElement(classesEl, 'class', {
             'branch-rate': '0',
             'complexity': '0',
