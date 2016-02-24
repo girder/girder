@@ -13,7 +13,10 @@ girder.views.MetadataWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.item = settings.item;
+        this.fieldName = settings.fieldName || 'meta';
         this.accessLevel = settings.accessLevel;
+        this.onMetadataEdited = settings.onMetadataEdited;
+        this.onMetadataAdded = settings.onMetadataAdded;
         this.item.on('g:changed', function () {
             this.render();
         }, this);
@@ -82,9 +85,12 @@ girder.views.MetadataWidget = girder.View.extend({
             key: '',
             value: value,
             item: this.item,
+            fieldName: this.fieldName,
             accessLevel: this.accessLevel,
             girder: girder,
-            parentView: this
+            parentView: this,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
         });
 
         var newEditRow = widget.$el.append('<div></div>');
@@ -96,12 +102,14 @@ girder.views.MetadataWidget = girder.View.extend({
             value: value,
             accessLevel: this.accessLevel,
             newDatum: true,
-            parentView: widget
+            parentView: widget,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
         }).render();
     },
 
     render: function () {
-        var metaDict = this.item.attributes.meta || {};
+        var metaDict = this.item.get(this.fieldName) || {};
         var metaKeys = Object.keys(metaDict);
         metaKeys.sort(girder.localeSort);
 
@@ -120,7 +128,9 @@ girder.views.MetadataWidget = girder.View.extend({
                 value: metaDict[metaKey],
                 accessLevel: this.accessLevel,
                 girder: girder,
-                parentView: this
+                parentView: this,
+                onMetadataEdited: this.onMetadataEdited,
+                onMetadataAdded: this.onMetadataAdded
             }).render().$el);
         }, this);
 
@@ -150,6 +160,8 @@ girder.views.MetadatumWidget = girder.View.extend({
         this.value = settings.value;
         this.accessLevel = settings.accessLevel;
         this.parentView = settings.parentView;
+        this.onMetadataEdited = settings.onMetadataEdited;
+        this.onMetadataAdded = settings.onMetadataAdded;
     },
 
     _validate: function (from, to, value) {
@@ -194,7 +206,9 @@ girder.views.MetadatumWidget = girder.View.extend({
             value: row.attr('g-value'),
             accessLevel: this.accessLevel,
             newDatum: false,
-            parentView: this
+            parentView: this,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
         }, (overrides || {}));
 
         this.parentView.modes[newEditorMode].editor(opts).render();
@@ -213,7 +227,9 @@ girder.views.MetadatumWidget = girder.View.extend({
             value: row.attr('g-value'),
             accessLevel: this.accessLevel,
             newDatum: false,
-            parentView: this
+            parentView: this,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
         };
 
         // If they're trying to open false, null, 6, etc which are not stored as strings
@@ -274,9 +290,12 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.key = settings.key || '';
+        this.fieldName = settings.fieldName || 'meta';
         this.value = (settings.value !== undefined) ? settings.value : '';
         this.accessLevel = settings.accessLevel;
         this.newDatum = settings.newDatum;
+        this.onMetadataEdited = settings.onMetadataEdited;
+        this.onMetadataAdded = settings.onMetadataAdded;
     },
 
     editTemplate: girder.templates.metadatumEditWidget,
@@ -352,9 +371,17 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         };
 
         if (this.newDatum) {
-            this.item.addMetadata(tempKey, tempValue, saveCallback, errorCallback);
+            if (this.onMetadataAdded) {
+                this.onMetadataAdded(tempKey, tempValue, saveCallback, errorCallback);
+            } else {
+                this.item.addMetadata(tempKey, tempValue, saveCallback, errorCallback);
+            }
         } else {
-            this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
+            if (this.onMetadataEdited) {
+                this.onMetadataEdited(tempKey, this.key, tempValue, saveCallback, errorCallback);
+            } else {
+                this.item.editMetadata(tempKey, this.key, tempValue, saveCallback, errorCallback);
+            }
         }
     },
 

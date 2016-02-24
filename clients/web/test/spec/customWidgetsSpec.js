@@ -293,4 +293,79 @@
             });
         });
     });
+
+    describe('Test metadata widget with non-standard options', function () {
+        it('test editing custom field with custom callbacks', function () {
+            var widget;
+            var model = new girder.models.FolderModel({
+                customMeta: {},
+            });
+            var addCbCalled = false;
+            var editCbCalled = false;
+
+            var addCb = function (key, value, success, err) {
+                model.get('customMeta')[key] = value;
+                addCbCalled = true;
+                success();
+            };
+            var editCb = function (newKey, oldKey, value, success, err) {
+                var meta = model.get('customMeta');
+                delete meta[oldKey];
+                meta[newKey] = value;
+                editCbCalled = true;
+                success();
+            };
+
+            runs(function () {
+                widget = new girder.views.MetadataWidget({
+                    el: 'body',
+                    parentView: null,
+                    item: model,
+                    accessLevel: girder.AccessType.WRITE,
+                    onMetadataAdded: addCb,
+                    onMetadataEdited: editCb,
+                    fieldName: 'customMeta'
+                });
+
+                expect($('.g-widget-metadata-row').length).toBe(0);
+                expect($('.g-widget-metadata-add-button').length).toBe(1);
+                expect(addCbCalled).toBe(false);
+                expect(editCbCalled).toBe(false);
+
+                $('.g-widget-metadata-add-button').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-add-simple-metadata:visible').length > 0;
+            }, 'metadata type dropdown to appear');
+
+            runs(function () {
+                // Save a metadata key, make sure add callback was called
+                $('.g-add-simple-metadata').click();
+                expect($('.g-widget-metadata-row').length).toBe(1);
+                $('.g-widget-metadata-key-input').val('foo');
+                $('.g-widget-metadata-value-input').val('bar');
+                $('.g-widget-metadata-save-button').click();
+                expect(addCbCalled).toBe(true);
+                expect(editCbCalled).toBe(false);
+                expect($('.g-widget-metadata-key-input').length).toBe(0);
+                expect(_.keys(model.get('customMeta')).length).toBe(1);
+                expect(model.get('customMeta').foo).toBe('bar');
+
+                // Re-render the widget, make sure it displays properly
+                widget.render();
+                expect($('.g-widget-metadata-row').length).toBe(1);
+                expect($('.g-widget-metadata-key').text()).toBe('foo');
+                expect($('.g-widget-metadata-value').text()).toBe('bar');
+
+                // Edit the existing field, make sure edit callback was called
+                $('.g-widget-metadata-edit-button').click();
+                $('.g-widget-metadata-value-input').val('baz');
+                $('.g-widget-metadata-save-button').click();
+                expect($('.g-widget-metadata-row').length).toBe(1);
+                expect($('.g-widget-metadata-key').text()).toBe('foo');
+                expect($('.g-widget-metadata-value').text()).toBe('baz');
+            });
+        });
+    });
 })();
