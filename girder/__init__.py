@@ -23,10 +23,7 @@ import os
 
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
-from girder.utility import config, mkdir, plugin_utilities
-
-# alias girder.plugin => girder.utility.plugin_utilities
-plugin = plugin_utilities
+from girder.utility import config, mkdir
 
 
 class LogLevelFilter(object):
@@ -112,3 +109,6 @@ def _setupLogger():
     return logger
 
 logger = _setupLogger()
+
+# alias girder.plugin => girder.utility.plugin_utilities
+from girder.utility import plugin_utilities as plugin  # noqa
