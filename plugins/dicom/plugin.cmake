@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 ###############################################################################
 #  Copyright Kitware Inc.
 #
@@ -17,10 +14,9 @@
 #  limitations under the License.
 ###############################################################################
 
-from . rest.rest import dicomStudies, dicomSeries, dicomInstances
+add_python_test(dicom PLUGIN dicom)
+add_python_style_test(python_static_analysis_dicom
+                      "${PROJECT_SOURCE_DIR}/plugins/dicom/server")
+add_python_style_test(python_static_analysis_dicom_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/dicom/plugin_tests")
 
-
-def load(info):
-    info['apiRoot'].studies = dicomStudies()
-    info['apiRoot'].series = dicomSeries()
-    info['apiRoot'].instances = dicomInstances()

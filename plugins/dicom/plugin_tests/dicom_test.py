@@ -17,10 +17,22 @@
 #  limitations under the License.
 ###############################################################################
 
-from . rest.rest import dicomStudies, dicomSeries, dicomInstances
+
+from tests import base
 
 
-def load(info):
-    info['apiRoot'].studies = dicomStudies()
-    info['apiRoot'].series = dicomSeries()
-    info['apiRoot'].instances = dicomInstances()
+def setUpModule():
+    base.enabledPlugins.append('dicom')
+    base.startServer()
+
+def tearDownModule():
+    base.stopServer()
+
+
+class DicomTestCase(base.TestCase):
+    def setUp(self):
+        base.TestCase.setUp(self)
+
+    def testToImplement(self):
+        self.assertTrue(False)
+

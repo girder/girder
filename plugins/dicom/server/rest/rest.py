@@ -413,3 +413,4 @@ class dicomInstances(Resource):
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
     searchForInstances.description = _describe_qidors_errors(searchForInstances)
+
