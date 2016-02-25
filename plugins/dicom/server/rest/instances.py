@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.api import access
 
@@ -43,10 +43,7 @@ class dicomInstances(Resource):
     ###########
 
     @access.user
-    def searchForInstances(self, params):
-        pass
-
-    searchForInstances.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Instances', 'instances', 'instance'))
         .param('query', QueryParamDescription,
                required=False)
@@ -55,6 +52,10 @@ class dicomInstances(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForInstances(self, params):
+        pass
+
     searchForInstances.description = describe_qidors_errors(searchForInstances)
 

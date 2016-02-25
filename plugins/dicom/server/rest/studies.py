@@ -21,7 +21,7 @@ import cherrypy
 import urlparse
 import requests
 
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, getUrlParts
 from girder.api import access
 
@@ -126,76 +126,83 @@ class dicomStudies(Resource):
     ###########
 
     @access.user
+    @describeRoute(
+        Description('Retrieve the set of DICOM instances associated with a given study unique identifier (UID).')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+    )
     def getStudy(self, StudyInstanceUID, params):
         # response can be DICOM or bulk data depending on the "Accept" type
         return self._reroute()
 
-    getStudy.description = (
-        Description('Retrieve the set of DICOM instances associated with a given study unique identifier (UID).')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
     getStudy.description = describe_wadors_errors(getStudy)
 
     @access.user
+    @describeRoute(
+        Description(RetrieveMetadataDescription % 'study')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+    )
     def getStudyMetadata(self, StudyInstanceUID, params):
         return self._reroute()
 
-    getStudyMetadata.description = (
-        Description(RetrieveMetadataDescription % 'study')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
     getStudyMetadata.description = describe_wadors_errors(getStudyMetadata)
 
     @access.user
+    @describeRoute(
+        Description('Retrieve the set of DICOM instances associated with a given study and series UID.')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+    )
     def getSerie(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
 
-    getSerie.description = (
-        Description('Retrieve the set of DICOM instances associated with a given study and series UID.')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path'))
     getSerie.description = describe_wadors_errors(getSerie)
 
     @access.user
+    @describeRoute(
+        Description(RetrieveMetadataDescription % 'series')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+    )
     def getSerieMetadata(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
 
-    getSerieMetadata.description = (
-        Description(RetrieveMetadataDescription % 'series')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path'))
     getSerieMetadata.description = describe_wadors_errors(getSerieMetadata)
 
     @access.user
-    def getInstance(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
-        return self._reroute()
-
-    getInstance.description = (
+    @describeRoute(
         Description('Retrieve the DICOM instance associated with the given study, series, and SOP Instance UID.')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
-        .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path'))
+        .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
+    )
+    def getInstance(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
+        return self._reroute()
+
     getInstance.description = describe_wadors_errors(getInstance)
 
     @access.user
-    def getInstanceMetadata(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
-        return self._reroute()
-
-    getInstanceMetadata.description = (
+    @describeRoute(
         Description(RetrieveMetadataDescription % 'instance')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
-        .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path'))
+        .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
+    )
+    def getInstanceMetadata(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
+        return self._reroute()
+
     getInstanceMetadata.description = describe_wadors_errors(getInstanceMetadata)
 
     @access.user
-    def getFrameList(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, FrameList, params):
-        return self._reroute()
-
-    getFrameList.description = (
+    @describeRoute(
         Description('Retrieve the DICOM frames for a given study, series, SOP Instance UID, and frame numbers.')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
-        .param('FrameList', FrameListDescription, paramType='path'))
+        .param('FrameList', FrameListDescription, paramType='path')
+    )
+    def getFrameList(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, FrameList, params):
+        return self._reroute()
+
     getFrameList.description = describe_wadors_errors(getFrameList)
 
     ###########
@@ -203,10 +210,7 @@ class dicomStudies(Resource):
     ###########
 
     @access.user
-    def searchForStudies(self, params):
-        pass
-
-    searchForStudies.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Studies', 'studies', 'study'))
         .param('query', QueryParamDescription,
                required=False)
@@ -215,14 +219,15 @@ class dicomStudies(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForStudies(self, params):
+        pass
+
     searchForStudies.description = describe_qidors_errors(searchForStudies)
 
     @access.user
-    def searchForSeries(self, StudyInstanceUID, params):
-        pass
-
-    searchForSeries.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Series', 'series', 'series'))
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('query', QueryParamDescription,
@@ -232,14 +237,15 @@ class dicomStudies(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForSeries(self, StudyInstanceUID, params):
+        pass
+
     searchForSeries.description = describe_qidors_errors(searchForSeries)
 
     @access.user
-    def searchForInstances(self, StudyInstanceUID, SeriesInstanceUID, params):
-        pass
-
-    searchForInstances.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Instances', 'instances', 'instance'))
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
@@ -250,14 +256,15 @@ class dicomStudies(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForInstances(self, StudyInstanceUID, SeriesInstanceUID, params):
+        pass
+
     searchForInstances.description = describe_qidors_errors(searchForInstances)
 
     @access.user
-    def searchForInstancesByStudyInstanceUID(self, StudyInstanceUID, params):
-        pass
-
-    searchForInstancesByStudyInstanceUID.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Instances', 'instances', 'instance'))
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('query', QueryParamDescription,
@@ -267,7 +274,11 @@ class dicomStudies(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForInstancesByStudyInstanceUID(self, StudyInstanceUID, params):
+        pass
+
     searchForInstancesByStudyInstanceUID.description = describe_qidors_errors(searchForInstancesByStudyInstanceUID)
 
     ###########
@@ -275,6 +286,9 @@ class dicomStudies(Resource):
     ###########
 
     @access.user
+    @describeRoute(
+        Description(StoreInstancesDescription)
+    )
     def storeInstances(self, parans):
         # Content-Type - The representation scheme being posted to the RESTful service. The types allowed for this request header are
         # as follows:
@@ -286,17 +300,16 @@ class dicomStudies(Resource):
         #  Specifies that the post is DICOM JSON metadata and bulk data. A STOW-RS provider may optionally accept this Content-Type.
         pass
 
-    storeInstances.description = (
-        Description(StoreInstancesDescription))
     storeInstances.description = describe_stowrs_errors(storeInstances)
 
 
     @access.user
+    @describeRoute(
+        Description(StoreInstancesDescription)
+        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+    )
     def storeInstancesInStudy(self, StudyInstanceUID, parans):
         # Content-Type - See above
         pass
 
-    storeInstancesInStudy.description = (
-        Description(StoreInstancesDescription)
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
     storeInstancesInStudy.description = describe_stowrs_errors(storeInstancesInStudy)

@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.api import access
 
@@ -43,10 +43,7 @@ class dicomSeries(Resource):
     ###########
 
     @access.user
-    def searchForSeries(self, params):
-        pass
-
-    searchForSeries.description = (
+    @describeRoute(
         Description(SearchForDescription % ('Series', 'series', 'series'))
         .param('query', QueryParamDescription,
                required=False)
@@ -55,5 +52,9 @@ class dicomSeries(Resource):
         .param('limit', LimitParamDescription,
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
-               required=False, dataType='integer', default=0))
+               required=False, dataType='integer', default=0)
+    )
+    def searchForSeries(self, params):
+        pass
+
     searchForSeries.description = describe_qidors_errors(searchForSeries)
