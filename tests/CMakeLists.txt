@@ -64,18 +64,20 @@ if(RUN_CORE_TESTS)
   add_web_client_test(empty_layout "${PROJECT_SOURCE_DIR}/clients/web/test/spec/emptyLayoutSpec.js")
   add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1" NOCOVERAGE)
 
+  # Add tests for the local TestData module
+  add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
+  add_python_test(external_data_core
+    EXTERNAL_DATA "test_file.txt"
+  )
+  add_python_test(external_data_plugin
+    EXTERNAL_DATA "test_file.txt" "plugins/has_external_data/test_file.txt"
+  )
+  set_property(TEST server_external_data_core PROPERTY LABELS girder_devel)
+  set_property(TEST server_external_data_plugin PROPERTY LABELS girder_devel)
+
   add_subdirectory(clients)
   add_subdirectory(packaging)
 endif()
-
-# Add tests for the local TestData module
-add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
-add_python_test(external_data_core
-  EXTERNAL_DATA "test_file.txt"
-)
-add_python_test(external_data_plugin
-  EXTERNAL_DATA "test_file.txt" "plugins/has_external_data/test_file.txt"
-)
 
 
 # Use a macro instead of a function because web client tests actually write
