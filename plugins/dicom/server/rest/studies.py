@@ -25,7 +25,7 @@ from girder.api.describe import Description
 from girder.api.rest import Resource, getUrlParts
 from girder.api import access
 
-from error_descriptions import _describe_wadors_errors, _describe_qidors_errors, _describe_stowrs_errors
+from error_descriptions import describe_wadors_errors, describe_qidors_errors, describe_stowrs_errors
 from param_descriptions import *
 
 
@@ -131,7 +131,7 @@ class dicomStudies(Resource):
     getStudy.description = (
         Description('Retrieve the set of DICOM instances associated with a given study unique identifier (UID).')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
-    getStudy.description = _describe_wadors_errors(getStudy)
+    getStudy.description = describe_wadors_errors(getStudy)
 
     @access.user
     def getStudyMetadata(self, StudyInstanceUID, params):
@@ -140,7 +140,7 @@ class dicomStudies(Resource):
     getStudyMetadata.description = (
         Description(RetrieveMetadataDescription % 'study')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
-    getStudyMetadata.description = _describe_wadors_errors(getStudyMetadata)
+    getStudyMetadata.description = describe_wadors_errors(getStudyMetadata)
 
     @access.user
     def getSerie(self, StudyInstanceUID, SeriesInstanceUID, params):
@@ -150,7 +150,7 @@ class dicomStudies(Resource):
         Description('Retrieve the set of DICOM instances associated with a given study and series UID.')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path'))
-    getSerie.description = _describe_wadors_errors(getSerie)
+    getSerie.description = describe_wadors_errors(getSerie)
 
     @access.user
     def getSerieMetadata(self, StudyInstanceUID, SeriesInstanceUID, params):
@@ -160,7 +160,7 @@ class dicomStudies(Resource):
         Description(RetrieveMetadataDescription % 'series')
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path'))
-    getSerieMetadata.description = _describe_wadors_errors(getSerieMetadata)
+    getSerieMetadata.description = describe_wadors_errors(getSerieMetadata)
 
     @access.user
     def getInstance(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
@@ -171,7 +171,7 @@ class dicomStudies(Resource):
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path'))
-    getInstance.description = _describe_wadors_errors(getInstance)
+    getInstance.description = describe_wadors_errors(getInstance)
 
     @access.user
     def getInstanceMetadata(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
@@ -182,7 +182,7 @@ class dicomStudies(Resource):
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path'))
-    getInstanceMetadata.description = _describe_wadors_errors(getInstanceMetadata)
+    getInstanceMetadata.description = describe_wadors_errors(getInstanceMetadata)
 
     @access.user
     def getFrameList(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, FrameList, params):
@@ -194,7 +194,7 @@ class dicomStudies(Resource):
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
         .param('FrameList', FrameListDescription, paramType='path'))
-    getFrameList.description = _describe_wadors_errors(getFrameList)
+    getFrameList.description = describe_wadors_errors(getFrameList)
 
     ###########
     # QIDO-RS #
@@ -214,7 +214,7 @@ class dicomStudies(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForStudies.description = _describe_qidors_errors(searchForStudies)
+    searchForStudies.description = describe_qidors_errors(searchForStudies)
 
     @access.user
     def searchForSeries(self, StudyInstanceUID, params):
@@ -231,7 +231,7 @@ class dicomStudies(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForSeries.description = _describe_qidors_errors(searchForSeries)
+    searchForSeries.description = describe_qidors_errors(searchForSeries)
 
     @access.user
     def searchForInstances(self, StudyInstanceUID, SeriesInstanceUID, params):
@@ -249,7 +249,7 @@ class dicomStudies(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForInstances.description = _describe_qidors_errors(searchForInstances)
+    searchForInstances.description = describe_qidors_errors(searchForInstances)
 
     @access.user
     def searchForInstancesByStudyInstanceUID(self, StudyInstanceUID, params):
@@ -266,7 +266,7 @@ class dicomStudies(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForInstancesByStudyInstanceUID.description = _describe_qidors_errors(searchForInstancesByStudyInstanceUID)
+    searchForInstancesByStudyInstanceUID.description = describe_qidors_errors(searchForInstancesByStudyInstanceUID)
 
     ###########
     # STOW-RS #
@@ -286,7 +286,7 @@ class dicomStudies(Resource):
 
     storeInstances.description = (
         Description(StoreInstancesDescription))
-    storeInstances.description = _describe_stowrs_errors(storeInstances)
+    storeInstances.description = describe_stowrs_errors(storeInstances)
 
 
     @access.user
@@ -297,4 +297,4 @@ class dicomStudies(Resource):
     storeInstancesInStudy.description = (
         Description(StoreInstancesDescription)
         .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path'))
-    storeInstancesInStudy.description = _describe_stowrs_errors(storeInstancesInStudy)
+    storeInstancesInStudy.description = describe_stowrs_errors(storeInstancesInStudy)

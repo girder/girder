@@ -21,7 +21,7 @@ from girder.api.describe import Description
 from girder.api.rest import Resource
 from girder.api import access
 
-from error_descriptions import _describe_qidors_errors
+from error_descriptions import describe_qidors_errors
 from param_descriptions import *
 
 
@@ -54,4 +54,4 @@ class dicomSeries(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForSeries.description = _describe_qidors_errors(searchForSeries)
+    searchForSeries.description = describe_qidors_errors(searchForSeries)

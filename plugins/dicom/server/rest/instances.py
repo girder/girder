@@ -21,7 +21,7 @@ from girder.api.describe import Description
 from girder.api.rest import Resource
 from girder.api import access
 
-from error_descriptions import _describe_qidors_errors
+from error_descriptions import describe_qidors_errors
 from param_descriptions import *
 
 
@@ -54,5 +54,5 @@ class dicomInstances(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0))
-    searchForInstances.description = _describe_qidors_errors(searchForInstances)
+    searchForInstances.description = describe_qidors_errors(searchForInstances)
 

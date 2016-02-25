@@ -22,7 +22,7 @@
 # from girder.api import access
 
 
-def _describe_wadors_errors(func):
+def describe_wadors_errors(func):
     return (func.description
         .errorResponse('Partial Content: Accept type, Transfer Syntax or decompression method '
                        'supported for some but not all requested content.', 206)
@@ -32,7 +32,7 @@ def _describe_wadors_errors(func):
         .errorResponse('Gone: Specified resource was deleted.', 410)
         .errorResponse('Busy: Service is unavailable.', 503))
 
-def _describe_qidors_errors(func):
+def describe_qidors_errors(func):
     return (func.description
         .errorResponse('Bad Request: The QIDO-RS Provider was unable to perform the query '
                        'because the Service Provider cannot understand the query component.', 400)
@@ -45,7 +45,7 @@ def _describe_qidors_errors(func):
                        'in the conformance statement.', 413)
         .errorResponse('Busy: Service is unavailable.', 503))
 
-def _describe_stowrs_errors(func):
+def describe_stowrs_errors(func):
     return (func.description
         .errorResponse('Bad Request: This indicates that the STOW-RS Service was unable to store '
                        'any instances due to bad syntax.', 400)
