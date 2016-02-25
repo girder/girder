@@ -17,10 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from . rest.rest import dicomStudies, dicomSeries, dicomInstances
+from .rest import studies, series, instances
 
 
 def load(info):
-    info['apiRoot'].studies = dicomStudies()
-    info['apiRoot'].series = dicomSeries()
-    info['apiRoot'].instances = dicomInstances()
+    info['apiRoot'].studies = studies.dicomStudies()
+    info['apiRoot'].series = series.dicomSeries()
+    info['apiRoot'].instances = instances.dicomInstances()
