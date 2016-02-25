@@ -27,6 +27,8 @@ from param_descriptions import *
 
 class dicomSeries(Resource):
     def __init__(self):
+        super(dicomSeries, self).__init__()
+
         self.resourceName = 'series'
 
         ###########

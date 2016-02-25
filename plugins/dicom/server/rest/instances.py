@@ -27,6 +27,8 @@ from param_descriptions import *
 
 class dicomInstances(Resource):
     def __init__(self):
+        super(dicomInstances, self).__init__()
+
         self.resourceName = 'instances'
 
         ###########

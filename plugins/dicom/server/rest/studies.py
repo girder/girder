@@ -46,6 +46,8 @@ class dicomStudies(Resource):
 
 
     def __init__(self):
+        super(dicomStudies, self).__init__()
+
         self.resourceName = 'studies'
 
         ###########
