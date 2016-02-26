@@ -21,7 +21,7 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.api import access
 
-from error_descriptions import describe_qidors_errors
+from error_descriptions import describeErrors
 from param_descriptions import *
 
 
@@ -43,6 +43,7 @@ class dicomSeries(Resource):
     ###########
 
     @access.user
+    @describeErrors('QIDO-RS')
     @describeRoute(
         Description(SearchForDescription % ('Series', 'series', 'series'))
         .param('query', QueryParamDescription,
@@ -56,5 +57,3 @@ class dicomSeries(Resource):
     )
     def searchForSeries(self, params):
         pass
-
-    searchForSeries.description = describe_qidors_errors(searchForSeries)

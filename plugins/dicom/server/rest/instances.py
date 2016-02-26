@@ -21,7 +21,7 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.api import access
 
-from error_descriptions import describe_qidors_errors
+from error_descriptions import describeErrors
 from param_descriptions import *
 
 
@@ -43,6 +43,7 @@ class dicomInstances(Resource):
     ###########
 
     @access.user
+    @describeErrors('QIDO-RS')
     @describeRoute(
         Description(SearchForDescription % ('Instances', 'instances', 'instance'))
         .param('query', QueryParamDescription,
@@ -53,9 +54,7 @@ class dicomInstances(Resource):
                required=False, dataType='integer')
         .param('offset', OffsetParamDescription,
                required=False, dataType='integer', default=0)
+        .errorResponse('XXX', 209)
     )
     def searchForInstances(self, params):
         pass
-
-    searchForInstances.description = describe_qidors_errors(searchForInstances)
-
