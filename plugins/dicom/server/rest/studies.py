@@ -73,13 +73,13 @@ class dicomStudies(Resource):
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}
         self.route('GET',
                    (':StudyInstanceUID', 'series', ':SeriesInstanceUID',),
-                   self.getSerie)
+                   self.getSeries)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/metadata
         self.route('GET',
                    (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
                     'metadata',),
-                   self.getSerieMetadata)
+                   self.getSeriesMetadata)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances/{SOPInstanceUID}
         self.route('GET',
@@ -193,7 +193,7 @@ class dicomStudies(Resource):
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
                paramType='path')
     )
-    def getSerie(self, StudyInstanceUID, SeriesInstanceUID, params):
+    def getSeries(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
 
     @access.user
@@ -205,7 +205,7 @@ class dicomStudies(Resource):
         .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
                paramType='path')
     )
-    def getSerieMetadata(self, StudyInstanceUID, SeriesInstanceUID, params):
+    def getSeriesMetadata(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
 
     @access.user
@@ -340,7 +340,7 @@ class dicomStudies(Resource):
     @describeRoute(
         Description(StoreInstancesDescription)
     )
-    def storeInstances(self, parans):
+    def storeInstances(self, params):
         # Content-Type - The representation scheme being posted to the RESTful
         # service. The types allowed for this request header are
         # as follows:
@@ -362,6 +362,6 @@ class dicomStudies(Resource):
         .param('StudyInstanceUID', StudyInstanceUIDDescription,
                paramType='path')
     )
-    def storeInstancesInStudy(self, StudyInstanceUID, parans):
+    def storeInstancesInStudy(self, StudyInstanceUID, params):
         # Content-Type - See above
         pass
