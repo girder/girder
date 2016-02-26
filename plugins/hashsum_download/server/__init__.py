@@ -26,7 +26,7 @@ from girder.constants import AccessType
 
 class HashedFile(File):
 
-    SupportedAlgorithms = [
+    supportedAlgorithms = [
         'sha512',
     ]
 
@@ -39,11 +39,11 @@ class HashedFile(File):
 
     @access.public
     @describeRoute(
-        Description('Download a file by its hashsum.')
-        .param('algo', 'The type of the given hashsum. '
+        Description('Download a file by its hash sum.')
+        .param('algo', 'The type of the given hash sum. '
                        'This parameter is case insensitive.',
-               paramType='path', enum=SupportedAlgorithms)
-        .param('hash', 'The hexadcimal hashsum of the file to download. '
+               paramType='path', enum=supportedAlgorithms)
+        .param('hash', 'The hexadecimal hash sum of the file to download. '
                        'This parameter is case insensitive.',
                paramType='path')
         .errorResponse()
@@ -58,19 +58,19 @@ class HashedFile(File):
 
     def _getFirstFileByHash(self, algo, hash, user=None):
         """
-        Return the first file that the user has access to given a hash and an
-        algorithm.
+        Return the first file that the user has access to given its hash and its
+        associated hash sum algorithm name.
 
-        :param algo: Algorithm the given hash is encoded.
+        :param algo: Algorithm the given hash is encoded with.
         :param hash: Hash of the file to find.
         :param user: User to test access against.
          Default (none) is the current user.
         :return: A file document.
         """
         algo = algo.lower()
-        if algo not in self.SupportedAlgorithms:
+        if algo not in self.supportedAlgorithms:
             msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
-                  % (algo, self.SupportedAlgorithms)
+                  % (algo, self.supportedAlgorithms)
             raise RestException(msg, code=400)
 
         query = {algo: hash.lower()}  # Always convert to lower case
