@@ -36,6 +36,21 @@ class HashsumDownloadTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self, assetstoreType='filesystem')
 
+        # Two users are created (user and otherUser).
+        # A hierarchy is created as is:
+        #  - user:
+        #       |- [Folder (public)] publicFolder:
+        #           |- publicFile
+        #           |- duplicatePublicFile
+        #       |- [Folder (private)] private:
+        #           |- privateFile
+        #           |- privateOnlyFile
+        #
+        #  - otherUser:
+        #       |- (nothing)
+        #
+        # In summary, user has access to all the files and otherUser to none.
+
         self.user = self.model('user').createUser(
             login='leeloo',
             password='multipass',
@@ -107,12 +122,31 @@ class HashsumDownloadTest(base.TestCase):
         hasher.update(value)
         return hasher.hexdigest()
 
+    def _download(self, hashValue, hashAlgorithm,
+                  user=None, params=None, additionalHeaders=None):
+        return self.request(
+            path='/file/hashsum/%s/%s/download' % (hashAlgorithm, hashValue),
+            method='GET',
+            user=user,
+            params=params,
+            additionalHeaders=additionalHeaders,
+            isJson=False
+        )
+
+    def _testNormalUse(self, hashValue, hashAlgorithm, file, data, user=None):
+        resp = self._download(hashValue, hashAlgorithm, user=user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        self.assertEqual(resp.headers['Content-Length'], file['size'])
+        self.assertEqual(resp.headers['Content-Type'], file['mimeType'])
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="%s"' % file['name'])
+        self.assertEqual(resp.headers['Content-Type'], file['mimeType'])
+        self.assertEqual(data, self.getBody(resp, text=False))
+
     def testDownload(self):
         # Test an invalid algorithm
-        resp = self.request(
-            path='/file/hashsum/%s/%s/download' % ('crc32', '1a2b3c4d'),
-            method='GET', user=self.user, isJson=False,
-        )
+        resp = self._download('crc32', '1a2b3c4d', user=self.user)
         self.assertStatus(resp, 400)
 
         for hashAlgorithm in ['sha512']:
@@ -120,94 +154,53 @@ class HashsumDownloadTest(base.TestCase):
             privateDataHash = self._hashSum(self.privateOnlyData, hashAlgorithm)
 
             # Test normal use
-            for hashValue in [
-                publicDataHash.lower(),
-                publicDataHash.upper()
-            ]:
-                resp = self.request(
-                    path='/file/hashsum/%s/%s/download' % (
-                        hashAlgorithm, hashValue),
-                    method='GET', isJson=False)
-                self.assertStatusOk(resp)
-                self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
-                self.assertEqual(resp.headers['Content-Disposition'],
-                                 'attachment; filename="%s"' %
-                                 self.publicFile['name'])
-                self.assertEqual(resp.headers['Content-Length'],
-                                 self.publicFile['size'])
-                self.assertEqual(resp.headers['Content-Type'],
-                                 self.publicFile['mimeType'])
-                self.assertEqual(resp.headers['Content-Disposition'],
-                                 'attachment; filename="%s"' %
-                                 self.publicFile['name'])
-                self.assertEqual(self.userData,
-                                 self.getBody(resp, text=False))
-
-                # Also test upper case hashAlgorithm
-                otherResp = self.request(
-                    path='/file/hashsum/%s/%s/download' % (
-                        hashAlgorithm.upper(), hashValue),
-                    method='GET', isJson=False)
-                self.assertStatusOk(otherResp)
-                self.assertEqual(self.userData,
-                                 self.getBody(otherResp, text=False))
+            for hashValue in [publicDataHash.lower(), publicDataHash.upper()]:
+                for algo in [hashAlgorithm.lower(), hashAlgorithm.upper()]:
+                    self._testNormalUse(
+                        hashValue, algo, self.publicFile, self.userData
+                    )
 
             # Test a non-existent file (in this case, one that's empty)
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm,
-                    self._hashSum(b'', hashAlgorithm)),
-                method='GET', isJson=False)
+            empty_hash = self._hashSum(b'', hashAlgorithm)
+            resp = self._download(empty_hash, hashAlgorithm)
             self.assertStatus(resp, 404)
 
             # Test a private file anonymously
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, privateDataHash),
-                method='GET', user=None, isJson=False)
+            resp = self._download(privateDataHash, hashAlgorithm)
             self.assertStatus(resp, 404)
 
             # Test a private file when unauthorized
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, privateDataHash),
-                method='GET', user=self.otherUser, isJson=False)
+            resp = self._download(
+                privateDataHash, hashAlgorithm, user=self.otherUser
+            )
             self.assertStatus(resp, 404)
 
             # Test a private file when authorized
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, privateDataHash),
-                method='GET', user=self.user, isJson=False)
+            resp = self._download(
+                privateDataHash, hashAlgorithm, user=self.user
+            )
             self.assertStatusOk(resp)
             self.assertEqual(
                 self.privateOnlyData, self.getBody(resp, text=False))
 
             # Test for a file that exists in both public and private folder
             # while logged in.
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, publicDataHash),
-                method='GET', user=self.user, isJson=False)
-            self.assertStatusOk(resp)
-            self.assertEqual(resp.headers['Content-Length'],
-                             self.privateFile['size'])
-            self.assertEqual(resp.headers['Content-Type'],
-                             self.privateFile['mimeType'])
-            self.assertEqual(resp.headers['Content-Disposition'],
-                             'attachment; filename="%s"' %
-                             self.privateFile['name'])
-            self.assertEqual(self.userData,
-                             self.getBody(resp, text=False))
+            self._testNormalUse(
+                publicDataHash,
+                hashAlgorithm,
+                self.privateFile,
+                self.userData,
+                user=self.user
+            )
 
             # Test specified content dispositions
             for contentDisposition in ['attachment', 'inline']:
-                resp = self.request(
-                    path='/file/hashsum/%s/%s/download' % (
-                        hashAlgorithm, publicDataHash),
-                    method='GET', isJson=False, params={
-                        'contentDisposition': contentDisposition
-                    })
+                disposition = {
+                    'contentDisposition': contentDisposition
+                }
+                resp = self._download(
+                    publicDataHash, hashAlgorithm, params=disposition
+                )
                 self.assertStatusOk(resp)
                 self.assertEqual(resp.headers['Content-Disposition'],
                                  '%s; filename="%s"' %
@@ -216,31 +209,28 @@ class HashsumDownloadTest(base.TestCase):
                                  self.getBody(resp, text=False))
 
             # Test downloading with an offset
-            resp = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, publicDataHash),
-                method='GET', isJson=False, params={
-                    'offset': 15})
+            resp = self._download(
+                publicDataHash, hashAlgorithm, params={'offset': 15})
             self.assertStatus(resp, 206)
             self.assertEqual(self.userData[15:],
                              self.getBody(resp, text=False))
 
             # Test downloading with a range header and query range params
-            respHeader = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, publicDataHash),
-                method='GET', isJson=False, additionalHeaders=[
-                    ('Range', 'bytes=10-29')])
-            respQuery = self.request(
-                path='/file/hashsum/%s/%s/download' % (
-                    hashAlgorithm, publicDataHash),
-                method='GET', isJson=False, params={
-                    'offset': 10, 'endByte': 30})
+            respHeader = self._download(
+                publicDataHash, hashAlgorithm,
+                additionalHeaders=[('Range', 'bytes=10-29')]
+            )
+            respQuery = self._download(
+                publicDataHash, hashAlgorithm,
+                params={'offset': 10, 'endByte': 30}
+            )
             for resp in [respHeader, respQuery]:
                 self.assertStatus(resp, 206)
                 self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
                 self.assertEqual(resp.headers['Content-Length'], 30 - 10)
                 self.assertEqual(resp.headers['Content-Range'],
                                  'bytes 10-29/%d' % len(self.userData))
+                self.assertEqual(resp.headers['Content-Type'],
+                                 self.publicFile['mimeType'])
                 self.assertEqual(self.userData[10:30],
                                  self.getBody(resp, text=False))
