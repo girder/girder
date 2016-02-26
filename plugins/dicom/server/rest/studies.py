@@ -26,24 +26,31 @@ from girder.api.rest import Resource, getUrlParts
 from girder.api import access
 
 from error_descriptions import describeErrors
-from param_descriptions import *
+from param_descriptions import (SearchForDescription, QueryParamDescription,
+                                FuzzyMatchingParamDescription,
+                                LimitParamDescription, OffsetParamDescription)
 
 
 class dicomStudies(Resource):
 
     # WADO-RS
     StudyInstanceUIDDescription = "Unique Study instance UID for a single study"
-    SeriesInstanceUIDDescription = "Unique Series Instance UID for a single series"
+    SeriesInstanceUIDDescription = "Unique Series Instance UID for a single " \
+                                   "series"
     SOPInstanceUIDDescription = "SOP Instance UID for a single SOP Instance"
-    FrameListDescription = "A comma or %2C separated list of one or more non duplicate frame numbers." \
-                           "These may be in any order (e.g., ../frames/1,2,4,3)."
-    RetrieveMetadataDescription = "Retrieves the DICOM %s metadata with the bulk data removed."
+    FrameListDescription = "A comma or %2C separated list of one or more non-" \
+                           "duplicate frame numbers. These may be in any " \
+                           "order (e.g., ../frames/1,2,4,3)."
+    RetrieveMetadataDescription = "Retrieves the DICOM %s metadata with the " \
+                                  "bulk data removed."
 
     # STOW-RS
-    StoreInstancesDescription = "Stores one or more DICOM instances associated with one or more study instance " \
-                                "unique identifiers (SUID). The request message can be DICOM or metadata and bulk " \
-                                "data depending on the \"Content-Type\", and is encapsulated in a multipart request body."
-
+    StoreInstancesDescription = "Stores one or more DICOM instances " \
+                                "associated with one or more study instance " \
+                                "unique identifiers (SUID). The request " \
+                                "message can be DICOM or metadata and bulk " \
+                                "data depending on the \"Content-Type\", and " \
+                                "is encapsulated in a multipart request body."
 
     def __init__(self):
         super(dicomStudies, self).__init__()
@@ -55,50 +62,79 @@ class dicomStudies(Resource):
         ###########
 
         # {SERVICE}/studies/{StudyInstanceUID}
-        self.route('GET', (':StudyInstanceUID',), self.getStudy)
+        self.route('GET',
+                   (':StudyInstanceUID',),
+                   self.getStudy)
 
         # {SERVICE}/studies/{StudyInstanceUID}/metadata
-        self.route('GET', (':StudyInstanceUID', 'metadata',), self.getStudyMetadata)
+        self.route('GET', (':StudyInstanceUID', 'metadata',),
+                   self.getStudyMetadata)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID',), self.getSerie)
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',),
+                   self.getSerie)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/metadata
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID', 'metadata',), self.getSerieMetadata)
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
+                    'metadata',),
+                   self.getSerieMetadata)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances/{SOPInstanceUID}
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID', 'instances', ':SOPInstanceUID',), self.getInstance)
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
+                    'instances', ':SOPInstanceUID',),
+                   self.getInstance)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances/{SOPInstanceUID}/metadata
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID', 'instances', ':SOPInstanceUID', 'metadata',), self.getInstanceMetadata)
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
+                    'instances', ':SOPInstanceUID', 'metadata',),
+                   self.getInstanceMetadata)
 
         # {SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances/{SOPInstanceUID}/frames/{FrameList}
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID', 'instances', ':SOPInstanceUID', 'frames', ':FrameList',), self.getFrameList)
-
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
+                    'instances', ':SOPInstanceUID', 'frames', ':FrameList',),
+                   self.getFrameList)
 
         ###########
         # QIDO-RS #
         ###########
 
         # {+SERVICE}/studies{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (), self.searchForStudies)
+        self.route('GET',
+                   (),
+                   self.searchForStudies)
 
         # {+SERVICE}/studies/{StudyInstanceUID}/series{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (':StudyInstanceUID', 'series'), self.searchForSeries)
+        self.route('GET',
+                   (':StudyInstanceUID', 'series'),
+                   self.searchForSeries)
 
-        #{+SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (':StudyInstanceUID', 'series', ':SeriesInstanceUID', 'instances'), self.searchForInstances)
+        # {+SERVICE}/studies/{StudyInstanceUID}/series/{SeriesInstanceUID}/instances{?query*,fuzzymatching,limit,offset}
+        self.route('GET',
+                   (':StudyInstanceUID', 'series', ':SeriesInstanceUID',
+                    'instances'),
+                   self.searchForInstances)
 
-        #{+SERVICE}/studies/{StudyInstanceUID}/instances{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (':StudyInstanceUID', 'instances'), self.searchForInstancesByStudyInstanceUID)
+        # {+SERVICE}/studies/{StudyInstanceUID}/instances{?query*,fuzzymatching,limit,offset}
+        self.route('GET',
+                   (':StudyInstanceUID', 'instances'),
+                   self.searchForInstancesByStudyInstanceUID)
 
         ###########
         # STOW-RS #
         ###########
 
         # {SERVICE}/studies[/{StudyInstanceUID}]
-        self.route('POST', (), self.storeInstances)
-        self.route('POST', (':StudyInstanceUID',), self.storeInstancesInStudy)
+        self.route('POST',
+                   (),
+                   self.storeInstances)
+        self.route('POST',
+                   (':StudyInstanceUID',),
+                   self.storeInstancesInStudy)
 
     def _reroute(self):
         """This function was written as an experiment to re-route wado-rs query
@@ -109,7 +145,7 @@ class dicomStudies(Resource):
         incoming_url = urlparse.ParseResult(
             scheme='https',
             netloc='vna.hackathon.siim.org',
-            path= 'dcm4chee-arc/wado/DCM4CHEE' + incoming_url.path[7:],
+            path='dcm4chee-arc/wado/DCM4CHEE' + incoming_url.path[7:],
             params=incoming_url.params,
             query=incoming_url.query,
             fragment=incoming_url.fragment
@@ -128,8 +164,10 @@ class dicomStudies(Resource):
     @access.user
     @describeErrors('WADO-RS')
     @describeRoute(
-        Description('Retrieve the set of DICOM instances associated with a given study unique identifier (UID).')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        Description('Retrieve the set of DICOM instances associated with a '
+                    'given study unique identifier (UID).')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
     )
     def getStudy(self, StudyInstanceUID, params):
         # response can be DICOM or bulk data depending on the "Accept" type
@@ -139,7 +177,8 @@ class dicomStudies(Resource):
     @describeErrors('WADO-RS')
     @describeRoute(
         Description(RetrieveMetadataDescription % 'study')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
     )
     def getStudyMetadata(self, StudyInstanceUID, params):
         return self._reroute()
@@ -147,9 +186,12 @@ class dicomStudies(Resource):
     @access.user
     @describeErrors('WADO-RS')
     @describeRoute(
-        Description('Retrieve the set of DICOM instances associated with a given study and series UID.')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        Description('Retrieve the set of DICOM instances associated with a '
+                    'given study and series UID.')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
     )
     def getSerie(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
@@ -158,8 +200,10 @@ class dicomStudies(Resource):
     @describeErrors('WADO-RS')
     @describeRoute(
         Description(RetrieveMetadataDescription % 'series')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
     )
     def getSerieMetadata(self, StudyInstanceUID, SeriesInstanceUID, params):
         return self._reroute()
@@ -167,35 +211,46 @@ class dicomStudies(Resource):
     @access.user
     @describeErrors('WADO-RS')
     @describeRoute(
-        Description('Retrieve the DICOM instance associated with the given study, series, and SOP Instance UID.')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        Description('Retrieve the DICOM instance associated with the given '
+                    'study, series, and SOP Instance UID.')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
     )
-    def getInstance(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
+    def getInstance(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID,
+                    params):
         return self._reroute()
 
     @access.user
     @describeErrors('WADO-RS')
     @describeRoute(
         Description(RetrieveMetadataDescription % 'instance')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
     )
-    def getInstanceMetadata(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, params):
+    def getInstanceMetadata(self, StudyInstanceUID, SeriesInstanceUID,
+                            SOPInstanceUID, params):
         return self._reroute()
 
     @access.user
     @describeErrors('WADO-RS')
     @describeRoute(
-        Description('Retrieve the DICOM frames for a given study, series, SOP Instance UID, and frame numbers.')
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        Description('Retrieve the DICOM frames for a given study, series, SOP '
+                    'Instance UID, and frame numbers.')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
         .param('SOPInstanceUID', SOPInstanceUIDDescription, paramType='path')
         .param('FrameList', FrameListDescription, paramType='path')
     )
-    def getFrameList(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID, FrameList, params):
+    def getFrameList(self, StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID,
+                     FrameList, params):
         return self._reroute()
 
     ###########
@@ -222,7 +277,8 @@ class dicomStudies(Resource):
     @describeErrors('QIDO-RS')
     @describeRoute(
         Description(SearchForDescription % ('Series', 'series', 'series'))
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
         .param('query', QueryParamDescription,
                required=False)
         .param('fuzzymatching', FuzzyMatchingParamDescription,
@@ -238,9 +294,12 @@ class dicomStudies(Resource):
     @access.user
     @describeErrors('QIDO-RS')
     @describeRoute(
-        Description(SearchForDescription % ('Instances', 'instances', 'instance'))
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
-        .param('SeriesInstanceUID', SeriesInstanceUIDDescription, paramType='path')
+        Description(SearchForDescription %
+                    ('Instances', 'instances', 'instance'))
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
+        .param('SeriesInstanceUID', SeriesInstanceUIDDescription,
+               paramType='path')
         .param('query', QueryParamDescription,
                required=False)
         .param('fuzzymatching', FuzzyMatchingParamDescription,
@@ -256,8 +315,10 @@ class dicomStudies(Resource):
     @access.user
     @describeErrors('QIDO-RS')
     @describeRoute(
-        Description(SearchForDescription % ('Instances', 'instances', 'instance'))
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        Description(SearchForDescription %
+                    ('Instances', 'instances', 'instance'))
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
         .param('query', QueryParamDescription,
                required=False)
         .param('fuzzymatching', FuzzyMatchingParamDescription,
@@ -280,21 +341,26 @@ class dicomStudies(Resource):
         Description(StoreInstancesDescription)
     )
     def storeInstances(self, parans):
-        # Content-Type - The representation scheme being posted to the RESTful service. The types allowed for this request header are
+        # Content-Type - The representation scheme being posted to the RESTful
+        # service. The types allowed for this request header are
         # as follows:
-        #  • multipart/related; type=application/dicom; boundary={messageBoundary}
-        #  Specifies that the post is PS3.10 binary instances. All STOW-RS providers must accept this Content-Type.
-        #  • multipart/related; type=application/dicom+xml; boundary={messageBoundary}
-        #  Specifies that the post is PS3.19 XML metadata and bulk data. All STOW-RS providers must accept this Content-Type.
-        #  • multipart/related; type=application/json; boundary={messageBoundary}
-        #  Specifies that the post is DICOM JSON metadata and bulk data. A STOW-RS provider may optionally accept this Content-Type.
+        #  • multipart/related; type=application/dicom; boundary={messageBoundary} # noqa
+        #  Specifies that the post is PS3.10 binary instances. All STOW-RS
+        #  providers must accept this Content-Type.
+        #  • multipart/related; type=application/dicom+xml; boundary={messageBoundary} # noqa
+        #  Specifies that the post is PS3.19 XML metadata and bulk data. All
+        #  STOW-RS providers must accept this Content-Type.
+        #  • multipart/related; type=application/json; boundary={messageBoundary} # noqa
+        #  Specifies that the post is DICOM JSON metadata and bulk data. A
+        #  STOW-RS provider may optionally accept this Content-Type.
         pass
 
     @access.user
     @describeErrors('STOW-RS')
     @describeRoute(
         Description(StoreInstancesDescription)
-        .param('StudyInstanceUID', StudyInstanceUIDDescription, paramType='path')
+        .param('StudyInstanceUID', StudyInstanceUIDDescription,
+               paramType='path')
     )
     def storeInstancesInStudy(self, StudyInstanceUID, parans):
         # Content-Type - See above

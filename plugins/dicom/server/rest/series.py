@@ -22,7 +22,9 @@ from girder.api.rest import Resource
 from girder.api import access
 
 from error_descriptions import describeErrors
-from param_descriptions import *
+from param_descriptions import (SearchForDescription, QueryParamDescription,
+                                FuzzyMatchingParamDescription,
+                                LimitParamDescription, OffsetParamDescription)
 
 
 class dicomSeries(Resource):
@@ -36,7 +38,9 @@ class dicomSeries(Resource):
         ###########
 
         # {+SERVICE}/series{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (), self.searchForSeries)
+        self.route('GET',
+                   (),
+                   self.searchForSeries)
 
     ###########
     # QIDO-RS #

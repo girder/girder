@@ -18,12 +18,16 @@
 ###############################################################################
 
 # QIDO-RS
-SearchForDescription = "Searches for DICOM %s that match specified search parameters and returns a" \
-                       "list of matching %s and the requested attributes for each %s."
-
+SearchForDescription = "Searches for DICOM %s that match specified search " \
+                       "parameters and returns a list of matching %s and the " \
+                       "requested attributes for each %s."
 QueryParamDescription = "{attributeID}={value}"
-FuzzyMatchingParamDescription = "Set to 'true' to perform additional fuzzy semantic matching of person names."
-LimitParamDescription = "If the limit query key is not specified or its value exceeds the total number" \
-                        " of matching results then {maximumResults} is the lesser of the number of matching" \
-                        "results and the maximum number of results supported by the Server."
-OffsetParamDescription = "If the offset query key is not specified or its value is less than zero then it defaults to zero."
+FuzzyMatchingParamDescription = "Set to 'true' to perform additional fuzzy " \
+                                "semantic matching of person names."
+LimitParamDescription = "If the limit query key is not specified or its " \
+                        "value exceeds the total number of matching results " \
+                        "then {maximumResults} is the lesser of the number " \
+                        "of matching results and the maximum number of " \
+                        "results supported by the Server."
+OffsetParamDescription = "If the offset query key is not specified or its " \
+                         "value is less than zero then it defaults to zero."

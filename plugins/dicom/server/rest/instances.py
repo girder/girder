@@ -22,7 +22,9 @@ from girder.api.rest import Resource
 from girder.api import access
 
 from error_descriptions import describeErrors
-from param_descriptions import *
+from param_descriptions import (SearchForDescription, QueryParamDescription,
+                                FuzzyMatchingParamDescription,
+                                LimitParamDescription, OffsetParamDescription)
 
 
 class dicomInstances(Resource):
@@ -36,7 +38,9 @@ class dicomInstances(Resource):
         ###########
 
         # {+SERVICE}/instances{?query*,fuzzymatching,limit,offset}
-        self.route('GET', (), self.searchForInstances)
+        self.route('GET',
+                   (),
+                   self.searchForInstances)
 
     ###########
     # QIDO-RS #
@@ -45,7 +49,8 @@ class dicomInstances(Resource):
     @access.user
     @describeErrors('QIDO-RS')
     @describeRoute(
-        Description(SearchForDescription % ('Instances', 'instances', 'instance'))
+        Description(SearchForDescription %
+                    ('Instances', 'instances', 'instance'))
         .param('query', QueryParamDescription,
                required=False)
         .param('fuzzymatching', FuzzyMatchingParamDescription,
