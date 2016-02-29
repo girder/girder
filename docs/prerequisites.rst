@@ -8,6 +8,8 @@ The following software packages are required to be installed on your system:
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `Node.js <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
+* `zlib <http://www.zlib.net/>`_
+* `libjpeg <http://libjpeg.sourceforge.net/>`_
 
 Additionally, in order to send out emails to users, Girder will need to be able
 to communicate with an SMTP server. Proper installation and configuration of
@@ -38,7 +40,7 @@ Debian / Ubuntu
 
 Install the prerequisites using APT: ::
 
-    sudo apt-get install curl g++ git libffi-dev make python-dev python-pip
+    sudo apt-get install curl g++ git libffi-dev make python-dev python-pip libjpeg-dev zlib1g-dev
 
 MongoDB 2.6 requires a special incantation to install at this time. Install
 the APT key with the following: ::
@@ -81,7 +83,7 @@ YUM repository: ::
 
 Install the prerequisites using YUM: ::
 
-   sudo yum install curl gcc-c++ git libffi-devel make python-devel python-pip
+   sudo yum install curl gcc-c++ git libffi-devel make python-devel python-pip libjpeg-turbo-devel zlib-devel
 
 Create a file ``/etc/yum.repos.d/mongodb.repo`` that contains the following
 configuration information for the MongoDB YUM repository:
@@ -100,7 +102,7 @@ Install MongoDB server using YUM: ::
 
 Enable the Node.js YUM repository: ::
 
-    curl -sL https://rpm.nodesource.com/setup | sudo bash -
+    curl -sL https://rpm.nodesource.com/setup_4.x | sudo bash -
 
 Install Node.js and NPM using YUM: ::
 
