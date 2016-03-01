@@ -25,6 +25,7 @@ from girder.utility.model_importer import ModelImporter
 
 from .rest import studies, series, instances
 
+
 def dicom_handler(event):
     # \todo Add support for other assetstore
     # \todo Make something actually useful with the metadata
@@ -36,9 +37,8 @@ def dicom_handler(event):
     file = event.info['file']
     path = os.path.join(assetstore['root'], file['path'])
 
-    try:
-        dcm = dicom.read_file(path)
-    except:
+    dcm = dicom.read_file(path)
+    if not dcm:
         return
 
     itemModel = ModelImporter.model('item')

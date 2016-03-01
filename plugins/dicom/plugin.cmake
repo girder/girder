@@ -14,9 +14,14 @@
 #  limitations under the License.
 ###############################################################################
 
-add_python_test(dicom PLUGIN dicom)
-add_python_style_test(python_static_analysis_dicom
-                      "${PROJECT_SOURCE_DIR}/plugins/dicom/server")
+set(dicom_plugin_affix "plugins/dicom")
+set(dicom_plugin_dir ${PROJECT_SOURCE_DIR}/plugins/dicom)
+
+add_python_test(dicom
+                PLUGIN dicom
+                EXTERNAL_DATA "${dicom_plugin_affix}/DICOM-CT.dcm"
+                )
+add_python_style_test(python_static_analysis_dicom "${dicom_plugin_dir}/server")
 add_python_style_test(python_static_analysis_dicom_tests
-                      "${PROJECT_SOURCE_DIR}/plugins/dicom/plugin_tests")
+                      "${dicom_plugin_dir}/plugin_tests")
 
