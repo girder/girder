@@ -17,10 +17,53 @@
 #  limitations under the License.
 ###############################################################################
 
+import dicom
+import os
+from girder import events
+from girder.constants import AccessType, AssetstoreType
+from girder.utility.model_importer import ModelImporter
+
 from .rest import studies, series, instances
+
+def dicom_handler(event):
+    # \todo Add support for other assetstore
+    # \todo Make something actually useful with the metadata
+
+    assetstore = event.info['assetstore']
+    if assetstore['type'] != AssetstoreType.FILESYSTEM:
+        return
+
+    file = event.info['file']
+    path = os.path.join(assetstore['root'], file['path'])
+
+    try:
+        dcm = dicom.read_file(path)
+    except:
+        return
+
+    itemModel = ModelImporter.model('item')
+    userModel = ModelImporter.model('user')
+
+    user = userModel.load(file['creatorId'], level=AccessType.READ)
+    item = itemModel.load(file['itemId'], level=AccessType.WRITE, user=user)
+
+    try:
+        metadata = item['meta']
+    except KeyError:
+        metadata = {}
+    # See todo #2
+    metadata['PatientName'] = dcm.PatientName
+    metadata['PatientID'] = dcm.PatientID
+    metadata['Modality'] = dcm.Modality
+    metadata['Study Date'] = dcm.StudyDate
+
+    updatedItem = itemModel.setMetadata(item, metadata)
+    itemModel.updateItem(updatedItem)
 
 
 def load(info):
     info['apiRoot'].studies = studies.dicomStudies()
     info['apiRoot'].series = series.dicomSeries()
     info['apiRoot'].instances = instances.dicomInstances()
+
+events.bind('data.process', 'dicom_handler', dicom_handler)
