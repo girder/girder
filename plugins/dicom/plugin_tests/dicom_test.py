@@ -68,7 +68,7 @@ class DicomTestCase(base.TestCase):
         self.dcm = dicom.read_file(self.dcmFilePath)
 
         # Upload the dicom file
-        with open(self.dcmFilePath, 'r') as file:
+        with open(self.dcmFilePath, 'rb') as file:
             self.dcmData = file.read()
         self.assertTrue(self.dcmData)
 
