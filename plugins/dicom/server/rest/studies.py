@@ -18,17 +18,17 @@
 ###############################################################################
 
 import cherrypy
-import urlparse
 import requests
+from six.moves import urllib
 
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, getUrlParts
 from girder.api import access
 
-from error_descriptions import describeErrors
-from param_descriptions import (SearchForDescription, QueryParamDescription,
-                                FuzzyMatchingParamDescription,
-                                LimitParamDescription, OffsetParamDescription)
+from .error_descriptions import describeErrors
+from .param_descriptions import (SearchForDescription, QueryParamDescription,
+                                 FuzzyMatchingParamDescription,
+                                 LimitParamDescription, OffsetParamDescription)
 
 
 class dicomStudies(Resource):
@@ -142,7 +142,7 @@ class dicomStudies(Resource):
         """
         incoming_url = getUrlParts()
 
-        incoming_url = urlparse.ParseResult(
+        incoming_url = urllib.parse.urlparse.ParseResult(
             scheme='https',
             netloc='vna.hackathon.siim.org',
             path='dcm4chee-arc/wado/DCM4CHEE' + incoming_url.path[7:],
@@ -150,7 +150,7 @@ class dicomStudies(Resource):
             query=incoming_url.query,
             fragment=incoming_url.fragment
         )
-        outgoing_url_str = urlparse.urlunparse(incoming_url)
+        outgoing_url_str = urllib.parse.urlunparse(incoming_url)
         print(outgoing_url_str)
         response = requests.get(outgoing_url_str)
 

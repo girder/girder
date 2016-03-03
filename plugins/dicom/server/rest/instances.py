@@ -21,10 +21,10 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.api import access
 
-from error_descriptions import describeErrors
-from param_descriptions import (SearchForDescription, QueryParamDescription,
-                                FuzzyMatchingParamDescription,
-                                LimitParamDescription, OffsetParamDescription)
+from .error_descriptions import describeErrors
+from .param_descriptions import (SearchForDescription, QueryParamDescription,
+                                 FuzzyMatchingParamDescription,
+                                 LimitParamDescription, OffsetParamDescription)
 
 
 class dicomInstances(Resource):
