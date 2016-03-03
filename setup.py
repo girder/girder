@@ -75,9 +75,10 @@ install_reqs = [
 
 extras_reqs = {
     'celery_jobs': ['celery'],
+    'dicom': ['pydicom'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
-    'plugins': ['celery', 'geojson', 'Pillow']
+    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom']
 }
 
 if sys.version_info[0] == 2:
