@@ -101,7 +101,8 @@ class DicomTestCase(base.TestCase):
             metadata,
             ['PatientName', 'PatientID', 'Modality', 'Study Date']
         )
-        self.assertEqual(metadata['PatientName'], self.dcm.PatientName)
+        self.assertEqual(metadata['PatientName'],
+                         self.dcm.PatientName.encode('utf-8'))
         self.assertEqual(metadata['PatientID'], self.dcm.PatientID)
         self.assertEqual(metadata['Modality'], self.dcm.Modality)
         self.assertEqual(metadata['Study Date'], self.dcm.StudyDate)

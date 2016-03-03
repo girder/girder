@@ -52,7 +52,7 @@ def dicom_handler(event):
     except KeyError:
         metadata = {}
     # See todo #2
-    metadata['PatientName'] = dcm.PatientName
+    metadata['PatientName'] = dcm.PatientName.encode('utf-8')
     metadata['PatientID'] = dcm.PatientID
     metadata['Modality'] = dcm.Modality
     metadata['Study Date'] = dcm.StudyDate
