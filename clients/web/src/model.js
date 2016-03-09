@@ -247,15 +247,16 @@ girder.AccessControlledModel = girder.Model.extend({
 });
 
 girder.models.MetadataMixin = {
-    _sendMetadata: function (metadata, successCallback, errorCallback) {
+    _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
+        opts = opts || {};
         girder.restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/metadata',
+            path: opts.path || (this.resourceName + '/' + this.get('_id') + '/metadata'),
             contentType: 'application/json',
             data: JSON.stringify(metadata),
             type: 'PUT',
             error: null
         }).done(_.bind(function (resp) {
-            this.set('meta', resp.meta);
+            this.set(opts.field || 'meta', resp.meta);
             if (_.isFunction(successCallback)) {
                 successCallback();
             }
@@ -267,41 +268,44 @@ girder.models.MetadataMixin = {
         }, this));
     },
 
-    addMetadata: function (key, value, successCallback, errorCallback) {
+    addMetadata: function (key, value, successCallback, errorCallback, opts) {
+        opts = opts || {};
         var datum = {};
         datum[key] = value;
-        var meta = this.get('meta');
+        var meta = this.get(opts.field || 'meta');
         if (meta && _.has(meta, key)) {
             if (_.isFunction(errorCallback)) {
                 errorCallback({message: key + ' is already a metadata key'});
             }
-            return;
+        } else {
+            this._sendMetadata(datum, successCallback, errorCallback, opts);
         }
-        this._sendMetadata(datum, successCallback, errorCallback);
     },
 
-    removeMetadata: function (key, successCallback, errorCallback) {
+    removeMetadata: function (key, successCallback, errorCallback, opts) {
         var datum = {};
         datum[key] = null;
-        this._sendMetadata(datum, successCallback, errorCallback);
+        this._sendMetadata(datum, successCallback, errorCallback, opts);
     },
 
-    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback) {
+    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback, opts) {
+        opts = opts || {};
+
         if (newKey === oldKey) {
             var datum = {};
             datum[newKey] = value;
-            this._sendMetadata(datum, successCallback, errorCallback);
+            this._sendMetadata(datum, successCallback, errorCallback, opts);
         } else {
-            if (_.has(this.get('meta'), newKey)) {
+            if (_.has(this.get(opts.field || 'meta'), newKey)) {
                 if (_.isFunction(errorCallback)) {
                     errorCallback({message: newKey + ' is already a metadata key'});
                 }
-                return;
+            } else {
+                var metas = {};
+                metas[oldKey] = null;
+                metas[newKey] = value;
+                this._sendMetadata(metas, successCallback, errorCallback, opts);
             }
-            var metas = {};
-            metas[oldKey] = null;
-            metas[newKey] = value;
-            this._sendMetadata(metas, successCallback, errorCallback);
         }
     }
 };
