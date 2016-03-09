@@ -35,11 +35,14 @@ import six
 import sys
 import traceback
 import yaml
+import importlib
+
+from pkg_resources import iter_entry_points
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
     TerminalColor
 from girder.models.model_base import ValidationException
-from girder.utility import config, mail_utils, mkdir
+from girder.utility import config as _config, mail_utils, mkdir
 
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
@@ -69,7 +72,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
         print(TerminalColor.warning(
@@ -106,7 +109,7 @@ def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
     """
-    curConfig = curConfig or config.getConfig()
+    curConfig = curConfig or _config.getConfig()
     plugins = set(plugins)
 
     allPlugins = findAllPlugins(curConfig)
@@ -171,10 +174,25 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if apiRoot is None:
         apiRoot = root.api.v1
 
-    pluginParentDir = getPluginParentDir(name, curConfig)
+    try:
+        pluginParentDir = getPluginParentDir(name, curConfig)
+    except Exception:
+        pluginParentDir = ''
+
     pluginDir = os.path.join(pluginParentDir, name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
+    pluginLoadMethod = None
+
+    if not os.path.exists(pluginDir):
+        # Try to load the plugin as an entry_point
+        for entry_point in iter_entry_points(group='girder.plugin', name=name):
+            pluginLoadMethod = entry_point.load()
+            pluginDir = os.path.dirname(
+                importlib.import_module(entry_point.module_name).__file__
+            )
+            isPluginDir = True
+
     if not os.path.exists(pluginDir):
         raise Exception('Plugin directory does not exist: %s' % pluginDir)
     if not isPluginDir and not isPluginFile:
@@ -191,23 +209,29 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if moduleName not in sys.modules:
         fp = None
         try:
-            fp, pathname, description = imp.find_module('server', [pluginDir])
-            module = imp.load_module(moduleName, fp, pathname, description)
-            module.PLUGIN_ROOT_DIR = pluginDir
-            girder.plugins.__dict__[name] = module
+            info = {
+                'name': name,
+                'config': appconf,
+                'serverRoot': root,
+                'apiRoot': apiRoot,
+                'pluginRootDir': os.path.abspath(pluginDir)
+            }
 
-            if hasattr(module, 'load'):
-                info = {
-                    'name': name,
-                    'config': appconf,
-                    'serverRoot': root,
-                    'apiRoot': apiRoot,
-                    'pluginRootDir': os.path.abspath(pluginDir)
-                }
-                module.load(info)
+            if pluginLoadMethod is None:
+                fp, pathname, description = imp.find_module(
+                    'server', [pluginDir]
+                )
+                module = imp.load_module(moduleName, fp, pathname, description)
+                module.PLUGIN_ROOT_DIR = pluginDir
+                girder.plugins.__dict__[name] = module
+                pluginLoadMethod = getattr(module, 'load', None)
 
-                root, appconf, apiRoot = (
-                    info['serverRoot'], info['config'], info['apiRoot'])
+            if pluginLoadMethod is not None:
+                pluginLoadMethod(info)
+
+            root, appconf, apiRoot = (
+                info['serverRoot'], info['config'], info['apiRoot'])
+
         finally:
             if fp:
                 fp.close()
@@ -242,7 +266,7 @@ def getPluginDirs(curConfig=None):
     failedPluginDirs = set()
 
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
         pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
@@ -272,7 +296,7 @@ def getPluginDir(curConfig=None):
     Returns a /path/to the directory plugins should be installed in.
     """
     if curConfig is None:
-        curConfig = config.getConfig()
+        curConfig = _config.getConfig()
 
     pluginDirs = getPluginDirs(curConfig)
 
@@ -293,10 +317,23 @@ def findAllPlugins(curConfig=None):
     a plugin.json file, this reads that file to determine dependencies.
     """
     allPlugins = {}
+
+    # look for plugins enabled via setuptools `entry_points`
+    for entry_point in iter_entry_points(group='girder.plugin'):
+        # set defaults
+        allPlugins[entry_point.name] = {
+            'name': entry_point.name,
+            'description': '',
+            'version': '',
+            'dependencies': set()
+        }
+        allPlugins[entry_point.name].update(
+            getattr(entry_point.load(), 'config', {})
+        )
+
     pluginDirs = getPluginDirs(curConfig)
     if not pluginDirs:
-        print(TerminalColor.warning('Plugin directory not found. No plugins '
-              'loaded.'))
+        print(TerminalColor.warning('Plugin directory not found.'))
         return allPlugins
 
     for pluginDir in pluginDirs:
@@ -396,3 +433,25 @@ def addChildNode(node, name, obj=None):
         hiddenNode = type('', (), dict(exposed=False))()
         setattr(node, name, hiddenNode)
         return hiddenNode
+
+
+class config(object):  # noqa: class name
+    """
+    Wrap a plugin's ``load`` method appending plugin metadata.
+
+    :param name str: The plugin's name
+    :param description str: A brief description of the plugin.
+    :param version str: A semver compatible version string.
+    :param dependencies list: A list of plugins required by this plugin.
+    :param python3 bool: Whether this plugin supports python3.
+    :returns: A decorator that appends the metadata to the method
+    """
+    def __init__(self, **kw):
+        self.config = kw
+
+    def __call__(self, func):
+        @six.wraps(func)
+        def wrapped(*arg, **kw):
+            return func(*arg, **kw)
+        wrapped.config = self.config
+        return wrapped

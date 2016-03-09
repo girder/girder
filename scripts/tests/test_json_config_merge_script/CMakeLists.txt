@@ -10,6 +10,7 @@ function(add_json_config_merge_test name)
     COMMAND ${NODEJS_EXECUTABLE} ${JSON_CONFIG_MERGE_SCRIPT} ${ARGN}
     )
   set(testname ${testname} PARENT_SCOPE)
+  set_property(TEST "${testname}" PROPERTY LABELS girder_devel)
 endfunction()
 
 #
@@ -97,6 +98,7 @@ set_tests_properties(${testname}_check_result
   PROPERTIES
     DEPENDS ${testname}
     REQUIRED_FILES "${baseline_case1};${output_case1}"
+    LABELS girder_devel
   )
 
 #
@@ -116,4 +118,5 @@ set_tests_properties(${testname}_check_result
   PROPERTIES
     DEPENDS ${testname}
     REQUIRED_FILES "${baseline_case2};${output_case2}"
+    LABELS girder_devel
   )

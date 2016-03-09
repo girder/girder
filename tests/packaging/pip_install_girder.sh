@@ -31,6 +31,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Install a standalone plugin the registers itself against the
+# girder.plugin entrypoint
+"${virtualenv_pip}" install -e "${PROJECT_SOURCE_DIR}/tests/packaging/entry_point_plugin"
+if ! python -c 'from girder.utility.plugin_utilities import findAllPlugins; assert findAllPlugins().get("test_entry_point", {}).get("name") == "Plugin using entry_point"' ; then
+    echo "Error: failed to register a plugin with the girder.plugin entry point"
+    exit 1
+fi
+
 # Start the server
 export GIRDER_PORT=31200
 python -m girder &> /dev/null &

@@ -29,6 +29,8 @@ function(javascript_tests_init)
             combine_report
             "${PROJECT_BINARY_DIR}/js_coverage"
   )
+  set_property(TEST js_coverage_reset PROPERTY LABELS girder_client)
+  set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_client)
 endfunction()
 
 include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
@@ -59,6 +61,7 @@ function(add_eslint_test name input)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
   )
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_client girder_static_analysis)
 endfunction()
 
 function(add_javascript_style_test name input)
@@ -134,6 +137,8 @@ function(add_javascript_style_test name input)
     WORKING_DIRECTORY "${test_directory}"
     COMMAND "${JSSTYLE_EXECUTABLE}"  --config "${jsstyle_config}" "${input}"
   )
+  set_property(TEST "jshint_${name}" PROPERTY LABELS girder_client girder_static_analysis)
+  set_property(TEST "jsstyle_${name}" PROPERTY LABELS girder_client girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -254,4 +259,6 @@ function(add_web_client_test case specFile)
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
     set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
   endif()
+
+  set_property(TEST ${testname} PROPERTY LABELS girder_client)
 endfunction()

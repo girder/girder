@@ -4,6 +4,7 @@
  */
 girder.Model = Backbone.Model.extend({
     resourceName: null,
+    altUrl: null,
     idAttribute: '_id',
 
     /**
@@ -34,17 +35,17 @@ girder.Model = Backbone.Model.extend({
      * existing model. Triggers g:saved on success, and g:error on error.
      */
     save: function () {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your model.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or resourceName on your model.');
             return;
         }
 
         var path, type;
         if (this.has('_id')) {
-            path = this.resourceName + '/' + this.get('_id');
+            path = (this.altUrl || this.resourceName) + '/' + this.get('_id');
             type = 'PUT';
         } else {
-            path = this.resourceName;
+            path = (this.altUrl || this.resourceName);
             type = 'POST';
         }
         /* Don't save attributes which are objects using this call.  For
@@ -81,14 +82,14 @@ girder.Model = Backbone.Model.extend({
      * in your opts object.
      */
     fetch: function (opts) {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your model.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
         opts = opts || {};
         var restOpts = {
-            path: this.resourceName + '/' + this.get('_id')
+            path: (this.altUrl || this.resourceName) + '/' + this.get('_id')
         };
         if (opts.extraPath) {
             restOpts.path += '/' + opts.extraPath;
@@ -115,7 +116,7 @@ girder.Model = Backbone.Model.extend({
      * as the href property of a direct download link.
      */
     downloadUrl: function () {
-        return girder.apiRoot + '/' + this.resourceName + '/' +
+        return girder.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
             this.get('_id') + '/download';
     },
 
@@ -134,13 +135,13 @@ girder.Model = Backbone.Model.extend({
      *   progress Whether to record progress (bool, default=false)
      */
     destroy: function (opts) {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your model.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
         var args = {
-            path: this.resourceName + '/' + this.get('_id'),
+            path: (this.altUrl || this.resourceName) + '/' + this.get('_id'),
             type: 'DELETE'
         };
 
@@ -190,13 +191,13 @@ girder.AccessControlledModel = girder.Model.extend({
      * When done, triggers the 'g:accessListSaved' event on the model.
      */
     updateAccess: function (params) {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your model.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
         girder.restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/access',
+            path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: _.extend({
                 access: JSON.stringify(this.get('access')),
@@ -219,14 +220,14 @@ girder.AccessControlledModel = girder.Model.extend({
      *              anyway, set this param to true.
      */
     fetchAccess: function (force) {
-        if (this.resourceName === null) {
-            alert('Error: You must set a resourceName on your model.');
+        if (this.altUrl === null && this.resourceName === null) {
+            alert('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
         if (!this.get('access') || force) {
             girder.restRequest({
-                path: this.resourceName + '/' + this.get('_id') + '/access',
+                path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
                 if (resp.access) {
@@ -250,7 +251,8 @@ girder.models.MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
         girder.restRequest({
-            path: opts.path || (this.resourceName + '/' + this.get('_id') + '/metadata'),
+            path: opts.path ||
+                ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
             contentType: 'application/json',
             data: JSON.stringify(metadata),
             type: 'PUT',
