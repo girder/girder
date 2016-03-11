@@ -47,15 +47,19 @@ def dicom_handler(event):
     user = userModel.load(file['creatorId'], level=AccessType.READ)
     item = itemModel.load(file['itemId'], level=AccessType.WRITE, user=user)
 
-    try:
-        metadata = item['meta']
-    except KeyError:
-        metadata = {}
-    # See todo #2
-    metadata['PatientName'] = dcm.PatientName.encode('utf-8')
-    metadata['PatientID'] = dcm.PatientID
-    metadata['Modality'] = dcm.Modality
-    metadata['Study Date'] = dcm.StudyDate
+    metadata = {
+        'PatientName': dcm.PatientName.encode('utf-8'),
+        'PatientID': dcm.PatientID,
+        'StudyID': dcm.StudyID,
+        'StudyInstanceUID': dcm.StudyInstanceUID,
+        'StudyDate': dcm.StudyDate,
+        'StudyTime': dcm.StudyTime,
+        'SeriesInstanceUID': dcm.SeriesInstanceUID,
+        'SeriesDate': dcm.SeriesDate,
+        'SeriesTime': dcm.SeriesTime,
+        'SeriesNumber': dcm.SeriesNumber,
+        'Modality': dcm.Modality
+    }
 
     updatedItem = itemModel.setMetadata(item, metadata)
     itemModel.updateItem(updatedItem)

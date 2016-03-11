@@ -97,12 +97,22 @@ class DicomTestCase(base.TestCase):
 
     def testDICOMHandler(self):
         metadata = self.dcmItem['meta']
-        self.assertHasKeys(
-            metadata,
-            ['PatientName', 'PatientID', 'Modality', 'Study Date']
-        )
+        expectedKeys = ['PatientName', 'PatientID', 'StudyID',
+                        'StudyInstanceUID', 'StudyDate', 'StudyTime',
+                        'SeriesInstanceUID', 'SeriesDate', 'SeriesTime',
+                        'SeriesNumber', 'Modality']
+        self.assertHasKeys(metadata, expectedKeys)
         self.assertEqual(metadata['PatientName'],
                          self.dcm.PatientName.encode('utf-8'))
         self.assertEqual(metadata['PatientID'], self.dcm.PatientID)
+        self.assertEqual(metadata['StudyID'], self.dcm.StudyID)
+        self.assertEqual(metadata['StudyInstanceUID'],
+                         self.dcm.StudyInstanceUID)
+        self.assertEqual(metadata['StudyDate'], self.dcm.StudyDate)
+        self.assertEqual(metadata['StudyTime'], self.dcm.StudyTime)
+        self.assertEqual(metadata['SeriesInstanceUID'],
+                         self.dcm.SeriesInstanceUID)
+        self.assertEqual(metadata['SeriesDate'], self.dcm.SeriesDate)
+        self.assertEqual(metadata['SeriesTime'], self.dcm.SeriesTime)
+        self.assertEqual(metadata['SeriesNumber'], self.dcm.SeriesNumber)
         self.assertEqual(metadata['Modality'], self.dcm.Modality)
-        self.assertEqual(metadata['Study Date'], self.dcm.StudyDate)
