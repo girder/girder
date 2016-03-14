@@ -95,3 +95,19 @@
     command: grunt
     args:
       chdir: "/home/vagrant/girder"
+
+  - name: Girder | Run grunt watch
+    at: 
+    args:
+        command: "cd /home/vagrant/girder && grunt watch >> /tmp/grunt_watch.log" 
+        count: 1
+        units: "minutes"
+        unique: true
+
+  - name: Girder | Run web server
+    at:
+    args:
+        command: "cd /home/vagrant/girder && python -m girder >> /tmp/girder_server.log" 
+        count: 1
+        units: "minutes"
+        unique: true
