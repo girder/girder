@@ -636,24 +636,50 @@ girderTest.waitForDialog = function (desc) {
     }, 'dialog rest requests to finish' + desc);
 };
 
+(function () {
+    var defer = new $.Deferred();
+
+    /**
+     * Contains a promise that is resolved when blanket finishes instrumenting all
+     * requested sources.
+     */
+    girderTest.promise = defer.promise();
+
+    // Start attaching covered scripts *after* the page has loaded.
+    $(function () {
+        defer.resolve();
+    });
+})();
+
 /**
  * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    if (window.blanket) {
-        blanket.utils.cache[url] = {};
-        blanket.utils.attachScript({url: url}, function (content) {
-            blanket.instrument({inputFile: content, inputFileName: url},
-                               function (instrumented) {
-                                   blanket.utils.cache[url].loaded = true;
-                                   blanket.utils.blanketEval(instrumented);
-                                   blanket.requiringFile(url, true);
-                               });
-        });
-    } else {
-        $('<script/>', {src: url}).appendTo('head');
-    }
+    var defer = new $.Deferred();
+
+    girderTest.promise.then(function () {
+
+        if (window.blanket) {
+            blanket.requiringFile(url);
+            blanket.utils.cache[url] = {};
+            blanket.utils.attachScript({url: url}, function (content) {
+                blanket.instrument({inputFile: content, inputFileName: url},
+                                   function (instrumented) {
+                                       blanket.utils.cache[url].loaded = true;
+                                       blanket.utils.blanketEval(instrumented);
+                                       blanket.requiringFile(url, true);
+                                       defer.resolve();
+                                   });
+            });
+        } else {
+            $('<script/>', {src: url}).appendTo('head').on('load', function () {
+                defer.resolve();
+            });
+        }
+    });
+
+    girderTest.promise = defer.promise();
 };
 
 /**
