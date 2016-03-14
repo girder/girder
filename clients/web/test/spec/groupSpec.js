@@ -1,14 +1,7 @@
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 /* Search for a name on the members search panel, and invite or add the first
  * found user as a member, moderator, or admin.

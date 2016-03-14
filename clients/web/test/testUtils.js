@@ -1270,3 +1270,24 @@ $(function () {
         }
     });
 });
+
+/**
+ * Wait for all of the sources to load and then start the main girder application.
+ * This will also delay the invocation of the jasmine test suite until after the
+ * application is running.  This method returns a promise that resolves with the
+ * application object.
+ */
+girderTest.startApp = function () {
+    var defer = new $.Deferred();
+    girderTest.promise.then(function () {
+        girder.events.trigger('g:appload.before');
+        var app = new girder.App({
+            el: 'body',
+            parentView: null
+        });
+        girder.events.trigger('g:appload.after');
+        defer.resolve(app);
+    });
+    girderTest.promise = defer.promise();
+    return girderTest.promise;
+}
