@@ -264,6 +264,156 @@ options:
                        description:
                            - None
 
+    group:
+        required: false
+        description:
+            - Create a group with pre-existing users
+        options:
+            name:
+                required: true
+                description:
+                    - Name of the group
+
+            description:
+                required: false
+                description:
+                    - Description of the group
+            users:
+                required: false
+                type: list
+                description:
+                    - List of dicts with users login and their level
+                options:
+                    login:
+                        required: true
+                        description:
+                            - the login name
+                    type:
+                        required: true
+                        choices: ["member", "moderator", "admin"]
+                        description:
+                            - Access level for that user in the group
+
+    collection:
+        required: false
+        description:
+            - Create a collection
+        options:
+            name:
+                required: true
+                description:
+                    - Name of the collection
+
+            description:
+                required: false
+                description:
+                    - Description of the collection
+
+            folders:
+                required: false
+                description:
+                    - A list of folder options
+                    - Specified by the 'folder' option to the girder module
+                    - (see 'folder:')
+            access:
+                required: false
+                description:
+                    - Set the access for the collection/folder
+                options:
+                    users:
+                        required: false
+                        description:
+                            - list of login/type arguments
+                            - login is a user login
+                            - type is one of 'admin', 'moderator', 'member'
+                    groups:
+                        required: false
+                        description:
+                            - list of name/type arguments
+                            - name is a group name
+                            - type is one of 'admin', 'moderator', 'member'
+
+    folder:
+        required: false
+        description:
+            - Create a folder
+        options:
+            name:
+                required: true
+                description:
+                    - Name of the folder
+
+            description:
+                required: false
+                description:
+                    - Description of the folder
+            parentType:
+                required: true
+                choices: ["user", "folder", "collection"]
+                description:
+                    - The type of the parent
+            parentId:
+                required: true
+                description:
+                    - The ID of the parent collection
+            folders:
+                required: false
+                description:
+                    - A list of folder options
+                    - Specified by the 'folder' option to the girder module
+                    - (see 'folder:')
+            access:
+                required: false
+                description:
+                    - Set the access for the collection/folder
+                options:
+                    users:
+                        required: false
+                        description:
+                            - list of login/type arguments
+                            - login is a user login
+                            - type is one of 'admin', 'moderator', 'member'
+                    groups:
+                        required: false
+                        description:
+                            - list of name/type arguments
+                            - name is a group name
+                            - type is one of 'admin', 'moderator', 'member'
+
+    item:
+        required: false
+        description:
+            - Create a item
+        options:
+            name:
+                required: true
+                description:
+                    - Name of the item
+
+            description:
+                required: false
+                description:
+                    - Description of the item
+            folderId:
+                required: true
+                description:
+                    - The ID of the parent collection
+
+     files:
+        required: false
+        description:
+            - Uploads a list of files to an item
+        options:
+            itemId:
+                required: true
+                description:
+                    - the parent item for the file
+            sources:
+                required: true
+                description:
+                    - list of local file paths
+                    - files will be uploaded to the item
+
 '''
 
 EXAMPLES = '''
@@ -310,6 +460,86 @@ EXAMPLES = '''
       password: "foobarbaz"
     state: absent
 
+############
+# Examples using Group
+#
+
+# Create an 'alice' user
+- name: Create 'alice' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Alice"
+      lastName: "Test"
+      login: "alice"
+      password: "letmein"
+      email: "alice.test@kitware.com"
+    state: present
+
+# Create an 'bill' user
+- name: Create 'bill' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Bill"
+      lastName: "Test"
+      login: "bill"
+      password: "letmein"
+      email: "bill.test@kitware.com"
+    state: present
+
+# Create an 'chris' user
+- name: Create 'chris' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Chris"
+      lastName: "Test"
+      login: "chris"
+      password: "letmein"
+      email: "chris.test@kitware.com"
+    state: present
+
+- name: Create a test group with users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: bill
+          type: moderator
+        - login: chris
+          type: admin
+    state: present
+
+# Remove Bill from the group,
+# Note that 'group' list is idempotent - it describes the desired state
+
+- name: Remove bill from group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: chris
+          type: admin
+    state: present
 
 #############
 # Example using 'plugins'
@@ -371,6 +601,154 @@ EXAMPLES = '''
       type: "filesystem"
       root: "/tmp/"
     state: absent
+
+
+############
+# Examples using collections, folders, items and files
+#
+
+# Creates a test collection called "Test Collection"
+- name: Create collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+  register: test_collection
+
+# Creates a folder called "test folder" under "Test Collection"
+- name: Create folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+  register: test_folder
+
+# Creates an item called "test item" under "test folder"
+- name: Create an item
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    item:
+      folderId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test item"
+      description: "A test item"
+  register: test_item
+
+# Upload files on the localhost at /tmp/data/test1.txt and
+# /tmp/data/test2.txt to the girder instance under the item
+# "test item"
+# Note:  the list is idempotent and will remove file that are
+# not listed under the item. Files are checked for both name
+# and size to determine if they should be updated.
+- name: Upload files
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    files:
+      itemId: "{{ test_item['gc_return']['_id'] }}"
+      sources:
+        - /tmp/data/test1.txt
+        - /tmp/data/test2.txt
+  register: retval
+
+
+############
+# Examples Using collection/folder hierarchy
+#
+
+- name: Create collection with a folder and a subfolder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      folders:
+        - name: "test folder"
+          description: "A test folder"
+          folders:
+            - name: "test subfolder"
+            - name: "test subfolder 2"
+  register: test_collection
+
+
+
+############
+# Examples Setting access to files/folders
+#
+
+
+- name: Create collection with access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: no
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: chris
+            type: member
+  register: test_collection
+
+
+- name: Add group to Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: no
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: bill
+            type: moderator
+          - login: chris
+            type: member
+        groups:
+          - name: Test Group
+            type: member
+  register: test_collection
+
+- name: Add Test Folder with access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+      access:
+        users:
+          - login: bill
+            type: admin
+        groups:
+          - name: Test Group
+            type: member
+  register: test_folder
+
+
 
 ############
 # Examples using get
