@@ -4,6 +4,7 @@
 !geospatial/
 !google_analytics/
 !gravatar/
+!hashsum_download/
 !hdfs_assetstore/
 !jobs/
 !jquery_widgets/
