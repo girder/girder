@@ -56,15 +56,7 @@ function _setMinimumChunkSize(minSize) {
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    app = app;
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 describe('Create a data hierarchy', function () {
     it('register a user',

@@ -16,32 +16,24 @@ html(lang="en")
       script(src="#{js}")
 
     each js in jsFilesCovered
-      script(src="#{js}", data-cover)
+      script(type="text/javascript")
+        | girderTest.addCoveredScript("#{js}")
 
     script(type="text/javascript").
       (function () {
         var jasmineEnv = jasmine.getEnv();
         var consoleReporter = new jasmine.ConsoleReporter();
+
         window.jasmine_phantom_reporter = consoleReporter;
         jasmineEnv.addReporter(consoleReporter);
-        girder.sseTimeout = 10;
+
         if (window.blanket) {
             window.blanket.options('timeout', 3000);
-        }
-        function waitAndExecute() {
-            if (!jasmineEnv.currentRunner().suites_.length) {
-                window.setTimeout(waitAndExecute, 10);
-                return;
-            }
-            jasmineEnv.execute();
         }
 
         var currentWindowOnload = window.onload;
 
-        window.onload = function () {
-            if (currentWindowOnload) {
-                currentWindowOnload();
-            }
-            waitAndExecute();
-        };
+        girderTest.promise.then(function () {
+            girder.sseTimeout = 10;
+        });
       })();
