@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-from __future__ import print_function
-
 import os
 import dicom
 import six
@@ -37,24 +35,41 @@ def tearDownModule():
     base.stopServer()
 
 
+class EventHelper(object):
+    """
+    Helper class to wait for plugin's data.process event handler to complete.
+    Usage:
+        with EventHelper('event.name') as helper:
+            self.model('upload').uploadFile(...)
+            handled = helper.wait()
+    """
+
+    def __init__(self, eventName, timeout=10):
+        self.eventName = eventName
+        self.timeout = timeout
+        self.handlerName = 'HandlerCallback'
+        self.event = threading.Event()
+
+    def wait(self):
+        """
+        Wait for the handler to complete.
+        :returns: True if the handler completes before the timeout or has
+                  already been called.
+        """
+        return self.event.wait(self.timeout)
+
+    def _callback(self, event):
+        self.event.set()
+
+    def __enter__(self):
+        events.bind(self.eventName, self.handlerName, self._callback)
+        return self
+
+    def __exit__(self, *args):
+        events.unbind(self.eventName, self.handlerName)
+
+
 class DicomTestCase(base.TestCase):
-    def _waitForHandler(self, eventName, timeout=5):
-        """
-        Wait for plugin's data.process event handler to complete.
-        :param eventName: the name of the event to wait for
-        :param timeout: the time in seconds after which to stop waiting
-        :returns: True if event occurred before timeout
-        """
-        event = threading.Event()
-
-        def HandlerCallback(handlerEvent):
-            event.set()
-
-        handled = False
-        with events.bound(eventName, 'waitForHandler', HandlerCallback):
-            handled = event.wait(timeout)
-        return handled
-
     def setUp(self):
         base.TestCase.setUp(self)
 
@@ -90,19 +105,20 @@ class DicomTestCase(base.TestCase):
             self.dcmData = file.read()
         self.assertTrue(self.dcmData)
 
-        self.dcmFile = self.model('upload').uploadFromFile(
-            obj=six.BytesIO(self.dcmData),
-            size=len(self.dcmData),
-            name='My DICOM file',
-            parentType='folder',
-            parent=self.publicFolder,
-            user=self.user,
-            mimeType='dicom'
-        )
+        with EventHelper('dicom.handler.success') as helper:
+            self.dcmFile = self.model('upload').uploadFromFile(
+                obj=six.BytesIO(self.dcmData),
+                size=len(self.dcmData),
+                name='My DICOM file',
+                parentType='folder',
+                parent=self.publicFolder,
+                user=self.user,
+                mimeType='dicom'
+            )
 
-        # Wait for handler success event
-        handled = self._waitForHandler(eventName='dicom.handler.success')
-        self.assertTrue(handled)
+            # Wait for handler success event
+            handled = helper.wait()
+            self.assertTrue(handled)
 
         # Verify metadata
         self.dcmItem = self.model('item').load(
@@ -136,15 +152,16 @@ class DicomTestCase(base.TestCase):
     def testDICOMHandlerInvalid(self):
         # Upload non-DICOM data
         data = b'data'
-        self.dcmFile = self.model('upload').uploadFromFile(
-            obj=six.BytesIO(data),
-            size=len(data),
-            name='data',
-            parentType='folder',
-            parent=self.publicFolder,
-            user=self.user
-        )
+        with EventHelper('dicom.handler.ignore') as helper:
+            self.dcmFile = self.model('upload').uploadFromFile(
+                obj=six.BytesIO(data),
+                size=len(data),
+                name='data',
+                parentType='folder',
+                parent=self.publicFolder,
+                user=self.user
+            )
 
-        # Wait for handler ignore event
-        handled = self._waitForHandler(eventName='dicom.handler.ignore')
-        self.assertTrue(handled)
+            # Wait for handler ignore event
+            handled = helper.wait()
+            self.assertTrue(handled)
