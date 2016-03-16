@@ -24,6 +24,8 @@ import os
 import shutil
 import six
 import time
+from six import StringIO
+import hashlib
 
 from girder import config, events
 from tests import base
@@ -313,3 +315,34 @@ class PythonClientTestCase(base.TestCase):
                             eventList[2]['file']['_id'])
         self.assertEqual(eventList[1]['file']['_id'],
                          eventList[2]['file']['_id'])
+
+    def testUploadContent(self):
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        # Register a user
+        user = client.createResource('user', params={
+            'firstName': 'First',
+            'lastName': 'Last',
+            'login': 'mylogin',
+            'password': 'password',
+            'email': 'email@email.com'
+        })
+        client.authenticate('mylogin', 'password')
+        folders = client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public')
+        publicFolder = folders[0]
+
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+        file = client.uploadFile(publicFolder['_id'], open(path), name='test1',
+                                 size=size, parentType='folder',
+                                 reference='test1_reference')
+
+        contents = 'you\'ve changed!'
+        size = len(contents)
+        stream = StringIO(contents)
+        client.uploadFileContents(file['_id'], stream, size)
+
+        file = self.model('file').load(file['_id'], force=True)
+        sha = hashlib.sha512()
+        sha.update(contents.encode('utf8'))
+        self.assertEqual(file['sha512'], sha.hexdigest())
