@@ -1469,7 +1469,8 @@ class GirderClientModule(GirderClient):
         # Fail if plugins are passed in that are not available
         if not plugins <= set(available_plugins["all"].keys()):
             self.fail("%s, not available!" %
-                      ",".join(list(plugins - set(available_plugins["all"].keys()))))
+                      ",".join(list(plugins -
+                                    set(available_plugins["all"].keys()))))
 
         # If we're trying to ensure plugins are present
         if self.module.params['state'] == 'present':
