@@ -334,14 +334,14 @@ class ResourceTestCase(base.TestCase):
 
     def testGetResourceById(self):
         self._createFiles()
-        resp = self.request(path='/resource/{}'.format(self.admin['_id']),
+        resp = self.request(path='/resource/%s' % self.admin['_id'],
                             method='GET', user=self.admin,
                             params={'type': 'user'})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
         self.assertEqual(resp.json['email'], 'good@email.com')
         # Get a file via this method
-        resp = self.request(path='/resource/{}'.format(self.file1['_id']),
+        resp = self.request(path='/resource/%s' % self.file1['_id'],
                             method='GET', user=self.admin,
                             params={'type': 'file'})
         self.assertStatusOk(resp)
@@ -442,7 +442,7 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             })
         self.assertStatusOk(resp)
-        resp = self.request(path='/item/{}'.format(self.items[0]['_id']),
+        resp = self.request(path='/item/%s' % self.items[0]['_id'],
                             method='GET', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['folderId'],
@@ -478,13 +478,13 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             })
         self.assertStatusOk(resp)
-        resp = self.request(path='/item/{}'.format(self.items[0]['_id']),
+        resp = self.request(path='/item/%s' % self.items[0]['_id'],
                             method='GET', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['folderId'],
                          str(self.adminPrivateFolder['_id']))
         resp = self.request(
-            path='/folder/{}'.format(self.adminSubFolder['_id']), method='GET',
+            path='/folder/%s' % self.adminSubFolder['_id'], method='GET',
             user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['parentId'],
@@ -511,7 +511,7 @@ class ResourceTestCase(base.TestCase):
             })
         self.assertStatusOk(resp)
         resp = self.request(
-            path='/folder/{}'.format(self.adminSubFolder['_id']), method='GET',
+            path='/folder/%s' % self.adminSubFolder['_id'], method='GET',
             user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['parentCollection'], 'user')

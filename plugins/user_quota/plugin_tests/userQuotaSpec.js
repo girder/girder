@@ -1,25 +1,17 @@
 /* globals girderTest, runs, waitsFor, expect, describe, it */
 
-$(function () {
-    var app;
-    /* Include the built version of the our templates.  This means that grunt
-     * must be run to generate these before the test. */
-    girderTest.addCoveredScripts([
-        '/static/built/plugins/user_quota/templates.js',
-        '/plugins/user_quota/web_client/js/userQuota.js',
-        '/plugins/user_quota/web_client/js/configView.js'
-    ]);
-    girderTest.importStylesheet(
-        '/static/built/plugins/user_quota/plugin.min.css'
-    );
+/* Include the built version of the our templates.  This means that grunt
+ * must be run to generate these before the test. */
+girderTest.addCoveredScripts([
+    '/static/built/plugins/user_quota/templates.js',
+    '/plugins/user_quota/web_client/js/userQuota.js',
+    '/plugins/user_quota/web_client/js/configView.js'
+]);
+girderTest.importStylesheet(
+    '/static/built/plugins/user_quota/plugin.min.css'
+);
 
-    girder.events.trigger('g:appload.before');
-    app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 /* Go to the collections page.  If a collection is specified, go to that
  * collection's page.

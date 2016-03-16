@@ -1,21 +1,12 @@
-$(function () {
-    /* Include the built version of the our templates.  This means that grunt
-    * must be run to generate these before the test. */
-    girderTest.addCoveredScripts([
-        '/static/built/plugins/geospatial/templates.js',
-        '/plugins/geospatial/web_client/js/ItemWidget.js'
-    ]);
-    girderTest.importStylesheet(
-        '/static/built/plugins/geospatial/plugin.min.css'
-    );
 
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.addCoveredScripts([
+    '/static/built/plugins/geospatial/templates.js',
+    '/plugins/geospatial/web_client/js/ItemWidget.js'
+]);
+girderTest.importStylesheet(
+    '/static/built/plugins/geospatial/plugin.min.css'
+);
+girderTest.startApp();
 
 describe('a test for the geospatial plugin', function () {
     it('creates the admin user', girderTest.createUser('geospatial',

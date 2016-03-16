@@ -31,6 +31,7 @@ girder.views.AccessWidget = girder.View.extend({
 
         this.searchWidget = new girder.views.SearchFieldWidget({
             placeholder: 'Start typing a name...',
+            modes: ['prefix', 'text'],
             types: ['group', 'user'],
             parentView: this
         }).on('g:resultClicked', this.addEntry, this);
@@ -66,8 +67,8 @@ girder.views.AccessWidget = girder.View.extend({
             };
         }
 
-        var template = this.modal ? girder.templates.accessEditor :
-                                    girder.templates.accessEditorNonModal;
+        var template = this.modal ? girder.templates.accessEditor
+                                  : girder.templates.accessEditorNonModal;
         this.$el.html(template({
             model: this.model,
             modelType: this.modelType,

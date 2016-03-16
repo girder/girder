@@ -18,15 +18,6 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-.. note:: One of the development indirect requirements, `httpretty`, can fail to
-   install if under certain system locales (see the `error report
-   <https://github.com/gabrielfalcao/HTTPretty/issues/108>`_).  Changing to any
-   UTF8 locale works around this problem.  For instance, on Ubuntu, you can
-   change your system locale using the commands: ::
-
-        locale-gen en_US.UTF-8
-        export LANG=en_US.utf8
-
 During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 
@@ -223,6 +214,20 @@ and then run in your build directory ::
 
 before running your tests.
 
+An example of a very simple client side test would be as follows ::
+
+    add_web_client_test(some_client_test "someSpec.js" PLUGIN "my_plugin")
+
+The ``PLUGIN`` argument indicates that "my_plugin" is the owner of ``some_client_test``, at the time of the test my_plugin and all of its dependencies will be loaded.
+
+If additional plugins are needed for a specific test, that can be achieved using the ``ENABLEDPLUGINS`` argument ::
+
+    add_web_client_test(another_client_test "anotherSpec.js" PLUGIN "my_plugin" ENABLEDPLUGINS "my_plugin" "jobs")
+
+Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded, along with their dependencies at the time of ``another_client_test``.
+
+.. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
+
 You will find many useful methods for client side testing in the ``girderTest`` object
 defined at ``/clients/web/test/testUtils.js``.
 
@@ -255,16 +260,18 @@ Girder's standard procedure is to use a tool like
 third-party library requirements on a quarterly basis (typically near the dates
 of the solstices and equinoxes). Library packages should generally be upgraded
 to the latest released version, except when:
-1. Doing so would introduce any new unfixable bugs or regressions.
-2. Other closely-affiliated projects (e.g.
-   `Romanesco <https://romanesco.readthedocs.org/>`_ use the same library *and*
-   the other project cannot also feasibly be upgraded simultaneously.
-3. The library has undergone a major API change, and development resources do
-   not permit updating Girder accordingly *or* Girder exposes parts
-   of the library as members of Girder's API surface (e.g. CherryPy) and
-   upgrading would cause incompatible API changes to be exposed. In this
-   case, the library should still be upgraded to the highest non-breaking
-   version that is available at the time.
+
+* Doing so would introduce any new unfixable bugs or regressions.
+* Other closely-affiliated projects (e.g.
+  `Romanesco <https://romanesco.readthedocs.org/>`_,
+  `Minerva <https://minervadocs.readthedocs.org/>`_) use the same library *and*
+  the other project cannot also feasibly be upgraded simultaneously.
+* The library has undergone a major API change, and development resources do
+  not permit updating Girder accordingly *or* Girder exposes parts of the
+  library as members of Girder's API surface (e.g. CherryPy) and upgrading
+  would cause incompatible API changes to be exposed. In this case, the library
+  should still be upgraded to the highest non-breaking version that is
+  available at the time.
 
 .. note:: In the event that a security vulnerability is discovered in a
    third-party library used by Girder, the library *must* be upgraded to patch

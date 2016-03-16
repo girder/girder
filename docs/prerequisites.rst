@@ -62,7 +62,7 @@ Reload the package database and install MongoDB server using APT: ::
 
 Enable the Node.js APT repository: ::
 
-    curl -sL https://deb.nodesource.com/setup | sudo bash -
+    curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 
 Install Node.js and NPM using APT: ::
 

@@ -49,6 +49,22 @@ girder.views.FileListWidget = girder.View.extend({
         }
     },
 
+    initialize: function (settings) {
+        this.upload = settings.upload;
+        this.fileEdit = settings.fileEdit;
+        this.checked = [];
+        this.collection = new girder.collections.FileCollection();
+        this.collection.altUrl = 'item/' +
+            (settings.itemId || settings.item.get('_id')) + '/files';
+        this.collection.append = true; // Append, don't replace pages
+        this.collection.on('g:changed', function () {
+            this.trigger('g:changed');
+            this.render();
+        }, this).fetch();
+
+        this.parentItem = settings.item;
+    },
+
     editFileDialog: function (cid) {
         this.editFileWidget = new girder.views.EditFileWidget({
             el: $('#g-dialog-container'),
@@ -77,26 +93,10 @@ girder.views.FileListWidget = girder.View.extend({
         }, this).render();
     },
 
-    initialize: function (settings) {
-        this.upload = settings.upload;
-        this.fileEdit = settings.fileEdit;
-        this.checked = [];
-        this.collection = new girder.collections.FileCollection();
-        this.collection.altUrl = 'item/' +
-            (settings.itemId || settings.item.get('_id')) + '/files';
-        this.collection.append = true; // Append, don't replace pages
-        this.collection.on('g:changed', function () {
-            this.trigger('g:changed');
-            this.render();
-        }, this).fetch();
-
-        this.parentItem = settings.item;
-    },
-
     render: function () {
         this.checked = [];
         this.$el.html(girder.templates.fileList({
-            files: this.collection.models,
+            files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             girder: girder,
             parentItem: this.parentItem

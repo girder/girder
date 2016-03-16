@@ -29,7 +29,7 @@ from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
 
 from hashlib import sha512
-from . import sha512_state
+from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 
@@ -40,7 +40,7 @@ CHUNK_SIZE = 2097152
 
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
-    This assetstore type stores files within mongoDB using the GridFS data
+    This assetstore type stores files within MongoDB using the GridFS data
     model.
     """
 
@@ -102,7 +102,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Creates a UUID that will be used to uniquely link each chunk to
         """
         upload['chunkUuid'] = uuid.uuid4().hex
-        upload['sha512state'] = sha512_state.serializeHex(sha512())
+        upload['sha512state'] = hash_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -120,7 +120,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = sha512_state.restoreHex(upload['sha512state'])
+        checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
 
         # This bit of code will only do anything if there is a discrepancy
         # between the received count of the upload record and the length of
@@ -181,7 +181,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise
 
         # Persist the internal state of the checksum
-        upload['sha512state'] = sha512_state.serializeHex(checksum)
+        upload['sha512state'] = hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
@@ -207,7 +207,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Grab the final state of the checksum and set it on the file object,
         and write the generated UUID into the file itself.
         """
-        hash = sha512_state.restoreHex(upload['sha512state']).hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'],
+                                     'sha512').hexdigest()
 
         file['sha512'] = hash
         file['chunkUuid'] = upload['chunkUuid']
@@ -216,7 +217,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     **kwargs):
+                     contentDisposition=None, **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         the database to the response.
@@ -226,7 +227,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if headers:
             cherrypy.response.headers['Accept-Ranges'] = 'bytes'
-            self.setContentHeaders(file, offset, endByte)
+            self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         # If the file is empty, we stop here
         if endByte - offset <= 0:

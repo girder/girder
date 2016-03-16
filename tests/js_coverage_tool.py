@@ -50,19 +50,23 @@ def combine_report(args):
     report them into the desired output format(s).
     """
     if not os.path.exists(args.coverage_dir):
-        raise Exception('Coverage directory {} does not exist.'.format(
-            args.coverage_dir))
+        raise Exception('Coverage directory %s does not exist.' %
+                        args.coverage_dir)
 
     # Step 1: Read and combine intermediate reports
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
     currentSource = None
     files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
+
     for file in files:
+        skip = False
         with open(file) as f:
             for line in f:
                 if line[0] == 'F':
-                    currentSource = combined[line[1:].strip()]
-                elif line[0] == 'L':
+                    path = line[1:].strip()
+                    currentSource = combined[path]
+                    skip = args.skipCore and path.startswith('clients')
+                elif not skip and line[0] == 'L':
                     lineNum, hit = [int(x) for x in line[1:].split()]
                     currentSource[lineNum] |= bool(hit)
 
@@ -89,13 +93,25 @@ def combine_report(args):
     report(args, combined, stats)
 
 
+def safe_divide(numerator, denominator):
+    """
+    Return numerator / denominator or 0 if denominator <= 0.
+    """
+    numerator = float(numerator)
+    denominator = float(denominator)
+    if denominator > 0:
+        return numerator / denominator
+    else:
+        return 0
+
+
 def report(args, combined, stats):
     """
     Generate a cobertura-compliant XML coverage report in the current working
     directory.
     """
-    percent = float(stats['totalHits']) / float(stats['totalSloc']) * 100
-    print('Overall total: {} / {} ({:.2f}%)'.format(
+    percent = safe_divide(stats['totalHits'], stats['totalSloc']) * 100
+    print('Overall total: %s / %s (%.2f%%)' % (
         stats['totalHits'], stats['totalSloc'], percent))
 
     coverageEl = ET.Element('coverage', {
@@ -114,8 +130,8 @@ def report(args, combined, stats):
     classesEl = ET.SubElement(packageEl, 'classes')
 
     for file, data in six.viewitems(combined):
-        lineRate = (float(stats['files'][file]['hits']) /
-                    float(stats['files'][file]['sloc']))
+        lineRate = safe_divide(stats['files'][file]['hits'],
+                               stats['files'][file]['sloc'])
         classEl = ET.SubElement(classesEl, 'class', {
             'branch-rate': '0',
             'complexity': '0',
@@ -134,7 +150,7 @@ def report(args, combined, stats):
     tree = ET.ElementTree(coverageEl)
     tree.write('js_coverage.xml')
     if percent < args.threshold:
-        print('FAIL: Coverage below threshold ({}%)'.format(args.threshold))
+        print('FAIL: Coverage below threshold (%s%%)' % args.threshold)
         sys.exit(1)
 
 if __name__ == '__main__':
@@ -144,6 +160,13 @@ if __name__ == '__main__':
                         'coverage level, as a percent.', default=0)
     parser.add_argument('--source', help='The root directory of the source '
                         'repository')
+    parser.add_argument(
+        '--include-core', dest='skipCore', help='Include core JS files in '
+        'the coverage calculations', action='store_false')
+    parser.add_argument(
+        '--skip-core', dest='skipCore', help='Skip core JS files in the '
+        'coverage calculations', action='store_true')
+    parser.set_defaults(skipCore=True)
     parser.add_argument('task', help='The task to perform.',
                         choices=['reset', 'combine_report',
                                  'combine_report_skip'])

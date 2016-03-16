@@ -232,22 +232,6 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Delete the item itself
         Model.remove(self, item)
 
-    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None):
-        """
-        Custom override of Model.textSearch to filter items by permissions
-        of the parent folder.
-        """
-        if not filters:
-            filters = {}
-
-        # get the non-filtered search result from Model.textSearch
-        cursor = Model.textSearch(self, query=query, sort=sort,
-                                  filters=filters)
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
-
     def createItem(self, name, creator, folder, description='',
                    reuseExisting=False):
         """
@@ -314,9 +298,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
     def setMetadata(self, item, metadata):
         """
-        Set metadata on an item.  A rest exception is thrown in the cases where
-        the metadata JSON object is badly formed, or if any of the metadata
-        keys contains a period ('.').
+        Set metadata on an item.  A `ValidationException` is thrown in the
+        cases where the metadata JSON object is badly formed, or if any of the
+        metadata keys contains a period ('.').
 
         :param item: The item to set the metadata on.
         :type item: dict
@@ -482,7 +466,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                     progress.update(message='Removing orphaned items')
                 for item in lostItems:
                     setResponseTimeLimit()
-                    self.collection.remove({'_id': item['_id']})
+                    self.collection.delete_one({'_id': item['_id']})
                     if progress is not None:
                         itemsLeft -= 1
                         progress.update(increment=1, message='Removing '

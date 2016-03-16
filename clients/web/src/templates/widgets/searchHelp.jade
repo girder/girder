@@ -1,15 +1,20 @@
-p.g-search-help-text.
-  By default, search results will be returned if they contain any of the terms
-  of the search. If you wish to search for documents containing all of the
-  terms, place them in quotes. Examples:
+if mode === 'prefix'
+  .g-search-help-text.
+    You are searching by prefix. Start typing the first letters of whatever you
+    are searching for.
+else if mode === 'text'
+  p.g-search-help-text.
+    By default, search results will be returned if they contain any of the terms
+    of the search. If you wish to search for documents containing all of the
+    terms, place them in quotes. Examples:
 
-ul.g-search-examples-list
-  li
-    code cat dog
-    |  returns documents containing either "cat" or "dog".
-  li
-    code "cat" "dog"
-    |  returns documents containing both "cat" and "dog".
-  li
-    code "cat dog"
-    |  returns documents containing the phrase "cat dog".
+  ul.g-search-examples-list
+    li
+      code cat dog
+      |  returns documents containing either "cat" or "dog".
+    li
+      code "cat" "dog"
+      |  returns documents containing both "cat" and "dog".
+    li
+      code "cat dog"
+      |  returns documents containing the phrase "cat dog".

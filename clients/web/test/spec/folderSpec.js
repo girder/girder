@@ -2,16 +2,7 @@
  * Start the girder backbone app.
  */
 /* globals waitsFor, runs, girderTest, expect, describe, it */
-
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    app = app;
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 /* Show the folder edit dialog and click a button.
  * :param button: the jquery selector for the button.

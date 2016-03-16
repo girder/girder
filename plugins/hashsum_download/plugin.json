@@ -1,0 +1,5 @@
+{
+"name": "Hashsum download",
+"description": "Allows download of a file by its hashsum.",
+"version": "0.1.0"
+}

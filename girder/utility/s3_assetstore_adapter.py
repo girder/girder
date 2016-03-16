@@ -144,8 +144,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 conn.get_bucket(bucket_name=doc['bucket'], validate=True)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to connect to bucket "{}".'
-                                          .format(doc['bucket']), 'bucket')
+                raise ValidationException('Unable to connect to bucket "%s".' %
+                                          doc['bucket'], 'bucket')
         else:
             try:
                 bucket = conn.get_bucket(bucket_name=doc['bucket'],
@@ -156,8 +156,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 testKey.set_contents_from_string('')
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to write into bucket "{}".'
-                                          .format(doc['bucket']), 'bucket')
+                raise ValidationException('Unable to write into bucket "%s".' %
+                                          doc['bucket'], 'bucket')
 
         return doc
 
@@ -174,8 +174,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def _getRequestHeaders(self, upload):
         return {
-            'Content-Disposition': 'attachment; filename="{}"'
-                                   .format(upload['name']),
+            'Content-Disposition': 'attachment; filename="%s"' % upload['name'],
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),
@@ -192,7 +191,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         uid = uuid.uuid4().hex
         key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
                        uid[0:2], uid[2:4], uid)))
-        path = '/{}/{}'.format(self.assetstore['bucket'], key)
+        path = '/%s/%s' % (self.assetstore['bucket'], key)
         headers = self._getRequestHeaders(upload)
 
         chunked = upload['size'] > self.CHUNK_LEN
@@ -379,7 +378,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     **kwargs):
+                     contentDisposition=None, **kwargs):
         """
         When downloading a single file with HTTP, we redirect to S3. Otherwise,
         e.g. when downloading as part of a zip stream, we connect to S3 and
@@ -392,7 +391,16 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if headers:
             if file['size'] > 0:
-                url = urlFn(key=file['s3Key'])
+                queryParams = {}
+                if contentDisposition == 'inline':
+                    # Tell S3 to set Content-Disposition response header,
+                    # though AWS only will set the response header for
+                    # non-anonymous connections.
+                    # Girder sets the Content-Disposition for files uploaded
+                    # to S3 to be 'attachment; filename="{}"' by default.
+                    queryParams['response-content-disposition'] = \
+                        'inline; filename="%s"' % file['name']
+                url = urlFn(key=file['s3Key'], queryParams=queryParams)
                 raise cherrypy.HTTPRedirect(url)
             else:
                 self.setContentHeaders(file, 0, 0)
@@ -640,11 +648,15 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return url
 
-    def _anonDownloadUrl(self, key):
+    def _anonDownloadUrl(self, key, **kwargs):
         """
         Generate and return an anonymous download URL for the given key. This
         is necessary as a workaround for a limitation of boto's generate_url,
         documented here: https://github.com/boto/boto/issues/1540
+
+        S3 GET Requests lack the ability to specify response headers for
+        anonymous authentication, and there is no way to sign anonymous download
+        URLs, so we cannot display public anonymous resources inline.
         """
         if self.assetstore['service']:
             return '/'.join((

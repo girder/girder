@@ -1,5 +1,4 @@
 (function () {
-
     /**
      * This view shows a single user's page.
      */
@@ -129,5 +128,4 @@
             itemCreate: params.dialog === 'itemcreate'
         });
     });
-
 }());

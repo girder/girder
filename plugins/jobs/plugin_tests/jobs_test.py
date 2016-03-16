@@ -21,9 +21,11 @@ import time
 
 from tests import base
 from girder import events
+from girder.models.model_base import ValidationException
 
 
 JobStatus = None
+
 
 def setUpModule():
     base.enabledPlugins.append('jobs')
@@ -42,11 +44,12 @@ class JobsTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [self.model('user').createUser(
-            'usr' + str(n), 'passwd', 'tst', 'usr', 'u{}@u.com'.format(n))
+            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@u.com' % n)
             for n in range(3)]
 
     def testJobs(self):
         self.job = None
+
         def schedule(event):
             self.job = event.info
             if self.job['handler'] == 'my_handler':
@@ -71,7 +74,7 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(self.job['status'], JobStatus.RUNNING)
 
         # Since the job is not public, user 2 should not have access
-        path = '/job/{}'.format(job['_id'])
+        path = '/job/%s' % job['_id']
         resp = self.request(path, user=self.users[2])
         self.assertStatus(resp, 403)
         resp = self.request(path, user=self.users[2], method='PUT')
@@ -168,14 +171,14 @@ class JobsTestCase(base.TestCase):
         job['_some_other_field'] = 'foo'
         job = self.model('job', 'jobs').save(job)
 
-        resp = self.request('/job/{}'.format(job['_id']))
+        resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('created' in resp.json)
         self.assertTrue('_some_other_field' not in resp.json)
         self.assertTrue('kwargs' not in resp.json)
         self.assertTrue('args' not in resp.json)
 
-        resp = self.request('/job/{}'.format(job['_id']), user=self.users[0])
+        resp = self.request('/job/%s' % job['_id'], user=self.users[0])
         self.assertTrue('kwargs' in resp.json)
         self.assertTrue('args' in resp.json)
 
@@ -188,7 +191,7 @@ class JobsTestCase(base.TestCase):
 
         events.bind('jobs.filter', 'test', filterJob)
 
-        resp = self.request('/job/{}'.format(job['_id']))
+        resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_some_other_field'], 'bar')
         self.assertTrue('created' not in resp.json)
@@ -313,3 +316,20 @@ class JobsTestCase(base.TestCase):
 
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertEqual(job['log'], 'job failed')
+
+    def testValidateCustomStatus(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+
+        def validateStatus(event):
+            if event.info == 1234:
+                event.preventDefault().addResponse(True)
+
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=1234)  # Should fail
+
+        with events.bound('jobs.status.validate', 'test', validateStatus):
+            jobModel.updateJob(job, status=1234)  # Should work
+
+            with self.assertRaises(ValidationException):
+                jobModel.updateJob(job, status=4321)  # Should fail

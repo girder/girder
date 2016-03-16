@@ -18,7 +18,6 @@
  * Define tasks related to loading, configuring, and building plugins.
  */
 module.exports = function (grunt) {
-
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
@@ -58,9 +57,11 @@ module.exports = function (grunt) {
                 'plugin-install': {}
             };
 
+        // create the plugin's build directory under the web-root
+        grunt.file.mkdir(staticPath);
+
         cfg.shell[pluginTarget] = {
             command: function () {
-
                 // do nothing if it has no package.json file
                 if (!fs.existsSync(packageJson)) {
                     grunt.verbose.writeln('Skipping npm install');
@@ -122,7 +123,7 @@ module.exports = function (grunt) {
         cfg.copy[pluginTarget] = {
             files: [{
                 expand: true,
-                cwd: pluginPath,
+                cwd: pluginPath + '/web_client',
                 src: ['extra/**'],
                 dest: staticPath
             }]
@@ -153,17 +154,12 @@ module.exports = function (grunt) {
         grunt.config.merge(cfg);
     };
 
-    grunt.registerTask('plugins-builddir', 'Create the plugins build dir', function () {
-        require('mkdirp').sync(grunt.config.get('staticDir') + '/built/plugins');
-    });
-
     grunt.config.merge({
         default: {
             plugin: {}
         },
         init: {
-            'plugin-install': {},
-            'plugins-builddir': {}
+            'plugin-install': {}
         }
     });
 
@@ -181,14 +177,23 @@ module.exports = function (grunt) {
                 'Found plugin: ' + plugin
             ).bold);
 
-            // merge in configuration for the main plugin build tasks
-            configurePlugin(plugin);
-
             if (fs.existsSync(json)) {
                 config = grunt.file.readYAML(json);
             }
             if (fs.existsSync(yml)) {
                 config = grunt.file.readYAML(yml);
+            }
+
+            var doAutoBuild = (
+               !_.isObject(config.grunt) ||
+                _.isUndefined(config.grunt.autobuild) ||
+                _.isNull(config.grunt.autobuild) ||
+              !!config.grunt.autobuild
+            );
+
+            if (doAutoBuild) {
+                // merge in configuration for the main plugin build tasks
+                configurePlugin(plugin);
             }
 
             if (config.grunt) {
@@ -197,9 +202,21 @@ module.exports = function (grunt) {
                 ).bold);
 
                 // install any additional npm packages during init
-                npm = _(config.grunt.dependencies || []).map(function (version, dep) {
-                    return dep + '@' + version;
-                });
+                npm = (
+                    _(config.grunt.dependencies || [])
+                        .map(function (version, dep) {
+                            // escape any periods in the dependency version so
+                            // that grunt.config.set does not descend on each
+                            // version number component
+                            var escapedVersion = version.replace(/\./g, '\\.');
+
+                            return [
+                                dep,
+                                escapedVersion
+                            ].join('@');
+                        })
+                );
+
                 if (npm.length) {
                     grunt.config.set(
                         'init.npm-install:' + npm.join(':'), {}
@@ -216,7 +233,7 @@ module.exports = function (grunt) {
                     // otherwise a default task will most likely fail later on
                     // write out a warning to help the developers debug errors
                     grunt.log.writeln((
-                        'Failed to load ' +  plugin + '/' + (config.grunt.file || 'Gruntfile.js') + ':'
+                        'Failed to load ' + plugin + '/' + (config.grunt.file || 'Gruntfile.js') + ':'
                     ).yellow);
                     grunt.log.writeln('>>> ' + e.toString().split('\n').join('\n>>> ').yellow);
                 }

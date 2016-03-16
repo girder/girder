@@ -9,6 +9,9 @@ their own plugins should see the :ref:`Plugin Development <plugindevelopment>` s
 a listing and brief documentation of some of Girder's standard plugins that come
 pre-packaged with the application.
 
+
+.. _jobsplugin:
+
 Jobs
 -----------
 
@@ -39,22 +42,33 @@ plugins that are in charge of actually scheduling a job for execution should the
 call ``scheduleJob``, which triggers the ``jobs.schedule`` event with the job
 document as the event info.
 
-For controlling what fields of a job are visible in the REST API, downstream plugins
-should bind to the ``jobs.filter`` event, which receives a dictionary with ``job``
-and ``user`` keys as its info. They can modify any existing fields or the job
-document as needed, and can also expose or redact fields. To make some fields
-visible while redacting others, you can use the event response with ``exposeFields``
-and/or ``removeFields`` keys, e.g.
+The jobs plugin contains several built-in status codes within the
+``girder.plugins.jobs.constants.JobStatus`` namespace. These codes represent
+various states a job can be in, which are:
+
+- INACTIVE (0)
+- QUEUED (1)
+- RUNNING (2)
+- SUCCESS (3)
+- ERROR (4)
+- CANCELED (5)
+
+Downstream plugins that wish to expose their own custom job statuses must hook
+into the ``jobs.status.validate`` event for any new valid status value, which by convention
+must be integer values. To validate a status code, the default must be prevented
+on the event, and the handler must add a ``True`` response to the event. For example, a
+downstream plugin with a custom job status with the value *1234* would add the following hook:
 
 .. code-block:: python
 
-  def filterJob(event):
-      event.addResponse({
-          'exposeFields': ['_some_other_field'],
-          'removeFields': ['created']
-      })
+    from girder import events
 
-  events.bind('jobs.filter', 'a_downstream_plugin', filterJob)
+    def validateJobStatus(event):
+        if event.info == 1234:
+            event.preventDefault().addResponse(True)
+
+    def load(info):
+        events.bind('jobs.status.validate', 'my_plugin', validateJobStatus):
 
 
 Geospatial
@@ -284,3 +298,27 @@ being downloaded, but still must reside in the same location on HDFS.
 Duplicates (that is, pre-existing files with the same name in the same location
 in the Girder hierarchy) will be ignored if, for instance, you import the same
 hierarchy into the same location twice in a row.
+
+Remote Worker
+-------------
+
+This plugin should be enabled if you want to use the Girder worker distributed
+processing engine to execute batch jobs initiated by the server. This is useful
+for deploying service architectures that involve both data management and
+scalable offline processing. This plugin provides utilities for sending generic tasks
+to worker nodes for execution. The worker itself uses
+`celery <http://www.celeryproject.org/>`_ to manage the distribution of tasks,
+and builds in some useful Girder integrations on top of celery. Namely,
+
+* **Data management**: This plugin provides python functions for building task
+  input and output specs that refer to data stored on the Girder server, making
+  it easy to run processing on specific folders, items, or files. The worker itself
+  knows how to authenticate and download data from the server, and upload results
+  back to it.
+* **Job management**: This plugin depends on the :ref:`Jobs plugin <jobsplugin>`.
+  Tasks are specified as python dictionaries inside of a job document and then
+  scheduled via celery. The worker automatically updates the status of jobs
+  as they are received and executed so that they can be monitored via the jobs
+  UI in real time. If the script prints any logging information, it is automatically
+  collected in the job log on the server, and if the script raises an exception,
+  the job status is automatically set to an error state.

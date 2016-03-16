@@ -17,5 +17,7 @@
 add_python_test(geospatial PLUGIN geospatial)
 add_python_style_test(python_static_analysis_geospatial
                       "${PROJECT_SOURCE_DIR}/plugins/geospatial/server")
+add_python_style_test(python_static_analysis_geospatial_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/geospatial/plugin_tests")
 
 add_web_client_test(geospatial "${PROJECT_SOURCE_DIR}/plugins/geospatial/plugin_tests/geospatialSpec.js" PLUGIN geospatial)

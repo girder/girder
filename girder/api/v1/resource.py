@@ -20,7 +20,7 @@
 import cherrypy
 import json
 
-from ..describe import Description
+from ..describe import Description, describeRoute
 from ..rest import Resource as BaseResource, RestException
 from girder.constants import AccessType
 from girder.api import access
@@ -28,6 +28,9 @@ from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
+
+# Plugins can modify this set to allow other types to be searched
+allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -47,59 +50,60 @@ class Resource(BaseResource):
         self.route('DELETE', (), self.delete)
 
     @access.public
+    @describeRoute(
+        Description('Search for resources in the system.')
+        .param('q', 'The search query.')
+        .param('mode', 'The search mode. Can use either a text search or a '
+               'prefix-based search.', enum=('text', 'prefix'), required=False,
+               default='text')
+        .param('types', 'A JSON list of resource types to search for, e.g. '
+               "'user', 'folder', 'item'.")
+        .param('level', 'Minimum required access level.', required=False,
+               dataType='int', default=AccessType.READ)
+        .pagingParams(defaultSort=None, defaultLimit=10)
+        .errorResponse('Invalid type list format.')
+    )
     def search(self, params):
-        """
-        This endpoint can be used to text search against multiple different
-        model types at once.
-        :param q: The search query string.
-        :param types: A JSON list of types to search.
-        :type types: str
-        :param limit: The result limit per type. Defaults to 10.
-        """
         self.requireParams(('q', 'types'), params)
+
+        mode = params.get('mode', 'text')
+        level = AccessType.validate(params.get('level', AccessType.READ))
         user = self.getCurrentUser()
 
         limit = int(params.get('limit', 10))
         offset = int(params.get('offset', 0))
 
-        results = {}
+        if mode == 'text':
+            method = 'textSearch'
+        elif mode == 'prefix':
+            method = 'prefixSearch'
+        else:
+            raise RestException(
+                'The search mode must be either "text" or "prefix".')
+
         try:
             types = json.loads(params['types'])
         except ValueError:
             raise RestException('The types parameter must be JSON.')
 
-        if 'item' in types:
-            results['item'] = [
-                self.model('item').filter(item) for item in
-                self.model('item').textSearch(
-                    params['q'], user=user, limit=limit, offset=offset)]
-        if 'collection' in types:
-            results['collection'] = [
-                self.model('collection').filter(c, user) for c in
-                self.model('collection').textSearch(
-                    params['q'], user=user, limit=limit, offset=offset)]
-        if 'folder' in types:
-            results['folder'] = [
-                self.model('folder').filter(f, user) for f in
-                self.model('folder').textSearch(
-                    params['q'], user=user, limit=limit, offset=offset)]
-        if 'group' in types:
-            results['group'] = [
-                self.model('group').filter(g, user) for g in
-                self.model('group').textSearch(
-                    params['q'], user=user, limit=limit, offset=offset)]
-        if 'user' in types:
-            results['user'] = [
-                self.model('user').filter(u, user) for u in
-                self.model('user').textSearch(
-                    params['q'], user=user, limit=limit, offset=offset)]
+        results = {}
+        for modelName in types:
+            if modelName not in allowedSearchTypes:
+                continue
+
+            if '.' in modelName:
+                name, plugin = modelName.rsplit('.', 1)
+                model = self.model(name, plugin)
+            else:
+                model = self.model(modelName)
+
+            results[modelName] = [
+                model.filter(d, user) for d in getattr(model, method)(
+                    query=params['q'], user=user, limit=limit, offset=offset,
+                    level=level)
+            ]
+
         return results
-    search.description = (
-        Description('Text search for resources in the system.')
-        .param('q', 'The search query.')
-        .param('types', """A JSON list of resource types to search for, e.g.
-                'user', 'folder', 'item'.""")
-        .errorResponse('Invalid type list format.'))
 
     def _validateResourceSet(self, params, allowedModels=None):
         """
@@ -173,7 +177,7 @@ class Resource(BaseResource):
                 return candidateChild, candidateModel
 
         # if no folder, item, or file matches, give up
-        raise RestException('Child resource not found: {}({})->{}'.format(
+        raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
     def _lookUpPath(self, path, user):
@@ -186,7 +190,7 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                raise RestException('User not found: {}'.format(username))
+                raise RestException('User not found: %s' % username)
 
         elif model == 'collection':
             collectionName = pathArray[1]
@@ -194,7 +198,7 @@ class Resource(BaseResource):
 
             if parent is None:
                 raise RestException(
-                    'Collection not found: {}'.format(collectionName))
+                    'Collection not found: %s' % collectionName)
 
         else:
             raise RestException('Invalid path format')
@@ -206,17 +210,13 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            raise RestException('Path not found: {}'.format(path))
+            raise RestException('Path not found: %s' % path)
 
         result = self.model(model).filter(document, user)
         return result
 
     @access.public
-    def lookup(self, params):
-        self.requireParams('path', params)
-        return self._lookUpPath(params['path'], self.getCurrentUser())
-
-    lookup.description = (
+    @describeRoute(
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
                'The path of the resource.  The path must be an absolute Unix '
@@ -225,10 +225,32 @@ class Resource(BaseResource):
                'under a collection.')
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
-        .errorResponse('Read access was denied for the resource.', 403))
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
+    def lookup(self, params):
+        self.requireParams('path', params)
+        return self._lookUpPath(params['path'], self.getCurrentUser())
 
     @access.cookie(force=True)
     @access.public
+    @describeRoute(
+        Description('Download a set of items, folders, collections, and users '
+                    'as a zip archive.')
+        .notes('This route is also exposed via the POST method because the '
+               'request parameters can be quite long, and encoding them in the '
+               'URL (as is standard when using the GET method) can cause the '
+               'URL to become too long, which causes errors.')
+        .param('resources', 'A JSON-encoded list of types to download.  Each '
+               'type is a list of ids.  For example: {"item": [(item id 1), '
+               '(item id 2)], "folder": [(folder id 1)]}.')
+        .param('includeMetadata', 'Include any metadata in JSON files in the '
+               'archive.', required=False, dataType='boolean', default=False)
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('Read access was denied for a resource.', 403)
+    )
     def download(self, params):
         """
         Returns a generator function that will be used to stream out a zip
@@ -263,25 +285,21 @@ class Resource(BaseResource):
                             yield data
             yield zip.footer()
         return stream
-    download.description = (
-        Description('Download a set of items, folders, collections, and users '
-                    'as a zip archive.')
-        .notes('This route is also exposed via the POST method because the '
-               'request parameters can be quite long, and encoding them in the '
-               'URL (as is standard when using the GET method) can cause the '
-               'URL to become too long, which causes errors.')
-        .param('resources', 'A JSON-encoded list of types to download.  Each '
+
+    @access.user
+    @describeRoute(
+        Description('Delete a set of items, folders, or other resources.')
+        .param('resources', 'A JSON-encoded list of types to delete.  Each '
                'type is a list of ids.  For example: {"item": [(item id 1), '
-               '(item id 2)], "folder": [(folder id 1)]}.')
-        .param('includeMetadata', 'Include any metadata in JSON files in the '
-               'archive.', required=False, dataType='boolean', default=False)
+               '(item id2)], "folder": [(folder id 1)]}.')
+        .param('progress', 'Whether to record progress on this task.',
+               default=False, required=False, dataType='boolean')
         .errorResponse('Unsupport or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('Read access was denied for a resource.', 403))
-
-    @access.user
+        .errorResponse('Admin access was denied for a resource.', 403)
+    )
     def delete(self, params):
         """
         Delete a set of resources.
@@ -319,20 +337,15 @@ class Resource(BaseResource):
                         if ctx.progress['data']['current'] != current:
                             ctx.update(current=current,
                                        message='Deleted ' + kind)
-    delete.description = (
-        Description('Delete a set of items, folders, or other resources.')
-        .param('resources', 'A JSON-encoded list of types to delete.  Each '
-               'type is a list of ids.  For example: {"item": [(item id 1), '
-               '(item id2)], "folder": [(folder id 1)]}.')
-        .param('progress', 'Whether to record progress on this task.',
-               default=False, required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('Admin access was denied for a resource.', 403))
 
     @access.admin
+    @describeRoute(
+        Description('Get any resource by ID.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
     def getResource(self, id, params):
         model = self._getResourceModel(params['type'])
         if (isinstance(model, (acl_mixin.AccessControlMixin,
@@ -340,12 +353,6 @@ class Resource(BaseResource):
             user = self.getCurrentUser()
             return model.load(id=id, user=user, level=AccessType.READ)
         return model.load(id=id)
-    getResource.description = (
-        Description('Get any resource by ID.')
-        .param('id', 'The ID of the resource.', paramType='path')
-        .param('type', 'The type of the resource (item, file, etc.).')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the resource.', 403))
 
     def _prepareMoveOrCopy(self, params):
         user = self.getCurrentUser()
@@ -362,6 +369,24 @@ class Resource(BaseResource):
         return user, resources, parent, parentType, progress
 
     @access.user
+    @describeRoute(
+        Description('Move a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to move.  Each type '
+               'is a list of ids.  Only folders and items may be specified.  '
+               'For example: {"item": [(item id 1), (item id2)], "folder": '
+               '[(folder id 1)]}.')
+        .param('parentType', 'Parent type for the new parent of these '
+               'resources.')
+        .param('parentId', 'Parent ID for the new parent of these resources.')
+        .param('progress', 'Whether to record progress on this task. Default '
+               'is false.', required=False, dataType='boolean')
+        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Invalid resources format.')
+        .errorResponse('Resource type not supported.')
+        .errorResponse('No resources specified.')
+        .errorResponse('Resource not found.')
+        .errorResponse('ID was invalid.')
+    )
     def moveResources(self, params):
         """
         Move the specified resources to a new parent folder, user, or
@@ -381,7 +406,7 @@ class Resource(BaseResource):
                     if not doc:
                         raise RestException('Resource %s %s not found.' %
                                             (kind, id))
-                    ctx.update(message=u'Moving {} {}'.format(
+                    ctx.update(message='Moving %s %s' % (
                         kind, doc.get('name', '')))
                     if kind == 'item':
                         if parent['_id'] != doc['folderId']:
@@ -391,10 +416,12 @@ class Resource(BaseResource):
                                 (doc['parentCollection'], doc['parentId'])):
                             model.move(doc, parent, parentType)
                     ctx.update(increment=1)
-    moveResources.description = (
-        Description('Move a set of items and folders.')
-        .param('resources', 'A JSON-encoded list of types to move.  Each type '
-               'is a list of ids.  Only folders and items may be specified.  '
+
+    @access.user
+    @describeRoute(
+        Description('Copy a set of items and folders.')
+        .param('resources', 'A JSON-encoded list of types to copy. Each type '
+               'is a list of ids. Only folders and items may be specified.  '
                'For example: {"item": [(item id 1), (item id2)], "folder": '
                '[(folder id 1)]}.')
         .param('parentType', 'Parent type for the new parent of these '
@@ -407,9 +434,8 @@ class Resource(BaseResource):
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))
-
-    @access.user
+        .errorResponse('ID was invalid.')
+    )
     def copyResources(self, params):
         """
         Copy the specified resources to a new parent folder, user, or
@@ -434,9 +460,9 @@ class Resource(BaseResource):
                 for id in resources[kind]:
                     doc = model.load(id=id, user=user, level=AccessType.READ)
                     if not doc:
-                        raise RestException('Resource not found.  No {} with '
-                                            'id {}'.format(kind, id))
-                    ctx.update(message=u'Copying {} {}'.format(
+                        raise RestException('Resource not found. No %s with '
+                                            'id %s' % (kind, id))
+                    ctx.update(message='Copying %s %s' % (
                         kind, doc.get('name', '')))
                     if kind == 'item':
                         model.copyItem(doc, folder=parent, creator=user)
@@ -445,20 +471,3 @@ class Resource(BaseResource):
                         model.copyFolder(
                             doc, parent=parent, parentType=parentType,
                             creator=user, progress=ctx)
-    copyResources.description = (
-        Description('Copy a set of items and folders.')
-        .param('resources', 'A JSON-encoded list of types to copy.  Each type '
-               'is a list of ids.  Only folders and items may be specified.  '
-               'For example: {"item": [(item id 1), (item id2)], "folder": '
-               '[(folder id 1)]}.')
-        .param('parentType', 'Parent type for the new parent of these '
-               'resources.')
-        .param('parentId', 'Parent ID for the new parent of these resources.')
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
-        .errorResponse('Invalid resources format.')
-        .errorResponse('Resource type not supported.')
-        .errorResponse('No resources specified.')
-        .errorResponse('Resource not found.')
-        .errorResponse('ID was invalid.'))

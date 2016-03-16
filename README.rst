@@ -21,7 +21,7 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
     :target: https://girder.readthedocs.org
     :alt: Documentation Status
 
-.. |license-badge| image:: https://img.shields.io/pypi/l/girder.svg
+.. |license-badge| image:: docs/license.png
     :target: https://pypi.python.org/pypi/girder
     :alt: License
 

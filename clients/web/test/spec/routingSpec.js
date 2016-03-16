@@ -1,14 +1,7 @@
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 function _getFirstId(collection, ids, key, fetchParamsFunc) {
     var coll;
@@ -391,8 +384,6 @@ describe('Test internal javascript functions', function () {
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
-                console.log($.param(testVals[i]));
-                console.log($.param(girder.parseQueryString($.param(testVals[i]))));
                 expect($.param(girder.parseQueryString(encode))).toBe(encode);
             }
         });

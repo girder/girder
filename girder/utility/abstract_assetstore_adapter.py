@@ -125,7 +125,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         raise NotImplementedError('Must override deleteFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover
 
-    def downloadFile(self, file, offset=0, headers=True, endByte=None):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+                     contentDisposition=None):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
@@ -141,6 +142,9 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param endByte: Final byte to download. If ``None``, downloads to the
             end of the file.
         :type endByte: int or None
+        :param contentDisposition: Value for Content-Disposition response
+            header disposition-type value.
+        :type contentDisposition: str or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover
@@ -196,7 +200,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         else:
             return len(chunk)
 
-    def setContentHeaders(self, file, offset, endByte):
+    def setContentHeaders(self, file, offset, endByte, contentDisposition=None):
         """
         Sets the Content-Length, Content-Disposition, Content-Type, and also
         the Content-Range header if this is a partial download.
@@ -206,11 +210,19 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type offset: int
         :param endByte: The end byte of the download (non-inclusive).
         :type endByte: int
+        :param contentDisposition: Content-Disposition response header
+            disposition-type value, if None, Content-Disposition will
+            be set to 'attachment; filename=$filename'.
+        :type contentDisposition: str or None
         """
         cherrypy.response.headers['Content-Type'] = \
             file.get('mimeType') or 'application/octet-stream'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="%s"' % file['name']
+        if contentDisposition == 'inline':
+            cherrypy.response.headers['Content-Disposition'] = \
+                'inline; filename="%s"' % file['name']
+        else:
+            cherrypy.response.headers['Content-Disposition'] = \
+                'attachment; filename="%s"' % file['name']
         cherrypy.response.headers['Content-Length'] = max(endByte - offset, 0)
 
         if (offset or endByte < file['size']) and file['size']:

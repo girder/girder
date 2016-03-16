@@ -7,9 +7,7 @@ girder.views.CollectionsView = girder.View.extend({
             var cid = $(event.currentTarget).attr('g-collection-cid');
             girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
-        'click button.g-collection-create-button': function () {
-            this.createCollectionDialog();
-        },
+        'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
             event.preventDefault();
         }
@@ -53,7 +51,7 @@ girder.views.CollectionsView = girder.View.extend({
 
     render: function () {
         this.$el.html(girder.templates.collectionList({
-            collections: this.collection.models,
+            collections: this.collection.toArray(),
             girder: girder
         }));
 

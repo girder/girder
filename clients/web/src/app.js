@@ -123,10 +123,7 @@ girder.App = girder.View.extend({
             /* We let the view be created in this way even though it is
              * normally against convention.
              */
-            /*jshint -W055 */
-            // jscs:disable requireCapitalizedConstructors
-            this.bodyView = new view(settings);
-            // jscs:enable requireCapitalizedConstructors
+            this.bodyView = new view(settings); // eslint-disable-line new-cap
         } else {
             console.error('Undefined page.');
         }

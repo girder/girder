@@ -73,6 +73,9 @@ class File(Resource):
         .param('mimeType', 'The MIME type of the file.', required=False)
         .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
+        .param('reference', 'If included, this information is passed to the '
+               'data.process event when the upload is complete.',
+               required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
         .errorResponse('Failed to create upload.', 500)
@@ -107,7 +110,8 @@ class File(Resource):
             try:
                 upload = self.model('upload').createUpload(
                     user=user, name=params['name'], parentType=parentType,
-                    parent=parent, size=int(params['size']), mimeType=mimeType)
+                    parent=parent, size=int(params['size']), mimeType=mimeType,
+                    reference=params.get('reference'))
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -146,8 +150,8 @@ class File(Resource):
         # complete the upload.
         if upload['received'] != upload['size'] and 'behavior' not in upload:
             raise RestException(
-                'Server has only received {} bytes, but the file should be {} '
-                'bytes.'.format(upload['received'], upload['size']))
+                'Server has only received %s bytes, but the file should be %s '
+                'bytes.' % (upload['received'], upload['size']))
 
         file = self.model('upload').finalizeUpload(upload)
         extraKeys = file.get('additionalFinalizeKeys', ())
@@ -216,8 +220,8 @@ class File(Resource):
 
         if upload['received'] != offset:
             raise RestException(
-                'Server has received {} bytes, but client sent offset {}.'
-                .format(upload['received'], offset))
+                'Server has received %s bytes, but client sent offset %s.' % (
+                    upload['received'], offset))
         try:
             if type(chunk) == cherrypy._cpreqbody.Part:
                 return self.model('upload').handleChunk(upload, chunk.file)
@@ -244,6 +248,9 @@ class File(Resource):
                'so you should set it to the index of the byte one past the '
                'final byte you wish to receive.', dataType='integer',
                required=False)
+        .param('contentDisposition', 'Specify the Content-Disposition response '
+               'header disposition-type value', required=False,
+               enum=['inline', 'attachment'], default='attachment')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -266,7 +273,14 @@ class File(Resource):
             if endByte is not None:
                 endByte = int(endByte)
 
-        return self.model('file').download(file, offset, endByte=endByte)
+        contentDisp = params.get('contentDisposition', None)
+        if (contentDisp is not None and
+           contentDisp not in {'inline', 'attachment'}):
+            raise RestException('Unallowed contentDisposition type "%s".' %
+                                contentDisp)
+
+        return self.model('file').download(file, offset, endByte=endByte,
+                                           contentDisposition=contentDisp)
 
     @access.cookie
     @access.public
@@ -337,6 +351,9 @@ class File(Resource):
         Description('Change the contents of an existing file.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('size', 'Size in bytes of the new file.', dataType='integer')
+        .param('reference', 'If included, this information is passed to the '
+               'data.process event when the upload is complete.',
+               required=False)
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
     )
@@ -346,7 +363,8 @@ class File(Resource):
 
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
-            file=file, user=user, size=int(params['size']))
+            file=file, user=user, size=int(params['size']),
+            reference=params.get('reference'))
 
         if upload['size'] > 0:
             return upload

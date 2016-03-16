@@ -10,12 +10,7 @@ girderTest.importStylesheet(
     '/static/built/plugins/thumbnails/plugin.min.css'
 );
 
-girder.events.trigger('g:appload.before');
-new girder.App({
-    el: 'body',
-    parentView: null
-});
-girder.events.trigger('g:appload.after');
+girderTest.startApp();
 
 describe('Test the thumbnail creation UI.', function () {
     it('register a user', girderTest.createUser(

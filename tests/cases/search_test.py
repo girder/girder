@@ -154,6 +154,17 @@ class SearchTestCase(base.TestCase):
         })
 
         resp = self.request(path='/resource/search', params={
+            'q': 'pr',
+            'mode': 'prefix',
+            'types': '["folder", "user", "collection"]'
+        })
+        self.assertEqual(resp.json, {
+            'folder': [],
+            'user': [],
+            'collection': []
+        })
+
+        resp = self.request(path='/resource/search', params={
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         }, user=user)
@@ -167,6 +178,20 @@ class SearchTestCase(base.TestCase):
             '_id': str(coll2['_id']),
             'name': coll2['name']
         }, resp.json['collection'][0])
+        self.assertEqual(0, len(resp.json['user']))
+
+        resp = self.request(path='/resource/search', params={
+            'q': 'pr',
+            'mode': 'prefix',
+            'types': '["folder", "user", "collection", "item"]'
+        }, user=user)
+        self.assertEqual(1, len(resp.json['folder']))
+        self.assertDictContainsSubset({
+            '_id': str(privateFolder['_id']),
+            'name': 'Private'
+        }, resp.json['folder'][0])
+        self.assertEqual(0, len(resp.json['collection']))
+        self.assertEqual(0, len(resp.json['item']))
         self.assertEqual(0, len(resp.json['user']))
 
         # Ensure that weights are respected, e.g. description should be

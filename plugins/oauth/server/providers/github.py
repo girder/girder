@@ -64,9 +64,15 @@ class GitHub(ProviderBase):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri,
         }
+        # GitHub returns application/x-www-form-urlencoded unless
+        # otherwise specified with Accept
         resp = self._getJson(method='POST', url=self._TOKEN_URL,
                              data=params,
                              headers={'Accept': 'application/json'})
+        if 'error' in resp:
+            raise RestException(
+                'Got an error exchanging token from provider: "%s".' % resp,
+                code=502)
         return resp
 
     def getUser(self, token):
@@ -83,7 +89,7 @@ class GitHub(ProviderBase):
         emails = [
             email.get('email')
             for email in resp
-            if email.get('primary')
+            if email.get('primary') and email.get('verified')
         ]
         if not emails:
             raise RestException(

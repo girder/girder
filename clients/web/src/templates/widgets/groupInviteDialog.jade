@@ -5,14 +5,16 @@
       h4.modal-title Invite user to group
       .g-dialog-subtitle
         i.icon-user
-        | #{user.text}
+        span #{user.text}
     .modal-body
-      label.control-label(for="g-role") Select a role for this user
+      label.control-label Select a role for this user
       .panel-group#g-invite-role-container
         .panel.panel-default
-          .panel-heading: .panel-title
-            a(data-toggle="collapse", data-parent="#g-invite-role-container",
-              href="#g-invite-role-member") Invite as member
+          .panel-heading(data-toggle="collapse",
+                         data-parent="#g-invite-role-container",
+                         data-target="#g-invite-role-member")
+            .panel-title
+              a Invite as member
           #g-invite-role-member.panel-collapse.collapse.in
             .panel-body
               p.
@@ -21,17 +23,19 @@
                 group, but may not change properties of the group.
               .g-invite-as-member.btn.btn-primary
                 i.icon-mail
-                |  Invite as member
+                span Invite as member
               if mayAdd
                 .g-add-as-member.btn.btn-warning.g-add-user-button
                   i.icon-plus
-                  | Add as member
+                  span Add as member
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
-            .panel-heading: .panel-title
-              a(data-toggle="collapse", data-parent="#g-invite-role-container",
-                href="#g-invite-role-moderator") Invite as moderator
+            .panel-heading(data-toggle="collapse",
+                           data-parent="#g-invite-role-container",
+                           data-target="#g-invite-role-moderator")
+              .panel-title
+                a Invite as moderator
             #g-invite-role-moderator.panel-collapse.collapse
               .panel-body
                 p.
@@ -39,17 +43,19 @@
                   granted the power to add and remove users from the group.
                 .g-invite-as-moderator.btn.btn-primary
                   i.icon-mail
-                  |  Invite as moderator
+                  span Invite as moderator
                 if mayAdd
                   .g-add-as-moderator.btn.btn-warning.g-add-user-button
                     i.icon-plus
-                    | Add as moderator
+                    span Add as moderator
 
         if (level >= accessType.ADMIN)
           .panel.panel-default
-            .panel-heading: .panel-title
-              a(data-toggle="collapse", data-parent="#g-invite-role-container",
-                href="#g-invite-role-admin") Invite as administrator
+            .panel-heading(data-toggle="collapse",
+                           data-parent="#g-invite-role-container",
+                           data-target="#g-invite-role-admin")
+              .panel-title
+                a Invite as administrator
             #g-invite-role-admin.panel-collapse.collapse
               .panel-body
                 p.
@@ -59,11 +65,11 @@
                   group entirely.
                 .g-invite-as-admin.btn.btn-primary
                   i.icon-mail
-                  |  Invite as administrator
+                  span Invite as administrator
                 if mayAdd
                   .g-add-as-admin.btn.btn-warning.g-add-user-button
                     i.icon-plus
-                    | Add as administrator
+                    span Add as administrator
 
       .g-validation-failed-message
     .modal-footer

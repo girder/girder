@@ -13,8 +13,8 @@ var girder = girder || {};
  */
 if (!window.console) {
     var console = {
-        log: function () {},
-        error: function () {}
+        log: $.noop,
+        error: $.noop
     };
 }
 
@@ -171,7 +171,8 @@ _.extend(girder, {
             path: '/user/authentication',
             headers: {
                 'Girder-Authorization': auth
-            }
+            },
+            error: null
         }).then(function (response) {
             response.user.token = response.authToken;
 

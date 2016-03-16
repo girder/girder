@@ -1,14 +1,7 @@
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 describe('Create an admin and non-admin user', function () {
 
@@ -152,7 +145,7 @@ describe('Test the assetstore page', function () {
         it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[href='#"+tab+"']").click();
+                $("[data-target='#"+tab+"']").click();
             });
             waitsFor(function () {
                 return $('#'+tab+' .g-new-assetstore-submit:visible').length > 0;
@@ -566,7 +559,7 @@ describe('Test the plugins page', function () {
             expect(target.find('.bootstrap-switch-disabled').length > 0).toBe(true);
             expect(target.find('.g-plugin-warning').length > 0).toBe(true);
 
-            target.find('.bootstrap-switch-label').click();
+            target.find('.g-plugin-switch').click();
 
             expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
         });
@@ -576,7 +569,7 @@ describe('Test the plugins page', function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
             expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
-            $('.g-plugin-list-item:contains(Metadata extractor) .bootstrap-switch-label').click();
+            $('.g-plugin-list-item:contains(Metadata extractor) .g-plugin-switch').click();
         });
         waitsFor(function () {
             return $('.g-plugin-restart').css('visibility') !== 'hidden';
@@ -616,7 +609,7 @@ describe('Test the plugins page', function () {
     });
     it('Disable a plugin', function () {
         runs(function () {
-            $('.g-plugin-list-item:contains(Metadata extractor) .bootstrap-switch-label').click();
+            $('.g-plugin-list-item:contains(Metadata extractor) .g-plugin-switch').click();
         });
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);

@@ -478,9 +478,10 @@ def ensureTokenScopes(token, scope):
         if isinstance(scope, six.string_types):
             scope = (scope,)
         raise AccessException(
-            'Invalid token scope.\nRequired: {}.\nAllowed: {}'
-            .format(' '.join(scope),
-                    ' '.join(tokenModel.getAllowedScopes(token))))
+            'Invalid token scope.\n'
+            'Required: %s.\n'
+            'Allowed: %s' % (
+                ' '.join(scope), ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 def _setCommonCORSHeaders():
@@ -585,15 +586,15 @@ class Resource(ModelImporter):
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
-                'WARNING: No description docs present for route {} {}'
-                .format(method, routePath)))
+                'WARNING: No description docs present for route %s %s' % (
+                    method, routePath)))
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
-                'WARNING: No access level specified for route {} {}'
-                .format(method, routePath)))
+                'WARNING: No access level specified for route %s %s' % (
+                    method, routePath)))
 
         if method.lower() not in ('head', 'get') \
             and hasattr(handler, 'cookieAuth') \
@@ -602,8 +603,8 @@ class Resource(ModelImporter):
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
                   'WARNING: Cannot allow cookie authentication for '
-                  'route {} {} without specifying "force=True"'
-                  .format(method, routePath)))
+                  'route %s %s without specifying "force=True"' % (
+                      method, routePath)))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """
@@ -631,11 +632,10 @@ class Resource(ModelImporter):
             resource = self.resourceName
         elif resource is None:
             resource = handler.__module__.rsplit('.', 1)[-1]
-        if handler and hasattr(handler, 'description'):
-            if handler.description is not None:
-                docs.removeRouteDocs(
-                    resource=resource, route=route, method=method,
-                    info=handler.description.asDict(), handler=handler)
+        if handler and getattr(handler, 'description', None) is not None:
+            docs.removeRouteDocs(
+                resource=resource, route=route, method=method,
+                info=handler.description.asDict(), handler=handler)
 
     def _shouldInsertRoute(self, a, b):
         """
@@ -739,7 +739,7 @@ class Resource(ModelImporter):
 
             return val
 
-        raise RestException('No matching route for "{} {}"'.format(
+        raise RestException('No matching route for "%s %s"' % (
             method.upper(), '/'.join(path)))
 
     def _matchRoute(self, path, route):

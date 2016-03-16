@@ -22,7 +22,7 @@ import cherrypy
 import six
 
 from ..constants import SettingDefault
-from .model_base import Model, ValidationException, GirderException
+from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 from bson.objectid import ObjectId
 
@@ -49,7 +49,7 @@ class Setting(Model):
             getattr(self, funcName)(doc)
         else:
             raise ValidationException(
-                'Invalid setting key "{}".'.format(key), 'key')
+                'Invalid setting key "%s".' % key, 'key')
 
         return doc
 
@@ -63,27 +63,8 @@ class Setting(Model):
             raise ValidationException(
                 'Plugins enabled setting must be a list.', 'value')
 
-        allPlugins = plugin_utilities.findAllPlugins()
-        doc['value'] = set(doc['value'])
-
-        def addDeps(plugin):
-            for dep in allPlugins[plugin]['dependencies']:
-                if dep not in doc['value']:
-                    doc['value'].add(dep)
-
-                if dep not in allPlugins:
-                    raise GirderException(
-                        'Required dependency %s does not exist.' % dep)
-                else:
-                    addDeps(dep)
-
-        for enabled in list(doc['value']):
-            if enabled in allPlugins:
-                addDeps(enabled)
-            else:
-                doc['value'].remove(enabled)
-
-        doc['value'] = list(doc['value'])
+        # Add all transitive dependencies and store in toposorted order
+        doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value']))
 
     def validateCoreAddToGroupPolicy(self, doc):
         doc['value'] = doc['value'].lower()
@@ -172,7 +153,7 @@ class Setting(Model):
             host = '://'.join((cherrypy.request.scheme,
                                cherrypy.request.local.name))
             if cherrypy.request.local.port != 80:
-                host += ':{}'.format(cherrypy.request.local.port)
+                host += ':%d' % cherrypy.request.local.port
             return host
 
     def validateCoreRegistrationPolicy(self, doc):

@@ -24,7 +24,7 @@ import six
 from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
@@ -80,9 +80,9 @@ class ResourceExt(Resource):
         self.unbindModels(resources)
         for resource in resources:
             if resource not in self.boundResources:
-                events.bind('model.{}.save'.format(resource), 'provenance',
+                events.bind('model.%s.save' % resource, 'provenance',
                             self.resourceSaveHandler)
-                events.bind('model.{}.copy.prepare'.format(resource),
+                events.bind('model.%s.copy.prepare' % resource,
                             'provenance', self.resourceCopyHandler)
                 if hasattr(self.loadInfo['apiRoot'], resource):
                     getattr(self.loadInfo['apiRoot'], resource).route(
@@ -97,8 +97,8 @@ class ResourceExt(Resource):
         for oldresource in list(six.viewkeys(self.boundResources)):
             if oldresource not in resources:
                 # Unbind this and remove it from the api
-                events.unbind('model.{}.save'.format(oldresource), 'provenance')
-                events.unbind('model.{}.copy.prepare'.format(oldresource),
+                events.unbind('model.%s.save' % oldresource, 'provenance')
+                events.unbind('model.%s.copy.prepare' % oldresource,
                               'provenance')
                 if hasattr(self.loadInfo['apiRoot'], oldresource):
                     getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(
@@ -128,6 +128,16 @@ class ResourceExt(Resource):
         return getattr(self, key)
 
     @access.public
+    @describeRoute(
+        Description('Get the provenance for a given resource.')
+        .param('id', 'The resource ID', paramType='path')
+        .param('version', 'The provenance version for the resource.  If not '
+               'specified, the latest provenance data is returned.  If "all" '
+               'is specified, a list of all provenance data is returned.  '
+               'Negative indices can also be used (-1 is the latest '
+               'provenance, -2 second latest, etc.).', required=False)
+        .errorResponse()
+    )
     def provenanceGetHandler(self, id, params, resource=None):
         user = self.getCurrentUser()
         model = self.model(resource)
@@ -161,15 +171,6 @@ class ResourceExt(Resource):
             'resourceId': id,
             'provenance': result
         }
-    provenanceGetHandler.description = (
-        Description('Get the provenance for a given resource.')
-        .param('id', 'The resource ID', paramType='path')
-        .param('version', 'The provenance version for the resource.  If not '
-               'specified, the latest provenance data is returned.  If "all" '
-               'is specified, a list of all provenance data is returned.  '
-               'Negative indices can also be used (-1 is the latest '
-               'provenance, -2 second latest, etc.).', required=False)
-        .errorResponse())
 
     # These methods maintain the provenance
 

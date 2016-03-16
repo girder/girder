@@ -107,10 +107,19 @@ class SystemTestCase(base.TestCase):
         }, user=users[0])
         self.assertStatus(resp, 400)
 
-        # Set a valid setting key
+        # Set an invalid setting value, should fail
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': SettingKey.PLUGINS_ENABLED,
             'value': json.dumps(obj)
+        }, user=users[0])
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'],
+                         'Required plugin _invalid_ does not exist.')
+
+        # Set a valid value
+        resp = self.request(path='/system/setting', method='PUT', params={
+            'key': SettingKey.PLUGINS_ENABLED,
+            'value': json.dumps(['geospatial', 'oauth'])
         }, user=users[0])
         self.assertStatusOk(resp)
 
@@ -139,7 +148,7 @@ class SystemTestCase(base.TestCase):
         # We should also be able to put several setting using a JSON list
         resp = self.request(path='/system/setting', method='PUT', params={
             'list': json.dumps([
-                {'key': SettingKey.PLUGINS_ENABLED, 'value': json.dumps(obj)},
+                {'key': SettingKey.PLUGINS_ENABLED, 'value': json.dumps(())},
                 {'key': SettingKey.COOKIE_LIFETIME, 'value': None},
             ])
         }, user=users[0])
@@ -153,8 +162,7 @@ class SystemTestCase(base.TestCase):
             ])
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(set(resp.json[SettingKey.PLUGINS_ENABLED]),
-                         set(['oauth', 'geospatial']))
+        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], [])
 
         # We can get the default values, or ask for no value if the current
         # value is taken from the default
@@ -241,9 +249,9 @@ class SystemTestCase(base.TestCase):
             path='/system/plugins', method='PUT', user=self.users[0],
             params={'plugins': '["has_nonexistent_deps"]'},
             exception=True)
-        self.assertStatus(resp, 500)
+        self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
-                         ("Required dependency a_plugin_that_does_not_exist"
+                         ("Required plugin a_plugin_that_does_not_exist"
                           " does not exist."))
 
     def testBadPlugin(self):
@@ -251,17 +259,14 @@ class SystemTestCase(base.TestCase):
                                   'test_plugins')
         conf = config.getConfig()
         conf['plugins'] = {'plugin_directory': pluginRoot}
-        # Try to enable a good plugin and a bad plugin.  Only the good plugin
-        # should be enabled.
+
+        # Enabling plugins with bad JSON/YML should still work.
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
             params={'plugins': '["test_plugin","bad_json","bad_yaml"]'})
         self.assertStatusOk(resp)
-        enabled = resp.json['value']
-        self.assertEqual(len(enabled), 1)
-        self.assertTrue('test_plugin' in enabled)
-        self.assertTrue('bad_json' not in enabled)
-        self.assertTrue('bad_yaml' not in enabled)
+        enabled = set(resp.json['value'])
+        self.assertEqual({'test_plugin', 'bad_json', 'bad_yaml'}, enabled)
 
     def testRestart(self):
         resp = self.request(path='/system/restart', method='PUT',

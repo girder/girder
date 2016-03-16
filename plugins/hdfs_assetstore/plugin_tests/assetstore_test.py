@@ -20,15 +20,20 @@
 import httmock
 import os
 import shutil
+import six
 import sys
 
 from girder.constants import AssetstoreType
 from tests import base
-from snakebite.client import Client
+from snakebite.client import Client  # noqa
 from snakebite.errors import FileNotFoundException
 
 
 _mockRoot = os.path.join(os.path.dirname(__file__), 'mock_fs')
+
+
+def _long(val):
+    return long(val) if six.PY2 else val  # noqa
 
 
 class MockSnakebiteClient(object):
@@ -54,8 +59,8 @@ class MockSnakebiteClient(object):
 
     def df(self):
         return {
-            'used': 100L,
-            'capacity': 1000L
+            'used': _long(100),
+            'capacity': _long(1000)
         }
 
     def test(self, path, exists=False, directory=False, **kwargs):
@@ -89,7 +94,7 @@ class MockSnakebiteClient(object):
             elif os.path.isfile(absPath):
                 yield {
                     'file_type': 'f',
-                    'length': long(os.stat(absPath).st_size),
+                    'length': _long(os.stat(absPath).st_size),
                     'path': path
                 }
             else:
@@ -98,13 +103,13 @@ class MockSnakebiteClient(object):
                     if os.path.isfile(itemPath):
                         yield {
                             'file_type': 'f',
-                            'length': long(os.stat(itemPath).st_size),
+                            'length': _long(os.stat(itemPath).st_size),
                             'path': os.path.join(path, i)
                         }
                     else:
                         yield {
                             'file_type': 'd',
-                            'length': 0L,
+                            'length': _long(0),
                             'path': os.path.join(path, i)
                         }
 
@@ -137,13 +142,13 @@ class MockSnakebiteClient(object):
             if os.path.isfile(absPath):
                 return {
                     'file_type': 'f',
-                    'length': long(os.stat(absPath).st_size),
+                    'length': _long(os.stat(absPath).st_size),
                     'path': path
                 }
             elif os.path.isdir(absPath):
                 return {
                     'file_type': 'd',
-                    'length': 0L,
+                    'length': _long(0),
                     'path': path
                 }
             else:
@@ -219,26 +224,28 @@ class HdfsAssetstoreTest(base.TestCase):
         assetstore = resp.json
 
         # Test updating of the assetstore
-        resp = self.request(path='/assetstore/' + str(assetstore['_id']),
-                            method='PUT', user=self.admin, params={
-                                'name': 'test assetstore',
-                                'hdfsHost': 'localhost',
-                                'hdfsPath': '/test',
-                                'hdfsPort': 9001,
-                                'current': True
-                            })
+        resp = self.request(
+            path='/assetstore/' + str(assetstore['_id']), method='PUT',
+            user=self.admin, params={
+                'name': 'test assetstore',
+                'hdfsHost': 'localhost',
+                'hdfsPath': '/test',
+                'hdfsPort': 9001,
+                'current': True
+            })
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
                          'Could not connect to HDFS at localhost:9001.')
 
-        resp = self.request(path='/assetstore/' + str(assetstore['_id']),
-                            method='PUT', user=self.admin, params={
-                                'name': 'test update',
-                                'hdfsHost': 'localhost',
-                                'hdfsPath': '/test',
-                                'hdfsPort': 9000,
-                                'current': True
-                            })
+        resp = self.request(
+            path='/assetstore/' + str(assetstore['_id']), method='PUT',
+            user=self.admin, params={
+                'name': 'test update',
+                'hdfsHost': 'localhost',
+                'hdfsPath': '/test',
+                'hdfsPort': 9000,
+                'current': True
+            })
         self.assertStatusOk(resp)
 
         # Test the capacity info
@@ -250,7 +257,7 @@ class HdfsAssetstoreTest(base.TestCase):
             'total': 1000
         })
 
-        path = '/hdfs_assetstore/{}/import'.format(assetstore['_id'])
+        path = '/hdfs_assetstore/%s/import' % assetstore['_id']
         params = {
             'progress': 'true',
             'parentType': 'user',
@@ -300,13 +307,13 @@ class HdfsAssetstoreTest(base.TestCase):
             item=helloItem, user=self.admin).next()
 
         # Download the file
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body().strip(), 'hello')
 
         # Test download with range header
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False,
                             additionalHeaders=[('Range', 'bytes=1-3')])
         self.assertStatus(resp, 206)
@@ -316,7 +323,7 @@ class HdfsAssetstoreTest(base.TestCase):
         self.assertEqual(resp.headers['Content-Range'], 'bytes 1-3/6')
 
         # Test download with range header with skipped chunk
-        resp = self.request(path='/file/{}/download'.format(file['_id']),
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, isJson=False,
                             additionalHeaders=[('Range', 'bytes=4-')])
         self.assertStatus(resp, 206)
@@ -402,7 +409,7 @@ class HdfsAssetstoreTest(base.TestCase):
             file = resp.json
 
         # Download the file
-        resp = self.request('/file/{}/download'.format(file['_id']),
+        resp = self.request('/file/%s/download' % file['_id'],
                             isJson=False, user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.collapse_body(), chunk1 + chunk2)

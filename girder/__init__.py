@@ -17,14 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
-import errno
+import cherrypy
 import logging.handlers
 import os
 
-import cherrypy
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
-from girder.utility import config
+from girder.utility import config, mkdir
 
 
 class LogLevelFilter(object):
@@ -52,8 +51,9 @@ class LogFormatter(logging.Formatter):
             '  Query string: ' + cherrypy.request.query_string,
             '  Remote IP: ' + cherrypy.request.remote.ip
         ))
-        return '%s\nAdditional info:\n%s' % (
-            logging.Formatter.formatException(self, exc), info)
+        return ('%s\n'
+                'Additional info:\n'
+                '%s' % (logging.Formatter.formatException(self, exc), info))
 
 
 def getLogPaths():
@@ -89,11 +89,7 @@ def _setupLogger():
         os.path.dirname(logPaths['error'])
     ]
     for logDir in logDirs:
-        try:
-            os.makedirs(logDir)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
+        mkdir(logDir)
 
     eh = logging.handlers.RotatingFileHandler(
         logPaths['error'], maxBytes=MAX_LOG_SIZE, backupCount=LOG_BACKUP_COUNT)
@@ -113,3 +109,6 @@ def _setupLogger():
     return logger
 
 logger = _setupLogger()
+
+# alias girder.plugin => girder.utility.plugin_utilities
+from girder.utility import plugin_utilities as plugin  # noqa

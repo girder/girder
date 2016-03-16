@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import mimetypes
 import os
 
 import girder.events
@@ -56,6 +57,11 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'tools.staticdir.dir': 'clients/web/static'
         }
     }
+    # Add MIME types for serving Fontello files from staticdir;
+    # these may be missing or incorrect in the OS
+    mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
+    mimetypes.add_type('application/x-font-ttf', '.ttf')
+    mimetypes.add_type('application/font-woff', '.woff')
 
     if test:
         appconf['/src'] = {
@@ -105,6 +111,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
                                default=())
 
+    plugins = list(plugin_utilities.getToposortedPlugins(
+        plugins, curConfig, ignoreMissing=True))
     root.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
         'staticRoot': curConfig['server']['static_root'],
@@ -120,7 +128,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, curConfig=curConfig)
+        plugins, root, appconf, root.api.v1, curConfig=curConfig,
+        buildDag=False)
 
     return root, appconf
 

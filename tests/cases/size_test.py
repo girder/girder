@@ -125,7 +125,7 @@ class SizeTestCase(base.TestCase):
 
         # Move item1 down from top level folder to subfolder
         resp = self.request(
-            path='/item/{}'.format(self.item1['_id']), method='PUT',
+            path='/item/%s' % self.item1['_id'], method='PUT',
             user=self.admin, params={
                 'folderId': self.folder2['_id']
             })
@@ -139,7 +139,7 @@ class SizeTestCase(base.TestCase):
 
         # Delete item1
         resp = self.request(
-            path='/item/{}'.format(self.item1['_id']), method='DELETE',
+            path='/item/%s' % self.item1['_id'], method='DELETE',
             user=self.admin)
         self.assertStatusOk(resp)
 
@@ -150,7 +150,7 @@ class SizeTestCase(base.TestCase):
     def testMoveAndDeleteFolder(self):
         # Ensure we cannot move a folder under itself
         resp = self.request(
-            path='/folder/{}'.format(self.folder1['_id']), method='PUT',
+            path='/folder/%s' % self.folder1['_id'], method='PUT',
             user=self.admin, params={
                 'parentId': self.folder2['_id'],
                 'parentType': 'folder'
@@ -164,7 +164,7 @@ class SizeTestCase(base.TestCase):
 
         # Move top level folder from coll1 to coll2
         resp = self.request(
-            path='/folder/{}'.format(self.folder1['_id']), method='PUT',
+            path='/folder/%s' % self.folder1['_id'], method='PUT',
             user=self.admin, params={
                 'parentId': self.coll2['_id'],
                 'parentType': 'collection'
@@ -176,7 +176,7 @@ class SizeTestCase(base.TestCase):
 
         # Move subfolder as top level folder under admin user
         resp = self.request(
-            path='/folder/{}'.format(self.folder2['_id']), method='PUT',
+            path='/folder/%s' % self.folder2['_id'], method='PUT',
             user=self.admin, params={
                 'parentId': self.admin['_id'],
                 'parentType': 'user'
@@ -187,7 +187,7 @@ class SizeTestCase(base.TestCase):
 
         # Delete the sub folder
         resp = self.request(
-            path='/folder/{}'.format(self.folder2['_id']), method='DELETE',
+            path='/folder/%s' % self.folder2['_id'], method='DELETE',
             user=self.admin)
         self.assertStatusOk(resp)
         self.assertNodeSize(self.admin, 'user', 0)

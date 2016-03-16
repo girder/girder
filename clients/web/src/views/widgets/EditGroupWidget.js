@@ -30,7 +30,6 @@ girder.views.EditGroupWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.model = settings.model || null;
-
     },
 
     render: function () {

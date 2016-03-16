@@ -18,7 +18,9 @@
 ###############################################################################
 
 import datetime
+import errno
 import json
+import os
 import pytz
 import re
 
@@ -26,12 +28,37 @@ import re
 def camelcase(value):
     """
     Convert a module name or string with underscores and periods to camel case.
+
     :param value: the string to convert
     :type value: str
     :returns: the value converted to camel case.
     """
     return ''.join(x.capitalize() if x else '_' for x in
                    re.split("[._]+", value))
+
+
+def mkdir(path, mode=0o777, recurse=True, existOk=True):
+    """
+    Create a new directory or ensure a directory already exists.
+
+    :param path: The directory to create.
+    :type path: str
+    :param mode: The mode (permission mask) prior to applying umask.
+    :type mode: int
+    :param recurse: Whether intermediate missing dirs should be created.
+    :type recurse: bool
+    :param existOk: Set to True to suppress the error if the dir exists.
+    :type existOk: bool
+    """
+    method = os.makedirs if recurse else os.mkdir
+
+    try:
+        method(path, mode)
+    except OSError as exc:
+        if existOk and exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 
 class JsonEncoder(json.JSONEncoder):

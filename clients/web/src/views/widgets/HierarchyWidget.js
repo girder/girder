@@ -28,18 +28,6 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     /**
-     * If both the child folders and child items have been fetched, and
-     * there are neither of either type in this parent container, we should
-     * show the "empty container" message.
-     */
-    _childCountCheck: function () {
-        var container = this.$('.g-empty-parent-message').addClass('hide');
-        if (this.folderCount === 0 && this.itemCount === 0) {
-            container.removeClass('hide');
-        }
-    },
-
-    /**
      * This should be instantiated with the following settings:
      *   parentModel: The model representing the root node. Must be a User,
      *                 Collection, or Folder model.
@@ -122,6 +110,18 @@ girder.views.HierarchyWidget = girder.View.extend({
             this.render();
         }
         girder.events.on('g:login', girder.resetPickedResources, this);
+    },
+
+    /**
+     * If both the child folders and child items have been fetched, and
+     * there are neither of either type in this parent container, we should
+     * show the "empty container" message.
+     */
+    _childCountCheck: function () {
+        var container = this.$('.g-empty-parent-message').addClass('hide');
+        if (this.folderCount === 0 && this.itemCount === 0) {
+            container.removeClass('hide');
+        }
     },
 
     /**

@@ -187,6 +187,8 @@
 
         it('test hiding elements', function () {
             runs(function () {
+                $('body').empty().off();
+
                 new girder.views.AccessWidget({
                     el: 'body',
                     modal: false,
@@ -209,6 +211,85 @@
                 expect($('.g-ac-list').length).toBe(1);
                 expect($('.g-grant-access-container').length).toBe(1);
                 expect($('.g-recursive-container').length).toBe(0);
+            });
+        });
+    });
+
+    describe('Test search widget with non-standard options', function () {
+        it('test fixed search mode', function () {
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.SearchFieldWidget({
+                    el: 'body',
+                    modes: 'prefix',
+                    types: ['folder'],
+                    parentView: null,
+                    placeholder: 'test ph'
+                }).render();
+
+                expect($('input.g-search-field[placeholder="test ph"]').length).toBe(1);
+                expect($('.g-search-mode-choose').length).toBe(0);
+
+                $('.g-search-field').val('to').trigger('input');
+            });
+
+            waitsFor(function () {
+                return $('.g-search-results').hasClass('open');
+            }, 'prefix folder search to return');
+
+            runs(function () {
+                var results = $('li.g-search-result');
+                expect(results.length).toBe(1);
+                expect(results.find('a[resourcetype="folder"]').text()).toContain('top level folder');
+            });
+        });
+
+        it('test multiple search modes', function () {
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.SearchFieldWidget({
+                    el: 'body',
+                    modes: ['text', 'prefix'],
+                    types: ['folder'],
+                    parentView: null
+                }).render();
+
+                expect($('.g-search-mode-choose').length).toBe(1);
+                $('.g-search-field').val('to').trigger('input');
+            });
+
+            waitsFor(function () {
+                return $('.g-search-results:visible').hasClass('open');
+            }, 'folder text search to return');
+
+            runs(function () {
+                expect($('li.g-search-result').length).toBe(0);
+                expect($('li.g-no-search-results.disabled').length).toBe(1);
+
+                $('.g-search-mode-choose').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover-content:visible').length === 1;
+            }, 'search mode select popover to appear');
+
+            runs(function () {
+                expect($('.popover-content p').text()).toContain('Choose search mode');
+                expect($('.popover-content .radio').length).toBe(2);
+                expect($('.popover-content .g-search-mode-radio[value="prefix"]:checked').length).toBe(0);
+                expect($('.popover-content .g-search-mode-radio[value="text"]:checked').length).toBe(1);
+
+                $('.popover-content .g-search-mode-radio[value="prefix"]').click();
+            });
+
+            waitsFor(function () {
+                return $('li.g-search-result').length > 0;
+            }, 'prefix search to be automatically run');
+
+            runs(function () {
+                expect($('li.g-search-result').text()).toContain('top level folder');
             });
         });
     });

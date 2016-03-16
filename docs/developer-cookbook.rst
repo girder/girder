@@ -195,22 +195,39 @@ static, so you can also just do the following anywhere:
 
     ModelImporter.model('folder')...
 
-Send a raw/streaming HTTP response body
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Send a raw or streaming HTTP response body
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For consistency, the default behavior of a REST endpoint in Girder is to take
 the return value of the route handler and encode it in the format specified
 by the client in the ``Accepts`` header, usually ``application/json``. However,
 in some cases you may want to force your endpoint to send a raw response body
-back to the client. A common example would be downloading a file from the server;
-we want to send just the data, not try to encode it in JSON.
+back to the client.
 
-If you want to send a raw response, simply make your route handler return a
-generator function. In Girder, a raw response is also automatically a streaming
-response, giving developers full control of the buffer size of the response
-body. That is, each time you ``yield`` data in your generator function, the
+If you want to send a raw response, you can simply decorate your route handler
+with the ``girder.api.rest.rawResponse`` decorator, or call
+``girder.api.rest.setRawResponse()`` within the body of the route handler.
+For example:
+
+.. code-block:: python
+
+    from girder.api import access, rest
+
+    @access.public
+    @rest.rawResponse
+    def rawExample(self, params):
+        return 'raw string'
+
+That will make the response body precisely the string ``raw string``. If the data
+size being sent to the client is large or unbounded, you should use a streaming
+response.
+
+If you want to send a streaming response, simply make your route handler return a
+generator function. A streaming response is automatically sent as a raw response.
+Developers have full control of the buffer size of the streamed response
+body; each time you ``yield`` data in your generator function, the
 buffer will be flushed to the client. As a minimal example, the following
-route handler would send 10 chunks to the client, and the full response
+route handler would flush 10 chunks to the client, and the full response
 body would be ``0123456789``.
 
 .. code-block:: python
@@ -218,7 +235,7 @@ body would be ``0123456789``.
     from girder.api import access
 
     @access.public
-    def rawExample(self, params):
+    def streamingExample(self, params):
         def gen():
             for i in range(10):
                 yield str(i)
@@ -382,6 +399,44 @@ run.
    ``mongo`` resource. For example: ::
 
        add_python_test(my_test RESOURCE_LOCKS cherrypy mongo)
+
+.. _use_external_data:
+
+Downloading external data files for test cases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some cases, it is necessary to perform a test on a file that is too big store
+inside a repository.  For tests such as these, Girder provides a way to link to
+test files served at `https://midas3.kitware.com`_ and have them automatically
+downloaded and cached during the build stage.  To add a new external file, first
+make an account at `https://midas3.kitware.com`_ and upload a publicly accessible
+file.  When viewing the items containing those files on Midas, there will be a
+link to "Download key file" appearing as a key icon.  This file contains
+the MD5 hash of the file contents and can be committed inside the
+``tests/data/`` directory of Girder's repository.  This file can then be
+listed as an optional ``EXTERNAL_DATA`` argument to the ``add_python_test``
+function to have the file downloaded as an extra build step.  As an example,
+consider the file currently used for testing called ``tests/data/test_file.txt.md5``.
+To use this file in you test, you would add the test as follows
+
+.. code-block:: cmake
+
+    add_python_test(my_test EXTERNAL_DATA test_file.txt)
+
+The ``EXTERNAL_DATA`` keyword argument can take a list of files or even directories.
+When a directory is provided, it will download all files that exist in the given path.
+Inside your unit test, you can access these files under the path given
+by the environment variable ``GIRDER_TEST_DATA_PREFIX`` as follows
+
+.. code-block:: python
+
+    import os
+    test_file = os.path.join(
+        os.environ['GIRDER_TEST_DATA_PREFIX'],
+        'test_file.txt'
+    )
+    with open(test_file, 'r') as f:
+        content = f.read() # The content of the downloaded test file
 
 Serving a custom app from the server root
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

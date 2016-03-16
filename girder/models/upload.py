@@ -36,7 +36,7 @@ class Upload(Model):
         self.name = 'upload'
 
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
-                       user=None, mimeType=None):
+                       user=None, mimeType=None, reference=None):
         """
         This method wraps the entire upload process into a single function to
         facilitate "internal" uploads from a file-like object. Example:
@@ -62,10 +62,13 @@ class Upload(Model):
         :type user: dict
         :param mimeType: MIME type of the file.
         :type mimeType: str
+        :param reference: An optional reference string that will be sent to the
+                          data.process event.
+        :type reference: str
         """
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
-            size=size, mimeType=mimeType)
+            size=size, mimeType=mimeType, reference=reference)
 
         while True:
             data = obj.read(33554432)  # 32MB
@@ -172,10 +175,13 @@ class Upload(Model):
         self.remove(upload)
 
         # Add an async event for handlers that wish to process this file.
-        events.daemon.trigger('data.process', {
+        eventParams = {
             'file': file,
             'assetstore': assetstore
-        })
+        }
+        if 'reference' in upload:
+            eventParams['reference'] = upload['reference']
+        events.daemon.trigger('data.process', eventParams)
 
         return file
 
@@ -201,7 +207,7 @@ class Upload(Model):
 
         return assetstore
 
-    def createUploadToFile(self, file, user, size):
+    def createUploadToFile(self, file, user, size, reference=None):
         """
         Creates a new upload record into a file that already exists. This
         should be used when updating the contents of a file. Deletes any
@@ -212,6 +218,9 @@ class Upload(Model):
         :param file: The file record to update.
         :param user: The user performing this upload.
         :param size: The size of the new file contents.
+        :param reference: An optional reference string that will be sent to the
+                          data.process event.
+        :type reference: str
         """
         assetstore = self.getTargetAssetstore('file', file)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -228,10 +237,13 @@ class Upload(Model):
             'mimeType': file['mimeType'],
             'received': 0
         }
+        if reference is not None:
+            upload['reference'] = reference
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
-    def createUpload(self, user, name, parentType, parent, size, mimeType=None):
+    def createUpload(self, user, name, parentType, parent, size, mimeType=None,
+                     reference=None):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -249,6 +261,9 @@ class Upload(Model):
         :type size: int
         :param mimeType: The mimeType of the file.
         :type mimeType: str
+        :param reference: An optional reference string that will be sent to the
+                          data.process event.
+        :type reference: str
         :returns: The upload document that was created.
         """
         assetstore = self.getTargetAssetstore(parentType, parent)
@@ -266,6 +281,8 @@ class Upload(Model):
             'mimeType': mimeType,
             'received': 0
         }
+        if reference is not None:
+            upload['reference'] = reference
 
         if parentType and parent:
             upload['parentType'] = parentType.lower()

@@ -1,12 +1,4 @@
 girder.views.jobs_JobListWidget = girder.View.extend({
-    columnEnum: girder.defineFlags([
-        'COLUMN_STATUS_ICON',
-        'COLUMN_TITLE',
-        'COLUMN_UPDATED',
-        'COLUMN_OWNER',
-        'COLUMN_STATUS'
-    ], 'COLUMN_ALL'),
-
     events: {
         'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
@@ -42,9 +34,17 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         girder.eventStream.on('g:event.job_status', this._statusChange, this);
     },
 
+    columnEnum: girder.defineFlags([
+        'COLUMN_STATUS_ICON',
+        'COLUMN_TITLE',
+        'COLUMN_UPDATED',
+        'COLUMN_OWNER',
+        'COLUMN_STATUS'
+    ], 'COLUMN_ALL'),
+
     render: function () {
         this.$el.html(girder.templates.jobs_jobList({
-            jobs: this.collection.models,
+            jobs: this.collection.toArray(),
             showHeader: this.showHeader,
             columns: this.columns,
             columnEnum: this.columnEnum,

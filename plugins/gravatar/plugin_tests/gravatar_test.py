@@ -19,7 +19,6 @@
 
 import hashlib
 
-from girder import events
 from server import PluginSettings
 from tests import base
 
@@ -58,29 +57,31 @@ class GravatarTest(base.TestCase):
         self.model('setting').set(PluginSettings.DEFAULT_IMAGE, 'mm')
 
         # Gravatar base URL should be computed on user creation
-        resp = self.request('/user/{}'.format(self.admin['_id']))
+        resp = self.request('/user/%s' % self.admin['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('gravatar_baseUrl' in resp.json)
 
         resp = self.request('/user/%s/gravatar' % str(self.admin['_id']),
                             isJson=False)
         md5 = hashlib.md5(self.admin['email'].encode()).hexdigest()
-        self.assertRedirect(resp,
+        self.assertRedirect(
+            resp,
             'https://www.gravatar.com/avatar/%s?d=identicon&s=64' % md5)
 
         # We should now have the gravatar_baseUrl cached on the user
-        resp = self.request('/user/{}'.format(self.admin['_id']))
+        resp = self.request('/user/%s' % self.admin['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('gravatar_baseUrl' in resp.json)
         oldBaseUrl = resp.json['gravatar_baseUrl']
 
         # Changing the email address should change the cached value
-        resp = self.request('/user/{}'.format(self.admin['_id']), method='PUT',
-                            user=self.admin, params={
-                                'firstName': 'first',
-                                'lastName': 'last',
-                                'email': 'new_email@email.com'
-                            })
+        resp = self.request(
+            '/user/%s' % self.admin['_id'], method='PUT', user=self.admin,
+            params={
+                'firstName': 'first',
+                'lastName': 'last',
+                'email': 'new_email@email.com'
+            })
         self.assertStatusOk(resp)
         self.admin = self.model('user').load(self.admin['_id'], force=True)
         self.assertNotEqual(self.admin['gravatar_baseUrl'], oldBaseUrl)
@@ -89,7 +90,8 @@ class GravatarTest(base.TestCase):
         resp = self.request('/user/%s/gravatar' % str(self.admin['_id']),
                             isJson=False)
         md5 = hashlib.md5(self.admin['email'].encode()).hexdigest()
-        self.assertRedirect(resp,
+        self.assertRedirect(
+            resp,
             'https://www.gravatar.com/avatar/%s?d=mm&s=64' % md5)
 
     def testUserInfoUpdate(self):
@@ -102,10 +104,11 @@ class GravatarTest(base.TestCase):
             admin=False
         )
 
-        resp = self.request('/user/%s' % str(user['_id']), method='PUT',
-                            user=user, params={
-                                'email': 'newemail@mail.com',
-                                'firstName': 'normal',
-                                'lastName': 'normal'
-                            })
+        resp = self.request(
+            '/user/%s' % str(user['_id']), method='PUT', user=user,
+            params={
+                'email': 'newemail@mail.com',
+                'firstName': 'normal',
+                'lastName': 'normal'
+            })
         self.assertStatusOk(resp)

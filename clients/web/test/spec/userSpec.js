@@ -1,14 +1,7 @@
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 describe('Create an admin and non-admin user', function () {
     var link, registeredUsers = [];
@@ -20,6 +13,34 @@ describe('Create an admin and non-admin user', function () {
                               'Admin',
                               'adminpassword!',
                               registeredUsers));
+
+    it('create user as admin using dialog', function () {
+        girderTest.goToUsersPage()();
+
+        runs(function () {
+            expect($('.g-user-create-button').length).toBe(1);
+            $('.g-user-create-button').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('#g-login').val('user2');
+            $('#g-email').val('user2@user2.com');
+            $('#g-firstName').val('user');
+            $('#g-lastName').val('2');
+            $('#g-password,#g-password2').val('password');
+
+            $('#g-register-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-body-title.g-user-name').text() === 'user 2';
+        }, 'new user page to appear');
+
+        runs(function () {
+            expect(girder.currentUser.get('login')).toBe('admin');
+        });
+    });
 
     it('logout', girderTest.logout());
 
@@ -34,8 +55,8 @@ describe('Create an admin and non-admin user', function () {
     it('view the users on the user page and click on one', function () {
         girderTest.goToUsersPage()();
         runs(function () {
-            expect($('.g-user-list-entry').length).toBe(2);
-            expect($('a.g-user-link').text()).toBe('Admin AdminNot Admin');
+            expect($('.g-user-list-entry').length).toBe(3);
+            expect($('a.g-user-link').text()).toBe('user 2Admin AdminNot Admin');
         });
 
         runs(function () {

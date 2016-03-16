@@ -1,5 +1,4 @@
 (function () {
-
     /**
      * This view shows a single group's page.
      */
@@ -307,7 +306,6 @@
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:moderatorAdded', this.render, this)
                     .on('g:adminAdded', this.render, this);
-
         }
     });
 
@@ -338,5 +336,4 @@
             tab: tab
         });
     });
-
 }());

@@ -111,14 +111,25 @@ class ItemTestCase(base.TestCase):
         :param contents: The expected contents.
         :type contents: str
         """
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             method='GET', user=user, isJson=False)
         self.assertStatusOk(resp)
-
         self.assertEqual(contents, self.getBody(resp))
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="file_1"')
+
+        # Test downloading the item with contentDisposition=inline.
+        params = {'contentDisposition': 'inline'}
+        resp = self.request(path='/item/%s/download' % item['_id'],
+                            method='GET', user=user, isJson=False,
+                            params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(contents, self.getBody(resp))
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'inline; filename="file_1"')
 
         # Test downloading with an offset
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             method='GET', user=user, isJson=False,
                             params={'offset': 1})
         self.assertStatus(resp, 206)
@@ -129,7 +140,7 @@ class ItemTestCase(base.TestCase):
         params = None
         if format:
             params = {'format': format}
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             method='GET', user=user, isJson=False,
                             params=params)
         self.assertStatusOk(resp)
@@ -159,7 +170,7 @@ class ItemTestCase(base.TestCase):
 
         self._testUploadFileToItem(curItem, 'file_2', self.users[0], 'foobz')
 
-        resp = self.request(path='/item/{}/files'.format(curItem['_id']),
+        resp = self.request(path='/item/%s/files' % curItem['_id'],
                             method='GET', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['name'], 'file_1')
@@ -267,7 +278,7 @@ class ItemTestCase(base.TestCase):
             'name': 'changed name',
             'description': 'new description'
         }
-        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+        resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             params=params, user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], params['name'])
@@ -276,7 +287,7 @@ class ItemTestCase(base.TestCase):
         # Test moving an item to the public folder
         item = self.model('item').load(item['_id'], force=True)
         self.assertFalse(self.model('item').hasAccess(item))
-        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+        resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             user=self.users[0], params={
                                 'folderId': self.publicFolder['_id']})
         self.assertStatusOk(resp)
@@ -287,7 +298,7 @@ class ItemTestCase(base.TestCase):
         # destination folder
         self.publicFolder = self.model('folder').setUserAccess(
             self.publicFolder, self.users[1], AccessType.WRITE, save=True)
-        resp = self.request(path='/item/{}'.format(item['_id']), method='PUT',
+        resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             user=self.users[1], params={
                                 'folderId': self.privateFolder['_id']})
         self.assertStatus(resp, 403)
@@ -300,7 +311,7 @@ class ItemTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Try a bad endpoint (should 400)
-        resp = self.request(path='/item/{}/blurgh'.format(item['_id']),
+        resp = self.request(path='/item/%s/blurgh' % item['_id'],
                             method='GET',
                             user=self.users[1])
         self.assertStatus(resp, 400)
@@ -348,7 +359,7 @@ class ItemTestCase(base.TestCase):
             'foo': 'bar',
             'test': 2
         }
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
 
@@ -359,7 +370,7 @@ class ItemTestCase(base.TestCase):
         # Edit and remove metadata
         metadata['test'] = None
         metadata['foo'] = 'baz'
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
 
@@ -371,7 +382,7 @@ class ItemTestCase(base.TestCase):
         metadata = {
             'test': 'allowed'
         }
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata).replace('"', "'"),
                             type='application/json')
@@ -384,7 +395,7 @@ class ItemTestCase(base.TestCase):
         metadata = {
             'foo.bar': 'notallowed'
         }
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
@@ -397,7 +408,7 @@ class ItemTestCase(base.TestCase):
         metadata = {
             '$foobar': 'alsonotallowed'
         }
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
@@ -409,7 +420,7 @@ class ItemTestCase(base.TestCase):
         metadata = {
             '': 'stillnotallowed'
         }
-        resp = self.request(path='/item/{}/metadata'.format(item['_id']),
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
@@ -463,7 +474,7 @@ class ItemTestCase(base.TestCase):
         baseItem = self.model('item').createItem('blah', self.users[0],
                                                  secondChild, 'foo')
 
-        resp = self.request(path='/item/{}/rootpath'.format(baseItem['_id']),
+        resp = self.request(path='/item/%s/rootpath' % baseItem['_id'],
                             method='GET')
         self.assertStatusOk(resp)
         pathToRoot = resp.json
@@ -553,7 +564,7 @@ class ItemTestCase(base.TestCase):
             'foo': 'value1',
             'test': 2
         }
-        self.request(path='/item/{}/metadata'.format(origItem['_id']),
+        self.request(path='/item/%s/metadata' % origItem['_id'],
                      method='PUT', user=self.users[0],
                      body=json.dumps(metadata), type='application/json')
         self._testUploadFileToItem(origItem, 'file_1', self.users[0], 'foobar')
@@ -573,11 +584,11 @@ class ItemTestCase(base.TestCase):
         params = {
             'name': 'copied_item'
         }
-        resp = self.request(path='/item/{}/copy'.format(origItem['_id']),
+        resp = self.request(path='/item/%s/copy' % origItem['_id'],
                             method='POST', user=self.users[0], params=params)
         self.assertStatusOk(resp)
         # Now ask for the new item explicitly and check its metadata
-        self.request(path='/item/{}'.format(resp.json['_id']),
+        self.request(path='/item/%s' % resp.json['_id'],
                      user=self.users[0], type='application/json')
         self.assertStatusOk(resp)
         newItem = resp.json
@@ -585,7 +596,7 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(newItem['meta']['foo'], metadata['foo'])
         self.assertEqual(newItem['meta']['test'], metadata['test'])
         # Check if we can download the files from the new item
-        resp = self.request(path='/item/{}/files'.format(newItem['_id']),
+        resp = self.request(path='/item/%s/files' % newItem['_id'],
                             method='GET', user=self.users[0])
         self.assertStatusOk(resp)
         newFiles = resp.json
@@ -611,7 +622,7 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(newItem['_id'], resp.json[0]['_id'])
         # Check if we can download the files from the old item and that they
         # are distinct from the files in the original item
-        resp = self.request(path='/item/{}/files'.format(origItem['_id']),
+        resp = self.request(path='/item/%s/files' % origItem['_id'],
                             method='GET', user=self.users[0])
         self.assertStatusOk(resp)
         origFiles = resp.json
@@ -670,19 +681,19 @@ class ItemTestCase(base.TestCase):
                                 'cookie_auth_download', '', self.users[0])
         self._testUploadFileToItem(item, 'file', self.users[0], 'foo')
         token = self.model('token').createToken(self.users[0])
-        cookie = 'girderToken={}'.format(token['_id'])
+        cookie = 'girderToken=%s' % token['_id']
 
         # We should be able to download a private item using a cookie token
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             isJson=False, cookie=cookie)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), 'foo')
 
         # We should not be able to call GET /item/:id with a cookie token
-        resp = self.request(path='/item/{}'.format(item['_id']), cookie=cookie)
+        resp = self.request(path='/item/%s' % item['_id'], cookie=cookie)
         self.assertStatus(resp, 401)
 
         # Make sure the cookie has to be a valid token
-        resp = self.request(path='/item/{}/download'.format(item['_id']),
+        resp = self.request(path='/item/%s/download' % item['_id'],
                             cookie='girderToken=invalid_token')
         self.assertStatus(resp, 401)

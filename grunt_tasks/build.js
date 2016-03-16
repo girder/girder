@@ -73,8 +73,14 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     cwd: 'node_modules/jsoneditor/dist',
-                    src: ['img/**', 'jsoneditor.min.css'],
+                    src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
+                }]
+            },
+            fontello_config: {
+                files: [{
+                    src: 'clients/web/fontello.config.json',
+                    dest: 'clients/web/static/built/fontello.config.json'
                 }]
             }
         },
@@ -82,8 +88,7 @@ module.exports = function (grunt) {
         stylus: {
             core: {
                 files: {
-                    'clients/web/static/built/app.min.css': [
-                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css',
+                    'clients/web/static/built/girder.app.min.css': [
                         'clients/web/src/stylesheets/**/*.styl',
                         '!clients/web/src/stylesheets/apidocs/*.styl'
                     ],
@@ -94,11 +99,43 @@ module.exports = function (grunt) {
             }
         },
 
+        fontello: {
+            ext_font: {
+                options: {
+                    config: 'clients/web/static/built/fontello.config.json',
+                    fonts: 'clients/web/static/built/fontello/font',
+                    styles: 'clients/web/static/built/fontello/css',
+                    // Create output directories
+                    force: true
+                }
+            }
+        },
+
+        concat: {
+            options: {
+                stripBanners: {
+                    block: true,
+                    line: true
+                }
+            },
+            ext_css: {
+                files: {
+                    'clients/web/static/built/girder.ext.min.css': [
+                        'node_modules/bootstrap/dist/css/bootstrap.min.css',
+                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
+                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
+                        'node_modules/jsoneditor/dist/jsoneditor.min.css',
+                        'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
+                    ]
+                }
+            }
+        },
+
         uglify: {
             options: uglifyOptions,
             app: {
                 files: {
-                    'clients/web/static/built/app.min.js': [
+                    'clients/web/static/built/girder.app.min.js': [
                         'clients/web/static/built/templates.js',
                         'clients/web/src/init.js',
                         'clients/web/src/girder-version.js',
@@ -113,30 +150,71 @@ module.exports = function (grunt) {
                         'clients/web/src/collections/**/*.js',
                         'clients/web/src/views/**/*.js'
                     ],
-                    'clients/web/static/built/main.min.js': [
+                    'clients/web/static/built/girder.main.min.js': [
                         'clients/web/src/main.js'
                     ]
                 }
             },
-            libs: {
+            ext_js: {
                 files: {
-                    'clients/web/static/built/libs.min.js': [
+                    'clients/web/static/built/girder.ext.min.js': [
                         'node_modules/jquery/dist/jquery.js',
                         'node_modules/jade/runtime.js',
                         'node_modules/underscore/underscore.js',
                         'node_modules/backbone/backbone.js',
                         'node_modules/marked/lib/marked.js',
                         'node_modules/jsoneditor/dist/jsoneditor.js',
+                        'node_modules/bootstrap/dist/js/bootstrap.js',
+                        'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
                         'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
-                        'clients/web/lib/js/d3.js',
-                        'clients/web/lib/js/bootstrap.js',
-                        'clients/web/lib/js/bootstrap-switch.js',
-                        'clients/web/lib/js/jquery.jqplot.js',
-                        'clients/web/lib/js/jqplot.pieRenderer.js',
-                        'clients/web/lib/js/sprintf.js'
+                        'node_modules/d3/d3.js',
+                        'node_modules/as-jqplot/dist/jquery.jqplot.js',
+                        'node_modules/as-jqplot/dist/plugins/jqplot.pieRenderer.js',
+                        'node_modules/sprintf-js/src/sprintf.js'
                     ]
                 }
+            }
+        },
+
+        symlink: {
+            options: {
+                overwrite: true
+            },
+            legacy_names: {
+                // Provide static files under old names, for compatibility
+                files: [{
+                    src: ['clients/web/static/built/girder.app.min.js'],
+                    dest: 'clients/web/static/built/app.min.js'
+                }, {
+                    src: ['clients/web/static/built/girder.app.min.css'],
+                    dest: 'clients/web/static/built/app.min.css'
+                }, {
+                    src: ['clients/web/static/built/girder.main.min.js'],
+                    dest: 'clients/web/static/built/main.min.js'
+                }, {
+                    src: ['clients/web/static/built/girder.ext.min.js'],
+                    dest: 'clients/web/static/built/libs.min.js'
+                }, {
+                    // This provides more than just Bootstrap, but that no
+                    // longer exists as a standalone file
+                    // Note, girder.ext.min.css was never released as another
+                    // name
+                    src: ['clients/web/static/built/girder.ext.min.css'],
+                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
+                }, {
+                    src: ['clients/web/static/built/girder.ext.min.css'],
+                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css'
+                }, {
+                    src: ['clients/web/static/built/girder.ext.min.css'],
+                    dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
+                }, {
+                    src: ['clients/web/static/built/girder.ext.min.css'],
+                    dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
+                }, {
+                    src: ['clients/web/static/built/fontello'],
+                    dest: 'clients/web/static/lib/fontello'
+                }]
             }
         },
 
@@ -159,9 +237,12 @@ module.exports = function (grunt) {
         },
 
         init: {
-            'uglify:libs': {},
+            'uglify:ext_js': {},
             'copy:swagger': {},
-            'copy:jsoneditor': {}
+            'copy:jsoneditor': {},
+            'copy:fontello_config': {},
+            'concat:ext_css': {},
+            'fontello:ext_font': {}
         },
 
         default: {
@@ -171,6 +252,9 @@ module.exports = function (grunt) {
             },
             'uglify:app': {
                 dependencies: ['jade:core']
+            },
+            'symlink:legacy_names': {
+                dependencies: ['uglify:app']
             }
         }
     });
