@@ -17,12 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+from __future__ import print_function
 
 import os
 import dicom
 import six
+import threading
 from tests import base
-import time
 from girder import events
 from girder.constants import AccessType
 
@@ -37,10 +38,27 @@ def tearDownModule():
 
 
 class DicomTestCase(base.TestCase):
+    def _waitForHandler(self, eventName, timeout=5):
+        """
+        Wait for plugin's data.process event handler to complete.
+        :param eventName: the name of the event to wait for
+        :param timeout: the time in seconds after which to stop waiting
+        :returns: True if event occurred before timeout
+        """
+        event = threading.Event()
+
+        def HandlerCallback(handlerEvent):
+            event.set()
+
+        handled = False
+        with events.bound(eventName, 'waitForHandler', HandlerCallback):
+            handled = event.wait(timeout)
+        return handled
+
     def setUp(self):
         base.TestCase.setUp(self)
 
-        # First setup users
+        # Add a user
         user = {
             'email': 'jane.doe@email.com',
             'login': 'jane-doe',
@@ -52,12 +70,12 @@ class DicomTestCase(base.TestCase):
         folders = self.model('folder').childFolders(
             parent=self.user, parentType='user', user=self.user)
         for folder in folders:
-            if folder['public'] is True:
+            if folder['public']:
                 self.publicFolder = folder
-            else:
-                self.privateFolder = folder
+                break
 
-        # Open dcm file.
+    def testDICOMHandler(self):
+        # Parse the dicom file
         self.dcmFilePath = os.path.join(
             os.environ['GIRDER_TEST_DATA_PREFIX'],
             'plugins',
@@ -82,20 +100,17 @@ class DicomTestCase(base.TestCase):
             mimeType='dicom'
         )
 
-        # Wait a little while to make sure the metadata is appended to the item
-        starttime = time.time()
-        while (not events.daemon.eventQueue.empty() and
-                time.time() - starttime < 10):
-            time.sleep(0.1)
+        # Wait for handler success event
+        handled = self._waitForHandler(eventName='dicom.handler.success')
+        self.assertTrue(handled)
 
+        # Verify metadata
         self.dcmItem = self.model('item').load(
             self.dcmFile['itemId'],
             level=AccessType.READ,
             user=self.user
         )
         self.assertHasKeys(self.dcmItem, ['meta'])
-
-    def testDICOMHandler(self):
         metadata = self.dcmItem['meta']
         expectedKeys = ['PatientName', 'PatientID', 'StudyID',
                         'StudyInstanceUID', 'StudyDate', 'StudyTime',
@@ -117,3 +132,19 @@ class DicomTestCase(base.TestCase):
         self.assertEqual(metadata['SeriesNumber'], self.dcm.SeriesNumber)
         self.assertEqual(metadata['SOPInstanceUID'], self.dcm.SOPInstanceUID)
         self.assertEqual(metadata['Modality'], self.dcm.Modality)
+
+    def testDICOMHandlerInvalid(self):
+        # Upload non-DICOM data
+        data = b'data'
+        self.dcmFile = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(data),
+            size=len(data),
+            name='data',
+            parentType='folder',
+            parent=self.publicFolder,
+            user=self.user
+        )
+
+        # Wait for handler ignore event
+        handled = self._waitForHandler(eventName='dicom.handler.ignore')
+        self.assertTrue(handled)

@@ -32,9 +32,10 @@ def addDICOMMetadata(file, path):
     :param path: path of the DICOM file
     :type path: str
     """
-    dcm = dicom.read_file(path)
-    if not dcm:
-        return
+    try:
+        dcm = dicom.read_file(path)
+    except dicom.filereader.InvalidDicomError:
+        return False
 
     itemModel = ModelImporter.model('item')
     userModel = ModelImporter.model('user')
@@ -59,3 +60,5 @@ def addDICOMMetadata(file, path):
 
     updatedItem = itemModel.setMetadata(item, metadata)
     itemModel.updateItem(updatedItem)
+
+    return True

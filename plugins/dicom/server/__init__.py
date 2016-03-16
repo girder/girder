@@ -37,7 +37,18 @@ def dicom_handler(event):
     file = event.info['file']
     path = os.path.join(assetstore['root'], file['path'])
 
-    addDICOMMetadata(file, path)
+    eventInfo = {
+        'path': path
+    }
+
+    try:
+        ok = addDICOMMetadata(file, path)
+        if ok:
+            events.trigger('dicom.handler.success', info=eventInfo)
+        else:
+            events.trigger('dicom.handler.ignore', info=eventInfo)
+    except IOError:
+        events.trigger('dicom.handler.error', info=eventInfo)
 
 
 def load(info):
