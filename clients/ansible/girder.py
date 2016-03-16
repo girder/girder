@@ -478,7 +478,7 @@ EXAMPLES = '''
       email: "alice.test@kitware.com"
     state: present
 
-# Create an 'bill' user
+# Create a 'bill' user
 - name: Create 'bill' User
   girder:
     port: 8080
@@ -492,7 +492,7 @@ EXAMPLES = '''
       email: "bill.test@kitware.com"
     state: present
 
-# Create an 'chris' user
+# Create a 'chris' user
 - name: Create 'chris' User
   girder:
     port: 8080
@@ -646,7 +646,7 @@ EXAMPLES = '''
 # Upload files on the localhost at /tmp/data/test1.txt and
 # /tmp/data/test2.txt to the girder instance under the item
 # "test item"
-# Note:  the list is idempotent and will remove file that are
+# Note:  the list is idempotent and will remove files that are
 # not listed under the item. Files are checked for both name
 # and size to determine if they should be updated.
 - name: Upload files
