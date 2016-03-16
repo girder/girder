@@ -58,6 +58,7 @@ def dicom_handler(event):
         'SeriesDate': dcm.SeriesDate,
         'SeriesTime': dcm.SeriesTime,
         'SeriesNumber': dcm.SeriesNumber,
+        'SOPInstanceUID': dcm.SOPInstanceUID,
         'Modality': dcm.Modality
     }
 

@@ -100,7 +100,7 @@ class DicomTestCase(base.TestCase):
         expectedKeys = ['PatientName', 'PatientID', 'StudyID',
                         'StudyInstanceUID', 'StudyDate', 'StudyTime',
                         'SeriesInstanceUID', 'SeriesDate', 'SeriesTime',
-                        'SeriesNumber', 'Modality']
+                        'SeriesNumber', 'SOPInstanceUID', 'Modality']
         self.assertHasKeys(metadata, expectedKeys)
         self.assertEqual(metadata['PatientName'],
                          self.dcm.PatientName.encode('utf-8'))
@@ -115,4 +115,5 @@ class DicomTestCase(base.TestCase):
         self.assertEqual(metadata['SeriesDate'], self.dcm.SeriesDate)
         self.assertEqual(metadata['SeriesTime'], self.dcm.SeriesTime)
         self.assertEqual(metadata['SeriesNumber'], self.dcm.SeriesNumber)
+        self.assertEqual(metadata['SOPInstanceUID'], self.dcm.SOPInstanceUID)
         self.assertEqual(metadata['Modality'], self.dcm.Modality)
