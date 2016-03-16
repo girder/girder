@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import dicom
 import os
-from girder import events
-from girder.constants import AccessType, AssetstoreType
-from girder.utility.model_importer import ModelImporter
 
+from girder import events
+from girder.constants import AssetstoreType
+
+from .metadata import addDICOMMetadata
 from .rest import studies, series, instances
 
 
@@ -37,33 +37,7 @@ def dicom_handler(event):
     file = event.info['file']
     path = os.path.join(assetstore['root'], file['path'])
 
-    dcm = dicom.read_file(path)
-    if not dcm:
-        return
-
-    itemModel = ModelImporter.model('item')
-    userModel = ModelImporter.model('user')
-
-    user = userModel.load(file['creatorId'], level=AccessType.READ)
-    item = itemModel.load(file['itemId'], level=AccessType.WRITE, user=user)
-
-    metadata = {
-        'PatientName': dcm.PatientName.encode('utf-8'),
-        'PatientID': dcm.PatientID,
-        'StudyID': dcm.StudyID,
-        'StudyInstanceUID': dcm.StudyInstanceUID,
-        'StudyDate': dcm.StudyDate,
-        'StudyTime': dcm.StudyTime,
-        'SeriesInstanceUID': dcm.SeriesInstanceUID,
-        'SeriesDate': dcm.SeriesDate,
-        'SeriesTime': dcm.SeriesTime,
-        'SeriesNumber': dcm.SeriesNumber,
-        'SOPInstanceUID': dcm.SOPInstanceUID,
-        'Modality': dcm.Modality
-    }
-
-    updatedItem = itemModel.setMetadata(item, metadata)
-    itemModel.updateItem(updatedItem)
+    addDICOMMetadata(file, path)
 
 
 def load(info):
