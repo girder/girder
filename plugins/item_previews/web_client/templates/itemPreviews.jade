@@ -1,0 +1,8 @@
+.g-widget-item-previews-header
+  i.icon-eye
+  |  Item Previews
+
+.g-widget-item-previews-container
+  each item in items
+    a.g-item-preview-link(g-item-name="#{item.get('name')}")
+      img(src="#{item.downloadUrl()}")
