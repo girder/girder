@@ -17,6 +17,9 @@
 set(dicom_plugin_affix "plugins/dicom")
 set(dicom_plugin_dir ${PROJECT_SOURCE_DIR}/plugins/dicom)
 
+add_python_test(conversion
+                PLUGIN dicom
+                )
 add_python_test(dicom
                 PLUGIN dicom
                 EXTERNAL_DATA "${dicom_plugin_affix}/DICOM-CT.dcm"
