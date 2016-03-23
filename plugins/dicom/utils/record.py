@@ -36,7 +36,6 @@ import sys
 import traceback
 import json
 import dicom
-#import couchdb
 import girder_client
 import argparse
 
@@ -59,24 +58,9 @@ class ChronicleRecord():
     """Performs the recording of DICOM objects
     """
 
-    def __init__(self):
-        #self.couchDB_URL=couchDB_URL
-        #self.databaseName=databaseName
-
-        #print(self.couchDB_URL)
-        #self.couch = couchdb.Server(self.couchDB_URL)
-        #try:
-        #    print(self.databaseName)
-        #    self.db = self.couch[self.databaseName]
-        #except couchdb.ResourceNotFound:
-        #    self.db = self.couch.create(self.databaseName)
-
-        #self.gc = girder_client.GirderClient(port=8080)
-        #self.gc.authenticate('jcfr', 'dicomweb')
-
-        self.gc = girder_client.GirderClient(host='data.kitware.com', port=443, scheme='https')
-        self.gc.token = 'Z472wxLYsFVcQNM3TVTXqWHhpNvXps6bqN7RBx3NbnlOGyVWBdqJhZpiJqIdpTQz'
-
+    def __init__(self, apiUrl, apiToken):
+        self.gc = girder_client.GirderClient(apiUrl=apiUrl)
+        self.gc.token = apiToken
 
     def windowedData(self,data, window, level):
         """Apply the RGB Look-Up Table for the given data and window/level value."""
@@ -180,10 +164,7 @@ class ChronicleRecord():
             print("...apparently not dicom")
             return
 
-        # XXX Improve script to support folder_id parameter
-        #folderId = '55f47d389069ef3b6b926582'
-        folderId = '56005a768d777f6ddc3da1fb'
-        #folderId = '560063958d777f6ddc3da201'
+        folderId = self.folderId
 
         uid = dataset.SOPInstanceUID
 
@@ -233,23 +214,21 @@ class ChronicleRecord():
 
 # {{{ main, test, and arg parse
 
-def usage():
-    print ("record [directoryPath] <CouchDB_URL> <DatabaseName>")
-    print (" CouchDB_URL default http://localhost:5984")
-    print (" DatabaseName default 'chronicle'")
-
 def main ():
 
     parser = argparse.ArgumentParser(description="Record DICOM documents into Chronicle of CouchDB")
     parser.add_argument("inputDirectory",help="Input path to search for files to record")
-    #parser.add_argument("--url",dest="couchDB_URL",type=str,default="http://localhost:5984",help="CouchDB instance URL")
-    #parser.add_argument("--dbName",dest="databaseName",type=str,default="chronicle",help="Name of the database")
+    parser.add_argument("--apiUrl",dest="apiUrl",type=str,default="http://localhost:8080/api/v1",help="Girder API URL")
+    parser.add_argument("--apiToken",dest="apiToken",type=str,required=True,help="Girder API token")
+    parser.add_argument("--folderId",required=True,help="Girder folder ID in which to add items")
     parser.add_argument("--dontAttachImages",dest="dontAttachImages",action="store_true",default=True,help="Flag to generate and attach image thumbnails")
     parser.add_argument("--dontAttachOriginals",dest="dontAttachOriginals",action="store_true",default=False,help="Flag to attach original DICOM files")
+
     ns = parser.parse_args()
 
     global recorder # for ipython debugging
-    recorder = ChronicleRecord()
+    recorder = ChronicleRecord(ns.apiUrl, ns.apiToken)
+    recorder.folderId = ns.folderId
     recorder.attachImages = not ns.dontAttachImages
     recorder.attachOriginals = not ns.dontAttachOriginals
 
