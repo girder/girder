@@ -41,6 +41,7 @@ import girder_client
 import argparse
 
 from girder_client import HttpError
+from dicom_json_conversion import dataElementToJSON, datasetToJSON
 
 try:
     import PIL
@@ -62,13 +63,6 @@ class ChronicleRecord():
         #self.couchDB_URL=couchDB_URL
         #self.databaseName=databaseName
 
-        # these will not be included in the json
-        # XXX Part of standard: Any large data ... add URL pointing back to data
-        self.BINARY_VR_VALUES = ['OW', 'OB', 'OW/OB', 'OW or OB', 'OB or OW', 'US or SS']
-
-        # these don't get auto-quoted by json for some reason
-        self.VRs_TO_QUOTE = ['DS', 'AT']
-
         #print(self.couchDB_URL)
         #self.couch = couchdb.Server(self.couchDB_URL)
         #try:
@@ -83,57 +77,6 @@ class ChronicleRecord():
         self.gc = girder_client.GirderClient(host='data.kitware.com', port=443, scheme='https')
         self.gc.token = 'Z472wxLYsFVcQNM3TVTXqWHhpNvXps6bqN7RBx3NbnlOGyVWBdqJhZpiJqIdpTQz'
 
-    def dataElementToJSON(self,dataElement):
-        """Returns a json dictionary which is either a single
-        element or a dictionary of elements representing a sequnce.
-        """
-        if dataElement.VR in self.BINARY_VR_VALUES:
-            value = "Binary Omitted"
-        elif dataElement.VR == "SQ":
-            values = []
-            for subelement in dataElement:
-                # recursive call to co-routine to format sequence contents
-                values.append(self.datasetToJSON(subelement))
-            value = values
-        elif dataElement.VR in self.VRs_TO_QUOTE:
-            # switch to " from ' - why doesn't json do this?
-            value = "%s" % dataElement.value
-        else:
-            value = dataElement.value
-            if isinstance(value, unicode):
-                value = value.encode('utf=8')
-        try:
-            json = {
-                "vr" : dataElement.VR,
-                "Value" : value
-            }
-        except UnboundLocalError:
-            print ("UnboundLocalError: ", dataElement)
-        return json
-
-    def datasetToJSON(self,dataset):
-        """
-        returns a json-compatible dictionary of that the json module
-        will convert into json of the form documented here:
-        ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf
-
-        Note this is a co-routine with dataElementToJSON and they
-        can call each other recursively since SQ (sequence) data elements
-        are implemented as nested datasets.
-        """
-        jsonDictionary = {}
-        for key in dataset.keys():
-            jkey = "%04X%04X" % (key.group,key.element)
-            try:
-                dataElement = dataset[key]
-                jsonDictionary[jkey] = self.dataElementToJSON(dataElement)
-            except KeyError:
-                print("KeyError: ", key)
-            except ValueError:
-                print("ValueError: ", key)
-            except NotImplementedError:
-                print("NotImplementedError: ", key)
-        return jsonDictionary
 
     def windowedData(self,data, window, level):
         """Apply the RGB Look-Up Table for the given data and window/level value."""
@@ -246,7 +189,7 @@ class ChronicleRecord():
 
         # check if instance is already in database
         items = self.gc.listItem(folderId, name=uid)
-        if len(items) > 0:
+        if items:
             print("... %s already in database" % uid)
             return
 
@@ -254,7 +197,7 @@ class ChronicleRecord():
         item = self.gc.createItem(folderId, uid, "")
 
         # make a girder item that contains the dataset in json
-        jsonDictionary = self.datasetToJSON(dataset)
+        jsonDictionary = datasetToJSON(dataset)
         #document = {
         #    '_id' : dataset.SOPInstanceUID,
         #    'fileNamePath' : fileNamePath,
