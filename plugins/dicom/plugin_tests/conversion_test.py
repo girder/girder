@@ -1134,6 +1134,7 @@ class ConversionTestCase(unittest.TestCase):
 
         # Serialize to JSON-formatted string
         s = json.dumps(result)
+        self.assertTrue(s)
 
     def testUnicodeDatasetToJSON(self):
         """
@@ -1165,3 +1166,4 @@ class ConversionTestCase(unittest.TestCase):
 
         # Serialize to JSON-formatted string
         s = json.dumps(result)
+        self.assertTrue(s)
