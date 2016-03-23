@@ -1,0 +1,337 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        port: 8080
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    # Create an 'alice' user
+    - name: Create 'alice' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Alice"
+          lastName: "Test"
+          login: "alice"
+          password: "letmein"
+          email: "alice.test@kitware.com"
+        state: present
+
+    # Create an 'bill' user
+    - name: Create 'bill' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Bill"
+          lastName: "Test"
+          login: "bill"
+          password: "letmein"
+          email: "bill.test@kitware.com"
+        state: present
+
+    # Create an 'chris' user
+    - name: Create 'chris' User
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        user:
+          firstName: "Chris"
+          lastName: "Test"
+          login: "chris"
+          password: "letmein"
+          email: "chris.test@kitware.com"
+        state: present
+
+
+###
+# Groups
+
+    - name: Create a test group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+        state: present
+
+    # Should show no change
+    - name: Create a test group (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+        state: present
+
+    # Change group description
+    - name: Change group description
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group (different description)"
+        state: present
+
+
+    # Remove test Group
+    - name: Remove test group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group (different description)"
+        state: absent
+
+    ###
+    # Users
+
+    - name: Create a test group with users
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: member
+            - login: bill
+              type: moderator
+            - login: chris
+              type: admin
+        state: present
+
+
+    - name: Recreate a test group with users (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: member
+            - login: bill
+              type: moderator
+            - login: chris
+              type: admin
+        state: present
+
+
+    - name: Remove bill from group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: member
+            - login: chris
+              type: admin
+        state: present
+
+    - name: Add bill back in
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: member
+            - login: bill
+              type: moderator
+            - login: chris
+              type: admin
+        state: present
+
+
+    - name: Shuffle roles in the group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: admin
+            - login: bill
+              type: member
+            - login: chris
+              type: moderator
+        state: present
+
+    - name: Shuffle roles in the group again
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+          users:
+            - login: alice
+              type: moderator
+            - login: bill
+              type: admin
+            - login: chris
+              type: member
+        state: present
+
+####
+#  Test access control
+
+    - name: Create collection with access
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: no
+          access:
+            users:
+              - login: alice
+                type: admin
+              - login: chris
+                type: member
+      register: test_collection
+
+
+    - name: Reereate collection with access (should show no change)
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: no
+          access:
+            users:
+              - login: alice
+                type: admin
+              - login: chris
+                type: member
+      register: test_collection
+
+    - name: Add bill to Test Collection
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: no
+          access:
+            users:
+              - login: alice
+                type: admin
+              - login: bill
+                type: moderator
+              - login: chris
+                type: member
+      register: test_collection
+
+    - name: Add group to Test Collection
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: no
+          access:
+            users:
+              - login: alice
+                type: admin
+              - login: bill
+                type: moderator
+              - login: chris
+                type: member
+            groups:
+              - name: Test Group
+                type: member
+      register: test_collection
+
+    - name: Remove chris, bill, Test Group and make public
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: yes
+          access:
+            users:
+              - login: alice
+                type: admin
+      register: test_collection
+
+
+    - name: Add Test Folder with access
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        folder:
+          parentType: "collection"
+          parentId: "{{test_collection['gc_return']['_id'] }}"
+          name: "test folder"
+          description: "A test folder"
+          access:
+            users:
+              - login: bill
+                type: admin
+            groups:
+              - name: Test Group
+                type: member
+      register: test_folder
+
+
+    # Remove test Group
+    - name: Remove test group
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        group:
+          name: "Test Group"
+          description: "Basic test group"
+        state: absent
