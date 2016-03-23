@@ -142,6 +142,11 @@ girder.views.HierarchyWidget = girder.View.extend({
                 this._childCountCheck();
             }, this);
 
+        this.itemPreviewView = new girder.views.ItemPreviewWidget({
+            folderId: this.parentModel.get('_id'),
+            parentView: this
+        });
+
         this.metadataWidget = new girder.views.MetadataWidget({
             item: this.parentModel,
             parentView: this,
@@ -204,6 +209,7 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
+            this.itemPreviewView.setElement(this.$('.g-item-preview-container')).render();
             this.metadataWidget.setItem(this.parentModel);
             this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
         }
