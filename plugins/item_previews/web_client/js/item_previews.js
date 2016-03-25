@@ -3,22 +3,22 @@
  * For now, the only supported item previews are image previews.
  */
 
-var MAX_JSON_SIZE = 2e6 /* bytes */;
-
-var    _isSupportedItem = function (item) {
-  return _isImageItem(item) || _isJSONItem(item);
-};
-
-var _isJSONItem = function (item) {
-  return /\.(json)$/i.test(item.get('name'));
-};
-
-var _isImageItem = function (item) {
-  return /\.(jpg|jpeg|png|gif)$/i.test(item.get('name'));
-};
-
 
 girder.views.ItemPreviewWidget = girder.View.extend({
+
+  MAX_JSON_SIZE: 2e6 /* bytes */,
+
+  _isSupportedItem: function (item) {
+    return this._isImageItem(item) || this._isJSONItem(item);
+  },
+
+  _isJSONItem: function (item) {
+    return /\.(json)$/i.test(item.get('name'));
+  },
+
+  _isImageItem: function (item) {
+    return /\.(jpg|jpeg|png|gif)$/i.test(item.get('name'));
+  },
 
   initialize: function (settings) {
     this.collection = new girder.collections.ItemCollection();
@@ -44,23 +44,23 @@ girder.views.ItemPreviewWidget = girder.View.extend({
 
   render: function () {
 
-    var supportedItems = this.collection.filter(_isSupportedItem);
+    var supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
 
     this.$el.html(girder.templates.itemPreviews({
       items: supportedItems,
       hasMore: this.collection.hasNextPage(),
-      isImageItem: _isImageItem,
-      isJSONItem: _isJSONItem,
+      isImageItem: this._isImageItem,
+      isJSONItem: this._isJSONItem,
       girder: girder,
     }));
 
     // Render any JSON files.
-    supportedItems.filter(_isJSONItem).forEach(function (item) {
+    supportedItems.filter(this._isJSONItem).forEach(function (item) {
       var id = item.get('_id');
 
       // Don't process JSON files that are too big to preview.
       var size = item.get('size');
-      if (size > MAX_JSON_SIZE) {
+      if (size > this.MAX_JSON_SIZE) {
         return $('.json[data-id="' + id + '"]').text('JSON too big to preview.');
       }
 
