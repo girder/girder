@@ -21,6 +21,7 @@ COPY girder /girder/girder
 COPY clients /girder/clients
 COPY plugins /girder/plugins
 COPY scripts /girder/scripts
+COPY grunt_tasks /girder/grunt_tasks
 COPY Gruntfile.js /girder/Gruntfile.js
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json

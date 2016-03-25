@@ -1,4 +1,3 @@
-
 dbpath=/var/lib/mongodb
 logpath=/var/log/mongodb.log
 logappend=true
@@ -8,4 +7,4 @@ bind_ip={{ hostvars[inventory_hostname]
                    ["address"] }}
 port={{ mongodb_port }}
 journal=true
-
+setParameter=textSearchEnabled=true

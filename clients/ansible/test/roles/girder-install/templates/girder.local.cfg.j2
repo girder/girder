@@ -10,10 +10,7 @@ bcrypt_rounds: {{ girder_bcrypt_rounds }}
 {% endif %}
 
 [database]
-uri: "mongodb://{{ hostvars[groups[mongodb_ansible_group][0]]
-                           ['ansible_' + mongodb_net_interface]
-                           ['ipv4']
-                           ['address'] }}:{{ mongodb_port }}/girder"
+uri: "mongodb://127.0.0.1:{{ mongodb_port }}/girder"
 {% if girder_replica_set == "" %}
 replica_set: None
 {% else %}
