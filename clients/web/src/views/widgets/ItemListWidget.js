@@ -24,8 +24,8 @@ girder.views.ItemListWidget = girder.View.extend({
         this.collection = new girder.collections.ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
-            this.trigger('g:changed');
             this.render();
+            this.trigger('g:changed');
         }, this).fetch({
             folderId: settings.folderId
         });
