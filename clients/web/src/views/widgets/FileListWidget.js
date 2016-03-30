@@ -58,8 +58,8 @@ girder.views.FileListWidget = girder.View.extend({
             (settings.itemId || settings.item.get('_id')) + '/files';
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
-            this.trigger('g:changed');
             this.render();
+            this.trigger('g:changed');
         }, this).fetch();
 
         this.parentItem = settings.item;
@@ -124,7 +124,7 @@ girder.views.FileListWidget = girder.View.extend({
      */
     insertFile: function (file) {
         this.collection.add(file);
-        this.trigger('g:changed');
         this.render();
+        this.trigger('g:changed');
     }
 });
