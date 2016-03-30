@@ -91,8 +91,10 @@ class ResourceExt(Resource):
                 self.boundResources[resource] = True
 
     def unbindModels(self, resources={}):
-        """Unbind any models that were bound and aren't listed as needed.
-        :param resources: resources that shouldn't be unbound."""
+        """
+        Unbind any models that were bound and aren't listed as needed.
+        :param resources: resources that shouldn't be unbound.
+        """
         # iterate over a list so that we can change the dictionary as we use it
         for oldresource in list(six.viewkeys(self.boundResources)):
             if oldresource not in resources:
@@ -323,8 +325,10 @@ class ResourceExt(Resource):
         return snap
 
     def fileSaveHandler(self, event):
-        """When a file is saved, update the provenance of the parent item.
-        :param event: the event with the file information."""
+        """
+        When a file is saved, update the provenance of the parent item.
+        :param event: the event with the file information.
+        """
         curFile = event.info
         if 'itemId' not in curFile or '_id' not in curFile:
             return
@@ -356,9 +360,11 @@ class ResourceExt(Resource):
         self.model('item').save(item, triggerEvents=False)
 
     def fileSaveCreatedHandler(self, event):
-        """When a file is created, we don't record it in the save handler
-        beacuse we want to know its id.  We record it here, instead.
-        :param event: the event with the file information."""
+        """
+        When a file is created, we don't record it in the save handler
+        because we want to know its id.  We record it here, instead.
+        :param event: the event with the file information.
+        """
         file = event.info
         if 'itemId' not in file or not file['itemId'] or '_id' not in file:
             return
@@ -380,8 +386,10 @@ class ResourceExt(Resource):
         self.model('item').save(item, triggerEvents=False)
 
     def fileRemoveHandler(self, event):
-        """When a file is removed, update the provenance of the parent item.
-        :param event: the event with the file information."""
+        """
+        When a file is removed, update the provenance of the parent item.
+        :param event: the event with the file information.
+        """
         file = event.info
         if 'itemId' not in file:
             return
