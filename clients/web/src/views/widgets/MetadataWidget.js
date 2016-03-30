@@ -19,6 +19,7 @@ girder.views.MetadataWidget = girder.View.extend({
      * @param [settings.fieldName='meta'] {string} The name of the model attribute
      *    to display/edit. The model attribute with this name should be an object
      *    whose top level keys represent metadata keys.
+     * @param [settings.title='Metadata'] {string} Title for the widget.
      * @param [settings.apiPath] {string} The relative API path to use when editing
      *    metadata keys for this model. Defaults to using the MetadataMixin default path.
      * @param [settings.accessLevel=girder.AccessType.READ] {girder.AccessType} The
@@ -34,6 +35,7 @@ girder.views.MetadataWidget = girder.View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.fieldName = settings.fieldName || 'meta';
+        this.title = settings.title || 'Metadata';
         this.apiPath = settings.apiPath;
         this.accessLevel = settings.accessLevel;
         this.onMetadataEdited = settings.onMetadataEdited;
@@ -141,6 +143,7 @@ girder.views.MetadataWidget = girder.View.extend({
         // Metadata header
         this.$el.html(girder.templates.metadataWidget({
             item: this.item,
+            title: this.title,
             accessLevel: this.accessLevel,
             girder: girder
         }));
