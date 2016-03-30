@@ -230,14 +230,16 @@ class AbstractAssetstoreAdapter(ModelImporter):
                 offset, endByte - 1, file['size'])
 
     def checkUploadSize(self, upload, chunkSize):
-        """Check if the upload is valid based on the chunk size.  If this
+        """
+        Check if the upload is valid based on the chunk size.  If this
         raises an exception, then the caller should clean up and reraise the
         exception.
 
         :param upload: the dictionary of upload information.  The received and
                        size values are used.
         :param chunkSize: the chunk size that needs to be validated.
-        :type chunkSize: a non-negative integer or None if unknown."""
+        :type chunkSize: a non-negative integer or None if unknown.
+        """
         if 'received' not in upload or 'size' not in upload:
             return
         if chunkSize is None:
