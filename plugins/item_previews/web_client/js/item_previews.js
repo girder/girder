@@ -7,8 +7,8 @@ girder.views.ItemPreviewWidget = girder.View.extend({
 
     events: {
         'click a.g-item-preview-link': function (event) {
-          var id = this.$(event.currentTarget).data('id');
-          this.parentView.itemListView.trigger('g:itemClicked', this.collection.get(id));
+            var id = this.$(event.currentTarget).data('id');
+            this.parentView.itemListView.trigger('g:itemClicked', this.collection.get(id));
         }
     },
 
