@@ -11,14 +11,14 @@
       - var name = item.get('name')
 
       - if (isImageItem(item))
-        a.g-item-preview-link(g-item-name="#{name}")
+        a.g-item-preview-link(data-id="#{item.get('_id')}")
           img(src="#{item.downloadUrl()}")
 
       - else if (isJSONItem(item))
         .panel.panel-default
           .panel-heading
             h4
-              a.g-item-preview-link(g-item-name="#{name}")
+              a.g-item-preview-link(data-id="#{item.get('_id')}")
                 | #{name}
           .panel-body
             textarea.form-control.json(data-id="#{item.get('_id')}")

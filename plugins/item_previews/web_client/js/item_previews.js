@@ -7,12 +7,9 @@ girder.views.ItemPreviewWidget = girder.View.extend({
 
     events: {
         'click a.g-item-preview-link': function (event) {
-            // TODO: trigger a 'g:itemClicked' based on cid
-            // or other method rather than this lazy link proxy:
-            var name = $(event.currentTarget).attr('g-item-name');
-            $('.g-item-list a').filter(function (i, d) {
-                return (name === $(d).text());
-            }).click();
+          var id = this.$(event.target).data('id');
+          var itemListView = this.parentView.itemListView;
+          itemListView.trigger('g:itemClicked', itemListView.collection.get(id));
         }
     },
 
@@ -44,7 +41,9 @@ girder.views.ItemPreviewWidget = girder.View.extend({
     render: function () {
         var supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
 
-        this.$el.html(girder.templates.itemPreviews({
+        var view = this;
+
+        view.$el.html(girder.templates.itemPreviews({
             items: supportedItems,
             hasMore: this.collection.hasNextPage(),
             isImageItem: this._isImageItem,
@@ -59,7 +58,7 @@ girder.views.ItemPreviewWidget = girder.View.extend({
             // Don't process JSON files that are too big to preview.
             var size = item.get('size');
             if (size > this._MAX_JSON_SIZE) {
-                return $('.json[data-id="' + id + '"]').text('JSON too big to preview.');
+                return view.$('.json[data-id="' + id + '"]').text('JSON too big to preview.');
             }
 
             // Ajax request the JSON files to display them.
@@ -68,7 +67,7 @@ girder.views.ItemPreviewWidget = girder.View.extend({
                 type: 'GET',
                 error: null // don't do default error behavior (validation may fail)
             }).done(function (resp) {
-                $('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
+                view.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
             }).error(function (err) {
                 console.error('Could not preview item', err);
             });
