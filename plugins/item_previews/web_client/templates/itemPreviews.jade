@@ -8,8 +8,7 @@
 
     .g-widget-item-preview
 
-      - var id = item.get('_id')
-      - var name = item.get('name')
+      - var id = item.id
 
       - if (isImageItem(item))
         a.g-item-preview-link(data-id=id)
@@ -20,6 +19,6 @@
           .panel-heading
             h4
               a.g-item-preview-link(data-id=id)
-                | #{name}
+                | #{item.get('name')}
           .panel-body
             textarea.form-control.json(data-id=id)
