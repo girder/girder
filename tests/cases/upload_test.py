@@ -82,13 +82,15 @@ class UploadTestCase(base.TestCase):
                 self.folder = folder
 
     def _uploadFile(self, name, partial=False, largeFile=False):
-        """Upload a file either completely or partially.
+        """
+        Upload a file either completely or partially.
         :param name: the name of the file to upload.
         :param partial: the number of steps to complete in the uploads: 0
                         initializes the upload, 1 uploads 1 chunk, etc.  False
                         to complete the upload.
         :param largeFile: if True, upload a file that is > 32Mb
-        :returns: the upload record which includes the upload id."""
+        :returns: the upload record which includes the upload id.
+        """
         if not largeFile:
             chunk1 = Chunk1
             chunk2 = Chunk2
@@ -163,9 +165,11 @@ class UploadTestCase(base.TestCase):
         return upload
 
     def _testUpload(self):
-        """Upload a file to the server and several partial files.  Test that we
+        """
+        Upload a file to the server and several partial files.  Test that we
         can delete a partial upload but not a completed upload. Test that we
-        can delete partial uploads that are older than a certain date."""
+        can delete partial uploads that are older than a certain date.
+        """
         completeUpload = self._uploadFile('complete_upload')
         # test uploading large files
         self._uploadFile('complete_upload', largeFile=True)
