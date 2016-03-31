@@ -401,7 +401,8 @@ class FileTestCase(base.TestCase):
         self.assertEqual(extracted, contents)
 
         # Make collection public
-        collection = self.model('collection').load(collection['_id'], force=True)
+        collection = self.model('collection').load(collection['_id'],
+                                                   force=True)
         collection['public'] = True
         collection = self.model('collection').save(collection)
 
