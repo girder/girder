@@ -97,3 +97,8 @@ class MailTestCase(base.TestCase):
             'url': 'x'
         })
         self.assertTrue(val in content)
+
+    def testUnicodeEmail(self):
+        text = u'Contains unic\xf8de \u0420\u043e\u0441\u0441\u0438\u044f'
+        mail_utils.sendEmail(to='fake@fake.com', subject=text, text=text)
+        self.assertTrue(base.mockSmtp.waitForMail())
