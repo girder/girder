@@ -321,9 +321,10 @@ class OauthTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
-        search = re.search('<a href="(.*)">', msg)
+        body = msg.get_payload(decode=True).decode('utf8')
+        search = re.search('<a href="(.*)">', body)
         link = search.group(1)
         linkParts = link.split('/')
         userId = linkParts[-3]
