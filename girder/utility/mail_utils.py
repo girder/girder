@@ -89,7 +89,10 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False):
         raise Exception('You must specify a "to" address or list of addresses '
                         'or set toAdmins=True when calling sendEmail.')
 
-    msg = MIMEText(text, 'html')
+    if isinstance(text, six.text_type):
+        text = text.encode('utf8')
+
+    msg = MIMEText(text, 'html', 'UTF-8')
     msg['Subject'] = subject or '[no subject]'
     msg['To'] = ', '.join(to)
     msg['From'] = ModelImporter.model('setting').get(

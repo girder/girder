@@ -174,9 +174,9 @@ class WebClientTestCase(base.TestCase):
                     retry = True
                 elif '__FETCHEMAIL__' in line:
                     base.mockSmtp.waitForMail()
-                    msg = base.mockSmtp.getMail()
+                    msg = base.mockSmtp.getMail(parse=True)
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
-                         'wb').write(msg.encode('utf8'))
+                         'wb').write(msg.get_payload(decode=True))
                     continue  # we don't want to print this
                 if 'Jasmine' in line:
                     hasJasmine = True

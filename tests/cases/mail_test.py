@@ -58,11 +58,12 @@ class MailTestCase(base.TestCase):
         mail_utils.sendEmail(text='hello', toAdmins=True)
         self.assertTrue(base.mockSmtp.waitForMail())
 
-        lines = base.mockSmtp.getMail().strip().splitlines()
-        self.assertTrue('Subject: [no subject]' in lines)
-        self.assertTrue('To: admin0@admin.com, admin1@admin.com' in lines)
-        self.assertTrue('From: a@test.com' in lines)
-        self.assertEqual(lines[-1], 'hello')
+        message = base.mockSmtp.getMail(parse=True)
+        self.assertEqual(message['subject'], '[no subject]')
+        self.assertEqual(message['content-type'], 'text/html; charset="utf-8"')
+        self.assertEqual(message['to'], 'admin0@admin.com, admin1@admin.com')
+        self.assertEqual(message['from'], 'a@test.com')
+        self.assertEqual(message.get_payload(decode=True), b'hello')
 
         # Test sending email to multiple recipients
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
@@ -70,11 +71,11 @@ class MailTestCase(base.TestCase):
                              subject='Email alert')
         self.assertTrue(base.mockSmtp.waitForMail())
 
-        lines = base.mockSmtp.getMail().strip().splitlines()
-        self.assertTrue('Subject: Email alert' in lines)
-        self.assertTrue('To: a@abc.com, b@abc.com' in lines)
-        self.assertTrue('From: a@test.com' in lines)
-        self.assertEqual(lines[-1], 'world')
+        message = base.mockSmtp.getMail(parse=True)
+        self.assertEqual(message['subject'], 'Email alert')
+        self.assertEqual(message['to'], 'a@abc.com, b@abc.com')
+        self.assertEqual(message['from'], 'a@test.com')
+        self.assertEqual(message.get_payload(decode=True), b'world')
 
         # Pass nonsense in the "to" field, check exception
         x = 0
@@ -97,3 +98,10 @@ class MailTestCase(base.TestCase):
             'url': 'x'
         })
         self.assertTrue(val in content)
+
+    def testUnicodeEmail(self):
+        text = u'Contains unic\xf8de \u0420\u043e\u0441\u0441\u0438\u044f'
+        mail_utils.sendEmail(to='fake@fake.com', subject=text, text=text)
+        self.assertTrue(base.mockSmtp.waitForMail())
+        message = base.mockSmtp.getMail(parse=True)
+        self.assertEqual(message.get_payload(decode=True), text.encode('utf8'))
