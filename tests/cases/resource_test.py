@@ -256,6 +256,7 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(resp.headers['Content-Type'], 'application/zip')
         zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         self.assertTrue(zip.testzip() is None)
+
         # Test deleting resources
         resourceList = {
             'collection': [str(self.collection['_id'])],
@@ -304,6 +305,35 @@ class ResourceTestCase(base.TestCase):
                             params={'text': 'Item'})
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
+
+        # Add a file under the admin private folder
+        item = self.model('item').createItem(
+            'Private Item', self.admin, self.adminPrivateFolder)
+        _, path, contents = self._uploadFile('private_file', item)
+        self.assertEqual(path, 'goodlogin/Private/Private Item/private_file')
+
+        # Download as admin, should get private file
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.admin, params={
+                'resources': json.dumps({'user': [str(self.admin['_id'])]})
+            }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+        self.assertEqual(zip.namelist(), [path])
+        self.assertEqual(zip.read(path), contents)
+
+        # Download as normal user, should get empty zip
+        resp = self.request(
+            path='/resource/download', method='GET', user=self.user, params={
+                'resources': json.dumps({'user': [str(self.admin['_id'])]})
+            }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+        self.assertEqual(zip.namelist(), [])
 
     def testDeleteResources(self):
         # Some of the deletes were tested with the downloads.
