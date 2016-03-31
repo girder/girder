@@ -519,7 +519,7 @@ class UserTestCase(base.TestCase):
         msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
         body = msg.get_payload(decode=True).decode('utf8')
-        search = re.search(b'<a href="(.*)">', body)
+        search = re.search('<a href="(.*)">', body)
         link = search.group(1)
         linkParts = link.split('/')
         userId = linkParts[-3]
