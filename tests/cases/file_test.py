@@ -400,6 +400,21 @@ class FileTestCase(base.TestCase):
         extracted = zip.read('Test Collection/Test Folder/random.bin')
         self.assertEqual(extracted, contents)
 
+        # Make collection public
+        collection = self.model('collection').load(collection['_id'], force=True)
+        collection['public'] = True
+        collection = self.model('collection').save(collection)
+
+        # Download the collection as anonymous
+        path = '/collection/%s/download' % str(collection['_id'])
+        resp = self.request(
+            path=path,
+            method='GET', user=None, isJson=False)
+        self.assertStatusOk(resp)
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        # Zip file should have no entries
+        self.assertFalse(zip.namelist())
+
     def _testDeleteFile(self, file):
         """
         Deletes the previously uploaded file from the server.
