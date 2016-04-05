@@ -178,17 +178,19 @@ def getCurrentUser(returnToken=False):
         return retVal(user, token)
 
 
-def requireAdmin(user):
+def requireAdmin(user, message=None):
     """
     Calling this on a user will ensure that they have admin rights.  If not,
     raises an AccessException.
 
     :param user: The user to check admin flag on.
     :type user: dict.
+    :param message: The exception message.
+    :type message: str or None
     :raises AccessException: If the user is not an administrator.
     """
     if user is None or user.get('admin', False) is not True:
-        raise AccessException('Administrator access required.')
+        raise AccessException(message or 'Administrator access required.')
 
 
 def getBodyJson():
@@ -804,16 +806,18 @@ class Resource(ModelImporter):
 
         return val.lower().strip() in ('true', 'on', '1', 'yes')
 
-    def requireAdmin(self, user):
+    def requireAdmin(self, user, message=None):
         """
         Calling this on a user will ensure that they have admin rights.
         If not, raises an AccessException.
 
         :param user: The user to check admin flag on.
         :type user: dict.
+        :param message: The exception message.
+        :type message: str or None
         :raises AccessException: If the user is not an administrator.
         """
-        return requireAdmin(user)
+        return requireAdmin(user, message)
 
     def setRawResponse(self, *args, **kwargs):
         """
