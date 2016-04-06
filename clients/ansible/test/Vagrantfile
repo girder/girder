@@ -63,7 +63,8 @@ Vagrant.configure(2) do |config|
     ansible.extra_vars = {
       default_user: "vagrant"
     }
-
+    ansible.verbose = "v"
     ansible.playbook = "deploy.yml"
+    ansible.galaxy_role_file = "requirements.yml"
   end
 end
