@@ -1,15 +1,42 @@
 - hosts: girder
-  sudo: yes
+  vars:
+    base_dir: /opt
+    girder_version: master
+    girder_path: "{{ base_dir }}/girder/{{ girder_version }}"
+    girder_user: "girder"
+
+  pre_tasks:
+    - name: create user
+      user:
+        name: "{{ girder_user }}"
+      become: yes
+      become_user: root
+
+    - name: create directory
+      file:
+        state: directory
+        owner: "{{ girder_user }}"
+        group: "{{ girder_user }}"
+        path: "{{ girder_path }}"
+        recurse: yes
+      become: yes
+      become_user: root
+
   roles:
-    - role: mongodb
-      state: started
-
     - role: girder
-      mongodb_ansible_group: girder
-      girder_admin_user: girder
-      girder_admin_password: girder
-      state: started
+      become: yes
+      become_user: "{{ girder_user }}"
 
-    - role: romanesco
-      rabbitmq_ansible_group: girder
-      state: started
+    - role: upstart
+      service_name: "girder"
+      service_chdir: "{{ girder_path }}"
+      service_user: "{{ girder_user }}"
+      service_exec: "python -m girder"
+
+  post_tasks:
+    - name: Ensure girder client is installed
+      pip:
+        name: girder-client
+        state: latest
+      become: yes
+      become_user: root

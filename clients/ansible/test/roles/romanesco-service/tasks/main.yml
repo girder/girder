@@ -1,8 +1,0 @@
----
-
-  - name: romanesco | service
-    service:
-        name: romanesco
-        state: "{{ state }}"
-    when: notify_services|bool
-
