@@ -1,3 +1,4 @@
 ---
 
 - src: nodesource.node
+- src: Stouts.mongodb
