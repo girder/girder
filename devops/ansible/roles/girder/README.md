@@ -21,11 +21,14 @@ The following variables may be overridden:
 Dependencies
 ------------
 
-Your `requirements.yml` file should contain:
+This role depends on the following roles from Ansible Galaxy:
 
+* `nodesource.node`
+* `Stouts.mongodb`
+
+These will be automatically fetched if your requirements.yml file contains:
 ```
 ---
 
-- src: nodesource.node
-- src: Stouts.mongodb
+- src: girder.girder
 ```
