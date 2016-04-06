@@ -27,4 +27,5 @@ Your `requirements.yml` file should contain:
 ---
 
 - src: nodesource.node
+- src: Stouts.mongodb
 ```
