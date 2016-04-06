@@ -108,7 +108,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     uploadModel = ModelImporter.model('upload')
 
     out = six.BytesIO()
-    image.save(out, 'JPEG', quality=85)
+    image.convert('RGB').save(out, 'JPEG', quality=85)
     size = out.tell()
     out.seek(0)
 

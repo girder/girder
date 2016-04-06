@@ -406,10 +406,11 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 403)
 
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
+        body = msg.get_payload(decode=True).decode('utf8')
 
         # Pull out the auto-generated password from the email
-        search = re.search('Your new password is: <b>(.*)</b>', msg)
+        search = re.search('Your new password is: <b>(.*)</b>', body)
         newPass = search.group(1)
 
         # Login with the new password
@@ -515,9 +516,10 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], "Sent temporary access email.")
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
-        search = re.search('<a href="(.*)">', msg)
+        body = msg.get_payload(decode=True).decode('utf8')
+        search = re.search('<a href="(.*)">', body)
         link = search.group(1)
         linkParts = link.split('/')
         userId = linkParts[-3]

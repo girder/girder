@@ -294,11 +294,8 @@ class User(AccessControlledModel):
         """
         if subpath:
             path = os.path.join(path, doc['login'])
-        folders = self.model('folder').find({
-            'parentId': doc['_id'],
-            'parentCollection': 'user'
-        })
-        for folder in folders:
+        for folder in self.model('folder').childFolders(parentType='user',
+                                                        parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
