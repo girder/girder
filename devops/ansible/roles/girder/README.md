@@ -10,6 +10,14 @@ Requirements
 
 This is intended to be run on a clean Ubuntu 14.04 system.
 
+Role Variables
+--------------
+
+The following variables may be overridden:
+
+* `girder_path`: Path to download and build Girder in.
+* `girder_version`: Git commit-ish for fetching Girder.
+
 Dependencies
 ------------
 
