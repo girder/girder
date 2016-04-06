@@ -32,3 +32,4 @@
 - name: Install Girder Python dependencies
   pip:
     requirements: "{{ girder_path }}/requirements.txt"
+  sudo: yes
