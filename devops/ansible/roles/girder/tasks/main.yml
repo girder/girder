@@ -1,0 +1,34 @@
+---
+# tasks file for girder
+
+- name: Install Girder system dependencies
+  apt:
+    name: "{{ item }}"
+  sudo: yes
+  with_items:
+    - git
+    - libffi-dev
+    - build-essential
+    - python2.7-dev
+    - python-pip
+    - libjpeg-dev
+    - zlib1g-dev
+
+- name: Update Pip
+  pip:
+    name: pip
+    state: latest
+  sudo: yes
+
+- name: Download Girder
+  git:
+    repo: "https://github.com/girder/girder.git"
+    dest: "{{ girder_path }}"
+    version: "{{ girder_version }}"
+    update: yes
+    force: yes
+  notify: Build Girder
+
+- name: Install Girder Python dependencies
+  pip:
+    requirements: "{{ girder_path }}/requirements.txt"
