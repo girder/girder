@@ -4,7 +4,8 @@
 - name: Install Girder system dependencies
   apt:
     name: "{{ item }}"
-  sudo: yes
+  become: yes
+  become_user: root
   with_items:
     - git
     - libffi-dev
@@ -18,7 +19,8 @@
   pip:
     name: pip
     state: latest
-  sudo: yes
+  become: yes
+  become_user: root
 
 - name: Download Girder
   git:
@@ -32,4 +34,5 @@
 - name: Install Girder Python dependencies
   pip:
     requirements: "{{ girder_path }}/requirements.txt"
-  sudo: yes
+  become: yes
+  become_user: root

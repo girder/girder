@@ -17,10 +17,12 @@ galaxy_info:
 dependencies:
   - role: nodesource.node
     nodejs_version: "4.4"
-    sudo: yes
+    become: yes
+    become_user: root
   - role: Stouts.mongodb
     mongodb_version: "3.2"
     mongodb_conf_cpu: no
     mongodb_conf_dbpath: "/var/lib/mongodb"
     mongodb_conf_journal: yes
-    sudo: yes
+    become: yes
+    become_user: root
