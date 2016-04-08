@@ -22,6 +22,7 @@ import six
 from bson.objectid import ObjectId
 
 from girder import events
+from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
 from .model_base import Model, ValidationException
 
@@ -69,9 +70,12 @@ class Upload(Model):
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
             size=size, mimeType=mimeType, reference=reference)
+        # The greater of 32 MB or the the upload minimum chunk size.
+        chunkSize = max(self.model('setting').get(
+            SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE), 32 * 1024**2)
 
         while True:
-            data = obj.read(33554432)  # 32MB
+            data = obj.read(chunkSize)
             if not data:
                 break
 
