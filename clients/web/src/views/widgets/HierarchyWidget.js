@@ -225,7 +225,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (this.upload) {
             this.uploadDialog();
         } else if (this.folderAccess) {
-            this.editFolderAccess();
+            this.editAccess();
         } else if (this.folderCreate) {
             this.createFolderDialog();
         } else if (this.folderEdit) {
@@ -342,6 +342,14 @@ girder.views.HierarchyWidget = girder.View.extend({
             }
         };
         girder.confirm(params);
+    },
+
+    /**
+     * Deprecated alias for showInfoDialog.
+     * @deprecated
+     */
+    folderInfoDialog: function () {
+        this.showInfoDialog();
     },
 
     showInfoDialog: function () {
@@ -802,6 +810,14 @@ girder.views.HierarchyWidget = girder.View.extend({
                 this.refreshFolderList();
             }
         }, this);
+    },
+
+    /**
+     * Deprecated alias for editAccess.
+     * @deprecated
+     */
+    editFolderAccess: function () {
+        this.editAccess();
     },
 
     /**
