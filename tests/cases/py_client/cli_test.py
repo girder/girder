@@ -162,6 +162,8 @@ class PythonCliTestCase(base.TestCase):
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         for downloaded in os.listdir(downloadDir):
+            if downloaded == '.girder_metadata':
+                continue
             self.assertIn(downloaded, toUpload)
 
         # Download again to same location, we should not get errors
@@ -176,6 +178,23 @@ class PythonCliTestCase(base.TestCase):
             self, ret['stdout'],
             'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+
+        # Test localsync, it shouldn't touch files
+        old_mtimes = {}
+        for fname in os.listdir(downloadDir):
+            filename = os.path.join(downloadDir, fname)
+            old_mtimes[fname] = os.path.getmtime(filename)
+
+        ret = invokeCli(('-c', 'localsync', str(subfolder['_id']),
+                         downloadDir), username='mylogin',
+                        password='password')
+        self.assertEqual(ret['exitVal'], 0)
+
+        for fname in os.listdir(downloadDir):
+            if fname == '.girder_metadata':
+                continue
+            filename = os.path.join(downloadDir, fname)
+            self.assertEqual(os.path.getmtime(filename), old_mtimes[fname])
 
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')

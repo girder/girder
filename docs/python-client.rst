@@ -120,6 +120,22 @@ To download a Girder Folder hierarchy rooted at Folder id
 
 Downloading is only supported from a parent type of Folder.
 
+Synchronize local folder with a Folder hierarchy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If the `download_folder` is a local copy of a Girder Folder hierarchy rooted at
+Folder id `54b6d40b8926486c0cbca364`, any change made to the Girder Folder remotely
+can be synchronized locally by ::
+
+    girder-cli -c localsync 54b6d40b8926486c0cbca364 download_folder
+
+This will only download new Items or Items that have been modified since the
+last download/localsync. Local files that are no longer present in the remote
+Girder Folder will not be removed. This command relies on a presence of
+metadata file `.metadata-girder` within `download_folder`, which is created
+upon `girder-cli -c download`. If `.metadata-girder` is not present,
+`localsync` will fallback to `download`.
+
 The Python Client Library
 -------------------------
 
