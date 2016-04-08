@@ -275,3 +275,29 @@ class Collection(AccessControlledModel):
             return True
 
         return False
+
+    def countFolders(self, collection, user=None, level=None):
+        """
+        Returns the number of top level folders under this collection. Access
+        checking is optional; to circumvent access checks, pass ``level=None``.
+
+        :param collection: The collection.
+        :type collection: dict
+        :param user: If performing access checks, the user to check against.
+        :type user: dict or None
+        :param level: The required access level, or None to return the raw
+            top-level folder count.
+        """
+        fields = () if level is None else ('access', 'public')
+
+        folderModel = self.model('folder')
+        folders = folderModel.find({
+            'parentId': collection['_id'],
+            'parentCollection': 'collection'
+        }, fields=fields)
+
+        if level is None:
+            return folders.count()
+        else:
+            return sum(1 for _ in folderModel.filterResultsByPermission(
+                cursor=folders, user=user, level=level))

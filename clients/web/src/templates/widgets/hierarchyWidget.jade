@@ -35,7 +35,7 @@
               |  #{model.get('name') || model.name()}
             if (type === 'folder')
               li(role="presentation")
-                a.g-download-folder(role="menuitem", href="#{model.downloadUrl()}")
+                a.g-download-folder(role="menuitem", href=model.downloadUrl())
                   i.icon-download
                   | Download folder
             if (level >= AccessType.WRITE)

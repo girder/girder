@@ -79,10 +79,13 @@ describe('Create a data hierarchy', function () {
         girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $('li.g-folder-list-entry').length > 0;
+            // Wait for folders to show, and also the folder count
+            return $('li.g-folder-list-entry').length > 0 &&
+                $('.g-subfolder-count').text() === '2';
         }, 'my folders list to display');
 
         runs(function () {
+            expect($('.g-item-count').length).toBe(0);
             expect($('a.g-folder-list-link:first').text()).toBe('Private');
             expect($('.g-folder-privacy:first').text()).toBe('Private');
             $('a.g-folder-list-link:first').click();

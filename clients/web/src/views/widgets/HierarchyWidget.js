@@ -352,29 +352,29 @@ girder.views.HierarchyWidget = girder.View.extend({
     fetchAndShowChildCount: function () {
         this.$('.g-child-count-container').addClass('hide');
 
-        if (this.parentModel.resourceName === 'folder') {
-            var showCounts = _.bind(function () {
-                this.$('.g-child-count-container').removeClass('hide');
-                this.$('.g-subfolder-count').text(
-                    girder.formatCount(this.parentModel.get('nFolders')));
+        var showCounts = _.bind(function () {
+            this.$('.g-child-count-container').removeClass('hide');
+            this.$('.g-subfolder-count').text(
+                girder.formatCount(this.parentModel.get('nFolders')));
+            if (this.parentModel.has('nItems')) {
                 this.$('.g-item-count').text(
                     girder.formatCount(this.parentModel.get('nItems')));
-            }, this);
-
-            if (this.parentModel.has('nItems')) {
-                showCounts();
-            } else {
-                this.parentModel.set('nItems', 0); // prevents fetching details twice
-                this.parentModel.once('g:fetched.details', function () {
-                    showCounts();
-                }, this).fetch({extraPath: 'details'});
             }
+        }, this);
 
-            this.parentModel.off('change:nItems', showCounts, this)
-                            .on('change:nItems', showCounts, this)
-                            .off('change:nFolders', showCounts, this)
-                            .on('change:nFolders', showCounts, this);
+        if (this.parentModel.has('nFolders')) {
+            showCounts();
+        } else {
+            this.parentModel.set('nFolders', 0); // prevents fetching details twice
+            this.parentModel.once('g:fetched.details', function () {
+                showCounts();
+            }, this).fetch({extraPath: 'details'});
         }
+
+        this.parentModel.off('change:nItems', showCounts, this)
+                        .on('change:nItems', showCounts, this)
+                        .off('change:nFolders', showCounts, this)
+                        .on('change:nFolders', showCounts, this);
 
         return this;
     },

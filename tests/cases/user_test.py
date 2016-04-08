@@ -625,23 +625,34 @@ class UserTestCase(base.TestCase):
                                   'public_private')
         user1 = self.model('user').createUser(
             'folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
-        user1_folders = self.model('folder').find({
+        user1Folders = self.model('folder').find({
             'parentId': user1['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user1_folders),
+            set(folder['name'] for folder in user1Folders),
             {'Public', 'Private'}
         )
+
+        # User should be able to see that 2 folders exist
+        resp = self.request(path='/user/%s/details' % user1['_id'],
+                            user=user1)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 2)
+
+        # Anonymous users should only see 1 folder exists
+        resp = self.request(path='/user/%s/details' % user1['_id'])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 1)
 
         self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
                                   'none')
         user2 = self.model('user').createUser(
             'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
-        user2_folders = self.model('folder').find({
+        user2Folders = self.model('folder').find({
             'parentId': user2['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user2_folders),
+            set(folder['name'] for folder in user2Folders),
             set()
         )
 
