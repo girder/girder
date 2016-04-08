@@ -316,7 +316,7 @@ class Group(AccessControlledModel):
         :type creator: dict
         :returns: The group document that was created.
         """
-        assert type(public) is bool
+        assert isinstance(public, bool)
 
         now = datetime.datetime.utcnow()
 

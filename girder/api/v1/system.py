@@ -82,7 +82,7 @@ class System(Resource):
             try:
                 settings = json.loads(params['list'])
 
-                if type(settings) is not list:
+                if not isinstance(settings, list):
                     raise ValueError()
             except ValueError:
                 raise RestException('List was not a valid JSON list.')
@@ -137,7 +137,7 @@ class System(Resource):
             try:
                 keys = json.loads(params['list'])
 
-                if type(keys) is not list:
+                if not isinstance(keys, list):
                     raise ValueError()
             except ValueError:
                 raise RestException('List was not a valid JSON list.')

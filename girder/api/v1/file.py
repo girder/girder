@@ -223,7 +223,7 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.' % (
                     upload['received'], offset))
         try:
-            if type(chunk) == cherrypy._cpreqbody.Part:
+            if isinstance(chunk, cherrypy._cpreqbody.Part):
                 return self.model('upload').handleChunk(upload, chunk.file)
             else:
                 return self.model('upload').handleChunk(upload, chunk)

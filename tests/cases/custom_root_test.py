@@ -40,7 +40,7 @@ class CustomRootTestCase(base.TestCase):
 
         # Make sure our import semantics work as expected for plugins
         from girder.plugins import test_plugin
-        self.assertEqual(type(test_plugin), types.ModuleType)
+        self.assertIsInstance(test_plugin, types.ModuleType)
 
     def tearDown(self):
         base.stopServer()
