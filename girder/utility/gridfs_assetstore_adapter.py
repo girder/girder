@@ -79,7 +79,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         :param assetstore: The assetstore to act on.
         """
-        self.assetstore = assetstore
+        super(GridFsAssetstoreAdapter, self).__init__(assetstore)
         try:
             self.chunkColl = getDbConnection(
                 assetstore.get('mongohost', None),

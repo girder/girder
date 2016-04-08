@@ -165,12 +165,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         :param assetstore: The assetstore to act on.
         """
+        super(S3AssetstoreAdapter, self).__init__(assetstore)
         if ('accessKeyId' in assetstore and 'secret' in assetstore and
                 'service' in assetstore):
             assetstore['botoConnect'] = makeBotoConnectParams(
                 assetstore['accessKeyId'], assetstore['secret'],
                 assetstore['service'])
-        self.assetstore = assetstore
 
     def _getRequestHeaders(self, upload):
         return {
