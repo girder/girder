@@ -33,7 +33,7 @@ from snakebite.client import Client as HdfsClient
 class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
     def __init__(self, assetstore):
         super(HdfsAssetstoreAdapter, self).__init__(assetstore)
-        self.client = self._getClient(assetstore)
+        self.client = self._getClient(self.assetstore)
 
     @staticmethod
     def _getHdfsUser(assetstore):
