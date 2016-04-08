@@ -1,86 +1,102 @@
-
+---
 
 - hosts: all
 
-  handlers:
-  - name: restart nginx
-    service: name=nginx pattern=/etc/init.d/nginx state=restarted enabled=yes
-    sudo: yes
-
-  - name: restart mongodb
-    service: name=mongodb pattern=/etc/init.d/mongodb state=restarted enabled=yes
-    sudo: yes
-
   tasks:
 
-  - name: add nodejs ppa
-    apt_repository: repo='ppa:chris-lea/node.js'
-    sudo: yes
+  - name: Ensure minimum Ansible version
+    fail:
+      msg: "This playbook requires Ansible 2.0.0 or greater."
+    when: "{{ ansible_version.full | version_compare('2.0.0', '<') }}"
 
-  - name: update apt cache
-    apt: update_cache=yes
-    sudo: yes
-
-  - name: install package dependencies
-    apt: name={{ item }} state=present
-    sudo: yes
+  - name: System | Install dependencies
+    apt: name={{ item }}
+    become: yes
     with_items:
-      - python-pip
-      - python2.7-dev
       - build-essential
-      - mongodb
-      - python-software-properties
-      - libffi-dev
-      - nodejs
-      - screen
-      - nginx
-      - cmake
-      - cmake-curses-gui
       - git
+      - python2.7-dev
+      - libffi-dev
+      - libjpeg-dev
+      - zlib1g-dev
+      - python-pip
 
-  - name: Enable mongo full-text search
-    lineinfile: dest=/etc/mongodb.conf regexp=^setParameter= line=setParameter=textSearchEnabled=true
-    sudo: yes
-    notify:
-      - restart mongodb
+  - name: MongoDB | Add PPA key
+    apt_key:
+      id: "EA312927"
+      keyserver: "keyserver.ubuntu.com"
+    become: yes
 
-  - name: install girder
-    pip: name='file:///vagrant/girder[plugins]' editable=yes
-    sudo: yes
+  - name: MongoDB | Add PPA
+    apt_repository:
+      repo: "deb https://repo.mongodb.org/apt/ubuntu {{ ansible_distribution_release }}/mongodb-org/3.2 multiverse"
+    become: yes
 
-  - name: install grunt and globally
-    npm: name={{ item }} global=yes
+  - name: MongoDB | Install package
+    apt:
+      name: mongodb-org
+    become: yes
+
+  - name: NodeJS | Add PPA key
+    apt_key:
+      id: "68576280"
+      url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    become: yes
+
+  - name: NodeJS | Add PPA
+    apt_repository:
+      repo: "deb https://deb.nodesource.com/node_4.x {{ ansible_distribution_release }} main"
+    become: yes
+
+  - name: NodeJS | Install package
+    apt:
+      name: nodejs
+    become: yes
+
+  - name: Girder | Upgrade pip
+    pip:
+      name: pip
+      state: latest
+    become: yes
+
+  - name: Girder | Install requirements
+    pip:
+      requirements: "requirements.txt"
+      chdir: "/home/vagrant/girder"
+    become: yes
+
+  - name: Girder | Install Girder
+    pip:
+      name: ".[plugins]"
+      # 'editable' requires Ansible >= 2.0.0
+      editable: yes
+      chdir: "/home/vagrant/girder"
+    become: yes
+
+  - name: Girder | Install Grunt globally
+    npm:
+      name: "{{ item }}"
+      global: yes
     with_items:
       - grunt
       - grunt-cli
-    sudo: yes
+    become: yes
 
-  - name: run npm install
-    npm: path=/vagrant
+  - name: Girder | Run npm install
+    # Production installation doesn't install Jasmine,
+    # which consumes a lot of resources to build
+    command: "npm install --production"
+    args:
+      chdir: "/home/vagrant/girder"
 
-  - name: run grunt init
-    command: grunt init chdir=/vagrant
+  - name: Girder | Install service
+    template:
+      src: "girder.conf.j2"
+      dest: "/etc/init/girder.conf"
+    become: yes
 
-  - name: run grunt
-    command: grunt chdir=/vagrant
-
-  - name: disable default nginx site
-    command: rm /etc/nginx/sites-enabled/default removes=/etc/nginx/sites-enabled/default
-    sudo: yes
-    notify:
-      - restart nginx
-
-  - name: add the girder nginx site
-    template: src=nginx.j2 dest=/etc/nginx/sites-available/girder
-    sudo: yes
-    notify:
-      - restart nginx
-
-  - name: enable girder nginx site
-    command: ln -s /etc/nginx/sites-available/girder /etc/nginx/sites-enabled/girder creates=/etc/nginx/sites-enabled/girder
-    sudo: yes
-    notify:
-      - restart nginx
-
-  - name: copy helper script
-    copy: src=start_girder_in_screen.sh dest=/home/vagrant mode=0744
+  - name: Girder | (Re)start service
+    service:
+      name: girder
+      state: restarted
+    become: yes
