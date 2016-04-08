@@ -7,9 +7,10 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-delete-folder': 'deleteFolderDialog',
         'click .g-folder-info-button': 'folderInfoDialog',
+        'click .g-collection-info-button': 'collectionInfoDialog',
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
-        'click .g-folder-access-button': 'editFolderAccess',
+        'click .g-edit-access': 'editAccess',
         'click .g-hierarchy-level-up': 'upOneLevel',
         'click a.g-download-checked': 'downloadChecked',
         'click a.g-pick-checked': 'pickChecked',
@@ -343,6 +344,14 @@ girder.views.HierarchyWidget = girder.View.extend({
 
     folderInfoDialog: function () {
         new girder.views.FolderInfoWidget({
+            el: $('#g-dialog-container'),
+            model: this.parentModel,
+            parentView: this
+        }).render();
+    },
+
+    collectionInfoDialog: function () {
+        new girder.views.CollectionInfoWidget({
             el: $('#g-dialog-container'),
             model: this.parentModel,
             parentView: this
@@ -781,7 +790,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         $(form).submit();
     },
 
-    editFolderAccess: function () {
+    editAccess: function () {
         new girder.views.AccessWidget({
             el: $('#g-dialog-container'),
             modelType: this.parentModel.resourceName,

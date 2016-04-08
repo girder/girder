@@ -22,7 +22,13 @@
             button.g-upload-here-button.btn.btn-sm.btn-success(title="Upload here")
               i.icon-upload
           if (level >= AccessType.ADMIN)
-            button.g-folder-access-button.btn.btn-sm.btn-warning(title="Access control")
+            button.g-folder-access-button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
+              i.icon-lock
+        else if (type === 'collection')
+          button.g-collection-info-button.btn.btn-sm.btn-info(title="Show collection info")
+            i.icon-info
+          if (level >= AccessType.ADMIN)
+            button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
               i.icon-lock
         .btn-group
           button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
