@@ -430,6 +430,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         if (!_.has(opts, 'setRoute') || opts.setRoute) {
             this._setRoute();
         }
+        this.trigger('g:setCurrentModel');
     },
 
     /**

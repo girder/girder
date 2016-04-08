@@ -78,7 +78,11 @@
                 folderCreate: this.folderCreate,
                 itemCreate: this.itemCreate,
                 parentView: this
-            });
+            }).on('g:setCurrentModel', function () {
+                // When a user descends into the hierarchy, hide the collection
+                // actions list to avoid confusion.
+                this.$('.g-collection-header .g-collection-actions-button').hide();
+            }, this);
         },
 
         editCollection: function () {
