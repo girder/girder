@@ -4,7 +4,7 @@ galaxy_info:
   company: Kitware, Inc.
 
   license: Apache
-  min_ansible_version: 1.4
+  min_ansible_version: 1.9
 
   platforms:
   - name: Ubuntu
