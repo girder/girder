@@ -31,6 +31,16 @@ import six
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 
+def _compare_items(x, y):
+    """
+    Compare two dictionaries with metadata.
+
+    :param x: First metadata item.
+    :param y: Second metadata item.
+    """
+    return len(x) == len(y) == len(set(x.items()) & set(y.items()))
+
+
 def _safeMakedirs(path):
     """
     Wraps os.makedirs in such a way that it will not raise exceptions if the
@@ -147,6 +157,8 @@ class GirderClient(object):
             self.blacklist = []
         self.folder_upload_callbacks = []
         self.item_upload_callbacks = []
+        self.incoming_metadata = {}
+        self.local_metadata = {}
 
     def authenticate(self, username=None, password=None, interactive=False,
                      apiKey=None):
@@ -801,12 +813,14 @@ class GirderClient(object):
             if len(files) < 50:
                 break
 
-    def downloadFolderRecursive(self, folderId, dest):
+    def downloadFolderRecursive(self, folderId, dest, sync=False):
         """
         Download a folder recursively from Girder into a local directory.
 
         :param folderId: Id of the Girder folder to download.
         :param dest: The local download destination.
+        :param sync: If True, check if item exists in local metadata
+            cache and skip download provided that metadata is identical.
         """
         offset = 0
 
@@ -839,11 +853,39 @@ class GirderClient(object):
             })
 
             for item in items:
+                _id = item['_id']
+                self.incoming_metadata[_id] = item
+                if sync and _id in self.local_metadata and \
+                        _compare_items(item, self.local_metadata[_id]):
+                    continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
             offset += len(items)
             if len(items) < 50:
                 break
+
+    def saveLocalMetadata(self, dest):
+        """
+        Dumps item metadata collected during a folder download.
+
+        :param dest: The local download destination.
+        """
+
+        with open(os.path.join(dest, ".girder_metadata"), "w") as fh:
+            fh.write(json.dumps(self.incoming_metadata))
+
+    def loadLocalMetadata(self, dest):
+        """
+        Reads item metadata from a local folder.
+
+        :param dest: The local download destination.
+        """
+
+        try:
+            with open(os.path.join(dest, ".girder_metadata"), "r") as fh:
+                self.local_metadata = json.loads(fh.read())
+        except OSError:
+            print("Local metadata does not exists. Falling back to download.")
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
                                       public=None):
