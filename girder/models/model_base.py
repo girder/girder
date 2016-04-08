@@ -958,6 +958,20 @@ class AccessControlledModel(Model):
 
         return doc
 
+    def list(self, user=None, limit=0, offset=0, sort=None):
+        """
+        Return a list of documents that are visible to a user.
+
+        :param user: The user to filter for.
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort direction.
+        """
+        cursor = self.find({}, sort=sort)
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
+
     def copyAccessPolicies(self, src, dest, save=False):
         """
         Copies the set of access control policies from one document to another.
