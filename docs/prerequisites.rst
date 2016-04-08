@@ -100,7 +100,7 @@ Install MongoDB server using YUM: ::
 
 Enable the Node.js YUM repository: ::
 
-    curl -sL https://rpm.nodesource.com/setup | sudo bash -
+    curl -sL https://rpm.nodesource.com/setup_4.x | sudo bash -
 
 Install Node.js and NPM using YUM: ::
 

@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import functools
+import six
 
 from girder.models.model_base import AccessException
 from girder.api import rest
@@ -28,7 +28,7 @@ def admin(fun):
     Functions that require administrator access should be wrapped in this
     decorator.
     """
-    @functools.wraps(fun)
+    @six.wraps(fun)
     def accessDecorator(*args, **kwargs):
         rest.requireAdmin(rest.getCurrentUser())
         return fun(*args, **kwargs)
@@ -42,7 +42,7 @@ def user(fun):
     in this decorator. That is, a token must be passed that has the
     "core.user_auth" scope and a valid user ID.
     """
-    @functools.wraps(fun)
+    @six.wraps(fun)
     def accessDecorator(*args, **kwargs):
         user = rest.getCurrentUser()
         if not user:
@@ -68,7 +68,7 @@ def token(fun):
     was passed, but checking of the scopes is left to the handler and is not
     part of this decorator.
     """
-    @functools.wraps(fun)
+    @six.wraps(fun)
     def accessDecorator(*args, **kwargs):
         token = rest.getCurrentToken()
         if not token:

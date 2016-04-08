@@ -318,7 +318,7 @@ class Upload(Model):
             for key in ('uploadId', 'userId', 'parentId', 'assetstoreId'):
                 if key in filters:
                     id = filters[key]
-                    if id and type(id) is not ObjectId:
+                    if id and not isinstance(id, ObjectId):
                         id = ObjectId(id)
                     if id:
                         if key == 'uploadId':

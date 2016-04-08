@@ -260,7 +260,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         now = datetime.datetime.utcnow()
 
-        if not type(creator) is dict or '_id' not in creator:
+        if not isinstance(creator, dict) or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
             raise GirderException('Creator must be a user.',
                                   'girder.models.item.creator-not-user')

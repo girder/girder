@@ -24,7 +24,7 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
     :param dataFormat: The worker `format` field.
     :type dataFormat: str
     """
-    if type(token) is dict:
+    if isinstance(token, dict):
         token = token['_id']
 
     return {
@@ -61,7 +61,7 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
     :param dataFormat: The worker `format` field.
     :type dataFormat: str
     """
-    if type(token) is dict:
+    if isinstance(token, dict):
         token = token['_id']
 
     return {
@@ -90,7 +90,7 @@ def jobInfoSpec(job, token=None, logPrint=True):
     if token is None:
         token = ModelImporter.model('job', 'jobs').createJobToken(job)
 
-    if type(token) is dict:
+    if isinstance(token, dict):
         token = token['_id']
 
     return {

@@ -497,7 +497,7 @@ class Folder(AccessControlledModel):
                                save=False)
 
         # Allow explicit public flag override if it's set.
-        if public is not None and type(public) is bool:
+        if public is not None and isinstance(public, bool):
             self.setPublic(folder, public, save=False)
 
         if allowRename:

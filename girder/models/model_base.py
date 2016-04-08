@@ -79,7 +79,7 @@ class Model(ModelImporter):
             else:
                 self.collection.create_index(index)
 
-        if type(self._textIndex) is dict:
+        if isinstance(self._textIndex, dict):
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
                 self.collection.create_index(
@@ -454,7 +454,7 @@ class Model(ModelImporter):
         if not id:
             raise ValidationException('Attempt to load null ObjectId: %s' % id)
 
-        if objectId and type(id) is not ObjectId:
+        if objectId and not isinstance(id, ObjectId):
             try:
                 id = ObjectId(id)
             except InvalidId:
@@ -633,7 +633,7 @@ class AccessControlledModel(Model):
         Private helper for setting access on a resource.
         """
         assert entity == 'users' or entity == 'groups'
-        if type(id) is not ObjectId:
+        if not isinstance(id, ObjectId):
             id = ObjectId(id)
 
         if 'access' not in doc:
@@ -671,7 +671,7 @@ class AccessControlledModel(Model):
         :type save: bool
         :returns: The updated resource document.
         """
-        assert type(public) is bool
+        assert isinstance(public, bool)
 
         doc['public'] = public
 
@@ -957,6 +957,20 @@ class AccessControlledModel(Model):
                     del doc['public']
 
         return doc
+
+    def list(self, user=None, limit=0, offset=0, sort=None):
+        """
+        Return a list of documents that are visible to a user.
+
+        :param user: The user to filter for.
+        :param limit: Result set size limit.
+        :param offset: Offset into the results.
+        :param sort: The sort direction.
+        """
+        cursor = self.find({}, sort=sort)
+        return self.filterResultsByPermission(
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
+            offset=offset)
 
     def copyAccessPolicies(self, src, dest, save=False):
         """

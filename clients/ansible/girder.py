@@ -1074,7 +1074,7 @@ class GirderClientModule(GirderClient):
         # Final list of keyword arguments to the function
         kwargs = {}
 
-        if type(params) is dict:
+        if isinstance(params, dict):
             for arg_name in self.spec[method]['required']:
                 if arg_name not in params.keys():
                     self.fail("%s is required for %s" % (arg_name, method))
@@ -1084,7 +1084,7 @@ class GirderClientModule(GirderClient):
                 if kwarg_name in params.keys():
                     kwargs[kwarg_name] = params[kwarg_name]
 
-        elif type(params) is list:
+        elif isinstance(params, list):
             args = params
         else:
             args = [params]

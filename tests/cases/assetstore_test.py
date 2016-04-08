@@ -449,7 +449,7 @@ class AssetstoreTestCase(base.TestCase):
         singleChunkUpload = resp.json
         s3Info = singleChunkUpload['s3']
         self.assertEqual(s3Info['chunked'], False)
-        self.assertEqual(type(s3Info['chunkLength']), int)
+        self.assertIsInstance(s3Info['chunkLength'], int)
         self.assertEqual(s3Info['request']['method'], 'PUT')
         six.assertRegex(self, s3Info['request']['url'], s3Regex)
         self.assertEqual(s3Info['request']['headers']['x-amz-acl'], 'private')
@@ -485,7 +485,7 @@ class AssetstoreTestCase(base.TestCase):
         multiChunkUpload = resp.json
         s3Info = multiChunkUpload['s3']
         self.assertEqual(s3Info['chunked'], True)
-        self.assertEqual(type(s3Info['chunkLength']), int)
+        self.assertIsInstance(s3Info['chunkLength'], int)
         self.assertEqual(s3Info['request']['method'], 'POST')
         six.assertRegex(self, s3Info['request']['url'], s3Regex)
 

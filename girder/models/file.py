@@ -129,7 +129,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
     def createLinkFile(self, name, parent, parentType, url, creator):
         """
-        Create a file that is a link to a URL rather than something we maintain
+        Create a file that is a link to a URL, rather than something we maintain
         in an assetstore.
 
         :param name: The local name for the file.

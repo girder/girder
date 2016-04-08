@@ -84,7 +84,7 @@ def _cacheAuthUser(fun):
             return cherrypy.request.girderUser
 
         user = fun(returnToken, *args, **kwargs)
-        if type(user) is tuple:
+        if isinstance(user, tuple):
             setattr(cherrypy.request, 'girderUser', user[0])
         else:
             setattr(cherrypy.request, 'girderUser', user)
@@ -801,7 +801,7 @@ class Resource(ModelImporter):
 
         val = params[key]
 
-        if type(val) is bool:
+        if isinstance(val, bool):
             return val
 
         return val.lower().strip() in ('true', 'on', '1', 'yes')
@@ -850,7 +850,7 @@ class Resource(ModelImporter):
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
-        elif type(defaultSortField) is str:
+        elif isinstance(defaultSortField, six.string_types):
             sort = [(defaultSortField, sortdir)]
         else:
             sort = None

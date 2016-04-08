@@ -79,20 +79,21 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         :param assetstore: The assetstore to act on.
         """
-        self.assetstore = assetstore
+        super(GridFsAssetstoreAdapter, self).__init__(assetstore)
         try:
             self.chunkColl = getDbConnection(
-                assetstore.get('mongohost', None),
-                assetstore.get('replicaset', None))[assetstore['db']].chunk
+                self.assetstore.get('mongohost', None),
+                self.assetstore.get('replicaset', None)
+            )[self.assetstore['db']].chunk
         except pymongo.errors.ConnectionFailure:
             logger.error('Failed to connect to GridFS assetstore %s',
-                         assetstore['db'])
+                         self.assetstore['db'])
             self.chunkColl = 'Failed to connect'
             self.unavailable = True
             return
         except pymongo.errors.ConfigurationError:
             logger.exception('Failed to configure GridFS assetstore %s',
-                             assetstore['db'])
+                             self.assetstore['db'])
             self.chunkColl = 'Failed to configure'
             self.unavailable = True
             return

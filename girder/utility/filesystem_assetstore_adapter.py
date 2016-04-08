@@ -79,23 +79,23 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         return ['sha512', 'imported']
 
     def __init__(self, assetstore):
-        self.assetstore = assetstore
+        super(FilesystemAssetstoreAdapter, self).__init__(assetstore)
         # If we can't create the temp directory, the assetstore still needs to
         # be initialized so that it can be deleted or modified.  The validation
         # prevents invalid new assetstores from being created, so this only
         # happens to existing assetstores that no longer can access their temp
         # directories.
-        self.tempDir = os.path.join(assetstore['root'], 'temp')
+        self.tempDir = os.path.join(self.assetstore['root'], 'temp')
         try:
             mkdir(self.tempDir)
         except OSError:
             self.unavailable = True
             logger.exception('Failed to create filesystem assetstore '
                              'directories %s' % self.tempDir)
-        if not os.access(assetstore['root'], os.W_OK):
+        if not os.access(self.assetstore['root'], os.W_OK):
             self.unavailable = True
             logger.error('Could not write to assetstore root: %s',
-                         assetstore['root'])
+                         self.assetstore['root'])
 
     def capacityInfo(self):
         """

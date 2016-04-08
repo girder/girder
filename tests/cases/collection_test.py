@@ -147,7 +147,7 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(coll, None)
 
     def testCollectionAccess(self):
-        # Asking to change to  an invalid access list should fail
+        # Asking to change to an invalid access list should fail
         resp = self.request(path='/collection/%s/access' %
                             self.collection['_id'], method='PUT', params={
                                 'access': 'not an access list',

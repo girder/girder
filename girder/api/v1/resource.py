@@ -120,7 +120,7 @@ class Resource(BaseResource):
             resources = json.loads(params['resources'])
         except ValueError:
             raise RestException('The resources parameter must be JSON.')
-        if type(resources) is not dict:
+        if not isinstance(resources, dict):
             raise RestException('Invalid resources format.')
         if allowedModels:
             for key in resources:

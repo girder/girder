@@ -102,15 +102,6 @@ class Collection(AccessControlledModel):
             progress.update(increment=1, message='Deleted collection ' +
                             collection['name'])
 
-    def list(self, user=None, limit=0, offset=0, sort=None):
-        """
-        Search for collections with full text search.
-        """
-        cursor = self.find({}, sort=sort)
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
-
     def createCollection(self, name, creator, description='', public=True):
         """
         Create a new collection.
