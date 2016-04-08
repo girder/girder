@@ -319,6 +319,13 @@ girder.renderMarkdown = (function () {
     }
 }());
 
+/**
+ * Capitalize the first character of a string.
+ */
+girder.capitalize = function (str) {
+    return str.charAt(0).toUpperCase() + str.substring(1);
+};
+
 (function () {
     var _pluginConfigRoutes = {};
 

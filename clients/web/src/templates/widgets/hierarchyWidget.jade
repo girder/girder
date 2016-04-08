@@ -32,18 +32,28 @@
               i.icon-lock
         .btn-group
           button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-              data-toggle="dropdown" title="Folder actions" placement="left")
-            i.icon-folder-open
+              data-toggle="dropdown" title="#{girder.capitalize(type)} actions", placement="left")
+            if type === 'collection'
+              i.icon-sitemap
+            else if type === 'user'
+              i.icon-user
+            else if type === 'folder'
+              i.icon-folder-open
             i.icon-down-dir
           ul.g-folder-actions-menu.dropdown-menu.pull-right(role="menu")
             li.dropdown-header(role="presentation")
-              i.icon-folder-open
-              |  #{model.get('name') || model.name()}
-            if (type === 'folder')
+              if type === 'collection'
+                i.icon-sitemap
+              else if type === 'user'
+                i.icon-user
+              else if type === 'folder'
+                i.icon-folder-open
+              |  #{model.name()}
+            if type === 'folder' || type === 'collection'
               li(role="presentation")
                 a.g-download-folder(role="menuitem", href=model.downloadUrl())
                   i.icon-download
-                  | Download folder
+                  | Download #{type}
             if (level >= AccessType.WRITE)
               li(role="presentation")
                 a.g-create-subfolder(role="menuitem")

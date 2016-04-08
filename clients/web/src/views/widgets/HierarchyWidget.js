@@ -6,8 +6,9 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
         'click a.g-delete-folder': 'deleteFolderDialog',
-        'click .g-folder-info-button': 'folderInfoDialog',
-        'click .g-collection-info-button': 'collectionInfoDialog',
+        'click .g-folder-info-button': 'showInfoDialog',
+        'click .g-collection-info-button': 'showInfoDialog',
+        'click .g-description-preview': 'showInfoDialog',
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-edit-access': 'editAccess',
@@ -190,7 +191,8 @@ girder.views.HierarchyWidget = girder.View.extend({
             level: this.parentModel.getAccessLevel(),
             AccessType: girder.AccessType,
             showActions: this._showActions,
-            checkboxes: this._checkboxes
+            checkboxes: this._checkboxes,
+            girder: girder
         }));
 
         if (this.$('.g-folder-actions-menu>li>a').length === 0) {
@@ -342,20 +344,18 @@ girder.views.HierarchyWidget = girder.View.extend({
         girder.confirm(params);
     },
 
-    folderInfoDialog: function () {
-        new girder.views.FolderInfoWidget({
+    showInfoDialog: function () {
+        var opts = {
             el: $('#g-dialog-container'),
             model: this.parentModel,
             parentView: this
-        }).render();
-    },
+        };
 
-    collectionInfoDialog: function () {
-        new girder.views.CollectionInfoWidget({
-            el: $('#g-dialog-container'),
-            model: this.parentModel,
-            parentView: this
-        }).render();
+        if (this.parentModel.resourceName === 'collection') {
+            new girder.views.CollectionInfoWidget(opts).render();
+        } else if (this.parentModel.resourceName === 'folder') {
+            new girder.views.FolderInfoWidget(opts).render();
+        }
     },
 
     fetchAndShowChildCount: function () {
@@ -885,9 +885,13 @@ girder.views.HierarchyBreadcrumbView = girder.View.extend({
         // object and should be the "active" class, and not a link.
         var active = objects.pop();
 
+        var descriptionText = $(girder.renderMarkdown(
+            active.get('description') || '')).text();
+
         this.$el.html(girder.templates.hierarchyBreadcrumb({
             links: objects,
-            current: active
+            current: active,
+            descriptionText: descriptionText
         }));
     }
 });
