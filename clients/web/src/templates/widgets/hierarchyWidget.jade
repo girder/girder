@@ -54,26 +54,27 @@
                 a.g-download-folder(role="menuitem", href=model.downloadUrl())
                   i.icon-download
                   | Download #{type}
-            if (level >= AccessType.WRITE)
+            if level >= AccessType.WRITE
               li(role="presentation")
                 a.g-create-subfolder(role="menuitem")
                   i.icon-folder
                   | Create folder here
-              if (type === 'folder')
-                li(role="presentation")
-                  a.g-create-item(role="menuitem")
-                    i.icon-doc
-                    | Create item here
+              if type === 'folder' || type === 'collection'
+                if type === 'folder'
+                  li(role="presentation")
+                    a.g-create-item(role="menuitem")
+                      i.icon-doc
+                      | Create item here
                 li(role="presentation")
                   a.g-edit-folder(role="menuitem")
                     i.icon-edit
-                    | Edit folder
-            if (type === 'folder' && level >= AccessType.ADMIN)
+                    | Edit #{type}
+            if level >= AccessType.ADMIN && (type === 'folder' || type === 'collection')
               li.divider(role="presentation")
               li(role="presentation")
                 a.g-delete-folder(role="menuitem")
                   i.icon-trash
-                  | Delete this folder
+                  | Delete this #{type}
       .g-clear-right
   .g-folder-list-container
   .g-item-list-container

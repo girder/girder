@@ -290,56 +290,71 @@ girder.views.HierarchyWidget = girder.View.extend({
     },
 
     /**
-     * Prompt user to edit the current folder
+     * Prompt user to edit the current folder or collection.
      */
     editFolderDialog: function () {
-        new girder.views.EditFolderWidget({
-            el: $('#g-dialog-container'),
-            parentModel: this.parentModel,
-            folder: this.parentModel,
-            parentView: this
-        }).on('g:saved', function () {
-            girder.events.trigger('g:alert', {
-                icon: 'ok',
-                text: 'Folder info updated.',
-                type: 'success',
-                timeout: 4000
-            });
-            this.breadcrumbView.render();
-        }, this).on('g:fileUploaded', function (args) {
-            var item = new girder.models.ItemModel({
-                _id: args.model.get('itemId')
-            });
+        if (this.parentModel.resourceName === 'folder') {
+            new girder.views.EditFolderWidget({
+                el: $('#g-dialog-container'),
+                parentModel: this.parentModel,
+                folder: this.parentModel,
+                parentView: this
+            }).on('g:saved', function () {
+                girder.events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Folder info updated.',
+                    type: 'success',
+                    timeout: 4000
+                });
+                this.breadcrumbView.render();
+            }, this).on('g:fileUploaded', function (args) {
+                var item = new girder.models.ItemModel({
+                    _id: args.model.get('itemId')
+                });
 
-            item.once('g:fetched', function () {
-                this.itemListView.insertItem(item);
-                if (this.parentModel.has('nItems')) {
-                    this.parentModel.increment('nItems');
-                }
-                this.updateChecked();
-            }, this).fetch();
-        }, this).render();
+                item.once('g:fetched', function () {
+                    this.itemListView.insertItem(item);
+                    if (this.parentModel.has('nItems')) {
+                        this.parentModel.increment('nItems');
+                    }
+                    this.updateChecked();
+                }, this).fetch();
+            }, this).render();
+        } else if (this.parentModel.resourceName === 'collection') {
+            new girder.views.EditCollectionWidget({
+                el: $('#g-dialog-container'),
+                model: this.parentModel,
+                parentView: this
+            }).on('g:saved', function () {
+                this.breadcrumbView.render();
+                this.trigger('g:collectionChanged');
+            }, this).render();
+        }
     },
 
     /**
-     * Prompt the user to delete the currently viewed folder.
+     * Prompt the user to delete the currently viewed folder or collection.
      */
     deleteFolderDialog: function () {
-        var view = this;
+        var type = this.parentModel.resourceName;
         var params = {
-            text: 'Are you sure you want to delete the folder <b>' +
+            text: 'Are you sure you want to delete the ' + type + ' <b>' +
                   this.parentModel.escape('name') + '</b>?',
             escapedHtml: true,
             yesText: 'Delete',
-            confirmCallback: function () {
-                view.parentModel.destroy({
+            confirmCallback: _.bind(function () {
+                this.parentModel.destroy({
                     throwError: true,
                     progress: true
                 }).on('g:deleted', function () {
-                    this.breadcrumbs.pop();
-                    this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);
-                }, view);
-            }
+                    if (type === 'collection') {
+                        girder.router.navigate('collections', {trigger: true});
+                    } else if (type === 'folder') {
+                        this.breadcrumbs.pop();
+                        this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);
+                    }
+                }, this);
+            }, this)
         };
         girder.confirm(params);
     },
