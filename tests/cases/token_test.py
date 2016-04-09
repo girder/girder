@@ -42,7 +42,7 @@ class TokensTestCase(base.TestCase):
 
         self.assertNotEqual(token1, token2)
 
-    def testGetAndDeleteSessiona(self):
+    def testGetAndDeleteSession(self):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
         token = resp.json['token']
