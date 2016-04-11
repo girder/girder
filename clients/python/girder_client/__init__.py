@@ -268,7 +268,7 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
-    def createItem(self, parentFolderId, name, description):
+    def createItem(self, parentFolderId, name, description=''):
         """
         Creates and returns an item.
         """
@@ -426,6 +426,7 @@ class GirderClient(object):
         :type reference: str
         :param mimeType: MIME type for the file. Will be guessed if not passed.
         :type mimeType: str or None
+        :returns: the file that was created.
         """
         filename = os.path.basename(filepath)
         filepath = os.path.abspath(filepath)
@@ -493,6 +494,7 @@ class GirderClient(object):
                 raise Exception('After uploading a file chunk, did'
                                 ' not receive object with _id. Got instead: ' +
                                 json.dumps(obj))
+        return obj
 
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
         """

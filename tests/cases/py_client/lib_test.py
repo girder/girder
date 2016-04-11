@@ -332,6 +332,17 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(eventList[1]['file']['_id'],
                          eventList[2]['file']['_id'])
 
+        item = client.createItem(publicFolder['_id'], 'a second item')
+        # Test explicit MIME type setting
+        file = client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        self.assertEqual(file['mimeType'], 'image/jpeg')
+
+        # Test guessing of MIME type
+        testPath = os.path.join(self.libTestDir, 'out.txt')
+        open(testPath, 'w').write('test')
+        file = client.uploadFileToItem(item['_id'], testPath)
+        self.assertEqual(file['mimeType'], 'text/plain')
+
     def testUploadContent(self):
         client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
         # Register a user
