@@ -76,6 +76,7 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         # string with the socketTimeoutMS.
         'socketTimeoutMS': 60000,
         'connectTimeoutMS': 20000,
+        'serverSelectionTimeoutMS': 20000,
         'read_preference': ReadPreference.SECONDARY_PREFERRED,
         'replicaSet': replicaSet
     }
@@ -95,6 +96,9 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
             dbUriRedacted = uri
 
         client = pymongo.MongoClient(uri, **clientOptions)
+
+    # Make sure we can connect to the mongo server at startup
+    client.server_info()
 
     if autoRetry:
         client = MongoProxy(client, logger=logger)
