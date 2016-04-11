@@ -21,6 +21,7 @@ import errno
 import getpass
 import glob
 import json
+import mimetypes
 import os
 import re
 import requests
@@ -413,7 +414,7 @@ class GirderClient(object):
         # to upload anyway in this case also.
         return (None, False)
 
-    def uploadFileToItem(self, itemId, filepath, reference=None):
+    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and size)
@@ -423,6 +424,8 @@ class GirderClient(object):
         :param filepath: path to file on disk.
         :param reference: optional reference to send along with the upload.
         :type reference: str
+        :param mimeType: MIME type for the file. Will be guessed if not passed.
+        :type mimeType: str or None
         """
         filename = os.path.basename(filepath)
         filepath = os.path.abspath(filepath)
@@ -432,14 +435,14 @@ class GirderClient(object):
             return
 
         # Check if the file already exists by name and size in the file.
-        file_id, current = self.isFileCurrent(itemId, filename, filepath)
-        if file_id is not None and current:
+        fileId, current = self.isFileCurrent(itemId, filename, filepath)
+        if fileId is not None and current:
             print('File %s already exists in parent Item' % filename)
             return
 
-        if file_id is not None and not current:
-            print('File %s exists in Item, but with stale contents' % filename)
-            path = 'file/' + file_id + '/contents'
+        if fileId is not None and not current:
+            print('File %s exists in item, but with stale contents' % filename)
+            path = 'file/%s/contents' % fileId
             params = {
                 'size': filesize
             }
@@ -454,11 +457,16 @@ class GirderClient(object):
                     'contents, expected an object with an id. Got instead: ' +
                     json.dumps(obj))
         else:
+            if mimeType is None:
+                # Attempt to guess MIME type if not passed explicitly
+                mimeType, _ = mimetypes.guess_type(filepath)
+
             params = {
                 'parentType': 'item',
                 'parentId': itemId,
                 'name': filename,
-                'size': filesize
+                'size': filesize,
+                'mimeType': mimeType
             }
             if reference:
                 params['reference'] = reference
@@ -541,7 +549,7 @@ class GirderClient(object):
         return uploadObj
 
     def uploadFile(self, parentId, stream, name, size, parentType='item',
-                   progressCallback=None, reference=None):
+                   progressCallback=None, reference=None, mimeType=None):
         """
         Uploads a file into an item or folder.
 
@@ -563,6 +571,9 @@ class GirderClient(object):
         :type progressCallback: callable
         :param reference: optional reference to send along with the upload.
         :type reference: str
+        :param mimeType: MIME type to set on the file. Attempts to guess if not
+            explicitly passed.
+        :type mimeType: str or None
         :returns: The file that was created on the server.
         """
         params = {
@@ -570,6 +581,7 @@ class GirderClient(object):
             'parentId': parentId,
             'name': name,
             'size': size,
+            'mimeType': mimeType or mimetypes.guess_type(name)[0]
         }
         if reference is not None:
             params['reference'] = reference
