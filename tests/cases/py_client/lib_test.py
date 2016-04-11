@@ -241,14 +241,16 @@ class PythonClientTestCase(base.TestCase):
 
         with open(path) as f:
             file = client.uploadFile(
-                callbackPublicFolder['_id'], stream=f, name='test', size=size,
-                parentType='folder', progressCallback=progressCallback)
+                callbackPublicFolder['_id'], stream=f, name='test',
+                size=size, parentType='folder',
+                progressCallback=progressCallback)
 
         self.assertEqual(len(callbacks), 1)
         self.assertEqual(callbacks[0]['current'], size)
         self.assertEqual(callbacks[0]['total'], size)
         self.assertEqual(file['name'], 'test')
         self.assertEqual(file['size'], size)
+        # Files with no extension should fallback to the default MIME type
         self.assertEqual(file['mimeType'], 'application/octet-stream')
 
         items = list(
@@ -258,6 +260,20 @@ class PythonClientTestCase(base.TestCase):
 
         files = list(self.model('item').childFiles(items[0]))
         self.assertEqual(len(files), 1)
+
+        # Make sure MIME type propagates correctly when explicitly passed
+        with open(path) as f:
+            file = client.uploadFile(
+                callbackPublicFolder['_id'], stream=f, name='test',
+                size=size, parentType='folder', mimeType='image/jpeg')
+            self.assertEqual(file['mimeType'], 'image/jpeg')
+
+        # Make sure MIME type is guessed based on file name if not passed
+        with open(path) as f:
+            file = client.uploadFile(
+                callbackPublicFolder['_id'], stream=f, name='test.txt',
+                size=size, parentType='folder')
+            self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadReference(self):
         eventList = []
@@ -315,6 +331,17 @@ class PythonClientTestCase(base.TestCase):
                             eventList[2]['file']['_id'])
         self.assertEqual(eventList[1]['file']['_id'],
                          eventList[2]['file']['_id'])
+
+        item = client.createItem(publicFolder['_id'], 'a second item')
+        # Test explicit MIME type setting
+        file = client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        self.assertEqual(file['mimeType'], 'image/jpeg')
+
+        # Test guessing of MIME type
+        testPath = os.path.join(self.libTestDir, 'out.txt')
+        open(testPath, 'w').write('test')
+        file = client.uploadFileToItem(item['_id'], testPath)
+        self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadContent(self):
         client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
