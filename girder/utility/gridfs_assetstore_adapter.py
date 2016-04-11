@@ -56,11 +56,11 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise ValidationException('Database name cannot contain spaces'
                                       ' or periods.', 'db')
 
-        chunkColl = getDbConnection(
-            doc.get('mongohost', None), doc.get('replicaset', None),
-            autoRetry=False, serverSelectionTimeoutMS=10000)[doc['db']].chunk
-
         try:
+            chunkColl = getDbConnection(
+                doc.get('mongohost', None), doc.get('replicaset', None),
+                autoRetry=False,
+                serverSelectionTimeoutMS=10000)[doc['db']].chunk
             chunkColl.create_index([
                 ('uuid', pymongo.ASCENDING),
                 ('n', pymongo.ASCENDING)
