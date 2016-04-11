@@ -21,9 +21,6 @@ import six
 
 from girder.api import rest
 from girder.models.model_base import AccessException
-from girder.utility.model_importer import ModelImporter
-
-_tokenModel = ModelImporter.model('token')
 
 
 def admin(*args, **kwargs):
