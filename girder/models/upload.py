@@ -174,8 +174,7 @@ class Upload(Model):
                 mimeType=upload['mimeType'], saveFile=False)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        file = adapter.finalizeUpload(upload, file)
-        self.model('file').save(file)
+        file = self.model('file').save(adapter.finalizeUpload(upload, file))
         self.remove(upload)
 
         # Add an async event for handlers that wish to process this file.

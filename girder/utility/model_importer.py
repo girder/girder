@@ -44,7 +44,7 @@ def _loadModel(model, module, plugin):
         raise Exception('Incorrect model class name "%s" for model "%s".' % (
             className, module))
 
-    _modelInstances[plugin][model] = constructor()
+    _modelInstances[plugin][model] = constructor(model, plugin)
 
 
 def reinitializeAll():

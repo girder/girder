@@ -31,7 +31,7 @@ from girder import events
 from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
     TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
-from girder.models import getDbConnection
+from girder.models import getDbConnection, record
 from girder.utility.model_importer import ModelImporter
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
@@ -39,15 +39,40 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
                     'modifiers', 'manipulate')
 
 
-class Model(ModelImporter):
-    """
-    Model base class. Models are responsible for abstracting away the
-    persistence layer. Each collection in the database should have its own
-    model. Methods that deal with database interaction belong in the
-    model layer.
-    """
+class CollectionProxy(object):
+    def __init__(self, collection, modelName=None, plugin='_core'):
+        """
+        We use a proxy class for the collection so that we can make the ``find``
+        method return ``RecordCursor`` objects instead of normal pymongo
+        cursors.
+        """
+        self.collection = collection
+        self.modelName = modelName
+        self.plugin = plugin
 
-    def __init__(self):
+    def __getattr__(self, attr):
+        return getattr(self.collection, attr)
+
+    def find(self, *args, **kwargs):
+        return record.RecordCursor(
+            self.modelName, self.plugin, self.collection, *args, **kwargs)
+
+
+class Model(ModelImporter):
+    def __init__(self, modelName=None, plugin='_core'):
+        """
+        Model base class. Models are responsible for abstracting away the
+        persistence layer. Each collection in the database should have its own
+        model. Methods that deal with database interaction belong in the
+        model layer.
+
+        :param modelName: The name of the model as used in ModelImporter.
+        :type modelName: str
+        :param plugin: The plugin name as used in ModelImporter.
+        :type plugin: str
+        """
+        self.modelName = modelName  # TODO figure out programmatically if None?
+        self.plugin = plugin
         self.name = None
         self._indices = []
         self._textIndex = None
@@ -71,7 +96,8 @@ class Model(ModelImporter):
         """
         db_connection = getDbConnection()
         self.database = db_connection.get_default_database()
-        self.collection = MongoProxy(self.database[self.name])
+        self.collection = MongoProxy(CollectionProxy(
+            self.database[self.name], self.modelName, self.plugin))
 
         for index in self._indices:
             if isinstance(index, (list, tuple)):
@@ -223,7 +249,8 @@ class Model(ModelImporter):
         :type fields: list[str]
         :param timeout: Cursor timeout in ms. Default is no timeout.
         :type timeout: int
-        :returns: A pymongo database cursor.
+        :returns: A database cursor.
+        :rtype: girder.models.record.RecordCursor
         """
         query = query or {}
         kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
@@ -252,7 +279,10 @@ class Model(ModelImporter):
         """
         query = query or {}
         kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
-        return self.collection.find_one(query, projection=fields, **kwargs)
+        val = self.collection.find_one(query, projection=fields, **kwargs)
+        if val is not None:
+            val = record.Record(self.modelName, self.plugin, val)
+        return val
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
                    filters=None):
@@ -334,7 +364,13 @@ class Model(ModelImporter):
         :type validate: bool
         :param triggerEvents: Whether to trigger events for validate and
             pre- and post-save hooks.
+        :returns: The saved record.
+        :rtype: girder.model.record.Record
         """
+        if not isinstance(document, record.Record):
+            document = record.Record(self.modelName, self.plugin, document,
+                                     dirty=True)
+
         if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
                                    document)
@@ -347,7 +383,7 @@ class Model(ModelImporter):
         if triggerEvents:
             event = events.trigger('model.%s.save' % self.name, document)
             if event.defaultPrevented:
-                return document
+                return record.Record(self.modelName, self.plugin, document)
 
         isNew = '_id' not in document
         try:
@@ -364,6 +400,9 @@ class Model(ModelImporter):
             if isNew:
                 events.trigger('model.%s.save.created' % self.name, document)
             events.trigger('model.%s.save.after' % self.name, document)
+
+        document.clearChanges()
+        document.dirty = False
 
         return document
 
@@ -414,8 +453,6 @@ class Model(ModelImporter):
 
         :param doc: the item to remove.
         """
-        assert '_id' in document
-
         event = events.trigger('.'.join(('model', self.name, 'remove')),
                                document)
         kwargsEvent = events.trigger(
@@ -466,6 +503,8 @@ class Model(ModelImporter):
             raise ValidationException('No such %s: %s' % (self.name, id),
                                       field='id')
 
+        if doc is not None:
+            doc = record.Record(self.modelName, self.plugin, doc)
         return doc
 
     def filterDocument(self, doc, allow=None):
@@ -477,6 +516,8 @@ class Model(ModelImporter):
         :type doc: dict
         :param allow: The whitelist of fields to allow in the output document.
         :type allow: List of strings
+        :returns: The filtered document.
+        :rtype: A raw dict (not a Record object)
         """
         if not allow:
             allow = []
@@ -519,7 +560,7 @@ class AccessControlledModel(Model):
     resource.
     """
 
-    def __init__(self):
+    def __init__(self, modelName=None, plugin='_core'):
         # Do the bindings before calling __init__(), in case a derived class
         # wants to change things in initialize()
         events.bind('model.user.remove',
@@ -528,7 +569,7 @@ class AccessControlledModel(Model):
         events.bind('model.group.remove',
                     CoreEventHandler.ACCESS_CONTROL_CLEANUP,
                     self._cleanupDeletedEntity)
-        super(AccessControlledModel, self).__init__()
+        super(AccessControlledModel, self).__init__(modelName, plugin)
 
     def _cleanupDeletedEntity(self, event):
         """
