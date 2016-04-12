@@ -118,8 +118,8 @@ class FileTestCase(base.TestCase):
         self._testFinalizeUpload(event)
 
     def _testFinalizeUpload(self, event):
-        self.assertTrue('file' in event.info)
-        self.assertTrue('upload' in event.info)
+        self.assertIn('file', event.info)
+        self.assertIn('upload', event.info)
 
         file = event.info['file']
         upload = event.info['upload']
