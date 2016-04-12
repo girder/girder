@@ -36,7 +36,14 @@ girder.views.oauth_ConfigView = girder.View.extend({
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your GitHub account settings. ' +
                           'Use the following as the authorization callback URL:'
-
+        }, {
+            id: 'bitbucket',
+            name: 'Bitbucket',
+            icon: 'bitbucket',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed in the ' +
+                          'Applications page of your Bitbucket account settings. ' +
+                          'Use the following as the authorization callback URL:'
         }, {
             id: 'linkedin',
             name: 'LinkedIn',

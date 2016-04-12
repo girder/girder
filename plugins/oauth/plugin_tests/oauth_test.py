@@ -947,3 +947,215 @@ class OauthTest(base.TestCase):
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
+
+    def testBitbucketOauth(self):  # noqa
+        providerInfo = {
+            'id': 'bitbucket',
+            'name': 'Bitbucket',
+            'client_id': {
+                'key': PluginSettings.BITBUCKET_CLIENT_ID,
+                'value': 'bitbucket_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.BITBUCKET_CLIENT_SECRET,
+                'value': 'bitbucket_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/bitbucket/callback$',
+            'url_re': r'^https://bitbucket\.org/site/oauth2/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'bitbucket_existing_auth_code',
+                    'access_token': 'bitbucket_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'bitbucket',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'bitbucket_new_auth_code',
+                    'access_token': 'bitbucket_new_test_token',
+                    'user': {
+                        # login may be provided externally by Bitbucket; for
+                        # simplicity here, do not use a username with whitespace
+                        # or underscores
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'bitbucket',
+                            'id': 1983
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^bitbucket.org$',
+                          path='^/site/oauth2/authorize$', method='GET')
+        def mockBitbucketRedirect(url, request):
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertRegexpMatches(
+                    redirectUri,
+                    providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+                self.assertEqual(
+                    params['scope'],
+                    ['account'])
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^bitbucket.org$',
+                          path='^/site/oauth2/access_token$', method='POST')
+        def mockBitbucketToken(url, request):
+            try:
+                self.assertEqual(request.headers['Accept'], 'application/json')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(
+                    params['grant_type'],
+                    ['authorization_code'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(
+                    params['client_secret'],
+                    [providerInfo['client_secret']['value']])
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                returnBody = json.dumps({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnBody = json.dumps({
+                    'token_type': 'bearer',
+                    'access_token': account['access_token'],
+                    'scope': 'account'
+                })
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': returnBody
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^api.bitbucket.org$',
+                          path='^/2.0/user$', method='GET')
+        def mockBitbucketApiUser(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                "created_on": "2011-12-20T16:34:07.132459+00:00",
+                "uuid": account['user']['oauth']['id'],
+                "location": "Santa Monica, CA",
+                "links": {},
+                "website": "https://tutorials.bitbucket.org/",
+                "username": account['user']['login'],
+                "display_name": '%s %s' % (account['user']['firstName'],
+                                           account['user']['lastName'])
+            })
+
+        @httmock.urlmatch(scheme='https', netloc='^api.bitbucket.org$',
+                          path='^/2.0/user/emails$', method='GET')
+        def mockBitbucketApiEmail(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                "page": 1,
+                "pagelen": 10,
+                "size": 1,
+                "values": [{
+                    'is_primary': True,
+                    'is_confirmed': True,
+                    'email': account['user']['email'],
+                    'links': {},
+                    "type": "email"
+                }]
+            })
+
+        with httmock.HTTMock(
+            mockBitbucketRedirect,
+            mockBitbucketToken,
+            mockBitbucketApiUser,
+            mockBitbucketApiEmail,
+            # Must keep "mockOtherRequest" last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)

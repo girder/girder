@@ -30,3 +30,6 @@ class PluginSettings:
 
     LINKEDIN_CLIENT_ID = 'oauth.linkedin_client_id'
     LINKEDIN_CLIENT_SECRET = 'oauth.linkedin_client_secret'
+
+    BITBUCKET_CLIENT_ID = 'oauth.bitbucket_client_id'
+    BITBUCKET_CLIENT_SECRET = 'oauth.bitbucket_client_secret'

@@ -34,9 +34,11 @@ def validateSettings(event):
     elif key in (constants.PluginSettings.GOOGLE_CLIENT_ID,
                  constants.PluginSettings.GITHUB_CLIENT_ID,
                  constants.PluginSettings.LINKEDIN_CLIENT_ID,
+                 constants.PluginSettings.BITBUCKET_CLIENT_ID,
                  constants.PluginSettings.GOOGLE_CLIENT_SECRET,
                  constants.PluginSettings.GITHUB_CLIENT_SECRET,
-                 constants.PluginSettings.LINKEDIN_CLIENT_SECRET):
+                 constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
+                 constants.PluginSettings.BITBUCKET_CLIENT_SECRET):
         event.preventDefault().stopPropagation()
 
 
