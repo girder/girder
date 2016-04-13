@@ -1,4 +1,6 @@
+import datetime
 import pymongo
+import pytz
 import six
 
 from girder.utility.model_importer import ModelImporter
@@ -66,13 +68,19 @@ class Record(dict):
             self.model.save(self, *args, **kwargs)
         return self
 
+    def _equal(self, a, b):
+        if (isinstance(a, datetime.datetime) and
+                isinstance(b, datetime.datetime)):
+            return a.replace(tzinfo=pytz.UTC) == b.replace(tzinfo=pytz.UTC)
+        return a == b
+
     def __setitem__(self, key, value):
         """
         Override the underlying dict's ``__setitem__`` method in order to allow
         minimal updates when persisting.
         """
         if key in self:
-            if self[key] == value:
+            if self._equal(self[key], value):
                 return  # do not update, key is unchanged.
             self._changes['updated'][key] = True
             self.dirty = True
