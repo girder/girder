@@ -228,19 +228,39 @@ class GirderClient(object):
                 text=result.text)
 
     def get(self, path, parameters=None):
+        """
+        Convenience method to call :py:func:`sendRestRequest` with the 'GET'
+        HTTP method.
+        """
         return self.sendRestRequest('GET', path, parameters)
 
     def post(self, path, parameters=None, files=None, data=None):
+        """
+        Convenience method to call :py:func:`sendRestRequest` with the 'POST'
+        HTTP method.
+        """
         return self.sendRestRequest('POST', path, parameters, files=files,
                                     data=data)
 
     def put(self, path, parameters=None, data=None):
+        """
+        Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
+        HTTP method.
+        """
         return self.sendRestRequest('PUT', path, parameters, data=data)
 
     def delete(self, path, parameters=None):
+        """
+        Convenience method to call :py:func:`sendRestRequest` with the 'DELETE'
+        HTTP method.
+        """
         return self.sendRestRequest('DELETE', path, parameters)
 
     def patch(self, path, parameters=None, data=None):
+        """
+        Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
+        HTTP method.
+        """
         return self.sendRestRequest('PATCH', path, parameters, data=data)
 
     def createResource(self, path, params):
