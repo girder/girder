@@ -283,6 +283,10 @@ class JobsTestCase(base.TestCase):
         job = self.model('job', 'jobs').createJob(
             title='dots', type='x', user=self.users[0], kwargs=kwargs)
 
+        # Make sure we can update a job and notification creation works
+        self.model('job', 'jobs').updateJob(
+            job, status=JobStatus.ERROR, notify=True)
+
         self.assertEqual(job['kwargs'], kwargs)
 
         resp = self.request('/job/%s' % job['_id'], user=self.users[0])
