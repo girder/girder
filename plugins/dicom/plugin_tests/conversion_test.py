@@ -29,10 +29,12 @@ from utils.dicom_json_conversion import dataElementToJSON, datasetToJSON
 
 class ConversionTestCase(unittest.TestCase):
     """
-    Test conversion from pydicom data structures to DICOM JSON Model Object
-    structure.
+    Test conversion from pydicom data structures to DICOM JSON Model described
+    in section F.2 of:
 
-    See: F.2.2 DICOM JSON Model Object Structure
+    http://dicom.nema.org/medical/dicom/current/output/html/part18.html
+
+    (Hard copy: ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf)
 
     DataElement conversion tests cover the DICOM VRs in Table F.2.3-1,
     except for the binary VRs: OB, OD, OF, OW, UN.

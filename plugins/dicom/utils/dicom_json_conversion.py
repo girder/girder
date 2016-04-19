@@ -60,8 +60,11 @@ def _convertValue(vr, value):
 
 def dataElementToJSON(dataElement):
     """
-    Convert pydicom DataElement to DICOM JSON Model Object Structure.
-    See: F.2.2 DICOM JSON Model Object Structure.
+    Convert pydicom DataElement to DICOM JSON Model described in section F.2 of:
+
+    http://dicom.nema.org/medical/dicom/current/output/html/part18.html
+
+    (Hard copy: ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf)
     """
     # XXX: Binary VRs, likely incomplete. Add placeholder value for now.
     unsupported = ('OB', 'OD', 'OF', 'OW', 'OB/OW', 'OW/OB', 'OB or OW',
@@ -95,8 +98,11 @@ def dataElementToJSON(dataElement):
 
 def datasetToJSON(dataset):
     """
-    Convert pydicom Dataset to DICOM JSON Model Object Structure.
-    See: F.2.2 DICOM JSON Model Object Structure.
+    Convert pydicom Dataset to DICOM JSON Model described in section F.2 of:
+
+    http://dicom.nema.org/medical/dicom/current/output/html/part18.html
+
+    (Hard copy: ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf)
     """
     obj = {}
     for dataElement in dataset:
