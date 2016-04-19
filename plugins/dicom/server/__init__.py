@@ -52,8 +52,8 @@ def dicom_handler(event):
 
 
 def load(info):
-    info['apiRoot'].studies = studies.dicomStudies()
-    info['apiRoot'].series = series.dicomSeries()
-    info['apiRoot'].instances = instances.dicomInstances()
+    info['apiRoot'].studies = studies.DicomStudies()
+    info['apiRoot'].series = series.DicomSeries()
+    info['apiRoot'].instances = instances.DicomInstances()
 
 events.bind('data.process', 'dicom_handler', dicom_handler)

@@ -27,9 +27,9 @@ from .param_descriptions import (SearchForDescription, QueryParamDescription,
                                  LimitParamDescription, OffsetParamDescription)
 
 
-class dicomInstances(Resource):
+class DicomInstances(Resource):
     def __init__(self):
-        super(dicomInstances, self).__init__()
+        super(DicomInstances, self).__init__()
 
         self.resourceName = 'instances'
 

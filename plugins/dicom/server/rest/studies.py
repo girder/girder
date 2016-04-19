@@ -31,7 +31,7 @@ from .param_descriptions import (SearchForDescription, QueryParamDescription,
                                  LimitParamDescription, OffsetParamDescription)
 
 
-class dicomStudies(Resource):
+class DicomStudies(Resource):
 
     # WADO-RS
     StudyInstanceUIDDescription = "Unique Study instance UID for a single study"
@@ -53,7 +53,7 @@ class dicomStudies(Resource):
                                 "is encapsulated in a multipart request body."
 
     def __init__(self):
-        super(dicomStudies, self).__init__()
+        super(DicomStudies, self).__init__()
 
         self.resourceName = 'studies'
 

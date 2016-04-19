@@ -27,9 +27,9 @@ from .param_descriptions import (SearchForDescription, QueryParamDescription,
                                  LimitParamDescription, OffsetParamDescription)
 
 
-class dicomSeries(Resource):
+class DicomSeries(Resource):
     def __init__(self):
-        super(dicomSeries, self).__init__()
+        super(DicomSeries, self).__init__()
 
         self.resourceName = 'series'
 
