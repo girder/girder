@@ -1,9 +1,9 @@
 /**
- * This view shows a dialog container detailed folder information.
+ * This view shows a dialog containing detailed collection information.
  */
-girder.views.FolderInfoWidget = girder.View.extend({
+girder.views.CollectionInfoWidget = girder.View.extend({
     initialize: function () {
-        this.needToFetch = !this.model.has('nItems') || !this.model.has('nFolders');
+        this.needToFetch = !this.model.has('nFolders');
         if (this.needToFetch) {
             this.model.fetch({extraPath: 'details'}).once('g:fetched.details', function () {
                 this.needToFetch = false;
@@ -17,8 +17,8 @@ girder.views.FolderInfoWidget = girder.View.extend({
             return;
         }
 
-        this.$el.html(girder.templates.folderInfoDialog({
-            folder: this.model,
+        this.$el.html(girder.templates.collectionInfoDialog({
+            collection: this.model,
             girder: girder
         })).girderModal(this);
     }

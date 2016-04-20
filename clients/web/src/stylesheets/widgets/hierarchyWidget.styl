@@ -30,6 +30,18 @@
       border-radius 0
       padding-left 5px
       padding-right 5px
+      text-overflow ellipsis
+      overflow hidden
+      white-space nowrap
+
+      .g-description-preview
+        margin-left 8px
+        font-size 11px
+        vertical-align middle
+        color #999
+
+        &:hover
+          text-decoration underline !important
 
       >li.active
         color #555
@@ -117,7 +129,7 @@
 .g-folder-metadata
   margin-top 20px
 
-.g-folder-info-line
+.g-folder-info-line,.g-collection-info-line
   color #808080
   margin-bottom 2px
   padding 2px 4px
@@ -128,6 +140,6 @@
     color #555
     font-weight bold
 
-.g-folder-description
+.g-info-dialog-description
   margin 0 0 10px 0
   border-bottom 1px solid #eee

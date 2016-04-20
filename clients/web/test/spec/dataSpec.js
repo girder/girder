@@ -142,6 +142,8 @@ describe('Create a data hierarchy', function () {
 
         girderTest.waitForLoad();
         runs(function () {
+            // Description of current node should appear in breadcrumb bar
+            expect($('.g-hierarchy-breadcrumb-bar').text()).toContain('Some description');
             $('a.g-edit-folder').click();
         });
 
