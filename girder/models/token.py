@@ -128,6 +128,12 @@ class Token(AccessControlledModel):
             of the given token's allowed scopes.
         :type scope: str or list of str
         """
+        if token is None:
+            return False
+
+        if scope is None:
+            return True
+
         if isinstance(scope, six.string_types):
             scope = (scope,)
         return set(scope).issubset(set(self.getAllowedScopes(token)))

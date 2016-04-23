@@ -24,7 +24,7 @@ import six
 from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
@@ -91,8 +91,10 @@ class ResourceExt(Resource):
                 self.boundResources[resource] = True
 
     def unbindModels(self, resources={}):
-        """Unbind any models that were bound and aren't listed as needed.
-        :param resources: resources that shouldn't be unbound."""
+        """
+        Unbind any models that were bound and aren't listed as needed.
+        :param resources: resources that shouldn't be unbound.
+        """
         # iterate over a list so that we can change the dictionary as we use it
         for oldresource in list(six.viewkeys(self.boundResources)):
             if oldresource not in resources:
@@ -128,6 +130,16 @@ class ResourceExt(Resource):
         return getattr(self, key)
 
     @access.public
+    @describeRoute(
+        Description('Get the provenance for a given resource.')
+        .param('id', 'The resource ID', paramType='path')
+        .param('version', 'The provenance version for the resource.  If not '
+               'specified, the latest provenance data is returned.  If "all" '
+               'is specified, a list of all provenance data is returned.  '
+               'Negative indices can also be used (-1 is the latest '
+               'provenance, -2 second latest, etc.).', required=False)
+        .errorResponse()
+    )
     def provenanceGetHandler(self, id, params, resource=None):
         user = self.getCurrentUser()
         model = self.model(resource)
@@ -161,15 +173,6 @@ class ResourceExt(Resource):
             'resourceId': id,
             'provenance': result
         }
-    provenanceGetHandler.description = (
-        Description('Get the provenance for a given resource.')
-        .param('id', 'The resource ID', paramType='path')
-        .param('version', 'The provenance version for the resource.  If not '
-               'specified, the latest provenance data is returned.  If "all" '
-               'is specified, a list of all provenance data is returned.  '
-               'Negative indices can also be used (-1 is the latest '
-               'provenance, -2 second latest, etc.).', required=False)
-        .errorResponse())
 
     # These methods maintain the provenance
 
@@ -322,8 +325,10 @@ class ResourceExt(Resource):
         return snap
 
     def fileSaveHandler(self, event):
-        """When a file is saved, update the provenance of the parent item.
-        :param event: the event with the file information."""
+        """
+        When a file is saved, update the provenance of the parent item.
+        :param event: the event with the file information.
+        """
         curFile = event.info
         if 'itemId' not in curFile or '_id' not in curFile:
             return
@@ -355,9 +360,11 @@ class ResourceExt(Resource):
         self.model('item').save(item, triggerEvents=False)
 
     def fileSaveCreatedHandler(self, event):
-        """When a file is created, we don't record it in the save handler
-        beacuse we want to know its id.  We record it here, instead.
-        :param event: the event with the file information."""
+        """
+        When a file is created, we don't record it in the save handler
+        because we want to know its id.  We record it here, instead.
+        :param event: the event with the file information.
+        """
         file = event.info
         if 'itemId' not in file or not file['itemId'] or '_id' not in file:
             return
@@ -379,8 +386,10 @@ class ResourceExt(Resource):
         self.model('item').save(item, triggerEvents=False)
 
     def fileRemoveHandler(self, event):
-        """When a file is removed, update the provenance of the parent item.
-        :param event: the event with the file information."""
+        """
+        When a file is removed, update the provenance of the parent item.
+        :param event: the event with the file information.
+        """
         file = event.info
         if 'itemId' not in file:
             return

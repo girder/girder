@@ -407,9 +407,9 @@ Downloading external data files for test cases
 
 In some cases, it is necessary to perform a test on a file that is too big store
 inside a repository.  For tests such as these, Girder provides a way to link to
-test files served at `https://midas3.kitware.com`_ and have them automatically
+test files served at `<https://midas3.kitware.com>`_ and have them automatically
 downloaded and cached during the build stage.  To add a new external file, first
-make an account at `https://midas3.kitware.com`_ and upload a publicly accessible
+make an account at `<https://midas3.kitware.com>`_ and upload a publicly accessible
 file.  When viewing the items containing those files on Midas, there will be a
 link to "Download key file" appearing as a key icon.  This file contains
 the MD5 hash of the file contents and can be committed inside the

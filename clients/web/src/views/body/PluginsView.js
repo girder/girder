@@ -39,12 +39,16 @@ girder.views.PluginsView = girder.View.extend({
 
     render: function () {
         _.each(this.allPlugins, function (info, name) {
-            if (this.enabled.indexOf(name) >= 0) {
+            info.unmetDependencies = this._unmetDependencies(info);
+            if (!_.isEmpty(info.unmetDependencies)) {
+                // Disable any plugins with unmet dependencies.
+                this.enabled = _.without(this.enabled, name);
+            }
+
+            if (_.contains(this.enabled, name)) {
                 info.enabled = true;
                 info.configRoute = girder.getPluginConfigRoute(name);
             }
-
-            info.unmetDependencies = this._unmetDependencies(info);
         }, this);
 
         this.$el.html(girder.templates.plugins({
@@ -120,6 +124,10 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     _updatePlugins: function () {
+        // Remove any missing plugins from the enabled list. Can happen
+        // if the directory of an enabled plugin disappears.
+        this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
+
         girder.restRequest({
             path: 'system/plugins',
             type: 'PUT',

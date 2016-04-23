@@ -294,11 +294,8 @@ class User(AccessControlledModel):
         """
         if subpath:
             path = os.path.join(path, doc['login'])
-        folders = self.model('folder').find({
-            'parentId': doc['_id'],
-            'parentCollection': 'user'
-        })
-        for folder in folders:
+        for folder in self.model('folder').childFolders(parentType='user',
+                                                        parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
@@ -329,3 +326,30 @@ class User(AccessControlledModel):
             folder, includeItems=includeItems, user=user, level=level)
             for folder in folders)
         return count
+
+    def countFolders(self, user, filterUser=None, level=None):
+        """
+        Returns the number of top level folders under this user. Access
+        checking is optional; to circumvent access checks, pass ``level=None``.
+
+        :param user: The user whose top level folders to count.
+        :type collection: dict
+        :param filterUser: If performing access checks, the user to check
+            against.
+        :type filterUser: dict or None
+        :param level: The required access level, or None to return the raw
+            top-level folder count.
+        """
+        fields = () if level is None else ('access', 'public')
+
+        folderModel = self.model('folder')
+        folders = folderModel.find({
+            'parentId': user['_id'],
+            'parentCollection': 'user'
+        }, fields=fields)
+
+        if level is None:
+            return folders.count()
+        else:
+            return sum(1 for _ in folderModel.filterResultsByPermission(
+                cursor=folders, user=filterUser, level=level))

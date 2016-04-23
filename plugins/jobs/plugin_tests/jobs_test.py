@@ -26,6 +26,7 @@ from girder.models.model_base import ValidationException
 
 JobStatus = None
 
+
 def setUpModule():
     base.enabledPlugins.append('jobs')
     base.startServer()
@@ -48,6 +49,7 @@ class JobsTestCase(base.TestCase):
 
     def testJobs(self):
         self.job = None
+
         def schedule(event):
             self.job = event.info
             if self.job['handler'] == 'my_handler':
@@ -280,6 +282,10 @@ class JobsTestCase(base.TestCase):
         }
         job = self.model('job', 'jobs').createJob(
             title='dots', type='x', user=self.users[0], kwargs=kwargs)
+
+        # Make sure we can update a job and notification creation works
+        self.model('job', 'jobs').updateJob(
+            job, status=JobStatus.ERROR, notify=True)
 
         self.assertEqual(job['kwargs'], kwargs)
 

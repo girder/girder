@@ -1,36 +1,37 @@
 - var idx = 0
 each obj in links
   li
-    a.g-breadcrumb-link(g-index="#{idx}")
-      if (obj.resourceName === 'user')
+    a.g-breadcrumb-link(g-index=idx)
+      if obj.resourceName === 'user'
         i.icon-user
-        | &nbsp;
-      else if(obj.resourceName === 'collection')
+      else if obj.resourceName === 'collection'
         i.icon-sitemap
-        | &nbsp;
-      | #{obj.get('name') || obj.name()}
+      = obj.name()
   - idx += 1
 
 if current
   li.active
-    if (current.resourceName === 'user')
+    if current.resourceName === 'user'
       i.icon-user
-      | &nbsp;
-    else if(current.resourceName === 'collection')
+    else if current.resourceName === 'collection'
       i.icon-sitemap
-      | &nbsp;
-    | #{current.get('name') || current.name()}
+    = current.name()
 
-if idx > 0
-  .pull-right
-    .g-child-count-container.hide
-      .g-subfolder-count-container
-        i.icon-folder
-        .g-subfolder-count
+if descriptionText
+  a.g-description-preview= descriptionText
 
+.pull-right
+  .g-child-count-container.hide
+    .g-subfolder-count-container
+      i.icon-folder
+      .g-subfolder-count
+
+    if idx > 0
       .g-item-count-container
         i.icon-doc-text-inv
         .g-item-count
+
+  if idx > 0
     .g-level-up-button-container
-      a.g-hierarchy-level-up(title="Go up one level" placement="left")
+      a.g-hierarchy-level-up(title="Go up one level", placement="left")
         i.icon-level-up

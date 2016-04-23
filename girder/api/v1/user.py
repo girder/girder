@@ -43,6 +43,7 @@ class User(Resource):
         self.route('GET', ('me',), self.getMe)
         self.route('GET', ('authentication',), self.login)
         self.route('GET', (':id',), self.getUser)
+        self.route('GET', (':id', 'details'), self.getUserDetails)
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
@@ -394,4 +395,18 @@ class User(Resource):
                 'temporary': True
             },
             'message': 'Temporary access token is valid.'
+        }
+
+    @access.public
+    @loadmodel(model='user', level=AccessType.READ)
+    @describeRoute(
+        Description('Get detailed information about a user.')
+        .param('id', 'The ID of the user.', paramType='path')
+        .errorResponse()
+        .errorResponse('Read access was denied on the user.', 403)
+    )
+    def getUserDetails(self, user, params):
+        return {
+            'nFolders': self.model('user').countFolders(
+                user, filterUser=self.getCurrentUser(), level=AccessType.READ)
         }

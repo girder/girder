@@ -1,7 +1,6 @@
 include(CMakeParseArguments)
 
 set(server_port 20200)
-set(py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
 
@@ -19,7 +18,7 @@ endif()
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc.in"
-  "${py_coverage_rc}"
+  "${girder_py_coverage_rc}"
   @ONLY
 )
 
@@ -34,7 +33,7 @@ function(python_tests_init)
     add_test(
       NAME py_coverage_reset
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${py_coverage_rc}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${PYTHON_COVERAGE_CONFIG}"
     )
     add_test(
       NAME py_coverage_combine
@@ -44,22 +43,28 @@ function(python_tests_init)
     add_test(
       NAME py_coverage
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report --fail-under=${COVERAGE_MINIMUM_PASS}
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report "--rcfile=${PYTHON_COVERAGE_CONFIG}" --fail-under=${COVERAGE_MINIMUM_PASS}
     )
     add_test(
       NAME py_coverage_html
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html -d "${coverage_html_dir}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${coverage_html_dir}"
               "--title=Girder Coverage Report"
     )
     add_test(
       NAME py_coverage_xml
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml -o "${PROJECT_BINARY_DIR}/coverage.xml"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_BINARY_DIR}/coverage.xml"
     )
     set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
     set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
     set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
+
+    set_property(TEST py_coverage PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage_reset PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage_combine PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage_html PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage_xml PROPERTY LABELS girder_server)
   endif()
 endfunction()
 
@@ -70,6 +75,7 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
+    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_server)
   endif()
 endfunction()
 
@@ -101,7 +107,7 @@ function(add_python_test case)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${py_coverage_rc}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
               "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
               -m unittest -v ${module}
     )
@@ -147,4 +153,6 @@ function(add_python_test case)
     girder_ExternalData_expand_arguments("${name}_data" _tmp ${_data_files})
     girder_ExternalData_add_target("${name}_data")
   endif()
+
+  set_property(TEST ${name} PROPERTY LABELS girder_server)
 endfunction()

@@ -76,6 +76,12 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
+            },
+            fontello_config: {
+                files: [{
+                    src: 'clients/web/fontello.config.json',
+                    dest: 'clients/web/static/built/fontello.config.json'
+                }]
             }
         },
 
@@ -89,6 +95,18 @@ module.exports = function (grunt) {
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
                     ]
+                }
+            }
+        },
+
+        fontello: {
+            ext_font: {
+                options: {
+                    config: 'clients/web/static/built/fontello.config.json',
+                    fonts: 'clients/web/static/built/fontello/font',
+                    styles: 'clients/web/static/built/fontello/css',
+                    // Create output directories
+                    force: true
                 }
             }
         },
@@ -193,6 +211,9 @@ module.exports = function (grunt) {
                 }, {
                     src: ['clients/web/static/built/girder.ext.min.css'],
                     dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
+                }, {
+                    src: ['clients/web/static/built/fontello'],
+                    dest: 'clients/web/static/lib/fontello'
                 }]
             }
         },
@@ -219,7 +240,9 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'concat:ext_css': {}
+            'copy:fontello_config': {},
+            'concat:ext_css': {},
+            'fontello:ext_font': {}
         },
 
         default: {

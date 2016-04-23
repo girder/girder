@@ -47,9 +47,11 @@ class DummyResource(Resource):
             self.route(method, pathElements, self.handler)
 
     @access.public
+    @describe.describeRoute(
+        describe.Description('Does nothing')
+    )
     def handler(self, **kwargs):
         return kwargs
-    handler.description = describe.Description('Does nothing')
 
 
 testModel = {
@@ -80,12 +82,13 @@ class ModelResource(Resource):
         self.route('POST', (), self.hasModel)
 
     @access.public
-    def hasModel(self, params):
-        pass
-
-    hasModel.description = describe.Description('What a model') \
+    @describe.describeRoute(
+        describe.Description('What a model')
         .param('body', 'Where its at!', dataType='Body', required=True,
                paramType='body')
+    )
+    def hasModel(self, params):
+        pass
 
 
 def setUpModule():

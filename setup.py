@@ -49,6 +49,8 @@ class InstallWithOptions(install):
         shutil.copy('package.json', dest)
         self.mergeDir(os.path.join('clients', 'web', 'src'), dest)
         self.mergeDir(os.path.join('clients', 'web', 'static'), dest)
+        shutil.copy(os.path.join('clients', 'web', 'fontello.config.json'),
+                    os.path.join(dest, 'clients', 'web'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
         self.mergeDir(os.path.join('scripts', 'node'), dest)
@@ -116,7 +118,9 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4'
     ],
-    packages=find_packages(exclude=('tests.*', 'tests')),
+    packages=find_packages(
+        exclude=('tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
+    ),
     package_data={
         'girder': [
             'girder-version.json',

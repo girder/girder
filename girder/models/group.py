@@ -117,24 +117,6 @@ class Group(AccessControlledModel):
 
         return doc
 
-    def list(self, user=None, limit=0, offset=0, sort=None):
-        """
-        Search for groups or simply list all visible groups.
-
-        :param text: Pass this to perform a text search of all groups.
-        :param user: The user to search as.
-        :param limit: Result set size limit.
-        :param offset: Offset into the results.
-        :param sort: The sort direction.
-        """
-        # Perform the find; we'll do access-based filtering of the result
-        # set afterward.
-        cursor = self.find({}, sort=sort)
-
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
-
     def listMembers(self, group, offset=0, limit=0, sort=None):
         """
         List members of the group.
@@ -187,6 +169,7 @@ class Group(AccessControlledModel):
 
         if not group['_id'] in user['groups']:
             user['groups'].append(group['_id'])
+            # saved again in setUserAccess...
             self.model('user').save(user, validate=False)
 
         # Delete outstanding request if one exists
@@ -316,7 +299,7 @@ class Group(AccessControlledModel):
         :type creator: dict
         :returns: The group document that was created.
         """
-        assert type(public) is bool
+        assert isinstance(public, bool)
 
         now = datetime.datetime.utcnow()
 
@@ -455,6 +438,7 @@ class Group(AccessControlledModel):
         field in the case of WRITE access and above since READ access is
         implied by membership or invitation.
         """
+        # save parameter not used?
         if level is not None and level > AccessType.READ:
             doc = AccessControlledModel.setUserAccess(
                 self, doc, user, level, save=True)

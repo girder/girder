@@ -84,7 +84,7 @@ def _cacheAuthUser(fun):
             return cherrypy.request.girderUser
 
         user = fun(returnToken, *args, **kwargs)
-        if type(user) is tuple:
+        if isinstance(user, tuple):
             setattr(cherrypy.request, 'girderUser', user[0])
         else:
             setattr(cherrypy.request, 'girderUser', user)
@@ -170,7 +170,8 @@ def getCurrentUser(returnToken=False):
         return retVal(None, token)
     else:
         try:
-            ensureTokenScopes(token, TokenScope.USER_AUTH)
+            ensureTokenScopes(token, getattr(
+                cherrypy.request, 'requiredScopes', TokenScope.USER_AUTH))
         except AccessException:
             return retVal(None, token)
 
@@ -178,17 +179,19 @@ def getCurrentUser(returnToken=False):
         return retVal(user, token)
 
 
-def requireAdmin(user):
+def requireAdmin(user, message=None):
     """
     Calling this on a user will ensure that they have admin rights.  If not,
     raises an AccessException.
 
     :param user: The user to check admin flag on.
     :type user: dict.
+    :param message: The exception message.
+    :type message: str or None
     :raises AccessException: If the user is not an administrator.
     """
     if user is None or user.get('admin', False) is not True:
-        raise AccessException('Administrator access required.')
+        raise AccessException(message or 'Administrator access required.')
 
 
 def getBodyJson():
@@ -220,11 +223,14 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type plugin: str
     :param level: Access level, if this is an access controlled model.
     :type level: AccessType
-    :param force:
+    :param force: Force loading of the model (skip access check).
     :type force: bool
+    :param exc: Whether an exception should be raised for a nonexistent
+        resource.
+    :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
-                 force=False):
+                 force=False, exc=True):
         if map is None:
             self.map = {'id': model}
         else:
@@ -234,6 +240,7 @@ class loadmodel(ModelImporter):  # noqa: class name
         self.force = force
         self.modelName = model
         self.plugin = plugin
+        self.exc = exc
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -259,7 +266,7 @@ class loadmodel(ModelImporter):  # noqa: class name
                 else:
                     kwargs[converted] = model.load(id)
 
-                if kwargs[converted] is None:
+                if kwargs[converted] is None and self.exc:
                     raise RestException(
                         'Invalid %s id (%s).' % (model.name, str(id)))
 
@@ -473,6 +480,9 @@ def ensureTokenScopes(token, scope):
     :type scope: str or list of str
     """
     tokenModel = ModelImporter.model('token')
+    if tokenModel.hasScope(token, TokenScope.USER_AUTH):
+        return
+
     if not tokenModel.hasScope(token, scope):
         setattr(cherrypy.request, 'girderUser', None)
         if isinstance(scope, six.string_types):
@@ -632,11 +642,10 @@ class Resource(ModelImporter):
             resource = self.resourceName
         elif resource is None:
             resource = handler.__module__.rsplit('.', 1)[-1]
-        if handler and hasattr(handler, 'description'):
-            if handler.description is not None:
-                docs.removeRouteDocs(
-                    resource=resource, route=route, method=method,
-                    info=handler.description.asDict(), handler=handler)
+        if handler and getattr(handler, 'description', None) is not None:
+            docs.removeRouteDocs(
+                resource=resource, route=route, method=method,
+                info=handler.description.asDict(), handler=handler)
 
     def _shouldInsertRoute(self, a, b):
         """
@@ -692,6 +701,9 @@ class Resource(ModelImporter):
             kwargs = self._matchRoute(path, route)
             if kwargs is False:
                 continue
+
+            cherrypy.request.requiredScopes = getattr(
+                handler, 'requiredScopes', None) or TokenScope.USER_AUTH
 
             if hasattr(handler, 'cookieAuth'):
                 if isinstance(handler.cookieAuth, tuple):
@@ -800,21 +812,23 @@ class Resource(ModelImporter):
 
         val = params[key]
 
-        if type(val) is bool:
+        if isinstance(val, bool):
             return val
 
         return val.lower().strip() in ('true', 'on', '1', 'yes')
 
-    def requireAdmin(self, user):
+    def requireAdmin(self, user, message=None):
         """
         Calling this on a user will ensure that they have admin rights.
         If not, raises an AccessException.
 
         :param user: The user to check admin flag on.
         :type user: dict.
+        :param message: The exception message.
+        :type message: str or None
         :raises AccessException: If the user is not an administrator.
         """
-        return requireAdmin(user)
+        return requireAdmin(user, message)
 
     def setRawResponse(self, *args, **kwargs):
         """
@@ -847,7 +861,7 @@ class Resource(ModelImporter):
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
-        elif type(defaultSortField) is str:
+        elif isinstance(defaultSortField, six.string_types):
             sort = [(defaultSortField, sortdir)]
         else:
             sort = None

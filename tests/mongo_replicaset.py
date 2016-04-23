@@ -192,7 +192,8 @@ def stopMongoReplicaSet(graceful=True, purgeFiles=True):
     :param graceful: if True, try to let the servers stop gracefully.
                      Otherwise, kill them quickly.
     :param purgeFiles: if True, then after stopping the server, delete the
-                       files it was using."""
+                       files it was using.
+    """
     if graceful:
         pauseList = [False for server in Config]
         pauseMongoReplicaSet(pauseList)

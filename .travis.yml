@@ -3,6 +3,12 @@ python:
     - "2.7"
     - "3.4"
 
+env:
+    - GIRDER_TEST_GROUP=server
+    - GIRDER_TEST_GROUP=client
+    - GIRDER_TEST_GROUP=packaging
+    - GIRDER_TEST_GROUP=other
+
 cache:
     directories:
         - $HOME/.cache
@@ -18,17 +24,20 @@ before_install:
     - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "3" ]; then export PY3="true"; else export PY2="true"; fi
     - if [ -n "${PY3}" ]; then export MONGO_VERSION=3.0.7; export PY_COVG="OFF"; else export MONGO_VERSION=2.6.11; export PY_COVG="ON"; export DEPLOY=true; fi
     - if [ -n "${PY3}" ]; then export IGNORE_PLUGINS=hdfs_assetstore,metadata_extractor; fi
-    - CACHE=$HOME/.cache source ./scripts/install_mongo.sh
+    - if [ "$GIRDER_TEST_GROUP" != "other" ] ; then CACHE=$HOME/.cache source ./scripts/install_mongo.sh ; fi
     - mkdir /tmp/db
-    - mongod --dbpath=/tmp/db >/dev/null 2>/dev/null &
-    - mongod --version
-    - CACHE=$HOME/.cache CMAKE_VERSION=3.1.0 CMAKE_SHORT_VERSION=3.1 source ./scripts/install_cmake.sh
+    - (mongod --dbpath=/tmp/db >/dev/null 2>/dev/null || true ) &
+    - mongod --version || true
+    - CACHE=$HOME/.cache CMAKE_VERSION=3.4.3 CMAKE_SHORT_VERSION=3.4 source ./scripts/install_cmake.sh
     - cmake --version
+    - mkdir -p $HOME/.cache/node_modules || true
+    - ln -sf $HOME/.cache/node_modules .
     - npm install -g npm
     - npm --version
+    - npm prune
     - pip install -U pip virtualenv
 install:
-    - pip install -r requirements.txt -r requirements-dev.txt -e .
+    - if [ "$GIRDER_TEST_GROUP" == "server" -o "$GIRDER_TEST_GROUP" == "client" -o "$GIRDER_TEST_GROUP" == "other" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
     - npm install
     - npm run build
 script:

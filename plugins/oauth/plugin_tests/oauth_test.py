@@ -49,18 +49,17 @@ class OauthTest(base.TestCase):
         from girder.plugins.oauth.constants import PluginSettings
 
         self.adminUser = self.model('user').createUser(
-            email='admin@mail.com',
-            login='admin',
-            firstName='first',
-            lastName='last',
-            password='password',
+            email='rocky@phila.pa.us',
+            login='rocky',
+            firstName='Robert',
+            lastName='Balboa',
+            password='adrian',
             admin=True
         )
 
         # Specifies which test account (typically "new" or "existing") a
         # redirect to a provider will simulate authentication for
         self.accountType = None
-
 
     def testDeriveLogin(self):
         """
@@ -74,12 +73,14 @@ class OauthTest(base.TestCase):
         login = ProviderBase._deriveLogin('hello.world.foo@mail.com', 'A', 'B')
         self.assertEqual(login, 'helloworldfoo')
 
-        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B', 'user2')
+        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B',
+                                          'user2')
         self.assertEqual(login, 'user2')
 
-        login = ProviderBase._deriveLogin('admin@admin.com', 'A', 'B', 'admin')
-        self.assertEqual(login, 'admin1')
-
+        # This should conflict with the saved admin user
+        login = ProviderBase._deriveLogin('rocky@phila.pa.us', 'Robert',
+                                          'Balboa', 'rocky')
+        self.assertEqual(login, 'rocky1')
 
     def _testOauth(self, providerInfo):
         # Close registration to start off, and simulate a new user
@@ -264,7 +265,7 @@ class OauthTest(base.TestCase):
         # 'new' account
         params = getCallbackParams(getProviderResp())
         resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                     params=params)
+                            params=params)
         self.assertStatus(resp, 400)
         self.assertTrue(
             resp.json['message'].startswith(
@@ -275,7 +276,7 @@ class OauthTest(base.TestCase):
             self.accountType = accountType
             params = getCallbackParams(getProviderResp())
             resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                         params=params, isJson=False)
+                                params=params, isJson=False)
             self.assertStatus(resp, 303)
             self.assertEqual(resp.headers['Location'],
                              'http://localhost/#foo/bar')
@@ -284,13 +285,17 @@ class OauthTest(base.TestCase):
             resp = self.request('/user/me',
                                 token=resp.cookie['girderToken'].value)
             self.assertStatusOk(resp)
-            self.assertEqual(resp.json['email'],
+            self.assertEqual(
+                resp.json['email'],
                 providerInfo['accounts'][accountType]['user']['email'])
-            self.assertEqual(resp.json['login'],
+            self.assertEqual(
+                resp.json['login'],
                 providerInfo['accounts'][accountType]['user']['login'])
-            self.assertEqual(resp.json['firstName'],
+            self.assertEqual(
+                resp.json['firstName'],
                 providerInfo['accounts'][accountType]['user']['firstName'])
-            self.assertEqual(resp.json['lastName'],
+            self.assertEqual(
+                resp.json['lastName'],
                 providerInfo['accounts'][accountType]['user']['lastName'])
 
         # Try callback for the 'existing' account, which should succeed
@@ -310,15 +315,16 @@ class OauthTest(base.TestCase):
 
         # Reset password for 'new' OAuth-only user should work
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-        resp = self.request('/user/password/temporary',
-            method='PUT', params={
+        resp = self.request(
+            '/user/password/temporary', method='PUT', params={
                 'email': providerInfo['accounts']['new']['user']['email']})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
-        search = re.search('<a href="(.*)">', msg)
+        body = msg.get_payload(decode=True).decode('utf8')
+        search = re.search('<a href="(.*)">', body)
         link = search.group(1)
         linkParts = link.split('/')
         userId = linkParts[-3]
@@ -326,15 +332,14 @@ class OauthTest(base.TestCase):
         tempToken = self.model('token').load(
             tokenId, force=True, objectId=False)
         resp = self.request('/user/password/temporary/' + userId,
-            method='GET', params={
-                'token': tokenId})
+                            method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['user']['login'], newUser['login'])
         # We should now be able to change the password
         resp = self.request('/user/password',
-            method='PUT', user=resp.json['user'], params={
-                'old': tokenId,
-                'new': 'mypasswd'})
+                            method='PUT', user=resp.json['user'], params={
+                                'old': tokenId,
+                                'new': 'mypasswd'})
         self.assertStatusOk(resp)
         # The temp token should get deleted on password change
         token = self.model('token').load(tempToken, force=True, objectId=False)
@@ -345,13 +350,11 @@ class OauthTest(base.TestCase):
                             basicAuth='%s:mypasswd' % newUser['login'])
         self.assertStatusOk(resp)
 
-
     @httmock.all_requests
     def mockOtherRequest(self, url, request):
         raise Exception('Unexpected url %s' % str(request.url))
 
-
-    def testGoogleOauth(self):
+    def testGoogleOauth(self):  # noqa
         providerInfo = {
             'id': 'google',
             'name': 'Google',
@@ -385,14 +388,15 @@ class OauthTest(base.TestCase):
                     'auth_code': 'google_new_auth_code',
                     'access_token': 'google_new_test_token',
                     'user': {
-                        # this login will be created internally by _deriveLogin
-                        'login': 'googleuser',
-                        'email': 'google_user@mail.com',
-                        'firstName': 'John',
-                        'lastName': 'Doe',
+                        # this login is not provided by Google, but will be
+                        # created internally by _deriveLogin
+                        'login': 'creed',
+                        'email': 'creed@la.ca.us',
+                        'firstName': 'Apollo',
+                        'lastName': 'Creed',
                         'oauth': {
                             'provider': 'google',
-                            'id': '9876'
+                            'id': 'the1best'
                         }
                     }
                 }
@@ -531,7 +535,7 @@ class OauthTest(base.TestCase):
                 'emails': [
                     {
                         'type': 'other',
-                        'value': 'secondary@email.com'
+                        'value': 'styx@hades.gov'
                     }, {
                         'type': 'account',
                         'value': account['user']['email']
@@ -548,8 +552,7 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
-
-    def testGithubOauth(self):
+    def testGithubOauth(self):  # noqa
         providerInfo = {
             'id': 'github',
             'name': 'GitHub',
@@ -586,13 +589,13 @@ class OauthTest(base.TestCase):
                         # login may be provided externally by GitHub; for
                         # simplicity here, do not use a username with whitespace
                         # or underscores
-                        'login': 'jane83',
-                        'email': 'github_user@mail.com',
-                        'firstName': 'Jane',
-                        'lastName': 'Doe',
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
                         'oauth': {
                             'provider': 'github',
-                            'id': 1234
+                            'id': 1985
                         }
                     }
                 }
@@ -633,7 +636,8 @@ class OauthTest(base.TestCase):
             else:
                 returnQuery = urllib.parse.urlencode({
                     'state': state,
-                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
                 })
             return {
                 'status_code': 302,
@@ -689,7 +693,6 @@ class OauthTest(base.TestCase):
                 'content': returnBody
             }
 
-
         @httmock.urlmatch(scheme='https', netloc='^api.github.com$',
                           path='^/user$', method='GET')
         def mockGithubApiUser(url, request):
@@ -734,7 +737,7 @@ class OauthTest(base.TestCase):
             return json.dumps([
                 {
                     'primary': False,
-                    'email': 'secondary@email.com',
+                    'email': 'drago@siberia.ussr.gov',
                     'verified': True
                 }, {
                     'primary': True,
@@ -748,6 +751,410 @@ class OauthTest(base.TestCase):
             mockGithubToken,
             mockGithubApiUser,
             mockGithubApiEmail,
+            # Must keep "mockOtherRequest" last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testLinkedinOauth(self):  # noqa
+        providerInfo = {
+            'id': 'linkedin',
+            'name': 'LinkedIn',
+            'client_id': {
+                'key': PluginSettings.LINKEDIN_CLIENT_ID,
+                'value': 'linkedin_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.LINKEDIN_CLIENT_SECRET,
+                'value': 'linkedin_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/linkedin/callback$',
+            'url_re': r'^https://www\.linkedin\.com/uas/oauth2/authorization',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'linkedin_existing_auth_code',
+                    'access_token': 'linkedin_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'linkedin',
+                            'id': '42kD-5H'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'linkedin_new_auth_code',
+                    'access_token': 'linkedin_new_test_token',
+                    'user': {
+                        # this login is not provided by LinkedIn, but will be
+                        # created internally by _deriveLogin
+                        'login': 'clubber',
+                        'email': 'clubber@streets.chi.il.us',
+                        'firstName': 'James',
+                        'lastName': 'Lang',
+                        'oauth': {
+                            'provider': 'linkedin',
+                            'id': '634pity-fool4'
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^www.linkedin.com$',
+                          path='^/uas/oauth2/authorization$', method='GET')
+        def mockLinkedinRedirect(url, request):
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 200,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(
+                    params['response_type'],
+                    ['code'])
+                self.assertEqual(
+                    params['scope'][0].split(' '),
+                    ['r_basicprofile', 'r_emailaddress'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (params['redirect_uri'][0],
+                                           returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^www.linkedin.com$',
+                          path='^/uas/oauth2/accessToken$', method='POST')
+        def mockLinkedinToken(url, request):
+            try:
+                self.assertEqual(request.headers['Content-Type'],
+                                 'application/x-www-form-urlencoded')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(
+                    params['grant_type'],
+                    ['authorization_code'])
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(
+                    params['client_secret'],
+                    [providerInfo['client_secret']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            return json.dumps({
+                'access_token': account['access_token'],
+                'expires_in': datetime.timedelta(days=60).seconds
+            })
+
+        @httmock.urlmatch(scheme='https', netloc='^api.linkedin.com$',
+                          path='^/v1/people/~(?::\(.+\)?)$', method='GET')
+        def mockLinkedinApi(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'errorCode': 0,
+                        'message': repr(e)
+                    })
+                }
+            try:
+                fieldsRe = re.match(r'^.+:\((.+)\)$', url.path)
+                self.assertTrue(fieldsRe)
+                self.assertSetEqual(
+                    set(fieldsRe.group(1).split(',')),
+                    {'id', 'emailAddress', 'firstName', 'lastName'})
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(params['format'], ['json'])
+            except AssertionError as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'errorCode': 0,
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'id': account['user']['oauth']['id'],
+                'firstName': account['user']['firstName'],
+                'lastName': account['user']['lastName'],
+                'emailAddress': account['user']['email']
+            })
+
+        with httmock.HTTMock(
+            mockLinkedinRedirect,
+            mockLinkedinToken,
+            mockLinkedinApi,
+            # Must keep "mockOtherRequest" last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testBitbucketOauth(self):  # noqa
+        providerInfo = {
+            'id': 'bitbucket',
+            'name': 'Bitbucket',
+            'client_id': {
+                'key': PluginSettings.BITBUCKET_CLIENT_ID,
+                'value': 'bitbucket_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.BITBUCKET_CLIENT_SECRET,
+                'value': 'bitbucket_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/bitbucket/callback$',
+            'url_re': r'^https://bitbucket\.org/site/oauth2/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'bitbucket_existing_auth_code',
+                    'access_token': 'bitbucket_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'bitbucket',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'bitbucket_new_auth_code',
+                    'access_token': 'bitbucket_new_test_token',
+                    'user': {
+                        # login may be provided externally by Bitbucket; for
+                        # simplicity here, do not use a username with whitespace
+                        # or underscores
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'bitbucket',
+                            'id': 1983
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^bitbucket.org$',
+                          path='^/site/oauth2/authorize$', method='GET')
+        def mockBitbucketRedirect(url, request):
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(
+                    params['client_id'],
+                    [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertRegexpMatches(
+                    redirectUri,
+                    providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+                self.assertEqual(
+                    params['scope'],
+                    ['account'])
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code':
+                        providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^bitbucket.org$',
+                          path='^/site/oauth2/access_token$', method='POST')
+        def mockBitbucketToken(url, request):
+            try:
+                self.assertEqual(request.headers['Accept'], 'application/json')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(
+                    params['grant_type'],
+                    ['authorization_code'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(
+                    params['client_secret'],
+                    [providerInfo['client_secret']['value']])
+                self.assertRegexpMatches(
+                    params['redirect_uri'][0],
+                    providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                returnBody = json.dumps({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnBody = json.dumps({
+                    'token_type': 'bearer',
+                    'access_token': account['access_token'],
+                    'scope': 'account'
+                })
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': returnBody
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^api.bitbucket.org$',
+                          path='^/2.0/user$', method='GET')
+        def mockBitbucketApiUser(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                "created_on": "2011-12-20T16:34:07.132459+00:00",
+                "uuid": account['user']['oauth']['id'],
+                "location": "Santa Monica, CA",
+                "links": {},
+                "website": "https://tutorials.bitbucket.org/",
+                "username": account['user']['login'],
+                "display_name": '%s %s' % (account['user']['firstName'],
+                                           account['user']['lastName'])
+            })
+
+        @httmock.urlmatch(scheme='https', netloc='^api.bitbucket.org$',
+                          path='^/2.0/user/emails$', method='GET')
+        def mockBitbucketApiEmail(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                "page": 1,
+                "pagelen": 10,
+                "size": 1,
+                "values": [{
+                    'is_primary': True,
+                    'is_confirmed': True,
+                    'email': account['user']['email'],
+                    'links': {},
+                    "type": "email"
+                }]
+            })
+
+        with httmock.HTTMock(
+            mockBitbucketRedirect,
+            mockBitbucketToken,
+            mockBitbucketApiUser,
+            mockBitbucketApiEmail,
             # Must keep "mockOtherRequest" last
             self.mockOtherRequest
         ):

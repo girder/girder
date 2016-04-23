@@ -73,6 +73,9 @@ class File(Resource):
         .param('mimeType', 'The MIME type of the file.', required=False)
         .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
+        .param('reference', 'If included, this information is passed to the '
+               'data.process event when the upload is complete.',
+               required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
         .errorResponse('Failed to create upload.', 500)
@@ -107,7 +110,8 @@ class File(Resource):
             try:
                 upload = self.model('upload').createUpload(
                     user=user, name=params['name'], parentType=parentType,
-                    parent=parent, size=int(params['size']), mimeType=mimeType)
+                    parent=parent, size=int(params['size']), mimeType=mimeType,
+                    reference=params.get('reference'))
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -219,7 +223,7 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.' % (
                     upload['received'], offset))
         try:
-            if type(chunk) == cherrypy._cpreqbody.Part:
+            if isinstance(chunk, cherrypy._cpreqbody.Part):
                 return self.model('upload').handleChunk(upload, chunk.file)
             else:
                 return self.model('upload').handleChunk(upload, chunk)
@@ -347,6 +351,9 @@ class File(Resource):
         Description('Change the contents of an existing file.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('size', 'Size in bytes of the new file.', dataType='integer')
+        .param('reference', 'If included, this information is passed to the '
+               'data.process event when the upload is complete.',
+               required=False)
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
     )
@@ -356,7 +363,8 @@ class File(Resource):
 
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
-            file=file, user=user, size=int(params['size']))
+            file=file, user=user, size=int(params['size']),
+            reference=params.get('reference'))
 
         if upload['size'] > 0:
             return upload

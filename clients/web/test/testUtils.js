@@ -636,24 +636,50 @@ girderTest.waitForDialog = function (desc) {
     }, 'dialog rest requests to finish' + desc);
 };
 
+(function () {
+    var defer = new $.Deferred();
+
+    /**
+     * Contains a promise that is resolved when blanket finishes instrumenting all
+     * requested sources.
+     */
+    girderTest.promise = defer.promise();
+
+    // Start attaching covered scripts *after* the page has loaded.
+    $(function () {
+        defer.resolve();
+    });
+})();
+
 /**
  * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
-    if (window.blanket) {
-        blanket.utils.cache[url] = {};
-        blanket.utils.attachScript({url: url}, function (content) {
-            blanket.instrument({inputFile: content, inputFileName: url},
-                               function (instrumented) {
-                                   blanket.utils.cache[url].loaded = true;
-                                   blanket.utils.blanketEval(instrumented);
-                                   blanket.requiringFile(url, true);
-                               });
-        });
-    } else {
-        $('<script/>', {src: url}).appendTo('head');
-    }
+    var defer = new $.Deferred();
+
+    girderTest.promise.then(function () {
+
+        if (window.blanket) {
+            blanket.requiringFile(url);
+            blanket.utils.cache[url] = {};
+            blanket.utils.attachScript({url: url}, function (content) {
+                blanket.instrument({inputFile: content, inputFileName: url},
+                                   function (instrumented) {
+                                       blanket.utils.cache[url].loaded = true;
+                                       blanket.utils.blanketEval(instrumented);
+                                       blanket.requiringFile(url, true);
+                                       defer.resolve();
+                                   });
+            });
+        } else {
+            $('<script/>', {src: url}).appendTo('head').on('load', function () {
+                defer.resolve();
+            });
+        }
+    });
+
+    girderTest.promise = defer.promise();
 };
 
 /**
@@ -1177,3 +1203,91 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         loginFunction();
     }
 };
+
+/*
+ * Instrument ajax calls to record all communication with the server
+ * so we can print the log after a test failure.
+ */
+(function () {
+    var ajax_calls = [];
+    var backbone_ajax = Backbone.ajax;
+
+    Backbone.ajax = function () {
+        var opts = {}, record;
+
+        if (arguments.length === 1) {
+            opts = arguments[0];
+            if (typeof opts === 'string') {
+                opts = {url: opts};
+            }
+        } else if (arguments.length === 2) {
+            opts = arguments[1];
+            opts.url = arguments[0];
+        }
+
+        record = {
+            opts: opts
+        };
+
+        ajax_calls.push(record);
+
+        return backbone_ajax(opts).done(
+            function (data, textStatus) {
+                record.status = textStatus;
+                record.result = data;
+            }
+        ).fail(function (jqxhr, textStatus, errorThrown) {
+                record.status = textStatus;
+                record.errorThrown = errorThrown;
+        });
+    };
+
+    girderTest.ajaxLog = function (reset) {
+        var calls = ajax_calls;
+        if (reset) {
+            ajax_calls = [];
+        }
+        return calls;
+    };
+}());
+
+/*
+ * Provide an alternate path to injecting a test spec as a url query parameter.
+ *
+ * To use, start girder in testing mode: `python -m girder --testing` and
+ * browse to the test html with a spec provided:
+ *
+ *   http://localhost:8080/static/built/testEnv.html?spec=%2Fclients%2Fweb%2Ftest%2Fspec%2FversionSpec.js
+ *
+ * Note: the path to the spec file must be url encoded.
+ */
+$(function () {
+    var specs = [];
+    document.location.search.substring(1).split('&').forEach(function (query) {
+        query = query.split('=');
+        if (query.length > 1 && query[0] === 'spec') {
+            specs.push($.getScript(decodeURIComponent(query[1])));
+        }
+    });
+});
+
+/**
+ * Wait for all of the sources to load and then start the main girder application.
+ * This will also delay the invocation of the jasmine test suite until after the
+ * application is running.  This method returns a promise that resolves with the
+ * application object.
+ */
+girderTest.startApp = function () {
+    var defer = new $.Deferred();
+    girderTest.promise.then(function () {
+        girder.events.trigger('g:appload.before');
+        var app = new girder.App({
+            el: 'body',
+            parentView: null
+        });
+        girder.events.trigger('g:appload.after');
+        defer.resolve(app);
+    });
+    girderTest.promise = defer.promise();
+    return girderTest.promise;
+}

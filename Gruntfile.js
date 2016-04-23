@@ -73,6 +73,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-symlink');
     grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-fontello');
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-npm-install');
 

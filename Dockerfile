@@ -14,13 +14,14 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
     libpython-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py && python get-pip.py
+RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
 
 WORKDIR /girder
 COPY girder /girder/girder
 COPY clients /girder/clients
 COPY plugins /girder/plugins
 COPY scripts /girder/scripts
+COPY grunt_tasks /girder/grunt_tasks
 COPY Gruntfile.js /girder/Gruntfile.js
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json

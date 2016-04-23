@@ -56,15 +56,7 @@ function _setMinimumChunkSize(minSize) {
 /**
  * Start the girder backbone app.
  */
-$(function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
-        el: 'body',
-        parentView: null
-    });
-    app = app;
-    girder.events.trigger('g:appload.after');
-});
+girderTest.startApp();
 
 describe('Create a data hierarchy', function () {
     it('register a user',
@@ -87,10 +79,13 @@ describe('Create a data hierarchy', function () {
         girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $('li.g-folder-list-entry').length > 0;
+            // Wait for folders to show, and also the folder count
+            return $('li.g-folder-list-entry').length > 0 &&
+                $('.g-subfolder-count').text() === '2';
         }, 'my folders list to display');
 
         runs(function () {
+            expect($('.g-item-count').length).toBe(0);
             expect($('a.g-folder-list-link:first').text()).toBe('Private');
             expect($('.g-folder-privacy:first').text()).toBe('Private');
             $('a.g-folder-list-link:first').click();
@@ -147,6 +142,8 @@ describe('Create a data hierarchy', function () {
 
         girderTest.waitForLoad();
         runs(function () {
+            // Description of current node should appear in breadcrumb bar
+            expect($('.g-hierarchy-breadcrumb-bar').text()).toContain('Some description');
             $('a.g-edit-folder').click();
         });
 

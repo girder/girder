@@ -34,31 +34,27 @@ def tearDownModule():
 class HashStateTestCase(base.TestCase):
 
     def setUp(self):
-        # Define a few variables used by all the tests:
-        # Use the python's zen as 'long' string
+        # Do not call base.TestCase.setUp, since the database is not used
+
+        # Use ROT13 "The Zen of Python" for a long string
         import this
-        testChunk = this.s.encode('utf8')
-        # Arbitrary number to split the python zen in a least a few chunks
-        chunkSize = len(testChunk) // 6
+        testData = this.s.encode('utf8')
+        chunkSize = len(testData) // 6
         self.chunks = [
-            testChunk[i:i+chunkSize]
-            for i in range(0, len(testChunk), chunkSize)
-            ]
+            testData[i:i + chunkSize]
+            for i in range(0, len(testData), chunkSize)]
 
-    def tearDown(self):
-        base.stopServer()
-
-    def _simpleHashingTest(self, hash_type):
+    def _simpleHashingTest(self, hashType):
         """
-        Test the hashing of hash_state against Python's hashlib
+        Test the hashing of hash_state against Python's hashlib.
 
-        :param hash_type: String representing the hash algorithm to use
+        :param hashType: String representing the hash algorithm to use.
         """
-        officialHasher = hashlib.new(hash_type)
-        state = hash_state.serializeHex(hashlib.new(hash_type))
+        officialHasher = hashlib.new(hashType)
+        state = hash_state.serializeHex(hashlib.new(hashType))
 
         for chunk in self.chunks:
-            checksum = hash_state.restoreHex(state, hash_type)
+            checksum = hash_state.restoreHex(state, hashType)
             self.assertEquals(officialHasher.hexdigest(), checksum.hexdigest())
             self.assertEquals(officialHasher.digest(), checksum.digest())
 
@@ -66,13 +62,13 @@ class HashStateTestCase(base.TestCase):
             checksum.update(chunk)
             state = hash_state.serializeHex(checksum)
 
-        checksum = hash_state.restoreHex(state, hash_type)
+        checksum = hash_state.restoreHex(state, hashType)
         self.assertEquals(officialHasher.hexdigest(), checksum.hexdigest())
         self.assertEquals(officialHasher.digest(), checksum.digest())
 
     def testSimpleHashing(self):
         """
-        Test all the base algorithms against Python's hashlib
+        Test all the base algorithms against Python's hashlib.
         """
         if sys.version_info <= (3, 2):
             algorithms = hashlib.algorithms

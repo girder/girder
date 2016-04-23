@@ -23,8 +23,11 @@ import mock
 import os
 import shutil
 import six
+import time
+from six import StringIO
+import hashlib
 
-from girder import config
+from girder import config, events
 from tests import base
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
@@ -56,6 +59,9 @@ class PythonClientTestCase(base.TestCase):
         # make some temp dirs and files
         self.libTestDir = os.path.join(os.path.dirname(__file__),
                                        '_libTestDir')
+        # unlink old temp dirs and files first
+        shutil.rmtree(self.libTestDir, ignore_errors=True)
+
         os.mkdir(self.libTestDir)
         writeFile(self.libTestDir)
         for subDir in range(0, 3):
@@ -235,14 +241,16 @@ class PythonClientTestCase(base.TestCase):
 
         with open(path) as f:
             file = client.uploadFile(
-                callbackPublicFolder['_id'], stream=f, name='test', size=size,
-                parentType='folder', progressCallback=progressCallback)
+                callbackPublicFolder['_id'], stream=f, name='test',
+                size=size, parentType='folder',
+                progressCallback=progressCallback)
 
         self.assertEqual(len(callbacks), 1)
         self.assertEqual(callbacks[0]['current'], size)
         self.assertEqual(callbacks[0]['total'], size)
         self.assertEqual(file['name'], 'test')
         self.assertEqual(file['size'], size)
+        # Files with no extension should fallback to the default MIME type
         self.assertEqual(file['mimeType'], 'application/octet-stream')
 
         items = list(
@@ -252,3 +260,116 @@ class PythonClientTestCase(base.TestCase):
 
         files = list(self.model('item').childFiles(items[0]))
         self.assertEqual(len(files), 1)
+
+        # Make sure MIME type propagates correctly when explicitly passed
+        with open(path) as f:
+            file = client.uploadFile(
+                callbackPublicFolder['_id'], stream=f, name='test',
+                size=size, parentType='folder', mimeType='image/jpeg')
+            self.assertEqual(file['mimeType'], 'image/jpeg')
+
+        # Make sure MIME type is guessed based on file name if not passed
+        with open(path) as f:
+            file = client.uploadFile(
+                callbackPublicFolder['_id'], stream=f, name='test.txt',
+                size=size, parentType='folder')
+            self.assertEqual(file['mimeType'], 'text/plain')
+
+    def testUploadReference(self):
+        eventList = []
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        # Register a user
+        user = client.createResource('user', params={
+            'firstName': 'First',
+            'lastName': 'Last',
+            'login': 'mylogin',
+            'password': 'password',
+            'email': 'email@email.com'
+        })
+        client.authenticate('mylogin', 'password')
+        folders = client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public')
+        publicFolder = folders[0]
+
+        def processEvent(event):
+            eventList.append(event.info)
+
+        events.bind('data.process', 'lib_test', processEvent)
+
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+        client.uploadFile(publicFolder['_id'], open(path), name='test1',
+                          size=size, parentType='folder',
+                          reference='test1_reference')
+        starttime = time.time()
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
+        self.assertEqual(len(eventList), 1)
+        self.assertEqual(eventList[0]['reference'], 'test1_reference')
+
+        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                reference='test2_reference')
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
+        self.assertEqual(len(eventList), 2)
+        self.assertEqual(eventList[1]['reference'], 'test2_reference')
+        self.assertNotEqual(eventList[0]['file']['_id'],
+                            eventList[1]['file']['_id'])
+
+        open(path, 'ab').write(b'test')
+        size = os.path.getsize(path)
+        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                reference='test3_reference')
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
+        self.assertEqual(len(eventList), 3)
+        self.assertEqual(eventList[2]['reference'], 'test3_reference')
+        self.assertNotEqual(eventList[0]['file']['_id'],
+                            eventList[2]['file']['_id'])
+        self.assertEqual(eventList[1]['file']['_id'],
+                         eventList[2]['file']['_id'])
+
+        item = client.createItem(publicFolder['_id'], 'a second item')
+        # Test explicit MIME type setting
+        file = client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        self.assertEqual(file['mimeType'], 'image/jpeg')
+
+        # Test guessing of MIME type
+        testPath = os.path.join(self.libTestDir, 'out.txt')
+        open(testPath, 'w').write('test')
+        file = client.uploadFileToItem(item['_id'], testPath)
+        self.assertEqual(file['mimeType'], 'text/plain')
+
+    def testUploadContent(self):
+        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        # Register a user
+        user = client.createResource('user', params={
+            'firstName': 'First',
+            'lastName': 'Last',
+            'login': 'mylogin',
+            'password': 'password',
+            'email': 'email@email.com'
+        })
+        client.authenticate('mylogin', 'password')
+        folders = client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public')
+        publicFolder = folders[0]
+
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+        file = client.uploadFile(publicFolder['_id'], open(path), name='test1',
+                                 size=size, parentType='folder',
+                                 reference='test1_reference')
+
+        contents = 'you\'ve changed!'
+        size = len(contents)
+        stream = StringIO(contents)
+        client.uploadFileContents(file['_id'], stream, size)
+
+        file = self.model('file').load(file['_id'], force=True)
+        sha = hashlib.sha512()
+        sha.update(contents.encode('utf8'))
+        self.assertEqual(file['sha512'], sha.hexdigest())

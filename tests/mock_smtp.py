@@ -18,6 +18,7 @@
 ###############################################################################
 
 import asyncore
+import email
 import os
 import smtpd
 import threading
@@ -78,12 +79,21 @@ class MockSmtpReceiver(object):
         self.smtp.close()
         self.thread.join()
 
-    def getMail(self):
+    def getMail(self, parse=False):
         """
         Return the message at the front of the queue.
         Raises Queue.Empty exception if there are no messages.
+
+        :param parse: Whether to parse the email into an email.message.Message
+            object. If False, just returns the raw email string.
+        :type parse: bool
         """
-        return self.smtp.mailQueue.get(block=False)
+        msg = self.smtp.mailQueue.get(block=False)
+
+        if parse:
+            return email.message_from_string(msg)
+        else:
+            return msg
 
     def isMailQueueEmpty(self):
         """Return whether or not the mail queue is empty"""

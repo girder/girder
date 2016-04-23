@@ -279,6 +279,7 @@ class ProvenanceTestCase(base.TestCase):
                               fileInfo={'fileId': str(file1['_id']),
                                         'old': {'size': len(fileData2),
                                                 'name': fileName2}})
+
     def testProvenanceFolder(self):
         """
         Test folder provenance, including turning off and on the provenance

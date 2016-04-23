@@ -147,7 +147,7 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(coll, None)
 
     def testCollectionAccess(self):
-        # Asking to change to  an invalid access list should fail
+        # Asking to change to an invalid access list should fail
         resp = self.request(path='/collection/%s/access' %
                             self.collection['_id'], method='PUT', params={
                                 'access': 'not an access list',
@@ -162,6 +162,32 @@ class CollectionTestCase(base.TestCase):
         folder2 = self.model('folder').createFolder(
             parentType='folder', parent=folder1, creator=self.admin,
             public=False, name='subfolder')
+        self.model('folder').createFolder(
+            parentType='collection', parent=self.collection, creator=self.admin,
+            public=False, name='another top level folder')
+
+        # Admin should see two top level folders
+        resp = self.request(path='/collection/%s/details' %
+                            self.collection['_id'], user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 2)
+        self.assertNotIn('nItems', resp.json)
+
+        # Normal user should see 0 folders
+        resp = self.request(path='/collection/%s/details' %
+                            self.collection['_id'], user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 0)
+
+        # Add read access on one of the folders
+        self.model('folder').setUserAccess(
+            folder1, self.user, AccessType.READ, save=True)
+
+        # Normal user should see one folder now
+        resp = self.request(path='/collection/%s/details' %
+                            self.collection['_id'], user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 1)
 
         # Change the access to allow just the user
         obj = {'users': [{'id': str(self.user['_id']),

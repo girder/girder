@@ -27,6 +27,7 @@ import zipfile
 from hashlib import sha512
 from .. import base, mock_s3
 
+from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
@@ -78,6 +79,14 @@ class FileTestCase(base.TestCase):
         }
         self.secondUser = self.model('user').createUser(**secondUser)
 
+        self.testForFinalizeUpload = False
+        self.finalizeUploadBeforeCalled = False
+        self.finalizeUploadAfterCalled = False
+        events.bind('model.file.finalizeUpload.before',
+                    '_testFinalizeUploadBefore', self._testFinalizeUploadBefore)
+        events.bind('model.file.finalizeUpload.after',
+                    '_testFinalizeUploadAfter', self._testFinalizeUploadAfter)
+
     def _testEmptyUpload(self, name):
         """
         Uploads an empty file to the server.
@@ -100,10 +109,30 @@ class FileTestCase(base.TestCase):
 
         return self.model('file').load(file['_id'], force=True)
 
+    def _testFinalizeUploadBefore(self, event):
+        self.finalizeUploadBeforeCalled = True
+        self._testFinalizeUpload(event)
+
+    def _testFinalizeUploadAfter(self, event):
+        self.finalizeUploadAfterCalled = True
+        self._testFinalizeUpload(event)
+
+    def _testFinalizeUpload(self, event):
+        self.assertIn('file', event.info)
+        self.assertIn('upload', event.info)
+
+        file = event.info['file']
+        upload = event.info['upload']
+        self.assertEqual(file['name'], upload['name'])
+        self.assertEqual(file['creatorId'], upload['userId'])
+        self.assertEqual(file['size'], upload['size'])
+
     def _testUploadFile(self, name):
         """
         Uploads a non-empty file to the server.
         """
+        self.testForFinalizeUpload = True
+
         # Initialize the upload
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
@@ -245,47 +274,27 @@ class FileTestCase(base.TestCase):
             self.assertStatus(resp, 206)
         else:
             self.assertStatusOk(resp)
-
         self.assertEqual(contents[1:], self.getBody(resp))
 
-        # Test downloading with a range header
-        resp = self.request(path='/file/%s/download' % str(file['_id']),
-                            method='GET', user=self.user, isJson=False,
-                            additionalHeaders=[('Range', 'bytes=2-7')])
-        self.assertEqual(contents[2:8], self.getBody(resp))
-        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
-        length = len(contents)
-        begin, end = min(length, 2), min(length, 8)
-        self.assertEqual(resp.headers['Content-Length'], end - begin)
-
-        if length:
-            self.assertStatus(resp, 206)
-
-            rangeVal = 'bytes %d-%d/%d' % (begin, end - 1, len(contents))
-            self.assertEqual(resp.headers['Content-Range'], rangeVal)
-        else:
-            self.assertStatusOk(resp)
-
-        # Test downloading with query range params
-        resp = self.request(
-            path='/file/%s/download' % str(file['_id']), isJson=False,
-            method='GET', user=self.user, params={
-                'offset': 2,
-                'endByte': 8
-            })
-        self.assertEqual(contents[2:8], self.getBody(resp))
-        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
-        length = len(contents)
-        begin, end = min(length, 2), min(length, 8)
-        self.assertEqual(resp.headers['Content-Length'], end - begin)
-
-        if length:
-            self.assertStatus(resp, 206)
-
-            rangeVal = 'bytes %d-%d/%d' % (begin, end - 1, len(contents))
-            self.assertEqual(resp.headers['Content-Range'], rangeVal)
-        else:
-            self.assertStatusOk(resp)
+        # Test downloading with a range header and query range params
+        respHeader = self.request(path='/file/%s/download' % str(file['_id']),
+                                  method='GET', user=self.user, isJson=False,
+                                  additionalHeaders=[('Range', 'bytes=2-7')])
+        respQuery = self.request(path='/file/%s/download' % str(file['_id']),
+                                 method='GET', user=self.user, isJson=False,
+                                 params={'offset': 2, 'endByte': 8})
+        for resp in [respHeader, respQuery]:
+            self.assertEqual(contents[2:8], self.getBody(resp))
+            self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+            length = len(contents)
+            begin, end = min(length, 2), min(length, 8)
+            self.assertEqual(resp.headers['Content-Length'], end - begin)
+            if length:
+                self.assertStatus(resp, 206)
+                self.assertEqual(resp.headers['Content-Range'],
+                                 'bytes %d-%d/%d' % (begin, end - 1, length))
+            else:
+                self.assertStatusOk(resp)
 
         # Test downloading with a name
         resp = self.request(
@@ -399,6 +408,22 @@ class FileTestCase(base.TestCase):
 
         extracted = zip.read('Test Collection/Test Folder/random.bin')
         self.assertEqual(extracted, contents)
+
+        # Make collection public
+        collection = self.model('collection').load(collection['_id'],
+                                                   force=True)
+        collection['public'] = True
+        collection = self.model('collection').save(collection)
+
+        # Download the collection as anonymous
+        path = '/collection/%s/download' % str(collection['_id'])
+        resp = self.request(
+            path=path,
+            method='GET', user=None, isJson=False)
+        self.assertStatusOk(resp)
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        # Zip file should have no entries
+        self.assertFalse(zip.namelist())
 
     def _testDeleteFile(self, file):
         """
@@ -812,3 +837,13 @@ class FileTestCase(base.TestCase):
         # The file should just contain the URL of the link
         extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())
+
+    def tearDown(self):
+        if self.testForFinalizeUpload:
+            self.assertTrue(self.finalizeUploadBeforeCalled)
+            self.assertTrue(self.finalizeUploadAfterCalled)
+
+            events.unbind('model.file.finalizeUpload.before',
+                          '_testFinalizeUploadBefore')
+            events.unbind('model.file.finalizeUpload.after',
+                          '_testFinalizeUploadAfter')

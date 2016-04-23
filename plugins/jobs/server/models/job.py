@@ -271,9 +271,11 @@ class Job(AccessControlledModel):
                 if notify and job['userId']:
                     user = self.model('user').load(job['userId'], force=True)
                     expires = now + datetime.timedelta(seconds=30)
+                    filtered = self.filter(job, user)
+                    filtered.pop('kwargs', None)
                     self.model('notification').createNotification(
-                        type='job_status', data=self.filter(job, user),
-                        user=user, expires=expires)
+                        type='job_status', data=filtered, user=user,
+                        expires=expires)
         if (progressMessage is not None or progressCurrent is not None or
                 progressTotal is not None):
             changed = True

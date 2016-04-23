@@ -82,7 +82,7 @@ class FolderTestCase(base.TestCase):
         resp = self.request(
             path='/folder/%s' % str(resp.json[0]['_id']))
         self.assertStatusOk(resp)
-        self.assertEqual(type(resp.json), dict)
+        self.assertIsInstance(resp.json, dict)
         self.assertFalse('access' in resp.json)
 
         # If we log in as the user, we should also be able to see the

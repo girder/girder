@@ -37,6 +37,7 @@ class Collection(Resource):
         self.route('DELETE', (':id',), self.deleteCollection)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getCollection)
+        self.route('GET', (':id', 'details'), self.getCollectionDetails)
         self.route('GET', (':id', 'download'), self.downloadCollection)
         self.route('GET', (':id', 'access'), self.getCollectionAccess)
         self.route('POST', (), self.createCollection)
@@ -102,6 +103,20 @@ class Collection(Resource):
     )
     def getCollection(self, collection, params):
         return collection
+
+    @access.public
+    @loadmodel(model='collection', level=AccessType.READ)
+    @describeRoute(
+        Description('Get detailed information about a collection.')
+        .param('id', 'The ID of the collection.', paramType='path')
+        .errorResponse()
+        .errorResponse('Read access was denied on the collection.', 403)
+    )
+    def getCollectionDetails(self, collection, params):
+        return {
+            'nFolders': self.model('collection').countFolders(
+                collection, user=self.getCurrentUser(), level=AccessType.READ)
+        }
 
     @access.cookie
     @access.public

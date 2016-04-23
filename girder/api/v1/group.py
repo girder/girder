@@ -110,17 +110,18 @@ class Group(Resource):
     @access.public
     @loadmodel(model='group', level=AccessType.READ)
     @filtermodel(model='group')
+    @describeRoute(
+        Description('Get a group by ID.')
+        .responseClass('Group')
+        .param('id', 'The ID of the group.', paramType='path')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the group.', 403)
+    )
     def getGroup(self, group, params):
         # Add in the current setting for adding to groups
         group['_addToGroupPolicy'] = self.model('setting').get(
             SettingKey.ADD_TO_GROUP_POLICY)
         return group
-    getGroup.description = (
-        Description('Get a group by ID.')
-        .responseClass('Group')
-        .param('id', 'The ID of the group.', paramType='path')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied for the group.', 403))
 
     @access.public
     @loadmodel(model='group', level=AccessType.READ)

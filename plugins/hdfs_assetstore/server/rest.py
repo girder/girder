@@ -20,7 +20,7 @@
 import posixpath
 
 from girder.api import access
-from girder.api.describe import Description
+from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel, RestException
 from girder.utility.progress import ProgressContext
 from snakebite.client import Client as HdfsClient
@@ -84,6 +84,22 @@ class HdfsAssetstoreResource(Resource):
 
     @access.admin
     @loadmodel(model='assetstore')
+    @describeRoute(
+        Description('Import a data hierarchy from an HDFS instance.')
+        .notes('Only site administrators may use this endpoint.')
+        .param('id', 'The ID of the assetstore representing the HDFS instance.',
+               paramType='path')
+        .param('parentId', 'The ID of the parent object in the Girder data '
+               'hierarchy under which to import the files.')
+        .param('parentType', 'The type of the parent object to import into.',
+               enum=('folder', 'user', 'collection'), required=False)
+        .param('path', 'Root of the directory structure (relative to the root '
+               'of the HDFS) to import.')
+        .param('progress', 'Whether to record progress on this operation ('
+               'default=False)', required=False, dataType='boolean')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403)
+    )
     def importData(self, assetstore, params):
         self.requireParams(('parentId', 'path'), params)
 
@@ -108,18 +124,3 @@ class HdfsAssetstoreResource(Resource):
                     parentType, parent, assetstore, client, path, ctx, user)
             except FileNotFoundException:
                 raise RestException('File not found: %s.' % path)
-    importData.description = (
-        Description('Import a data hierarchy from an HDFS instance.')
-        .notes('Only site administrators may use this endpoint.')
-        .param('id', 'The ID of the assetstore representing the HDFS instance.',
-               paramType='path')
-        .param('parentId', 'The ID of the parent object in the Girder data '
-               'hierarchy under which to import the files.')
-        .param('parentType', 'The type of the parent object to import into.',
-               enum=('folder', 'user', 'collection'), required=False)
-        .param('path', 'Root of the directory structure (relative to the root '
-               'of the HDFS) to import.')
-        .param('progress', 'Whether to record progress on this operation ('
-               'default=False)', required=False, dataType='boolean')
-        .errorResponse()
-        .errorResponse('You are not an administrator.', 403))

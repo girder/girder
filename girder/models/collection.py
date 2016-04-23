@@ -102,15 +102,6 @@ class Collection(AccessControlledModel):
             progress.update(increment=1, message='Deleted collection ' +
                             collection['name'])
 
-    def list(self, user=None, limit=0, offset=0, sort=None):
-        """
-        Search for collections with full text search.
-        """
-        cursor = self.find({}, sort=sort)
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
-
     def createCollection(self, name, creator, description='', public=True):
         """
         Create a new collection.
@@ -172,11 +163,9 @@ class Collection(AccessControlledModel):
         """
         if subpath:
             path = os.path.join(path, doc['name'])
-        folders = self.model('folder').find({
-            'parentId': doc['_id'],
-            'parentCollection': 'collection'
-        })
-        for folder in folders:
+
+        for folder in self.model('folder').childFolders(parentType='collection',
+                                                        parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True):
                 yield (filepath, file)
@@ -277,3 +266,29 @@ class Collection(AccessControlledModel):
             return True
 
         return False
+
+    def countFolders(self, collection, user=None, level=None):
+        """
+        Returns the number of top level folders under this collection. Access
+        checking is optional; to circumvent access checks, pass ``level=None``.
+
+        :param collection: The collection.
+        :type collection: dict
+        :param user: If performing access checks, the user to check against.
+        :type user: dict or None
+        :param level: The required access level, or None to return the raw
+            top-level folder count.
+        """
+        fields = () if level is None else ('access', 'public')
+
+        folderModel = self.model('folder')
+        folders = folderModel.find({
+            'parentId': collection['_id'],
+            'parentCollection': 'collection'
+        }, fields=fields)
+
+        if level is None:
+            return folders.count()
+        else:
+            return sum(1 for _ in folderModel.filterResultsByPermission(
+                cursor=folders, user=user, level=level))

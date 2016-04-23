@@ -1,5 +1,5 @@
 /**
- * This view allows users to see and control access on a resource.
+ * This view shows a dialog container detailed folder information.
  */
 girder.views.FolderInfoWidget = girder.View.extend({
     initialize: function () {

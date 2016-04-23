@@ -40,7 +40,7 @@ def tearDownModule():
 
 
 class TestEndpointDecoratorException(base.TestCase):
-    'Tests the endpoint decorator exception handling'
+    """Tests the endpoint decorator exception handling."""
 
     @endpoint
     def pointlessEndpointAscii(self, path, params):

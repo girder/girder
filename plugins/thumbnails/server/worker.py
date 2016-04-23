@@ -108,7 +108,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     uploadModel = ModelImporter.model('upload')
 
     out = six.BytesIO()
-    image.save(out, 'JPEG', quality=85)
+    image.convert('RGB').save(out, 'JPEG', quality=85)
     size = out.tell()
     out.seek(0)
 
@@ -139,7 +139,6 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
     :type height: int
     :returns: The updated thumbnail file document.
     """
-
     parentModel = ModelImporter.model(attachToType)
     parent = parentModel.load(attachToId, force=True)
     parent['_thumbnails'] = parent.get('_thumbnails', [])

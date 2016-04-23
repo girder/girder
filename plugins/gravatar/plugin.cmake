@@ -3,6 +3,10 @@ add_python_style_test(
   python_static_analysis_gravatar
   "${PROJECT_SOURCE_DIR}/plugins/gravatar/server"
 )
+add_python_style_test(
+  python_static_analysis_gravatar_tests
+  "${PROJECT_SOURCE_DIR}/plugins/gravatar/plugin_tests"
+)
 
 add_eslint_test(
     gravatar

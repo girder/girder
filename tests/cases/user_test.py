@@ -406,10 +406,11 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 403)
 
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
+        body = msg.get_payload(decode=True).decode('utf8')
 
         # Pull out the auto-generated password from the email
-        search = re.search('Your new password is: <b>(.*)</b>', msg)
+        search = re.search('Your new password is: <b>(.*)</b>', body)
         newPass = search.group(1)
 
         # Login with the new password
@@ -515,9 +516,10 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], "Sent temporary access email.")
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail()
+        msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
-        search = re.search('<a href="(.*)">', msg)
+        body = msg.get_payload(decode=True).decode('utf8')
+        search = re.search('<a href="(.*)">', body)
         link = search.group(1)
         linkParts = link.split('/')
         userId = linkParts[-3]
@@ -623,23 +625,34 @@ class UserTestCase(base.TestCase):
                                   'public_private')
         user1 = self.model('user').createUser(
             'folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
-        user1_folders = self.model('folder').find({
+        user1Folders = self.model('folder').find({
             'parentId': user1['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user1_folders),
+            set(folder['name'] for folder in user1Folders),
             {'Public', 'Private'}
         )
+
+        # User should be able to see that 2 folders exist
+        resp = self.request(path='/user/%s/details' % user1['_id'],
+                            user=user1)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 2)
+
+        # Anonymous users should only see 1 folder exists
+        resp = self.request(path='/user/%s/details' % user1['_id'])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nFolders'], 1)
 
         self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
                                   'none')
         user2 = self.model('user').createUser(
             'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
-        user2_folders = self.model('folder').find({
+        user2Folders = self.model('folder').find({
             'parentId': user2['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user2_folders),
+            set(folder['name'] for folder in user2Folders),
             set()
         )
 

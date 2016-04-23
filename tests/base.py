@@ -175,7 +175,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         Stop any services that we started just for this test.
         """
-        if self.assetstoreType == 'gridfsrs':
+        # If "self.setUp" is overridden, "self.assetstoreType" may not be set
+        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
             mongo_replicaset.stopMongoReplicaSet()
 
     def assertStatusOk(self, response):
@@ -355,10 +356,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param token: If you want to use an existing token to login, pass
             the token ID.
         :type token: str
-        :param additionalHeaders: a list of headers to add to the
+        :param additionalHeaders: A list of headers to add to the
                                   request.  Each item is a tuple of the form
                                   (header-name, header-value).
-        :param useHttps: if True, pretend to use https
+        :param useHttps: If True, pretend to use HTTPS.
         :param authHeader: The HTTP request header to use for authentication.
         :type authHeader: str
         :returns: The cherrypy response object from the request.
@@ -420,8 +421,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         Returns the response body as a text type or binary string.
 
-        :param response: The response object from the server
-        :type response:
+        :param response: The response object from the server.
+        :param text: If true, treat the data as a text string, otherwise, treat
+                     as binary.
         """
         data = '' if text else b''
 

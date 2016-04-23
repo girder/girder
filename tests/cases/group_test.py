@@ -155,26 +155,26 @@ class GroupTestCase(base.TestCase):
             'private group', self.users[0], public=False)
         resp = self.request(path='/group', method='GET', user=self.users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(type(resp.json), list)
+        self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 3)
 
         resp = self.request(path='/group', method='GET', user=self.users[1])
         self.assertStatusOk(resp)
-        self.assertEqual(type(resp.json), list)
+        self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicGroup['_id']))
         # Test searching by name
         resp = self.request(path='/group', method='GET', user=self.users[0],
                             params={'text': 'private'})
         self.assertStatusOk(resp)
-        self.assertEqual(type(resp.json), list)
+        self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
         self.assertEqual(resp.json[1]['_id'], str(privateGroup2['_id']))
         resp = self.request(path='/group', method='GET', user=self.users[0],
                             params={'text': 'private', 'exact': True})
         self.assertStatusOk(resp)
-        self.assertEqual(type(resp.json), list)
+        self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
 

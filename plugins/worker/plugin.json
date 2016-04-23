@@ -1,0 +1,6 @@
+{
+    "name": "Remote worker",
+    "description": "Distributed offline processing engine built on celery.",
+    "version": "0.1.0",
+    "dependencies": ["jobs"]
+}

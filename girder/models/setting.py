@@ -59,7 +59,7 @@ class Setting(Model):
         names. Removes any invalid plugin names, removes duplicates, and adds
         all transitive dependencies to the enabled list.
         """
-        if not type(doc['value']) is list:
+        if not isinstance(doc['value'], list):
             raise ValidationException(
                 'Plugins enabled setting must be a list.', 'value')
 
@@ -77,7 +77,7 @@ class Setting(Model):
     def validateCoreCollectionCreatePolicy(self, doc):
         value = doc['value']
 
-        if type(value) is not dict:
+        if not isinstance(value, dict):
             raise ValidationException('Collection creation policy must be a '
                                       'JSON object.')
 
