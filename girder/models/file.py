@@ -254,7 +254,6 @@ class File(acl_mixin.AccessControlMixin, Model):
         # certain that the file will actually be saved. It is also possible for
         # "model.file.save" to set "defaultPrevented", which would prevent the
         # item from being saved initially.
-
         fileDoc = event.info
         itemId = fileDoc.get('itemId')
         if itemId and fileDoc.get('size'):
@@ -303,8 +302,5 @@ class File(acl_mixin.AccessControlMixin, Model):
             adapter.copyFile(srcFile, file)
         elif file.get('linkUrl'):
             file['linkUrl'] = srcFile['linkUrl']
-        item = self.model('item').load(id=file['itemId'], user=creator,
-                                       level=AccessType.WRITE, exc=True)
-        if 'size' in file:
-            self.propagateSizeChange(item, file['size'])
+
         return self.save(file)

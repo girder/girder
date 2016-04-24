@@ -293,6 +293,52 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             return ()
         return [json.loads(m.replace('data: ', '')) for m in messages]
 
+    def uploadFile(self, name, contents, user, parent, parentType='folder',
+                   mimeType=None):
+        """
+        Upload a file. This is meant for small testing files, not very large
+        files that should be sent in multiple chunks.
+
+        :param name: The name of the file.
+        :type name: str
+        :param contents: The file contents
+        :type contents: str
+        :param user: The user performing the upload.
+        :type user: dict
+        :param parent: The parent document.
+        :type parent: dict
+        :param parentType: The type of the parent ("folder" or "item")
+        :type parentType: str
+        :param mimeType: Explicit MIME type to set on the file.
+        :type mimeType: str
+        :returns: The file that was created.
+        :rtype: dict
+        """
+        mimeType = mimeType or 'application/octet-stream'
+        resp = self.request(
+            path='/file', method='POST', user=user, params={
+                'parentType': parentType,
+                'parentId': str(parent['_id']),
+                'name': name,
+                'size': len(contents),
+                'mimeType': mimeType
+            })
+        self.assertStatusOk(resp)
+
+        fields = [('offset', 0), ('uploadId', resp.json['_id'])]
+        files = [('chunk', name, contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        file = resp.json
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['name'], name)
+        self.assertEqual(file['size'], len(contents))
+        self.assertEqual(file['mimeType'], mimeType)
+
+        return self.model('file').load(file['_id'], force=True)
+
     def ensureRequiredParams(self, path='/', method='GET', required=(),
                              user=None):
         """
