@@ -245,7 +245,7 @@ class Assetstore(Resource):
         .param('id', 'The ID of the assetstore.', paramType='path')
         .errorResponse(('A parameter was invalid.',
                         'The assetstore is not empty.'))
-        .errorResponse('You are not an administrator.', 403))
+        .errorResponse('You are not an administrator.', 403)
     )
     def deleteAssetstore(self, assetstore, params):
         self.model('assetstore').remove(assetstore)
