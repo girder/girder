@@ -47,7 +47,7 @@
         "_": true,
         "girder": true,
         "Backbone": true,
-        "marked": true,
+        "Remarkable": true,
         "JSONEditor": true,
         "sprintf": true
     },
