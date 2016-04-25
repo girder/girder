@@ -303,18 +303,21 @@ girder.defineFlags = function (options, allOption) {
  *        return the HTML value.
  */
 girder.renderMarkdown = (function () {
-    if (window.marked) {
-        marked.setOptions({ sanitize: true });
+    if (window.Remarkable) {
+        var md = new Remarkable({
+            linkify: true
+        });
         return function (val, el) {
             if (el) {
-                $(el).html(marked(val));
+                $(el).html(md.render(val));
             } else {
-                return marked(val);
+                return md.render(val);
             }
         };
     } else {
         return function () {
-            throw new Error('You must include the marked library to call this function');
+            throw new Error(
+                'You must include the remarkable library to call this function');
         };
     }
 }());
