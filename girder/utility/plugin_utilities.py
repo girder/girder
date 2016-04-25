@@ -26,6 +26,7 @@ in this class are general utility functions designed to be used within the
 plugins themselves to help them register with the application.
 """
 
+import codecs
 import functools
 import girder
 import imp
@@ -332,7 +333,7 @@ def findEntryPointPlugins(allPlugins):
                 with pkg_resources.resource_stream(
                         entry_point.name, configJson) as conf:
                     try:
-                        data = json.load(conf)
+                        data = json.load(codecs.getreader('utf8')(conf))
                     except ValueError as e:
                         print(
                             TerminalColor.error(
