@@ -18,7 +18,6 @@
 ###############################################################################
 
 import os
-import dicom
 import six
 from tests import base
 from girder.constants import AccessType
@@ -54,71 +53,126 @@ class DicomTestCase(base.TestCase):
                 self.publicFolder = folder
                 break
 
+    def tearDown(self):
+        base.TestCase.tearDown(self)
+
+        # Remove user
+        self.model('user').remove(self.user)
+
     def testDICOMHandler(self):
+        filename = 'Image0075.dcm'
+
         # Parse the dicom file
-        self.dcmFilePath = os.path.join(
+        dcmFilePath = os.path.join(
             os.environ['GIRDER_TEST_DATA_PREFIX'],
             'plugins',
             'dicom',
-            'DICOM-CT.dcm'
+            filename
         )
-        self.assertTrue(os.path.exists(self.dcmFilePath))
-        self.dcm = dicom.read_file(self.dcmFilePath)
+        self.assertTrue(os.path.exists(dcmFilePath))
 
         # Upload the dicom file
-        with open(self.dcmFilePath, 'rb') as file:
-            self.dcmData = file.read()
-        self.assertTrue(self.dcmData)
+        with open(dcmFilePath, 'rb') as file:
+            dcmData = file.read()
+        self.assertTrue(dcmData)
 
         with EventHelper('dicom.handler.success') as helper:
-            self.dcmFile = self.model('upload').uploadFromFile(
-                obj=six.BytesIO(self.dcmData),
-                size=len(self.dcmData),
-                name='My DICOM file',
+            dcmFile = self.model('upload').uploadFromFile(
+                obj=six.BytesIO(dcmData),
+                size=len(dcmData),
+                name=filename,
                 parentType='folder',
                 parent=self.publicFolder,
                 user=self.user,
                 mimeType='dicom'
             )
+            self.assertIsNotNone(dcmFile)
 
             # Wait for handler success event
             handled = helper.wait()
             self.assertTrue(handled)
 
         # Verify metadata
-        self.dcmItem = self.model('item').load(
-            self.dcmFile['itemId'],
+        dcmItem = self.model('item').load(
+            dcmFile['itemId'],
             level=AccessType.READ,
             user=self.user
         )
-        self.assertHasKeys(self.dcmItem, ['meta'])
-        metadata = self.dcmItem['meta']
-        expectedKeys = ['PatientName', 'PatientID', 'StudyID',
-                        'StudyInstanceUID', 'StudyDate', 'StudyTime',
-                        'SeriesInstanceUID', 'SeriesDate', 'SeriesTime',
-                        'SeriesNumber', 'SOPInstanceUID', 'Modality']
+        self.assertIn('meta', dcmItem)
+        metadata = dcmItem['meta']
+        self.assertEqual(len(metadata), 323)
+
+        expectedKeys = [
+            '00080005',  # Specific Character Set
+            '00080020',  # Study Date
+            '00080030',  # Study Time
+            '00080050',  # Accession Number
+            '00080090',  # Referring Physician's Name
+            '00100010',  # Patient's Name
+            '00100020',  # Patient ID
+            '00100030',  # Patient's Birth Date
+            '00100040',  # Patient's Sex
+            '0020000D',  # Study Instance UID
+            '00200010',  # Study ID
+        ]
+
+        # Check several data elements
         self.assertHasKeys(metadata, expectedKeys)
-        self.assertEqual(metadata['PatientName'],
-                         self.dcm.PatientName.encode('utf-8'))
-        self.assertEqual(metadata['PatientID'], self.dcm.PatientID)
-        self.assertEqual(metadata['StudyID'], self.dcm.StudyID)
-        self.assertEqual(metadata['StudyInstanceUID'],
-                         self.dcm.StudyInstanceUID)
-        self.assertEqual(metadata['StudyDate'], self.dcm.StudyDate)
-        self.assertEqual(metadata['StudyTime'], self.dcm.StudyTime)
-        self.assertEqual(metadata['SeriesInstanceUID'],
-                         self.dcm.SeriesInstanceUID)
-        self.assertEqual(metadata['SeriesDate'], self.dcm.SeriesDate)
-        self.assertEqual(metadata['SeriesTime'], self.dcm.SeriesTime)
-        self.assertEqual(metadata['SeriesNumber'], self.dcm.SeriesNumber)
-        self.assertEqual(metadata['SOPInstanceUID'], self.dcm.SOPInstanceUID)
-        self.assertEqual(metadata['Modality'], self.dcm.Modality)
+
+        self.assertHasKeys(metadata['00080005'], ('vr', 'Value'))
+        self.assertEqual(metadata['00080005']['vr'], 'CS')
+        self.assertEqual(metadata['00080005']['Value'], ['ISO_IR 100'])
+
+        self.assertHasKeys(metadata['00080020'], ('vr', 'Value'))
+        self.assertEqual(metadata['00080020']['vr'], 'DA')
+        self.assertEqual(metadata['00080020']['Value'], ['20030625'])
+
+        self.assertHasKeys(metadata['00080030'], ('vr', 'Value'))
+        self.assertEqual(metadata['00080030']['vr'], 'TM')
+        self.assertEqual(metadata['00080030']['Value'], ['152734'])
+
+        self.assertIn('vr', metadata['00080050'])
+        self.assertNotIn('Value', metadata['00080050'])
+        self.assertEqual(metadata['00080050']['vr'], 'SH')
+
+        self.assertIn('vr', metadata['00080090'])
+        self.assertNotIn('Value', metadata['00080090'])
+        self.assertEqual(metadata['00080090']['vr'], 'PN')
+
+        self.assertHasKeys(metadata['00100010'], ('vr', 'Value'))
+        self.assertEqual(metadata['00100010']['vr'], 'PN')
+        self.assertIsInstance(metadata['00100010']['Value'], list)
+        self.assertIn('Alphabetic', metadata['00100010']['Value'][0])
+        self.assertEqual(metadata['00100010']['Value'][0]['Alphabetic'],
+                         'Wes Turner')
+
+        self.assertHasKeys(metadata['00100020'], ('vr', 'Value'))
+        self.assertEqual(metadata['00100020']['vr'], 'LO')
+        self.assertEqual(metadata['00100020']['Value'], ['1111'])
+
+        self.assertIn('vr', metadata['00100030'])
+        self.assertNotIn('Value', metadata['00100030'])
+        self.assertEqual(metadata['00100030']['vr'], 'DA')
+
+        self.assertHasKeys(metadata['00100040'], ('vr', 'Value'))
+        self.assertEqual(metadata['00100040']['vr'], 'CS')
+        self.assertEqual(metadata['00100040']['Value'], ['O'])
+
+        self.assertHasKeys(metadata['0020000D'], ('vr', 'Value'))
+        self.assertEqual(metadata['0020000D']['vr'], 'UI')
+        self.assertEqual(
+            metadata['0020000D']['Value'],
+            ['1.2.840.113619.2.133.1762890640.1886.1055165015.961'])
+
+        self.assertHasKeys(metadata['00200010'], ('vr', 'Value'))
+        self.assertEqual(metadata['00200010']['vr'], 'SH')
+        self.assertEqual(metadata['00200010']['Value'], ['361'])
 
     def testDICOMHandlerInvalid(self):
         # Upload non-DICOM data
         data = b'data'
         with EventHelper('dicom.handler.ignore') as helper:
-            self.dcmFile = self.model('upload').uploadFromFile(
+            dcmFile = self.model('upload').uploadFromFile(
                 obj=six.BytesIO(data),
                 size=len(data),
                 name='data',
@@ -126,6 +180,7 @@ class DicomTestCase(base.TestCase):
                 parent=self.publicFolder,
                 user=self.user
             )
+            self.assertIsNotNone(dcmFile)
 
             # Wait for handler ignore event
             handled = helper.wait()

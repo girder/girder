@@ -22,11 +22,14 @@ import dicom
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
+from utils.dicom_json_conversion import datasetToJSON
+
 
 def addDICOMMetadata(file, path):
     """
     Read DICOM file at path and add data elements as metadata to the file's
     item.
+
     :param file: file object
     :type file: file
     :param path: path of the DICOM file
@@ -35,6 +38,7 @@ def addDICOMMetadata(file, path):
     try:
         dcm = dicom.read_file(path)
     except dicom.filereader.InvalidDicomError:
+        # XXX: some DICOM files omit the 'DICM' header; force=True is required
         return False
 
     itemModel = ModelImporter.model('item')
@@ -43,20 +47,7 @@ def addDICOMMetadata(file, path):
     user = userModel.load(file['creatorId'], level=AccessType.READ)
     item = itemModel.load(file['itemId'], level=AccessType.WRITE, user=user)
 
-    metadata = {
-        'PatientName': dcm.PatientName.encode('utf-8'),
-        'PatientID': dcm.PatientID,
-        'StudyID': dcm.StudyID,
-        'StudyInstanceUID': dcm.StudyInstanceUID,
-        'StudyDate': dcm.StudyDate,
-        'StudyTime': dcm.StudyTime,
-        'SeriesInstanceUID': dcm.SeriesInstanceUID,
-        'SeriesDate': dcm.SeriesDate,
-        'SeriesTime': dcm.SeriesTime,
-        'SeriesNumber': dcm.SeriesNumber,
-        'SOPInstanceUID': dcm.SOPInstanceUID,
-        'Modality': dcm.Modality
-    }
+    metadata = datasetToJSON(dcm)
 
     updatedItem = itemModel.setMetadata(item, metadata)
     itemModel.updateItem(updatedItem)

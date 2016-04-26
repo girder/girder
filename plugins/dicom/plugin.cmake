@@ -22,7 +22,7 @@ add_python_test(conversion
                 )
 add_python_test(dicom
                 PLUGIN dicom
-                EXTERNAL_DATA "${dicom_plugin_affix}/DICOM-CT.dcm"
+                EXTERNAL_DATA "${dicom_plugin_affix}/Image0075.dcm"
                 )
 add_python_style_test(python_static_analysis_dicom "${dicom_plugin_dir}/server")
 add_python_style_test(python_static_analysis_dicom_tests
