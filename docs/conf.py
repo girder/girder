@@ -16,7 +16,7 @@ import os
 import sys
 
 # The full version, including alpha/beta/rc tags.
-release = '1.5.1'
+release = '1.5.2'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
