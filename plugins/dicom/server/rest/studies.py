@@ -19,16 +19,119 @@
 
 import cherrypy
 import requests
+import six
 from six.moves import urllib
 
+from dicom.datadict import dictionary_has_tag, tag_for_name
+from dicom.tag import Tag
+
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, getUrlParts
+from girder.api.rest import Resource, RestException, getApiUrl, getUrlParts
 from girder.api import access
+from girder.constants import AccessType
 
 from .error_descriptions import describeErrors
 from .param_descriptions import (SearchForDescription, QueryParamDescription,
                                  FuzzyMatchingParamDescription,
                                  LimitParamDescription, OffsetParamDescription)
+
+
+def tagToString(tag):
+    """
+    Return eight character uppercase hexadecimal string representation of
+    dicom.tag.Tag.
+    """
+    return "{:04X}{:04X}".format(tag.group, tag.element)
+
+
+def stringToTag(val):
+    """
+    Convert eight character hexadecimal string to dicom.tag.Tag.
+    """
+    if not val or len(val) != 8:
+        raise ValueError('Invalid eight character hexadecimal string')
+    group = val[0:4]
+    element = val[4:8]
+    return Tag(group, element)
+
+
+def parseIncludeFields(includeFields):
+    """
+    Parse and validate 'includefield' query parameters.
+
+    Return list of string representations of tags of requested fields.
+    """
+    stringTags = []
+    for field in includeFields:
+        field = field.strip()
+        if not field:
+            raise RestException(
+                'Invalid includefield value: "%s"' % field)
+        tag = tag_for_name(field)
+        stringTag = None
+        if tag:
+            stringTag = tagToString(Tag(tag))
+        else:
+            try:
+                tag = stringToTag(field)
+                if not dictionary_has_tag(tag):
+                    raise RestException(
+                        'Invalid includefield value: "%s"' % field)
+            except ValueError:
+                raise RestException(
+                    'Invalid includefield value: "%s"' % field)
+
+            stringTag = field
+
+        if stringTag:
+            stringTags.append(stringTag)
+
+    return stringTags
+
+
+def parseQueryKeys(params):
+    """
+    Parse and validate {query} keys from query parameters.
+
+    Return list of (tag string, value) tuples of requested query keys.
+
+    See: Table 6.7.1-1. QIDO-RS STUDY Search Query Keys
+    """
+    supportedQueryKeys = (
+        '00080020',  # StudyDate
+        '00080030',  # StudyTime
+        '00080050',  # AccessionNumber
+        '00080061',  # ModalitiesInStudy
+        '00080090',  # ReferringPhysicianName
+        '00100010',  # PatientName
+        '00100020',  # PatientID
+        '0020000D',  # StudyInstanceUID
+        '00200010'   # StudyID
+    )
+    items = []
+    usedKeys = set()
+    for key, value in six.viewitems(params):
+        # Get string hexadecimal representation of tag as-is or from keyword
+        tagString = key
+        tag = tag_for_name(key)
+        if tag:
+            tagString = tagToString(Tag(tag))
+
+        # Verify that tag is supported
+        if tagString not in supportedQueryKeys:
+            raise RestException('Unsupported query key: %s' % key)
+
+        # Verify that key is specified only once
+        if not isinstance(value, six.string_types):
+            raise RestException('Duplicate query key: %s' % key)
+        if tagString in usedKeys:
+            raise RestException('Duplicate query key: %s' % key)
+        usedKeys.add(tagString)
+
+        # Add item
+        items.append((tagString, value))
+
+    return items
 
 
 class DicomStudies(Resource):
@@ -259,6 +362,7 @@ class DicomStudies(Resource):
 
     @access.user
     @describeErrors('QIDO-RS')
+    # XXX: there is no explicit parameter named 'query'
     @describeRoute(
         Description(SearchForDescription % ('Studies', 'studies', 'study'))
         .param('query', QueryParamDescription,
@@ -271,7 +375,102 @@ class DicomStudies(Resource):
                required=False, dataType='integer', default=0)
     )
     def searchForStudies(self, params):
-        pass
+        user = self.getCurrentUser()
+
+        # Parse query parameters. Remove parsed parameters so only {query}
+        # parameters, as defined in "6.7.1 QIDO-RS - Search", remain.
+
+        limit, offset, sort = self.getPagingParameters(params)
+        params.pop('limit', None)
+        params.pop('offset', None)
+        params.pop('sort', None)
+
+        # Parse 'fuzzymatching' parameter
+        #
+        # See: 6.7.1.2.1 Matching
+        fuzzymatching = self.boolParam('fuzzymatching', params, default=False)
+        if fuzzymatching:
+            cherrypy.response.headers['Warning'] = '299 %s: ' \
+                'The fuzzymatching parameter is not supported. ' \
+                'Only literal matching has been performed.' % getApiUrl()
+        params.pop('fuzzymatching', None)
+
+        # Parse include fields
+        includeFields = params.pop('includefield', None)
+        if isinstance(includeFields, six.string_types):
+            includeFields = (includeFields,)
+
+        # Parse query keys
+        queryItems = parseQueryKeys(params)
+
+        # Build query dictionary
+        query = {}
+        for tagString, value in queryItems:
+            query['meta.' + tagString + '.Value'] = value
+
+        # Omit 'meta' field
+        fields = {'meta': False}
+
+        cursor = self.model('item').find(query, fields=fields)
+
+        results = self.model('item').filterResultsByPermission(
+            cursor, user, AccessType.READ, limit, offset)
+
+        # Query filtered documents, include 'meta' field
+        query = {
+            '_id': {
+                '$in': [item['_id'] for item in results]
+            }
+        }
+
+        # See Table 6.7.1-2. QIDO-RS STUDY Returned Attributes
+        attributesToReturn = [
+            '00080005',  # Specific Character Set
+            '00080020',  # Study Date
+            '00080030',  # Study Time
+            '00080050',  # Accession Number
+            '00080056',  # Instance Availability**
+            '00080061',  # Modalities in Study**
+            '00080090',  # Referring Physician's Name
+            '00080201',  # Timezone Offset From UTC**
+            '00081190',  # Retrieve URL**
+            '00100010',  # Patient's Name
+            '00100020',  # Patient ID
+            '00100030',  # Patient's Birth Date
+            '00100040',  # Patient's Sex
+            '0020000D',  # Study Instance UID
+            '00200010',  # Study ID
+            '00201206',  # Number of Study Related Series**
+            '00201208'   # Number of Study Related Instances**
+        ]
+        # XXX: **add derived attributes
+        # See: C.3.4 Additional Query/Retrieve Attributes
+
+        # Validate include fields, add to list of attributes to return
+        if includeFields:
+            stringTags = parseIncludeFields(includeFields)
+            if stringTags:
+                attributesToReturn.extend(stringTags)
+
+        # Build fields dictionary
+        fields = {}
+        for attribute in attributesToReturn:
+            fields['meta.' + attribute] = True
+
+        # Query documents, include requested fields
+        cursor = self.model('item').find(query, fields=fields)
+
+        # Return one document per study
+        studyInstanceUIDs = set(cursor.distinct('meta.0020000D.Value'))
+        results = []
+        for item in cursor:
+            meta = item['meta']
+            uid = meta['0020000D']['Value'][0]
+            if uid in studyInstanceUIDs:
+                results.append(meta)
+                studyInstanceUIDs.remove(uid)
+
+        return results
 
     @access.user
     @describeErrors('QIDO-RS')

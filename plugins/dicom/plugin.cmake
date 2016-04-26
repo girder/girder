@@ -24,6 +24,14 @@ add_python_test(dicom
                 PLUGIN dicom
                 EXTERNAL_DATA "${dicom_plugin_affix}/Image0075.dcm"
                 )
+add_python_test(search_for_studies
+                PLUGIN dicom
+                EXTERNAL_DATA
+                    "${dicom_plugin_affix}/Image0075.dcm"
+                    "${dicom_plugin_affix}/Image0076.dcm"
+                    "${dicom_plugin_affix}/Image0077.dcm"
+                    "${dicom_plugin_affix}/012345.002.050"
+                )
 add_python_style_test(python_static_analysis_dicom "${dicom_plugin_dir}/server")
 add_python_style_test(python_static_analysis_dicom_tests
                       "${dicom_plugin_dir}/plugin_tests")
