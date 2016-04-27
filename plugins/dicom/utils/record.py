@@ -40,6 +40,8 @@ import girder_client
 import argparse
 
 from girder_client import HttpError
+
+sys.path.append('../server')
 from dicom_json_conversion import dataElementToJSON, datasetToJSON
 
 try:

@@ -24,7 +24,8 @@ import unittest
 from dicom.dataelem import DataElement
 from dicom.dataset import Dataset
 from dicom.sequence import Sequence
-from utils.dicom_json_conversion import dataElementToJSON, datasetToJSON
+
+from server.dicom_json_conversion import dataElementToJSON, datasetToJSON
 
 
 class ConversionTestCase(unittest.TestCase):

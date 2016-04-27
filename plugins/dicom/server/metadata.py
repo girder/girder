@@ -22,7 +22,7 @@ import dicom
 from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
-from utils.dicom_json_conversion import datasetToJSON
+from .dicom_json_conversion import datasetToJSON
 
 
 def addDICOMMetadata(file, path):
