@@ -119,10 +119,11 @@ class SearchForStudiesTestCase(base.TestCase):
         })
         self.assertStatusOk(resp)
 
-        resp = self.request(path='/studies', user=self.user, params={
-            'ModalitiesInStudy': ''
-        })
-        self.assertStatusOk(resp)
+        # XXX: implement querying on ModalitiesInStudy
+        # resp = self.request(path='/studies', user=self.user, params={
+        #     'ModalitiesInStudy': ''
+        # })
+        # self.assertStatusOk(resp)
 
         resp = self.request(path='/studies', user=self.user, params={
             'ReferringPhysicianName': ''
@@ -400,11 +401,22 @@ class SearchForStudiesTestCase(base.TestCase):
 
         resp = self.request(path='/studies', user=self.user, params={
             '00100020': '2222'
-        })
-        self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 0)
+        }, isJson=False)
+        self.assertStatus(resp, 204)
+        self.assertEqual(len(self.getBody(resp)), 0)
 
         # TODO add more
+
+        # TODO add tests for date/time tags
+        # See: C.2.2.2.1 Single Value Matching
+
+        # TODO add more tests for PN tags
+        # See: C.2.2.2.1 Single Value Matching
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'PatientName': 'Wes Turner'
+        })
+        self.assertStatusOk(resp)
 
     @unittest.skip('not implemented')
     def testListOfUIDMatching(self):

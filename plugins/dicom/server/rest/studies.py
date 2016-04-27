@@ -379,7 +379,6 @@ class DicomStudies(Resource):
 
         # Parse query parameters. Remove parsed parameters so only {query}
         # parameters, as defined in "6.7.1 QIDO-RS - Search", remain.
-
         limit, offset, sort = self.getPagingParameters(params)
         params.pop('limit', None)
         params.pop('offset', None)
@@ -406,7 +405,17 @@ class DicomStudies(Resource):
         # Build query dictionary
         query = {}
         for tagString, value in queryItems:
-            query['meta.' + tagString + '.Value'] = value
+            if len(value):
+                # Handle PN tags:
+                #   00080090: ReferringPhysicianName
+                #   00100010: PatientName
+                if tagString == '00080090' or tagString == '00100010':
+                    query['meta.' + tagString + '.Value.Alphabetic'] = value
+                else:
+                    query['meta.' + tagString + '.Value'] = value
+            else:
+                query['meta.' + tagString] = {'$exists': True}
+                query['meta.' + tagString + '.Value'] = {'$exists': False}
 
         # Omit 'meta' field
         fields = {'meta': False}
@@ -464,11 +473,27 @@ class DicomStudies(Resource):
         studyInstanceUIDs = set(cursor.distinct('meta.0020000D.Value'))
         results = []
         for item in cursor:
-            meta = item['meta']
-            uid = meta['0020000D']['Value'][0]
-            if uid in studyInstanceUIDs:
-                results.append(meta)
-                studyInstanceUIDs.remove(uid)
+            meta = item.get('meta', None)
+            if meta:
+                if '0020000D' in meta and \
+                   'Value' in meta['0020000D'] and \
+                   len(meta['0020000D']['Value']):
+                    uid = meta['0020000D']['Value'][0]
+                    if uid in studyInstanceUIDs:
+                        results.append(meta)
+                        studyInstanceUIDs.remove(uid)
+
+        # Return 204 (No Content) response if there were no matches
+        #
+        # See: 6.7.1.2 Response
+        if not results:
+            cherrypy.response.status = 204
+
+        # XXX: sort tags
+        # See: F.2.2 DICOM JSON Model Object Structure:
+        #
+        #    Attribute objects within a DICOM JSON Model object must be ordered
+        #    by their property name in ascending order.
 
         return results
 
