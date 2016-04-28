@@ -23,12 +23,15 @@ import six
 from six.moves import urllib
 
 from dicom.datadict import dictionary_has_tag, tag_for_name
+from dicom.dataelem import DataElement
 from dicom.tag import Tag
 
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, getApiUrl, getUrlParts
 from girder.api import access
 from girder.constants import AccessType
+
+from ..dicom_json_conversion import dataElementToJSON
 
 from .error_descriptions import describeErrors
 from .param_descriptions import (SearchForDescription, QueryParamDescription,
@@ -438,11 +441,11 @@ class DicomStudies(Resource):
             '00080020',  # Study Date
             '00080030',  # Study Time
             '00080050',  # Accession Number
-            '00080056',  # Instance Availability**
+            # '00080056',  # Instance Availability**
             '00080061',  # Modalities in Study**
             '00080090',  # Referring Physician's Name
             '00080201',  # Timezone Offset From UTC**
-            '00081190',  # Retrieve URL**
+            # '00081190',  # Retrieve URL**
             '00100010',  # Patient's Name
             '00100020',  # Patient ID
             '00100030',  # Patient's Birth Date
@@ -482,6 +485,17 @@ class DicomStudies(Resource):
                     if uid in studyInstanceUIDs:
                         results.append(meta)
                         studyInstanceUIDs.remove(uid)
+
+        # Add derived data elements:
+        #  00080056: Instance Availability
+        #    (See: C.4.23.1.1 Instance Availability)
+        #  00081190: Retrieve URL
+        for result in results:
+            result.update(dataElementToJSON(
+                DataElement((0x0008, 0x0056), 'CS', 'ONLINE')))
+            # XXX: add WADO-RS URL to retrieve resource
+            result.update(dataElementToJSON(
+                DataElement((0x0008, 0x1190), 'UR', '')))
 
         # Return 204 (No Content) response if there were no matches
         #

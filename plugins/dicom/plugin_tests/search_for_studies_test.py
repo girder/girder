@@ -476,11 +476,11 @@ class SearchForStudiesTestCase(base.TestCase):
             '00080020',  # Study Date
             '00080030',  # Study Time
             '00080050',  # Accession Number
-            # '00080056',  # Instance Availability
+            '00080056',  # Instance Availability
             # '00080061',  # Modalities in Study
             '00080090',  # Referring Physician's Name
             # '00080201',  # Timezone Offset From UTC
-            # '00081190',  # Retrieve URL
+            '00081190',  # Retrieve URL
             '00100010',  # Patient's Name
             '00100020',  # Patient ID
             '00100030',  # Patient's Birth Date
@@ -497,7 +497,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertHasKeys(resp.json[0], expectedKeys)
-        self.assertEqual(len(resp.json[0]), 11)
+        self.assertEqual(len(resp.json[0]), 13)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': 'XX-XXXXX'
@@ -505,7 +505,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertHasKeys(resp.json[0], expectedKeys)
-        self.assertEqual(len(resp.json[0]), 11)
+        self.assertEqual(len(resp.json[0]), 13)
 
     def testIncludeField(self):
         """
@@ -525,7 +525,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 12)
+        self.assertEqual(len(resp.json[0]), 14)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -534,7 +534,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 12)
+        self.assertEqual(len(resp.json[0]), 14)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -543,7 +543,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 12)
+        self.assertEqual(len(resp.json[0]), 14)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -552,7 +552,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 12)
+        self.assertEqual(len(resp.json[0]), 14)
 
         # Test multiple includefield / {attributeID} pairs
         #
@@ -568,7 +568,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 15)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -579,7 +579,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 15)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -590,7 +590,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 15)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -601,7 +601,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 15)
 
     # TODO
     @unittest.skip('not implemented')
