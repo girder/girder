@@ -137,6 +137,28 @@ def parseQueryKeys(params):
     return items
 
 
+def getUniqueStudies(cursor):
+    """
+    Return one document per study in cursor.
+    Identify unique studies by the following tag:
+      0020000D: StudyInstanceUID
+    """
+    studyInstanceUIDs = set(cursor.distinct('meta.0020000D.Value'))
+    results = []
+    for item in cursor:
+        meta = item.get('meta', None)
+        if not meta:
+            continue
+        if '0020000D' in meta and \
+           'Value' in meta['0020000D'] and \
+           len(meta['0020000D']['Value']):
+            uid = meta['0020000D']['Value'][0]
+            if uid in studyInstanceUIDs:
+                results.append(meta)
+                studyInstanceUIDs.remove(uid)
+    return results
+
+
 class DicomStudies(Resource):
 
     # WADO-RS
@@ -473,18 +495,7 @@ class DicomStudies(Resource):
         cursor = self.model('item').find(query, fields=fields)
 
         # Return one document per study
-        studyInstanceUIDs = set(cursor.distinct('meta.0020000D.Value'))
-        results = []
-        for item in cursor:
-            meta = item.get('meta', None)
-            if meta:
-                if '0020000D' in meta and \
-                   'Value' in meta['0020000D'] and \
-                   len(meta['0020000D']['Value']):
-                    uid = meta['0020000D']['Value'][0]
-                    if uid in studyInstanceUIDs:
-                        results.append(meta)
-                        studyInstanceUIDs.remove(uid)
+        results = getUniqueStudies(cursor)
 
         # Add derived data elements:
         #  00080056: Instance Availability
