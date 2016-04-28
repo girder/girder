@@ -477,8 +477,6 @@ class DicomStudies(Resource):
             '00201206',  # Number of Study Related Series**
             '00201208'   # Number of Study Related Instances**
         ]
-        # XXX: **add derived attributes
-        # See: C.3.4 Additional Query/Retrieve Attributes
 
         # Validate include fields, add to list of attributes to return
         if includeFields:
@@ -497,10 +495,12 @@ class DicomStudies(Resource):
         # Return one document per study
         results = getUniqueStudies(cursor)
 
-        # Add derived data elements:
+        # Add derived attributes:
         #  00080056: Instance Availability
         #    (See: C.4.23.1.1 Instance Availability)
         #  00081190: Retrieve URL
+        #
+        # See: C.3.4 Additional Query/Retrieve Attributes
         for result in results:
             result.update(dataElementToJSON(
                 DataElement((0x0008, 0x0056), 'CS', 'ONLINE')))

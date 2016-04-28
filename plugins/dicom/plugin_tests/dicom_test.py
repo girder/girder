@@ -100,13 +100,14 @@ class DicomTestCase(base.TestCase):
         )
         self.assertIn('meta', dcmItem)
         metadata = dcmItem['meta']
-        self.assertEqual(len(metadata), 323)
+        self.assertEqual(len(metadata), 326)
 
         expectedKeys = [
             '00080005',  # Specific Character Set
             '00080020',  # Study Date
             '00080030',  # Study Time
             '00080050',  # Accession Number
+            '00080061',  # Modalities in Study
             '00080090',  # Referring Physician's Name
             '00100010',  # Patient's Name
             '00100020',  # Patient ID
@@ -114,6 +115,8 @@ class DicomTestCase(base.TestCase):
             '00100040',  # Patient's Sex
             '0020000D',  # Study Instance UID
             '00200010',  # Study ID
+            '00201206',  # Number of Study Related Series
+            '00201208'   # Number of Study Related Instances
         ]
 
         # Check several data elements
@@ -167,6 +170,20 @@ class DicomTestCase(base.TestCase):
         self.assertHasKeys(metadata['00200010'], ('vr', 'Value'))
         self.assertEqual(metadata['00200010']['vr'], 'SH')
         self.assertEqual(metadata['00200010']['Value'], ['361'])
+
+        # Check derived data elements
+
+        self.assertHasKeys(metadata['00201206'], ('vr', 'Value'))
+        self.assertEqual(metadata['00201206']['vr'], 'IS')
+        self.assertEqual(metadata['00201206']['Value'], [1])
+
+        self.assertHasKeys(metadata['00201208'], ('vr', 'Value'))
+        self.assertEqual(metadata['00201208']['vr'], 'IS')
+        self.assertEqual(metadata['00201208']['Value'], [1])
+
+        self.assertHasKeys(metadata['00080061'], ('vr', 'Value'))
+        self.assertEqual(metadata['00080061']['vr'], 'CS')
+        self.assertEqual(metadata['00080061']['Value'], ['MR'])
 
     def testDICOMHandlerInvalid(self):
         # Upload non-DICOM data

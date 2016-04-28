@@ -119,11 +119,10 @@ class SearchForStudiesTestCase(base.TestCase):
         })
         self.assertStatusOk(resp)
 
-        # XXX: implement querying on ModalitiesInStudy
-        # resp = self.request(path='/studies', user=self.user, params={
-        #     'ModalitiesInStudy': ''
-        # })
-        # self.assertStatusOk(resp)
+        resp = self.request(path='/studies', user=self.user, params={
+            'ModalitiesInStudy': 'MR'
+        })
+        self.assertStatusOk(resp)
 
         resp = self.request(path='/studies', user=self.user, params={
             'ReferringPhysicianName': ''
@@ -419,6 +418,12 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
 
+        resp = self.request(path='/studies', user=self.user, params={
+            'ModalitiesInStudy': 'MR'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
     @unittest.skip('not implemented')
     def testListOfUIDMatching(self):
         """
@@ -477,7 +482,7 @@ class SearchForStudiesTestCase(base.TestCase):
             '00080030',  # Study Time
             '00080050',  # Accession Number
             '00080056',  # Instance Availability
-            # '00080061',  # Modalities in Study
+            '00080061',  # Modalities in Study
             '00080090',  # Referring Physician's Name
             # '00080201',  # Timezone Offset From UTC
             '00081190',  # Retrieve URL
@@ -487,8 +492,8 @@ class SearchForStudiesTestCase(base.TestCase):
             '00100040',  # Patient's Sex
             '0020000D',  # Study Instance UID
             '00200010',  # Study ID
-            # '00201206',  # Number of Study Related Series
-            # '00201208'  # Number of Study Related Instances
+            '00201206',  # Number of Study Related Series
+            '00201208'   # Number of Study Related Instances
         ]
 
         resp = self.request(path='/studies', user=self.user, params={
@@ -497,7 +502,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertHasKeys(resp.json[0], expectedKeys)
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 16)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': 'XX-XXXXX'
@@ -505,7 +510,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertHasKeys(resp.json[0], expectedKeys)
-        self.assertEqual(len(resp.json[0]), 13)
+        self.assertEqual(len(resp.json[0]), 16)
 
     def testIncludeField(self):
         """
@@ -525,7 +530,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 14)
+        self.assertEqual(len(resp.json[0]), 17)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -534,7 +539,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 14)
+        self.assertEqual(len(resp.json[0]), 17)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -543,7 +548,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 14)
+        self.assertEqual(len(resp.json[0]), 17)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111',
@@ -552,7 +557,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 14)
+        self.assertEqual(len(resp.json[0]), 17)
 
         # Test multiple includefield / {attributeID} pairs
         #
@@ -568,7 +573,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 15)
+        self.assertEqual(len(resp.json[0]), 18)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -579,7 +584,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 15)
+        self.assertEqual(len(resp.json[0]), 18)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -590,7 +595,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 15)
+        self.assertEqual(len(resp.json[0]), 18)
 
         resp = self.request(path='/studies', user=self.user, params=[
             ('PatientID', '1111'),
@@ -601,7 +606,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertIn('00080080', resp.json[0])
         self.assertIn('00200013', resp.json[0])
-        self.assertEqual(len(resp.json[0]), 15)
+        self.assertEqual(len(resp.json[0]), 18)
 
     # TODO
     @unittest.skip('not implemented')
@@ -714,6 +719,82 @@ class SearchForStudiesTestCase(base.TestCase):
             query values shall not be returned.
         """
         self.fail()
+
+    def testNumberOfStudyRelatedSeries(self):
+        """
+        Test NumberOfStudyRelatedSeries tag.
+        """
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.5.1762386977.1328.985934491.590'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201206', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201206'])
+        self.assertEqual(resp.json[0]['00201206']['Value'], [1])
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.133.1762890640.1886.1055165015.961'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201206', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201206'])
+        self.assertEqual(resp.json[0]['00201206']['Value'], [1])
+
+        # XXX: add case where NumberOfStudyRelatedSeries > 1
+
+    def testNumberOfRelatedInstances(self):
+        """
+        Test NumberOfStudyRelatedInstances tag.
+        """
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.5.1762386977.1328.985934491.590'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201208', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201208'])
+        self.assertEqual(resp.json[0]['00201208']['Value'], [1])
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.133.1762890640.1886.1055165015.961'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201208', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201208'])
+        self.assertEqual(resp.json[0]['00201208']['Value'], [3])
+
+    def testModalitiesInStudy(self):
+        """
+        Test ModalitiesInStudy tag.
+        """
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.5.1762386977.1328.985934491.590'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00080061', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00080061'])
+        self.assertEqual(resp.json[0]['00080061']['Value'], ['MR'])
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.2.840.113619.2.133.1762890640.1886.1055165015.961'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00080061', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00080061'])
+        self.assertEqual(resp.json[0]['00080061']['Value'], ['MR'])
+
+        # XXX: add case where there are multiple values
 
     def testFuzzyMatching(self):
         """
