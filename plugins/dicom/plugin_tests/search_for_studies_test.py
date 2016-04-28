@@ -417,6 +417,7 @@ class SearchForStudiesTestCase(base.TestCase):
             'PatientName': 'Wes Turner'
         })
         self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
 
     @unittest.skip('not implemented')
     def testListOfUIDMatching(self):
