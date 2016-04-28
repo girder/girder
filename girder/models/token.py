@@ -19,28 +19,10 @@
 
 import datetime
 import six
-import string
 
-from girder.constants import AccessType, TerminalColor, TokenScope
+from girder.constants import AccessType, SettingKey, TokenScope
+from girder.utility import genToken
 from .model_base import AccessControlledModel
-
-try:
-    from random import SystemRandom
-    random = SystemRandom()
-    random.random()  # potentially raises NotImplementedError
-except NotImplementedError:  # pragma: no cover
-    print(TerminalColor.warning(
-        'WARNING: using non-cryptographically secure PRNG.'))
-    import random
-
-
-def genToken(length=64):
-    """
-    Use this utility function to generate a random string of
-    a desired length.
-    """
-    return ''.join(random.choice(string.ascii_letters + string.digits)
-                   for x in range(length))
 
 
 class Token(AccessControlledModel):
@@ -50,25 +32,33 @@ class Token(AccessControlledModel):
     def initialize(self):
         self.name = 'token'
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
+        self.ensureIndex('apiKeyId')
 
     def validate(self, doc):
+        # Remove any duplicate scopes
+        doc['scope'] = list(set(doc['scope']))
         return doc
 
-    def createToken(self, user=None, days=180, scope=None):
+    def createToken(self, user=None, days=None, scope=None, apiKey=None):
         """
         Creates a new token. You can create an anonymous token
         (such as for CSRF mitigation) by passing "None" for the user argument.
 
         :param user: The user to create the session for.
         :type user: dict
-        :param days: The lifespan of the session in days.
-        :type days: int
+        :param days: The lifespan of the session in days. If not passed, uses
+            the database setting for cookie lifetime.
+        :type days: float or int
         :param scope: Scope or list of scopes this token applies to. By default,
             will create a user authentication token.
         :type scope: str or list of str
+        :param apiKey: If this token is being created via an API key, pass it
+           so that we can record the provenance for cleanup and auditing.
+        :type apiKey: dict
         :returns: The token document that was created.
         """
         now = datetime.datetime.utcnow()
+        days = days or self.model('setting').get(SettingKey.COOKIE_LIFETIME)
 
         if scope is None:
             scope = (TokenScope.USER_AUTH,)
@@ -78,8 +68,8 @@ class Token(AccessControlledModel):
         token = {
             '_id': genToken(),
             'created': now,
-            'expires': now + datetime.timedelta(days=days),
-            'scope': list(set(scope))
+            'expires': now + datetime.timedelta(days=float(days)),
+            'scope': scope
         }
 
         if user is None:
@@ -93,6 +83,9 @@ class Token(AccessControlledModel):
             token['userId'] = user['_id']
             self.setUserAccess(token, user=user, level=AccessType.ADMIN,
                                save=False)
+
+        if apiKey is not None:
+            token['apiKeyId'] = apiKey['_id']
 
         return self.save(token)
 
@@ -137,3 +130,10 @@ class Token(AccessControlledModel):
         if isinstance(scope, six.string_types):
             scope = (scope,)
         return set(scope).issubset(set(self.getAllowedScopes(token)))
+
+    def clearForApiKey(self, apiKey):
+        """
+        Delete all tokens corresponding to an API key.
+        """
+        for token in self.find({'apiKeyId': apiKey['_id']}):
+            self.remove(token)
