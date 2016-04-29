@@ -144,7 +144,8 @@ class User(Resource):
             'user': self.model('user').filter(user, user),
             'authToken': {
                 'token': token['_id'],
-                'expires': token['expires']
+                'expires': token['expires'],
+                'scope': token['scope']
             },
             'message': 'Login succeeded.'
         }

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2013 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@
 
 import datetime
 
-from .model_base import Model, ValidationException
-from girder.constants import SettingKey
+from .model_base import AccessControlledModel, ValidationException
+from girder.constants import AccessType, SettingKey
 from girder.utility import genToken
 
 
-class ApiKey(Model):
+class ApiKey(AccessControlledModel):
     """
     This model represents API keys corresponding to users.
     """
@@ -32,12 +32,21 @@ class ApiKey(Model):
         self.name = 'api_key'
         self.ensureIndices(('userId', 'key'))
 
+        self.exposeFields(level=AccessType.READ, fields={
+            '_id', 'active', 'created', 'key', 'lastUse', 'name', 'scope',
+            'tokenDuration', 'userId'
+        })
+
     def validate(self, doc):
         if doc['tokenDuration'] is not None:
             doc['tokenDuration'] = float(doc['tokenDuration'])
 
         doc['name'] = doc['name'].strip()
         doc['active'] = bool(doc.get('active', True))
+
+        if doc['scope'] is not None:
+            if not isinstance(doc['scope'], (list, tuple)):
+                raise ValidationException('Scope must be a list, or None.')
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
@@ -83,7 +92,7 @@ class ApiKey(Model):
         :param active: Whether this key is active.
         :returns: The API key document that was created.
         """
-        return self.save({
+        apiKey = {
             'created': datetime.datetime.utcnow(),
             'lastUse': None,
             'tokenDuration': days,
@@ -92,7 +101,10 @@ class ApiKey(Model):
             'userId': user['_id'],
             'key': genToken(40),
             'active': active
-        })
+        }
+
+        return self.setUserAccess(
+            apiKey, user, level=AccessType.ADMIN, save=True)
 
     def createToken(self, key, days=None):
         """
@@ -111,22 +123,15 @@ class ApiKey(Model):
         if apiKey is None or not apiKey['active']:
             raise ValidationException('Invalid API key.')
 
-        if days is not None:
-            days = float(days)
-            if apiKey['days'] is None:
-                cap = self.model('setting').get(SettingKey.COOKIE_LIFETIME)
-            else:
-                cap = apiKey['days']
-            if days > cap:
-                raise ValidationException(
-                    'You may not request a token duration longer than %f days '
-                    'for this API key.' % cap)
+        cap = apiKey['tokenDuration'] or self.model('setting').get(
+            SettingKey.COOKIE_LIFETIME)
+        days = min(float(days or cap), cap)
 
         user = self.model('user').load(apiKey['userId'], force=True)
 
         # Mark last used stamp
         apiKey['lastUse'] = datetime.datetime.utcnow()
         apiKey = self.save(apiKey)
-
-        return self.model('token').createToken(
+        token = self.model('token').createToken(
             user=user, days=days, scope=apiKey['scope'], apiKey=apiKey)
+        return (user, token)
