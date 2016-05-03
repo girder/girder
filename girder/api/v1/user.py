@@ -69,7 +69,7 @@ class User(Resource):
             text=params.get('text'), user=self.getCurrentUser(), offset=offset,
             limit=limit, sort=sort))
 
-    @access.public
+    @access.public(scope=TokenScope.USER_INFO_READ)
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     @filtermodel(model='user')
     @describeRoute(
@@ -82,7 +82,7 @@ class User(Resource):
     def getUser(self, userToGet, params):
         return userToGet
 
-    @access.public
+    @access.public(scope=TokenScope.USER_INFO_READ)
     @filtermodel(model='user')
     @describeRoute(
         Description('Retrieve the currently logged-in user information.')

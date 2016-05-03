@@ -1,3 +1,51 @@
+girder.TokenScopeFull = {
+    id: 'core.user_auth',
+    name: 'Full user access',
+    description: 'This gives full access to anything your user is allowed to do.'
+};
+
+girder.UserTokenScopes = [{
+    id: 'core.user_info.read',
+    name: 'Read your user information',
+    description: 'Allows clients to look up your user information, including private ' +
+                 'fields such as email address.'
+}, {
+    id: 'core.data.read',
+    name: 'Read data',
+    description: 'Allows clients to read all data that you have access to.'
+}, {
+    id: 'core.data.write',
+    name: 'Write data',
+    description: 'Allows clients to edit data in the hierarchy and create new data ' +
+                 'anywhere you have write access.'
+}, {
+    id: 'core.data.admin',
+    name: 'Full privileges on data',
+    description: 'Allows full administrative privileges on any data that you own.'
+}];
+
+girder.AdminTokenScopes = [{
+    id: 'core.plugins.read',
+    name: 'See enabled plugins',
+    description: 'Allows clients to see the list of plugins enabled on the server.'
+}, {
+    id: 'core.setting.read',
+    name: 'See system setting values',
+    description: 'Allows clients to see the value of any system setting.'
+}, {
+    id: 'core.assetstore.read',
+    name: 'View assetstores',
+    description: 'Allows clients to see all system assetstore information.'
+}, {
+    id: 'core.partial_upload.read',
+    name: 'View unfinished uploads',
+    description: 'Allows clients to see all partial uploads.'
+}, {
+    id: 'core.partial_upload.clean',
+    name: 'Remove unfinished uploads',
+    description: 'Allows clients to remove unfinished uploads.'
+}];
+
 girder.views.ApiKeyListWidget = girder.View.extend({
     events: {
         'click .g-api-key-toggle-active': function (e) {

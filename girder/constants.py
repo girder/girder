@@ -200,7 +200,10 @@ class TokenScope:
     ASSETSTORES_READ = 'core.assetstore.read'
     PARTIAL_UPLOAD_READ = 'core.partial_upload.read'
     PARTIAL_UPLOAD_CLEAN = 'core.partial_upload.clean'
-    DATA_READ = 'core.data_read'
+    DATA_READ = 'core.data.read'
+    DATA_WRITE = 'core.data.write'
+    DATA_ADMIN = 'core.data.admin'
+    USER_INFO_READ = 'core.user_info.read'
 
 
 class CoreEventHandler(object):
