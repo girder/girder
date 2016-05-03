@@ -11,10 +11,14 @@ ul.g-account-tabs.nav.nav-tabs
     a(href="#g-account-tab-password", data-toggle="tab", name="password")
       i.icon-lock
       | Password
+  li
+    a(href="#g-account-tab-api-keys", data-toggle="tab", name="apikeys")
+      i.icon-key-inv
+      | API keys
 
 .tab-content
   #g-account-tab-info.tab-pane.active
-    .g-user-info-container
+    .g-user-info-container.g-user-settings-container
       form#g-user-info-form(role="form")
         .form-group
           label(for="g-login") Login
@@ -39,8 +43,9 @@ ul.g-account-tabs.nav.nav-tabs
           i.icon-edit
           | Save
         #g-user-info-error-msg.g-validation-failed-message
+
   #g-account-tab-password.tab-pane
-    .g-password-change-container
+    .g-password-change-container.g-user-settings-container
       form#g-password-change-form(role="form")
         if temporaryToken
             input.input-sm.form-control#g-password-old(type="hidden", value="#{temporaryToken}")
@@ -58,3 +63,14 @@ ul.g-account-tabs.nav.nav-tabs
           i.icon-lock
           | Change
         #g-password-change-error-msg.g-validation-failed-message
+  #g-account-tab-api-keys.tab-pane
+    .g-api-keys-container.g-user-settings-container
+      .g-api-keys-info-text.
+        API keys can be used to grant limited or total access to client applications on your behalf.
+        Clients can use these keys to create tokens that can be used for authenticated access. You may
+        limit the tokens created with a given key to certain authorization scopes, or allow the tokens
+        complete access to everything your user can do. You may also choose the maximum time that
+        tokens created with a given key will last before expiration. If you do not specify a duration,
+        the default expiration for user login sessions will be used.
+
+      .g-api-keys-list-container
