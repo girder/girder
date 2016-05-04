@@ -119,16 +119,10 @@ class PythonCliTestCase(base.TestCase):
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
         args = ['-c', 'upload', str(self.publicFolder['_id']), localDir]
-        flag = False
-        try:
+        with self.assertRaises(girder_client.HttpError):
             invokeCli(args)
-        except girder_client.AuthenticationError:
-            flag = True
-
-        self.assertTrue(flag)
 
         # Test dry-run and blacklist options
-
         ret = invokeCli(args + ['--dryrun', '--blacklist=hello.txt'],
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
