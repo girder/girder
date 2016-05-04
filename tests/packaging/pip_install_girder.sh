@@ -31,11 +31,16 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Install a standalone plugin the registers itself against the
+# Install some standalone plugins the registers themselves against the
 # girder.plugin entrypoint
 "${virtualenv_pip}" install -e "${PROJECT_SOURCE_DIR}/tests/packaging/entry_point_plugin"
+"python" "${PROJECT_SOURCE_DIR}/tests/packaging/entry_point_json_plugin/setup.py" install
 if ! python -c 'from girder.utility.plugin_utilities import findAllPlugins; assert findAllPlugins().get("test_entry_point", {}).get("name") == "Plugin using entry_point"' ; then
     echo "Error: failed to register a plugin with the girder.plugin entry point"
+    exit 1
+fi
+if ! python -c 'from girder.utility.plugin_utilities import findAllPlugins; assert findAllPlugins().get("entry_point_json_plugin", {}).get("name") == "Plugin using entry_point and a JSON file"' ; then
+    echo "Error: failed to register a plugin with the girder.plugin entry point and a JSON file"
     exit 1
 fi
 
