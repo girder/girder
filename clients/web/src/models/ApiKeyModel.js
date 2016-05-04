@@ -2,7 +2,6 @@ girder.models.ApiKeyModel = girder.AccessControlledModel.extend({
     resourceName: 'api_key',
 
     setActive: function (active) {
-        this.set({active: active});
         girder.restRequest({
             path: 'api_key/' + this.id,
             method: 'PUT',
@@ -10,6 +9,7 @@ girder.models.ApiKeyModel = girder.AccessControlledModel.extend({
                 active: active
             }
         }).done(_.bind(function () {
+            this.set({active: active});
             this.trigger('g:setActive');
         }, this));
 

@@ -71,8 +71,13 @@ girder.views.ApiKeyListWidget = girder.View.extend({
             }
         },
 
+        'click .g-api-key-new': function (e) {
+            this._renderEditWidget();
+        },
+
         'click .g-api-key-edit': function (e) {
             var apiKey = this._getModelFromEvent(e);
+            this._renderEditWidget(apiKey);
         },
 
         'click .g-api-key-delete': function (e) {
@@ -93,7 +98,7 @@ girder.views.ApiKeyListWidget = girder.View.extend({
                             timeout: 3000
                         });
                         this.render();
-                    });
+                    }, this);
                 }, this)
             });
         }
@@ -147,5 +152,18 @@ girder.views.ApiKeyListWidget = girder.View.extend({
     _getModelFromEvent: function (e) {
         var cid = $(e.currentTarget).parents('.g-api-key-container').attr('cid');
         return this.collection.get(cid);
+    },
+
+    _renderEditWidget: function (apiKey) {
+        if (!this.editApiKeyWidget) {
+            this.editApiKeyWidget = new girder.views.EditApiKeyWidget({
+                el: $('#g-dialog-container'),
+                parentView: this
+            }).on('g:saved', function () {
+                this.render();
+            }, this);
+        }
+        this.editApiKeyWidget.model = apiKey || null;
+        this.editApiKeyWidget.render();
     }
 });

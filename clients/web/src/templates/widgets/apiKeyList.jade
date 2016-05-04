@@ -17,7 +17,7 @@ else
           td= apiKey.get('name')
           td: a.g-show-api-key(data-toggle="popover", data-content=apiKey.get('key')) show
           td
-            if apiKey.get('scopes')
+            if apiKey.get('scope')
               span Custom scopes
             else
               span Full access

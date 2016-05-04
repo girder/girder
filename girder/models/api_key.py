@@ -38,8 +38,10 @@ class ApiKey(AccessControlledModel):
         })
 
     def validate(self, doc):
-        if doc['tokenDuration'] is not None:
+        if doc['tokenDuration']:
             doc['tokenDuration'] = float(doc['tokenDuration'])
+        else:
+            doc['tokenDuration'] = None
 
         doc['name'] = doc['name'].strip()
         doc['active'] = bool(doc.get('active', True))
@@ -47,6 +49,9 @@ class ApiKey(AccessControlledModel):
         if doc['scope'] is not None:
             if not isinstance(doc['scope'], (list, tuple)):
                 raise ValidationException('Scope must be a list, or None.')
+            if not doc['scope']:
+                raise ValidationException(
+                    'Custom scope list must not be empty.')
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
