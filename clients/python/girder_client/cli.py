@@ -28,7 +28,8 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, dryrun, blacklist,
-                 host=None, port=None, apiRoot=None, scheme=None, apiUrl=None):
+                 host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
+                 apiKey=None):
         """initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username
         and password, all other kwargs are passed directly through to the
@@ -42,7 +43,11 @@ class GirderCli(GirderClient):
                               apiRoot=apiRoot, scheme=scheme, dryrun=dryrun,
                               blacklist=blacklist, apiUrl=apiUrl)
         interactive = password is None
-        self.authenticate(username, password, interactive=interactive)
+
+        if apiKey:
+            self.authenticate(apiKey=apiKey)
+        elif username:
+            self.authenticate(username, password, interactive=interactive)
 
 
 def main():
@@ -63,6 +68,7 @@ def main():
                         help='full URL to the RESTful API of a Girder server')
     parser.add_argument('--username', required=False, default=None)
     parser.add_argument('--password', required=False, default=None)
+    parser.add_argument('--api-key', required=False, default=None)
     parser.add_argument('--scheme', required=False, default=None)
     parser.add_argument('--host', required=False, default=None)
     parser.add_argument('--port', required=False, default=None)
@@ -84,7 +90,7 @@ def main():
     g = GirderCli(args.username, args.password, bool(args.dryrun),
                   args.blacklist.split(','), host=args.host, port=args.port,
                   apiRoot=args.api_root, scheme=args.scheme,
-                  apiUrl=args.api_url)
+                  apiUrl=args.api_url, apiKey=args.api_key)
     if args.c == 'upload':
         g.upload(args.local_folder, args.parent_id, args.parent_type,
                  leaf_folders_as_items=args.leaf_folders_as_items,
