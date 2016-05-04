@@ -159,7 +159,10 @@ girder.views.ApiKeyListWidget = girder.View.extend({
             this.editApiKeyWidget = new girder.views.EditApiKeyWidget({
                 el: $('#g-dialog-container'),
                 parentView: this
-            }).on('g:saved', function () {
+            }).on('g:saved', function (model) {
+                if (!this.collection.get(model.cid)) {
+                    this.collection.add(model);
+                }
                 this.render();
             }, this);
         }

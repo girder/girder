@@ -78,7 +78,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         model.once('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', model);
-        }, this).off('g:error').on('g:error', function (err) {
+        }, this).off('g:error', null, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-api-key').removeClass('disabled');
         }, this).save();
