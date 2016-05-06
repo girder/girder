@@ -36,14 +36,31 @@ girder.views.EditApiKeyWidget = girder.View.extend({
 
     initialize: function (settings) {
         this.model = settings.model || null;
+        this.scopeInfo = null;
+        this._shouldRender = false;
+
+        girder.restRequest({
+            path: 'token/scopes'
+        }).done(_.bind(function (resp) {
+            this.scopeInfo = resp;
+            if (this._shouldRender) {
+                this._shouldRender = false;
+                this.render();
+            }
+        }, this));
     },
 
     render: function () {
+        if (!this.scopeInfo) { // Wait for scope list to be fetched
+            this._shouldRender = true;
+            return;
+        }
+
         var modal = this.$el.html(girder.templates.editApiKeyWidget({
             apiKey: this.model,
             user: girder.currentUser,
-            userTokenScopes: girder.UserTokenScopes,
-            adminTokenScopes: girder.AdminTokenScopes
+            userTokenScopes: this.scopeInfo.custom,
+            adminTokenScopes: this.scopeInfo.adminCustom
         })).girderModal(this).on('shown.bs.modal', _.bind(function () {
             this.$('#g-api-key-name').focus();
         }, this)).on('ready.girder.modal', _.bind(function () {
