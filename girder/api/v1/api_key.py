@@ -50,7 +50,7 @@ class ApiKey(Resource):
         user = self.getCurrentUser()
 
         if 'userId' in params and params['userId'] != str(user['_id']):
-            self.requireAdmin()
+            self.requireAdmin(user)
             user = self.model('user').load(
                 params['userId'], force=True, exc=True)
 
