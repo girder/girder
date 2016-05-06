@@ -57,7 +57,7 @@ girder.views.PluginsView = girder.View.extend({
 
         var view = this;
         this.$('.g-plugin-switch').bootstrapSwitch({
-            offText: '&nbsp;'
+            offText: 'OFF'
         }).off('switchChange.bootstrapSwitch')
           .on('switchChange.bootstrapSwitch', function (event, state) {
               var plugin = $(event.currentTarget).attr('key');
