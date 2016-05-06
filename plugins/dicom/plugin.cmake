@@ -31,6 +31,10 @@ add_python_test(search_for_studies
                     "${dicom_plugin_affix}/Image0076.dcm"
                     "${dicom_plugin_affix}/Image0077.dcm"
                     "${dicom_plugin_affix}/012345.002.050"
+                    "${dicom_plugin_affix}/9575"
+                    "${dicom_plugin_affix}/9605"
+                    "${dicom_plugin_affix}/9635"
+                    "${dicom_plugin_affix}/9665"
                 )
 add_python_style_test(python_static_analysis_dicom "${dicom_plugin_dir}/server")
 add_python_style_test(python_static_analysis_dicom_tests

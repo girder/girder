@@ -58,7 +58,11 @@ class SearchForStudiesTestCase(base.TestCase):
             'Image0075.dcm',
             'Image0076.dcm',
             'Image0077.dcm',
-            '012345.002.050'
+            '012345.002.050',
+            '9575',
+            '9605',
+            '9635',
+            '9665'
         ]
 
         for filename in files:
@@ -358,7 +362,7 @@ class SearchForStudiesTestCase(base.TestCase):
         """
         resp = self.request(path='/studies', user=self.user)
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
         resp = self.request(path='/studies', user=self.user, params={
             'PatientID': '1111'
@@ -419,10 +423,22 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
 
         resp = self.request(path='/studies', user=self.user, params={
+            'PatientName': 'Doe^Peter'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+
+        resp = self.request(path='/studies', user=self.user, params={
             'ModalitiesInStudy': 'MR'
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'ModalitiesInStudy': 'CT'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
 
     @unittest.skip('not implemented')
     def testListOfUIDMatching(self):
@@ -744,7 +760,15 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertIn('Value', resp.json[0]['00201206'])
         self.assertEqual(resp.json[0]['00201206']['Value'], [1])
 
-        # XXX: add case where NumberOfStudyRelatedSeries > 1
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.3.6.1.4.1.5962.1.1.0.0.0.1196533885.18148.0.133'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201206', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201206'])
+        self.assertEqual(resp.json[0]['00201206']['Value'], [2])
 
     def testNumberOfRelatedInstances(self):
         """
@@ -770,6 +794,16 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertIn('Value', resp.json[0]['00201208'])
         self.assertEqual(resp.json[0]['00201208']['Value'], [3])
 
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.3.6.1.4.1.5962.1.1.0.0.0.1196533885.18148.0.133'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00201208', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00201208'])
+        self.assertEqual(resp.json[0]['00201208']['Value'], [4])
+
     def testModalitiesInStudy(self):
         """
         Test ModalitiesInStudy tag.
@@ -794,7 +828,14 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertIn('Value', resp.json[0]['00080061'])
         self.assertEqual(resp.json[0]['00080061']['Value'], ['MR'])
 
-        # XXX: add case where there are multiple values
+        resp = self.request(path='/studies', user=self.user, params={
+            'StudyInstanceUID':
+                '1.3.6.1.4.1.5962.1.1.0.0.0.1196533885.18148.0.133'
+        })
+        self.assertEqual(len(resp.json), 1)
+        self.assertIn('00080061', resp.json[0])
+        self.assertIn('Value', resp.json[0]['00080061'])
+        self.assertEqual(resp.json[0]['00080061']['Value'], ['CT', 'MR'])
 
     def testFuzzyMatching(self):
         """
@@ -806,7 +847,7 @@ class SearchForStudiesTestCase(base.TestCase):
             'fuzzymatching': 'false'
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
         resp = self.request(path='/studies', user=self.user, params={
             'fuzzymatching': 'true'
@@ -815,7 +856,7 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertIn('Warning', resp.headers)
         self.assertIn('fuzzymatching', resp.headers['Warning'])
         self.assertTrue(resp.headers['Warning'].startswith('299 '))
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
     def testLimit(self):
         """
@@ -825,7 +866,7 @@ class SearchForStudiesTestCase(base.TestCase):
             'limit': 0
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
 
         resp = self.request(path='/studies', user=self.user, params={
             'limit': 1
@@ -843,7 +884,13 @@ class SearchForStudiesTestCase(base.TestCase):
             'limit': 3
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 4
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 3)
 
     def testOffset(self):
         """
@@ -854,7 +901,7 @@ class SearchForStudiesTestCase(base.TestCase):
             'offset': 0
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 3)
         uid0 = resp.json[0]['0020000D']['Value'][0]
 
         resp = self.request(path='/studies', user=self.user, params={
@@ -862,12 +909,22 @@ class SearchForStudiesTestCase(base.TestCase):
             'offset': 1
         })
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(len(resp.json), 2)
         uid1 = resp.json[0]['0020000D']['Value'][0]
         self.assertNotEqual(uid0, uid1)
 
         resp = self.request(path='/studies', user=self.user, params={
             'limit': 0,
             'offset': 2
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        uid2 = resp.json[0]['0020000D']['Value'][0]
+        self.assertNotEqual(uid0, uid1)
+        self.assertNotEqual(uid0, uid2)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 0,
+            'offset': 3
         }, isJson=False)
         self.assertStatus(resp, 204)
