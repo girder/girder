@@ -31,7 +31,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 DOCUMENTATION = '''
 ---
@@ -59,6 +59,13 @@ options:
         default: '/api/v1'
         description:
             - path on server corresponding to the root of Girder REST API
+
+    apiUrl:
+        required: false
+        default: None
+        description:
+            - full URL base of the girder instance API
+
 
     scheme:
         required: false
@@ -1010,7 +1017,7 @@ class ItemResource(Resource):
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
-    _include_methods = ['get', 'put', 'post', 'delete',
+    _include_methods = ['get', 'put', 'post', 'delete', 'patch',
                         'plugins', 'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
                         'group']
@@ -1043,7 +1050,7 @@ class GirderClientModule(GirderClient):
 
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
-               ['host', 'port', 'apiRoot',
+               ['host', 'port', 'apiRoot', 'apiUrl',
                 'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
         # If a username and password are set
@@ -1571,6 +1578,13 @@ class GirderClientModule(GirderClient):
 
         return ret
 
+    # Handles patch correctly by dumping the data as a string before passing
+    # it on to requests See:
+    # http://docs.python-requests.org/en/master/user/quickstart/#more-complicated-post-requests
+    def patch(self, path, parameters=None, data=None):
+        super(GirderClientModule, self).patch(path, parameters=parameters,
+                                              data=json.dumps(data))
+
     assetstore_types = {
         "filesystem": 0,
         "girdfs": 1,
@@ -1715,6 +1729,7 @@ def main():
         'host': dict(),
         'port': dict(),
         'apiRoot': dict(),
+        'apiUrl': dict(),
         'scheme': dict(),
         'dryrun': dict(),
         'blacklist': dict(),
