@@ -176,18 +176,14 @@ class ChronicleRecord():
             print("... %s already in database" % uid)
             return
 
+        # create item
         print('...creating item...')
         item = self.gc.createItem(folderId, uid, "")
 
-        # make a girder item that contains the dataset in json
-        jsonDictionary = datasetToJSON(dataset)
-        #document = {
-        #    '_id' : dataset.SOPInstanceUID,
-        #    'fileNamePath' : fileNamePath,
-        #    'dataset': jsonDictionary
-        #}
-
-        self.gc.addMetadataToItem(item['_id'], jsonDictionary)
+        # explicitly add DICOM tags as item metadata
+        if self.addMetadata:
+            jsonDictionary = datasetToJSON(dataset)
+            self.gc.addMetadataToItem(item['_id'], jsonDictionary)
 
         # attach png images to the object if possible
         if self.attachImages:
@@ -218,21 +214,25 @@ class ChronicleRecord():
 
 def main ():
 
-    parser = argparse.ArgumentParser(description="Record DICOM documents into Chronicle of CouchDB")
+    parser = argparse.ArgumentParser(
+        description="Record DICOM documents into Girder instance",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("inputDirectory",help="Input path to search for files to record")
     parser.add_argument("--apiUrl",dest="apiUrl",type=str,default="http://localhost:8080/api/v1",help="Girder API URL")
     parser.add_argument("--apiToken",dest="apiToken",type=str,required=True,help="Girder API token")
     parser.add_argument("--folderId",required=True,help="Girder folder ID in which to add items")
-    parser.add_argument("--dontAttachImages",dest="dontAttachImages",action="store_true",default=True,help="Flag to generate and attach image thumbnails")
-    parser.add_argument("--dontAttachOriginals",dest="dontAttachOriginals",action="store_true",default=False,help="Flag to attach original DICOM files")
+    parser.add_argument("--attachImages",dest="attachImages",action="store_false",default=False,help="Flag to generate and attach image thumbnails")
+    parser.add_argument("--attachOriginals",dest="attachOriginals",action="store_true",default=True,help="Flag to attach original DICOM files")
+    parser.add_argument("--addMetadata",dest="addMetadata",action="store_false",default=False,help="Explicitly add DICOM tags as item metadata.")
 
     ns = parser.parse_args()
 
     global recorder # for ipython debugging
     recorder = ChronicleRecord(ns.apiUrl, ns.apiToken)
     recorder.folderId = ns.folderId
-    recorder.attachImages = not ns.dontAttachImages
-    recorder.attachOriginals = not ns.dontAttachOriginals
+    recorder.attachImages = ns.attachImages
+    recorder.attachOriginals = ns.attachOriginals
+    recorder.addMetadata = ns.addMetadata
 
     path = ns.inputDirectory
     if os.path.isdir(path):
