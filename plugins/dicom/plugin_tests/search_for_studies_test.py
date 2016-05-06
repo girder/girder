@@ -816,3 +816,58 @@ class SearchForStudiesTestCase(base.TestCase):
         self.assertIn('fuzzymatching', resp.headers['Warning'])
         self.assertTrue(resp.headers['Warning'].startswith('299 '))
         self.assertEqual(len(resp.json), 2)
+
+    def testLimit(self):
+        """
+        Test 'limit' parameter.
+        """
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 0
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 1
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 2
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 3
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
+    def testOffset(self):
+        """
+        Test 'offset' parameter.
+        """
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 0,
+            'offset': 0
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        uid0 = resp.json[0]['0020000D']['Value'][0]
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 0,
+            'offset': 1
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        uid1 = resp.json[0]['0020000D']['Value'][0]
+        self.assertNotEqual(uid0, uid1)
+
+        resp = self.request(path='/studies', user=self.user, params={
+            'limit': 0,
+            'offset': 2
+        }, isJson=False)
+        self.assertStatus(resp, 204)

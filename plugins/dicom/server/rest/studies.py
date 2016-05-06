@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import itertools
 import requests
 import six
 from six.moves import urllib
@@ -448,7 +449,7 @@ class DicomStudies(Resource):
         cursor = self.model('item').find(query, fields=fields)
 
         results = self.model('item').filterResultsByPermission(
-            cursor, user, AccessType.READ, limit, offset)
+            cursor, user, AccessType.READ, limit=0, offset=0)
 
         # Query filtered documents, include 'meta' field
         query = {
@@ -495,6 +496,16 @@ class DicomStudies(Resource):
         # Return one document per study
         results = getUniqueStudies(cursor)
 
+        # Apply limit and offset
+        endIndex = offset + limit if limit else None
+        results = list(itertools.islice(results, offset, endIndex))
+
+        # Return 204 (No Content) response if there were no matches
+        #
+        # See: 6.7.1.2 Response
+        if not results:
+            cherrypy.response.status = 204
+
         # Add derived attributes:
         #  00080056: Instance Availability
         #    (See: C.4.23.1.1 Instance Availability)
@@ -507,12 +518,6 @@ class DicomStudies(Resource):
             # XXX: add WADO-RS URL to retrieve resource
             result.update(dataElementToJSON(
                 DataElement((0x0008, 0x1190), 'UR', '')))
-
-        # Return 204 (No Content) response if there were no matches
-        #
-        # See: 6.7.1.2 Response
-        if not results:
-            cherrypy.response.status = 204
 
         # XXX: sort tags
         # See: F.2.2 DICOM JSON Model Object Structure:
