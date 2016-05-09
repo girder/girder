@@ -342,7 +342,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         listDir = os.listdir(importPath)
         if leafFoldersAsItems and hasOnlyFiles(importPath, listDir):
-            self._importDataAsItem(os.path.basename(importPath.rstrip('/')),
+            self._importDataAsItem(os.path.basename(importPath.rstrip(os.sep)),
                                    user, parent, importPath, listDir)
             return
 
