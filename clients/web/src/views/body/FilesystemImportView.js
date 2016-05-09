@@ -4,7 +4,8 @@ girder.views.FilesystemImportView = girder.View.extend({
             e.preventDefault();
 
             var destId = this.$('#g-filesystem-import-dest-id').val().trim(),
-                destType = this.$('#g-filesystem-import-dest-type').val();
+                destType = this.$('#g-filesystem-import-dest-type').val(),
+                foldersAsItems = this.$('#g-filesystem-import-leaf-items').val();
 
             this.$('.g-validation-failed-message').empty();
 
@@ -14,6 +15,7 @@ girder.views.FilesystemImportView = girder.View.extend({
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
                 importPath: this.$('#g-filesystem-import-path').val().trim(),
+                leafFoldersAsItems: foldersAsItems,
                 destinationId: destId,
                 destinationType: destType,
                 progress: true

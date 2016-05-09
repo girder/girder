@@ -26,6 +26,11 @@ form.g-filesystem-import-form
     input.form-control.input-sm#g-filesystem-import-dest-id(
       type="text"
       placeholder="Existing folder, user, or collection ID to use as the destination")
+  .form-group
+    label(for="g-filesystem-import-leaf-items") Leaf Folders as Items
+    select.form-control#g-filesystem-import-leaf-items
+      option(value="true") True
+      option(value="false") False
   .g-validation-failed-message
   button.g-submit-assetstore-import.btn.btn-success(type="submit")
     i.icon-link-ext
