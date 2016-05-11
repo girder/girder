@@ -77,6 +77,7 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
+    'worker': ['celery'],
     'plugins': ['celery', 'geojson', 'Pillow']
 }
 
