@@ -22,7 +22,7 @@ import cherrypy
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.utility import ziputil
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, SettingKey, TokenScope
 from girder.api import access
 
 
@@ -33,6 +33,7 @@ class Item(Resource):
         self.resourceName = 'item'
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
+        self.route('GET', ('licenses',), self.getLicenses)
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
@@ -92,6 +93,13 @@ class Item(Resource):
                 sort=sort))
         else:
             raise RestException('Invalid search mode.')
+
+    @access.public
+    @describeRoute(
+        Description('Get list of item licenses.')
+    )
+    def getLicenses(self, params):
+        return self.model('setting').get(SettingKey.LICENSES)
 
     @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)

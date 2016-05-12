@@ -710,3 +710,18 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/%s/download' % item['_id'],
                             cookie='girderToken=invalid_token')
         self.assertStatus(resp, 401)
+
+    def testGetLicenses(self):
+        """
+        Test getting list of licenses.
+        """
+        resp = self.request(path='/item/licenses')
+        self.assertStatusOk(resp)
+        self.assertGreater(len(resp.json), 0)
+        self.assertIn('category', resp.json[0])
+        self.assertIn('licenses', resp.json[0])
+        self.assertGreater(len(resp.json[0]['licenses']), 1)
+        self.assertIn('name', resp.json[0]['licenses'][0])
+        self.assertGreater(len(resp.json[0]['licenses'][0]['name']), 0)
+        self.assertIn('name', resp.json[0]['licenses'][1])
+        self.assertGreater(len(resp.json[0]['licenses'][1]['name']), 0)
