@@ -148,10 +148,28 @@ class GirderClient(object):
         self.folder_upload_callbacks = []
         self.item_upload_callbacks = []
 
-    def authenticate(self, username=None, password=None, interactive=False):
+    def authenticate(self, username=None, password=None, interactive=False,
+                     apiKey=None):
         """
         Authenticate to Girder, storing the token that comes back to be used in
-        future requests.
+        future requests. This method can be used in two modes, either username
+        and password authentication, or using an API key. Username example:
+
+        .. code-block:: python
+
+            gc.authenticate(username='myname', password='mypass')
+
+        Note that you may also pass ``interactive=True`` and omit either the
+        username or password argument to be prompted for them in the shell. The
+        second mode is using an API key:
+
+        .. code-block::python
+
+            gc.authenticate(apiKey='J77R3rsLYYqFXXwQ4YquQtek1N26VEJ7IAVz9IpU')
+
+        API keys can be created and managed on your user account page in the
+        Girder web client, and can be used to provide limited access to the
+        Girder web API.
 
         :param username: A string containing the username to use in basic
             authentication.
@@ -160,27 +178,37 @@ class GirderClient(object):
         :param interactive: If you want the user to type their username or
             password in the shell rather than passing it in as an argument,
             set this to True. If you pass a username in interactive mode, the
-            user will only be prompted for a password.
+            user will only be prompted for a password. This option only works
+            in username/password mode, not API key mode.
+        :param apiKey: Pass this to use an API key instead of username/password
+            authentication.
+        :type apiKey: str
         """
-        if interactive:
-            if username is None:
-                username = six.moves.input('Login or email: ')
-            password = getpass.getpass('Password for %s: ' % username)
+        if apiKey:
+            resp = self.post('api_key/token', parameters={
+                'key': apiKey
+            })
+            self.token = resp['authToken']['token']
+        else:
+            if interactive:
+                if username is None:
+                    username = six.moves.input('Login or email: ')
+                password = getpass.getpass('Password for %s: ' % username)
 
-        if username is None or password is None:
-            raise Exception('A user name and password are required')
+            if username is None or password is None:
+                raise Exception('A user name and password are required')
 
-        url = self.urlBase + 'user/authentication'
-        authResponse = requests.get(url, auth=(username, password))
+            url = self.urlBase + 'user/authentication'
+            authResponse = requests.get(url, auth=(username, password))
 
-        if authResponse.status_code == 404:
-            raise HttpError(404, authResponse.text, url, "GET")
+            if authResponse.status_code == 404:
+                raise HttpError(404, authResponse.text, url, "GET")
 
-        resp = authResponse.json()
-        if 'authToken' not in resp:
-            raise AuthenticationError()
+            resp = authResponse.json()
+            if 'authToken' not in resp:
+                raise AuthenticationError()
 
-        self.token = resp['authToken']['token']
+            self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
                         files=None):

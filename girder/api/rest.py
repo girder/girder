@@ -909,13 +909,13 @@ class Resource(ModelImporter):
         """
         Helper method to send the authentication cookie
         """
-        days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
+        days = float(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
-        cookie['girderToken']['expires'] = days * 3600 * 24
+        cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
         return token
 
