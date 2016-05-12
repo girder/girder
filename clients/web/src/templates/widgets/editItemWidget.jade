@@ -1,3 +1,5 @@
+include selectLicenseMixin
+
 .modal-dialog
   .modal-content
     form#g-item-edit-form.modal-form(role="form")
@@ -15,6 +17,7 @@
         .form-group
           label.control-label(for="g-description") Description (optional)
           textarea.input-sm#g-description.form-control(placeholder="Enter item description")
+        +g-select-license(licenses)
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Cancel

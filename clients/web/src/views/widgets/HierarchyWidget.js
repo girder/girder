@@ -276,17 +276,22 @@ girder.views.HierarchyWidget = girder.View.extend({
      * Prompt the user to create a new item in the current folder
      */
     createItemDialog: function () {
-        new girder.views.EditItemWidget({
-            el: $('#g-dialog-container'),
-            parentModel: this.parentModel,
-            parentView: this
-        }).on('g:saved', function (item) {
-            this.itemListView.insertItem(item);
-            if (this.parentModel.has('nItems')) {
-                this.parentModel.increment('nItems');
-            }
-            this.updateChecked();
-        }, this).render();
+        // Get the list of licenses
+        var item = new girder.models.ItemModel();
+        item.getLicenses(_.bind(function (licenses) {
+            new girder.views.EditItemWidget({
+                el: $('#g-dialog-container'),
+                parentModel: this.parentModel,
+                licenses: licenses,
+                parentView: this
+            }).on('g:saved', function (item) {
+                this.itemListView.insertItem(item);
+                if (this.parentModel.has('nItems')) {
+                    this.parentModel.increment('nItems');
+                }
+                this.updateChecked();
+            }, this).render();
+        }, this));
     },
 
     /**

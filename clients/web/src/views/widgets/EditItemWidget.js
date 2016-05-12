@@ -6,7 +6,8 @@ girder.views.EditItemWidget = girder.View.extend({
         'submit #g-item-edit-form': function () {
             var fields = {
                 name: this.$('#g-name').val(),
-                description: this.$('#g-description').val()
+                description: this.$('#g-description').val(),
+                license: this.$('#g-license').val()
             };
 
             if (this.item) {
@@ -25,12 +26,14 @@ girder.views.EditItemWidget = girder.View.extend({
     initialize: function (settings) {
         this.item = settings.item || null;
         this.parentModel = settings.parentModel;
+        this.licenses = settings.licenses || null;
     },
 
     render: function () {
         var view = this;
         var modal = this.$el.html(girder.templates.editItemWidget({
-            item: this.item}))
+            item: this.item,
+            licenses: this.licenses}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();
                 if (view.item) {
@@ -48,6 +51,10 @@ girder.views.EditItemWidget = girder.View.extend({
                 if (view.item) {
                     view.$('#g-name').val(view.item.get('name'));
                     view.$('#g-description').val(view.item.get('description'));
+                    if (view.item.has('license')) {
+                        // XXX: handle nonexistent license?
+                        view.$('#g-license').val(view.item.get('license'));
+                    }
                     view.create = false;
                 } else {
                     view.create = true;

@@ -48,16 +48,21 @@
         editItem: function () {
             var container = $('#g-dialog-container');
 
-            if (!this.editItemWidget) {
-                this.editItemWidget = new girder.views.EditItemWidget({
-                    el: container,
-                    item: this.model,
-                    parentView: this
-                }).off('g:saved').on('g:saved', function () {
-                    this.render();
-                }, this);
-            }
-            this.editItemWidget.render();
+            var item = new girder.models.ItemModel();
+            item.getLicenses(_.bind(function (licenses) {
+                if (!this.editItemWidget) {
+                    this.editItemWidget = new girder.views.EditItemWidget({
+                        el: container,
+                        item: this.model,
+                        licenses: licenses,
+                        parentView: this
+                    }).off('g:saved').on('g:saved', function () {
+                        this.render();
+                    }, this);
+                }
+                this.editItemWidget.licenses = licenses;
+                this.editItemWidget.render();
+            }, this));
         },
 
         deleteItem: function () {

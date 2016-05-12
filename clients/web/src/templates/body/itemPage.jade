@@ -44,6 +44,13 @@
   .g-item-updated.g-info-list-entry
     i.icon-clock
     | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
+  .g-item-license.g-info-list-entry
+      i.icon-shield
+      | License:&nbsp;
+      if item.has('license') && item.get('license').length
+        = item.get('license')
+      else
+        | Unspecified
 
 .g-item-metadata
 
