@@ -51,7 +51,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
-            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
+            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
+            'license'))
 
     def filter(self, *args, **kwargs):
         """
@@ -81,6 +82,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
     def validate(self, doc):
         doc['name'] = self._validateString(doc.get('name', ''))
         doc['description'] = self._validateString(doc.get('description', ''))
+        doc['license'] = self._validateString(doc.get('license', ''))
 
         if not doc['name']:
             raise ValidationException('Item name must not be empty.', 'name')
@@ -233,7 +235,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         Model.remove(self, item)
 
     def createItem(self, name, creator, folder, description='',
-                   reuseExisting=False):
+                   reuseExisting=False, license=''):
         """
         Create a new item. The creator will be given admin access to it.
 
@@ -248,6 +250,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             under the given folder, return that item rather than creating a
             new one.
         :type reuseExisting: bool
+        :param license: License for the item.
+        :type license: str
         :returns: The item document that was created.
         """
         if reuseExisting:
@@ -274,6 +278,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return self.save({
             'name': self._validateString(name),
             'description': self._validateString(description),
+            'license': self._validateString(license),
             'folderId': ObjectId(folder['_id']),
             'creatorId': creator['_id'],
             'baseParentType': folder['baseParentType'],
@@ -352,7 +357,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return folderIdsToRoot
 
     def copyItem(self, srcItem, creator, name=None, folder=None,
-                 description=None):
+                 description=None, license=None):
         """
         Copy an item, including duplicating files and metadata.
 
@@ -366,6 +371,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param description: Description for the new item.  None to copy the
                 original description.
         :type description: str
+        :param license: License for the new item.  None to copy the original
+                license.
+        :type license: str
         :returns: the new item.
         """
         if name is None:
@@ -374,8 +382,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
             folder = self.model('folder').load(srcItem['folderId'], force=True)
         if description is None:
             description = srcItem['description']
+        if license is None:
+            license = srcItem['license']
         newItem = self.createItem(
-            folder=folder, name=name, creator=creator, description=description)
+            folder=folder, name=name, creator=creator, description=description,
+            license=license)
         # copy metadata and other extension values
         filteredItem = self.filter(newItem, creator)
         updated = False

@@ -69,10 +69,11 @@ class ItemTestCase(base.TestCase):
             for tempname in os.listdir(tmpdir):
                 os.remove(os.path.join(tmpdir, tempname))
 
-    def _createItem(self, parentId, name, description, user):
+    def _createItem(self, parentId, name, description, license, user):
         params = {
             'name': name,
             'description': description,
+            'license': license,
             'folderId': parentId
         }
         resp = self.request(path='/item', method='POST', params=params,
@@ -161,7 +162,7 @@ class ItemTestCase(base.TestCase):
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],
                                    'test_for_download', 'fake description',
-                                   self.users[0])
+                                   'my license', self.users[0])
         self._testUploadFileToItem(curItem, 'file_1', self.users[0], 'foobar')
 
         self._testDownloadSingleFileItem(curItem, self.users[0], 'foobar')
@@ -193,7 +194,8 @@ class ItemTestCase(base.TestCase):
         params = {
             'name': ' ',
             'description': ' a description ',
-            'folderId': self.publicFolder['_id']
+            'folderId': self.publicFolder['_id'],
+            'license': ' a license '
         }
         resp = self.request(path='/item', method='POST', params=params,
                             user=self.users[1])
@@ -214,6 +216,7 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertEqual(item['name'], params['name'].strip())
         self.assertEqual(item['description'], params['description'].strip())
+        self.assertEqual(item['license'], params['license'].strip())
 
         # User 1 should not be able to see the item via find by folderId
         params = {
@@ -276,13 +279,15 @@ class ItemTestCase(base.TestCase):
         # Test update of the item
         params = {
             'name': 'changed name',
-            'description': 'new description'
+            'description': 'new description',
+            'license': 'new license'
         }
         resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             params=params, user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['name'], params['name'])
         self.assertEqual(resp.json['description'], params['description'])
+        self.assertEqual(resp.json['license'], params['license'])
 
         # Test moving an item to the public folder
         item = self.model('item').load(item['_id'], force=True)
@@ -520,15 +525,17 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
         # Also test that this works for a duplicate item, such that the
         # automatically renamed item still has the correct lowerName, and a
-        # None description is changed to an empty string.
+        # None description and license are changed to empty strings.
         item = self.model('item').createItem(
             'My Item Name', creator=self.users[0], folder=self.publicFolder,
-            description=None)
+            description=None, license=None)
         self.assertEqual(item['lowerName'], 'my item name (1)')
         self.assertEqual(item['description'], '')
+        self.assertEqual(item['license'], '')
         # test if non-strings are coerced and if just missing lowerName is
         # corrected.
         item['description'] = 1
+        item['license'] = 2
         del item['lowerName']
         self.model('item').save(item, validate=False)
         item = self.model('item').find({'_id': item['_id']})[0]
@@ -538,6 +545,7 @@ class ItemTestCase(base.TestCase):
         self.assertHasKeys(item, ('lowerName', ))
         self.assertEqual(item['lowerName'], 'my item name (1)')
         self.assertEqual(item['description'], '1')
+        self.assertEqual(item['license'], '2')
 
     def testParentsToRoot(self):
         """
@@ -558,7 +566,7 @@ class ItemTestCase(base.TestCase):
     def testItemCopy(self):
         origItem = self._createItem(self.publicFolder['_id'],
                                     'test_for_copy', 'fake description',
-                                    self.users[0])
+                                    'my license', self.users[0])
         # Add metadata and files, since we want to make sure those get copied
         metadata = {
             'foo': 'value1',
@@ -596,6 +604,8 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         newItem = resp.json
         self.assertEqual(newItem['name'], 'copied_item')
+        self.assertEqual(newItem['description'], 'fake description')
+        self.assertEqual(newItem['license'], 'my license')
         self.assertEqual(newItem['meta']['foo'], metadata['foo'])
         self.assertEqual(newItem['meta']['test'], metadata['test'])
         # Check if we can download the files from the new item
@@ -642,10 +652,10 @@ class ItemTestCase(base.TestCase):
         # other than what it is; this should be corrected.
         item1 = self._createItem(self.publicFolder['_id'],
                                  'test_for_no_folder', 'description',
-                                 self.users[0])
+                                 'my license', self.users[0])
         item2 = self._createItem(self.publicFolder['_id'],
                                  'test_for_bad_size', 'description',
-                                 self.users[0])
+                                 'my license', self.users[0])
         self._testUploadFileToItem(item2, 'file_1', self.users[0], 'foobar')
         # break the folder for item1
         item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
@@ -681,7 +691,7 @@ class ItemTestCase(base.TestCase):
         sufficient for other endpoints.
         """
         item = self._createItem(self.privateFolder['_id'],
-                                'cookie_auth_download', '', self.users[0])
+                                'cookie_auth_download', '', '', self.users[0])
         self._testUploadFileToItem(item, 'file', self.users[0], 'foo')
         token = self.model('token').createToken(self.users[0])
         cookie = 'girderToken=%s' % token['_id']

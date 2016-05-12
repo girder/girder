@@ -114,6 +114,7 @@ class Item(Resource):
         .param('folderId', 'The ID of the parent folder.')
         .param('name', 'Name for the item.')
         .param('description', "Description for the item.", required=False)
+        .param('license', "License for the item.", required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
@@ -123,12 +124,14 @@ class Item(Resource):
         user = self.getCurrentUser()
         name = params['name'].strip()
         description = params.get('description', '').strip()
+        license = params.get('license', '').strip()
 
         folder = self.model('folder').load(id=params['folderId'], user=user,
                                            level=AccessType.WRITE, exc=True)
 
         return self.model('item').createItem(
-            folder=folder, name=name, creator=user, description=description)
+            folder=folder, name=name, creator=user, description=description,
+            license=license)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
@@ -139,6 +142,7 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('name', 'Name for the item.', required=False)
         .param('description', 'Description for the item.', required=False)
+        .param('license', 'License for the item.', required=False)
         .param('folderId', 'Pass this to move the item to a new folder.',
                required=False)
         .errorResponse('ID was invalid.')
@@ -148,6 +152,8 @@ class Item(Resource):
         item['name'] = params.get('name', item['name']).strip()
         item['description'] = params.get(
             'description', item['description']).strip()
+        item['license'] = params.get(
+            'license', item.get('license', '')).strip()
 
         self.model('item').updateItem(item)
 
@@ -287,6 +293,7 @@ class Item(Resource):
         .param('folderId', 'The ID of the parent folder.', required=False)
         .param('name', 'Name for the new item.', required=False)
         .param('description', "Description for the new item.", required=False)
+        .param('license', "License for the new item.", required=False)
         .errorResponse()
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original item.', 403)
@@ -307,6 +314,7 @@ class Item(Resource):
         folder = self.model('folder').load(
             id=folderId, user=user, level=AccessType.WRITE, exc=True)
         description = params.get('description', None)
+        license = params.get('license', None)
         return self.model('item').copyItem(
             item, creator=user, name=name, folder=folder,
-            description=description)
+            description=description, license=license)
