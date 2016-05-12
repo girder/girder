@@ -533,24 +533,29 @@ girder.views.HierarchyWidget = girder.View.extend({
      * Show and handle the upload dialog
      */
     uploadDialog: function () {
-        var container = $('#g-dialog-container');
+        // Get the list of licenses
+        var item = new girder.models.ItemModel();
+        item.getLicenses(_.bind(function (licenses) {
+            var container = $('#g-dialog-container');
 
-        new girder.views.UploadWidget({
-            el: container,
-            parent: this.parentModel,
-            parentType: this.parentType,
-            parentView: this
-        }).on('g:uploadFinished', function (info) {
-            girder.dialogs.handleClose('upload');
-            this.upload = false;
-            if (this.parentModel.has('nItems')) {
-                this.parentModel.increment('nItems', info.files.length);
-            }
-            if (this.parentModel.has('size')) {
-                this.parentModel.increment('size', info.totalSize);
-            }
-            this.setCurrentModel(this.parentModel, {setRoute: false});
-        }, this).render();
+            new girder.views.UploadWidget({
+                el: container,
+                parent: this.parentModel,
+                parentType: this.parentType,
+                licenses: licenses,
+                parentView: this
+            }).on('g:uploadFinished', function (info) {
+                girder.dialogs.handleClose('upload');
+                this.upload = false;
+                if (this.parentModel.has('nItems')) {
+                    this.parentModel.increment('nItems', info.files.length);
+                }
+                if (this.parentModel.has('size')) {
+                    this.parentModel.increment('size', info.totalSize);
+                }
+                this.setCurrentModel(this.parentModel, {setRoute: false});
+            }, this).render();
+        }, this));
     },
 
     /**

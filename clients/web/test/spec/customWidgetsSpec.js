@@ -11,6 +11,7 @@
                     modal: false,
                     title: null,
                     el: 'body',
+                    licenses: [{category: 'A', licenses: [{name: '1'}]}],
                     parentView: null
                 }).render();
 
@@ -20,6 +21,8 @@
                 expect($('.g-drop-zone:visible').length).toBe(1);
                 expect($('.g-start-upload.btn.disabled:visible').length).toBe(1);
                 expect($('.g-overall-progress-message').text()).toBe('No files selected');
+                expect($('#g-license optgroup').length).toBe(1);
+                expect($('#g-license option').length).toBe(2);
             });
         });
     });
