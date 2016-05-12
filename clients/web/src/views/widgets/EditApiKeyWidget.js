@@ -27,9 +27,11 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         'change .g-scope-selection-container .radio input': function (e) {
             var mode = this._getSelectedScopeMode();
             if (mode === 'full') {
-                this.$('.g-custom-scope-checkbox').attr('disabled', 'disabled');
+                this.$('.g-custom-scope-checkbox').attr('disabled', 'disabled')
+                    .parent().parent().addClass('disabled');
             } else if (mode === 'custom') {
-                this.$('.g-custom-scope-checkbox').removeAttr('disabled');
+                this.$('.g-custom-scope-checkbox').removeAttr('disabled')
+                    .parent().parent().removeClass('disabled');
             }
         }
     },
