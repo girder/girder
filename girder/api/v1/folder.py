@@ -188,7 +188,7 @@ class Folder(Resource):
 
         return folder
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @filtermodel(model='folder', addFields={'access'})
     @describeRoute(
@@ -293,7 +293,7 @@ class Folder(Resource):
     def getFolder(self, folder, params):
         return folder
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Get the access control list for a folder.')
@@ -305,7 +305,7 @@ class Folder(Resource):
     def getFolderAccess(self, folder, params):
         return self.model('folder').getFullAccessList(folder)
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Delete a folder by ID.')

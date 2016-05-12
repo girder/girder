@@ -286,7 +286,7 @@ class Resource(BaseResource):
             yield zip.footer()
         return stream
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @describeRoute(
         Description('Delete a set of items, folders, or other resources.')
         .param('resources', 'A JSON-encoded list of types to delete.  Each '

@@ -202,7 +202,7 @@ class TokenScope:
     PARTIAL_UPLOAD_CLEAN = 'core.partial_upload.clean'
     DATA_READ = 'core.data.read'
     DATA_WRITE = 'core.data.write'
-    DATA_ADMIN = 'core.data.admin'
+    DATA_OWN = 'core.data.own'
     USER_INFO_READ = 'core.user_info.read'
 
     _customScopes = []
@@ -251,8 +251,8 @@ TokenScope.describeScope(
     'Allows clients to edit data in the hierarchy and create new data anywhere '
     'you have write access.')
 TokenScope.describeScope(
-    TokenScope.DATA_ADMIN, 'Data administration', 'Allows administrative '
-    'control on data you own, including setting access control and deletion.'
+    TokenScope.DATA_OWN, 'Data ownership', 'Allows administrative control '
+    'on data you own, including setting access control and deletion.'
 )
 
 TokenScope.describeScope(

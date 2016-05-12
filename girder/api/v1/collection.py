@@ -143,7 +143,7 @@ class Collection(Resource):
             yield zip.footer()
         return stream
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @describeRoute(
         Description('Get the access control list for a collection.')
@@ -154,7 +154,7 @@ class Collection(Resource):
     def getCollectionAccess(self, collection, params):
         return self.model('collection').getFullAccessList(collection)
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @filtermodel(model='collection', addFields={'access'})
     @describeRoute(
@@ -214,7 +214,7 @@ class Collection(Resource):
 
         return self.model('collection').updateCollection(collection)
 
-    @access.user(scope=TokenScope.DATA_ADMIN)
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @describeRoute(
         Description('Delete a collection by ID.')
