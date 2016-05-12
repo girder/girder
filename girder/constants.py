@@ -147,6 +147,7 @@ class SettingKey:
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
+    LICENSES = 'core.licenses'
 
 
 class SettingDefault:
@@ -177,7 +178,78 @@ class SettingDefault:
             'groups': [],
             'users': []
         },
-        SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
+        SettingKey.USER_DEFAULT_FOLDERS: 'public_private',
+        SettingKey.LICENSES: [
+            {
+                # "Popular" licenses from
+                # https://opensource.org/licenses/category
+                'category': 'Code Licenses',
+                'licenses': [
+                    {
+                        'name': 'Apache License 2.0'
+                    },
+                    {
+                        'name': 'BSD 3-Clause "New" or "Revised" License'
+                    },
+                    {
+                        'name': 'BSD 2-Clause "Simplified" or "FreeBSD" License'
+                    },
+                    {
+                        'name': 'GNU General Public License (GPL) 2.0'
+                    },
+                    {
+                        'name': 'GNU General Public License (GPL) 3.0'
+                    },
+                    {
+                        'name': 'GNU Lesser General Public License (LGPL) 2.1'
+                    },
+                    {
+                        'name': 'GNU Lesser General Public License (LGPL) 3.0'
+                    },
+                    {
+                        'name': 'MIT License'
+                    },
+                    {
+                        'name': 'Mozilla Public License 2.0'
+                    }
+                ]
+            },
+            {
+                # See http://creativecommons.org/licenses/
+                'category': 'Content Licenses',
+                'licenses': [
+                    {
+                        'name': 'CC0'
+                    },
+                    {
+                        'name': 'CC Attribution (BY)'
+                    },
+                    {
+                        'name': 'CC Attribution-ShareAlike (BY-SA)'
+                    },
+                    {
+                        'name': 'CC Attribution-NoDerivs (BY-ND)'
+                    },
+                    {
+                        'name': 'CC Attribution-NonCommercial (BY-NC)'
+                    },
+                    {
+                        'name': 'CC Attribution-NonCommercial-ShareAlike '
+                                '(BY-NC-SA)'
+                    },
+                    {
+                        'name': 'CC Attribution-NonCommercial-NoDerivs '
+                                '(BY-NC-ND)'
+                    },
+                    {
+                        'name': 'Public Domain'
+                    },
+                    {
+                        'name': 'All Rights Reserved'
+                    },
+                ]
+            }
+        ]
     }
 
 
