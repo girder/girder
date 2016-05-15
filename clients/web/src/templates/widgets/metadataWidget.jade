@@ -1,4 +1,5 @@
-if (accessLevel >= girder.AccessType.WRITE)
+!{Constants=require('girder/constants')}
+if (accessLevel >= Constants.AccessType.WRITE)
   .btn-group.pull-right
     button.g-widget-metadata-add-button.btn.btn-sm.btn-primary.btn-default.dropdown-toggle(data-toggle="dropdown", title="Add Metadata")
       i.icon-plus

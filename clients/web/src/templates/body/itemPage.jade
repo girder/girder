@@ -1,8 +1,10 @@
+!{Constants=require('girder/constants')}
+!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 .g-item-breadcrumb-container
 .g-item-header
 
   .pull-right
-    if (accessLevel >= girder.AccessType.WRITE)
+    if (accessLevel >= Constants.AccessType.WRITE)
       button.g-upload-into-item.btn.btn-sm.btn-success(title="Upload files into item")
         i.icon-upload
     .btn-group
@@ -16,7 +18,7 @@
           a.g-download-item(role="menuitem", href="#{item.downloadUrl()}")
             i.icon-download
             | Download item
-        if (accessLevel >= girder.AccessType.WRITE)
+        if (accessLevel >= Constants.AccessType.WRITE)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-edit-item(role="menuitem")
@@ -37,13 +39,13 @@
     | Info
   .g-item-size.g-info-list-entry
     i.icon-hdd
-    | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
+    | #{MiscFunctions.formatSize(item.get('size'))} (#{item.get('size')} bytes)
   .g-item-created.g-info-list-entry
     i.icon-clock
-    | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
+    | Created on #{MiscFunctions.formatDate(item.get('created'), MiscFunctions.DATE_SECOND)}
   .g-item-updated.g-info-list-entry
     i.icon-clock
-    | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
+    | Updated on #{MiscFunctions.formatDate(item.get('updated'), MiscFunctions.DATE_SECOND)}
 
 .g-item-metadata
 

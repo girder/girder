@@ -1,36 +1,54 @@
-girder.App = girder.View.extend({
+var _                   = require('underscore');
+var Backbone            = require('backbone');
+var girder              = require('girder/init');
+var Auth                = require('girder/auth');
+var Events              = require('girder/events');
+var Constants           = require('girder/constants');
+var View                = require('girder/view');
+var UserModel           = require('girder/models/UserModel');
+var DialogHelper        = require('girder/utilities/DialogHelper');
+var EventStream         = require('girder/utilities/EventStream');
+var LayoutHeaderView    = require('girder/views/layout/HeaderView');
+var LayoutGlobalNavView = require('girder/views/layout/GlobalNavView');
+var LayoutFooterView    = require('girder/views/layout/FooterView');
+var ProgressListView    = require('girder/views/layout/ProgressListView');
+var LoginView           = require('girder/views/layout/LoginView');
+var RegisterView        = require('girder/views/layout/RegisterView');
+var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
+
+var App = View.extend({
     initialize: function () {
-        girder.fetchCurrentUser()
+        Auth.fetchCurrentUser()
             .done(_.bind(function (user) {
-                girder.eventStream = new girder.EventStream({
+                girder.eventStream = new EventStream({
                     timeout: girder.sseTimeout || null
                 });
 
-                this.headerView = new girder.views.LayoutHeaderView({
+                this.headerView = new LayoutHeaderView({
                     parentView: this
                 });
 
-                this.globalNavView = new girder.views.LayoutGlobalNavView({
+                this.globalNavView = new LayoutGlobalNavView({
                     parentView: this
                 });
 
-                this.footerView = new girder.views.LayoutFooterView({
+                this.footerView = new LayoutFooterView({
                     parentView: this
                 });
 
-                this.progressListView = new girder.views.ProgressListView({
+                this.progressListView = new ProgressListView({
                     eventStream: girder.eventStream,
                     parentView: this
                 });
 
                 if (user) {
-                    girder.currentUser = new girder.models.UserModel(user);
+                    Auth.setCurrentUser(new UserModel(user));
                     girder.eventStream.open();
                 }
 
                 this.layoutRenderMap = {};
-                this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
-                this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
+                this.layoutRenderMap[Constants.Layout.DEFAULT] = this._defaultLayout;
+                this.layoutRenderMap[Constants.Layout.EMPTY] = this._emptyLayout;
                 this.render();
 
                 // Once we've rendered the layout, we can start up the routing.
@@ -39,12 +57,12 @@ girder.App = girder.View.extend({
                 });
             }, this));
 
-        girder.events.on('g:navigateTo', this.navigateTo, this);
-        girder.events.on('g:loginUi', this.loginDialog, this);
-        girder.events.on('g:registerUi', this.registerDialog, this);
-        girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
-        girder.events.on('g:alert', this.alert, this);
-        girder.events.on('g:login', this.login, this);
+        Events.on('g:navigateTo', this.navigateTo, this);
+        Events.on('g:loginUi', this.loginDialog, this);
+        Events.on('g:registerUi', this.registerDialog, this);
+        Events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
+        Events.on('g:alert', this.alert, this);
+        Events.on('g:login', this.login, this);
     },
 
     _defaultLayout: {
@@ -103,10 +121,10 @@ girder.App = girder.View.extend({
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
             }
-        } else if (girder.layout !== girder.Layout.DEFAULT) {
+        } else if (girder.layout !== Constants.Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
             this.layoutRenderMap[girder.layout].hide.call(this, opts);
-            girder.layout = girder.Layout.DEFAULT;
+            girder.layout = Constants.Layout.DEFAULT;
             this.layoutRenderMap[girder.layout].show.call(this, opts);
         }
 
@@ -135,7 +153,7 @@ girder.App = girder.View.extend({
      * :returns: true if we have a current user.
      */
     closeDialogIfUser: function () {
-        if (girder.currentUser) {
+        if (Auth.getCurrentUser()) {
             $('.modal').girderModal('close');
             return true;
         }
@@ -150,7 +168,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.loginView) {
-            this.loginView = new girder.views.LoginView({
+            this.loginView = new LoginView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -163,7 +181,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.registerView) {
-            this.registerView = new girder.views.RegisterView({
+            this.registerView = new RegisterView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -176,7 +194,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.resetPasswordView) {
-            this.resetPasswordView = new girder.views.ResetPasswordView({
+            this.resetPasswordView = new ResetPasswordView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -219,11 +237,11 @@ girder.App = girder.View.extend({
      * logout, we redirect to the front page.
      */
     login: function () {
-        var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
+        var route = DialogHelper.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         girder.eventStream.close();
 
-        if (girder.currentUser) {
+        if (Auth.getCurrentUser()) {
             girder.eventStream.open();
             girder.router.navigate(route, {trigger: true});
         } else {
@@ -231,3 +249,5 @@ girder.App = girder.View.extend({
         }
     }
 });
+
+module.exports = App;

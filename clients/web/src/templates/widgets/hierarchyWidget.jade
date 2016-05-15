@@ -1,3 +1,4 @@
+!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 .g-hierarchy-widget
   .g-hierarchy-breadcrumb-bar
     ol.breadcrumb
@@ -32,7 +33,7 @@
               i.icon-lock
         .btn-group
           button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-              data-toggle="dropdown" title="#{girder.capitalize(type)} actions", placement="left")
+              data-toggle="dropdown" title="#{MiscFunctions.capitalize(type)} actions", placement="left")
             if type === 'collection'
               i.icon-sitemap
             else if type === 'user'

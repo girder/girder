@@ -1,20 +1,31 @@
-(function () {
+var _                    = require('underscore');
+var girder               = require('girder/init');
+var Events               = require('girder/events');
+var FolderModel          = require('girder/models/FolderModel');
+var CollectionModel      = require('girder/models/CollectionModel');
+var View                 = require('girder/view');
+var HierarchyWidget      = require('girder/views/widgets/HierarchyWidget');
+var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
+var AccessWidget         = require('girder/views/widgets/AccessWidget');
+var MiscFunctions        = require('girder/utilities/MiscFunctions');
+
+// (function () {
     /**
      * This view shows a single collection's page.
      */
-    girder.views.CollectionView = girder.View.extend({
+    var CollectionView = View.extend({
         events: {
             'click .g-edit-collection': 'editCollection',
             'click .g-collection-access-control': 'editAccess',
             'click .g-delete-collection': function () {
-                girder.confirm({
+                MiscFunctions.confirm({
                     text: 'Are you sure you want to delete the collection <b>' +
                           this.model.escape('name') + '</b>?',
                     yesText: 'Delete',
                     escapedHtml: true,
                     confirmCallback: _.bind(function () {
                         this.model.destroy().on('g:deleted', function () {
-                            girder.events.trigger('g:alert', {
+                            Events.trigger('g:alert', {
                                 icon: 'ok',
                                 text: 'Collection deleted.',
                                 type: 'success',
@@ -28,7 +39,7 @@
         },
 
         initialize: function (settings) {
-            girder.cancelRestRequests('fetch');
+            MiscFunctions.cancelRestRequests('fetch');
 
             this.upload = settings.upload || false;
             this.access = settings.access || false;
@@ -43,7 +54,7 @@
                 this.model = settings.collection;
 
                 if (settings.folderId) {
-                    this.folder = new girder.models.FolderModel();
+                    this.folder = new FolderModel();
                     this.folder.set({
                         _id: settings.folderId
                     }).on('g:fetched', function () {
@@ -59,7 +70,7 @@
                     this.render();
                 }
             } else if (settings.id) {
-                this.model = new girder.models.CollectionModel();
+                this.model = new CollectionModel();
                 this.model.set('_id', settings.id);
 
                 this.model.on('g:fetched', function () {
@@ -70,7 +81,7 @@
         },
 
         _createHierarchyWidget: function () {
-            this.hierarchyWidget = new girder.views.HierarchyWidget({
+            this.hierarchyWidget = new HierarchyWidget({
                 parentModel: this.folder || this.model,
                 upload: this.upload,
                 folderAccess: this.folderAccess,
@@ -89,7 +100,7 @@
             var container = $('#g-dialog-container');
 
             if (!this.editCollectionWidget) {
-                this.editCollectionWidget = new girder.views.EditCollectionWidget({
+                this.editCollectionWidget = new EditCollectionWidget({
                     el: container,
                     model: this.model,
                     parentView: this
@@ -132,7 +143,7 @@
         },
 
         editAccess: function () {
-            new girder.views.AccessWidget({
+            new AccessWidget({
                 el: $('#g-dialog-container'),
                 modelType: 'collection',
                 model: this.model,
@@ -145,16 +156,18 @@
         }
     });
 
+    module.exports = CollectionView;
+
     /**
      * Helper function for fetching the user and rendering the view with
      * an arbitrary set of extra parameters.
      */
     var _fetchAndInit = function (collectionId, params) {
-        var collection = new girder.models.CollectionModel();
+        var collection = new CollectionModel();
         collection.set({
             _id: collectionId
         }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
+            Events.trigger('g:navigateTo', CollectionView, _.extend({
                 collection: collection
             }, params || {}));
         }, this).fetch();
@@ -182,4 +195,4 @@
                 itemCreate: params.dialog === 'itemcreate'
             });
         });
-}());
+// }());

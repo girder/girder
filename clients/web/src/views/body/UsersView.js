@@ -1,7 +1,18 @@
+var girder            = require('girder/init');
+var Auth              = require('girder/auth');
+var Events            = require('girder/events');
+var UserCollection    = require('girder/collections/UserCollection');
+var UserModel         = require('girder/models/UserModel');
+var View              = require('girder/view');
+var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var RegisterView      = require('girder/views/layout/RegisterView');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+
 /**
  * This view lists users.
  */
-girder.views.UsersView = girder.View.extend({
+var UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
@@ -14,26 +25,26 @@ girder.views.UsersView = girder.View.extend({
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
-        this.collection = new girder.collections.UserCollection();
+        MiscFunctions.cancelRestRequests('fetch');
+        this.collection = new UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
 
-        this.paginateWidget = new girder.views.PaginateWidget({
+        this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Search users...',
             types: ['user'],
             modes: 'prefix',
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
-        this.register = settings.dialog === 'register' && girder.currentUser &&
-                        girder.currentUser.get('admin');
+        this.register = settings.dialog === 'register' && Auth.getCurrentUser() &&
+                        Auth.getCurrentUser().get('admin');
     },
 
     render: function () {
@@ -57,7 +68,7 @@ girder.views.UsersView = girder.View.extend({
      * will navigate them to the view for that specific user.
      */
     _gotoUser: function (result) {
-        var user = new girder.models.UserModel();
+        var user = new UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
             girder.router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
@@ -66,7 +77,7 @@ girder.views.UsersView = girder.View.extend({
     createUserDialog: function () {
         var container = $('#g-dialog-container');
 
-        new girder.views.RegisterView({
+        new RegisterView({
             el: container,
             parentView: this
         }).on('g:userCreated', function (info) {
@@ -75,7 +86,9 @@ girder.views.UsersView = girder.View.extend({
     }
 });
 
+module.exports = UsersView;
+
 girder.router.route('users', 'users', function (params) {
-    girder.events.trigger('g:navigateTo', girder.views.UsersView, params || {});
-    girder.events.trigger('g:highlightItem', 'UsersView');
+    Events.trigger('g:navigateTo', UsersView, params || {});
+    Events.trigger('g:highlightItem', 'UsersView');
 });

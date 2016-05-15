@@ -1,10 +1,14 @@
+var _      = require('underscore');
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /* globals moment */
 
 /**
  * This widget provides a text input field to specify a date/time. The user
  * chooses the date/time using a popup picker.
  */
-girder.views.DateTimeWidget = girder.View.extend({
+var DateTimeWidget = View.extend({
 
     /**
      * @param [settings.defaultDate=false] The default date/time when not set
@@ -103,7 +107,7 @@ girder.views.DateTimeWidget = girder.View.extend({
  * That is, the first field specifies "from" and the second field specifies
  * "to." The user chooses each date/time using a popup picker.
  */
-girder.views.DateTimeRangeWidget = girder.View.extend({
+var DateTimeRangeWidget = View.extend({
 
     /**
      * @param [settings.defaultFromDate=false] The default "from" date/time when
@@ -265,3 +269,9 @@ girder.views.DateTimeRangeWidget = girder.View.extend({
         return date.format();
     }
 });
+
+
+module.exports = {
+    DateTimeWidget: DateTimeWidget,
+    DateTimeRangeWidget: DateTimeRangeWidget
+};

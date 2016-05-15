@@ -1,8 +1,11 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
  */
-girder.views.PluginConfigBreadcrumbWidget = girder.View.extend({
+var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
             girder.router.navigate('admin', {trigger: true});
@@ -24,3 +27,5 @@ girder.views.PluginConfigBreadcrumbWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = PluginConfigBreadcrumbWidget;

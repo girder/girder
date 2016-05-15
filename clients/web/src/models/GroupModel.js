@@ -1,4 +1,10 @@
-girder.models.GroupModel = girder.AccessControlledModel.extend({
+var _                     = require('underscore');
+var Rest                  = require('girder/rest');
+var Auth                  = require('girder/auth');
+var Constants             = require('girder/constants');
+var AccessControlledModel = require('girder/model').AccessControlledModel;
+
+var GroupModel = AccessControlledModel.extend({
     resourceName: 'group',
 
     /**
@@ -11,7 +17,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      */
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
                 userId: userId,
@@ -22,11 +28,11 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
         }).done(_.bind(function (resp) {
             this.set(resp);
 
-            if (!request && userId === girder.currentUser.get('_id')) {
+            if (!request && userId === Auth.getCurrentUser().get('_id')) {
                 if (params.force) {
-                    girder.currentUser.addToGroup(this.get('_id'));
+                    Auth.getCurrentUser().addToGroup(this.get('_id'));
                 } else {
-                    girder.currentUser.addInvitation(this.get('_id'), accessType);
+                    Auth.getCurrentUser().addInvitation(this.get('_id'), accessType);
                 }
             }
             this.trigger('g:invited');
@@ -40,12 +46,12 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * already been invited to the group.
      */
     joinGroup: function () {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
-            girder.currentUser.addToGroup(this.get('_id'));
-            girder.currentUser.removeInvitation(this.get('_id'));
+            Auth.getCurrentUser().addToGroup(this.get('_id'));
+            Auth.getCurrentUser().removeInvitation(this.get('_id'));
 
             this.set(resp);
 
@@ -61,7 +67,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * outstanding invitation to this group, call joinGroup instead.
      */
     requestInvitation: function () {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -81,12 +87,12 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      */
     promoteUser: function (user, level) {
         var role;
-        if (level === girder.AccessType.WRITE) {
+        if (level === Constants.AccessType.WRITE) {
             role = 'moderator';
-        } else if (level === girder.AccessType.ADMIN) {
+        } else if (level === Constants.AccessType.ADMIN) {
             role = 'admin';
         }
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role,
             data: {
                 userId: user.get('_id')
@@ -109,12 +115,12 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      */
     demoteUser: function (userId, level) {
         var role;
-        if (level === girder.AccessType.WRITE) {
+        if (level === Constants.AccessType.WRITE) {
             role = 'moderator';
-        } else if (level === girder.AccessType.ADMIN) {
+        } else if (level === Constants.AccessType.ADMIN) {
             role = 'admin';
         }
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role +
                 '?userId=' + userId,
             type: 'DELETE'
@@ -134,13 +140,13 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @param userId The ID of the user to remove.
      */
     removeMember: function (userId) {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'
         }).done(_.bind(function (resp) {
-            if (userId === girder.currentUser.get('_id')) {
-                girder.currentUser.removeFromGroup(this.get('_id'));
+            if (userId === Auth.getCurrentUser().get('_id')) {
+                Auth.getCurrentUser().removeFromGroup(this.get('_id'));
             }
 
             this.set(resp);
@@ -157,7 +163,7 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
      * @returns: true if adding members is allowed.
      */
     mayAddMembers: function () {
-        if (girder.currentUser.get('admin')) {
+        if (Auth.getCurrentUser().get('admin')) {
             return true;
         }
         var groupAddAllowed;
@@ -178,13 +184,15 @@ girder.models.GroupModel = girder.AccessControlledModel.extend({
             groupAddAllowed = 'admin';
         }
         if (groupAddAllowed === 'admin' &&
-                this.get('_accessLevel') >= girder.AccessType.ADMIN) {
+                this.get('_accessLevel') >= Constants.AccessType.ADMIN) {
             return true;
         }
         if (groupAddAllowed === 'mod' &&
-                this.get('_accessLevel') >= girder.AccessType.WRITE) {
+                this.get('_accessLevel') >= Constants.AccessType.WRITE) {
             return true;
         }
         return false;
     }
 });
+
+module.exports = GroupModel;

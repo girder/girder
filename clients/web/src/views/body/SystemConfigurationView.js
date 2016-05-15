@@ -1,7 +1,15 @@
+var _                 = require('underscore');
+var girder            = require('girder/init');
+var Rest              = require('girder/rest');
+var Events            = require('girder/events');
+var View              = require('girder/view');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+
 /**
  * The system config page for administrators.
  */
-girder.views.SystemConfigurationView = girder.View.extend({
+var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
@@ -15,7 +23,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 };
             }, this);
 
-            girder.restRequest({
+            Rest.restRequest({
                 type: 'PUT',
                 path: 'system/setting',
                 data: {
@@ -24,7 +32,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 error: null
             }).done(_.bind(function () {
                 this.$('.g-submit-settings').removeClass('disabled');
-                girder.events.trigger('g:alert', {
+                Events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Settings saved.',
                     type: 'success',
@@ -41,7 +49,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
     },
 
     initialize: function () {
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
 
         var keys = [
             'core.cookie_lifetime',
@@ -62,7 +70,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.user_default_folders'
         ];
         this.settingsKeys = keys;
-        girder.restRequest({
+        Rest.restRequest({
             path: 'system/setting',
             type: 'GET',
             data: {
@@ -71,7 +79,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             }
         }).done(_.bind(function (resp) {
             this.settings = resp;
-            girder.restRequest({
+            Rest.restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {
@@ -98,7 +106,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             delay: {show: 200}
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             el: this.$('.g-collection-create-policy-container .g-search-container'),
             parentView: this,
             types: ['user', 'group'],
@@ -123,7 +131,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 if (!_.contains(settingValue.users, result.id)) {
                     settingValue.users.push(result.id);
                 } else {
-                    girder.events.trigger('g:alert', {
+                    Events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'User already exists in current policy.',
                         type: 'warning',
@@ -135,7 +143,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 if (!_.contains(settingValue.groups, result.id)) {
                     settingValue.groups.push(result.id);
                 } else {
-                    girder.events.trigger('g:alert', {
+                    Events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'Group already exists in current policy.',
                         type: 'warning',
@@ -152,6 +160,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
     }
 });
 
+module.exports = SystemConfigurationView;
+
 girder.router.route('settings', 'settings', function () {
-    girder.events.trigger('g:navigateTo', girder.views.SystemConfigurationView);
+    Events.trigger('g:navigateTo', SystemConfigurationView);
 });

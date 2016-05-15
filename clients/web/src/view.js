@@ -1,4 +1,9 @@
-girder.View = Backbone.View.extend({
+var _        = require('underscore');
+var Backbone = require('backbone');
+var girder   = require('girder/init');
+var Events   = require('girder/events');
+
+var View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
@@ -14,7 +19,7 @@ girder.View = Backbone.View.extend({
 
     /**
      * Remove a view, unbinding its events and removing its listeners on
-     * girder.events so that it can be garbage collected.
+     * Events so that it can be garbage collected.
      */
     destroy: function () {
         _.each(this._childViews, function (child) {
@@ -25,7 +30,7 @@ girder.View = Backbone.View.extend({
         this.undelegateEvents();
         this.stopListening();
         this.off();
-        girder.events.off(null, null, this);
+        Events.off(null, null, this);
         girder.eventStream.off(null, null, this);
 
         if (this.parentView) {
@@ -68,3 +73,5 @@ girder.View = Backbone.View.extend({
         this._childViews = _.without(this._childViews, child);
     }
 });
+
+module.exports = View;

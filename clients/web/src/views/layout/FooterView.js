@@ -1,11 +1,18 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+var Rest   = require('girder/rest');
+
 /**
  * This view shows the footer in the layout.
  */
-girder.views.LayoutFooterView = girder.View.extend({
+var LayoutFooterView = View.extend({
     render: function () {
         this.$el.html(girder.templates.layoutFooter({
-            apiRoot: girder.apiRoot
+            apiRoot: Rest.apiRoot
         }));
         return this;
     }
 });
+
+module.exports = LayoutFooterView;
+

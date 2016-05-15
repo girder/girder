@@ -1,7 +1,17 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Rest          = require('girder/rest');
+var Auth          = require('girder/auth');
+var Events        = require('girder/events');
+var Constants     = require('girder/constants');
+var UserModel     = require('girder/models/UserModel');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * This is the view for the user account (profile) page.
  */
-girder.views.UserAccountView = girder.View.extend({
+var UserAccountView = View.extend({
     events: {
         'submit #g-user-info-form': function (event) {
             event.preventDefault();
@@ -25,7 +35,7 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                     .on('g:saved', function () {
-                        girder.events.trigger('g:alert', {
+                        Events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Info saved.',
                             type: 'success',
@@ -52,7 +62,7 @@ girder.views.UserAccountView = girder.View.extend({
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
-                        girder.events.trigger('g:alert', {
+                        Events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Password changed.',
                             type: 'success',
@@ -77,25 +87,25 @@ girder.views.UserAccountView = girder.View.extend({
 
     initialize: function (settings) {
         this.tab = settings.tab || 'info';
-        this.user = settings.user || girder.currentUser;
-        this.isCurrentUser = girder.currentUser &&
-            settings.user.get('_id') === girder.currentUser.get('_id');
+        this.user = settings.user || Auth.getCurrentUser();
+        this.isCurrentUser = Auth.getCurrentUser() &&
+            settings.user.get('_id') === Auth.getCurrentUser().get('_id');
 
         this.model = this.user;
         this.temporary = settings.temporary;
 
         if (!this.user ||
-                this.user.getAccessLevel() < girder.AccessType.WRITE) {
+                this.user.getAccessLevel() < Constants.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
             return;
         }
 
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
         this.render();
     },
 
     render: function () {
-        if (girder.currentUser === null) {
+        if (Auth.getCurrentUser() === null) {
             girder.router.navigate('users', {trigger: true});
             return;
         }
@@ -125,12 +135,14 @@ girder.views.UserAccountView = girder.View.extend({
     }
 });
 
+module.exports = UserAccountView;
+
 girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
-    var user = new girder.models.UserModel();
+    var user = new UserModel();
     user.set({
         _id: id
     }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
+        Events.trigger('g:navigateTo', UserAccountView, {
             user: user,
             tab: tab
         });
@@ -140,7 +152,7 @@ girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
 });
 
 girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
-    girder.restRequest({
+    Rest.restRequest({
         path: 'user/password/temporary/' + id,
         type: 'GET',
         data: {token: token},
@@ -148,11 +160,11 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
     }).done(_.bind(function (resp) {
         resp.user.token = resp.authToken.token;
         girder.eventStream.close();
-        girder.currentUser = new girder.models.UserModel(resp.user);
+        Auth.setCurrentUser(new UserModel(resp.user));
         girder.eventStream.open();
-        girder.events.trigger('g:login-changed');
-        girder.events.trigger('g:navigateTo', girder.views.UserAccountView, {
-            user: girder.currentUser,
+        Events.trigger('g:login-changed');
+        Events.trigger('g:navigateTo', UserAccountView, {
+            user: Auth.getCurrentUser(),
             tab: 'password',
             temporary: token
         });

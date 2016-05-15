@@ -1,7 +1,13 @@
+var girder        = require('girder/init');
+var Auth          = require('girder/auth');
+var Events        = require('girder/events');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-girder.views.AdminView = girder.View.extend({
+var AdminView = View.extend({
     events: {
         'click .g-server-config': function () {
             girder.router.navigate('settings', {trigger: true});
@@ -15,12 +21,12 @@ girder.views.AdminView = girder.View.extend({
     },
 
     initialize: function () {
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
         this.render();
     },
 
     render: function () {
-        if (!girder.currentUser || !girder.currentUser.get('admin')) {
+        if (!Auth.getCurrentUser() || !Auth.getCurrentUser().get('admin')) {
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
@@ -30,6 +36,8 @@ girder.views.AdminView = girder.View.extend({
     }
 });
 
+module.exports = AdminView;
+
 girder.router.route('admin', 'admin', function () {
-    girder.events.trigger('g:navigateTo', girder.views.AdminView);
+    Events.trigger('g:navigateTo', AdminView);
 });

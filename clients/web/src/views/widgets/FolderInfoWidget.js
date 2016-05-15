@@ -1,7 +1,10 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This view shows a dialog container detailed folder information.
  */
-girder.views.FolderInfoWidget = girder.View.extend({
+var FolderInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nItems') || !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -23,3 +26,5 @@ girder.views.FolderInfoWidget = girder.View.extend({
         })).girderModal(this);
     }
 });
+
+module.exports = FolderInfoWidget;

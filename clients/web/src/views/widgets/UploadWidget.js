@@ -1,3 +1,10 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var FileModel     = require('girder/models/FileModel');
+var DialogHelper  = require('girder/utilities/DialogHelper');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * This widget is used to upload files to a folder. Pass a folder model
  * to its constructor as the parent folder that will be uploaded into.
@@ -5,7 +12,7 @@
  *   itemComplete: Triggered each time an individual item is finished uploading.
  *   finished: Triggered when the entire set of items is uploaded.
  */
-girder.views.UploadWidget = girder.View.extend({
+var UploadWidget = View.extend({
     events: {
         'submit #g-upload-form': function (e) {
             e.preventDefault();
@@ -120,10 +127,10 @@ girder.views.UploadWidget = girder.View.extend({
                 if ($('.g-resume-upload').length && base.currentFile) {
                     base.currentFile.abortUpload();
                 }
-                girder.dialogs.handleClose('upload', undefined, dialogid);
+                DialogHelper.handleClose('upload', undefined, dialogid);
             });
 
-            girder.dialogs.handleOpen('upload', undefined, dialogid);
+            DialogHelper.handleOpen('upload', undefined, dialogid);
         } else {
             this.$el.html(girder.templates.uploadWidgetNonModal({
                 parent: this.parent,
@@ -162,7 +169,7 @@ girder.views.UploadWidget = girder.View.extend({
                 msg = 'Selected <b>' + this.files[0].name + '</b>';
             }
             this.$('.g-overall-progress-message').html('<i class="icon-ok"/> ' +
-                msg + '  (' + girder.formatSize(this.totalSize) +
+                msg + '  (' + MiscFunctions.formatSize(this.totalSize) +
                 ') -- Press start button');
             this.setUploadEnabled(true);
             this.$('.g-progress-overall,.g-progress-current').addClass('hide');
@@ -220,7 +227,7 @@ girder.views.UploadWidget = girder.View.extend({
         }
 
         this.currentFile = this.parentType === 'file'
-                ? this.parent : new girder.models.FileModel();
+                ? this.parent : new FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
             this.currentIndex += 1;
@@ -238,12 +245,12 @@ girder.views.UploadWidget = girder.View.extend({
             this.$('.g-current-progress-message').html(
                 '<i class="icon-doc-text"/>' + (this.currentIndex + 1) + ' of ' +
                     this.files.length + ' - <b>' + info.file.name + '</b>: ' +
-                    girder.formatSize(currentProgress) + ' / ' +
-                    girder.formatSize(info.total)
+                    MiscFunctions.formatSize(currentProgress) + ' / ' +
+                    MiscFunctions.formatSize(info.total)
             );
             this.$('.g-overall-progress-message').html('Overall progress: ' +
-                girder.formatSize(this.overallProgress + info.loaded) + ' / ' +
-                girder.formatSize(this.totalSize));
+                MiscFunctions.formatSize(this.overallProgress + info.loaded) + ' / ' +
+                MiscFunctions.formatSize(this.totalSize));
         }, this).on('g:upload.error', function (info) {
             var html = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
@@ -261,3 +268,5 @@ girder.views.UploadWidget = girder.View.extend({
         }
     }
 });
+
+module.exports = UploadWidget;

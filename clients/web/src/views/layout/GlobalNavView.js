@@ -1,8 +1,14 @@
+var girder   = require('girder/init');
+var Auth     = require('girder/auth');
+var Events   = require('girder/events');
+var Backbone = require('backbone');
+var View     = require('girder/view');
+
 /**
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-girder.views.LayoutGlobalNavView = girder.View.extend({
+var LayoutGlobalNavView = View.extend({
     events: {
         'click .g-nav-link': function (event) {
             event.preventDefault(); // so we can keep the href
@@ -18,10 +24,10 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
     },
 
     initialize: function (settings) {
-        girder.events.on('g:highlightItem', this.selectForView, this);
-        girder.events.on('g:login', this.render, this);
-        girder.events.on('g:logout', this.render, this);
-        girder.events.on('g:login-changed', this.render, this);
+        Events.on('g:highlightItem', this.selectForView, this);
+        Events.on('g:login', this.render, this);
+        Events.on('g:logout', this.render, this);
+        Events.on('g:login-changed', this.render, this);
 
         settings = settings || {};
         if (settings.navItems) {
@@ -49,7 +55,7 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            if (girder.currentUser && girder.currentUser.get('admin')) {
+            if (Auth.getCurrentUser() && Auth.getCurrentUser().get('admin')) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
                 navItems.push({
@@ -84,3 +90,5 @@ girder.views.LayoutGlobalNavView = girder.View.extend({
         this.$('.g-global-nav-li').removeClass('g-active');
     }
 });
+
+module.exports = LayoutGlobalNavView;

@@ -1,7 +1,10 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * Renders the a breadcrumb for the item page
  */
-girder.views.ItemBreadcrumbWidget = girder.View.extend({
+var ItemBreadcrumbWidget = View.extend({
     events: {
         'click a.g-item-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
@@ -32,3 +35,5 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
         });
     }
 });
+
+module.exports = ItemBreadcrumbWidget;

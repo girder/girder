@@ -1,13 +1,21 @@
+var girder        = require('girder/init');
+var Rest          = require('girder/rest');
+var Auth          = require('girder/auth');
+var Events        = require('girder/events');
+var versionInfo   = require('girder/girder-version');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * This is the view for the front page of the app.
  */
-girder.views.FrontPageView = girder.View.extend({
+var FrontPageView = View.extend({
     events: {
         'click .g-register-link': function () {
-            girder.events.trigger('g:registerUi');
+            Events.trigger('g:registerUi');
         },
         'click .g-login-link': function () {
-            girder.events.trigger('g:loginUi');
+            Events.trigger('g:loginUi');
         },
         'click .g-collections-link': function () {
             girder.router.navigate('collections', {trigger: true});
@@ -16,31 +24,33 @@ girder.views.FrontPageView = girder.View.extend({
             $('.g-quick-search-container .g-search-field').focus();
         },
         'click .g-my-account-link': function () {
-            girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
+            girder.router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
                                    '/info', {trigger: true});
         },
         'click .g-my-folders-link': function () {
-            girder.router.navigate('user/' + girder.currentUser.get('_id'), {trigger: true});
+            girder.router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
         }
     },
 
     initialize: function () {
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
         this.render();
     },
 
     render: function () {
         this.$el.html(girder.templates.frontPage({
-            apiRoot: girder.apiRoot,
-            staticRoot: girder.staticRoot,
-            currentUser: girder.currentUser,
-            versionInfo: girder.versionInfo
+            apiRoot: Rest.apiRoot,
+            staticRoot: Rest.staticRoot,
+            currentUser: Auth.getCurrentUser(),
+            versionInfo: versionInfo
         }));
 
         return this;
     }
 });
 
+module.exports = FrontPageView;
+
 girder.router.route('', 'index', function () {
-    girder.events.trigger('g:navigateTo', girder.views.FrontPageView);
+    Events.trigger('g:navigateTo', FrontPageView);
 });

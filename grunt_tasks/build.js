@@ -19,13 +19,63 @@
  */
 module.exports = function (grunt) {
     var path = require('path');
+    var glob = require('glob');
+    var web_src_dir = path.join(__dirname, '../clients/web/src');
+    var webpack = require('webpack');
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
+    // vvvvvv TESTING
+    environment = 'dev'; debugJs = true;
+    // ^^^^^^ TESTING
     var uglifyOptions = {
         ASCIIOnly: true,
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,
         report: 'min'
+    };
+    var webpackOptions = {
+        watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
+        keepalive: false,  // don't finish the grunt task (in combination with the watch option)
+        inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
+        hot: false,        // adds HotModuleReplacementPlugin and switch the server to hot mode
+        cache: true,
+        progress: true,    // show progress
+        failOnError: true, // report error to grunt if webpack find errors; set to false if
+                           // webpack errors are tolerable and grunt should continue
+        devtool: environment === 'dev' ? 'source-map' : false,
+        output: {
+            path: 'clients/web/static/built/',
+            filename: '[name].min.js'
+        },
+        module: {
+            noParse: [
+                // // Avoid warning:
+                // //   This seems to be a pre-built javascript file. Though this is
+                // //   possible, it's not recommended. Try to require the original source
+                // //   to get better results.
+                // // This needs fixing later, as Webpack works better when provided with source.
+                // /node_modules\/jade/,
+                // /node_modules\/remarkable/
+            ]
+        },
+        // resolve: {
+        //     alias: {
+        //         jquery: 'jquery/dist/jquery.js'
+        //     }
+        // },
+        plugins: [
+            new webpack.DefinePlugin({
+                'process.env': {
+                    'NODE_ENV': JSON.stringify(environment === 'dev' ? 'dev' : 'production')
+                }
+            }),
+            // Automatically detect jQuery and $ as free var in modules
+            // and inject the jquery library. This is required by many jquery plugins
+            new webpack.ProvidePlugin({
+                jQuery: 'jquery',
+                $: 'jquery'
+            })
+        ]
     };
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
@@ -39,6 +89,21 @@ module.exports = function (grunt) {
         };
         uglifyOptions.mangle = false;
         uglifyOptions.compress = false;
+        webpackOptions.debug = true;
+    } else {
+        webpackOptions.plugins = webpackOptions.plugins.concat(
+            new webpack.optimize.DedupePlugin(),
+            new webpack.optimize.UglifyJsPlugin({
+                ASCIIOnly: true,
+                sourceMapIncludeSources: true,
+                compress: {
+                    warnings: false
+                },
+                output: {
+                    comments: false
+                }
+            })
+        );
     }
 
     grunt.config.merge({
@@ -177,6 +242,60 @@ module.exports = function (grunt) {
             }
         },
 
+        webpack: {
+            options: webpackOptions,
+            ext_js: {
+                entry: {
+                    'girder.ext': [
+                        'jquery/dist/jquery.js',
+                        'jade/runtime.js',                 // what is exported?
+                        'underscore/underscore.js',
+                        'backbone/backbone.js',
+                        'remarkable/dist/remarkable.js',
+                        'jsoneditor/dist/jsoneditor.js',
+                        'bootstrap/dist/js/bootstrap.js',
+                        'bootstrap-switch/dist/js/bootstrap-switch.js',
+                        'eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
+                        'eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
+                        'd3/d3.js',
+                        'as-jqplot/dist/jquery.jqplot.js',
+                        'as-jqplot/dist/plugins/jqplot.pieRenderer.js',
+                        'sprintf-js/src/sprintf.js'
+                    ]
+                }
+            },
+            app: {
+                resolve: {
+                    alias: {
+                        'girder': web_src_dir
+                    }
+                },
+                entry: {
+                    // 'girder.main': [
+                    //     './clients/web/src/main.js'
+                    // ],
+                    'girder.app': [
+                        './clients/web/static/built/templates.js',
+                        // './clients/web/src/init.js',
+                        // './clients/web/src/girder-version.js',
+                        // './clients/web/src/view.js',
+                        // './clients/web/src/app.js',
+                        // './clients/web/src/router.js',
+                        // './clients/web/src/plugin_utils.js',
+                        // './clients/web/src/collection.js',
+                        // './clients/web/src/model.js',
+                        './clients/web/src/utilities/jQuery.js',
+                        './clients/web/src/main.js'
+                    ]
+                    // this below is not the webpack way, but is for transitioning
+                    // .concat(glob.sync('./clients/web/src/utilities/**/*.js'))
+                    // .concat(glob.sync('./clients/web/src/model/**/*.js'))
+                    // .concat(glob.sync('./clients/web/src/collections/**/*.js'))
+                    // .concat(glob.sync('./clients/web/src/views/**/*.js'))
+                }
+            }
+        },
+
         symlink: {
             options: {
                 overwrite: true
@@ -237,7 +356,8 @@ module.exports = function (grunt) {
         },
 
         init: {
-            'uglify:ext_js': {},
+            // 'uglify:ext_js': {},
+            // 'webpack:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
             'copy:fontello_config': {},
@@ -250,7 +370,8 @@ module.exports = function (grunt) {
             'jade:core': {
                 dependencies: ['version-info']
             },
-            'uglify:app': {
+            // 'uglify:app': {
+            'webpack:app': {
                 dependencies: ['jade:core']
             },
             'symlink:legacy_names': {

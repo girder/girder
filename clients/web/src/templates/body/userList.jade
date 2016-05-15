@@ -1,8 +1,10 @@
+!{Auth=require('girder/auth')}
+!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 .g-user-list-header
   .g-user-pagination
   form.g-user-search-form.form-inline(role="form")
     .form-group.g-users-search-container
-  if girder.currentUser && girder.currentUser.get('admin')
+  if Auth.getCurrentUser() && Auth.getCurrentUser().get('admin')
     button.g-user-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create user
@@ -13,12 +15,12 @@ each user in users
       .g-user-joined
         i.icon-clock
         | Joined on
-        span.g-user-joined-date  #{girder.formatDate(user.get('created'), girder.DATE_DAY)}
+        span.g-user-joined-date  #{MiscFunctions.formatDate(user.get('created'), MiscFunctions.DATE_DAY)}
       if (user.get('size') !== undefined)
         .g-space-used
           i.icon-floppy
           | Currently using
-          span.g-user-space-used  #{girder.formatSize(user.get('size'))}
+          span.g-user-space-used  #{MiscFunctions.formatSize(user.get('size'))}
     .g-user-title
       a.g-user-link(g-user-cid=user.cid)
         b= user.name()

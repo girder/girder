@@ -1,4 +1,9 @@
-girder.collections.GroupCollection = girder.Collection.extend({
+var Collection = require('girder/collection');
+var GroupModel = require('girder/models/GroupModel');
+
+var GroupCollection = Collection.extend({
     resourceName: 'group',
-    model: girder.models.GroupModel
+    model: GroupModel
 });
+
+module.exports = GroupCollection;

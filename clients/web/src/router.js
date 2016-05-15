@@ -1,10 +1,14 @@
-girder.Router = Backbone.Router.extend({
+var Backbone      = require('backbone');
+var Events        = require('girder/events');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+var Router = Backbone.Router.extend({
     initialize: function () {
         this._enabled = true;
     },
 
     execute: function (callback, args) {
-        args.push(girder.parseQueryString(args.pop()));
+        args.push(MiscFunctions.parseQueryString(args.pop()));
         var queryString = args[args.length - 1];
         if (callback) {
             callback.apply(this, args);
@@ -12,11 +16,11 @@ girder.Router = Backbone.Router.extend({
 
         // handle "top level" dialogs
         if (queryString.dialog === 'login') {
-            girder.events.trigger('g:loginUi');
+            Events.trigger('g:loginUi');
         } else if (queryString.dialog === 'register') {
-            girder.events.trigger('g:registerUi');
+            Events.trigger('g:registerUi');
         } else if (queryString.dialog === 'resetpassword') {
-            girder.events.trigger('g:resetPasswordUi');
+            Events.trigger('g:resetPasswordUi');
         }
     },
 
@@ -38,13 +42,4 @@ girder.Router = Backbone.Router.extend({
     }
 });
 
-girder.router = new girder.Router();
-
-// When the back button is pressed, we want to close open modals.
-girder.router.on('route', function (route, params) {
-    if (!params.slice(-1)[0].dialog) {
-        $('.modal').girderModal('close');
-    }
-    // get rid of tooltips
-    $('.tooltip').remove();
-});
+module.exports = Router;

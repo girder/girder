@@ -1,7 +1,12 @@
+var girder               = require('girder/init');
+var View                 = require('girder/view');
+var LayoutHeaderUserView = require('girder/views/layout/HeaderUserView');
+var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
+
 /**
  * This view shows the header in the layout.
  */
-girder.views.LayoutHeaderView = girder.View.extend({
+var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
             girder.router.navigate('', {trigger: true});
@@ -9,11 +14,11 @@ girder.views.LayoutHeaderView = girder.View.extend({
     },
 
     initialize: function () {
-        this.userView = new girder.views.LayoutHeaderUserView({
+        this.userView = new LayoutHeaderUserView({
             parentView: this
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Quick search...',
             types: ['item', 'folder', 'group', 'collection', 'user'],
             parentView: this
@@ -32,3 +37,5 @@ girder.views.LayoutHeaderView = girder.View.extend({
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
     }
 });
+
+module.exports = LayoutHeaderView;

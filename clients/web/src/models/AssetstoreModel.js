@@ -1,4 +1,9 @@
-girder.models.AssetstoreModel = girder.Model.extend({
+var _             = require('underscore');
+var Rest          = require('girder/rest');
+var Model         = require('girder/model').Model;
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',
 
     capacityKnown: function () {
@@ -8,12 +13,12 @@ girder.models.AssetstoreModel = girder.Model.extend({
 
     capacityString: function () {
         var cap = this.get('capacity');
-        return girder.formatSize(cap.free) + ' free of ' +
-            girder.formatSize(cap.total) + ' total';
+        return MiscFunctions.formatSize(cap.free) + ' free of ' +
+            MiscFunctions.formatSize(cap.total) + ' total';
     },
 
     import: function (params) {
-        girder.restRequest({
+        Rest.restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
@@ -27,3 +32,5 @@ girder.models.AssetstoreModel = girder.Model.extend({
         return this;
     }
 });
+
+module.exports = AssetstoreModel;

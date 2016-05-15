@@ -1,9 +1,14 @@
+var _      = require('underscore');
+var girder = require('girder/init');
+var Rest   = require('girder/rest');
+var View   = require('girder/view');
+
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-girder.views.SearchFieldWidget = girder.View.extend({
+var SearchFieldWidget = View.extend({
     events: {
         'input .g-search-field': 'search',
 
@@ -177,7 +182,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
         this.ajaxLock = true;
         this.pending = null;
 
-        girder.restRequest({
+        Rest.restRequest({
             path: 'resource/search',
             data: {
                 q: q,
@@ -241,3 +246,5 @@ girder.views.SearchFieldWidget = girder.View.extend({
         }, this));
     }
 });
+
+module.exports = SearchFieldWidget;

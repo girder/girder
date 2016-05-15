@@ -1,4 +1,11 @@
-girder.models.FileModel = girder.Model.extend({
+var _           = require('underscore');
+var Rest        = require('girder/rest');
+var Constants   = require('girder/constants');
+var Model       = require('girder/model').Model;
+var FolderModel = require('girder/models/FolderModel');
+var ItemModel   = require('girder/models/ItemModel');
+
+var FileModel = Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
@@ -64,7 +71,7 @@ girder.models.FileModel = girder.Model.extend({
      * @param type The mime type of the file (optional).
      */
     uploadToFolder: function (parentFolder, data, name, type) {
-        this._uploadToContainer(girder.models.FolderModel, parentFolder, data, name, type);
+        this._uploadToContainer(FolderModel, parentFolder, data, name, type);
     },
 
     /**
@@ -75,7 +82,7 @@ girder.models.FileModel = girder.Model.extend({
      * @param type The mime type of the file (optional).
      */
     uploadToItem: function (parentItem, data, name, type) {
-        this._uploadToContainer(girder.models.ItemModel, parentItem, data, name, type);
+        this._uploadToContainer(ItemModel, parentItem, data, name, type);
     },
 
     /**
@@ -102,10 +109,10 @@ girder.models.FileModel = girder.Model.extend({
         };
 
         // Authenticate and generate the upload token for this file
-        girder.restRequest(_restParams).done(_.bind(function (upload) {
+        Rest.restRequest(_restParams).done(_.bind(function (upload) {
             var behavior = upload.behavior;
-            if (behavior && girder.uploadHandlers[behavior]) {
-                this.uploadHandler = new girder.uploadHandlers[behavior]({
+            if (behavior && Rest.uploadHandlers[behavior]) {
+                this.uploadHandler = new Rest.uploadHandlers[behavior]({
                     upload: upload,
                     parentModel: parentModel,
                     file: file
@@ -172,7 +179,7 @@ girder.models.FileModel = girder.Model.extend({
         }
 
         // Request the actual offset we need to resume at
-        girder.restRequest({
+        Rest.restRequest({
             path: 'file/offset',
             type: 'GET',
             data: {
@@ -201,7 +208,7 @@ girder.models.FileModel = girder.Model.extend({
         if (!this.resumeInfo || !this.resumeInfo.uploadId) {
             return;
         }
-        girder.restRequest({
+        Rest.restRequest({
             path: 'system/uploads',
             type: 'DELETE',
             data: {
@@ -213,7 +220,7 @@ girder.models.FileModel = girder.Model.extend({
     },
 
     _uploadChunk: function (file, uploadId) {
-        var endByte = Math.min(this.startByte + girder.UPLOAD_CHUNK_SIZE,
+        var endByte = Math.min(this.startByte + Constants.UPLOAD_CHUNK_SIZE,
                                file.size);
 
         this.chunkLength = endByte - this.startByte;
@@ -226,9 +233,7 @@ girder.models.FileModel = girder.Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
-        girder._uploadId = uploadId;
-
-        girder.restRequest({
+        Rest.restRequest({
             path: 'file/chunk',
             type: 'POST',
             dataType: 'json',
@@ -306,3 +311,6 @@ girder.models.FileModel = girder.Model.extend({
         }
     }
 });
+
+module.exports = FileModel;
+

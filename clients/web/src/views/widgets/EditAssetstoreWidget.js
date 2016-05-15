@@ -1,7 +1,14 @@
+var _            = require('underscore');
+var $            = require('jquery');
+var girder       = require('girder/init');
+var Constants    = require('girder/constants');
+var DialogHelper = require('girder/utilities/DialogHelper');
+var View         = require('girder/view');
+
 /**
  * This widget is used to edit an existing assetstore.
  */
-girder.views.EditAssetstoreWidget = girder.View.extend({
+var EditAssetstoreWidget = View.extend({
     events: {
         'submit #g-assetstore-edit-form': function (e) {
             e.preventDefault();
@@ -41,14 +48,14 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         var view = this;
         var modal = this.$el.html(girder.templates.editAssetstoreWidget({
             assetstore: view.model,
-            types: girder.AssetstoreType
+            types: Constants.AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-edit-name').focus();
-            girder.dialogs.handleOpen('assetstoreedit', undefined, view.model.get('id'));
+            DialogHelper.handleOpen('assetstoreedit', undefined, view.model.get('id'));
             view.$('#g-edit-name').val(view.model.get('name'));
             view.fieldsMap[view.model.get('type')].set.call(view);
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('assetstoreedit', undefined, view.model.get('id'));
+            DialogHelper.handleClose('assetstoreedit', undefined, view.model.get('id'));
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;
@@ -73,10 +80,10 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
     }
 });
 
-(function () {
-    var fieldsMap = girder.views.EditAssetstoreWidget.prototype.fieldsMap;
+// (function () {
+    var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
 
-    fieldsMap[girder.AssetstoreType.FILESYSTEM] = {
+    fieldsMap[Constants.AssetstoreType.FILESYSTEM] = {
         get: function () {
             return {
                 root: this.$('#g-edit-fs-root').val()
@@ -87,7 +94,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         }
     };
 
-    fieldsMap[girder.AssetstoreType.GRIDFS] = {
+    fieldsMap[Constants.AssetstoreType.GRIDFS] = {
         get: function () {
             return {
                 db: this.$('#g-edit-gridfs-db').val(),
@@ -102,7 +109,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         }
     };
 
-    fieldsMap[girder.AssetstoreType.S3] = {
+    fieldsMap[Constants.AssetstoreType.S3] = {
         get: function () {
             return {
                 bucket: this.$('#g-edit-s3-bucket').val(),
@@ -122,4 +129,6 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
         }
     };
-})();
+// })();
+
+module.exports = EditAssetstoreWidget;

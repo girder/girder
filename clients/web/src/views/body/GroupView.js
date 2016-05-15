@@ -1,8 +1,25 @@
-(function () {
+var _                  = require('underscore');
+var $                  = require('jquery');
+var girder             = require('girder/init');
+var Auth               = require('girder/auth');
+var Events             = require('girder/events');
+var Constants          = require('girder/constants');
+var UserCollection     = require('girder/collections/UserCollection');
+var GroupModel         = require('girder/models/GroupModel');
+var View               = require('girder/view');
+var GroupMembersWidget = require('girder/views/widgets/GroupMembersWidget');
+var EditGroupWidget    = require('girder/views/widgets/EditGroupWidget');
+var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
+var GroupInvitesWidget = require('girder/views/widgets/GroupInvitesWidget');
+var GroupAdminsWidget  = require('girder/views/widgets/GroupAdminsWidget');
+var GroupModsWidget    = require('girder/views/widgets/GroupModsWidget');
+var MiscFunctions      = require('girder/utilities/MiscFunctions');
+
+// (function () {
     /**
      * This view shows a single group's page.
      */
-    girder.views.GroupView = girder.View.extend({
+    var GroupView = View.extend({
         events: {
             'click .g-edit-group': 'editGroup',
             'click .g-group-join': 'joinGroup',
@@ -19,7 +36,7 @@
         },
 
         initialize: function (settings) {
-            girder.cancelRestRequests('fetch');
+            MiscFunctions.cancelRestRequests('fetch');
             this.tab = settings.tab || 'roles';
             this.edit = settings.edit || false;
 
@@ -30,7 +47,7 @@
                     this.render();
                 }, this).fetchAccess();
             } else if (settings.id) {
-                this.model = new girder.models.GroupModel();
+                this.model = new GroupModel();
                 this.model.set('_id', settings.id);
 
                 this.model.on('g:fetched', function () {
@@ -45,7 +62,7 @@
             var container = $('#g-dialog-container');
 
             if (!this.editGroupWidget) {
-                this.editGroupWidget = new girder.views.EditGroupWidget({
+                this.editGroupWidget = new EditGroupWidget({
                     el: container,
                     model: this.model,
                     parentView: this
@@ -58,7 +75,7 @@
 
         deleteGroup: function () {
             var view = this;
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to delete the group <b>' +
                     view.model.escape('name') + '</b>?',
                 escapedHtml: true,
@@ -77,8 +94,8 @@
             this.isModerator = false;
             this.isAdmin = false;
 
-            if (girder.currentUser) {
-                _.every(girder.currentUser.get('groups'), function (groupId) {
+            if (Auth.getCurrentUser()) {
+                _.every(Auth.getCurrentUser().get('groups'), function (groupId) {
                     if (groupId === this.model.get('_id')) {
                         this.isMember = true;
                         return false; // 'break;'
@@ -86,7 +103,7 @@
                     return true;
                 }, this);
 
-                _.every(girder.currentUser.get('groupInvites'), function (inv) {
+                _.every(Auth.getCurrentUser().get('groupInvites'), function (inv) {
                     if (inv.groupId === this.model.get('_id')) {
                         this.isInvited = true;
                         return false; // 'break;'
@@ -95,7 +112,7 @@
                 }, this);
 
                 _.every(this.model.get('requests') || [], function (user) {
-                    if (user.id === girder.currentUser.get('_id')) {
+                    if (user.id === Auth.getCurrentUser().get('_id')) {
                         this.isRequested = true;
                         return false; // 'break;'
                     }
@@ -105,10 +122,10 @@
 
             if (this.isMember) {
                 _.every(this.model.get('access').users || [], function (access) {
-                    if (access.id === girder.currentUser.get('_id')) {
-                        if (access.level === girder.AccessType.WRITE) {
+                    if (access.id === Auth.getCurrentUser().get('_id')) {
+                        if (access.level === Constants.AccessType.WRITE) {
                             this.isModerator = true;
-                        } else if (access.level === girder.AccessType.ADMIN) {
+                        } else if (access.level === Constants.AccessType.ADMIN) {
                             this.isAdmin = true;
                         }
                         return false; // 'break';
@@ -130,12 +147,12 @@
                 this._renderInvitesWidget();
             } else {
                 var container = this.$('.g-group-invites-body');
-                new girder.views.LoadingAnimation({
+                new LoadingAnimation({
                     el: container,
                     parentView: this
                 }).render();
 
-                this.invitees = new girder.collections.UserCollection();
+                this.invitees = new UserCollection();
                 this.invitees.altUrl =
                     'group/' + this.model.get('_id') + '/invitation';
                 var view = this;
@@ -164,7 +181,7 @@
                                    this.tab, {replace: true});
 
             if (this.edit) {
-                if (this.model.get('_accessLevel') >= girder.AccessType.ADMIN) {
+                if (this.model.get('_accessLevel') >= Constants.AccessType.ADMIN) {
                     this.editGroup();
                 }
                 this.edit = false;
@@ -187,7 +204,7 @@
         },
 
         _renderInvitesWidget: function () {
-            new girder.views.GroupInvitesWidget({
+            new GroupInvitesWidget({
                 el: this.$('.g-group-invites-body'),
                 invitees: this.invitees,
                 group: this.model,
@@ -210,12 +227,12 @@
 
         leaveGroup: function () {
             var view = this;
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to leave this group?',
                 confirmCallback: function () {
                     view.model.off('g:removed').on('g:removed', function () {
                         view.render();
-                    }).removeMember(girder.currentUser.get('_id'));
+                    }).removeMember(Auth.getCurrentUser().get('_id'));
                 }
             });
         },
@@ -239,7 +256,7 @@
         acceptMembershipRequest: function (e) {
             var userId = $(e.currentTarget).parents('li').attr('userid');
             this.model.off('g:invited').on('g:invited', this.render, this)
-                      .sendInvitation(userId, girder.AccessType.READ, true);
+                      .sendInvitation(userId, Constants.AccessType.READ, true);
         },
 
         denyMembershipRequest: function (e) {
@@ -253,38 +270,38 @@
                 admins = [];
 
             _.each(this.model.get('access').users, function (userAccess) {
-                if (userAccess.level === girder.AccessType.WRITE) {
+                if (userAccess.level === Constants.AccessType.WRITE) {
                     mods.push(userAccess);
-                } else if (userAccess.level === girder.AccessType.ADMIN) {
+                } else if (userAccess.level === Constants.AccessType.ADMIN) {
                     admins.push(userAccess);
                 }
             }, this);
 
-            this.adminsWidget = new girder.views.GroupAdminsWidget({
+            this.adminsWidget = new GroupAdminsWidget({
                 el: this.$('.g-group-admins-container'),
                 group: this.model,
                 admins: admins,
                 parentView: this
             }).off().on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
-                          .demoteUser(userId, girder.AccessType.ADMIN);
+                          .demoteUser(userId, Constants.AccessType.ADMIN);
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:moderatorAdded', this.render, this)
                     .render();
 
-            this.modsWidget = new girder.views.GroupModsWidget({
+            this.modsWidget = new GroupModsWidget({
                 el: this.$('.g-group-mods-container'),
                 group: this.model,
                 moderators: mods,
                 parentView: this
             }).on('g:demoteUser', function (userId) {
                 this.model.off('g:demoted').on('g:demoted', this.render, this)
-                          .demoteUser(userId, girder.AccessType.WRITE);
+                          .demoteUser(userId, Constants.AccessType.WRITE);
             }, this).on('g:removeMember', this.removeMember, this)
                     .on('g:adminAdded', this.render, this)
                     .render();
 
-            this.membersWidget = new girder.views.GroupMembersWidget({
+            this.membersWidget = new GroupMembersWidget({
                 el: this.$('.g-group-members-container'),
                 group: this.model,
                 admins: admins,
@@ -309,16 +326,18 @@
         }
     });
 
+    module.exports = GroupView;
+
     /**
      * Helper function for fetching the user and rendering the view with
      * an arbitrary set of extra parameters.
      */
     var _fetchAndInit = function (groupId, params) {
-        var group = new girder.models.GroupModel();
+        var group = new GroupModel();
         group.set({
             _id: groupId
         }).once('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.GroupView, _.extend({
+            Events.trigger('g:navigateTo', GroupView, _.extend({
                 group: group
             }, params || {}));
         }, this).fetch();
@@ -336,4 +355,4 @@
             tab: tab
         });
     });
-}());
+// }());

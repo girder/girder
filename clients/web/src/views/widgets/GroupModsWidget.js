@@ -1,21 +1,30 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Events        = require('girder/events');
+var Constants     = require('girder/constants');
+var UserModel     = require('girder/models/UserModel');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+var UserView      = require('girder/views/body/UserView');
+
 /**
  * This view shows a list of moderators of a group.
  */
-girder.views.GroupModsWidget = girder.View.extend({
+var GroupModsWidget = View.extend({
     events: {
         'click .g-group-mod-promote': function (e) {
             var userid = $(e.currentTarget).parents('li').attr('userid');
-            var user = new girder.models.UserModel({_id: userid});
+            var user = new UserModel({_id: userid});
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
-            }, this).promoteUser(user, girder.AccessType.ADMIN);
+            }, this).promoteUser(user, Constants.AccessType.ADMIN);
         },
 
         'click .g-group-mod-demote': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -29,7 +38,7 @@ girder.views.GroupModsWidget = girder.View.extend({
             var view = this;
             var li = $(e.currentTarget).parents('li');
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to remove <b> ' +
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
@@ -41,7 +50,7 @@ girder.views.GroupModsWidget = girder.View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
+            Events.trigger('g:navigateTo', UserView, {
                 id: $(e.currentTarget).parents('li').attr('userid')
             });
         }
@@ -57,7 +66,7 @@ girder.views.GroupModsWidget = girder.View.extend({
             group: this.model,
             level: this.model.get('_accessLevel'),
             moderators: this.moderators,
-            accessType: girder.AccessType
+            accessType: Constants.AccessType
         }));
 
         this.$('.g-group-mod-demote.g-group-mod-promote,.g-group-mod-remove').tooltip({
@@ -70,3 +79,6 @@ girder.views.GroupModsWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = GroupModsWidget;
+

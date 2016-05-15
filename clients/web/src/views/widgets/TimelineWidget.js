@@ -1,3 +1,7 @@
+var _      = require('underscore');
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)
  * with two sorts of primitives overlaid:
@@ -13,7 +17,7 @@
  * this widget, it is not possible to mix the numeric/relative values with datestamp
  * values.
  */
-girder.views.TimelineWidget = girder.View.extend({
+var TimelineWidget = View.extend({
     /**
      * Initialize the timeline widget.
      *
@@ -152,3 +156,5 @@ girder.views.TimelineWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = TimelineWidget;

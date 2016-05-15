@@ -1,8 +1,12 @@
+var _        = require('underscore');
+var Backbone = require('backbone');
+var Rest     = require('girder/rest');
+
 /**
  * All models should descend from this base model, which provides a number
  * of utilities for synchronization.
  */
-girder.Model = Backbone.Model.extend({
+var Model = Backbone.Model.extend({
     resourceName: null,
     altUrl: null,
     idAttribute: '_id',
@@ -59,7 +63,7 @@ girder.Model = Backbone.Model.extend({
             }
         }, this);
 
-        girder.restRequest({
+        Rest.restRequest({
             path: path,
             type: type,
             data: data,
@@ -97,7 +101,7 @@ girder.Model = Backbone.Model.extend({
         if (opts.ignoreError) {
             restOpts.error = null;
         }
-        girder.restRequest(restOpts).done(_.bind(function (resp) {
+        Rest.restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
             if (opts.extraPath) {
                 this.trigger('g:fetched.' + opts.extraPath);
@@ -116,7 +120,7 @@ girder.Model = Backbone.Model.extend({
      * as the href property of a direct download link.
      */
     downloadUrl: function () {
-        return girder.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
+        return Rest.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
             this.get('_id') + '/download';
     },
 
@@ -154,7 +158,7 @@ girder.Model = Backbone.Model.extend({
             args.error = null;
         }
 
-        girder.restRequest(args).done(_.bind(function () {
+        Rest.restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }
@@ -180,7 +184,7 @@ girder.Model = Backbone.Model.extend({
  * from this object. It provides utilities for managing and storing the
  * access control list on
  */
-girder.AccessControlledModel = girder.Model.extend({
+var AccessControlledModel = Model.extend({
     /**
      * Saves the access control list on this model to the server. Saves the
      * state of whatever this model's "access" parameter is set to, which
@@ -196,7 +200,7 @@ girder.AccessControlledModel = girder.Model.extend({
             return;
         }
 
-        girder.restRequest({
+        Rest.restRequest({
             path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: _.extend({
@@ -226,7 +230,7 @@ girder.AccessControlledModel = girder.Model.extend({
         }
 
         if (!this.get('access') || force) {
-            girder.restRequest({
+            Rest.restRequest({
                 path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -247,10 +251,10 @@ girder.AccessControlledModel = girder.Model.extend({
     }
 });
 
-girder.models.MetadataMixin = {
+var MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
-        girder.restRequest({
+        Rest.restRequest({
             path: opts.path ||
                 ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
             contentType: 'application/json',
@@ -310,4 +314,10 @@ girder.models.MetadataMixin = {
             }
         }
     }
+};
+
+module.exports = {
+    Model: Model,
+    AccessControlledModel: AccessControlledModel,
+    MetadataMixin: MetadataMixin
 };

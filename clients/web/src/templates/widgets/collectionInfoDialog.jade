@@ -1,8 +1,9 @@
+!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 mixin dateInfo(intro, property)
   .g-collection-info-line(property=property)
     i.icon-clock
     span= intro
-    span.g-bold-part= girder.formatDate(collection.get(property), girder.DATE_SECOND)
+    span.g-bold-part= MiscFunctions.formatDate(collection.get(property), MiscFunctions.DATE_SECOND)
 
 .modal-dialog
   .modal-content
@@ -14,7 +15,7 @@ mixin dateInfo(intro, property)
         span= collection.name()
     .modal-body
       if collection.get('description')
-        .g-info-dialog-description!= girder.renderMarkdown(collection.get('description'))
+        .g-info-dialog-description!= MiscFunctions.renderMarkdown(collection.get('description'))
 
       .g-collection-info-lines
         +dateInfo('Created ', 'created')
@@ -23,7 +24,7 @@ mixin dateInfo(intro, property)
 
         .g-collection-info-line(property="size")
           i.icon-floppy
-          | Total size: #[span.g-bold-part= girder.formatSize(collection.get('size'))]
+          | Total size: #[span.g-bold-part= MiscFunctions.formatSize(collection.get('size'))]
 
         .g-collection-info-line(property="nFolders")
           i.icon-folder

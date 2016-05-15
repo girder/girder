@@ -1,4 +1,7 @@
-girder.views.FilesystemImportView = girder.View.extend({
+var girder = require('girder/init');
+var View   = require('girder/view');
+
+var FilesystemImportView = View.extend({
     events: {
         'submit .g-filesystem-import-form': function (e) {
             e.preventDefault();
@@ -32,3 +35,5 @@ girder.views.FilesystemImportView = girder.View.extend({
         }));
     }
 });
+
+module.exports = FilesystemImportView;

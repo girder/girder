@@ -1,5 +1,9 @@
+var $             = require('jquery');
+var Backbone      = require('backbone');
+var girder        = require('girder/init');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
 
-girder.dialogs = {
+var dialogs = {
 
     splitRoute: function (route) {
         if (!route) {
@@ -31,7 +35,7 @@ girder.dialogs = {
         }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
-            queryString = girder.parseQueryString(routeParts.name),
+            queryString = MiscFunctions.parseQueryString(routeParts.name),
             dialogName = queryString.dialog,
             dialogId = queryString.dialogid;
         delete queryString.dialog;
@@ -51,7 +55,7 @@ girder.dialogs = {
         }
         var curRoute = Backbone.history.fragment,
             routeParts = this.splitRoute(curRoute),
-            queryString = girder.parseQueryString(routeParts.name),
+            queryString = MiscFunctions.parseQueryString(routeParts.name),
             dialogName = queryString.dialog,
             dialogId = queryString.dialogid;
 
@@ -69,3 +73,5 @@ girder.dialogs = {
     }
 
 };
+
+module.exports = dialogs;

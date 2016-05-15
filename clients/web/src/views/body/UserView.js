@@ -1,8 +1,18 @@
-(function () {
+var _               = require('underscore');
+var girder          = require('girder/init');
+var Events          = require('girder/events');
+var FolderModel     = require('girder/models/FolderModel');
+var UserModel       = require('girder/models/UserModel');
+var View            = require('girder/view');
+var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
+var MiscFunctions   = require('girder/utilities/MiscFunctions');
+var UsersView       = require('girder/views/body/UsersView');
+
+// (function () {
     /**
      * This view shows a single user's page.
      */
-    girder.views.UserView = girder.View.extend({
+    var UserView = View.extend({
         events: {
             'click a.g-edit-user': function () {
                 var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
@@ -10,7 +20,7 @@
             },
 
             'click a.g-delete-user': function () {
-                girder.confirm({
+                MiscFunctions.confirm({
                     text: 'Are you sure you want to delete the user <b>' +
                           this.model.escape('login') + '</b>?',
                     yesText: 'Delete',
@@ -25,7 +35,7 @@
         },
 
         initialize: function (settings) {
-            girder.cancelRestRequests('fetch');
+            MiscFunctions.cancelRestRequests('fetch');
             this.folderId = settings.folderId || null;
             this.upload = settings.upload || false;
             this.folderAccess = settings.folderAccess || false;
@@ -37,7 +47,7 @@
                 this.model = settings.user;
 
                 if (settings.folderId) {
-                    this.folder = new girder.models.FolderModel();
+                    this.folder = new FolderModel();
                     this.folder.set({
                         _id: settings.folderId
                     }).on('g:fetched', function () {
@@ -54,7 +64,7 @@
                     this.render();
                 }
             } else if (settings.id) {
-                this.model = new girder.models.UserModel();
+                this.model = new UserModel();
                 this.model.set('_id', settings.id);
 
                 this.model.on('g:fetched', function () {
@@ -65,7 +75,7 @@
         },
 
         _createHierarchyWidget: function () {
-            this.hierarchyWidget = new girder.views.HierarchyWidget({
+            this.hierarchyWidget = new HierarchyWidget({
                 parentModel: this.folder || this.model,
                 upload: this.upload,
                 folderAccess: this.folderAccess,
@@ -94,20 +104,22 @@
         }
     });
 
+    module.exports = UserView;
+
     /**
      * Helper function for fetching the user and rendering the view with
      * an arbitrary set of extra parameters.
      */
     var _fetchAndInit = function (userId, params) {
-        var user = new girder.models.UserModel();
+        var user = new UserModel();
         user.set({
             _id: userId
         }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, _.extend({
+            Events.trigger('g:navigateTo', UserView, _.extend({
                 user: user
             }, params || {}));
         }, this).on('g:error', function () {
-            girder.events.trigger('g:navigateTo', girder.views.UsersView);
+            Events.trigger('g:navigateTo', UsersView);
         }, this).fetch();
     };
 
@@ -128,4 +140,4 @@
             itemCreate: params.dialog === 'itemcreate'
         });
     });
-}());
+// }());

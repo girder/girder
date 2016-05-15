@@ -1,22 +1,31 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Events        = require('girder/events');
+var Constants     = require('girder/constants');
+var UserModel     = require('girder/models/UserModel');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+var UserView      = require('girder/views/body/UserView');
+
 /**
  * This view shows a list of administrators of a group.
  */
-girder.views.GroupAdminsWidget = girder.View.extend({
+var GroupAdminsWidget = View.extend({
     events: {
         'click .g-demote-moderator': function (e) {
             var li = $(e.currentTarget).parents('.g-group-admins>li');
             var userid = li.attr('userid');
             var view = this;
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to demote <b>' +
                     _.escape(li.attr('username')) + '</b> to a moderator?',
                 escapedHtml: true,
                 confirmCallback: function () {
-                    var user = new girder.models.UserModel({_id: userid});
+                    var user = new UserModel({_id: userid});
                     view.model.off('g:promoted').on('g:promoted', function () {
                         this.trigger('g:moderatorAdded');
-                    }, view).promoteUser(user, girder.AccessType.WRITE);
+                    }, view).promoteUser(user, Constants.AccessType.WRITE);
                 }
             });
         },
@@ -25,7 +34,7 @@ girder.views.GroupAdminsWidget = girder.View.extend({
             var li = $(e.currentTarget).parents('.g-group-admins>li');
             var view = this;
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to remove admin privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -39,7 +48,7 @@ girder.views.GroupAdminsWidget = girder.View.extend({
             var view = this;
             var li = $(e.currentTarget).parents('li');
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to remove <b> ' +
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
@@ -51,7 +60,7 @@ girder.views.GroupAdminsWidget = girder.View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            girder.events.trigger('g:navigateTo', girder.views.UserView, {
+            Events.trigger('g:navigateTo', UserView, {
                 id: $(e.currentTarget).parents('li').attr('userid')
             });
         }
@@ -67,7 +76,7 @@ girder.views.GroupAdminsWidget = girder.View.extend({
             group: this.model,
             level: this.model.get('_accessLevel'),
             admins: this.admins,
-            accessType: girder.AccessType
+            accessType: Constants.AccessType
         }));
 
         this.$('.g-group-admin-demote').tooltip({
@@ -80,3 +89,5 @@ girder.views.GroupAdminsWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = GroupAdminsWidget;

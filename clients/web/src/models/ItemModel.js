@@ -1,4 +1,11 @@
-girder.models.ItemModel = girder.Model.extend({
+var _             = require('underscore');
+var $             = require('jquery');
+var Rest          = require('girder/rest');
+var Model         = require('girder/model').Model;
+var MetadataMixin = require('girder/model').MetadataMixin;
+var FolderModel   = require('girder/models/FolderModel');
+
+var ItemModel = Model.extend({
     resourceName: 'item',
 
     /**
@@ -18,7 +25,7 @@ girder.models.ItemModel = girder.Model.extend({
             callback(this.get('_accessLevel'));
             return this.get('_accessLevel');
         } else {
-            this.parent = new girder.models.FolderModel();
+            this.parent = new FolderModel();
             this.parent.set({
                 _id: this.get('folderId')
             }).once('g:fetched', function () {
@@ -32,7 +39,7 @@ girder.models.ItemModel = girder.Model.extend({
      * Get the path to the root of the hierarchy
      */
     getRootPath: function (callback) {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/rootpath'
         }).done(_.bind(function (resp) {
             callback(resp);
@@ -42,4 +49,6 @@ girder.models.ItemModel = girder.Model.extend({
     }
 });
 
-_.extend(girder.models.ItemModel.prototype, girder.models.MetadataMixin);
+_.extend(ItemModel.prototype, MetadataMixin);
+
+module.exports = ItemModel;

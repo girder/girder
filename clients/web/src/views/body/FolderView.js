@@ -1,9 +1,17 @@
+var _               = require('underscore');
+var girder          = require('girder/init');
+var Events          = require('girder/events');
+var FolderModel     = require('girder/models/FolderModel');
+var View            = require('girder/view');
+var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
+var MiscFunctions   = require('girder/utilities/MiscFunctions');
+
 /**
  * This view shows a single folder as a hierarchy widget.
  */
-girder.views.FolderView = girder.View.extend({
+var FolderView = View.extend({
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
         this.folder = settings.folder;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;
@@ -11,7 +19,7 @@ girder.views.FolderView = girder.View.extend({
         this.folderEdit = settings.folderEdit || false;
         this.itemCreate = settings.itemCreate || false;
 
-        this.hierarchyWidget = new girder.views.HierarchyWidget({
+        this.hierarchyWidget = new HierarchyWidget({
             parentModel: this.folder,
             upload: this.upload,
             folderAccess: this.folderAccess,
@@ -30,13 +38,15 @@ girder.views.FolderView = girder.View.extend({
     }
 });
 
+module.exports = FolderView;
+
 girder.router.route('folder/:id', 'folder', function (id, params) {
     // Fetch the folder by id, then render the view.
-    var folder = new girder.models.FolderModel();
+    var folder = new FolderModel();
     folder.set({
         _id: id
     }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.FolderView, _.extend({
+        Events.trigger('g:navigateTo', FolderView, _.extend({
             folder: folder,
             upload: params.dialog === 'upload',
             folderAccess: params.dialog === 'folderaccess',

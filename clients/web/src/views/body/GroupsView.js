@@ -1,7 +1,18 @@
+var girder            = require('girder/init');
+var Auth              = require('girder/auth');
+var Events            = require('girder/events');
+var GroupCollection   = require('girder/collections/GroupCollection');
+var GroupModel        = require('girder/models/GroupModel');
+var View              = require('girder/view');
+var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+
 /**
  * This view lists groups.
  */
-girder.views.GroupsView = girder.View.extend({
+var GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
@@ -16,18 +27,18 @@ girder.views.GroupsView = girder.View.extend({
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
-        this.collection = new girder.collections.GroupCollection();
+        MiscFunctions.cancelRestRequests('fetch');
+        this.collection = new GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
 
-        this.paginateWidget = new girder.views.PaginateWidget({
+        this.paginateWidget = PaginateWidget({
             collection: this.collection,
             parentView: this
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = SearchFieldWidget({
             placeholder: 'Search groups...',
             types: ['group'],
             parentView: this
@@ -57,15 +68,15 @@ girder.views.GroupsView = girder.View.extend({
      * Prompt the user to create a new group
      */
     createGroupDialog: function () {
-        new girder.views.EditGroupWidget({
+        new EditGroupWidget({
             el: $('#g-dialog-container'),
             parentView: this
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list
-            var userGroups = girder.currentUser.get('groups') || [];
+            var userGroups = Auth.getCurrentUser().get('groups') || [];
             userGroups.push(group.get('_id'));
-            girder.currentUser.set('groups', userGroups);
+            Auth.getCurrentUser().set('groups', userGroups);
 
             girder.router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).render();
@@ -76,7 +87,7 @@ girder.views.GroupsView = girder.View.extend({
      * will navigate them to the view for that group.
      */
     _gotoGroup: function (result) {
-        var group = new girder.models.GroupModel();
+        var group = new GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
             girder.router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).fetch();
@@ -84,7 +95,9 @@ girder.views.GroupsView = girder.View.extend({
 
 });
 
+module.exports = GroupsView;
+
 girder.router.route('groups', 'groups', function (params) {
-    girder.events.trigger('g:navigateTo', girder.views.GroupsView, params || {});
-    girder.events.trigger('g:highlightItem', 'GroupsView');
+    Events.trigger('g:navigateTo', GroupsView, params || {});
+    Events.trigger('g:highlightItem', 'GroupsView');
 });

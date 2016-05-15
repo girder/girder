@@ -1,10 +1,17 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Events        = require('girder/events');
+var FileModel     = require('girder/models/FileModel');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * A simple widget for editing markdown text with a preview tab.
  */
-girder.views.MarkdownWidget = girder.View.extend({
+var MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
-            girder.renderMarkdown(this.val().trim() || 'Nothing to show',
+            MiscFunctions.renderMarkdown(this.val().trim() || 'Nothing to show',
                                   this.$('.g-markdown-preview'));
         },
 
@@ -81,7 +88,7 @@ girder.views.MarkdownWidget = girder.View.extend({
         try {
             this.validateFiles();
         } catch (err) {
-            girder.events.trigger('g:alert', {
+            Events.trigger('g:alert', {
                 type: 'danger',
                 text: err.message,
                 icon: 'cancel',
@@ -91,7 +98,7 @@ girder.views.MarkdownWidget = girder.View.extend({
         }
 
         var file = this.files[0];
-        var fileModel = new girder.models.FileModel();
+        var fileModel = new FileModel();
 
         fileModel.on('g:upload.complete', function () {
             var val = this.$('.g-markdown-text').val();
@@ -110,11 +117,11 @@ girder.views.MarkdownWidget = girder.View.extend({
                 Math.ceil(100 * currentProgress / info.total) + '%');
             this.$('.g-markdown-upload-progress-message').text(
                 'Uploading ' + info.file.name + ' - ' +
-                   girder.formatSize(currentProgress) + ' / ' +
-                   girder.formatSize(info.total)
+                   MiscFunctions.formatSize(currentProgress) + ' / ' +
+                   MiscFunctions.formatSize(info.total)
             );
         }, this).on('g:upload.error', function (info) {
-            girder.events.trigger('g:alert', {
+            Events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
@@ -123,7 +130,7 @@ girder.views.MarkdownWidget = girder.View.extend({
             this.$('.g-upload-overlay').addClass('hide');
             this.$('.g-markdown-text').removeAttr('disabled');
         }, this).on('g:upload.errorStarting', function (info) {
-            girder.events.trigger('g:alert', {
+            Events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
@@ -154,7 +161,7 @@ girder.views.MarkdownWidget = girder.View.extend({
         if (this.maxUploadSize && file.size > this.maxUploadSize) {
             throw {
                 message: 'That file is too large. You may only attach files ' +
-                         'up to ' + girder.formatSize(this.maxUploadSize) + '.'
+                         'up to ' + MiscFunctions.formatSize(this.maxUploadSize) + '.'
             };
         }
 
@@ -189,3 +196,5 @@ girder.views.MarkdownWidget = girder.View.extend({
         }
     }
 });
+
+module.exports = MarkdownWidget;

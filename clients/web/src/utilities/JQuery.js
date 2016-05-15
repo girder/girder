@@ -1,3 +1,5 @@
+var jQuery = require('jquery');
+
 /**
  * Define jQuery plugins within this scope.
  */

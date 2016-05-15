@@ -1,6 +1,7 @@
+!{Constants=require('girder/constants')}
 .g-user-header
 
-  if (user.getAccessLevel() >= girder.AccessType.WRITE)
+  if (user.getAccessLevel() >= Constants.AccessType.WRITE)
     .btn-group.pull-right
       button.g-user-actions-button.btn.btn-default.dropdown-toggle(
         data-toggle="dropdown", title="Item actions")
@@ -12,7 +13,7 @@
           a.g-edit-user(role="menuitem")
             i.icon-edit
             | Edit user
-        if (user.getAccessLevel() >= girder.AccessType.ADMIN)
+        if (user.getAccessLevel() >= Constants.AccessType.ADMIN)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-delete-user(role="menuitem")

@@ -1,7 +1,13 @@
+var $               = require('jquery');
+var girder          = require('girder/init');
+var CollectionModel = require('girder/models/CollectionModel');
+var DialogHelper    = require('girder/utilities/DialogHelper');
+var View            = require('girder/view');
+
 /**
  * This widget is used to create a new collection or edit an existing one.
  */
-girder.views.EditCollectionWidget = girder.View.extend({
+var EditCollectionWidget = View.extend({
     events: {
         'submit #g-collection-edit-form': function (e) {
             e.preventDefault();
@@ -34,9 +40,9 @@ girder.views.EditCollectionWidget = girder.View.extend({
             view.$('#g-name').focus();
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('create');
+                DialogHelper.handleClose('create');
             } else {
-                girder.dialogs.handleClose('edit');
+                DialogHelper.handleClose('edit');
             }
         }).on('ready.girder.modal', function () {
             if (view.model) {
@@ -51,16 +57,16 @@ girder.views.EditCollectionWidget = girder.View.extend({
         this.$('#g-name').focus();
 
         if (view.model) {
-            girder.dialogs.handleOpen('edit');
+            DialogHelper.handleOpen('edit');
         } else {
-            girder.dialogs.handleOpen('create');
+            DialogHelper.handleOpen('create');
         }
 
         return this;
     },
 
     createCollection: function (fields) {
-        var collection = new girder.models.CollectionModel();
+        var collection = new CollectionModel();
         collection.set(fields);
         collection.on('g:saved', function () {
             this.$el.modal('hide');
@@ -84,3 +90,5 @@ girder.views.EditCollectionWidget = girder.View.extend({
         }, this).save();
     }
 });
+
+module.exports = EditCollectionWidget;

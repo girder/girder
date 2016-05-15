@@ -1,7 +1,15 @@
+var _              = require('underscore');
+var $              = require('jquery');
+var girder         = require('girder/init');
+var FolderModel    = require('girder/models/FolderModel');
+var DialogHelper   = require('girder/utilities/DialogHelper');
+var View           = require('girder/view');
+var MarkdownWidget = require('girder/views/widgets/MarkdownWidget');
+
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-girder.views.EditFolderWidget = girder.View.extend({
+var EditFolderWidget = View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();
@@ -24,7 +32,7 @@ girder.views.EditFolderWidget = girder.View.extend({
     initialize: function (settings) {
         this.folder = settings.folder || null;
         this.parentModel = settings.parentModel;
-        this.descriptionEditor = new girder.views.MarkdownWidget({
+        this.descriptionEditor = new MarkdownWidget({
             text: this.folder ? this.folder.get('description') : '',
             prefix: 'folder-description',
             placeholder: 'Enter a description',
@@ -44,15 +52,15 @@ girder.views.EditFolderWidget = girder.View.extend({
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.folder) {
-                girder.dialogs.handleOpen('folderedit');
+                DialogHelper.handleOpen('folderedit');
             } else {
-                girder.dialogs.handleOpen('foldercreate');
+                DialogHelper.handleOpen('foldercreate');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('foldercreate');
+                DialogHelper.handleClose('foldercreate');
             } else {
-                girder.dialogs.handleClose('folderedit');
+                DialogHelper.handleClose('folderedit');
             }
         }).on('ready.girder.modal', function () {
             if (view.folder) {
@@ -72,7 +80,7 @@ girder.views.EditFolderWidget = girder.View.extend({
     },
 
     createFolder: function (fields) {
-        var folder = new girder.models.FolderModel();
+        var folder = new FolderModel();
         folder.set(_.extend(fields, {
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id')
@@ -99,3 +107,6 @@ girder.views.EditFolderWidget = girder.View.extend({
         }, this).save();
     }
 });
+
+module.exports = EditFolderWidget;
+

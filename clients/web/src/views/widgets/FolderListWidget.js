@@ -1,9 +1,15 @@
+var _                = require('underscore');
+var girder           = require('girder/init');
+var FolderCollection = require('girder/collections/FolderCollection');
+var View             = require('girder/view');
+var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
+
 /**
  * This widget shows a list of folders under a given parent.
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-girder.views.FolderListWidget = girder.View.extend({
+var FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');
@@ -18,12 +24,12 @@ girder.views.FolderListWidget = girder.View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
 
-        new girder.views.LoadingAnimation({
+        new LoadingAnimation({
             el: this.$el,
             parentView: this
         }).render();
 
-        this.collection = new girder.collections.FolderCollection();
+        this.collection = new FolderCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
@@ -91,3 +97,6 @@ girder.views.FolderListWidget = girder.View.extend({
         }, this);
     }
 });
+
+module.exports = FolderListWidget;
+

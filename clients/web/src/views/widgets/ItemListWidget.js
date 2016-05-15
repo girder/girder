@@ -1,7 +1,13 @@
+var _                = require('underscore');
+var girder           = require('girder/init');
+var ItemCollection   = require('girder/collections/ItemCollection');
+var View             = require('girder/view');
+var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
+
 /**
  * This widget shows a list of items under a given folder.
  */
-girder.views.ItemListWidget = girder.View.extend({
+var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
@@ -16,12 +22,12 @@ girder.views.ItemListWidget = girder.View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
 
-        new girder.views.LoadingAnimation({
+        new LoadingAnimation({
             el: this.$el,
             parentView: this
         }).render();
 
-        this.collection = new girder.collections.ItemCollection();
+        this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
@@ -111,3 +117,5 @@ girder.views.ItemListWidget = girder.View.extend({
         }, this);
     }
 });
+
+module.exports = ItemListWidget;

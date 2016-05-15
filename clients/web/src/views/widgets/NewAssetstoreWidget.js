@@ -1,12 +1,17 @@
+var Constants       = require('girder/constants');
+var girder          = require('girder/init');
+var AssetstoreModel = require('girder/models/AssetstoreModel');
+var View            = require('girder/view');
+
 /**
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
  */
-girder.views.NewAssetstoreWidget = girder.View.extend({
+var NewAssetstoreWidget = View.extend({
     events: {
         'submit #g-new-fs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-fs-error'), {
-                type: girder.AssetstoreType.FILESYSTEM,
+                type: Constants.AssetstoreType.FILESYSTEM,
                 name: this.$('#g-new-fs-name').val(),
                 root: this.$('#g-new-fs-root').val()
             });
@@ -14,7 +19,7 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
 
         'submit #g-new-gridfs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-gridfs-error'), {
-                type: girder.AssetstoreType.GRIDFS,
+                type: Constants.AssetstoreType.GRIDFS,
                 name: this.$('#g-new-gridfs-name').val(),
                 db: this.$('#g-new-gridfs-db').val(),
                 mongohost: this.$('#g-new-gridfs-mongohost').val(),
@@ -24,7 +29,7 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
 
         'submit #g-new-s3-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-s3-error'), {
-                type: girder.AssetstoreType.S3,
+                type: Constants.AssetstoreType.S3,
                 name: this.$('#g-new-s3-name').val(),
                 bucket: this.$('#g-new-s3-bucket').val(),
                 prefix: this.$('#g-new-s3-prefix').val(),
@@ -52,7 +57,7 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
         this.$('.g-new-assetstore-submit').addClass('disabled');
         container.empty();
 
-        var assetstore = new girder.models.AssetstoreModel();
+        var assetstore = new AssetstoreModel();
         assetstore.set(data);
         assetstore.on('g:saved', function () {
             this.$('.g-new-assetstore-submit').removeClass('disabled');
@@ -63,3 +68,5 @@ girder.views.NewAssetstoreWidget = girder.View.extend({
         }, this).save();
     }
 });
+
+module.exports = NewAssetstoreWidget;

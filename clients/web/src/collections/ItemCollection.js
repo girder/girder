@@ -1,6 +1,11 @@
-girder.collections.ItemCollection = girder.Collection.extend({
+var Collection = require('girder/collection');
+var ItemModel  = require('girder/models/ItemModel');
+
+var ItemCollection = Collection.extend({
     resourceName: 'item',
-    model: girder.models.ItemModel,
+    model: ItemModel,
 
     pageLimit: 100
 });
+
+module.exports = ItemCollection;

@@ -1,18 +1,24 @@
+var girder       = require('girder/init');
+var Auth         = require('girder/auth');
+var Events       = require('girder/events');
+var DialogHelper = require('girder/utilities/DialogHelper');
+var View         = require('girder/view');
+
 /**
  * This view shows a login modal dialog.
  */
-girder.views.LoginView = girder.View.extend({
+var LoginView = View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            girder.login(this.$('#g-login').val(), this.$('#g-password').val());
+            Auth.login(this.$('#g-login').val(), this.$('#g-password').val());
 
-            girder.events.once('g:login.success', function () {
+            Events.once('g:login.success', function () {
                 this.$el.modal('hide');
             }, this);
 
-            girder.events.once('g:login.error', function (status, err) {
+            Events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
             }, this);
@@ -22,11 +28,11 @@ girder.views.LoginView = girder.View.extend({
         },
 
         'click a.g-register-link': function () {
-            girder.events.trigger('g:registerUi');
+            Events.trigger('g:registerUi');
         },
 
         'click a.g-forgot-password': function () {
-            girder.events.trigger('g:resetPasswordUi');
+            Events.trigger('g:resetPasswordUi');
         }
     },
 
@@ -36,13 +42,15 @@ girder.views.LoginView = girder.View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('login', {replace: true});
+                DialogHelper.handleClose('login', {replace: true});
             });
 
-        girder.dialogs.handleOpen('login', {replace: true});
+        DialogHelper.handleOpen('login', {replace: true});
         this.$('#g-login').focus();
 
         return this;
     }
 
 });
+
+module.exports = LoginView;

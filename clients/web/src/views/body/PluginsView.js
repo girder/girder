@@ -1,7 +1,15 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Rest          = require('girder/rest');
+var Events        = require('girder/events');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+var UsersView     = require('girder/views/body/UsersView');
+
 /**
  * This is the plugin management page for administrators.
  */
-girder.views.PluginsView = girder.View.extend({
+var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
@@ -12,21 +20,21 @@ girder.views.PluginsView = girder.View.extend({
                 text: 'Are you sure you want to restart the server?  This ' +
                       'will interrupt all running tasks for all users.',
                 yesText: 'Restart',
-                confirmCallback: girder.restartServer
+                confirmCallback: MiscFunctions.restartServer
             };
-            girder.confirm(params);
+            MiscFunctions.confirm(params);
         }
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
+        MiscFunctions.cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.render();
         } else {
             // Fetch the plugin list
-            girder.restRequest({
+            Rest.restRequest({
                 path: 'system/plugins',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -38,6 +46,7 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     render: function () {
+        var pluginsChanged = false;
         _.each(this.allPlugins, function (info, name) {
             info.unmetDependencies = this._unmetDependencies(info);
             if (!_.isEmpty(info.unmetDependencies)) {
@@ -47,7 +56,7 @@ girder.views.PluginsView = girder.View.extend({
 
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
-                info.configRoute = girder.getPluginConfigRoute(name);
+                info.configRoute = MiscFunctions.getPluginConfigRoute(name);
             }
         }, this);
 
@@ -69,7 +78,7 @@ girder.views.PluginsView = girder.View.extend({
                       view.enabled.splice(idx, 1);
                   }
               }
-              girder.pluginsChanged = true;
+              pluginsChanged = true;
               $('.g-plugin-restart').addClass('g-plugin-restart-show');
               view._updatePlugins();
           });
@@ -84,7 +93,7 @@ girder.views.PluginsView = girder.View.extend({
             animation: false,
             delay: {show: 100}
         });
-        if (girder.pluginsChanged) {
+        if (pluginsChanged) {
             $('.g-plugin-restart').addClass('g-plugin-restart-show');
         }
 
@@ -128,7 +137,7 @@ girder.views.PluginsView = girder.View.extend({
         // if the directory of an enabled plugin disappears.
         this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
 
-        girder.restRequest({
+        Rest.restRequest({
             path: 'system/plugins',
             type: 'PUT',
             data: {
@@ -145,14 +154,16 @@ girder.views.PluginsView = girder.View.extend({
     }
 });
 
+module.exports = PluginsView;
+
 girder.router.route('plugins', 'plugins', function () {
     // Fetch the plugin list
-    girder.restRequest({
+    Rest.restRequest({
         path: 'system/plugins',
         type: 'GET'
     }).done(_.bind(function (resp) {
-        girder.events.trigger('g:navigateTo', girder.views.PluginsView, resp);
+        Events.trigger('g:navigateTo', PluginsView, resp);
     }, this)).error(_.bind(function () {
-        girder.events.trigger('g:navigateTo', girder.views.UsersView);
+        Events.trigger('g:navigateTo', UsersView);
     }, this));
 });

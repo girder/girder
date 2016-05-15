@@ -1,6 +1,11 @@
-girder.collections.FolderCollection = girder.Collection.extend({
+var Collection  = require('girder/collection');
+var FolderModel = require('girder/models/FolderModel');
+
+var FolderCollection = Collection.extend({
     resourceName: 'folder',
-    model: girder.models.FolderModel,
+    model: FolderModel,
 
     pageLimit: 100
 });
+
+module.exports = FolderCollection;

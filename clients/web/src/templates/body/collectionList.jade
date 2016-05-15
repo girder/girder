@@ -1,10 +1,12 @@
+!{Auth=require('girder/auth')}
+!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 .g-collection-list-header
 
   .g-collection-pagination
   form.g-collection-search-form.form-inline(role="form")
     .form-group.g-collections-search-container
 
-  if (girder.currentUser)
+  if (Auth.getCurrentUser())
     button.g-collection-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create collection
@@ -15,12 +17,12 @@ each collection in collections
       .g-collection-created
         i.icon-clock
         | Created on
-        span.g-collection-created-date  #{girder.formatDate(collection.get('created'), girder.DATE_MINUTE)}
+        span.g-collection-created-date  #{MiscFunctions.formatDate(collection.get('created'), MiscFunctions.DATE_MINUTE)}
       if (collection.get('size') !== undefined)
         .g-space-used
           i.icon-floppy
           | Currently using
-          span.g-user-space-used  #{girder.formatSize(collection.get('size'))}
+          span.g-user-space-used  #{MiscFunctions.formatSize(collection.get('size'))}
     .g-collection-title
       a.g-collection-link(g-collection-cid="#{collection.cid}")
         b #{collection.get('name')}

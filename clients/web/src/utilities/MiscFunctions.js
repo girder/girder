@@ -1,34 +1,40 @@
+var _         = require('underscore');
+var Rest      = require('girder/rest');
+var Constants = require('girder/constants');
+var girder    = require('girder/init');
+var Events    = require('girder/events');
+
 /**
  * This file contains utility functions for general use in the application
  */
-girder.DATE_MONTH = 0;
-girder.DATE_DAY = 1;
-girder.DATE_MINUTE = 2;
-girder.DATE_SECOND = 3;
+var DATE_MONTH = 0;
+var DATE_DAY = 1;
+var DATE_MINUTE = 2;
+var DATE_SECOND = 3;
 
 /**
  * Format a date string to the given resolution.
  * @param datestr The date string to format.
  * @param resolution The resolution, defaults to 'day'. Minimum is month.
  */
-girder.formatDate = function (datestr, resolution) {
+var formatDate = function (datestr, resolution) {
     datestr = datestr.replace(' ', 'T'); // Cross-browser accepted date format
     var date = new Date(datestr);
-    var output = girder.MONTHS[date.getMonth()];
+    var output = Constants.MONTHS[date.getMonth()];
 
-    resolution = resolution || girder.DATE_MONTH;
+    resolution = resolution || DATE_MONTH;
 
-    if (resolution >= girder.DATE_DAY) {
+    if (resolution >= DATE_DAY) {
         output += ' ' + date.getDate() + ',';
     }
 
     output += ' ' + date.getFullYear();
 
-    if (resolution >= girder.DATE_MINUTE) {
+    if (resolution >= DATE_MINUTE) {
         output += ' at ' + date.getHours() + ':' +
             ('0' + date.getMinutes()).slice(-2);
     }
-    if (resolution >= girder.DATE_SECOND) {
+    if (resolution >= DATE_SECOND) {
         output += ':' + ('0' + date.getSeconds()).slice(-2);
     }
 
@@ -39,7 +45,7 @@ girder.formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit
  * prefixes.
  */
-girder.formatSize = function (sizeBytes) {
+var formatSize = function (sizeBytes) {
     if (sizeBytes < 20000) {
         return sizeBytes + ' B';
     }
@@ -58,7 +64,7 @@ girder.formatSize = function (sizeBytes) {
 };
 
 /**
- * Like girder.formatSize, but more generic. Returns a human-readable format
+ * Like formatSize, but more generic. Returns a human-readable format
  * of an integer using metric prefixes. The caller is expected to append any
  * unit string if necessary.
  *
@@ -68,7 +74,7 @@ girder.formatSize = function (sizeBytes) {
  *   - {integer} [base=1000] Base for the prefixes (usually 1000 or 1024).
  *   - {string} [sep=''] Separator between numeric value and metric prefix.
  */
-girder.formatCount = function (n, opts) {
+var formatCount = function (n, opts) {
     n = n || 0;
     opts = opts || {};
 
@@ -105,7 +111,7 @@ girder.formatCount = function (n, opts) {
  *        user-created data within the text to prevent XSS exploits.
  * @param confirmCallback Callback function when the user confirms the action.
  */
-girder.confirm = function (params) {
+var confirm = function (params) {
     params = _.extend({
         text: 'Are you sure?',
         yesText: 'Yes',
@@ -134,7 +140,7 @@ girder.confirm = function (params) {
  * This comparator can be used by collections that wish to support locale-based
  * sorting.  The locale specifies how upper and lower case are compared.
  */
-girder.localeComparator = function (model1, model2) {
+var localeComparator = function (model1, model2) {
     var a1 = model1.get(this.sortField),
         a2 = model2.get(this.sortField);
 
@@ -154,7 +160,7 @@ girder.localeComparator = function (model1, model2) {
 /**
  * This comparator can be passed to the sort function on javascript arrays.
  */
-girder.localeSort = function (a1, a2) {
+var localeSort = function (a1, a2) {
     if (a1 !== undefined && a1.localeCompare) {
         return a1.localeCompare(a2);
     }
@@ -165,12 +171,12 @@ girder.localeSort = function (a1, a2) {
  * Return the model class name given its collection name.
  * @param name Collection name, e.g. 'user'
  */
-girder.getModelClassByName = function (name) {
+var getModelClassByName = function (name) {
     var className = name.charAt(0).toUpperCase();
     return className + name.substr(1) + 'Model';
 };
 
-girder.parseQueryString = function (queryString) {
+var parseQueryString = function (queryString) {
     var params = {};
     if (queryString) {
         _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el) {
@@ -184,7 +190,7 @@ girder.parseQueryString = function (queryString) {
     return params;
 };
 
-girder.cookie = {
+var cookie = {
     findAll: function () {
         var cookies = {};
         _(document.cookie.split(';'))
@@ -218,22 +224,19 @@ girder.cookie = {
     }
 };
 
-// Make sure girder.currentToken is set on startup if a cookie exists.
-girder.currentToken = girder.cookie.find('girderToken');
-
 /**
  * Restart the server, wait until it has restarted, then reload the current
  * page.
  */
-girder.restartServer = function () {
+var restartServer = function () {
     function waitForServer() {
-        girder.restRequest({
+        Rest.restRequest({
             type: 'GET',
             path: 'system/version',
             error: null
         }).done(_.bind(function (resp) {
-            if (resp.serverStartDate !== girder.restartServer._lastStartDate) {
-                girder.restartServer._reloadWindow();
+            if (resp.serverStartDate !== restartServer._lastStartDate) {
+                restartServer._reloadWindow();
             } else {
                 window.setTimeout(waitForServer, 1000);
             }
@@ -242,13 +245,13 @@ girder.restartServer = function () {
         }));
     }
 
-    girder.restRequest({
+    Rest.restRequest({
         type: 'GET',
         path: 'system/version'
     }).done(_.bind(function (resp) {
-        girder.restartServer._lastStartDate = resp.serverStartDate;
-        girder.restartServer._callSystemRestart();
-        girder.events.trigger('g:alert', {
+        restartServer._lastStartDate = resp.serverStartDate;
+        restartServer._callSystemRestart();
+        Events.trigger('g:alert', {
             icon: 'cw',
             text: 'Restarting server',
             type: 'warning',
@@ -258,10 +261,10 @@ girder.restartServer = function () {
     }));
 };
 /* Having these as object properties facilitates testing */
-girder.restartServer._callSystemRestart = function () {
-    girder.restRequest({type: 'PUT', path: 'system/restart'});
+restartServer._callSystemRestart = function () {
+    Rest.restRequest({type: 'PUT', path: 'system/restart'});
 };
-girder.restartServer._reloadWindow = function () {
+restartServer._reloadWindow = function () {
     window.location.reload();
 };
 
@@ -274,7 +277,7 @@ girder.restartServer._reloadWindow = function () {
  *                 pass its name as this parameter.
  * @return {Object} An object mapping the names of options to values.
  */
-girder.defineFlags = function (options, allOption) {
+var defineFlags = function (options, allOption) {
     var i = 0,
         obj = {};
 
@@ -302,7 +305,7 @@ girder.defineFlags = function (options, allOption) {
  * @param el The element to render the output HTML into, or falsy to simply
  *        return the HTML value.
  */
-girder.renderMarkdown = (function () {
+var renderMarkdown = (function () {
     if (window.Remarkable) {
         var md = new Remarkable({
             linkify: true
@@ -325,11 +328,11 @@ girder.renderMarkdown = (function () {
 /**
  * Capitalize the first character of a string.
  */
-girder.capitalize = function (str) {
+var capitalize = function (str) {
     return str.charAt(0).toUpperCase() + str.substring(1);
 };
 
-(function () {
+// (function () {
     var _pluginConfigRoutes = {};
 
     /**
@@ -337,18 +340,18 @@ girder.capitalize = function (str) {
      * @param pluginName The canonical plugin name, i.e. its directory name
      * @param route The route to trigger that will render the plugin config.
      */
-    girder.exposePluginConfig = function (pluginName, route) {
+    var exposePluginConfig = function (pluginName, route) {
         _pluginConfigRoutes[pluginName] = route;
     };
 
-    girder.getPluginConfigRoute = function (pluginName) {
+    var getPluginConfigRoute = function (pluginName) {
         return _pluginConfigRoutes[pluginName];
     };
-}());
+// }());
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
  * checked if still processing. */
-(function () {
+// (function () {
     var restXhrPool = {};
     var restXhrCount = 0;
     $(document).ajaxSend(function (event, xhr) {
@@ -367,7 +370,7 @@ girder.capitalize = function (str) {
      *                  xhr.girder.(category) set to a truthy value.
      * :returns: the number of outstanding requests.
      */
-    girder.numberOutstandingRestRequests = function (category) {
+    var numberOutstandingRestRequests = function (category) {
         if (category) {
             return _.filter(restXhrPool, function (xhr) {
                 return xhr.girder && xhr.girder[category];
@@ -379,7 +382,7 @@ girder.capitalize = function (str) {
      * :param category: if specified, only abort those requests that have
      *                  xhr.girder.(category) set to a truthy value.
      */
-    girder.cancelRestRequests = function (category) {
+    var cancelRestRequests = function (category) {
         _.each(restXhrPool, function (xhr) {
             if (category && (!xhr.girder || !xhr.girder[category])) {
                 return;
@@ -389,4 +392,29 @@ girder.capitalize = function (str) {
             }
         });
     };
-}());
+// }());
+
+module.exports = {
+    DATE_MONTH: DATE_MONTH,
+    DATE_DAY: DATE_DAY,
+    DATE_MINUTE: DATE_MINUTE,
+    DATE_SECOND: DATE_SECOND,
+    formatDate: formatDate,
+    formatSize: formatSize,
+    formatCount: formatCount,
+    confirm: confirm,
+    localeComparator: localeComparator,
+    localeSort: localeSort,
+    getModelClassByName: getModelClassByName,
+    parseQueryString: parseQueryString,
+    cookie: cookie,
+    restartServer: restartServer,
+    defineFlags: defineFlags,
+    renderMarkdown: renderMarkdown,
+    capitalize: capitalize,
+    exposePluginConfig: exposePluginConfig,
+    getPluginConfigRoute: getPluginConfigRoute,
+    numberOutstandingRestRequests: numberOutstandingRestRequests,
+    cancelRestRequests: cancelRestRequests
+};
+

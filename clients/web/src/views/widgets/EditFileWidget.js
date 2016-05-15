@@ -1,7 +1,11 @@
+var girder       = require('girder/init');
+var DialogHelper = require('girder/utilities/DialogHelper');
+var View         = require('girder/view');
+
 /**
  * This widget is used to edit file information.
  */
-girder.views.EditFileWidget = girder.View.extend({
+var EditFileWidget = View.extend({
     events: {
         'submit #g-file-edit-form': function () {
             var fields = {
@@ -39,10 +43,12 @@ girder.views.EditFileWidget = girder.View.extend({
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').select().focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('fileedit', undefined,
+                DialogHelper.handleClose('fileedit', undefined,
                                            view.file.get('_id'));
             });
-        girder.dialogs.handleOpen('fileedit', undefined, this.file.get('_id'));
+        DialogHelper.handleOpen('fileedit', undefined, this.file.get('_id'));
         return this;
     }
 });
+
+module.exports = EditFileWidget;

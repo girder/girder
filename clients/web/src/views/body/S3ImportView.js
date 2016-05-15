@@ -1,4 +1,9 @@
-girder.views.S3ImportView = girder.View.extend({
+var girder          = require('girder/init');
+var Events          = require('girder/events');
+var AssetstoreModel = require('girder/models/AssetstoreModel');
+var View            = require('girder/view');
+
+var S3ImportView = View.extend({
     events: {
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
@@ -33,15 +38,17 @@ girder.views.S3ImportView = girder.View.extend({
     }
 });
 
+module.exports = S3ImportView;
+
 // This route is only preserved for backward compatibility. The generic route
 // "assetstore/:id/import" is preferred, and is defined in AssetstoresView.js.
 girder.router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
-    var assetstore = new girder.models.AssetstoreModel({
+    var assetstore = new AssetstoreModel({
         _id: assetstoreId
     });
 
     assetstore.once('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.S3ImportView, {
+        Events.trigger('g:navigateTo', S3ImportView, {
             assetstore: assetstore
         });
     }).fetch();

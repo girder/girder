@@ -1,3 +1,7 @@
+var _        = require('underscore');
+var Backbone = require('backbone');
+var Rest     = require('girder/rest');
+
 /**
  * This is the upload handler for the "s3" behavior, which is responsible for
  * uploading data to an s3 assetstore type directly from the user agent, using
@@ -12,13 +16,13 @@
  */
 (function () {
     // Constructor
-    girder.uploadHandlers.s3 = function (params) {
+    Rest.uploadHandlers.s3 = function (params) {
         this.params = params;
         this.startByte = 0;
         return _.extend(this, Backbone.Events);
     };
 
-    var prototype = girder.uploadHandlers.s3.prototype;
+    var prototype = Rest.uploadHandlers.s3.prototype;
 
     prototype._xhrProgress = function (event) {
         if (!event.lengthComputable) {
@@ -60,7 +64,7 @@
                         bytes: handler.payloadLength
                     });
 
-                    girder.restRequest({
+                    Rest.restRequest({
                         path: 'file/completion',
                         type: 'POST',
                         data: {
@@ -111,7 +115,7 @@
 
         // If this is a single-chunk upload, we have to use the offset method
         // to re-generate the initial request with a new timestamp.
-        girder.restRequest({
+        Rest.restRequest({
             path: 'file/offset',
             type: 'GET',
             data: {
@@ -180,7 +184,7 @@
         this.payloadLength = data.size;
 
         // Get the authorized request from Girder
-        girder.restRequest({
+        Rest.restRequest({
             path: 'file/chunk',
             type: 'POST',
             data: {
@@ -247,7 +251,7 @@
      * called in order to finalize the upload.
      */
     prototype._finalizeMultiChunkUpload = function () {
-        girder.restRequest({
+        Rest.restRequest({
             path: 'file/completion',
             type: 'POST',
             data: {

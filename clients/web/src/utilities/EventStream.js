@@ -1,4 +1,8 @@
-(function () {
+var _        = require('underscore');
+var Backbone = require('backbone');
+var Rest     = require('girder/rest');
+
+// (function () {
     /**
      * The EventStream type wraps window.EventSource to listen to the unified
      * per-user event channel endpoint using the SSE protocol. When events are
@@ -6,7 +10,7 @@
      * 'g:event.<type>' where <type> is the value of the event type field.
      * Listeners can bind to specific event types on the channel.
      */
-    girder.EventStream = function (settings) {
+    var EventStream = function (settings) {
         var defaults = {
             timeout: null,
             streamPath: '/notification/stream'
@@ -17,12 +21,12 @@
         return _.extend(this, Backbone.Events);
     };
 
-    var prototype = girder.EventStream.prototype;
+    var prototype = EventStream.prototype;
 
     prototype.open = function () {
         if (window.EventSource) {
             var stream = this,
-                url = girder.apiRoot + this.settings.streamPath;
+                url = Rest.apiRoot + this.settings.streamPath;
 
             if (this.settings.timeout) {
                 url += '?timeout=' + this.settings.timeout;
@@ -52,4 +56,6 @@
             this._eventSource = null;
         }
     };
-}());
+// }());
+
+module.exports = EventStream;

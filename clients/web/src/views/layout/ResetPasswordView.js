@@ -1,18 +1,25 @@
+var _            = require('underscore');
+var girder       = require('girder/init');
+var Rest         = require('girder/rest');
+var Events       = require('girder/events');
+var DialogHelper = require('girder/utilities/DialogHelper');
+var View         = require('girder/view');
+
 /**
  * This view shows a modal dialog for resetting a forgotten password.
  */
-girder.views.ResetPasswordView = girder.View.extend({
+var ResetPasswordView = View.extend({
     events: {
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
-            girder.restRequest({
+            Rest.restRequest({
                 path: 'user/password/temporary?email=' + this.$('#g-email')
                     .val().trim(),
                 type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function () {
                 this.$el.modal('hide');
-                girder.events.trigger('g:alert', {
+                Events.trigger('g:alert', {
                     icon: 'mail-alt',
                     text: 'Password reset email sent.',
                     type: 'success'
@@ -27,11 +34,11 @@ girder.views.ResetPasswordView = girder.View.extend({
         },
 
         'click a.g-register-link': function () {
-            girder.events.trigger('g:registerUi');
+            Events.trigger('g:registerUi');
         },
 
         'click a.g-login-link': function () {
-            girder.events.trigger('g:loginUi');
+            Events.trigger('g:loginUi');
         }
     },
 
@@ -41,12 +48,14 @@ girder.views.ResetPasswordView = girder.View.extend({
         )).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-email').focus();
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('resetpassword', {replace: true});
+            DialogHelper.handleClose('resetpassword', {replace: true});
         });
         this.$('#g-email').focus();
 
-        girder.dialogs.handleOpen('resetpassword', {replace: true});
+        DialogHelper.handleOpen('resetpassword', {replace: true});
 
         return this;
     }
 });
+
+module.exports = ResetPasswordView;

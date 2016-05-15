@@ -1,7 +1,10 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This widget renders the state of a progress notification.
  */
-girder.views.TaskProgressWidget = girder.View.extend({
+var TaskProgressWidget = View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;
@@ -80,3 +83,6 @@ girder.views.TaskProgressWidget = girder.View.extend({
         }, ms);
     }
 });
+
+module.exports = TaskProgressWidget;
+

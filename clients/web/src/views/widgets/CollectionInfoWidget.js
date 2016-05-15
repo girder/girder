@@ -1,7 +1,10 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This view shows a dialog containing detailed collection information.
  */
-girder.views.CollectionInfoWidget = girder.View.extend({
+var CollectionInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -23,3 +26,5 @@ girder.views.CollectionInfoWidget = girder.View.extend({
         })).girderModal(this);
     }
 });
+
+module.exports = CollectionInfoWidget;

@@ -1,7 +1,17 @@
+var _                 = require('underscore');
+var girder            = require('girder/init');
+var Constants         = require('girder/constants');
+var UserModel         = require('girder/models/UserModel');
+var GroupModel        = require('girder/models/GroupModel');
+var DialogHelper      = require('girder/utilities/DialogHelper');
+var View              = require('girder/view');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
+
 /**
  * This view allows users to see and control access on a resource.
  */
-girder.views.AccessWidget = girder.View.extend({
+var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
             $(e.currentTarget).attr('disabled', 'disabled');
@@ -29,7 +39,7 @@ girder.views.AccessWidget = girder.View.extend({
         this.hideSaveButton = settings.hideSaveButton || false;
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Start typing a name...',
             modes: ['prefix', 'text'],
             types: ['group', 'user'],
@@ -47,7 +57,7 @@ girder.views.AccessWidget = girder.View.extend({
 
     render: function () {
         if (!this.model.get('access')) {
-            new girder.views.LoadingAnimation({
+            new LoadingAnimation({
                 el: this.$el,
                 parentView: this
             }).render();
@@ -56,14 +66,14 @@ girder.views.AccessWidget = girder.View.extend({
 
         var closeFunction;
         if (this.modal && this.modelType === 'folder') {
-            girder.dialogs.handleOpen('folderaccess');
+            DialogHelper.handleOpen('folderaccess');
             closeFunction = function () {
-                girder.dialogs.handleClose('folderaccess');
+                DialogHelper.handleClose('folderaccess');
             };
         } else if (this.modal) {
-            girder.dialogs.handleOpen('access');
+            DialogHelper.handleOpen('access');
             closeFunction = function () {
-                girder.dialogs.handleClose('access');
+                DialogHelper.handleClose('access');
             };
         }
 
@@ -83,7 +93,7 @@ girder.views.AccessWidget = girder.View.extend({
 
         _.each(this.model.get('access').groups, function (groupAccess) {
             this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
-                accessTypes: girder.AccessType,
+                accessTypes: Constants.AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
                     title: groupAccess.name,
@@ -94,7 +104,7 @@ girder.views.AccessWidget = girder.View.extend({
 
         _.each(this.model.get('access').users, function (userAccess) {
             this.$('#g-ac-list-users').append(girder.templates.accessEntry({
-                accessTypes: girder.AccessType,
+                accessTypes: Constants.AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
                     title: userAccess.name,
@@ -143,16 +153,16 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         if (!exists) {
-            var model = new girder.models.UserModel();
+            var model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-users').append(girder.templates.accessEntry({
-                    accessTypes: girder.AccessType,
+                    accessTypes: Constants.AccessType,
                     type: 'user',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('login'),
                         id: entry.id,
-                        level: girder.AccessType.READ
+                        level: Constants.AccessType.READ
                     }
                 }));
 
@@ -171,16 +181,16 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         if (!exists) {
-            var model = new girder.models.GroupModel();
+            var model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
-                    accessTypes: girder.AccessType,
+                    accessTypes: Constants.AccessType,
                     type: 'group',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('description'),
                         id: entry.id,
-                        level: girder.AccessType.READ
+                        level: Constants.AccessType.READ
                     }
                 }));
 
@@ -254,3 +264,5 @@ girder.views.AccessWidget = girder.View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+module.exports = AccessWidget;

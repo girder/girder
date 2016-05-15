@@ -1,7 +1,14 @@
+var _            = require('underscore');
+var $            = require('jquery');
+var girder       = require('girder/init');
+var ItemModel    = require('girder/models/ItemModel');
+var DialogHelper = require('girder/utilities/DialogHelper');
+var View         = require('girder/view');
+
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-girder.views.EditItemWidget = girder.View.extend({
+var EditItemWidget = View.extend({
     events: {
         'submit #g-item-edit-form': function () {
             var fields = {
@@ -34,15 +41,15 @@ girder.views.EditItemWidget = girder.View.extend({
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();
                 if (view.item) {
-                    girder.dialogs.handleOpen('itemedit');
+                    DialogHelper.handleOpen('itemedit');
                 } else {
-                    girder.dialogs.handleOpen('itemcreate');
+                    DialogHelper.handleOpen('itemcreate');
                 }
             }).on('hidden.bs.modal', function () {
                 if (view.create) {
-                    girder.dialogs.handleClose('itemcreate');
+                    DialogHelper.handleClose('itemcreate');
                 } else {
-                    girder.dialogs.handleClose('itemedit');
+                    DialogHelper.handleClose('itemedit');
                 }
             }).on('ready.girder.modal', function () {
                 if (view.item) {
@@ -59,7 +66,7 @@ girder.views.EditItemWidget = girder.View.extend({
     },
 
     createItem: function (fields) {
-        var item = new girder.models.ItemModel();
+        var item = new ItemModel();
         item.set(_.extend(fields, {
             folderId: this.parentModel.get('_id')
         }));
@@ -85,3 +92,6 @@ girder.views.EditItemWidget = girder.View.extend({
         }, this).save();
     }
 });
+
+module.exports = EditItemWidget;
+

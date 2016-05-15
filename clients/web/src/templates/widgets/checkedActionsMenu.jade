@@ -1,3 +1,4 @@
+!{HierarchyWidget=require('girder/views/widgets/HierarchyWidget')}
 li.g-checked-menu-header.dropdown-header(role="presentation")
   if folderCount
     i.icon-folder
@@ -18,7 +19,7 @@ if folderCount || itemCount
       i.icon-plus-circled
       | Pick checked resources for Move or Copy
 
-if girder.pickedResources
+if HierarchyWidget.getPickedResources()
   li.g-admin.divider
   if pickedMoveAllowed
     li

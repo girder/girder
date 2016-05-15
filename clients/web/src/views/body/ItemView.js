@@ -1,8 +1,21 @@
-(function () {
+var _                    = require('underscore');
+var girder               = require('girder/init');
+var Events               = require('girder/events');
+var ItemModel            = require('girder/models/ItemModel');
+var DialogHelper         = require('girder/utilities/DialogHelper');
+var View                 = require('girder/view');
+var UploadWidget         = require('girder/views/widgets/UploadWidget');
+var EditItemWidget       = require('girder/views/widgets/EditItemWidget');
+var FileListWidget       = require('girder/views/widgets/FileListWidget');
+var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
+var ItemBreadcrumbWidget = require('girder/views/widgets/ItemBreadcrumbWidget');
+var MiscFunctions        = require('girder/utilities/MiscFunctions');
+
+// (function () {
     /**
      * This view shows a single item's page.
      */
-    girder.views.ItemView = girder.View.extend({
+    var ItemView = View.extend({
         events: {
             'click .g-edit-item': 'editItem',
             'click .g-delete-item': 'deleteItem',
@@ -10,7 +23,7 @@
         },
 
         initialize: function (settings) {
-            girder.cancelRestRequests('fetch');
+            MiscFunctions.cancelRestRequests('fetch');
             this.edit = settings.edit || false;
             this.fileEdit = settings.fileEdit || false;
             this.upload = settings.upload || false;
@@ -25,16 +38,16 @@
         },
 
         uploadIntoItem: function () {
-            new girder.views.UploadWidget({
+            new UploadWidget({
                 el: $('#g-dialog-container'),
                 parent: this.model,
                 parentType: 'item',
                 parentView: this
             }).on('g:uploadFinished', function () {
-                girder.dialogs.handleClose('upload');
+                DialogHelper.handleClose('upload');
                 this.upload = false;
 
-                girder.events.trigger('g:alert', {
+                Events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Files added.',
                     type: 'success',
@@ -49,7 +62,7 @@
             var container = $('#g-dialog-container');
 
             if (!this.editItemWidget) {
-                this.editItemWidget = new girder.views.EditItemWidget({
+                this.editItemWidget = new EditItemWidget({
                     el: container,
                     item: this.model,
                     parentView: this
@@ -65,7 +78,7 @@
             var parentRoute = this.model.get('baseParentType') + '/' +
                 this.model.get('baseParentId') + '/folder/' + folderId;
             var page = this;
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
                 yesText: 'Delete',
                 escapedHtml: true,
@@ -74,7 +87,7 @@
                         girder.router.navigate(parentRoute, {trigger: true});
                     }).off('g:error').on('g:error', function () {
                         page.render();
-                        girder.events.trigger('g:alert', {
+                        Events.trigger('g:alert', {
                             icon: 'cancel',
                             text: 'Failed to delete item.',
                             type: 'danger',
@@ -103,7 +116,7 @@
                     delay: {show: 100}
                 });
 
-                this.fileListWidget = new girder.views.FileListWidget({
+                this.fileListWidget = new FileListWidget({
                     el: this.$('.g-item-files-container'),
                     item: this.model,
                     fileEdit: this.fileEdit,
@@ -117,7 +130,7 @@
                 this.fileEdit = false;
                 this.upload = false;
 
-                this.metadataWidget = new girder.views.MetadataWidget({
+                this.metadataWidget = new MetadataWidget({
                     el: this.$('.g-item-metadata'),
                     item: this.model,
                     accessLevel: accessLevel,
@@ -125,7 +138,7 @@
                 });
 
                 this.model.getRootPath(_.bind(function (resp) {
-                    this.breadcrumbWidget = new girder.views.ItemBreadcrumbWidget({
+                    this.breadcrumbWidget = new ItemBreadcrumbWidget({
                         el: this.$('.g-item-breadcrumb-container'),
                         parentChain: resp,
                         parentView: this
@@ -142,16 +155,18 @@
         }
     });
 
+    module.exports = ItemView;
+
     /**
      * Helper function for fetching the user and rendering the view with
      * an arbitrary set of extra parameters.
      */
     var _fetchAndInit = function (itemId, params) {
-        var item = new girder.models.ItemModel();
+        var item = new ItemModel();
         item.set({
             _id: itemId
         }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.ItemView, _.extend({
+            Events.trigger('g:navigateTo', ItemView, _.extend({
                 item: item
             }, params || {}));
         }, this).fetch();
@@ -164,4 +179,4 @@
             upload: params.dialog === 'upload' ? params.dialogid : false
         });
     });
-}());
+// }());

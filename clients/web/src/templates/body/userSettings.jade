@@ -1,3 +1,4 @@
+!{Auth=require('girder/auth')}
 .g-account-header
   .g-user-name.g-body-title #{user.name()}
   .g-user-description.g-body-subtitle #{user.get('login')}
@@ -28,7 +29,7 @@ ul.g-account-tabs.nav.nav-tabs
         .form-group
           label(for="g-lastName") Last name
           input.input-sm.form-control#g-lastName(type="text", value="#{user.get('lastName')}")
-        if girder.currentUser.get('admin')
+        if Auth.getCurrentUser().get('admin')
           .form-group
             label(for="g-admin") User is site admin
             if user.get('admin')

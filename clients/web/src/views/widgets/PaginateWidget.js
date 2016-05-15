@@ -1,8 +1,11 @@
+var girder = require('girder/init');
+var View   = require('girder/view');
+
 /**
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a girder.Collection.
  */
-girder.views.PaginateWidget = girder.View.extend({
+var PaginateWidget = View.extend({
     events: {
         'click .g-page-next': function (e) {
             if (!$(e.currentTarget).hasClass('disabled')) {
@@ -42,3 +45,5 @@ girder.views.PaginateWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = PaginateWidget;

@@ -1,13 +1,19 @@
+var _             = require('underscore');
+var girder        = require('girder/init');
+var Constants     = require('girder/constants');
+var View          = require('girder/view');
+var MiscFunctions = require('girder/utilities/MiscFunctions');
+
 /**
  * This view shows a list of pending invitations to the group.
  */
-girder.views.GroupInvitesWidget = girder.View.extend({
+var GroupInvitesWidget = View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
-            girder.confirm({
+            MiscFunctions.confirm({
                 text: 'Are you sure you want to remove the invitation ' +
                     'for <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -37,7 +43,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
         this.$el.html(girder.templates.groupInviteList({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.toArray(),
-            accessType: girder.AccessType
+            accessType: Constants.AccessType
         }));
 
         this.$('a[title]').tooltip({
@@ -50,3 +56,5 @@ girder.views.GroupInvitesWidget = girder.View.extend({
         return this;
     }
 });
+
+module.exports = GroupInvitesWidget;

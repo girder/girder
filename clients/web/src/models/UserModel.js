@@ -1,4 +1,9 @@
-girder.models.UserModel = girder.Model.extend({
+var _      = require('underscore');
+var Rest   = require('girder/rest');
+var Auth   = require('girder/auth');
+var Model  = require('girder/model').Model;
+
+var UserModel = Model.extend({
     resourceName: 'user',
 
     /**
@@ -9,12 +14,12 @@ girder.models.UserModel = girder.Model.extend({
      * for the model's change event.  In that handler, calling isNew() on the
      * model will tell if you if a user is logged in (false) or not (true).
      *
-     * This is equivalent to invoking girder.fetchCurrentUser(), then calling
+     * This is equivalent to invoking Auth.fetchCurrentUser(), then calling
      * clear() or set() on the model depending on whether the result of the call
      * is null or not.
      */
     current: function () {
-        girder.fetchCurrentUser()
+        Auth.fetchCurrentUser()
             .then(_.bind(function (user) {
                 if (user) {
                     this.set(user);
@@ -87,7 +92,7 @@ girder.models.UserModel = girder.Model.extend({
      * Change the password for this user.
      */
     changePassword: function (oldPassword, newPassword) {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/password',
             data: {
                 old: oldPassword,
@@ -106,7 +111,7 @@ girder.models.UserModel = girder.Model.extend({
      * Change the password for another user (as an admin).
      */
     adminChangePassword: function (newPassword) {
-        girder.restRequest({
+        Rest.restRequest({
             path: this.resourceName + '/' + this.id + '/password',
             data: {
                 password: newPassword
@@ -120,3 +125,6 @@ girder.models.UserModel = girder.Model.extend({
         }, this));
     }
 });
+
+module.exports = UserModel;
+
