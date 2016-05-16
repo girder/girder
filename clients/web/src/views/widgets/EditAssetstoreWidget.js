@@ -80,55 +80,53 @@ var EditAssetstoreWidget = View.extend({
     }
 });
 
-// (function () {
-    var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
+var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
 
-    fieldsMap[Constants.AssetstoreType.FILESYSTEM] = {
-        get: function () {
-            return {
-                root: this.$('#g-edit-fs-root').val()
-            };
-        },
-        set: function () {
-            this.$('#g-edit-fs-root').val(this.model.get('root'));
-        }
-    };
+fieldsMap[Constants.AssetstoreType.FILESYSTEM] = {
+    get: function () {
+        return {
+            root: this.$('#g-edit-fs-root').val()
+        };
+    },
+    set: function () {
+        this.$('#g-edit-fs-root').val(this.model.get('root'));
+    }
+};
 
-    fieldsMap[Constants.AssetstoreType.GRIDFS] = {
-        get: function () {
-            return {
-                db: this.$('#g-edit-gridfs-db').val(),
-                mongohost: this.$('#g-edit-gridfs-mongohost').val(),
-                replicaset: this.$('#g-edit-gridfs-replicaset').val()
-            };
-        },
-        set: function () {
-            this.$('#g-edit-gridfs-db').val(this.model.get('db'));
-            this.$('#g-edit-gridfs-mongohost').val(this.model.get('mongohost'));
-            this.$('#g-edit-gridfs-replicaset').val(this.model.get('replicaset'));
-        }
-    };
+fieldsMap[Constants.AssetstoreType.GRIDFS] = {
+    get: function () {
+        return {
+            db: this.$('#g-edit-gridfs-db').val(),
+            mongohost: this.$('#g-edit-gridfs-mongohost').val(),
+            replicaset: this.$('#g-edit-gridfs-replicaset').val()
+        };
+    },
+    set: function () {
+        this.$('#g-edit-gridfs-db').val(this.model.get('db'));
+        this.$('#g-edit-gridfs-mongohost').val(this.model.get('mongohost'));
+        this.$('#g-edit-gridfs-replicaset').val(this.model.get('replicaset'));
+    }
+};
 
-    fieldsMap[Constants.AssetstoreType.S3] = {
-        get: function () {
-            return {
-                bucket: this.$('#g-edit-s3-bucket').val(),
-                prefix: this.$('#g-edit-s3-prefix').val(),
-                accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
-                secret: this.$('#g-edit-s3-secret').val(),
-                service: this.$('#g-edit-s3-service').val(),
-                readOnly: this.$('#g-edit-s3-readonly').is(':checked')
-            };
-        },
-        set: function () {
-            this.$('#g-edit-s3-bucket').val(this.model.get('bucket'));
-            this.$('#g-edit-s3-prefix').val(this.model.get('prefix'));
-            this.$('#g-edit-s3-access-key-id').val(this.model.get('accessKeyId'));
-            this.$('#g-edit-s3-secret').val(this.model.get('secret'));
-            this.$('#g-edit-s3-service').val(this.model.get('service'));
-            this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
-        }
-    };
-// })();
+fieldsMap[Constants.AssetstoreType.S3] = {
+    get: function () {
+        return {
+            bucket: this.$('#g-edit-s3-bucket').val(),
+            prefix: this.$('#g-edit-s3-prefix').val(),
+            accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
+            secret: this.$('#g-edit-s3-secret').val(),
+            service: this.$('#g-edit-s3-service').val(),
+            readOnly: this.$('#g-edit-s3-readonly').is(':checked')
+        };
+    },
+    set: function () {
+        this.$('#g-edit-s3-bucket').val(this.model.get('bucket'));
+        this.$('#g-edit-s3-prefix').val(this.model.get('prefix'));
+        this.$('#g-edit-s3-access-key-id').val(this.model.get('accessKeyId'));
+        this.$('#g-edit-s3-secret').val(this.model.get('secret'));
+        this.$('#g-edit-s3-service').val(this.model.get('service'));
+        this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
+    }
+};
 
 module.exports = EditAssetstoreWidget;

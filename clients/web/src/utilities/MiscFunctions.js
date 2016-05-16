@@ -332,67 +332,63 @@ var capitalize = function (str) {
     return str.charAt(0).toUpperCase() + str.substring(1);
 };
 
-// (function () {
-    var _pluginConfigRoutes = {};
+var _pluginConfigRoutes = {};
 
-    /**
-     * Expose a plugin configuration page via the admin plugins page.
-     * @param pluginName The canonical plugin name, i.e. its directory name
-     * @param route The route to trigger that will render the plugin config.
-     */
-    var exposePluginConfig = function (pluginName, route) {
-        _pluginConfigRoutes[pluginName] = route;
-    };
+/**
+ * Expose a plugin configuration page via the admin plugins page.
+ * @param pluginName The canonical plugin name, i.e. its directory name
+ * @param route The route to trigger that will render the plugin config.
+ */
+var exposePluginConfig = function (pluginName, route) {
+    _pluginConfigRoutes[pluginName] = route;
+};
 
-    var getPluginConfigRoute = function (pluginName) {
-        return _pluginConfigRoutes[pluginName];
-    };
-// }());
+var getPluginConfigRoute = function (pluginName) {
+    return _pluginConfigRoutes[pluginName];
+};
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
- * checked if still processing. */
-// (function () {
-    var restXhrPool = {};
-    var restXhrCount = 0;
-    $(document).ajaxSend(function (event, xhr) {
-        restXhrCount += 1;
-        xhr.girderXhrNumber = restXhrCount;
-        restXhrPool[restXhrCount] = xhr;
-    });
-    $(document).ajaxComplete(function (event, xhr) {
-        var num = xhr.girderXhrNumber;
-        if (num && restXhrPool[num]) {
-            delete restXhrPool[num];
+* checked if still processing. */
+var restXhrPool = {};
+var restXhrCount = 0;
+$(document).ajaxSend(function (event, xhr) {
+    restXhrCount += 1;
+    xhr.girderXhrNumber = restXhrCount;
+    restXhrPool[restXhrCount] = xhr;
+});
+$(document).ajaxComplete(function (event, xhr) {
+    var num = xhr.girderXhrNumber;
+    if (num && restXhrPool[num]) {
+        delete restXhrPool[num];
+    }
+});
+/* Get the number of outstanding rest requests.
+ * :param category: if specified, only count those requests that have
+ *                  xhr.girder.(category) set to a truthy value.
+ * :returns: the number of outstanding requests.
+ */
+var numberOutstandingRestRequests = function (category) {
+    if (category) {
+        return _.filter(restXhrPool, function (xhr) {
+            return xhr.girder && xhr.girder[category];
+        }).length;
+    }
+    return _.size(restXhrPool);
+};
+/* Cancel outstanding rest requests.
+ * :param category: if specified, only abort those requests that have
+ *                  xhr.girder.(category) set to a truthy value.
+ */
+var cancelRestRequests = function (category) {
+    _.each(restXhrPool, function (xhr) {
+        if (category && (!xhr.girder || !xhr.girder[category])) {
+            return;
+        }
+        if (xhr.abort) {
+            xhr.abort();
         }
     });
-    /* Get the number of outstanding rest requests.
-     * :param category: if specified, only count those requests that have
-     *                  xhr.girder.(category) set to a truthy value.
-     * :returns: the number of outstanding requests.
-     */
-    var numberOutstandingRestRequests = function (category) {
-        if (category) {
-            return _.filter(restXhrPool, function (xhr) {
-                return xhr.girder && xhr.girder[category];
-            }).length;
-        }
-        return _.size(restXhrPool);
-    };
-    /* Cancel outstanding rest requests.
-     * :param category: if specified, only abort those requests that have
-     *                  xhr.girder.(category) set to a truthy value.
-     */
-    var cancelRestRequests = function (category) {
-        _.each(restXhrPool, function (xhr) {
-            if (category && (!xhr.girder || !xhr.girder[category])) {
-                return;
-            }
-            if (xhr.abort) {
-                xhr.abort();
-            }
-        });
-    };
-// }());
+};
 
 module.exports = {
     DATE_MONTH: DATE_MONTH,
