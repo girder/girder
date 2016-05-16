@@ -8,6 +8,9 @@ var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
+var GroupInviteDialogTemplate = require('girder/templates/widgets/groupInviteDialog.jade');
+var GroupMemberListTemplate   = require('girder/templates/widgets/groupMemberList.jade');
+
 var InviteUserDialog = View.extend({
     events: {
         'click .g-invite-as-member': function () {
@@ -41,7 +44,7 @@ var InviteUserDialog = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupInviteDialog({
+        this.$el.html(GroupInviteDialogTemplate({
             group: this.group,
             user: this.user,
             level: this.group.get('_accessLevel'),
@@ -136,7 +139,7 @@ var GroupMembersWidget = View.extend({
                 members.push(member);
             }
         }
-        this.$el.html(girder.templates.groupMemberList({
+        this.$el.html(GroupMemberListTemplate({
             group: this.model,
             members: members,
             level: this.model.get('_accessLevel'),

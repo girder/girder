@@ -1,5 +1,4 @@
 var _                 = require('underscore');
-var girder            = require('girder/init');
 var Constants         = require('girder/constants');
 var UserModel         = require('girder/models/UserModel');
 var GroupModel        = require('girder/models/GroupModel');
@@ -7,6 +6,10 @@ var DialogHelper      = require('girder/utilities/DialogHelper');
 var View              = require('girder/view');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
+
+var accessEditorTemplate         = require('girder/templates/widgets/accessEditor.jade');
+var accessEditorNonModalTemplate = require('girder/templates/widgets/accessEditorNonModal.jade');
+var accessEntryTemplate          = require('girder/templates/widgets/accessEntry.jade');
 
 /**
  * This view allows users to see and control access on a resource.
@@ -77,8 +80,8 @@ var AccessWidget = View.extend({
             };
         }
 
-        var template = this.modal ? girder.templates.accessEditor
-                                  : girder.templates.accessEditorNonModal;
+        var template = this.modal ? accessEditorTemplate
+                                  : accessEditorNonModalTemplate;
         this.$el.html(template({
             model: this.model,
             modelType: this.modelType,
@@ -92,7 +95,7 @@ var AccessWidget = View.extend({
         }
 
         _.each(this.model.get('access').groups, function (groupAccess) {
-            this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
+            this.$('#g-ac-list-groups').append(accessEntryTemplate({
                 accessTypes: Constants.AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
@@ -103,7 +106,7 @@ var AccessWidget = View.extend({
         }, this);
 
         _.each(this.model.get('access').users, function (userAccess) {
-            this.$('#g-ac-list-users').append(girder.templates.accessEntry({
+            this.$('#g-ac-list-users').append(accessEntryTemplate({
                 accessTypes: Constants.AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
@@ -155,7 +158,7 @@ var AccessWidget = View.extend({
         if (!exists) {
             var model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-users').append(girder.templates.accessEntry({
+                this.$('#g-ac-list-users').append(accessEntryTemplate({
                     accessTypes: Constants.AccessType,
                     type: 'user',
                     entry: {
@@ -183,7 +186,7 @@ var AccessWidget = View.extend({
         if (!exists) {
             var model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
+                this.$('#g-ac-list-groups').append(accessEntryTemplate({
                     accessTypes: Constants.AccessType,
                     type: 'group',
                     entry: {

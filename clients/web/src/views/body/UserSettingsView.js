@@ -8,6 +8,8 @@ var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 
+var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
+
 /**
  * This is the view for the user account (profile) page.
  */
@@ -110,7 +112,7 @@ var UserAccountView = View.extend({
             return;
         }
 
-        this.$el.html(girder.templates.userSettings({
+        this.$el.html(UserSettingsTemplate({
             user: this.model,
             isCurrentUser: this.isCurrentUser,
             girder: girder,

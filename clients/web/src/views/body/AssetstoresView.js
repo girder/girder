@@ -11,6 +11,8 @@ var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
 var EditAssetstoreWidget = require('girder/views/widgets/EditAssetstoreWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 
+var AssetstoresTemplate = require('girder/templates/body/assetstores.jade');
+
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
@@ -45,7 +47,7 @@ var AssetstoresView = View.extend({
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
-        this.$el.html(girder.templates.assetstores({
+        this.$el.html(AssetstoresTemplate({
             assetstores: this.collection.toArray(),
             types: Constants.AssetstoreType,
             importableTypes: this.importableTypes,

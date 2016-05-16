@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+var IteamBreadcrumbTemplate = require('girder/templates/widgets/itemBreadcrumb.jade');
+
 /**
  * Renders the a breadcrumb for the item page
  */
@@ -23,7 +25,7 @@ var ItemBreadcrumbWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.itemBreadcrumb({
+        this.$el.html(IteamBreadcrumbTemplate({
             parentChain: this.parentChain
         }));
 

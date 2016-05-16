@@ -1,7 +1,8 @@
 var _                  = require('underscore');
-var girder             = require('girder/init');
 var View               = require('girder/view');
 var TaskProgressWidget = require('girder/views/widgets/TaskProgressWidget');
+
+var LayoutProgressAreaTemplate = require('girder/templates/layout/layoutProgressArea.jade');
 
 /**
  * Container showing list of active tasks that are reporting progress
@@ -18,7 +19,7 @@ var ProgressListView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layoutProgressArea());
+        this.$el.html(LayoutProgressAreaTemplate());
 
         this._onUpdate();
 

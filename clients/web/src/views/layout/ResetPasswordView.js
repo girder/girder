@@ -1,9 +1,10 @@
 var _            = require('underscore');
-var girder       = require('girder/init');
 var Rest         = require('girder/rest');
 var Events       = require('girder/events');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var ResetPasswordDialogTemplate = require('girder/templates/layout/resetPasswordDialog.jade');
 
 /**
  * This view shows a modal dialog for resetting a forgotten password.
@@ -44,7 +45,7 @@ var ResetPasswordView = View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.resetPasswordDialog(
+        this.$el.html(ResetPasswordDialogTemplate(
         )).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-email').focus();
         }).on('hidden.bs.modal', function () {

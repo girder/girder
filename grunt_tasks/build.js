@@ -50,6 +50,20 @@ module.exports = function (grunt) {
             filename: '[name].min.js'
         },
         module: {
+            loaders: [
+                // { // CSS
+                //     test: /\.css$/,
+                //     loader: 'style-loader!css-loader'
+                // },
+                // { // Stylus
+                //     test: /\.styl$/,
+                //     loader: 'style-loader!css-loader!stylus-loader'
+                // },
+                { // Jade
+                    test: /\.jade$/,
+                    loader: 'jade'
+                }
+            ],
             noParse: [
                 // // Avoid warning:
                 // //   This seems to be a pre-built javascript file. Though this is
@@ -61,10 +75,23 @@ module.exports = function (grunt) {
             ]
         },
         // resolve: {
+        //     extensions: ['.js', '.styl', '.css', '.jade', ''],
+        //     modulesDirectories: [
+        //         web_src_dir,
+        //         node_modules_dir
+        //     ]
+        // },
+        // resolve: {
         //     alias: {
         //         jquery: 'jquery/dist/jquery.js'
         //     }
         // },
+        node: {
+            canvas: 'empty',
+            fs: 'empty',
+            jsdom: 'empty',
+            xmldom: 'empty'
+        },
         plugins: [
             new webpack.DefinePlugin({
                 'process.env': {
@@ -290,7 +317,7 @@ module.exports = function (grunt) {
                     //     './clients/web/src/main.js'
                     // ],
                     'girder.app': [
-                        './clients/web/static/built/templates.js',
+                        // './clients/web/static/built/templates.js',
                         // './clients/web/src/init.js',
                         // './clients/web/src/girder-version.js',
                         // './clients/web/src/view.js',

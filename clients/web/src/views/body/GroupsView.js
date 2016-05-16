@@ -9,6 +9,8 @@ var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
+var GroupListTemplate = require('girder/templates/body/groupList.jade');
+
 /**
  * This view lists groups.
  */
@@ -48,7 +50,7 @@ var GroupsView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupList({
+        this.$el.html(GroupListTemplate({
             groups: this.collection.toArray(),
             girder: girder
         }));

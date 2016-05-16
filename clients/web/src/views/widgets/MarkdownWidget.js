@@ -1,9 +1,10 @@
 var _             = require('underscore');
-var girder        = require('girder/init');
 var Events        = require('girder/events');
 var FileModel     = require('girder/models/FileModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+var MarkdownWidgetTemplate = require('girder/templates/widgets/markdownWidget.jade');
 
 /**
  * A simple widget for editing markdown text with a preview tab.
@@ -174,7 +175,7 @@ var MarkdownWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.markdownWidget({
+        this.$el.html(MarkdownWidgetTemplate({
             text: this.text,
             placeholder: this.placeholder,
             prefix: this.prefix,

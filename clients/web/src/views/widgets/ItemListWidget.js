@@ -4,6 +4,8 @@ var ItemCollection   = require('girder/collections/ItemCollection');
 var View             = require('girder/view');
 var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
 
+var IteamListTemplate = require('girder/templates/widgets/itemList.jade');
+
 /**
  * This widget shows a list of items under a given folder.
  */
@@ -39,7 +41,7 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(girder.templates.itemList({
+        this.$el.html(IteamListTemplate({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             girder: girder,

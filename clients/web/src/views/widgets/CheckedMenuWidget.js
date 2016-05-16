@@ -2,6 +2,8 @@ var girder    = require('girder/init');
 var Constants = require('girder/constants');
 var View      = require('girder/view');
 
+var CheckedActionsMenuTemplate = require('girder/templates/widgets/checkedActionsMenu.jade');
+
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
@@ -21,7 +23,7 @@ var CheckedMenuWidget = View.extend({
         }
 
         this.dropdownToggle.removeAttr('disabled');
-        this.$el.html(girder.templates.checkedActionsMenu({
+        this.$el.html(CheckedActionsMenuTemplate({
             minFolderLevel: this.minFolderLevel,
             minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,

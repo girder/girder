@@ -1,6 +1,7 @@
 var _      = require('underscore');
-var girder = require('girder/init');
 var View   = require('girder/view');
+
+var TimelineTemplate = require('girder/templates/widgets/timeline.jade');
 
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)
@@ -141,7 +142,7 @@ var TimelineWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.timeline({
+        this.$el.html(TimelineTemplate({
             segments: this._processedSegments,
             points: this._processedPoints,
             startLabel: this.startLabel,

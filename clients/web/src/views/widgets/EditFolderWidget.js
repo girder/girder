@@ -1,10 +1,11 @@
 var _              = require('underscore');
 var $              = require('jquery');
-var girder         = require('girder/init');
 var FolderModel    = require('girder/models/FolderModel');
 var DialogHelper   = require('girder/utilities/DialogHelper');
 var View           = require('girder/view');
 var MarkdownWidget = require('girder/views/widgets/MarkdownWidget');
+
+var EditFolderWidgetTemplate = require('girder/templates/widgets/editFolderWidget.jade');
 
 /**
  * This widget is used to create a new folder or edit an existing one.
@@ -47,7 +48,7 @@ var EditFolderWidget = View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editFolderWidget({
+        var modal = this.$el.html(EditFolderWidgetTemplate({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();

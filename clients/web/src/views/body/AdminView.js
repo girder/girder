@@ -4,6 +4,8 @@ var Events        = require('girder/events');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 
+var AdminConsoleTemplate = require('girder/templates/body/adminConsole.jade');
+
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
@@ -30,7 +32,7 @@ var AdminView = View.extend({
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
-        this.$el.html(girder.templates.adminConsole());
+        this.$el.html(AdminConsoleTemplate());
 
         return this;
     }

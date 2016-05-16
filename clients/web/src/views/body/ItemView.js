@@ -11,6 +11,8 @@ var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var ItemBreadcrumbWidget = require('girder/views/widgets/ItemBreadcrumbWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 
+var ItemPageTemplate = require('girder/templates/body/itemPage.jade');
+
 /**
  * This view shows a single item's page.
  */
@@ -102,7 +104,7 @@ var ItemView = View.extend({
         // it. TODO: load the page and adjust only the action menu once
         // the access level is fetched.
         this.model.getAccessLevel(_.bind(function (accessLevel) {
-            this.$el.html(girder.templates.itemPage({
+            this.$el.html(ItemPageTemplate({
                 item: this.model,
                 accessLevel: accessLevel,
                 girder: girder

@@ -9,6 +9,8 @@ var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var RegisterView      = require('girder/views/layout/RegisterView');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
+var UserListTemplate = require('girder/templates/body/userList.jade');
+
 /**
  * This view lists users.
  */
@@ -48,7 +50,7 @@ var UsersView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.userList({
+        this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
             girder: girder
         }));

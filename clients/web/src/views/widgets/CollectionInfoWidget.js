@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+var CollectionInfoDialogTemplate = require('girder/templates/widgets/collectionInfoDialog.jade');
+
 /**
  * This view shows a dialog containing detailed collection information.
  */
@@ -20,7 +22,7 @@ var CollectionInfoWidget = View.extend({
             return;
         }
 
-        this.$el.html(girder.templates.collectionInfoDialog({
+        this.$el.html(CollectionInfoDialogTemplate({
             collection: this.model,
             girder: girder
         })).girderModal(this);

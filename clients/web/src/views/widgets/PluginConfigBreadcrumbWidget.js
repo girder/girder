@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+var PluginConfigBreadcrumbTemplate = require('girder/templates/widgets/pluginConfigBreadcrumb.jade');
+
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
@@ -20,7 +22,7 @@ var PluginConfigBreadcrumbWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.pluginConfigBreadcrumb({
+        this.$el.html(PluginConfigBreadcrumbTemplate({
             pluginName: this.pluginName
         }));
 

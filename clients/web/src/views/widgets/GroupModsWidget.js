@@ -1,11 +1,12 @@
 var _             = require('underscore');
-var girder        = require('girder/init');
 var Events        = require('girder/events');
 var Constants     = require('girder/constants');
 var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 var UserView      = require('girder/views/body/UserView');
+
+var GroupModListTemplate = require('girder/templates/widgets/groupModList.jade');
 
 /**
  * This view shows a list of moderators of a group.
@@ -62,7 +63,7 @@ var GroupModsWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupModList({
+        this.$el.html(GroupModListTemplate({
             group: this.model,
             level: this.model.get('_accessLevel'),
             moderators: this.moderators,

@@ -1,9 +1,11 @@
 var _             = require('underscore');
-var girder        = require('girder/init');
 var FileModel     = require('girder/models/FileModel');
 var DialogHelper  = require('girder/utilities/DialogHelper');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+var UploadWidgetTemplate = require('girder/templates/widgets/uploadWidget.jade');
+var UploadWidgetNonModalTemplate = require('girder/templates/widgets/uploadWidgetNonModal.jade');
 
 /**
  * This widget is used to upload files to a folder. Pass a folder model
@@ -108,7 +110,7 @@ var UploadWidget = View.extend({
 
     render: function () {
         if (this.modal) {
-            this.$el.html(girder.templates.uploadWidget({
+            this.$el.html(UploadWidgetTemplate({
                 parent: this.parent,
                 parentType: this.parentType,
                 title: this.title
@@ -132,7 +134,7 @@ var UploadWidget = View.extend({
 
             DialogHelper.handleOpen('upload', undefined, dialogid);
         } else {
-            this.$el.html(girder.templates.uploadWidgetNonModal({
+            this.$el.html(UploadWidgetNonModalTemplate({
                 parent: this.parent,
                 parentType: this.parentType,
                 title: this.title

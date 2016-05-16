@@ -4,6 +4,8 @@ var Events   = require('girder/events');
 var Backbone = require('backbone');
 var View     = require('girder/view');
 
+var LayoutGlobalNav = require('girder/templates/layout/layoutGlobalNav.jade');
+
 /**
  * This view shows a list of global navigation links that should be
  * displayed at all times.
@@ -65,7 +67,7 @@ var LayoutGlobalNavView = View.extend({
                 });
             }
         }
-        this.$el.html(girder.templates.layoutGlobalNav({
+        this.$el.html(LayoutGlobalNav({
             navItems: navItems
         }));
 

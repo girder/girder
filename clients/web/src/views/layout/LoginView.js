@@ -1,8 +1,9 @@
-var girder       = require('girder/init');
 var Auth         = require('girder/auth');
 var Events       = require('girder/events');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var LoginDialogTemplate = require('girder/templates/layout/loginDialog.jade');
 
 /**
  * This view shows a login modal dialog.
@@ -38,7 +39,7 @@ var LoginView = View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.loginDialog()).girderModal(this)
+        this.$el.html(LoginDialogTemplate()).girderModal(this)
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {

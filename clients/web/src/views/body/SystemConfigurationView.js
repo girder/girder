@@ -6,6 +6,8 @@ var View              = require('girder/view');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
+var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
+
 /**
  * The system config page for administrators.
  */
@@ -94,7 +96,7 @@ var SystemConfigurationView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.systemConfiguration({
+        this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
             defaults: this.defaults,
             JSON: window.JSON

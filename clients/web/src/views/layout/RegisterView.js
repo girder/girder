@@ -1,9 +1,10 @@
-var girder       = require('girder/init');
 var Auth         = require('girder/auth');
 var Events       = require('girder/events');
 var UserModel    = require('girder/models/UserModel');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var RegisterDialogTemplate = require('girder/templates/layout/registerDialog.jade');
 
 /**
  * This view shows a register modal dialog.
@@ -70,7 +71,7 @@ var RegisterView = View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.registerDialog({
+        this.$el.html(RegisterDialogTemplate({
             currentUser: Auth.getCurrentUser(),
             title: Auth.getCurrentUser() ? 'Create new user' : 'Sign up'
         })).girderModal(this)

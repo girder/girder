@@ -4,6 +4,12 @@ var Events        = require('girder/events');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 
+var MetadatumEditWidgetTemplate     = require('girder/templates/widgets/metadatumEditWidget.jade');
+var MetadatumViewTemplate           = require('girder/templates/widgets/metadatumView.jade');
+var JsonMetadatumEditWidgetTemplate = require('girder/templates/widgets/jsonMetadatumEdit.jade');
+var JsonMetadatumViewTemplate       = require('girder/templates/widgets/jsonMetadatumView.jade');
+var MetadatumWidgetTemplate         = require('girder/templates/widgets/metadatumWidget.jade');
+
 var MetadatumWidget = View.extend({
     events: {
         'click .g-widget-metadata-edit-button': 'editMetadata'
@@ -165,7 +171,7 @@ var MetadatumEditWidget = View.extend({
         this.onMetadataAdded = settings.onMetadataAdded;
     },
 
-    editTemplate: girder.templates.metadatumEditWidget,
+    editTemplate: MetadatumEditWidgetTemplate,
 
     getCurrentValue: function () {
         return this.$el.find('.g-widget-metadata-value-input').val();
@@ -284,7 +290,7 @@ var MetadatumEditWidget = View.extend({
 });
 
 var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
-    editTemplate: girder.templates.jsonMetadatumEditWidget,
+    editTemplate: JsonMetadatumEditWidgetTemplate,
 
     getCurrentValue: function () {
         return this.editor.getText();
@@ -382,7 +388,7 @@ var MetadataWidget = View.extend({
             displayValue: function () {
                 return this.value;
             },
-            template: girder.templates.metadatumView
+            template: MetadatumViewTemplate
         },
         json: {
             editor: function (args) {
@@ -409,7 +415,7 @@ var MetadataWidget = View.extend({
                     ]
                 }
             },
-            template: girder.templates.jsonMetadatumView
+            template: JsonMetadatumViewTemplate
         }
     },
 
@@ -468,7 +474,7 @@ var MetadataWidget = View.extend({
         metaKeys.sort(MiscFunctions.localeSort);
 
         // Metadata header
-        this.$el.html(girder.templates.metadataWidget({
+        this.$el.html(MetadatumWidgetTemplate({
             item: this.item,
             title: this.title,
             accessLevel: this.accessLevel,

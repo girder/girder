@@ -15,6 +15,8 @@ var GroupAdminsWidget  = require('girder/views/widgets/GroupAdminsWidget');
 var GroupModsWidget    = require('girder/views/widgets/GroupModsWidget');
 var MiscFunctions      = require('girder/utilities/MiscFunctions');
 
+var GroupPageTemplate = require('girder/templates/body/groupPage.jade');
+
 /**
  * This view shows a single group's page.
  */
@@ -132,7 +134,7 @@ var GroupView = View.extend({
                 return true;
             }, this);
         }
-        this.$el.html(girder.templates.groupPage({
+        this.$el.html(GroupPageTemplate({
             group: this.model,
             girder: girder,
             isInvited: this.isInvited,

@@ -1,7 +1,11 @@
 var _      = require('underscore');
-var girder = require('girder/init');
 var Rest   = require('girder/rest');
 var View   = require('girder/view');
+
+var SearchFieldTemplate      = require('girder/templates/widgets/searchField.jade');
+var SearchHelpTemplate       = require('girder/templates/widgets/searchHelp.jade');
+var SearchModeSelectTemplate = require('girder/templates/widgets/searchModeSelect.jade');
+var SearchResultsTemplate    = require('girder/templates/widgets/searchResults.jade');
 
 /**
  * This widget provides a text field that will search any set of data types
@@ -108,7 +112,7 @@ var SearchFieldWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.searchField({
+        this.$el.html(SearchFieldTemplate({
             placeholder: this.placeholder,
             modes: this.modes,
             currentMode: this.currentMode
@@ -126,7 +130,7 @@ var SearchFieldWidget = View.extend({
                 padding: 10
             },
             content: _.bind(function () {
-                return girder.templates.searchHelp({
+                return SearchHelpTemplate({
                     mode: this.currentMode
                 });
             }, this)
@@ -142,7 +146,7 @@ var SearchFieldWidget = View.extend({
                 padding: 10
             },
             content: _.bind(function () {
-                return girder.templates.searchModeSelect({
+                return SearchModeSelectTemplate({
                     modes: this.modes,
                     currentMode: this.currentMode
                 });
@@ -237,7 +241,7 @@ var SearchFieldWidget = View.extend({
                         });
                     }, this);
                 }, this);
-                list.html(girder.templates.searchResults({
+                list.html(SearchResultsTemplate({
                     results: resources
                 }));
 

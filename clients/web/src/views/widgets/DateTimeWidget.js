@@ -1,6 +1,8 @@
 var _      = require('underscore');
-var girder = require('girder/init');
 var View   = require('girder/view');
+
+var dateTimeWidgetTemplate      = require('girder/templates/widgets/dateTimeWidget.jade');
+var dateTimeRangeWidgetTemplate = require('girder/templates/widgets/dateTimeRangeWidget.jade');
 
 /* globals moment */
 
@@ -23,7 +25,7 @@ var DateTimeWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.dateTimeWidget({
+        this.$el.html(dateTimeWidgetTemplate({
             showIcon: this.showIcon
         }));
 
@@ -131,7 +133,7 @@ var DateTimeRangeWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.dateTimeRangeWidget({
+        this.$el.html(dateTimeRangeWidgetTemplate({
             showIcon: this.showIcon,
             fromLabel: this.fromLabel,
             toLabel: this.toLabel

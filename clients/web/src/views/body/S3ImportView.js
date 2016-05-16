@@ -3,6 +3,8 @@ var Events          = require('girder/events');
 var AssetstoreModel = require('girder/models/AssetstoreModel');
 var View            = require('girder/view');
 
+var S3ImportTemplate = require('girder/templates/body/s3Import.jade');
+
 var S3ImportView = View.extend({
     events: {
         'submit .g-s3-import-form': function (e) {
@@ -32,7 +34,7 @@ var S3ImportView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.s3Import({
+        this.$el.html(S3ImportTemplate({
             assetstore: this.assetstore
         }));
     }

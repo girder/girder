@@ -1,8 +1,9 @@
 var _         = require('underscore');
 var Rest      = require('girder/rest');
 var Constants = require('girder/constants');
-var girder    = require('girder/init');
 var Events    = require('girder/events');
+
+var ConfirmDialogTemplate = require('girder/templates/widgets/confirmDialog.jade');
 
 /**
  * This file contains utility functions for general use in the application
@@ -119,7 +120,7 @@ var confirm = function (params) {
         noText: 'Cancel',
         escapedHtml: false
     }, params);
-    $('#g-dialog-container').html(girder.templates.confirmDialog({
+    $('#g-dialog-container').html(ConfirmDialogTemplate({
         params: params
     })).girderModal(false);
 

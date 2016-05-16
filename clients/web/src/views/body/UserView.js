@@ -8,6 +8,8 @@ var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
 var MiscFunctions   = require('girder/utilities/MiscFunctions');
 var UsersView       = require('girder/views/body/UsersView');
 
+var UserPageTemplate = require('girder/templates/body/userPage.jade');
+
 /**
  * This view shows a single user's page.
  */
@@ -86,7 +88,7 @@ var UserView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.userPage({
+        this.$el.html(UserPageTemplate({
             user: this.model,
             girder: girder
         }));

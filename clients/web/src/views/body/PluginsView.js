@@ -6,6 +6,8 @@ var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 var UsersView     = require('girder/views/body/UsersView');
 
+var PluginsTemplate = require('girder/templates/body/plugins.jade');
+
 /**
  * This is the plugin management page for administrators.
  */
@@ -60,7 +62,7 @@ var PluginsView = View.extend({
             }
         }, this);
 
-        this.$el.html(girder.templates.plugins({
+        this.$el.html(PluginsTemplate({
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 

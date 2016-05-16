@@ -1,5 +1,6 @@
-var girder = require('girder/init');
 var View   = require('girder/view');
+
+var PaginateWidgetTemplate = require('girder/templates/widgets/paginateWidget.jade');
 
 /**
  * This widget is used to provide a consistent widget for iterating amongst
@@ -27,7 +28,7 @@ var PaginateWidget = View.extend({
      * Do not call render() until the collection has been fetched once.
      */
     render: function () {
-        this.$el.html(girder.templates.paginateWidget({
+        this.$el.html(PaginateWidgetTemplate({
             collection: this.collection
         }));
 

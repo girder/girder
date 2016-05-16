@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+var FolderInfoDialogTemplate = require('girder/templates/widgets/folderInfoDialog.jade');
+
 /**
  * This view shows a dialog container detailed folder information.
  */
@@ -20,7 +22,7 @@ var FolderInfoWidget = View.extend({
             return;
         }
 
-        this.$el.html(girder.templates.folderInfoDialog({
+        this.$el.html(FolderInfoDialogTemplate({
             folder: this.model,
             girder: girder
         })).girderModal(this);

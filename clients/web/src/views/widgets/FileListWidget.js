@@ -7,6 +7,8 @@ var EditFileWidget = require('girder/views/widgets/EditFileWidget');
 var UploadWidget   = require('girder/views/widgets/UploadWidget');
 var MiscFunctions  = require('girder/utilities/MiscFunctions');
 
+var FileListTemplate = require('girder/templates/widgets/fileListTemplate.jade');
+
 /**
  * This widget shows a list of files in a given item.
  */
@@ -104,7 +106,7 @@ var FileListWidget = View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(girder.templates.fileList({
+        this.$el.html(FileListTemplate({
             files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             girder: girder,

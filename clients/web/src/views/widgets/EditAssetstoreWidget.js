@@ -1,9 +1,10 @@
 var _            = require('underscore');
 var $            = require('jquery');
-var girder       = require('girder/init');
 var Constants    = require('girder/constants');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var EditAssetstoreWidgetTemplate = require('girder/templates/widgets/editAssetstoreWidget.jade');
 
 /**
  * This widget is used to edit an existing assetstore.
@@ -46,7 +47,7 @@ var EditAssetstoreWidget = View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editAssetstoreWidget({
+        var modal = this.$el.html(EditAssetstoreWidgetTemplate({
             assetstore: view.model,
             types: Constants.AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {

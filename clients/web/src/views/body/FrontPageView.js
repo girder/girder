@@ -6,6 +6,8 @@ var versionInfo   = require('girder/girder-version');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 
+var FrontPageTemplate = require('girder/templates/body/frontPage.jade');
+
 /**
  * This is the view for the front page of the app.
  */
@@ -38,7 +40,7 @@ var FrontPageView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.frontPage({
+        this.$el.html(FrontPageTemplate({
             apiRoot: Rest.apiRoot,
             staticRoot: Rest.staticRoot,
             currentUser: Auth.getCurrentUser(),

@@ -3,6 +3,8 @@ var View                 = require('girder/view');
 var LayoutHeaderUserView = require('girder/views/layout/HeaderUserView');
 var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
 
+var LayoutHeaderTemplate = require('girder/templates/layout/layoutHeader.jade');
+
 /**
  * This view shows the header in the layout.
  */
@@ -31,7 +33,7 @@ var LayoutHeaderView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layoutHeader());
+        this.$el.html(LayoutHeaderTemplate());
 
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();

@@ -4,6 +4,8 @@ var Constants     = require('girder/constants');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 
+var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
+
 /**
  * This view shows a list of pending invitations to the group.
  */
@@ -40,7 +42,7 @@ var GroupInvitesWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupInviteList({
+        this.$el.html(GroupInviteListTemplate({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.toArray(),
             accessType: Constants.AccessType

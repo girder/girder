@@ -1,9 +1,10 @@
 var $            = require('jquery');
-var girder       = require('girder/init');
 var Auth         = require('girder/auth');
 var GroupModel   = require('girder/models/GroupModel');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var EditGroupWidgetTemplate = require('girder/templates/widgets/editGroupWidget.jade');
 
 /**
  * This widget is used to create a new group or edit an existing one.
@@ -51,7 +52,7 @@ var EditGroupWidget = View.extend({
                 groupAddAllowed = 'admin';
             }
         }
-        var modal = this.$el.html(girder.templates.editGroupWidget({
+        var modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
             public: pub,
             addToGroupPolicy: addToGroupPolicy,

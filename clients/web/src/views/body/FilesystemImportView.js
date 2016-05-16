@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+var FilesystemImportTemplate = require('girder/templates/body/filesystemImport.jade');
+
 var FilesystemImportView = View.extend({
     events: {
         'submit .g-filesystem-import-form': function (e) {
@@ -30,7 +32,7 @@ var FilesystemImportView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.filesystemImport({
+        this.$el.html(FilesystemImportTemplate({
             assetstore: this.assetstore
         }));
     }

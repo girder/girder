@@ -1,8 +1,9 @@
 var $               = require('jquery');
-var girder          = require('girder/init');
 var CollectionModel = require('girder/models/CollectionModel');
 var DialogHelper    = require('girder/utilities/DialogHelper');
 var View            = require('girder/view');
+
+var EditCollectionWidgetTemplate = require('girder/templates/widgets/editCollectionWidget.jade');
 
 /**
  * This widget is used to create a new collection or edit an existing one.
@@ -34,7 +35,7 @@ var EditCollectionWidget = View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editCollectionWidget({
+        var modal = this.$el.html(EditCollectionWidgetTemplate({
             collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();

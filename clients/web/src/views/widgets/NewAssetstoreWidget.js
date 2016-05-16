@@ -1,7 +1,8 @@
 var Constants       = require('girder/constants');
-var girder          = require('girder/init');
 var AssetstoreModel = require('girder/models/AssetstoreModel');
 var View            = require('girder/view');
+
+var NewAssetstoreTemplate = require('girder/templates/widgets/newAssetstore.jade');
 
 /**
  * This widget is for creating new assetstores. The parent view is responsible
@@ -42,7 +43,7 @@ var NewAssetstoreWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.newAssetstore());
+        this.$el.html(NewAssetstoreTemplate());
         return this;
     },
 

@@ -8,6 +8,8 @@ var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
 var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 
+var CollectionListTemplate = require('girder/templates/body/collectionList.jade');
+
 /**
  * This view lists the collections.
  */
@@ -60,7 +62,7 @@ var CollectionsView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.collectionList({
+        this.$el.html(CollectionListTemplate({
             collections: this.collection.toArray(),
             girder: girder
         }));

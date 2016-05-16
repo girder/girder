@@ -1,8 +1,9 @@
 var _                = require('underscore');
-var girder           = require('girder/init');
 var FolderCollection = require('girder/collections/FolderCollection');
 var View             = require('girder/view');
 var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
+
+var FolderListTemplate = require('girder/templates/widgets/folderList.jade');
 
 /**
  * This widget shows a list of folders under a given parent.
@@ -42,7 +43,7 @@ var FolderListWidget = View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(girder.templates.folderList({
+        this.$el.html(FolderListTemplate({
             folders: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             checkboxes: this._checkboxes

@@ -3,6 +3,8 @@ var Auth   = require('girder/auth');
 var Events = require('girder/events');
 var View   = require('girder/view');
 
+var LayoutHeaderUserTemplate = require('girder/templates/layout/layoutHeaderUser.jade');
+
 /**
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
@@ -36,7 +38,7 @@ var LayoutHeaderUserView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layoutHeaderUser({
+        this.$el.html(LayoutHeaderUserTemplate({
             user: Auth.getCurrentUser()
         }));
         return this;

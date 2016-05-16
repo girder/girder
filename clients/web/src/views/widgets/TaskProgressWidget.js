@@ -1,5 +1,6 @@
-var girder = require('girder/init');
 var View   = require('girder/view');
+
+var TaskProgressTemplate = require('girder/templates/widgets/taskProgress.jade');
 
 /**
  * This widget renders the state of a progress notification.
@@ -51,7 +52,7 @@ var TaskProgressWidget = View.extend({
             this._scheduleHide(10000);
         }
 
-        this.$el.html(girder.templates.taskProgress({
+        this.$el.html(TaskProgressTemplate({
             progress: this.progress,
             width: width,
             barClass: barClass.join(' '),

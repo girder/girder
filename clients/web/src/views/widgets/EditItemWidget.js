@@ -1,9 +1,10 @@
 var _            = require('underscore');
 var $            = require('jquery');
-var girder       = require('girder/init');
 var ItemModel    = require('girder/models/ItemModel');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var EditItemWidgetTemplate = require('girder/templates/widgets/editItemWidget.jade');
 
 /**
  * This widget is used to create a new item or edit an existing one.
@@ -36,7 +37,7 @@ var EditItemWidget = View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editItemWidget({
+        var modal = this.$el.html(EditItemWidgetTemplate({
             item: this.item}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();

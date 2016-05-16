@@ -19,6 +19,9 @@ var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var UploadWidget         = require('girder/views/widgets/UploadWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 
+var HierarchyBreadcrumbTemplate = require('girder/templates/widgets/hierarchyBreadcrumb.jade');
+var HierarchyWidgetTemplate = require('girder/templates/widgets/hierarchyWidget.jade');
+
 var pickedResources = null;
 
 /**
@@ -47,7 +50,7 @@ var HierarchyBreadcrumbView = View.extend({
         var descriptionText = $(MiscFunctions.renderMarkdown(
             active.get('description') || '')).text();
 
-        this.$el.html(girder.templates.hierarchyBreadcrumb({
+        this.$el.html(HierarchyBreadcrumbTemplate({
             links: objects,
             current: active,
             descriptionText: descriptionText
@@ -244,7 +247,7 @@ var HierarchyWidget = View.extend({
         this.folderCount = null;
         this.itemCount = null;
 
-        this.$el.html(girder.templates.hierarchyWidget({
+        this.$el.html(HierarchyWidgetTemplate({
             type: this.parentModel.resourceName,
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),

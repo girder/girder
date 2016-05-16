@@ -1,11 +1,12 @@
 var _             = require('underscore');
-var girder        = require('girder/init');
 var Events        = require('girder/events');
 var Constants     = require('girder/constants');
 var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 var UserView      = require('girder/views/body/UserView');
+
+var GroupAdminListTemplate = require('girder/templates/widgets/groupAdminList.jade');
 
 /**
  * This view shows a list of administrators of a group.
@@ -72,7 +73,7 @@ var GroupAdminsWidget = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupAdminList({
+        this.$el.html(GroupAdminListTemplate({
             group: this.model,
             level: this.model.get('_accessLevel'),
             admins: this.admins,

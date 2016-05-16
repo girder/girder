@@ -9,6 +9,8 @@ var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
 var AccessWidget         = require('girder/views/widgets/AccessWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 
+var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
+
 /**
  * This view shows a single collection's page.
  */
@@ -111,7 +113,7 @@ var CollectionView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.collectionPage({
+        this.$el.html(CollectionPageTemplate({
             collection: this.model,
             girder: girder
         }));

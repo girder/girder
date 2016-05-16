@@ -16,6 +16,9 @@ var LoginView           = require('girder/views/layout/LoginView');
 var RegisterView        = require('girder/views/layout/RegisterView');
 var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
 
+var LayoutTemplate      = require('girder/templates/layout/layout.jade');
+var AlertTemplate       = require('girder/templates/layout/alert.jade');
+
 var App = View.extend({
     initialize: function () {
         Auth.fetchCurrentUser()
@@ -88,7 +91,7 @@ var App = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layout());
+        this.$el.html(LayoutTemplate());
 
         this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();
@@ -212,7 +215,7 @@ var App = View.extend({
      *                Default is 6000ms. Set to <= 0 to have no timeout.
      */
     alert: function (options) {
-        var el = $(girder.templates.alert({
+        var el = $(AlertTemplate({
             text: options.text,
             type: options.type || 'info',
             icon: options.icon

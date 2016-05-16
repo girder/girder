@@ -1,6 +1,7 @@
-var girder       = require('girder/init');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
+
+var EditFileWidgetTemplate = require('girder/templates/widgets/editFileWidget.jade');
 
 /**
  * This widget is used to edit file information.
@@ -39,7 +40,7 @@ var EditFileWidget = View.extend({
         if (this.file.get('mimeType') === undefined) {
             this.file.set('mimeType', '');
         }
-        this.$el.html(girder.templates.editFileWidget({file: this.file}))
+        this.$el.html(EditFileWidgetTemplate({file: this.file}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').select().focus();
             }).on('hidden.bs.modal', function () {
