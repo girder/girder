@@ -20,7 +20,9 @@
 module.exports = function (grunt) {
     var path = require('path');
     var glob = require('glob');
-    var web_src_dir = path.join(__dirname, '../clients/web/src');
+    var clients_web_dir = path.join(__dirname, '../clients/web');
+    var node_modules_dir = path.join(__dirname, '../node_modules');
+    var web_src_dir = path.join(clients_web_dir, 'src');
     var webpack = require('webpack');
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
@@ -39,7 +41,7 @@ module.exports = function (grunt) {
         inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
         hot: false,        // adds HotModuleReplacementPlugin and switch the server to hot mode
         cache: true,
-        progress: true,    // show progress
+        progress: false,    // show progress
         failOnError: true, // report error to grunt if webpack find errors; set to false if
                            // webpack errors are tolerable and grunt should continue
         devtool: environment === 'dev' ? 'source-map' : false,
@@ -74,6 +76,18 @@ module.exports = function (grunt) {
             new webpack.ProvidePlugin({
                 jQuery: 'jquery',
                 $: 'jquery'
+            }),
+            new webpack.optimize.CommonsChunkPlugin({
+                name: 'girder.ext',
+                // See http://stackoverflow.com/a/29087883/250457
+                minChunks: function (module) {
+                    var include = module.resource &&
+                        module.resource.indexOf(clients_web_dir) === -1;
+                    if (include) {
+                        console.log('[girder.ext] <= ', module.resource.replace(node_modules_dir, ''));
+                    }
+                    return include;
+                }
             })
         ]
     };
@@ -271,6 +285,7 @@ module.exports = function (grunt) {
                     }
                 },
                 entry: {
+                    'girder.ext': [],
                     // 'girder.main': [
                     //     './clients/web/src/main.js'
                     // ],
