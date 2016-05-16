@@ -65,7 +65,7 @@ def renderTemplate(name, params=None):
     return template.render(**params)
 
 
-def sendEmail(to=None, subject=None, text=None, toAdmins=False):
+def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
     """
     Send an email. This builds the appropriate email object and then triggers
     an asynchronous event to send the email (handled in _sendmail).
@@ -79,28 +79,42 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False):
     :param toAdmins: To send an email to all site administrators, set this
         to True, which will override any "to" argument that was passed.
     :type toAdmins: bool
+    :param bcc: Recipient email address(es) that should be specified using the
+        Bcc header.
+    :type bcc: str, list/tuple, or None
     """
+    to = to or ()
+    bcc = bcc or ()
+
     if toAdmins:
         to = [u['email'] for u in ModelImporter.model('user').getAdmins()]
-    elif isinstance(to, six.string_types):
-        to = (to,)
+    else:
+        if isinstance(to, six.string_types):
+            to = (to,)
+        if isinstance(bcc, six.string_types):
+            bcc = (bcc,)
 
-    if not isinstance(to, (list, tuple)):
-        raise Exception('You must specify a "to" address or list of addresses '
-                        'or set toAdmins=True when calling sendEmail.')
+    if not to and not bcc:
+        raise Exception('You must specify email recipients via "to" or "bcc", '
+                        'or use toAdmins=True.')
 
     if isinstance(text, six.text_type):
         text = text.encode('utf8')
 
     msg = MIMEText(text, 'html', 'UTF-8')
     msg['Subject'] = subject or '[no subject]'
-    msg['To'] = ', '.join(to)
+
+    if to:
+        msg['To'] = ', '.join(to)
+    if bcc:
+        msg['Bcc'] = ', '.join(bcc)
+
     msg['From'] = ModelImporter.model('setting').get(
         SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
 
     events.daemon.trigger('_sendmail', info={
         'message': msg,
-        'recipients': to
+        'recipients': list(set(to) | set(bcc))
     })
 
 
@@ -149,6 +163,7 @@ class _SMTPConnection(object):
 
 def _sendmail(event):
     msg = event.info['message']
+    recipients = event.info['recipients']
 
     setting = ModelImporter.model('setting')
     smtp = _SMTPConnection(
@@ -156,15 +171,14 @@ def _sendmail(event):
         port=setting.get(SettingKey.SMTP_PORT, None),
         encryption=setting.get(SettingKey.SMTP_ENCRYPTION, 'none'),
         username=setting.get(SettingKey.SMTP_USERNAME, None),
-        password=setting.get(SettingKey.SMTP_PASSWORD, None),
+        password=setting.get(SettingKey.SMTP_PASSWORD, None)
     )
 
-    logger.info('Sending email to %s through %s', msg['To'], smtp.host)
+    logger.info('Sending email to %s through %s',
+                ', '.join(recipients), smtp.host)
 
     with smtp:
-        smtp.send(msg['From'], event.info['recipients'], msg.as_string())
-
-    logger.info('Sent email to %s', msg['To'])
+        smtp.send(msg['From'], recipients, msg.as_string())
 
 
 _templateDir = os.path.join(PACKAGE_DIR, 'mail_templates')
