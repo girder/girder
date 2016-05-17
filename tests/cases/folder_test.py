@@ -237,7 +237,6 @@ class FolderTestCase(base.TestCase):
         """
         Test CRUD of metadata on folders
         """
-
         # Grab the default user folders
         resp = self.request(
             path='/folder', method='GET', user=self.admin, params={
@@ -558,14 +557,33 @@ class FolderTestCase(base.TestCase):
             user=self.admin, body=json.dumps(metadata),
             type='application/json')
         self.assertStatusOk(resp)
+        # Add a file under the main item to test size reporting
+        size = 5
+        self.uploadFile(
+            name='test.txt', contents='.' * size, user=self.admin,
+            parent=mainItem, parentType='item')
+        mainFolder = self.model('folder').load(mainFolder['_id'], force=True)
+        self.assertEqual(mainFolder['size'], size)
+
+        # Now copy the folder alongside itself
         resp = self.request(
             path='/folder/%s/copy' % mainFolder['_id'], method='POST',
-            user=self.admin, type='application/json', body='')
+            user=self.admin)
         self.assertStatusOk(resp)
-        # Check our new folder name
+        # Check our new folder information
         newFolder = resp.json
         self.assertEqual(newFolder['name'], 'Main Folder (1)')
-        # Check its metadata
+        self.assertEqual(newFolder['size'], size)
+
+        # Check the copied item inside the new folder
+        resp = self.request('/item', user=self.admin, params={
+            'folderId': newFolder['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'Main Item')
+        self.assertEqual(resp.json[0]['size'], size)
+
+        # Check copied folder metadata
         resp = self.request(
             path='/folder/%s' % newFolder['_id'], method='GET',
             user=self.admin, type='application/json')

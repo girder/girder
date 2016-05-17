@@ -16,6 +16,7 @@ if(RUN_CORE_TESTS)
   # start it first, so that if we have parallelism it doesn't hold things up much
   add_python_test(upload RESOURCE_LOCKS replicaset)
   add_python_test(api_describe)
+  add_python_test(api_key)
   add_python_test(access)
   add_python_test(assetstore)
   add_python_test(collection)

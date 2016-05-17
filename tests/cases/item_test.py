@@ -578,6 +578,7 @@ class ItemTestCase(base.TestCase):
         }
         resp = self.request(path='/file', method='POST', user=self.users[0],
                             params=params)
+
         self.assertStatusOk(resp)
         # Copy to a new item.  It will be in the same folder, but we want a
         # different name.
@@ -587,6 +588,8 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/%s/copy' % origItem['_id'],
                             method='POST', user=self.users[0], params=params)
         self.assertStatusOk(resp)
+        # Make sure size was returned correctly
+        self.assertEqual(resp.json['size'], 11)
         # Now ask for the new item explicitly and check its metadata
         self.request(path='/item/%s' % resp.json['_id'],
                      user=self.users[0], type='application/json')

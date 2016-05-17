@@ -103,19 +103,22 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $(".g-edit-collection").is(':visible');
+            return $('.g-edit-collection').is(':visible');
         }, 'ensure edit collection menu item continues to appear');
 
         // save fragment of Private folder
         runs(function () {
+            expect($('.g-collection-actions-button:visible').length).toBe(1);
             $('.g-folder-list-link:first').click();
         });
 
         waitsFor(function () {
-            return $(".g-folder-metadata").is(':visible');
+            return $('.g-folder-metadata').is(':visible');
         }, 'ensure collection folder is displayed');
 
         runs(function ()  {
+            // Collection actions should disappear once we navigate into subfolder
+            expect($('.g-collection-actions-button:visible').length).toBe(0);
             privateFolderFragment = Backbone.history.fragment;
         });
     });

@@ -4,7 +4,7 @@
 **Data Management Platform**
 
 Documentation of the Girder platform can be found at
-https://girder.readthedocs.org.
+https://girder.readthedocs.io.
 
 For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum
 <https://gitter.im/girder/girder>`_.

@@ -31,7 +31,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 DOCUMENTATION = '''
 ---
@@ -833,13 +833,21 @@ def class_spec(cls, include=None):
     for fn, method in getmembers(cls, predicate=ismethod):
         if fn in include:
             spec = getargspec(method)
+            # Note: must specify the kind of data we accept
+            #       In all most all cases this will be a dict
+            #       where variable names become keys used in yaml
+            #       but if we have a vararg then we need to set
+            #       this to a list.
+            kind = 'dict' if spec.varargs is None else 'list'
+
             # spec.args[1:] so we don't include 'self'
             params = spec.args[1:]
             d = len(spec.defaults) if spec.defaults is not None else 0
             r = len(params) - d
 
             yield (fn, {"required": params[:r],
-                        "optional": params[r:]})
+                        "optional": params[r:],
+                        "type": kind})
 
 
 class Resource(object):
@@ -1723,7 +1731,7 @@ def main():
     gcm = GirderClientModule()
 
     for method in gcm.required_one_of:
-        argument_spec[method] = dict()
+        argument_spec[method] = dict(type=gcm.spec[method]['type'])
 
     module = AnsibleModule(
         argument_spec=argument_spec,

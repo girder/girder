@@ -1,0 +1,50 @@
+if apiKeys.length === 0
+  .g-api-keys-empty-message You have no existing API keys. Click the button below to create one.
+else
+  .g-api-key-list-header Your API keys
+  table.g-api-key-table
+    thead: tr
+      th(col="name") Name
+      th(col="key") Key
+      th(col="scope") Scope
+      th(col="active") Active
+      th(col="tokenDuration") Token duration
+      th(col="lastUse") Last used
+      th(col="actions") Actions
+    tbody
+      each apiKey in apiKeys
+        tr.g-api-key-container(api-key-id=apiKey.id, cid=apiKey.cid)
+          td(col="name")= apiKey.get('name')
+          td(col="key"): a.g-show-api-key(data-toggle="popover", data-content=apiKey.get('key')) show
+          td(col="scope")
+            if apiKey.get('scope')
+              span Custom scopes
+            else
+              span Full access
+          td(col="active")= apiKey.get('active') ? 'Yes' : 'No'
+          td(col="tokenDuration")
+            if apiKey.get('tokenDuration')
+              span #{apiKey.get('tokenDuration')} days
+            else
+              span Default
+          td(col="lastUse")
+            if apiKey.get('lastUse')
+              - var lastUse = moment(apiKey.get('lastUse'))
+              span(title=lastUse)= lastUse.fromNow()
+            else
+              span Never
+          td(col="actions")
+            button.btn.btn-sm.btn-primary.g-api-key-edit(title="Edit")
+              i.icon-edit
+            if apiKey.get('active')
+              button.btn.btn-sm.btn-warning.g-api-key-toggle-active(title="Deactivate")
+                i.icon-minus-circled
+            else
+              button.btn.btn-sm.btn-success.g-api-key-toggle-active(title="Activate")
+                i.icon-plus-circled
+            button.btn.btn-sm.btn-danger.g-api-key-delete(title="Delete key")
+              i.icon-cancel
+
+.g-paginate-container
+.g-api-key-list-bottom-buttons
+  button.btn.btn-default.g-api-key-new Create new key

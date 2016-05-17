@@ -694,7 +694,7 @@ class AccessControlledModel(Model):
             })
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -717,7 +717,7 @@ class AccessControlledModel(Model):
         doc['public'] = public
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -772,7 +772,7 @@ class AccessControlledModel(Model):
         doc['access'] = acList
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -1030,7 +1030,7 @@ class AccessControlledModel(Model):
             dest['access'] = copy.deepcopy(src['access'])
 
         if save:
-            dest = self.save(dest, validate=False)
+            dest = self.save(dest)
         return dest
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,

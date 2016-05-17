@@ -26,6 +26,7 @@ in this class are general utility functions designed to be used within the
 plugins themselves to help them register with the application.
 """
 
+import codecs
 import functools
 import girder
 import imp
@@ -37,6 +38,7 @@ import traceback
 import yaml
 import importlib
 
+import pkg_resources
 from pkg_resources import iter_entry_points
 
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
@@ -188,9 +190,10 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         # Try to load the plugin as an entry_point
         for entry_point in iter_entry_points(group='girder.plugin', name=name):
             pluginLoadMethod = entry_point.load()
-            pluginDir = os.path.dirname(
-                importlib.import_module(entry_point.module_name).__file__
-            )
+            module = importlib.import_module(entry_point.module_name)
+            pluginDir = os.path.dirname(module.__file__)
+            module.PLUGIN_ROOT_DIR = pluginDir
+            girder.plugins.__dict__[name] = module
             isPluginDir = True
 
     if not os.path.exists(pluginDir):
@@ -227,6 +230,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
                 pluginLoadMethod = getattr(module, 'load', None)
 
             if pluginLoadMethod is not None:
+                sys.modules[moduleName] = module
                 pluginLoadMethod(info)
 
             root, appconf, apiRoot = (
@@ -311,13 +315,7 @@ def getPluginDir(curConfig=None):
     return pluginDir
 
 
-def findAllPlugins(curConfig=None):
-    """
-    Walks the plugins directories to find all of the plugins. If the plugin has
-    a plugin.json file, this reads that file to determine dependencies.
-    """
-    allPlugins = {}
-
+def findEntryPointPlugins(allPlugins):
     # look for plugins enabled via setuptools `entry_points`
     for entry_point in iter_entry_points(group='girder.plugin'):
         # set defaults
@@ -327,10 +325,49 @@ def findAllPlugins(curConfig=None):
             'version': '',
             'dependencies': set()
         }
-        allPlugins[entry_point.name].update(
-            getattr(entry_point.load(), 'config', {})
-        )
+        configJson = os.path.join('girder', 'plugin.json')
+        configYml = os.path.join('girder', 'plugin.yml')
+        data = {}
+        try:
+            if pkg_resources.resource_exists(entry_point.name, configJson):
+                with pkg_resources.resource_stream(
+                        entry_point.name, configJson) as conf:
+                    try:
+                        data = json.load(codecs.getreader('utf8')(conf))
+                    except ValueError as e:
+                        print(
+                            TerminalColor.error(
+                                'ERROR: Plugin "%s": plugin.json is not valid '
+                                'JSON.' % entry_point.name))
+                        print(e)
+            elif pkg_resources.resource_exists(entry_point.name, configYml):
+                with pkg_resources.resource_stream(
+                        entry_point.name, configYml) as conf:
+                    try:
+                        data = yaml.safe_load(conf)
+                    except yaml.YAMLError as e:
+                        print(
+                            TerminalColor.error(
+                                'ERROR: Plugin "%s": plugin.yml is not valid '
+                                'YAML.' % entry_point.name))
+                        print(e)
+        except ImportError:
+            pass
+        if data == {}:
+            data = getattr(entry_point.load(), 'config', {})
+        allPlugins[entry_point.name].update(data)
+        allPlugins[entry_point.name]['dependencies'] = set(
+            allPlugins[entry_point.name]['dependencies'])
 
+
+def findAllPlugins(curConfig=None):
+    """
+    Walks the plugins directories to find all of the plugins. If the plugin has
+    a plugin.json file, this reads that file to determine dependencies.
+    """
+    allPlugins = {}
+
+    findEntryPointPlugins(allPlugins)
     pluginDirs = getPluginDirs(curConfig)
     if not pluginDirs:
         print(TerminalColor.warning('Plugin directory not found.'))
@@ -371,7 +408,6 @@ def findAllPlugins(curConfig=None):
                 'version': data.get('version', ''),
                 'dependencies': set(data.get('dependencies', []))
             }
-
     return allPlugins
 
 

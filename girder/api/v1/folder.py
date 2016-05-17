@@ -23,7 +23,7 @@ import json
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.api import access
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -47,7 +47,7 @@ class Folder(Resource):
         self.route('POST', (':id', 'copy'), self.copyFolder)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='folder')
     @describeRoute(
         Description('Search for folders by certain properties.')
@@ -106,7 +106,7 @@ class Folder(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Get detailed information about a folder.')
@@ -122,7 +122,7 @@ class Folder(Resource):
         }
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Download an entire folder as a zip archive.')
@@ -150,7 +150,7 @@ class Folder(Resource):
             yield zip.footer()
         return stream
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @filtermodel(model='folder')
     @describeRoute(
@@ -188,7 +188,7 @@ class Folder(Resource):
 
         return folder
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @filtermodel(model='folder', addFields={'access'})
     @describeRoute(
@@ -229,7 +229,7 @@ class Folder(Resource):
                 folder, access, save=True, recurse=recurse, user=user,
                 progress=ctx, setPublic=public)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='folder')
     @describeRoute(
         Description('Create a new folder.')
@@ -280,7 +280,7 @@ class Folder(Resource):
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @filtermodel(model='folder')
     @describeRoute(
@@ -293,7 +293,7 @@ class Folder(Resource):
     def getFolder(self, folder, params):
         return folder
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Get the access control list for a folder.')
@@ -305,7 +305,7 @@ class Folder(Resource):
     def getFolderAccess(self, folder, params):
         return self.model('folder').getFullAccessList(folder)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Delete a folder by ID.')
@@ -326,7 +326,7 @@ class Folder(Resource):
             self.model('folder').remove(folder, progress=ctx)
         return {'message': 'Deleted folder %s.' % folder['name']}
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @filtermodel(model='folder')
     @describeRoute(
@@ -352,7 +352,7 @@ class Folder(Resource):
 
         return self.model('folder').setMetadata(folder, metadata)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.READ)
     @filtermodel(model='folder')
     @describeRoute(
@@ -400,7 +400,7 @@ class Folder(Resource):
                 parent=parent, description=description, public=public,
                 progress=ctx)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @describeRoute(
         Description('Remove all contents from a folder.')
