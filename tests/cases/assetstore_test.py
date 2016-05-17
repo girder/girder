@@ -191,6 +191,50 @@ class AssetstoreTestCase(base.TestCase):
         self.assertIsNone(self.model('file').load(file['_id'], force=True))
         self.assertTrue(os.path.isfile(file['path']))
 
+    def testFilesystemAssetstoreImportLeafFoldersAsItems(self):
+        folder = six.next(self.model('folder').childFolders(
+            self.admin, parentType='user', force=True, filters={
+                'name': 'Public'
+            }))
+
+        params = {
+            'importPath': os.path.join(ROOT_DIR, 'tests', 'cases',
+                                       'py_client', 'testdata'),
+            'destinationType': 'folder',
+            'destinationId': folder['_id'],
+            'leafFoldersAsItems': 'true'
+        }
+        path = '/assetstore/%s/import' % str(self.assetstore['_id'])
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatusOk(resp)
+
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/testdata'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_modelType'], 'item')
+
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/testdata/hello.txt'
+        })
+        _file = self.model('file').load(resp.json['_id'], force=True, exc=True)
+
+        self.assertTrue(os.path.isfile(_file['path']))
+
+        # Make sure downloading the file works
+        resp = self.request('/file/%s/download' % str(_file['_id']),
+                            isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(self.getBody(resp), 'hello\n')
+
+        # Deleting the file should not actually remove the file on disk
+        resp = self.request('/file/' + str(_file['_id']), method='DELETE',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+
+        self.assertIsNone(self.model('file').load(_file['_id'], force=True))
+        self.assertTrue(os.path.isfile(_file['path']))
+
     def testFilesystemAssetstoreFindInvalidFiles(self):
         # Create several files in the assetstore, some of which point to real
         # files on disk and some that don't
