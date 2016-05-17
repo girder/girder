@@ -58,6 +58,10 @@ form.g-settings-form(role="form")
           selected=((settings['core.user_default_folders'] ||
           defaults['core.user_default_folders']) === "public_private")
           ) Yes, "Public" and "Private"
+    .form-group
+      label(for="g-core-licenses") Licenses
+      textarea#g-core-licenses.form-control
+        = JSON.stringify(settings['core.licenses'] || defaults['core.licenses'], null, 4)
   .g-settings-form-container
     h4 Email Creation
     .form-group

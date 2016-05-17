@@ -1,4 +1,5 @@
 include uploadWidgetMixins
+include selectLicenseMixin
 
 form#g-upload-form
   if title
@@ -6,5 +7,7 @@ form#g-upload-form
   +g-upload-widget-subtitle
   +g-upload-widget-browse-or-drop
   +g-upload-widget-progress
+  if licenses
+    +g-select-license(licenses)
   .g-nonmodal-upload-buttons-container
     +g-upload-widget-start-button

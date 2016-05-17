@@ -39,6 +39,19 @@ girder.models.ItemModel = girder.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
+    },
+
+    /**
+     * Get the list of licenses.
+     */
+    getLicenses: function (callback) {
+        girder.restRequest({
+            path: this.resourceName + '/licenses'
+        }).done(_.bind(function (resp) {
+            callback(resp);
+        }, this)).error(_.bind(function (err) {
+            this.trigger('g:error', err);
+        }, this));
     }
 });
 

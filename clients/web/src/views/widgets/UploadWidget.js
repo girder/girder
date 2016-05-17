@@ -97,6 +97,7 @@ girder.views.UploadWidget = girder.View.extend({
         this.title = _.has(settings, 'title') ? settings.title : 'Upload files';
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
         this.overrideStart = settings.overrideStart || false;
+        this.licenses = _.has(settings, 'licenses') ? settings.licenses : null;
     },
 
     render: function () {
@@ -104,7 +105,8 @@ girder.views.UploadWidget = girder.View.extend({
             this.$el.html(girder.templates.uploadWidget({
                 parent: this.parent,
                 parentType: this.parentType,
-                title: this.title
+                title: this.title,
+                licenses: this.licenses
             }));
 
             var base = this;
@@ -128,7 +130,8 @@ girder.views.UploadWidget = girder.View.extend({
             this.$el.html(girder.templates.uploadWidgetNonModal({
                 parent: this.parent,
                 parentType: this.parentType,
-                title: this.title
+                title: this.title,
+                licenses: this.licenses
             }));
         }
         return this;
@@ -223,6 +226,7 @@ girder.views.UploadWidget = girder.View.extend({
                 ? this.parent : new girder.models.FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
+            this._setItemLicense(this.currentFile);
             this.currentIndex += 1;
             this.uploadNextFile();
         }, this).on('g:upload.chunkSent', function (info) {
@@ -258,6 +262,22 @@ girder.views.UploadWidget = girder.View.extend({
             this.currentFile.updateContents(this.files[this.currentIndex]);
         } else {
             this.currentFile.upload(this.parent, this.files[this.currentIndex]);
+        }
+    },
+
+    /**
+     * Set a file's item to the currently selected license.
+     */
+    _setItemLicense: function (file) {
+        if (!_.isNull(this.licenses)) {
+            var license = this.$('#g-license').val();
+            if (!_.isEmpty(license)) {
+                var item = new girder.models.ItemModel({
+                    _id: file.get('itemId'),
+                    license: license
+                });
+                item.save();
+            }
         }
     }
 });

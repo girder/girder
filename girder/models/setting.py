@@ -208,6 +208,28 @@ class Setting(Model):
                 'User default folders must be either "public_private" or '
                 '"none".', 'value')
 
+    def validateCoreLicenses(self, doc):
+        if not isinstance(doc['value'], list):
+            raise ValidationException(
+                'Licenses setting must be a list.', 'value')
+
+        for item in doc['value']:
+            category = item.get('category', None)
+            if not category:
+                raise ValidationException(
+                    'License category must be specified and non-empty.',
+                    'category')
+            licenses = item.get('licenses', [])
+            if not isinstance(licenses, list):
+                raise ValidationException(
+                    'Licenses in category must be a list.', 'licenses')
+            for license in licenses:
+                name = license.get('name', None)
+                if not name:
+                    raise ValidationException(
+                        'License name must be specified and non-empty.',
+                        'name')
+
     def get(self, key, default='__default__'):
         """
         Retrieve a setting by its key.

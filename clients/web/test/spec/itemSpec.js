@@ -130,6 +130,7 @@ describe('Test item creation, editing, and deletion', function () {
         runs(function () {
             $('#g-name').val('Test Item Name');
             $('#g-description').val('Test Item Description');
+            $('#g-license').val('CC0');
             $('.g-save-item').click();
         });
 
@@ -149,6 +150,7 @@ describe('Test item creation, editing, and deletion', function () {
         runs(function () {
             expect($('.g-item-name').text()).toBe("Test Item Name");
             expect($('.g-item-description').text()).toBe("Test Item Description");
+            expect($('.g-item-license').text()).toContain('CC0');
         });
     });
 
