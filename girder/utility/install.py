@@ -147,7 +147,8 @@ def install_plugin(opts):
 
             else:
                 raise Exception('Plugin already exists at %s, use "-f" to '
-                                'overwrite the existing directory.')
+                                'overwrite the existing directory.' % (
+                                    targetPath, ))
         if opts.symlink:
             os.symlink(pluginPath, targetPath)
         else:

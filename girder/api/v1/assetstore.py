@@ -164,11 +164,13 @@ class Assetstore(Resource):
             exc=True)
 
         progress = self.boolParam('progress', params, default=False)
+        leafFoldersAsItems = self.boolParam('leafFoldersAsItems', params,
+                                            default=False)
         with ProgressContext(
                 progress, user=user, title='Importing data') as ctx:
             return self.model('assetstore').importData(
                 assetstore, parent=parent, parentType=parentType, params=params,
-                progress=ctx, user=user)
+                progress=ctx, user=user, leafFoldersAsItems=leafFoldersAsItems)
 
     @access.admin
     @loadmodel(model='assetstore')

@@ -364,13 +364,10 @@ class Folder(AccessControlledModel):
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
         """
-        if not filters:
-            filters = {}
-
         q = {
             'folderId': folder['_id']
         }
-        q.update(filters)
+        q.update(filters or {})
 
         return self.model('item').find(
             q, limit=limit, offset=offset, sort=sort, **kwargs)
@@ -722,9 +719,8 @@ class Folder(AccessControlledModel):
             allowRename=True)
         if firstFolder is None:
             firstFolder = newFolder
-        newFolder = self.copyFolderComponents(
+        return self.copyFolderComponents(
             srcFolder, newFolder, creator, progress, firstFolder)
-        return self.filter(newFolder, creator)
 
     def copyFolderComponents(self, srcFolder, newFolder, creator, progress,
                              firstFolder=None):
@@ -773,7 +769,9 @@ class Folder(AccessControlledModel):
         if progress:
             progress.update(increment=1, message='Copied folder ' +
                             newFolder['name'])
-        return newFolder
+
+        # Reload to get updated size value
+        return self.load(newFolder['_id'], force=True)
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
                       progress=noProgress, setPublic=None):

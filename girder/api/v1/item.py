@@ -22,12 +22,12 @@ import cherrypy
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.utility import ziputil
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.api import access
 
 
 class Item(Resource):
-    """API endpoint for items"""
+
     def __init__(self):
         super(Item, self).__init__()
         self.resourceName = 'item'
@@ -42,7 +42,7 @@ class Item(Resource):
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='item')
     @describeRoute(
         Description('Search for an item by certain properties.')
@@ -93,7 +93,7 @@ class Item(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='item')
     @describeRoute(
@@ -106,7 +106,7 @@ class Item(Resource):
     def getItem(self, item, params):
         return item
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='item')
     @describeRoute(
         Description('Create a new item.')
@@ -130,7 +130,7 @@ class Item(Resource):
         return self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @filtermodel(model='item')
     @describeRoute(
@@ -160,7 +160,7 @@ class Item(Resource):
 
         return item
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @filtermodel(model='item')
     @describeRoute(
@@ -203,7 +203,7 @@ class Item(Resource):
             yield zip.footer()
         return stream
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='file')
     @describeRoute(
@@ -220,7 +220,7 @@ class Item(Resource):
             item=item, limit=limit, offset=offset, sort=sort))
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @describeRoute(
         Description('Download the contents of an item.')
@@ -254,7 +254,7 @@ class Item(Resource):
         else:
             return self._downloadMultifileItem(item, user)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @describeRoute(
         Description('Delete an item by ID.')
@@ -266,7 +266,7 @@ class Item(Resource):
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @describeRoute(
         Description('Get the path to the root of the item\'s hierarchy.')
@@ -277,7 +277,7 @@ class Item(Resource):
     def rootpath(self, item, params):
         return self.model('item').parentsToRoot(item, self.getCurrentUser())
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='item')
     @describeRoute(

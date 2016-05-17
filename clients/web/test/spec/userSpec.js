@@ -226,3 +226,133 @@ describe('Create an admin and non-admin user', function () {
         });
     });
 });
+
+describe('test the API key management tab', function () {
+    it('go to the API keys tab', function () {
+        runs(function () {
+            $('.g-account-tabs li>a[name="apikeys"]').click();
+        });
+        waitsFor(function () {
+            return $('.g-api-keys-empty-message').length > 0;
+        }, 'tab to display');
+    });
+
+    it('create a new API key', function () {
+        runs(function () {
+            $('button.g-api-key-new').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            expect($('.g-custom-scope-checkbox').length).toBeGreaterThan(3);
+            expect($('#g-scope-mode-full:checked').length).toBe(1);
+            expect($('#g-scope-mode-custom:checked').length).toBe(0);
+            expect($('.g-custom-scope-checkbox').not(':disabled').length).toBe(0);
+
+            $('#g-api-key-name').val('test key');
+
+            // Test radio button and checkbox state
+            $('#g-scope-mode-custom').click();
+            expect($('#g-scope-mode-full:checked').length).toBe(0);
+            expect($('#g-scope-mode-custom:checked').length).toBe(1);
+            expect($('.g-custom-scope-checkbox:disabled').length).toBe(0);
+
+            $('.g-save-api-key').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container .g-validation-failed-message').text() ===
+                'Custom scope list must not be empty.';
+        }, 'API key validation failure to appear');
+
+        runs(function () {
+            $('.g-custom-scope-checkbox').first().click();
+            $('.g-save-api-key').click();
+        });
+        girderTest.waitForLoad();
+
+        runs(function () {
+            var row = $('tr.g-api-key-container');
+            expect(row.length).toBe(1);
+            expect(row.find('td[col="name"]').text()).toBe('test key');
+            expect(row.find('td[col="active"]').text()).toBe('Yes');
+            expect(row.find('td[col="tokenDuration"]').text()).toBe('Default');
+            expect(row.find('td[col="scope"]').text()).toBe('Custom scopes');
+            expect(row.find('td[col="lastUse"]').text()).toBe('Never');
+            expect(row.find('button.g-api-key-toggle-active.btn-warning').length).toBe(1);
+        });
+    });
+
+    it('edit the API key', function () {
+        runs(function () {
+            $('button.g-api-key-edit').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('#g-api-key-name').val('new name');
+            $('#g-api-key-token-duration').val('20');
+            $('#g-scope-mode-full').click();
+            $('.g-save-api-key').click();
+        });
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            var row = $('tr.g-api-key-container');
+            expect(row.length).toBe(1);
+            expect(row.find('td[col="name"]').text()).toBe('new name');
+            expect(row.find('td[col="active"]').text()).toBe('Yes');
+            expect(row.find('td[col="tokenDuration"]').text()).toBe('20 days');
+            expect(row.find('td[col="scope"]').text()).toBe('Full access');
+            expect(row.find('td[col="lastUse"]').text()).toBe('Never');
+            expect(row.find('button.g-api-key-toggle-active.btn-warning').length).toBe(1);
+        });
+    });
+
+    it('deactivate/reactivate the API key', function () {
+        runs(function () {
+            $('.g-api-key-toggle-active').click();
+        });
+        girderTest.waitForDialog();
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+        girderTest.waitForLoad();
+
+        runs(function () {
+            var row = $('tr.g-api-key-container');
+            expect(row.length).toBe(1);
+            expect(row.find('td[col="name"]').text()).toBe('new name');
+            expect(row.find('td[col="active"]').text()).toBe('No');
+            expect(row.find('td[col="tokenDuration"]').text()).toBe('20 days');
+            expect(row.find('td[col="scope"]').text()).toBe('Full access');
+            expect(row.find('td[col="lastUse"]').text()).toBe('Never');
+            expect(row.find('button.g-api-key-toggle-active.btn-success').length).toBe(1);
+
+            $('.g-api-key-toggle-active').click();
+        });
+
+        waitsFor(function () {
+            return $('button.g-api-key-toggle-active.btn-warning').length > 0;
+        }, 'API key to reactivate');
+    });
+
+    it('delete the API key', function () {
+        runs(function () {
+            $('.g-api-key-delete').click();
+        });
+        girderTest.waitForDialog();
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+          return $('tr.g-api-key-container').length === 0;
+        }, 'API key to be removed from list');
+
+        runs(function () {
+            expect($('.g-api-keys-empty-message').length).toBe(1);
+        });
+    });
+});

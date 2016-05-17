@@ -390,6 +390,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # copy files
         for file in self.childFiles(item=srcItem):
             self.model('file').copyFile(file, creator=creator, item=newItem)
+
+        # Reload to get updated size value
+        newItem = self.load(newItem['_id'], force=True)
         events.trigger('model.item.copy.after', newItem)
         return newItem
 

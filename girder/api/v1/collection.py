@@ -23,7 +23,7 @@ import json
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.api import access
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.models.model_base import AccessException
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
@@ -44,7 +44,7 @@ class Collection(Resource):
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='collection')
     @describeRoute(
         Description('List or search for collections.')
@@ -64,7 +64,7 @@ class Collection(Resource):
         return list(self.model('collection').list(
             user=user, offset=offset, limit=limit, sort=sort))
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='collection')
     @describeRoute(
         Description('Create a new collection.')
@@ -91,7 +91,7 @@ class Collection(Resource):
             name=params['name'], description=params.get('description'),
             public=public, creator=user)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.READ)
     @filtermodel(model='collection')
     @describeRoute(
@@ -104,7 +104,7 @@ class Collection(Resource):
     def getCollection(self, collection, params):
         return collection
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.READ)
     @describeRoute(
         Description('Get detailed information about a collection.')
@@ -119,7 +119,7 @@ class Collection(Resource):
         }
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.READ)
     @describeRoute(
         Description('Download an entire collection as a zip archive.')
@@ -143,7 +143,7 @@ class Collection(Resource):
             yield zip.footer()
         return stream
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @describeRoute(
         Description('Get the access control list for a collection.')
@@ -154,7 +154,7 @@ class Collection(Resource):
     def getCollectionAccess(self, collection, params):
         return self.model('collection').getFullAccessList(collection)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @filtermodel(model='collection', addFields={'access'})
     @describeRoute(
@@ -195,7 +195,7 @@ class Collection(Resource):
                 collection, access, save=True, user=user, recurse=recurse,
                 progress=ctx, setPublic=public)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.WRITE)
     @filtermodel(model='collection')
     @describeRoute(
@@ -214,7 +214,7 @@ class Collection(Resource):
 
         return self.model('collection').updateCollection(collection)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='collection', level=AccessType.ADMIN)
     @describeRoute(
         Description('Delete a collection by ID.')

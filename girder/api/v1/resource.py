@@ -22,7 +22,7 @@ import json
 
 from ..describe import Description, describeRoute
 from ..rest import Resource as BaseResource, RestException
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
@@ -215,7 +215,7 @@ class Resource(BaseResource):
         result = self.model(model).filter(document, user)
         return result
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Look up a resource in the data hierarchy by path.')
         .param('path',
@@ -232,7 +232,7 @@ class Resource(BaseResource):
         return self._lookUpPath(params['path'], self.getCurrentUser())
 
     @access.cookie(force=True)
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')
@@ -286,7 +286,7 @@ class Resource(BaseResource):
             yield zip.footer()
         return stream
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @describeRoute(
         Description('Delete a set of items, folders, or other resources.')
         .param('resources', 'A JSON-encoded list of types to delete.  Each '
@@ -368,7 +368,7 @@ class Resource(BaseResource):
         progress = self.boolParam('progress', params, default=False)
         return user, resources, parent, parentType, progress
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Move a set of items and folders.')
         .param('resources', 'A JSON-encoded list of types to move.  Each type '
@@ -417,7 +417,7 @@ class Resource(BaseResource):
                             model.move(doc, parent, parentType)
                     ctx.update(increment=1)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Copy a set of items and folders.')
         .param('resources', 'A JSON-encoded list of types to copy. Each type '
