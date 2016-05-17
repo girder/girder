@@ -32,7 +32,7 @@ before_install:
     - cmake --version
     - mkdir -p $HOME/.cache/node_modules || true
     - ln -sf $HOME/.cache/node_modules .
-    - nvm install stable
+    - nvm install v2.3.3
     - npm install -g npm
     - node --version
     - npm --version
