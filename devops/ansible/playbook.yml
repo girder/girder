@@ -28,6 +28,27 @@
       - zlib1g-dev
       - python-pip
 
+  - name: Python | Add Python Updates PPA key
+    apt_key:
+      id: "DB82666C"
+      keyserver: "keyserver.ubuntu.com"
+    become: yes
+
+  - name: Python | Add Python Updates PPA
+    apt_repository:
+      repo: "deb http://ppa.launchpad.net/fkrull/deadsnakes-python2.7/ubuntu {{ ansible_distribution_release }} main"
+    become: yes
+
+  # Packaged Girder cannot be built with Python<2.7.9 on VirtualBox's filesystem (Python Issue #8876)
+  - name: Python | Install updated Python
+    apt:
+      name: "{{ item }}"
+      state: latest
+    become: yes
+    with_items:
+      - python2.7
+      - python2.7-dev
+
   - name: MongoDB | Add PPA key
     apt_key:
       id: "EA312927"
