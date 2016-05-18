@@ -1,3 +1,4 @@
+var $                    = require('jquery');
 var _                    = require('underscore');
 var girder               = require('girder/init');
 var Events               = require('girder/events');
@@ -8,6 +9,8 @@ var HierarchyWidget      = require('girder/views/widgets/HierarchyWidget');
 var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
 var AccessWidget         = require('girder/views/widgets/AccessWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tooltip');
 
 var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
 

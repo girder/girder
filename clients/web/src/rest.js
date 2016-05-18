@@ -1,9 +1,8 @@
-var _             = require('underscore');
 var $             = require('jquery');
+var _             = require('underscore');
 var Backbone      = require('backbone');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var Events        = require('girder/events');
 var Auth          = require('girder/auth');
+var Events        = require('girder/events');
 
 var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
 var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
@@ -90,7 +89,7 @@ var restRequest = function (opts) {
 
     var token = opts.girderToken ||
                 Auth.getCurrentToken() ||
-                MiscFunctions.cookie.find('girderToken');
+                Auth.cookie.find('girderToken');
     if (token) {
         opts.headers = opts.headers || {};
         opts.headers['Girder-Token'] = token;
@@ -104,4 +103,3 @@ module.exports = {
     uploadHandlers: uploadHandlers,
     restRequest: restRequest
 };
-

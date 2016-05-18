@@ -1,3 +1,4 @@
+var $                 = require('jquery');
 var _                 = require('underscore');
 var Constants         = require('girder/constants');
 var UserModel         = require('girder/models/UserModel');
@@ -6,6 +7,10 @@ var DialogHelper      = require('girder/utilities/DialogHelper');
 var View              = require('girder/view');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
+
+require('bootstrap/js/tooltip');
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
 
 var accessEditorTemplate         = require('girder/templates/widgets/accessEditor.jade');
 var accessEditorNonModalTemplate = require('girder/templates/widgets/accessEditorNonModal.jade');

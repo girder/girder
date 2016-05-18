@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+require('girder/utilities/jQuery'); // $.girderModal
+
 var CollectionInfoDialogTemplate = require('girder/templates/widgets/collectionInfoDialog.jade');
 
 /**

@@ -1,3 +1,4 @@
+var $        = require('jquery');
 var girder   = require('girder/init');
 var Auth     = require('girder/auth');
 var Events   = require('girder/events');

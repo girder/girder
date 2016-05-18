@@ -1,3 +1,4 @@
+var $             = require('jquery');
 var _             = require('underscore');
 var girder        = require('girder/init');
 var Rest          = require('girder/rest');
@@ -5,6 +6,9 @@ var Events        = require('girder/events');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 var UsersView     = require('girder/views/body/UsersView');
+
+require('bootstrap-switch'); // /dist/js/bootstrap-switch.js',
+require('bootstrap/js/tooltip');
 
 var PluginsTemplate = require('girder/templates/body/plugins.jade');
 

@@ -4,6 +4,8 @@ var Events = require('girder/events');
 var App    = require('girder/app');
 var Router = require('girder/router');
 
+require('girder/utilities/jQuery'); // $.girderModal
+
 // When all scripts are loaded, we invoke the application
 $(function () {
     girder.router = new Router();

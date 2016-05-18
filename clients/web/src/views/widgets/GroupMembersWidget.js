@@ -1,5 +1,5 @@
-var _                 = require('underscore');
 var $                 = require('jquery');
+var _                 = require('underscore');
 var girder            = require('girder/init');
 var Constants         = require('girder/constants');
 var UserCollection    = require('girder/collections/UserCollection');
@@ -7,6 +7,10 @@ var View              = require('girder/view');
 var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tooltip');
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
 
 var GroupInviteDialogTemplate = require('girder/templates/widgets/groupInviteDialog.jade');
 var GroupMemberListTemplate   = require('girder/templates/widgets/groupMemberList.jade');

@@ -1,8 +1,12 @@
+var $             = require('jquery');
 var _             = require('underscore');
+var JSONEditor    = require('jsoneditor/dist/jsoneditor.js'); // can not use require('jsoneditor')
 var girder        = require('girder/init');
 var Events        = require('girder/events');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tooltip');
 
 var MetadatumEditWidgetTemplate     = require('girder/templates/widgets/metadatumEditWidget.jade');
 var MetadatumViewTemplate           = require('girder/templates/widgets/metadatumView.jade');

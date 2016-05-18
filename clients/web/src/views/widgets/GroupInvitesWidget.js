@@ -1,8 +1,11 @@
+var $             = require('jquery');
 var _             = require('underscore');
 var girder        = require('girder/init');
 var Constants     = require('girder/constants');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tooltip');
 
 var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
 

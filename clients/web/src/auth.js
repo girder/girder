@@ -1,13 +1,46 @@
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var Events        = require('girder/events');
-var Rest          = require('girder/rest');
+var _      = require('underscore');
+var Events = require('girder/events');
 
 // This definitely need some fixing/testing, as it seems that
 // girder.corsAuth could be an override. See login doc below.
 var corsAuth = false;
 
+var cookie = {
+    findAll: function () {
+        var cookies = {};
+        _(document.cookie.split(';'))
+            .chain()
+            .map(function (m) {
+                return m.replace(/^\s+/, '').replace(/\s+$/, '');
+            })
+            .each(function (c) {
+                var arr = c.split('='),
+                    key = arr[0],
+                    value = null,
+                    size = _.size(arr);
+                if (size > 1) {
+                    value = arr.slice(1).join('');
+                }
+                cookies[key] = value;
+            });
+        return cookies;
+    },
+
+    find: function (name) {
+        var cookie = null,
+            list = this.findAll();
+
+        _.each(list, function (value, key) {
+            if (key === name) {
+                cookie = value;
+            }
+        });
+        return cookie;
+    }
+};
+
 var currentUser = null;
-var currentToken = MiscFunctions.cookie.find('girderToken');
+var currentToken = cookie.find('girderToken');
 
 var getCurrentUser = function () {
     return currentUser;
@@ -56,7 +89,7 @@ var login = function (username, password, cors) {
         setCurrentUser(new UserModel(response.user));
         setCurrentToken(response.user.token.token);
 
-        if (cors && !MiscFunctions.cookie.find('girderToken')) {
+        if (cors && !cookie.find('girderToken')) {
             // For cross-origin requests, we should write the token into
             // this document's cookie also.
             document.cookie = 'girderToken=' + getCurrentToken();
@@ -101,5 +134,10 @@ module.exports = {
     setCurrentToken: setCurrentToken,
     login: login,
     logout: logout,
-    fetchCurrentUser: fetchCurrentUser
+    fetchCurrentUser: fetchCurrentUser,
+    cookie: cookie
 };
+
+// Alleviate a circular dependency for now
+// http://stackoverflow.com/a/30390378/250457
+var Rest   = require('girder/rest');

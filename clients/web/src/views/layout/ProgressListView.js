@@ -1,3 +1,4 @@
+var $                  = require('jquery');
 var _                  = require('underscore');
 var View               = require('girder/view');
 var TaskProgressWidget = require('girder/views/widgets/TaskProgressWidget');

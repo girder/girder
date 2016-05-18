@@ -1,5 +1,5 @@
-var _                    = require('underscore');
 var $                    = require('jquery');
+var _                    = require('underscore');
 var girder               = require('girder/init');
 var Auth                 = require('girder/auth');
 var Events               = require('girder/events');
@@ -10,6 +10,10 @@ var View                 = require('girder/view');
 var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
 var EditAssetstoreWidget = require('girder/views/widgets/EditAssetstoreWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
+
+require('as-jqplot/dist/jquery.jqplot.js');
+require('as-jqplot/dist/plugins/jqplot.pieRenderer.js');
+require('bootstrap/js/tooltip');
 
 var AssetstoresTemplate = require('girder/templates/body/assetstores.jade');
 

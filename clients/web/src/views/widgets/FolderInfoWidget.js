@@ -1,6 +1,8 @@
 var girder = require('girder/init');
 var View   = require('girder/view');
 
+require('girder/utilities/jQuery'); // $.girderModal
+
 var FolderInfoDialogTemplate = require('girder/templates/widgets/folderInfoDialog.jade');
 
 /**

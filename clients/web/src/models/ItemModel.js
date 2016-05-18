@@ -1,5 +1,5 @@
-var _             = require('underscore');
 var $             = require('jquery');
+var _             = require('underscore');
 var Rest          = require('girder/rest');
 var Model         = require('girder/model').Model;
 var MetadataMixin = require('girder/model').MetadataMixin;

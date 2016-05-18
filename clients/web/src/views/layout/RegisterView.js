@@ -4,6 +4,9 @@ var UserModel    = require('girder/models/UserModel');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
 
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
+
 var RegisterDialogTemplate = require('girder/templates/layout/registerDialog.jade');
 
 /**

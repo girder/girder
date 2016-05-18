@@ -4,6 +4,9 @@ var Events       = require('girder/events');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
 
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
+
 var ResetPasswordDialogTemplate = require('girder/templates/layout/resetPasswordDialog.jade');
 
 /**

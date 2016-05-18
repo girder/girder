@@ -1,3 +1,4 @@
+var $                 = require('jquery');
 var _                = require('underscore');
 var FolderCollection = require('girder/collections/FolderCollection');
 var View             = require('girder/view');

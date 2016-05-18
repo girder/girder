@@ -1,3 +1,4 @@
+var $                   = require('jquery');
 var _                   = require('underscore');
 var Backbone            = require('backbone');
 var girder              = require('girder/init');
@@ -15,6 +16,8 @@ var ProgressListView    = require('girder/views/layout/ProgressListView');
 var LoginView           = require('girder/views/layout/LoginView');
 var RegisterView        = require('girder/views/layout/RegisterView');
 var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
+
+require('girder/utilities/jQuery'); // $.girderModal
 
 var LayoutTemplate      = require('girder/templates/layout/layout.jade');
 var AlertTemplate       = require('girder/templates/layout/alert.jade');

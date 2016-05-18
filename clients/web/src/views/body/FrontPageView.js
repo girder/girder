@@ -1,3 +1,4 @@
+var $             = require('jquery');
 var girder        = require('girder/init');
 var Rest          = require('girder/rest');
 var Auth          = require('girder/auth');

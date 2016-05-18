@@ -1,3 +1,4 @@
+var $             = require('jquery');
 var _             = require('underscore');
 var girder        = require('girder/init');
 var Rest          = require('girder/rest');
@@ -7,6 +8,8 @@ var Constants     = require('girder/constants');
 var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tab');
 
 var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
 

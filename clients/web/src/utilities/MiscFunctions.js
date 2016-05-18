@@ -1,7 +1,12 @@
-var _         = require('underscore');
-var Rest      = require('girder/rest');
-var Constants = require('girder/constants');
-var Events    = require('girder/events');
+var $          = require('jquery');
+var _          = require('underscore');
+var Remarkable = require('remarkable');
+var Rest       = require('girder/rest');
+var Constants  = require('girder/constants');
+var Events     = require('girder/events');
+
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
 
 var ConfirmDialogTemplate = require('girder/templates/widgets/confirmDialog.jade');
 
@@ -191,40 +196,6 @@ var parseQueryString = function (queryString) {
     return params;
 };
 
-var cookie = {
-    findAll: function () {
-        var cookies = {};
-        _(document.cookie.split(';'))
-            .chain()
-            .map(function (m) {
-                return m.replace(/^\s+/, '').replace(/\s+$/, '');
-            })
-            .each(function (c) {
-                var arr = c.split('='),
-                    key = arr[0],
-                    value = null,
-                    size = _.size(arr);
-                if (size > 1) {
-                    value = arr.slice(1).join('');
-                }
-                cookies[key] = value;
-            });
-        return cookies;
-    },
-
-    find: function (name) {
-        var cookie = null,
-            list = this.findAll();
-
-        _.each(list, function (value, key) {
-            if (key === name) {
-                cookie = value;
-            }
-        });
-        return cookie;
-    }
-};
-
 /**
  * Restart the server, wait until it has restarted, then reload the current
  * page.
@@ -307,23 +278,16 @@ var defineFlags = function (options, allOption) {
  *        return the HTML value.
  */
 var renderMarkdown = (function () {
-    if (window.Remarkable) {
-        var md = new Remarkable({
-            linkify: true
-        });
-        return function (val, el) {
-            if (el) {
-                $(el).html(md.render(val));
-            } else {
-                return md.render(val);
-            }
-        };
-    } else {
-        return function () {
-            throw new Error(
-                'You must include the remarkable library to call this function');
-        };
-    }
+    var md = new Remarkable({
+        linkify: true
+    });
+    return function (val, el) {
+        if (el) {
+            $(el).html(md.render(val));
+        } else {
+            return md.render(val);
+        }
+    };
 }());
 
 /**
@@ -404,7 +368,6 @@ module.exports = {
     localeSort: localeSort,
     getModelClassByName: getModelClassByName,
     parseQueryString: parseQueryString,
-    cookie: cookie,
     restartServer: restartServer,
     defineFlags: defineFlags,
     renderMarkdown: renderMarkdown,

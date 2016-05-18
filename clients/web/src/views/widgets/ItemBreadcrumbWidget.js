@@ -1,5 +1,8 @@
+var $      = require('jquery');
 var girder = require('girder/init');
 var View   = require('girder/view');
+
+require('bootstrap/js/tooltip');
 
 var IteamBreadcrumbTemplate = require('girder/templates/widgets/itemBreadcrumb.jade');
 

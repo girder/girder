@@ -1,8 +1,12 @@
+var $             = require('jquery');
 var _             = require('underscore');
 var FileModel     = require('girder/models/FileModel');
 var DialogHelper  = require('girder/utilities/DialogHelper');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
 
 var UploadWidgetTemplate = require('girder/templates/widgets/uploadWidget.jade');
 var UploadWidgetNonModalTemplate = require('girder/templates/widgets/uploadWidgetNonModal.jade');

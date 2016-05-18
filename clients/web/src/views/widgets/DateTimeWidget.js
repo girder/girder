@@ -1,10 +1,11 @@
 var _      = require('underscore');
+var moment = require('moment');
 var View   = require('girder/view');
+
+require('eonasdan-bootstrap-datetimepicker'); // /src/js/bootstrap-datetimepicker.js'
 
 var dateTimeWidgetTemplate      = require('girder/templates/widgets/dateTimeWidget.jade');
 var dateTimeRangeWidgetTemplate = require('girder/templates/widgets/dateTimeRangeWidget.jade');
-
-/* globals moment */
 
 /**
  * This widget provides a text input field to specify a date/time. The user

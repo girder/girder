@@ -88,8 +88,10 @@ module.exports = function (grunt) {
         // },
         node: {
             canvas: 'empty',
+            file: 'empty',
             fs: 'empty',
             jsdom: 'empty',
+            system: 'empty',
             xmldom: 'empty'
         },
         plugins: [
@@ -135,8 +137,8 @@ module.exports = function (grunt) {
         webpackOptions.plugins = webpackOptions.plugins.concat(
             new webpack.optimize.DedupePlugin(),
             new webpack.optimize.UglifyJsPlugin({
-                ASCIIOnly: true,
-                sourceMapIncludeSources: true,
+                // ASCIIOnly: true,
+                // sourceMapIncludeSources: true,
                 compress: {
                     warnings: false
                 },
@@ -288,20 +290,9 @@ module.exports = function (grunt) {
             ext_js: {
                 entry: {
                     'girder.ext': [
-                        'jquery/dist/jquery.js',
-                        'jade/runtime.js',                 // what is exported?
-                        'underscore/underscore.js',
-                        'backbone/backbone.js',
-                        'remarkable/dist/remarkable.js',
-                        'jsoneditor/dist/jsoneditor.js',
                         'bootstrap/dist/js/bootstrap.js',
                         'bootstrap-switch/dist/js/bootstrap-switch.js',
-                        'eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
-                        'eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
-                        'd3/d3.js',
-                        'as-jqplot/dist/jquery.jqplot.js',
-                        'as-jqplot/dist/plugins/jqplot.pieRenderer.js',
-                        'sprintf-js/src/sprintf.js'
+                        'eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js'
                     ]
                 }
             },
@@ -312,11 +303,8 @@ module.exports = function (grunt) {
                     }
                 },
                 entry: {
-                    'girder.ext': [],
-                    // 'girder.main': [
-                    //     './clients/web/src/main.js'
-                    // ],
                     'girder.app': [
+                        // 'bootstrap/dist/js/bootstrap.js',
                         // './clients/web/static/built/templates.js',
                         // './clients/web/src/init.js',
                         // './clients/web/src/girder-version.js',
@@ -326,7 +314,6 @@ module.exports = function (grunt) {
                         // './clients/web/src/plugin_utils.js',
                         // './clients/web/src/collection.js',
                         // './clients/web/src/model.js',
-                        './clients/web/src/utilities/jQuery.js',
                         './clients/web/src/main.js'
                     ]
                     // this below is not the webpack way, but is for transitioning

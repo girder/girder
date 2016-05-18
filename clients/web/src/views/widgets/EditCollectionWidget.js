@@ -3,6 +3,9 @@ var CollectionModel = require('girder/models/CollectionModel');
 var DialogHelper    = require('girder/utilities/DialogHelper');
 var View            = require('girder/view');
 
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
+
 var EditCollectionWidgetTemplate = require('girder/templates/widgets/editCollectionWidget.jade');
 
 /**

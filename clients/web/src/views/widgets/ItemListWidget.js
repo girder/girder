@@ -1,3 +1,4 @@
+var $                = require('jquery');
 var _                = require('underscore');
 var girder           = require('girder/init');
 var ItemCollection   = require('girder/collections/ItemCollection');

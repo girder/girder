@@ -1,6 +1,8 @@
 var _      = require('underscore');
 var View   = require('girder/view');
 
+require('bootstrap/js/tooltip');
+
 var TimelineTemplate = require('girder/templates/widgets/timeline.jade');
 
 /**

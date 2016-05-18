@@ -6,6 +6,8 @@ var View              = require('girder/view');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
+require('bootstrap/js/tooltip');
+
 var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
 
 /**

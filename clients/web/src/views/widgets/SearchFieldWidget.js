@@ -1,6 +1,10 @@
+var $      = require('jquery');
 var _      = require('underscore');
 var Rest   = require('girder/rest');
 var View   = require('girder/view');
+
+require('bootstrap/js/tooltip');
+require('bootstrap/js/popover');
 
 var SearchFieldTemplate      = require('girder/templates/widgets/searchField.jade');
 var SearchHelpTemplate       = require('girder/templates/widgets/searchHelp.jade');

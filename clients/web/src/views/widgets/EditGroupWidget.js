@@ -4,6 +4,9 @@ var GroupModel   = require('girder/models/GroupModel');
 var DialogHelper = require('girder/utilities/DialogHelper');
 var View         = require('girder/view');
 
+require('bootstrap/js/modal');
+require('girder/utilities/jQuery'); // $.girderModal
+
 var EditGroupWidgetTemplate = require('girder/templates/widgets/editGroupWidget.jade');
 
 /**

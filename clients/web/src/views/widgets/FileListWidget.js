@@ -1,3 +1,4 @@
+var $              = require('jquery');
 var _              = require('underscore');
 var girder         = require('girder/init');
 var Events         = require('girder/events');
@@ -6,6 +7,8 @@ var View           = require('girder/view');
 var EditFileWidget = require('girder/views/widgets/EditFileWidget');
 var UploadWidget   = require('girder/views/widgets/UploadWidget');
 var MiscFunctions  = require('girder/utilities/MiscFunctions');
+
+require('bootstrap/js/tooltip');
 
 var FileListTemplate = require('girder/templates/widgets/fileListTemplate.jade');
 

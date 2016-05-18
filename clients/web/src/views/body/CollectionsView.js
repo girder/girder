@@ -1,3 +1,4 @@
+var $                    = require('jquery');
 var girder               = require('girder/init');
 var Events               = require('girder/events');
 var CollectionCollection = require('girder/collections/CollectionCollection');

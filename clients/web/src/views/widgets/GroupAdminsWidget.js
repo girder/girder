@@ -1,3 +1,4 @@
+var $             = require('jquery');
 var _             = require('underscore');
 var Events        = require('girder/events');
 var Constants     = require('girder/constants');
@@ -5,6 +6,8 @@ var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 var UserView      = require('girder/views/body/UserView');
+
+require('bootstrap/js/tooltip');
 
 var GroupAdminListTemplate = require('girder/templates/widgets/groupAdminList.jade');
 
