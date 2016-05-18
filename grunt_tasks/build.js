@@ -74,18 +74,17 @@ module.exports = function (grunt) {
                 // /node_modules\/remarkable/
             ]
         },
-        // resolve: {
-        //     extensions: ['.js', '.styl', '.css', '.jade', ''],
-        //     modulesDirectories: [
-        //         web_src_dir,
-        //         node_modules_dir
-        //     ]
-        // },
-        // resolve: {
-        //     alias: {
-        //         jquery: 'jquery/dist/jquery.js'
-        //     }
-        // },
+        // context: path.resolve(__dirname, 'web_external', 'src'),
+        resolve: {
+            alias: {
+                'girder': web_src_dir
+            },
+            extensions: ['.js', '.styl', '.css', '.jade', '']
+            // modulesDirectories: [
+            //     web_src_dir,
+            //     node_modules_dir
+            // ]
+        },
         node: {
             canvas: 'empty',
             file: 'empty',
@@ -288,11 +287,6 @@ module.exports = function (grunt) {
         webpack: {
             options: webpackOptions,
             app: {
-                resolve: {
-                    alias: {
-                        'girder': web_src_dir
-                    }
-                },
                 entry: {
                     'girder.ext': [
                         // 'd3/d3.js'

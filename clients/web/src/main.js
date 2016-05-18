@@ -1,7 +1,8 @@
 var $      = require('jquery');
+
 var girder = require('girder/init');
-var Events = require('girder/events');
 var App    = require('girder/app');
+var Events = require('girder/events');
 var Router = require('girder/router');
 
 require('girder/utilities/jQuery'); // $.girderModal

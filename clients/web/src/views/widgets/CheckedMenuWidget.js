@@ -1,8 +1,7 @@
-var girder    = require('girder/init');
-var Constants = require('girder/constants');
-var View      = require('girder/view');
-
 var CheckedActionsMenuTemplate = require('girder/templates/widgets/checkedActionsMenu.jade');
+var Constants                  = require('girder/constants');
+var HierarchyWidget            = require('girder/views/widgets/HierarchyWidget');
+var View                       = require('girder/view');
 
 /**
  * This widget presents a list of available batch actions
@@ -33,7 +32,7 @@ var CheckedMenuWidget = View.extend({
             pickedCopyAllowed: this.pickedCopyAllowed,
             pickedMoveAllowed: this.pickedMoveAllowed,
             pickedDesc: this.pickedDesc,
-            girder: girder
+            HierarchyWidget: HierarchyWidget
         }));
     },
 

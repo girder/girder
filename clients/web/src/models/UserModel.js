@@ -1,7 +1,8 @@
 var _      = require('underscore');
-var Rest   = require('girder/rest');
+
 var Auth   = require('girder/auth');
 var Model  = require('girder/model').Model;
+var Rest   = require('girder/rest');
 
 var UserModel = Model.extend({
     resourceName: 'user',

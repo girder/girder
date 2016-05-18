@@ -1,5 +1,6 @@
 var _        = require('underscore');
 var Backbone = require('backbone');
+
 var girder   = require('girder/init');
 var Events   = require('girder/events');
 

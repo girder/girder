@@ -1,6 +1,7 @@
 var $             = require('jquery');
 var _             = require('underscore');
 var Backbone      = require('backbone');
+
 var Auth          = require('girder/auth');
 var Events        = require('girder/events');
 

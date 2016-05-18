@@ -1,13 +1,13 @@
-var $            = require('jquery');
-var _            = require('underscore');
-var Constants    = require('girder/constants');
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var $                            = require('jquery');
+var _                            = require('underscore');
+
+var Constants                    = require('girder/constants');
+var DialogHelper                 = require('girder/utilities/DialogHelper');
+var EditAssetstoreWidgetTemplate = require('girder/templates/widgets/editAssetstoreWidget.jade');
+var View                         = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var EditAssetstoreWidgetTemplate = require('girder/templates/widgets/editAssetstoreWidget.jade');
 
 /**
  * This widget is used to edit an existing assetstore.

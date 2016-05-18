@@ -1,10 +1,9 @@
-var girder        = require('girder/init');
-var Auth          = require('girder/auth');
-var Events        = require('girder/events');
-var View          = require('girder/view');
-var Rest          = require('girder/utilities/Rest');
-
+var girder               = require('girder/init');
 var AdminConsoleTemplate = require('girder/templates/body/adminConsole.jade');
+var Auth                 = require('girder/auth');
+var Events               = require('girder/events');
+var Rest                 = require('girder/rest');
+var View                 = require('girder/view');
 
 /**
  * This view shows the admin console, which links to all available admin pages.

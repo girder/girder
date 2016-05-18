@@ -1,13 +1,13 @@
-var $            = require('jquery');
-var Auth         = require('girder/auth');
-var GroupModel   = require('girder/models/GroupModel');
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var $                       = require('jquery');
+
+var Auth                    = require('girder/auth');
+var DialogHelper            = require('girder/utilities/DialogHelper');
+var EditGroupWidgetTemplate = require('girder/templates/widgets/editGroupWidget.jade');
+var GroupModel              = require('girder/models/GroupModel');
+var View                    = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var EditGroupWidgetTemplate = require('girder/templates/widgets/editGroupWidget.jade');
 
 /**
  * This widget is used to create a new group or edit an existing one.

@@ -1,20 +1,20 @@
-var $                 = require('jquery');
-var _                 = require('underscore');
-var Constants         = require('girder/constants');
-var UserModel         = require('girder/models/UserModel');
-var GroupModel        = require('girder/models/GroupModel');
-var DialogHelper      = require('girder/utilities/DialogHelper');
-var View              = require('girder/view');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
+var $                            = require('jquery');
+var _                            = require('underscore');
+
+var accessEditorNonModalTemplate = require('girder/templates/widgets/accessEditorNonModal.jade');
+var accessEditorTemplate         = require('girder/templates/widgets/accessEditor.jade');
+var accessEntryTemplate          = require('girder/templates/widgets/accessEntry.jade');
+var Constants                    = require('girder/constants');
+var DialogHelper                 = require('girder/utilities/DialogHelper');
+var GroupModel                   = require('girder/models/GroupModel');
+var LoadingAnimation             = require('girder/views/widgets/LoadingAnimation');
+var SearchFieldWidget            = require('girder/views/widgets/SearchFieldWidget');
+var UserModel                    = require('girder/models/UserModel');
+var View                         = require('girder/view');
 
 require('bootstrap/js/tooltip');
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var accessEditorTemplate         = require('girder/templates/widgets/accessEditor.jade');
-var accessEditorNonModalTemplate = require('girder/templates/widgets/accessEditorNonModal.jade');
-var accessEntryTemplate          = require('girder/templates/widgets/accessEntry.jade');
 
 /**
  * This view allows users to see and control access on a resource.

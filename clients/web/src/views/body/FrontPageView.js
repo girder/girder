@@ -1,12 +1,12 @@
-var $             = require('jquery');
-var girder        = require('girder/init');
-var Rest          = require('girder/rest');
-var Auth          = require('girder/auth');
-var Events        = require('girder/events');
-var versionInfo   = require('girder/girder-version');
-var View          = require('girder/view');
+var $                 = require('jquery');
 
+var girder            = require('girder/init');
+var Auth              = require('girder/auth');
+var Events            = require('girder/events');
 var FrontPageTemplate = require('girder/templates/body/frontPage.jade');
+var Rest              = require('girder/rest');
+var versionInfo       = require('girder/girder-version');
+var View              = require('girder/view');
 
 /**
  * This is the view for the front page of the app.

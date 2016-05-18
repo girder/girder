@@ -1,22 +1,22 @@
 var $                    = require('jquery');
 var _                    = require('underscore');
+
 var girder               = require('girder/init');
-var Auth                 = require('girder/auth');
-var Events               = require('girder/events');
-var Constants            = require('girder/constants');
 var AssetstoreCollection = require('girder/collections/AssetstoreCollection');
 var AssetstoreModel      = require('girder/models/AssetstoreModel');
-var View                 = require('girder/view');
-var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
+var AssetstoresTemplate  = require('girder/templates/body/assetstores.jade');
+var Auth                 = require('girder/auth');
+var Constants            = require('girder/constants');
 var EditAssetstoreWidget = require('girder/views/widgets/EditAssetstoreWidget');
+var Events               = require('girder/events');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var Rest                 = require('girder/utilities/Rest');
+var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
+var Rest                 = require('girder/rest');
+var View                 = require('girder/view');
 
 require('as-jqplot/dist/jquery.jqplot.js');
 require('as-jqplot/dist/plugins/jqplot.pieRenderer.js');
 require('bootstrap/js/tooltip');
-
-var AssetstoresTemplate = require('girder/templates/body/assetstores.jade');
 
 /**
  * This view shows the admin console, which links to all available admin pages.

@@ -1,6 +1,5 @@
-var girder = require('girder/init');
-var View   = require('girder/view');
-
+var girder                   = require('girder/init');
+var View                     = require('girder/view');
 var FilesystemImportTemplate = require('girder/templates/body/filesystemImport.jade');
 
 var FilesystemImportView = View.extend({

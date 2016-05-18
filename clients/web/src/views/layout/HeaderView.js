@@ -1,9 +1,8 @@
 var girder               = require('girder/init');
-var View                 = require('girder/view');
+var LayoutHeaderTemplate = require('girder/templates/layout/layoutHeader.jade');
 var LayoutHeaderUserView = require('girder/views/layout/HeaderUserView');
 var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
-
-var LayoutHeaderTemplate = require('girder/templates/layout/layoutHeader.jade');
+var View                 = require('girder/view');
 
 /**
  * This view shows the header in the layout.

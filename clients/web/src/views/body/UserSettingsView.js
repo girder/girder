@@ -1,16 +1,16 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var girder        = require('girder/init');
-var Rest          = require('girder/rest');
-var Auth          = require('girder/auth');
-var Events        = require('girder/events');
-var Constants     = require('girder/constants');
-var UserModel     = require('girder/models/UserModel');
-var View          = require('girder/view');
+var $                    = require('jquery');
+var _                    = require('underscore');
+
+var girder               = require('girder/init');
+var Auth                 = require('girder/auth');
+var Constants            = require('girder/constants');
+var Events               = require('girder/events');
+var Rest                 = require('girder/rest');
+var UserModel            = require('girder/models/UserModel');
+var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
+var View                 = require('girder/view');
 
 require('bootstrap/js/tab');
-
-var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
 
 /**
  * This is the view for the user account (profile) page.
@@ -117,7 +117,7 @@ var UserAccountView = View.extend({
         this.$el.html(UserSettingsTemplate({
             user: this.model,
             isCurrentUser: this.isCurrentUser,
-            girder: girder,
+            Auth: Auth,
             temporaryToken: this.temporary
         }));
 

@@ -1,11 +1,11 @@
-var $        = require('jquery');
-var girder   = require('girder/init');
-var Auth     = require('girder/auth');
-var Events   = require('girder/events');
-var Backbone = require('backbone');
-var View     = require('girder/view');
+var $               = require('jquery');
 
+var Auth            = require('girder/auth');
+var Backbone        = require('backbone');
+var Events          = require('girder/events');
+var girder          = require('girder/init');
 var LayoutGlobalNav = require('girder/templates/layout/layoutGlobalNav.jade');
+var View            = require('girder/view');
 
 /**
  * This view shows a list of global navigation links that should be

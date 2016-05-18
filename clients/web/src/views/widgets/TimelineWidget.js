@@ -1,9 +1,9 @@
-var _      = require('underscore');
-var View   = require('girder/view');
-
-require('bootstrap/js/tooltip');
+var _                = require('underscore');
 
 var TimelineTemplate = require('girder/templates/widgets/timeline.jade');
+var View             = require('girder/view');
+
+require('bootstrap/js/tooltip');
 
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)

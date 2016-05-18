@@ -1,9 +1,10 @@
 var _             = require('underscore');
 var Backbone      = require('backbone');
-var Rest          = require('girder/rest');
+
 var Constants     = require('girder/constants');
-var Model         = require('girder/model').Model;
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+var Model         = require('girder/model').Model;
+var Rest          = require('girder/rest');
 
 /**
  * All collections should descend from this collection base class, which

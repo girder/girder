@@ -1,16 +1,16 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var girder        = require('girder/init');
-var Rest          = require('girder/rest');
-var Events        = require('girder/events');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var UsersView     = require('girder/views/body/UsersView');
+var $               = require('jquery');
+var _               = require('underscore');
+
+var girder          = require('girder/init');
+var Events          = require('girder/events');
+var MiscFunctions   = require('girder/utilities/MiscFunctions');
+var PluginsTemplate = require('girder/templates/body/plugins.jade');
+var Rest            = require('girder/rest');
+var UsersView       = require('girder/views/body/UsersView');
+var View            = require('girder/view');
 
 require('bootstrap-switch'); // /dist/js/bootstrap-switch.js',
 require('bootstrap/js/tooltip');
-
-var PluginsTemplate = require('girder/templates/body/plugins.jade');
 
 /**
  * This is the plugin management page for administrators.

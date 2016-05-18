@@ -1,25 +1,25 @@
 var $                  = require('jquery');
 var _                  = require('underscore');
+
 var girder             = require('girder/init');
 var Auth               = require('girder/auth');
-var Events             = require('girder/events');
 var Constants          = require('girder/constants');
-var UserCollection     = require('girder/collections/UserCollection');
-var GroupModel         = require('girder/models/GroupModel');
-var View               = require('girder/view');
-var GroupMembersWidget = require('girder/views/widgets/GroupMembersWidget');
 var EditGroupWidget    = require('girder/views/widgets/EditGroupWidget');
-var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
-var GroupInvitesWidget = require('girder/views/widgets/GroupInvitesWidget');
+var Events             = require('girder/events');
 var GroupAdminsWidget  = require('girder/views/widgets/GroupAdminsWidget');
+var GroupInvitesWidget = require('girder/views/widgets/GroupInvitesWidget');
+var GroupMembersWidget = require('girder/views/widgets/GroupMembersWidget');
+var GroupModel         = require('girder/models/GroupModel');
 var GroupModsWidget    = require('girder/views/widgets/GroupModsWidget');
+var GroupPageTemplate  = require('girder/templates/body/groupPage.jade');
+var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
 var MiscFunctions      = require('girder/utilities/MiscFunctions');
-var Rest               = require('girder/utilities/Rest');
+var Rest               = require('girder/rest');
+var UserCollection     = require('girder/collections/UserCollection');
+var View               = require('girder/view');
 
 require('bootstrap/js/tab');
 require('bootstrap/js/tooltip');
-
-var GroupPageTemplate = require('girder/templates/body/groupPage.jade');
 
 /**
  * This view shows a single group's page.
@@ -140,7 +140,8 @@ var GroupView = View.extend({
         }
         this.$el.html(GroupPageTemplate({
             group: this.model,
-            girder: girder,
+            Auth: Auth,
+            Constants: Constants,
             isInvited: this.isInvited,
             isRequested: this.isRequested,
             isMember: this.isMember,

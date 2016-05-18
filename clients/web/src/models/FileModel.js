@@ -1,9 +1,10 @@
 var _           = require('underscore');
-var Rest        = require('girder/rest');
+
 var Constants   = require('girder/constants');
-var Model       = require('girder/model').Model;
 var FolderModel = require('girder/models/FolderModel');
 var ItemModel   = require('girder/models/ItemModel');
+var Model       = require('girder/model').Model;
+var Rest        = require('girder/rest');
 
 var FileModel = Model.extend({
     resourceName: 'file',

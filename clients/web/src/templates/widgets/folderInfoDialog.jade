@@ -1,4 +1,3 @@
-!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 mixin dateInfo(intro, property)
   .g-folder-info-line(property="#{property}")
     i.icon-clock
@@ -15,7 +14,7 @@ mixin dateInfo(intro, property)
         span= folder.name()
     .modal-body
       if folder.get('description')
-        .g-info-dialog-description.g-folder-description!= MiscFunctions.renderMarkdown(folder.get('description'))
+        .g-info-dialog-description.g-folder-description != MiscFunctions.renderMarkdown(folder.get('description'))
 
       .g-folder-info-lines
         +dateInfo('Created ', 'created')

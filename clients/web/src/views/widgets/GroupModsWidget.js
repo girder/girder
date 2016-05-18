@@ -1,15 +1,15 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var Events        = require('girder/events');
-var Constants     = require('girder/constants');
-var UserModel     = require('girder/models/UserModel');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var UserView      = require('girder/views/body/UserView');
+var $                    = require('jquery');
+var _                    = require('underscore');
+
+var Constants            = require('girder/constants');
+var Events               = require('girder/events');
+var GroupModListTemplate = require('girder/templates/widgets/groupModList.jade');
+var MiscFunctions        = require('girder/utilities/MiscFunctions');
+var UserModel            = require('girder/models/UserModel');
+var UserView             = require('girder/views/body/UserView');
+var View                 = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var GroupModListTemplate = require('girder/templates/widgets/groupModList.jade');
 
 /**
  * This view shows a list of moderators of a group.

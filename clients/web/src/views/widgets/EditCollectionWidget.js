@@ -1,12 +1,12 @@
-var $               = require('jquery');
-var CollectionModel = require('girder/models/CollectionModel');
-var DialogHelper    = require('girder/utilities/DialogHelper');
-var View            = require('girder/view');
+var $                            = require('jquery');
+
+var CollectionModel              = require('girder/models/CollectionModel');
+var DialogHelper                 = require('girder/utilities/DialogHelper');
+var EditCollectionWidgetTemplate = require('girder/templates/widgets/editCollectionWidget.jade');
+var View                         = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var EditCollectionWidgetTemplate = require('girder/templates/widgets/editCollectionWidget.jade');
 
 /**
  * This widget is used to create a new collection or edit an existing one.

@@ -1,10 +1,10 @@
-var $                 = require('jquery');
-var _                = require('underscore');
-var FolderCollection = require('girder/collections/FolderCollection');
-var View             = require('girder/view');
-var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
+var $                  = require('jquery');
+var _                  = require('underscore');
 
+var FolderCollection   = require('girder/collections/FolderCollection');
 var FolderListTemplate = require('girder/templates/widgets/folderList.jade');
+var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
+var View               = require('girder/view');
 
 /**
  * This widget shows a list of folders under a given parent.

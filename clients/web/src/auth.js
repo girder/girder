@@ -1,4 +1,5 @@
 var _      = require('underscore');
+
 var Events = require('girder/events');
 
 // This definitely need some fixing/testing, as it seems that

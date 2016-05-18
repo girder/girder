@@ -1,10 +1,11 @@
 var _               = require('underscore');
+
 var girder          = require('girder/init');
 var Events          = require('girder/events');
 var FolderModel     = require('girder/models/FolderModel');
-var View            = require('girder/view');
 var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
-var Rest            = require('girder/utilities/Rest');
+var Rest            = require('girder/rest');
+var View            = require('girder/view');
 
 /**
  * This view shows a single folder as a hierarchy widget.

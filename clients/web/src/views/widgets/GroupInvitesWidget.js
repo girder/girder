@@ -1,13 +1,13 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var girder        = require('girder/init');
-var Constants     = require('girder/constants');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+var $                       = require('jquery');
+var _                       = require('underscore');
+
+var girder                  = require('girder/init');
+var Constants               = require('girder/constants');
+var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
+var MiscFunctions           = require('girder/utilities/MiscFunctions');
+var View                    = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
 
 /**
  * This view shows a list of pending invitations to the group.

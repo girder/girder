@@ -1,15 +1,16 @@
-var _               = require('underscore');
-var girder          = require('girder/init');
-var Events          = require('girder/events');
-var FolderModel     = require('girder/models/FolderModel');
-var UserModel       = require('girder/models/UserModel');
-var View            = require('girder/view');
-var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
-var MiscFunctions   = require('girder/utilities/MiscFunctions');
-var UsersView       = require('girder/views/body/UsersView');
-var Rest            = require('girder/utilities/Rest');
+var _                = require('underscore');
 
+var girder           = require('girder/init');
+var Constants        = require('girder/constants');
+var Events           = require('girder/events');
+var FolderModel      = require('girder/models/FolderModel');
+var HierarchyWidget  = require('girder/views/widgets/HierarchyWidget');
+var MiscFunctions    = require('girder/utilities/MiscFunctions');
+var Rest             = require('girder/rest');
+var UserModel        = require('girder/models/UserModel');
 var UserPageTemplate = require('girder/templates/body/userPage.jade');
+var UsersView        = require('girder/views/body/UsersView');
+var View             = require('girder/view');
 
 /**
  * This view shows a single user's page.
@@ -91,7 +92,7 @@ var UserView = View.extend({
     render: function () {
         this.$el.html(UserPageTemplate({
             user: this.model,
-            girder: girder
+            Constants: Constants
         }));
 
         this.hierarchyWidget.setElement(this.$('.g-user-hierarchy-container')).render();

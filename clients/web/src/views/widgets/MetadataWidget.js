@@ -1,18 +1,19 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var JSONEditor    = require('jsoneditor/dist/jsoneditor.js'); // can not use require('jsoneditor')
-var girder        = require('girder/init');
-var Events        = require('girder/events');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+var $                               = require('jquery');
+var _                               = require('underscore');
+var JSONEditor                      = require('jsoneditor/dist/jsoneditor.js'); // can not use require('jsoneditor')
 
-require('bootstrap/js/tooltip');
-
+var girder                          = require('girder/init');
+var Constants                       = require('girder/constants');
+var Events                          = require('girder/events');
+var JsonMetadatumEditWidgetTemplate = require('girder/templates/widgets/jsonMetadatumEditWidget.jade');
+var JsonMetadatumViewTemplate       = require('girder/templates/widgets/jsonMetadatumView.jade');
+var MetadataWidgetTemplate          = require('girder/templates/widgets/metadataWidget.jade');
 var MetadatumEditWidgetTemplate     = require('girder/templates/widgets/metadatumEditWidget.jade');
 var MetadatumViewTemplate           = require('girder/templates/widgets/metadatumView.jade');
-var JsonMetadatumEditWidgetTemplate = require('girder/templates/widgets/jsonMetadatumEdit.jade');
-var JsonMetadatumViewTemplate       = require('girder/templates/widgets/jsonMetadatumView.jade');
-var MetadatumWidgetTemplate         = require('girder/templates/widgets/metadatumWidget.jade');
+var MiscFunctions                   = require('girder/utilities/MiscFunctions');
+var View                            = require('girder/view');
+
+require('bootstrap/js/tooltip');
 
 var MetadatumWidget = View.extend({
     events: {
@@ -132,7 +133,7 @@ var MetadatumWidget = View.extend({
             key: this.key,
             value: _.bind(this.parentView.modes[this.mode].displayValue, this)(),
             accessLevel: this.accessLevel,
-            girder: girder
+            Constants: Constants
         }));
 
         return this;
@@ -278,7 +279,7 @@ var MetadatumEditWidget = View.extend({
             value: this.value,
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
-            girder: girder
+            Constants: Constants
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
 
@@ -478,11 +479,11 @@ var MetadataWidget = View.extend({
         metaKeys.sort(MiscFunctions.localeSort);
 
         // Metadata header
-        this.$el.html(MetadatumWidgetTemplate({
+        this.$el.html(MetadataWidgetTemplate({
             item: this.item,
             title: this.title,
             accessLevel: this.accessLevel,
-            girder: girder
+            Constants: Constants
         }));
 
         // Append each metadatum

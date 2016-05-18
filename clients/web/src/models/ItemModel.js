@@ -1,9 +1,10 @@
 var $             = require('jquery');
 var _             = require('underscore');
-var Rest          = require('girder/rest');
-var Model         = require('girder/model').Model;
-var MetadataMixin = require('girder/model').MetadataMixin;
+
 var FolderModel   = require('girder/models/FolderModel');
+var MetadataMixin = require('girder/model').MetadataMixin;
+var Model         = require('girder/model').Model;
+var Rest          = require('girder/rest');
 
 var ItemModel = Model.extend({
     resourceName: 'item',

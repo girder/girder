@@ -1,4 +1,3 @@
-!{MiscFunctions=require('girder/utilities/MiscFunctions')}
 mixin dateInfo(intro, property)
   .g-collection-info-line(property=property)
     i.icon-clock
@@ -15,7 +14,7 @@ mixin dateInfo(intro, property)
         span= collection.name()
     .modal-body
       if collection.get('description')
-        .g-info-dialog-description!= MiscFunctions.renderMarkdown(collection.get('description'))
+        .g-info-dialog-description != MiscFunctions.renderMarkdown(collection.get('description'))
 
       .g-collection-info-lines
         +dateInfo('Created ', 'created')

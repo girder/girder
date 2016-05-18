@@ -1,19 +1,20 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
-var girder               = require('girder/init');
-var Events               = require('girder/events');
-var FolderModel          = require('girder/models/FolderModel');
-var CollectionModel      = require('girder/models/CollectionModel');
-var View                 = require('girder/view');
-var HierarchyWidget      = require('girder/views/widgets/HierarchyWidget');
-var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
-var AccessWidget         = require('girder/views/widgets/AccessWidget');
-var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var Rest                 = require('girder/utilities/Rest');
+var $                      = require('jquery');
+var _                      = require('underscore');
+
+var girder                 = require('girder/init');
+var AccessWidget           = require('girder/views/widgets/AccessWidget');
+var CollectionModel        = require('girder/models/CollectionModel');
+var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
+var Constants              = require('girder/constants');
+var EditCollectionWidget   = require('girder/views/widgets/EditCollectionWidget');
+var Events                 = require('girder/events');
+var FolderModel            = require('girder/models/FolderModel');
+var HierarchyWidget        = require('girder/views/widgets/HierarchyWidget');
+var MiscFunctions          = require('girder/utilities/MiscFunctions');
+var Rest                   = require('girder/rest');
+var View                   = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
 
 /**
  * This view shows a single collection's page.
@@ -119,7 +120,7 @@ var CollectionView = View.extend({
     render: function () {
         this.$el.html(CollectionPageTemplate({
             collection: this.model,
-            girder: girder
+            Constants: Constants
         }));
 
         this.hierarchyWidget.setElement(

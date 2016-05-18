@@ -1,7 +1,8 @@
 var _             = require('underscore');
-var Rest          = require('girder/rest');
-var Model         = require('girder/model').Model;
+
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+var Model         = require('girder/model').Model;
+var Rest          = require('girder/rest');
 
 var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',

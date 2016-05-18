@@ -1,8 +1,9 @@
 var _                     = require('underscore');
-var Rest                  = require('girder/rest');
+
+var AccessControlledModel = require('girder/model').AccessControlledModel;
 var Auth                  = require('girder/auth');
 var Constants             = require('girder/constants');
-var AccessControlledModel = require('girder/model').AccessControlledModel;
+var Rest                  = require('girder/rest');
 
 var GroupModel = AccessControlledModel.extend({
     resourceName: 'group',

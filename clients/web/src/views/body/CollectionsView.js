@@ -1,15 +1,17 @@
-var $                    = require('jquery');
-var girder               = require('girder/init');
-var Events               = require('girder/events');
-var CollectionCollection = require('girder/collections/CollectionCollection');
-var CollectionModel      = require('girder/models/CollectionModel');
-var View                 = require('girder/view');
-var PaginateWidget       = require('girder/views/widgets/PaginateWidget');
-var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
-var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
-var Rest                 = require('girder/utilities/Rest');
+var $                      = require('jquery');
 
+var girder                 = require('girder/init');
+var Auth                   = require('girder/auth');
+var CollectionCollection   = require('girder/collections/CollectionCollection');
 var CollectionListTemplate = require('girder/templates/body/collectionList.jade');
+var CollectionModel        = require('girder/models/CollectionModel');
+var EditCollectionWidget   = require('girder/views/widgets/EditCollectionWidget');
+var Events                 = require('girder/events');
+var MiscFunctions          = require('girder/utilities/MiscFunctions');
+var PaginateWidget         = require('girder/views/widgets/PaginateWidget');
+var Rest                   = require('girder/rest');
+var SearchFieldWidget      = require('girder/views/widgets/SearchFieldWidget');
+var View                   = require('girder/view');
 
 /**
  * This view lists the collections.
@@ -65,7 +67,8 @@ var CollectionsView = View.extend({
     render: function () {
         this.$el.html(CollectionListTemplate({
             collections: this.collection.toArray(),
-            girder: girder
+            Auth: Auth,
+            MiscFunctions: MiscFunctions
         }));
 
         this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();

@@ -1,15 +1,15 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var FileModel     = require('girder/models/FileModel');
-var DialogHelper  = require('girder/utilities/DialogHelper');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+var $                            = require('jquery');
+var _                            = require('underscore');
+
+var DialogHelper                 = require('girder/utilities/DialogHelper');
+var FileModel                    = require('girder/models/FileModel');
+var MiscFunctions                = require('girder/utilities/MiscFunctions');
+var UploadWidgetNonModalTemplate = require('girder/templates/widgets/uploadWidgetNonModal.jade');
+var UploadWidgetTemplate         = require('girder/templates/widgets/uploadWidget.jade');
+var View                         = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var UploadWidgetTemplate = require('girder/templates/widgets/uploadWidget.jade');
-var UploadWidgetNonModalTemplate = require('girder/templates/widgets/uploadWidgetNonModal.jade');
 
 /**
  * This widget is used to upload files to a folder. Pass a folder model

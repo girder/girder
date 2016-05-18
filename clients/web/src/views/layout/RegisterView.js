@@ -1,13 +1,12 @@
-var Auth         = require('girder/auth');
-var Events       = require('girder/events');
-var UserModel    = require('girder/models/UserModel');
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var Auth                   = require('girder/auth');
+var DialogHelper           = require('girder/utilities/DialogHelper');
+var Events                 = require('girder/events');
+var RegisterDialogTemplate = require('girder/templates/layout/registerDialog.jade');
+var UserModel              = require('girder/models/UserModel');
+var View                   = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var RegisterDialogTemplate = require('girder/templates/layout/registerDialog.jade');
 
 /**
  * This view shows a register modal dialog.

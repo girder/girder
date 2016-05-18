@@ -1,9 +1,9 @@
-var _             = require('underscore');
-var Events        = require('girder/events');
-var FileModel     = require('girder/models/FileModel');
-var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+var _                      = require('underscore');
 
+var Events                 = require('girder/events');
+var FileModel              = require('girder/models/FileModel');
+var View                   = require('girder/view');
+var MiscFunctions          = require('girder/utilities/MiscFunctions');
 var MarkdownWidgetTemplate = require('girder/templates/widgets/markdownWidget.jade');
 
 /**

@@ -1,10 +1,9 @@
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var DialogHelper           = require('girder/utilities/DialogHelper');
+var EditFileWidgetTemplate = require('girder/templates/widgets/editFileWidget.jade');
+var View                   = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var EditFileWidgetTemplate = require('girder/templates/widgets/editFileWidget.jade');
 
 /**
  * This widget is used to edit file information.

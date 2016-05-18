@@ -1,16 +1,16 @@
-var $              = require('jquery');
-var _              = require('underscore');
-var girder         = require('girder/init');
-var Events         = require('girder/events');
-var FileCollection = require('girder/collections/FileCollection');
-var View           = require('girder/view');
-var EditFileWidget = require('girder/views/widgets/EditFileWidget');
-var UploadWidget   = require('girder/views/widgets/UploadWidget');
-var MiscFunctions  = require('girder/utilities/MiscFunctions');
+var $                = require('jquery');
+var _                = require('underscore');
+
+var Constants        = require('girder/constants')
+var EditFileWidget   = require('girder/views/widgets/EditFileWidget');
+var Events           = require('girder/events');
+var FileCollection   = require('girder/collections/FileCollection');
+var FileListTemplate = require('girder/templates/widgets/fileList.jade');
+var MiscFunctions    = require('girder/utilities/MiscFunctions');
+var UploadWidget     = require('girder/views/widgets/UploadWidget');
+var View             = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var FileListTemplate = require('girder/templates/widgets/fileListTemplate.jade');
 
 /**
  * This widget shows a list of files in a given item.
@@ -112,7 +112,8 @@ var FileListWidget = View.extend({
         this.$el.html(FileListTemplate({
             files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            girder: girder,
+            Constants: Constants,
+            MiscFunctions: MiscFunctions,
             parentItem: this.parentItem
         }));
 

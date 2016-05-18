@@ -1,11 +1,11 @@
-var $                = require('jquery');
-var _                = require('underscore');
-var girder           = require('girder/init');
-var ItemCollection   = require('girder/collections/ItemCollection');
-var View             = require('girder/view');
-var LoadingAnimation = require('girder/views/widgets/LoadingAnimation');
+var $                 = require('jquery');
+var _                 = require('underscore');
 
-var IteamListTemplate = require('girder/templates/widgets/itemList.jade');
+var ItemListTemplate = require('girder/templates/widgets/itemList.jade');
+var ItemCollection    = require('girder/collections/ItemCollection');
+var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+var View              = require('girder/view');
 
 /**
  * This widget shows a list of items under a given folder.
@@ -42,10 +42,10 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(IteamListTemplate({
+        this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            girder: girder,
+            MiscFunctions: MiscFunctions,
             checkboxes: this._checkboxes
         }));
 

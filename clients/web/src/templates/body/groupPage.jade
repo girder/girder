@@ -1,5 +1,3 @@
-!{Auth=require('girder/auth')}
-!{Constants=require('girder/constants')}
 .g-group-header
   .btn-group.pull-right
     if (isMember || isInvited || Auth.getCurrentUser() || group.get('_accessLevel') >= Constants.AccessType.ADMIN)

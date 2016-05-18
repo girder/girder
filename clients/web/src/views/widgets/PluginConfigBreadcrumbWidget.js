@@ -1,7 +1,6 @@
-var girder = require('girder/init');
-var View   = require('girder/view');
-
+var girder                         = require('girder/init');
 var PluginConfigBreadcrumbTemplate = require('girder/templates/widgets/pluginConfigBreadcrumb.jade');
+var View                           = require('girder/view');
 
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin

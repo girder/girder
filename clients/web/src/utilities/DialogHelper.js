@@ -1,5 +1,6 @@
 var $             = require('jquery');
 var Backbone      = require('backbone');
+
 var girder        = require('girder/init');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 

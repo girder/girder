@@ -1,16 +1,17 @@
 var $                 = require('jquery');
+
 var girder            = require('girder/init');
 var Auth              = require('girder/auth');
 var Events            = require('girder/events');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
+var RegisterView      = require('girder/views/layout/RegisterView');
+var Rest              = require('girder/rest');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var UserCollection    = require('girder/collections/UserCollection');
+var UserListTemplate  = require('girder/templates/body/userList.jade');
 var UserModel         = require('girder/models/UserModel');
 var View              = require('girder/view');
-var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var RegisterView      = require('girder/views/layout/RegisterView');
-var Rest              = require('girder/utilities/Rest');
-
-var UserListTemplate = require('girder/templates/body/userList.jade');
 
 /**
  * This view lists users.
@@ -53,7 +54,8 @@ var UsersView = View.extend({
     render: function () {
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
-            girder: girder
+            Auth: Auth,
+            MiscFunctions: MiscFunctions
         }));
 
         this.paginateWidget.setElement(this.$('.g-user-pagination')).render();

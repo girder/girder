@@ -1,12 +1,11 @@
-var Auth         = require('girder/auth');
-var Events       = require('girder/events');
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var Auth                = require('girder/auth');
+var DialogHelper        = require('girder/utilities/DialogHelper');
+var Events              = require('girder/events');
+var LoginDialogTemplate = require('girder/templates/layout/loginDialog.jade');
+var View                = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var LoginDialogTemplate = require('girder/templates/layout/loginDialog.jade');
 
 /**
  * This view shows a login modal dialog.

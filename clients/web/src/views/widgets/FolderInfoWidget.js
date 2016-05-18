@@ -1,9 +1,8 @@
-var girder = require('girder/init');
-var View   = require('girder/view');
+var MiscFunctions            = require('girder/utilities/MiscFunctions');
+var FolderInfoDialogTemplate = require('girder/templates/widgets/folderInfoDialog.jade');
+var View                     = require('girder/view');
 
 require('girder/utilities/jQuery'); // $.girderModal
-
-var FolderInfoDialogTemplate = require('girder/templates/widgets/folderInfoDialog.jade');
 
 /**
  * This view shows a dialog container detailed folder information.
@@ -26,7 +25,7 @@ var FolderInfoWidget = View.extend({
 
         this.$el.html(FolderInfoDialogTemplate({
             folder: this.model,
-            girder: girder
+            MiscFunctions: MiscFunctions
         })).girderModal(this);
     }
 });

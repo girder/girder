@@ -1,13 +1,13 @@
-var _            = require('underscore');
-var Rest         = require('girder/rest');
-var Events       = require('girder/events');
-var DialogHelper = require('girder/utilities/DialogHelper');
-var View         = require('girder/view');
+var _                           = require('underscore');
+
+var DialogHelper                = require('girder/utilities/DialogHelper');
+var Events                      = require('girder/events');
+var ResetPasswordDialogTemplate = require('girder/templates/layout/resetPasswordDialog.jade');
+var Rest                        = require('girder/rest');
+var View                        = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var ResetPasswordDialogTemplate = require('girder/templates/layout/resetPasswordDialog.jade');
 
 /**
  * This view shows a modal dialog for resetting a forgotten password.

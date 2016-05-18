@@ -1,13 +1,13 @@
-var _                 = require('underscore');
-var girder            = require('girder/init');
-var Rest              = require('girder/rest');
-var Events            = require('girder/events');
-var View              = require('girder/view');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var _                           = require('underscore');
+
+var girder                      = require('girder/init');
+var Events                      = require('girder/events');
+var Rest                        = require('girder/rest');
+var SearchFieldWidget           = require('girder/views/widgets/SearchFieldWidget');
+var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
+var View                        = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
 
 /**
  * The system config page for administrators.

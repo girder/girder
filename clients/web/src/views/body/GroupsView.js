@@ -1,16 +1,17 @@
 var $                 = require('jquery');
+
 var girder            = require('girder/init');
 var Auth              = require('girder/auth');
+var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
 var Events            = require('girder/events');
 var GroupCollection   = require('girder/collections/GroupCollection');
-var GroupModel        = require('girder/models/GroupModel');
-var View              = require('girder/view');
-var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
-var Rest              = require('girder/utilities/Rest');
-
 var GroupListTemplate = require('girder/templates/body/groupList.jade');
+var GroupModel        = require('girder/models/GroupModel');
+var MiscFunctions     = require('girder/utilities/MiscFunctions');
+var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
+var Rest              = require('girder/rest');
+var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
+var View              = require('girder/view');
 
 /**
  * This view lists groups.
@@ -53,7 +54,8 @@ var GroupsView = View.extend({
     render: function () {
         this.$el.html(GroupListTemplate({
             groups: this.collection.toArray(),
-            girder: girder
+            Auth: Auth,
+            MiscFunctions: MiscFunctions
         }));
 
         this.paginateWidget.setElement(this.$('.g-group-pagination')).render();

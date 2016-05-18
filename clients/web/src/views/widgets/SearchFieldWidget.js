@@ -1,15 +1,15 @@
-var $      = require('jquery');
-var _      = require('underscore');
-var Rest   = require('girder/rest');
-var View   = require('girder/view');
+var $                        = require('jquery');
+var _                        = require('underscore');
 
-require('bootstrap/js/tooltip');
-require('bootstrap/js/popover');
-
+var Rest                     = require('girder/rest');
 var SearchFieldTemplate      = require('girder/templates/widgets/searchField.jade');
 var SearchHelpTemplate       = require('girder/templates/widgets/searchHelp.jade');
 var SearchModeSelectTemplate = require('girder/templates/widgets/searchModeSelect.jade');
 var SearchResultsTemplate    = require('girder/templates/widgets/searchResults.jade');
+var View                     = require('girder/view');
+
+require('bootstrap/js/tooltip');
+require('bootstrap/js/popover');
 
 /**
  * This widget provides a text field that will search any set of data types

@@ -1,14 +1,14 @@
-var $              = require('jquery');
-var _              = require('underscore');
-var FolderModel    = require('girder/models/FolderModel');
-var DialogHelper   = require('girder/utilities/DialogHelper');
-var View           = require('girder/view');
-var MarkdownWidget = require('girder/views/widgets/MarkdownWidget');
+var $                        = require('jquery');
+var _                        = require('underscore');
+
+var DialogHelper             = require('girder/utilities/DialogHelper');
+var EditFolderWidgetTemplate = require('girder/templates/widgets/editFolderWidget.jade');
+var FolderModel              = require('girder/models/FolderModel');
+var MarkdownWidget           = require('girder/views/widgets/MarkdownWidget');
+var View                     = require('girder/view');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var EditFolderWidgetTemplate = require('girder/templates/widgets/editFolderWidget.jade');
 
 /**
  * This widget is used to create a new folder or edit an existing one.

@@ -1,14 +1,14 @@
-var $          = require('jquery');
-var _          = require('underscore');
-var Remarkable = require('remarkable');
-var Rest       = require('girder/rest');
-var Constants  = require('girder/constants');
-var Events     = require('girder/events');
+var $                     = require('jquery');
+var _                     = require('underscore');
+var Remarkable            = require('remarkable');
+
+var ConfirmDialogTemplate = require('girder/templates/widgets/confirmDialog.jade');
+var Constants             = require('girder/constants');
+var Events                = require('girder/events');
+var Rest                  = require('girder/rest');
 
 require('bootstrap/js/modal');
 require('girder/utilities/jQuery'); // $.girderModal
-
-var ConfirmDialogTemplate = require('girder/templates/widgets/confirmDialog.jade');
 
 /**
  * This file contains utility functions for general use in the application

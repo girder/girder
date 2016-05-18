@@ -1,9 +1,9 @@
-var $                  = require('jquery');
-var _                  = require('underscore');
-var View               = require('girder/view');
-var TaskProgressWidget = require('girder/views/widgets/TaskProgressWidget');
+var $                          = require('jquery');
+var _                          = require('underscore');
 
 var LayoutProgressAreaTemplate = require('girder/templates/layout/layoutProgressArea.jade');
+var TaskProgressWidget         = require('girder/views/widgets/TaskProgressWidget');
+var View                       = require('girder/view');
 
 /**
  * Container showing list of active tasks that are reporting progress

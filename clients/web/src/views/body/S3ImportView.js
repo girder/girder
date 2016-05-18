@@ -1,9 +1,8 @@
-var girder          = require('girder/init');
-var Events          = require('girder/events');
-var AssetstoreModel = require('girder/models/AssetstoreModel');
-var View            = require('girder/view');
-
+var girder           = require('girder/init');
+var AssetstoreModel  = require('girder/models/AssetstoreModel');
+var Events           = require('girder/events');
 var S3ImportTemplate = require('girder/templates/body/s3Import.jade');
+var View             = require('girder/view');
 
 var S3ImportView = View.extend({
     events: {

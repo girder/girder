@@ -1,10 +1,10 @@
-var $      = require('jquery');
-var girder = require('girder/init');
-var View   = require('girder/view');
+var $                       = require('jquery');
+
+var girder                  = require('girder/init');
+var IteamBreadcrumbTemplate = require('girder/templates/widgets/itemBreadcrumb.jade');
+var View                    = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var IteamBreadcrumbTemplate = require('girder/templates/widgets/itemBreadcrumb.jade');
 
 /**
  * Renders the a breadcrumb for the item page

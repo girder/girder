@@ -1,21 +1,22 @@
 var $                    = require('jquery');
 var _                    = require('underscore');
+
 var girder               = require('girder/init');
-var Events               = require('girder/events');
-var ItemModel            = require('girder/models/ItemModel');
+var Constants            = require('girder/constants');
 var DialogHelper         = require('girder/utilities/DialogHelper');
-var View                 = require('girder/view');
-var UploadWidget         = require('girder/views/widgets/UploadWidget');
 var EditItemWidget       = require('girder/views/widgets/EditItemWidget');
+var Events               = require('girder/events');
 var FileListWidget       = require('girder/views/widgets/FileListWidget');
-var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var ItemBreadcrumbWidget = require('girder/views/widgets/ItemBreadcrumbWidget');
+var ItemModel            = require('girder/models/ItemModel');
+var ItemPageTemplate     = require('girder/templates/body/itemPage.jade');
+var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var Rest                 = require('girder/utilities/Rest');
+var Rest                 = require('girder/rest');
+var UploadWidget         = require('girder/views/widgets/UploadWidget');
+var View                 = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var ItemPageTemplate = require('girder/templates/body/itemPage.jade');
 
 /**
  * This view shows a single item's page.
@@ -111,7 +112,8 @@ var ItemView = View.extend({
             this.$el.html(ItemPageTemplate({
                 item: this.model,
                 accessLevel: accessLevel,
-                girder: girder
+                Constants: Constants,
+                MiscFunctions: MiscFunctions
             }));
 
             this.$('.g-item-actions-button,.g-upload-into-item').tooltip({

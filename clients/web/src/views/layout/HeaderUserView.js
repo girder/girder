@@ -1,9 +1,8 @@
-var girder = require('girder/init');
-var Auth   = require('girder/auth');
-var Events = require('girder/events');
-var View   = require('girder/view');
-
+var girder                   = require('girder/init');
+var Auth                     = require('girder/auth');
+var Events                   = require('girder/events');
 var LayoutHeaderUserTemplate = require('girder/templates/layout/layoutHeaderUser.jade');
+var View                     = require('girder/view');
 
 /**
  * This view shows the user menu, or register/sign in links if the user is

@@ -1,26 +1,26 @@
 var $                   = require('jquery');
 var _                   = require('underscore');
 var Backbone            = require('backbone');
-var girder              = require('girder/init');
+
+var AlertTemplate       = require('girder/templates/layout/alert.jade');
 var Auth                = require('girder/auth');
-var Events              = require('girder/events');
 var Constants           = require('girder/constants');
-var View                = require('girder/view');
-var UserModel           = require('girder/models/UserModel');
 var DialogHelper        = require('girder/utilities/DialogHelper');
+var Events              = require('girder/events');
 var EventStream         = require('girder/utilities/EventStream');
-var LayoutHeaderView    = require('girder/views/layout/HeaderView');
-var LayoutGlobalNavView = require('girder/views/layout/GlobalNavView');
+var girder              = require('girder/init');
 var LayoutFooterView    = require('girder/views/layout/FooterView');
-var ProgressListView    = require('girder/views/layout/ProgressListView');
+var LayoutGlobalNavView = require('girder/views/layout/GlobalNavView');
+var LayoutHeaderView    = require('girder/views/layout/HeaderView');
+var LayoutTemplate      = require('girder/templates/layout/layout.jade');
 var LoginView           = require('girder/views/layout/LoginView');
+var ProgressListView    = require('girder/views/layout/ProgressListView');
 var RegisterView        = require('girder/views/layout/RegisterView');
 var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
+var UserModel           = require('girder/models/UserModel');
+var View                = require('girder/view');
 
 require('girder/utilities/jQuery'); // $.girderModal
-
-var LayoutTemplate      = require('girder/templates/layout/layout.jade');
-var AlertTemplate       = require('girder/templates/layout/alert.jade');
 
 var App = View.extend({
     initialize: function () {

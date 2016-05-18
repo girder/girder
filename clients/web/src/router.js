@@ -1,4 +1,5 @@
 var Backbone      = require('backbone');
+
 var Events        = require('girder/events');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
 

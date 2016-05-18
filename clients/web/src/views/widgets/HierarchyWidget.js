@@ -1,29 +1,29 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
-var girder               = require('girder/init');
-var Rest                 = require('girder/rest');
-var Events               = require('girder/events');
-var Constants            = require('girder/constants');
-var ItemModel            = require('girder/models/ItemModel');
-var DialogHelper         = require('girder/utilities/DialogHelper');
-var View                 = require('girder/view');
-var AccessWidget         = require('girder/views/widgets/AccessWidget');
-var CheckedMenuWidget    = require('girder/views/widgets/CheckedMenuWidget');
-var CollectionInfoWidget = require('girder/views/widgets/CollectionInfoWidget');
-var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
-var EditFolderWidget     = require('girder/views/widgets/EditFolderWidget');
-var EditItemWidget       = require('girder/views/widgets/EditItemWidget');
-var FolderInfoWidget     = require('girder/views/widgets/FolderInfoWidget');
-var FolderListWidget     = require('girder/views/widgets/FolderListWidget');
-var ItemListWidget       = require('girder/views/widgets/ItemListWidget');
-var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
-var UploadWidget         = require('girder/views/widgets/UploadWidget');
-var MiscFunctions        = require('girder/utilities/MiscFunctions');
+var $                           = require('jquery');
+var _                           = require('underscore');
+
+var girder                      = require('girder/init');
+var AccessWidget                = require('girder/views/widgets/AccessWidget');
+var CheckedMenuWidget           = require('girder/views/widgets/CheckedMenuWidget');
+var CollectionInfoWidget        = require('girder/views/widgets/CollectionInfoWidget');
+var Constants                   = require('girder/constants');
+var DialogHelper                = require('girder/utilities/DialogHelper');
+var EditCollectionWidget        = require('girder/views/widgets/EditCollectionWidget');
+var EditFolderWidget            = require('girder/views/widgets/EditFolderWidget');
+var EditItemWidget              = require('girder/views/widgets/EditItemWidget');
+var Events                      = require('girder/events');
+var FolderInfoWidget            = require('girder/views/widgets/FolderInfoWidget');
+var FolderListWidget            = require('girder/views/widgets/FolderListWidget');
+var HierarchyBreadcrumbTemplate = require('girder/templates/widgets/hierarchyBreadcrumb.jade');
+var HierarchyWidgetTemplate     = require('girder/templates/widgets/hierarchyWidget.jade');
+var ItemListWidget              = require('girder/views/widgets/ItemListWidget');
+var ItemModel                   = require('girder/models/ItemModel');
+var MetadataWidget              = require('girder/views/widgets/MetadataWidget');
+var MiscFunctions               = require('girder/utilities/MiscFunctions');
+var Rest                        = require('girder/rest');
+var UploadWidget                = require('girder/views/widgets/UploadWidget');
+var View                        = require('girder/view');
 
 require('bootstrap/js/tooltip');
-
-var HierarchyBreadcrumbTemplate = require('girder/templates/widgets/hierarchyBreadcrumb.jade');
-var HierarchyWidgetTemplate = require('girder/templates/widgets/hierarchyWidget.jade');
 
 var pickedResources = null;
 
@@ -257,7 +257,7 @@ var HierarchyWidget = View.extend({
             AccessType: Constants.AccessType,
             showActions: this._showActions,
             checkboxes: this._checkboxes,
-            girder: girder
+            MiscFunctions: MiscFunctions
         }));
 
         if (this.$('.g-folder-actions-menu>li>a').length === 0) {

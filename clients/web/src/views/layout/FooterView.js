@@ -1,7 +1,6 @@
-var View   = require('girder/view');
-var Rest   = require('girder/rest');
-
 var LayoutFooterTemplate = require('girder/templates/layout/layoutFooter.jade');
+var Rest                 = require('girder/rest');
+var View                 = require('girder/view');
 
 /**
  * This view shows the footer in the layout.
