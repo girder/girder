@@ -2,7 +2,7 @@ var girder        = require('girder/init');
 var Auth          = require('girder/auth');
 var Events        = require('girder/events');
 var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+var Rest          = require('girder/utilities/Rest');
 
 var AdminConsoleTemplate = require('girder/templates/body/adminConsole.jade');
 
@@ -23,7 +23,7 @@ var AdminView = View.extend({
     },
 
     initialize: function () {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.render();
     },
 

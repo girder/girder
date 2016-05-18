@@ -113,7 +113,7 @@ module.exports = function (grunt) {
                     var include = module.resource &&
                         module.resource.indexOf(clients_web_dir) === -1;
                     if (include) {
-                        console.log('[girder.ext] <= ', module.resource.replace(node_modules_dir, ''));
+                        console.log('[girder.ext] <=', module.resource.replace(node_modules_dir, ''));
                     }
                     return include;
                 }
@@ -287,15 +287,6 @@ module.exports = function (grunt) {
 
         webpack: {
             options: webpackOptions,
-            ext_js: {
-                entry: {
-                    'girder.ext': [
-                        'bootstrap/dist/js/bootstrap.js',
-                        'bootstrap-switch/dist/js/bootstrap-switch.js',
-                        'eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js'
-                    ]
-                }
-            },
             app: {
                 resolve: {
                     alias: {
@@ -303,24 +294,13 @@ module.exports = function (grunt) {
                     }
                 },
                 entry: {
+                    'girder.ext': [
+                        // 'd3/d3.js'
+                    ],
                     'girder.app': [
-                        // 'bootstrap/dist/js/bootstrap.js',
-                        // './clients/web/static/built/templates.js',
-                        // './clients/web/src/init.js',
-                        // './clients/web/src/girder-version.js',
-                        // './clients/web/src/view.js',
-                        // './clients/web/src/app.js',
-                        // './clients/web/src/router.js',
-                        // './clients/web/src/plugin_utils.js',
-                        // './clients/web/src/collection.js',
-                        // './clients/web/src/model.js',
                         './clients/web/src/main.js'
                     ]
-                    // this below is not the webpack way, but is for transitioning
-                    // .concat(glob.sync('./clients/web/src/utilities/**/*.js'))
-                    // .concat(glob.sync('./clients/web/src/model/**/*.js'))
-                    // .concat(glob.sync('./clients/web/src/collections/**/*.js'))
-                    // .concat(glob.sync('./clients/web/src/views/**/*.js'))
+                    .concat(glob.sync('./clients/web/src/views/**/*.js'))
                 }
             }
         },

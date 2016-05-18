@@ -8,7 +8,7 @@ var View              = require('girder/view');
 var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
+var Rest              = require('girder/utilities/Rest');
 
 var GroupListTemplate = require('girder/templates/body/groupList.jade');
 
@@ -30,7 +30,7 @@ var GroupsView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.collection = new GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();

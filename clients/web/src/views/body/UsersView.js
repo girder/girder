@@ -8,7 +8,7 @@ var View              = require('girder/view');
 var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var RegisterView      = require('girder/views/layout/RegisterView');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
+var Rest              = require('girder/utilities/Rest');
 
 var UserListTemplate = require('girder/templates/body/userList.jade');
 
@@ -28,7 +28,7 @@ var UsersView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.collection = new UserCollection();
         this.collection.on('g:changed', function () {
             this.render();

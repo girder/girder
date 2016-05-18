@@ -10,6 +10,7 @@ var View                 = require('girder/view');
 var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
 var EditAssetstoreWidget = require('girder/views/widgets/EditAssetstoreWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
+var Rest                 = require('girder/utilities/Rest');
 
 require('as-jqplot/dist/jquery.jqplot.js');
 require('as-jqplot/dist/plugins/jqplot.pieRenderer.js');
@@ -28,7 +29,7 @@ var AssetstoresView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
         this.importableTypes = [
             Constants.AssetstoreType.FILESYSTEM,

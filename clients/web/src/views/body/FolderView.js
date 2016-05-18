@@ -4,14 +4,14 @@ var Events          = require('girder/events');
 var FolderModel     = require('girder/models/FolderModel');
 var View            = require('girder/view');
 var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
-var MiscFunctions   = require('girder/utilities/MiscFunctions');
+var Rest            = require('girder/utilities/Rest');
 
 /**
  * This view shows a single folder as a hierarchy widget.
  */
 var FolderView = View.extend({
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.folder = settings.folder;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;

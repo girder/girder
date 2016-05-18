@@ -7,7 +7,6 @@ var Events        = require('girder/events');
 var Constants     = require('girder/constants');
 var UserModel     = require('girder/models/UserModel');
 var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
 
 require('bootstrap/js/tab');
 
@@ -105,7 +104,7 @@ var UserAccountView = View.extend({
             return;
         }
 
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.render();
     },
 

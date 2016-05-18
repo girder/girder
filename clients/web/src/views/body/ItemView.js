@@ -11,6 +11,7 @@ var FileListWidget       = require('girder/views/widgets/FileListWidget');
 var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var ItemBreadcrumbWidget = require('girder/views/widgets/ItemBreadcrumbWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
+var Rest                 = require('girder/utilities/Rest');
 
 require('bootstrap/js/tooltip');
 
@@ -27,7 +28,7 @@ var ItemView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.edit = settings.edit || false;
         this.fileEdit = settings.fileEdit || false;
         this.upload = settings.upload || false;

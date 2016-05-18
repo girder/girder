@@ -7,6 +7,7 @@ var View            = require('girder/view');
 var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
 var MiscFunctions   = require('girder/utilities/MiscFunctions');
 var UsersView       = require('girder/views/body/UsersView');
+var Rest            = require('girder/utilities/Rest');
 
 var UserPageTemplate = require('girder/templates/body/userPage.jade');
 
@@ -36,7 +37,7 @@ var UserView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.folderId = settings.folderId || null;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;

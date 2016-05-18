@@ -9,6 +9,7 @@ var HierarchyWidget      = require('girder/views/widgets/HierarchyWidget');
 var EditCollectionWidget = require('girder/views/widgets/EditCollectionWidget');
 var AccessWidget         = require('girder/views/widgets/AccessWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
+var Rest                 = require('girder/utilities/Rest');
 
 require('bootstrap/js/tooltip');
 
@@ -43,7 +44,7 @@ var CollectionView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
 
         this.upload = settings.upload || false;
         this.access = settings.access || false;

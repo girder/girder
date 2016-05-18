@@ -4,7 +4,6 @@ var Rest              = require('girder/rest');
 var Events            = require('girder/events');
 var View              = require('girder/view');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
 
 require('bootstrap/js/tooltip');
 
@@ -53,7 +52,7 @@ var SystemConfigurationView = View.extend({
     },
 
     initialize: function () {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
 
         var keys = [
             'core.cookie_lifetime',

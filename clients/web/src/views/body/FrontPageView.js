@@ -5,7 +5,6 @@ var Auth          = require('girder/auth');
 var Events        = require('girder/events');
 var versionInfo   = require('girder/girder-version');
 var View          = require('girder/view');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
 
 var FrontPageTemplate = require('girder/templates/body/frontPage.jade');
 
@@ -36,7 +35,7 @@ var FrontPageView = View.extend({
     },
 
     initialize: function () {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.render();
     },
 

@@ -14,6 +14,7 @@ var GroupInvitesWidget = require('girder/views/widgets/GroupInvitesWidget');
 var GroupAdminsWidget  = require('girder/views/widgets/GroupAdminsWidget');
 var GroupModsWidget    = require('girder/views/widgets/GroupModsWidget');
 var MiscFunctions      = require('girder/utilities/MiscFunctions');
+var Rest               = require('girder/utilities/Rest');
 
 require('bootstrap/js/tab');
 require('bootstrap/js/tooltip');
@@ -40,7 +41,7 @@ var GroupView = View.extend({
     },
 
     initialize: function (settings) {
-        MiscFunctions.cancelRestRequests('fetch');
+        Rest.cancelRestRequests('fetch');
         this.tab = settings.tab || 'roles';
         this.edit = settings.edit || false;
 
