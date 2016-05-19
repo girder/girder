@@ -21,7 +21,19 @@ girder.views.LayoutHeaderUserView = girder.View.extend({
         'click a.g-my-settings': function () {
             girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
                                    '/info', {trigger: true});
+        },
+
+        'click a.g-my-token': function () {
+            this.tokenDialog();
         }
+
+    },
+
+    tokenDialog: function() {
+       new girder.views.TokenInfoWidget({
+          el: $('#g-dialog-container'),
+          parentView: this,
+       })
     },
 
     initialize: function () {
