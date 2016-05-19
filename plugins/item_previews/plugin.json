@@ -1,0 +1,5 @@
+{
+    "name": "Item Previews",
+    "description": "Preview items such as images, JSON, and GeoJSON files in a folder.",
+    "version": "1.0.0"
+}

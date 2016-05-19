@@ -1,0 +1,24 @@
+.g-widget-item-previews-header
+  i.icon-eye
+  |  Item Previews
+
+.g-widget-item-previews-container
+
+  each item in items
+
+    .g-widget-item-preview
+
+      - var id = item.id
+
+      - if (isImageItem(item))
+        a.g-item-preview-link(data-id=id)
+          img(src="#{item.downloadUrl()}")
+
+      - else if (isJSONItem(item))
+        .panel.panel-default
+          .panel-heading
+            h4
+              a.g-item-preview-link(data-id=id)
+                | #{item.get('name')}
+          .panel-body
+            textarea.form-control.json(data-id=id)
