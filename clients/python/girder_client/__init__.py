@@ -211,7 +211,7 @@ class GirderClient(object):
             self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
-                        files=None):
+                        files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -228,6 +228,11 @@ class GirderClient(object):
             separator, '/'.
         :param parameters: A dictionary mapping strings to strings, to be used
             as the key/value pairs in the request parameters
+        :param data: A dictionary, bytes or file-like object to send in the
+            body.
+        :param files: A dictonary of 'name' => file-like-objects
+            for multipart encoding upload.
+        :param json: A dictionary to send in the body as a JSON object.
         """
         if not parameters:
             parameters = {}
@@ -242,9 +247,8 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters, data=data, files=files, headers={
-            'Girder-Token': self.token
-        })
+        result = f(url, params=parameters, data=data, files=files, json=json,
+                   headers={'Girder-Token': self.token})
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in [200, 201]:
@@ -262,20 +266,21 @@ class GirderClient(object):
         """
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None, data=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST'
         HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data)
+                                    data=data, json=json)
 
-    def put(self, path, parameters=None, data=None):
+    def put(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
         HTTP method.
         """
-        return self.sendRestRequest('PUT', path, parameters, data=data)
+        return self.sendRestRequest('PUT', path, parameters, data=data,
+                                    json=json)
 
     def delete(self, path, parameters=None):
         """
@@ -284,12 +289,13 @@ class GirderClient(object):
         """
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def patch(self, path, parameters=None, data=None):
+    def patch(self, path, parameters=None, data=None, json=json):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
         HTTP method.
         """
-        return self.sendRestRequest('PATCH', path, parameters, data=data)
+        return self.sendRestRequest('PATCH', path, parameters, data=data,
+                                    json=json)
 
     def createResource(self, path, params):
         """
@@ -682,7 +688,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def addMetadataToFolder(self, folderId, metadata):
@@ -693,7 +699,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def _transformFilename(self, name):

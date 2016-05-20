@@ -69,29 +69,39 @@ class PythonClientTestCase(base.TestCase):
             os.mkdir(subDirName)
             writeFile(subDirName)
 
+        self.client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+
+        # Register a user
+        self.password = 'password'
+        self.user = self.client.createResource('user', params={
+            'firstName': 'First',
+            'lastName': 'Last',
+            'login': 'mylogin',
+            'password': self.password,
+            'email': 'email@email.com'
+        })
+        self.client.authenticate(self.user['login'], self.password)
+        self.publicFolder = self.getPublicFolder(self.user)
+
     def tearDown(self):
         shutil.rmtree(self.libTestDir, ignore_errors=True)
 
         base.TestCase.tearDown(self)
 
+    def getPublicFolder(self, user):
+            folders = self.client.listFolder(
+                parentId=user['_id'], parentFolderType='user', name='Public')
+            self.assertEqual(len(folders), 1)
+
+            return folders[0]
+
     def testRestCore(self):
-        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
-
-        # Register a user
-        user = client.createResource('user', params={
-            'firstName': 'First',
-            'lastName': 'Last',
-            'login': 'mylogin',
-            'password': 'password',
-            'email': 'email@email.com'
-        })
-
-        self.assertTrue(user['admin'])
+        self.assertTrue(self.user['admin'])
 
         # Test authentication with bad args
         flag = False
         try:
-            client.authenticate()
+            self.client.authenticate()
         except Exception:
             flag = True
 
@@ -100,25 +110,26 @@ class PythonClientTestCase(base.TestCase):
         # Test authentication failure
         flag = False
         try:
-            client.authenticate(username=user['login'], password='wrong')
+            self.client.authenticate(username=self.user['login'],
+                                     password='wrong')
         except girder_client.AuthenticationError:
             flag = True
 
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with mock.patch('six.moves.input', return_value=user['login']),\
+        with mock.patch('six.moves.input', return_value=self.user['login']),\
                 mock.patch('getpass.getpass', return_value='password'):
-            client.authenticate(interactive=True)
+            self.client.authenticate(interactive=True)
 
         # /user/me should now return our user info
-        user = client.getResource('user/me')
+        user = self.client.getResource('user/me')
         self.assertEqual(user['login'], 'mylogin')
 
         # Test HTTP error case
         flag = False
         try:
-            client.getResource('user/badId')
+            self.client.getResource('user/badId')
         except girder_client.HttpError as e:
             self.assertEqual(e.status, 400)
             self.assertEqual(e.method, 'GET')
@@ -131,7 +142,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Test some folder routes
-        folders = client.listFolder(
+        folders = self.client.listFolder(
             parentId=user['_id'], parentFolderType='user')
         self.assertEqual(len(folders), 2)
 
@@ -145,19 +156,20 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(privateFolder, None)
         self.assertNotEqual(publicFolder, None)
 
-        self.assertEqual(client.getFolder(privateFolder['_id']), privateFolder)
+        self.assertEqual(self.client.getFolder(privateFolder['_id']),
+                         privateFolder)
 
-        acl = client.getFolderAccess(privateFolder['_id'])
+        acl = self.client.getFolderAccess(privateFolder['_id'])
         self.assertIn('users', acl)
         self.assertIn('groups', acl)
 
-        client.setFolderAccess(privateFolder['_id'], json.dumps(acl),
-                               public=False)
-        self.assertEqual(acl, client.getFolderAccess(privateFolder['_id']))
+        self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl),
+                                    public=False)
+        self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
 
         # Test recursive ACL propagation (not very robust test yet)
-        client.createFolder(privateFolder['_id'], name='Subfolder')
-        client.inheritAccessControlRecursive(privateFolder['_id'])
+        self.client.createFolder(privateFolder['_id'], name='Subfolder')
+        self.client.inheritAccessControlRecursive(privateFolder['_id'])
 
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
@@ -189,12 +201,9 @@ class PythonClientTestCase(base.TestCase):
             items[filepath] = True
             callback_counts['item'] += 1
 
-        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
-        client.authenticate('callback', 'password')
-
-        client.add_folder_upload_callback(folder_callback)
-        client.add_item_upload_callback(item_callback)
-        client.upload(self.libTestDir, callbackPublicFolder['_id'])
+        self.client.add_folder_upload_callback(folder_callback)
+        self.client.add_item_upload_callback(item_callback)
+        self.client.upload(self.libTestDir, callbackPublicFolder['_id'])
 
         # make sure counts are the same (callbacks not called more than once)
         # and that all folders and files have callbacks called on them
@@ -207,8 +216,8 @@ class PythonClientTestCase(base.TestCase):
         existingList = list(self.model('folder').childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
-        client.upload(self.libTestDir, callbackPublicFolder['_id'],
-                      reuse_existing=True)
+        self.client.upload(self.libTestDir, callbackPublicFolder['_id'],
+                           reuse_existing=True)
         newList = list(self.model('folder').childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
@@ -229,7 +238,7 @@ class PythonClientTestCase(base.TestCase):
         with open(path) as f:
             with self.assertRaises(girder_client.IncorrectUploadLengthError):
                 try:
-                    client.uploadFile(
+                    self.client.uploadFile(
                         callbackPublicFolder['_id'], stream=f, name='test',
                         size=size + 1, parentType='folder')
                 except girder_client.IncorrectUploadLengthError as exc:
@@ -240,7 +249,7 @@ class PythonClientTestCase(base.TestCase):
                     raise
 
         with open(path) as f:
-            file = client.uploadFile(
+            file = self.client.uploadFile(
                 callbackPublicFolder['_id'], stream=f, name='test',
                 size=size, parentType='folder',
                 progressCallback=progressCallback)
@@ -263,33 +272,20 @@ class PythonClientTestCase(base.TestCase):
 
         # Make sure MIME type propagates correctly when explicitly passed
         with open(path) as f:
-            file = client.uploadFile(
+            file = self.client.uploadFile(
                 callbackPublicFolder['_id'], stream=f, name='test',
                 size=size, parentType='folder', mimeType='image/jpeg')
             self.assertEqual(file['mimeType'], 'image/jpeg')
 
         # Make sure MIME type is guessed based on file name if not passed
         with open(path) as f:
-            file = client.uploadFile(
+            file = self.client.uploadFile(
                 callbackPublicFolder['_id'], stream=f, name='test.txt',
                 size=size, parentType='folder')
             self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadReference(self):
         eventList = []
-        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
-        # Register a user
-        user = client.createResource('user', params={
-            'firstName': 'First',
-            'lastName': 'Last',
-            'login': 'mylogin',
-            'password': 'password',
-            'email': 'email@email.com'
-        })
-        client.authenticate('mylogin', 'password')
-        folders = client.listFolder(
-            parentId=user['_id'], parentFolderType='user', name='Public')
-        publicFolder = folders[0]
 
         def processEvent(event):
             eventList.append(event.info)
@@ -298,9 +294,9 @@ class PythonClientTestCase(base.TestCase):
 
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        client.uploadFile(publicFolder['_id'], open(path), name='test1',
-                          size=size, parentType='folder',
-                          reference='test1_reference')
+        self.client.uploadFile(self.publicFolder['_id'], open(path),
+                               name='test1', size=size, parentType='folder',
+                               reference='test1_reference')
         starttime = time.time()
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
@@ -308,8 +304,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(len(eventList), 1)
         self.assertEqual(eventList[0]['reference'], 'test1_reference')
 
-        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                reference='test2_reference')
+        self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                     reference='test2_reference')
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
             time.sleep(0.05)
@@ -320,8 +316,8 @@ class PythonClientTestCase(base.TestCase):
 
         open(path, 'ab').write(b'test')
         size = os.path.getsize(path)
-        client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                reference='test3_reference')
+        self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                     reference='test3_reference')
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
             time.sleep(0.05)
@@ -332,44 +328,51 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(eventList[1]['file']['_id'],
                          eventList[2]['file']['_id'])
 
-        item = client.createItem(publicFolder['_id'], 'a second item')
+        item = self.client.createItem(self.publicFolder['_id'], 'a second item')
         # Test explicit MIME type setting
-        file = client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        file = self.client.uploadFileToItem(item['_id'], path,
+                                            mimeType='image/jpeg')
         self.assertEqual(file['mimeType'], 'image/jpeg')
 
         # Test guessing of MIME type
         testPath = os.path.join(self.libTestDir, 'out.txt')
         open(testPath, 'w').write('test')
-        file = client.uploadFileToItem(item['_id'], testPath)
+        file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadContent(self):
-        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
-        # Register a user
-        user = client.createResource('user', params={
-            'firstName': 'First',
-            'lastName': 'Last',
-            'login': 'mylogin',
-            'password': 'password',
-            'email': 'email@email.com'
-        })
-        client.authenticate('mylogin', 'password')
-        folders = client.listFolder(
-            parentId=user['_id'], parentFolderType='user', name='Public')
-        publicFolder = folders[0]
-
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        file = client.uploadFile(publicFolder['_id'], open(path), name='test1',
-                                 size=size, parentType='folder',
-                                 reference='test1_reference')
+        file = self.client.uploadFile(self.publicFolder['_id'], open(path),
+                                      name='test1',
+                                      size=size, parentType='folder',
+                                      reference='test1_reference')
 
         contents = 'you\'ve changed!'
         size = len(contents)
         stream = StringIO(contents)
-        client.uploadFileContents(file['_id'], stream, size)
+        self.client.uploadFileContents(file['_id'], stream, size)
 
         file = self.model('file').load(file['_id'], force=True)
         sha = hashlib.sha512()
         sha.update(contents.encode('utf8'))
         self.assertEqual(file['sha512'], sha.hexdigest())
+
+    def testAddMetadataToItem(self):
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'Itemty McItemFace', '')
+        meta = {
+            'nothing': 'to see here!'
+        }
+        self.client.addMetadataToItem(item['_id'], meta)
+        updatedItem = self.model('item').load(item['_id'], force=True)
+        self.assertEqual(updatedItem['meta'], meta)
+
+    def testAddMetadataToFolder(self):
+        meta = {
+            'nothing': 'to see here!'
+        }
+        self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
+        updatedFolder = self.model('folder').load(self.publicFolder['_id'],
+                                                  force=True)
+        self.assertEqual(updatedFolder['meta'], meta)
