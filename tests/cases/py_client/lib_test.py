@@ -326,44 +326,48 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(eventList[1]['file']['_id'],
                          eventList[2]['file']['_id'])
 
-        item = client.createItem(publicFolder['_id'], 'a second item')
+        item = self.client.createItem(self.publicFolder['_id'], 'a second item')
         # Test explicit MIME type setting
-        file = client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        file = self.client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
         self.assertEqual(file['mimeType'], 'image/jpeg')
 
         # Test guessing of MIME type
         testPath = os.path.join(self.libTestDir, 'out.txt')
         open(testPath, 'w').write('test')
-        file = client.uploadFileToItem(item['_id'], testPath)
+        file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadContent(self):
-        client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
-        # Register a user
-        user = client.createResource('user', params={
-            'firstName': 'First',
-            'lastName': 'Last',
-            'login': 'mylogin',
-            'password': 'password',
-            'email': 'email@email.com'
-        })
-        client.authenticate('mylogin', 'password')
-        folders = client.listFolder(
-            parentId=user['_id'], parentFolderType='user', name='Public')
-        publicFolder = folders[0]
-
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        file = client.uploadFile(publicFolder['_id'], open(path), name='test1',
+        file = self.client.uploadFile(self.publicFolder['_id'], open(path), name='test1',
                                  size=size, parentType='folder',
                                  reference='test1_reference')
 
         contents = 'you\'ve changed!'
         size = len(contents)
         stream = StringIO(contents)
-        client.uploadFileContents(file['_id'], stream, size)
+        self.client.uploadFileContents(file['_id'], stream, size)
 
         file = self.model('file').load(file['_id'], force=True)
         sha = hashlib.sha512()
         sha.update(contents.encode('utf8'))
         self.assertEqual(file['sha512'], sha.hexdigest())
+
+    def testAddMetadataToItem(self):
+        item = self.client.createItem(self.publicFolder['_id'], 'Item McItemFace',
+                                      '')
+        meta = {
+            'nothing': 'to see here!'
+        }
+        self.client.addMetadataToItem(item['_id'], meta)
+        updatedItem = self.model('item').load(item['_id'], force=True)
+        self.assertEqual(updatedItem['meta'], meta)
+
+    def testAddMetadataToFolder(self):
+        meta = {
+            'nothing': 'to see here!'
+        }
+        self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
+        updatedFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
+        self.assertEqual(updatedFolder['meta'], meta)
