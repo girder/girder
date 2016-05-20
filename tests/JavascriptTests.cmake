@@ -41,6 +41,10 @@ function(add_eslint_test name input)
     return()
   endif()
 
+  if (NOT ESLINT_EXECUTABLE)
+    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+  endif()
+
   set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
