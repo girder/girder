@@ -72,6 +72,8 @@ var App = View.extend({
         Events.on('g:login', this.login, this);
     },
 
+    _layout: 'default',
+
     _defaultLayout: {
         show: function () {
             this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').show();
@@ -118,21 +120,21 @@ var App = View.extend({
         opts = opts || {};
 
         if (opts.layout) {
-            if (girder.layout !== opts.layout) {
+            if (this._layout !== opts.layout) {
                 if (_.has(this.layoutRenderMap, opts.layout)) {
                     // set a layout if opts specifies one different from current
-                    this.layoutRenderMap[girder.layout].hide.call(this, opts);
-                    girder.layout = opts.layout;
-                    this.layoutRenderMap[girder.layout].show.call(this, opts);
+                    this.layoutRenderMap[this._layout].hide.call(this, opts);
+                    this._layout = opts.layout;
+                    this.layoutRenderMap[this._layout].show.call(this, opts);
                 } else {
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
             }
-        } else if (girder.layout !== Constants.Layout.DEFAULT) {
+        } else if (this._layout !== Constants.Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
-            this.layoutRenderMap[girder.layout].hide.call(this, opts);
-            girder.layout = Constants.Layout.DEFAULT;
-            this.layoutRenderMap[girder.layout].show.call(this, opts);
+            this.layoutRenderMap[this._layout].hide.call(this, opts);
+            this._layout = Constants.Layout.DEFAULT;
+            this.layoutRenderMap[this._layout].show.call(this, opts);
         }
 
         if (view) {

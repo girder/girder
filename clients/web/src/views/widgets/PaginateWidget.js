@@ -3,7 +3,7 @@ var View                   = require('girder/view');
 
 /**
  * This widget is used to provide a consistent widget for iterating amongst
- * pages of a girder.Collection.
+ * pages of a Collection.
  */
 var PaginateWidget = View.extend({
     events: {

@@ -115,7 +115,7 @@ $(document).ajaxComplete(function (event, xhr) {
 });
 /* Get the number of outstanding rest requests.
  * :param category: if specified, only count those requests that have
- *                  xhr.girder.(category) set to a truthy value.
+ *                  xhr.girder[category] set to a truthy value.
  * :returns: the number of outstanding requests.
  */
 var numberOutstandingRestRequests = function (category) {
@@ -129,7 +129,7 @@ var numberOutstandingRestRequests = function (category) {
 
 /* Cancel outstanding rest requests.
  * :param category: if specified, only abort those requests that have
- *                  xhr.girder.(category) set to a truthy value.
+ *                  xhr.girder[category] set to a truthy value.
  */
 var cancelRestRequests = function (category) {
     _.each(restXhrPool, function (xhr) {
