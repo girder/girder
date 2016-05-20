@@ -6,6 +6,7 @@ var Auth                 = require('girder/auth');
 var Constants            = require('girder/constants');
 var Events               = require('girder/events');
 var Rest                 = require('girder/rest');
+var Router               = require('girder/router');
 var UserModel            = require('girder/models/UserModel');
 var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
 var View                 = require('girder/view');
@@ -100,7 +101,7 @@ var UserAccountView = View.extend({
 
         if (!this.user ||
                 this.user.getAccessLevel() < Constants.AccessType.WRITE) {
-            girder.router.navigate('users', {trigger: true});
+            Router.navigate('users', {trigger: true});
             return;
         }
 
@@ -110,7 +111,7 @@ var UserAccountView = View.extend({
 
     render: function () {
         if (Auth.getCurrentUser() === null) {
-            girder.router.navigate('users', {trigger: true});
+            Router.navigate('users', {trigger: true});
             return;
         }
 
@@ -126,7 +127,7 @@ var UserAccountView = View.extend({
             var view = this;
             tabLink.tab().on('shown.bs.tab', function (e) {
                 view.tab = $(e.currentTarget).attr('name');
-                girder.router.navigate('useraccount/' +
+                Router.navigate('useraccount/' +
                     view.model.get('_id') + '/' + view.tab);
             });
 
@@ -141,7 +142,7 @@ var UserAccountView = View.extend({
 
 module.exports = UserAccountView;
 
-girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
+Router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     var user = new UserModel();
     user.set({
         _id: id
@@ -151,11 +152,11 @@ girder.router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
             tab: tab
         });
     }, this).on('g:error', function () {
-        girder.router.navigate('users', {trigger: true});
+        Router.navigate('users', {trigger: true});
     }, this).fetch();
 });
 
-girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
+Router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
     Rest.restRequest({
         path: 'user/password/temporary/' + id,
         type: 'GET',
@@ -173,6 +174,6 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
             temporary: token
         });
     }, this)).error(_.bind(function () {
-        girder.router.navigate('users', {trigger: true});
+        Router.navigate('users', {trigger: true});
     }, this));
 });

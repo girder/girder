@@ -1,8 +1,10 @@
-var girder                   = require('girder/init');
 var Auth                     = require('girder/auth');
 var Events                   = require('girder/events');
 var LayoutHeaderUserTemplate = require('girder/templates/layout/layoutHeaderUser.jade');
+var Router                   = require('girder/router');
 var View                     = require('girder/view');
+
+require('bootstrap/js/dropdown');
 
 /**
  * This view shows the user menu, or register/sign in links if the user is
@@ -21,11 +23,11 @@ var LayoutHeaderUserView = View.extend({
         'click a.g-logout': Auth.logout,
 
         'click a.g-my-folders': function () {
-            girder.router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
+            Router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            girder.router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
+            Router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
                                    '/info', {trigger: true});
         }
     },

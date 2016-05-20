@@ -1,16 +1,16 @@
 var $               = require('jquery');
 var _               = require('underscore');
 
-var girder          = require('girder/init');
 var Events          = require('girder/events');
 var MiscFunctions   = require('girder/utilities/MiscFunctions');
 var PluginsTemplate = require('girder/templates/body/plugins.jade');
 var Rest            = require('girder/rest');
+var Router          = require('girder/router');
 var UsersView       = require('girder/views/body/UsersView');
 var View            = require('girder/view');
 
-require('bootstrap-switch'); // /dist/js/bootstrap-switch.js',
 require('bootstrap/js/tooltip');
+require('bootstrap-switch'); // /dist/js/bootstrap-switch.js',
 
 /**
  * This is the plugin management page for administrators.
@@ -19,7 +19,7 @@ var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
-            girder.router.navigate(route, {trigger: true});
+            Router.navigate(route, {trigger: true});
         },
         'click .g-plugin-restart-button': function () {
             var params = {
@@ -162,7 +162,7 @@ var PluginsView = View.extend({
 
 module.exports = PluginsView;
 
-girder.router.route('plugins', 'plugins', function () {
+Router.route('plugins', 'plugins', function () {
     // Fetch the plugin list
     Rest.restRequest({
         path: 'system/plugins',

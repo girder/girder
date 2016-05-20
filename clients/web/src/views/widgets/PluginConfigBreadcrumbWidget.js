@@ -1,5 +1,5 @@
-var girder                         = require('girder/init');
 var PluginConfigBreadcrumbTemplate = require('girder/templates/widgets/pluginConfigBreadcrumb.jade');
+var Router                         = require('girder/router');
 var View                           = require('girder/view');
 
 /**
@@ -9,10 +9,10 @@ var View                           = require('girder/view');
 var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
-            girder.router.navigate('admin', {trigger: true});
+            Router.navigate('admin', {trigger: true});
         },
         'click a.g-plugins-link': function () {
-            girder.router.navigate('plugins', {trigger: true});
+            Router.navigate('plugins', {trigger: true});
         }
     },
 

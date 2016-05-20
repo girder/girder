@@ -1,10 +1,10 @@
 var $                 = require('jquery');
 
-var girder            = require('girder/init');
 var Auth              = require('girder/auth');
 var Events            = require('girder/events');
 var FrontPageTemplate = require('girder/templates/body/frontPage.jade');
 var Rest              = require('girder/rest');
+var Router            = require('girder/router');
 var versionInfo       = require('girder/girder-version');
 var View              = require('girder/view');
 
@@ -20,17 +20,17 @@ var FrontPageView = View.extend({
             Events.trigger('g:loginUi');
         },
         'click .g-collections-link': function () {
-            girder.router.navigate('collections', {trigger: true});
+            Router.navigate('collections', {trigger: true});
         },
         'click .g-quicksearch-link': function () {
             $('.g-quick-search-container .g-search-field').focus();
         },
         'click .g-my-account-link': function () {
-            girder.router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
+            Router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
                                    '/info', {trigger: true});
         },
         'click .g-my-folders-link': function () {
-            girder.router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
+            Router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
         }
     },
 
@@ -53,6 +53,6 @@ var FrontPageView = View.extend({
 
 module.exports = FrontPageView;
 
-girder.router.route('', 'index', function () {
+Router.route('', 'index', function () {
     Events.trigger('g:navigateTo', FrontPageView);
 });

@@ -1,6 +1,6 @@
-var girder               = require('girder/init');
 var LayoutHeaderTemplate = require('girder/templates/layout/layoutHeader.jade');
 var LayoutHeaderUserView = require('girder/views/layout/HeaderUserView');
+var Router               = require('girder/router');
 var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
 var View                 = require('girder/view');
 
@@ -10,7 +10,7 @@ var View                 = require('girder/view');
 var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
-            girder.router.navigate('', {trigger: true});
+            Router.navigate('', {trigger: true});
         }
     },
 
@@ -25,7 +25,7 @@ var LayoutHeaderView = View.extend({
             parentView: this
         }).on('g:resultClicked', function (result) {
             this.searchWidget.resetState();
-            girder.router.navigate(result.type + '/' + result.id, {
+            Router.navigate(result.type + '/' + result.id, {
                 trigger: true
             });
         }, this);

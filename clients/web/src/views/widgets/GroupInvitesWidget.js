@@ -1,10 +1,10 @@
 var $                       = require('jquery');
 var _                       = require('underscore');
 
-var girder                  = require('girder/init');
 var Constants               = require('girder/constants');
 var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
 var MiscFunctions           = require('girder/utilities/MiscFunctions');
+var Router                  = require('girder/router');
 var View                    = require('girder/view');
 
 require('bootstrap/js/tooltip');
@@ -35,7 +35,7 @@ var GroupInvitesWidget = View.extend({
 
         'click a.g-member-name': function (e) {
             var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
-            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
+            Router.navigate('user/' + user.get('_id'), {trigger: true});
         }
     },
 

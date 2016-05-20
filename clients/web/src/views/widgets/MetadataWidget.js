@@ -13,6 +13,7 @@ var MetadatumViewTemplate           = require('girder/templates/widgets/metadatu
 var MiscFunctions                   = require('girder/utilities/MiscFunctions');
 var View                            = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tooltip');
 
 var MetadatumWidget = View.extend({

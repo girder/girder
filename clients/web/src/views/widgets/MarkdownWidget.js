@@ -6,6 +6,8 @@ var View                   = require('girder/view');
 var MiscFunctions          = require('girder/utilities/MiscFunctions');
 var MarkdownWidgetTemplate = require('girder/templates/widgets/markdownWidget.jade');
 
+require('bootstrap/js/tab');
+
 /**
  * A simple widget for editing markdown text with a preview tab.
  */

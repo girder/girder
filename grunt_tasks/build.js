@@ -103,7 +103,8 @@ module.exports = function (grunt) {
             // and inject the jquery library. This is required by many jquery plugins
             new webpack.ProvidePlugin({
                 jQuery: 'jquery',
-                $: 'jquery'
+                $: 'jquery',
+                'window.jQuery': 'jquery'
             }),
             new webpack.optimize.CommonsChunkPlugin({
                 name: 'girder.ext',

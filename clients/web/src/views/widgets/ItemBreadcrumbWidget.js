@@ -1,7 +1,7 @@
 var $                       = require('jquery');
 
-var girder                  = require('girder/init');
 var IteamBreadcrumbTemplate = require('girder/templates/widgets/itemBreadcrumb.jade');
+var Router                  = require('girder/router');
 var View                    = require('girder/view');
 
 require('bootstrap/js/tooltip');
@@ -13,12 +13,12 @@ var ItemBreadcrumbWidget = View.extend({
     events: {
         'click a.g-item-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
-            girder.router.navigate(link.data('type') + '/' + link.data('id'),
+            Router.navigate(link.data('type') + '/' + link.data('id'),
                                    {trigger: true});
         },
         'click a.g-hierarchy-level-up': function () {
             var folder = this.parentChain.pop().object;
-            girder.router.navigate('folder/' + folder._id, {trigger: true});
+            Router.navigate('folder/' + folder._id, {trigger: true});
         }
     },
 

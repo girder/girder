@@ -3,8 +3,8 @@ var $               = require('jquery');
 var Auth            = require('girder/auth');
 var Backbone        = require('backbone');
 var Events          = require('girder/events');
-var girder          = require('girder/init');
 var LayoutGlobalNav = require('girder/templates/layout/layoutGlobalNav.jade');
+var Router          = require('girder/router');
 var View            = require('girder/view');
 
 /**
@@ -18,7 +18,7 @@ var LayoutGlobalNavView = View.extend({
 
             var link = $(event.currentTarget);
 
-            girder.router.navigate(link.attr('g-target'), {trigger: true});
+            Router.navigate(link.attr('g-target'), {trigger: true});
 
             // Must call this after calling navigateTo, since that
             // deactivates all global nav links.

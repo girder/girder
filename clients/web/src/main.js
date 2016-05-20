@@ -9,10 +9,8 @@ require('girder/utilities/jQuery'); // $.girderModal
 
 // When all scripts are loaded, we invoke the application
 $(function () {
-    girder.router = new Router();
-
     // When the back button is pressed, we want to close open modals.
-    girder.router.on('route', function (route, params) {
+    Router.on('route', function (route, params) {
         if (!params.slice(-1)[0].dialog) {
             $('.modal').girderModal('close');
         }

@@ -1,10 +1,10 @@
 var _               = require('underscore');
 
-var girder          = require('girder/init');
 var Events          = require('girder/events');
 var FolderModel     = require('girder/models/FolderModel');
 var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
 var Rest            = require('girder/rest');
+var Router          = require('girder/router');
 var View            = require('girder/view');
 
 /**
@@ -41,7 +41,7 @@ var FolderView = View.extend({
 
 module.exports = FolderView;
 
-girder.router.route('folder/:id', 'folder', function (id, params) {
+Router.route('folder/:id', 'folder', function (id, params) {
     // Fetch the folder by id, then render the view.
     var folder = new FolderModel();
     folder.set({

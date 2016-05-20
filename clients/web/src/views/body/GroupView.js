@@ -1,7 +1,6 @@
 var $                  = require('jquery');
 var _                  = require('underscore');
 
-var girder             = require('girder/init');
 var Auth               = require('girder/auth');
 var Constants          = require('girder/constants');
 var EditGroupWidget    = require('girder/views/widgets/EditGroupWidget');
@@ -15,9 +14,11 @@ var GroupPageTemplate  = require('girder/templates/body/groupPage.jade');
 var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
 var MiscFunctions      = require('girder/utilities/MiscFunctions');
 var Rest               = require('girder/rest');
+var Router             = require('girder/router');
 var UserCollection     = require('girder/collections/UserCollection');
 var View               = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tab');
 require('bootstrap/js/tooltip');
 
@@ -36,7 +37,7 @@ var GroupView = View.extend({
 
         'click #g-group-tab-pending a.g-member-name': function (e) {
             var userId = $(e.currentTarget).parents('li').attr('userid');
-            girder.router.navigate('user/' + userId, {trigger: true});
+            Router.navigate('user/' + userId, {trigger: true});
         }
     },
 
@@ -86,7 +87,7 @@ var GroupView = View.extend({
             escapedHtml: true,
             confirmCallback: function () {
                 view.model.on('g:deleted', function () {
-                    girder.router.navigate('groups', {trigger: true});
+                    Router.navigate('groups', {trigger: true});
                 }).destroy();
             }
         });
@@ -183,7 +184,7 @@ var GroupView = View.extend({
             delay: {show: 100}
         });
 
-        girder.router.navigate('group/' + this.model.get('_id') + '/' +
+        Router.navigate('group/' + this.model.get('_id') + '/' +
                                this.tab, {replace: true});
 
         if (this.edit) {
@@ -198,7 +199,7 @@ var GroupView = View.extend({
             var view = this;
             tabLink.tab().on('shown.bs.tab', function (e) {
                 view.tab = $(e.currentTarget).attr('name');
-                girder.router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
+                Router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
             });
 
             if (tabLink.attr('name') === this.tab) {
@@ -349,13 +350,13 @@ var _fetchAndInit = function (groupId, params) {
     }, this).fetch();
 };
 
-girder.router.route('group/:id', 'groupView', function (groupId, params) {
+Router.route('group/:id', 'groupView', function (groupId, params) {
     _fetchAndInit(groupId, {
         edit: params.dialog === 'edit'
     });
 });
 
-girder.router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
+Router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
     _fetchAndInit(groupId, {
         edit: params.dialog === 'edit',
         tab: tab

@@ -1,7 +1,6 @@
 var $                    = require('jquery');
 var _                    = require('underscore');
 
-var girder               = require('girder/init');
 var Constants            = require('girder/constants');
 var DialogHelper         = require('girder/utilities/DialogHelper');
 var EditItemWidget       = require('girder/views/widgets/EditItemWidget');
@@ -13,9 +12,11 @@ var ItemPageTemplate     = require('girder/templates/body/itemPage.jade');
 var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 var Rest                 = require('girder/rest');
+var Router               = require('girder/router');
 var UploadWidget         = require('girder/views/widgets/UploadWidget');
 var View                 = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tooltip');
 
 /**
@@ -90,7 +91,7 @@ var ItemView = View.extend({
             escapedHtml: true,
             confirmCallback: _.bind(function () {
                 this.model.destroy().on('g:deleted', function () {
-                    girder.router.navigate(parentRoute, {trigger: true});
+                    Router.navigate(parentRoute, {trigger: true});
                 }).off('g:error').on('g:error', function () {
                     page.render();
                     Events.trigger('g:alert', {
@@ -179,7 +180,7 @@ var _fetchAndInit = function (itemId, params) {
     }, this).fetch();
 };
 
-girder.router.route('item/:id', 'item', function (itemId, params) {
+Router.route('item/:id', 'item', function (itemId, params) {
     _fetchAndInit(itemId, {
         edit: params.dialog === 'itemedit',
         fileEdit: params.dialog === 'fileedit' ? params.dialogid : false,

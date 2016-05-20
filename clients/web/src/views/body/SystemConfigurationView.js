@@ -1,12 +1,13 @@
 var _                           = require('underscore');
 
-var girder                      = require('girder/init');
 var Events                      = require('girder/events');
 var Rest                        = require('girder/rest');
+var Router                      = require('girder/router');
 var SearchFieldWidget           = require('girder/views/widgets/SearchFieldWidget');
 var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
 var View                        = require('girder/view');
 
+require('bootstrap/js/collapse');
 require('bootstrap/js/tooltip');
 
 /**
@@ -165,6 +166,6 @@ var SystemConfigurationView = View.extend({
 
 module.exports = SystemConfigurationView;
 
-girder.router.route('settings', 'settings', function () {
+Router.route('settings', 'settings', function () {
     Events.trigger('g:navigateTo', SystemConfigurationView);
 });

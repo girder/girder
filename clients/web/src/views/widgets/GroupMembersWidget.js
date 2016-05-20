@@ -1,18 +1,21 @@
 var $                         = require('jquery');
 var _                         = require('underscore');
 
-var girder                    = require('girder/init');
 var Constants                 = require('girder/constants');
 var GroupInviteDialogTemplate = require('girder/templates/widgets/groupInviteDialog.jade');
 var GroupMemberListTemplate   = require('girder/templates/widgets/groupMemberList.jade');
 var MiscFunctions             = require('girder/utilities/MiscFunctions');
 var PaginateWidget            = require('girder/views/widgets/PaginateWidget');
+var Router                    = require('girder/router');
 var SearchFieldWidget         = require('girder/views/widgets/SearchFieldWidget');
 var UserCollection            = require('girder/collections/UserCollection');
 var View                      = require('girder/view');
 
-require('bootstrap/js/tooltip');
+require('bootstrap/js/collapse');
+require('bootstrap/js/dropdown');
 require('bootstrap/js/modal');
+require('bootstrap/js/tooltip');
+
 require('girder/utilities/jQuery'); // $.girderModal
 
 var InviteUserDialog = View.extend({
@@ -79,7 +82,7 @@ var GroupMembersWidget = View.extend({
             var model = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
-            girder.router.navigate('user/' + model.get('_id'), {trigger: true});
+            Router.navigate('user/' + model.get('_id'), {trigger: true});
         },
 
         'click a.g-group-member-remove': function (e) {

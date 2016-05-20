@@ -17,6 +17,7 @@ var LoginView           = require('girder/views/layout/LoginView');
 var ProgressListView    = require('girder/views/layout/ProgressListView');
 var RegisterView        = require('girder/views/layout/RegisterView');
 var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
+var Router              = require('girder/router');
 var UserModel           = require('girder/models/UserModel');
 var View                = require('girder/view');
 
@@ -249,9 +250,9 @@ var App = View.extend({
 
         if (Auth.getCurrentUser()) {
             girder.eventStream.open();
-            girder.router.navigate(route, {trigger: true});
+            Router.navigate(route, {trigger: true});
         } else {
-            girder.router.navigate('/', {trigger: true});
+            Router.navigate('/', {trigger: true});
         }
     }
 });

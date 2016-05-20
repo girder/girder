@@ -1,7 +1,6 @@
 var $                           = require('jquery');
 var _                           = require('underscore');
 
-var girder                      = require('girder/init');
 var AccessWidget                = require('girder/views/widgets/AccessWidget');
 var CheckedMenuWidget           = require('girder/views/widgets/CheckedMenuWidget');
 var CollectionInfoWidget        = require('girder/views/widgets/CollectionInfoWidget');
@@ -20,9 +19,11 @@ var ItemModel                   = require('girder/models/ItemModel');
 var MetadataWidget              = require('girder/views/widgets/MetadataWidget');
 var MiscFunctions               = require('girder/utilities/MiscFunctions');
 var Rest                        = require('girder/rest');
+var Router                      = require('girder/router');
 var UploadWidget                = require('girder/views/widgets/UploadWidget');
 var View                        = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tooltip');
 
 var pickedResources = null;
@@ -116,7 +117,7 @@ var HierarchyWidget = View.extend({
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || function (item) {
-            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
+            Router.navigate('item/' + item.get('_id'), {trigger: true});
         };
 
         this.folderAccess = settings.folderAccess;
@@ -221,7 +222,7 @@ var HierarchyWidget = View.extend({
             if (this.parentModel.resourceName === 'folder') {
                 route += '/folder/' + this.parentModel.get('_id');
             }
-            girder.router.navigate(route);
+            Router.navigate(route);
             Events.trigger('g:hierarchy.route', {route: route});
         }
     },
@@ -413,7 +414,7 @@ var HierarchyWidget = View.extend({
                     progress: true
                 }).on('g:deleted', function () {
                     if (type === 'collection') {
-                        girder.router.navigate('collections', {trigger: true});
+                        Router.navigate('collections', {trigger: true});
                     } else if (type === 'folder') {
                         this.breadcrumbs.pop();
                         this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);

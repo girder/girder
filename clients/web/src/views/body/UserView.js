@@ -1,16 +1,18 @@
 var _                = require('underscore');
 
-var girder           = require('girder/init');
 var Constants        = require('girder/constants');
 var Events           = require('girder/events');
 var FolderModel      = require('girder/models/FolderModel');
 var HierarchyWidget  = require('girder/views/widgets/HierarchyWidget');
 var MiscFunctions    = require('girder/utilities/MiscFunctions');
 var Rest             = require('girder/rest');
+var Router           = require('girder/router');
 var UserModel        = require('girder/models/UserModel');
 var UserPageTemplate = require('girder/templates/body/userPage.jade');
 var UsersView        = require('girder/views/body/UsersView');
 var View             = require('girder/view');
+
+require('bootstrap/js/dropdown');
 
 /**
  * This view shows a single user's page.
@@ -19,7 +21,7 @@ var UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
             var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
-            girder.router.navigate(editUrl, {trigger: true});
+            Router.navigate(editUrl, {trigger: true});
         },
 
         'click a.g-delete-user': function () {
@@ -30,7 +32,7 @@ var UserView = View.extend({
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
                     this.model.destroy().on('g:deleted', function () {
-                        girder.router.navigate('users', {trigger: true});
+                        Router.navigate('users', {trigger: true});
                     });
                 }, this)
             });
@@ -126,14 +128,14 @@ var _fetchAndInit = function (userId, params) {
     }, this).fetch();
 };
 
-girder.router.route('user/:id', 'user', function (userId, params) {
+Router.route('user/:id', 'user', function (userId, params) {
     _fetchAndInit(userId, {
         folderCreate: params.dialog === 'foldercreate',
         dialog: params.dialog
     });
 });
 
-girder.router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
+Router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
     _fetchAndInit(userId, {
         folderId: folderId,
         upload: params.dialog === 'upload',

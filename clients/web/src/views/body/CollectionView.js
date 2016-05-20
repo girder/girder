@@ -1,7 +1,6 @@
 var $                      = require('jquery');
 var _                      = require('underscore');
 
-var girder                 = require('girder/init');
 var AccessWidget           = require('girder/views/widgets/AccessWidget');
 var CollectionModel        = require('girder/models/CollectionModel');
 var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
@@ -12,8 +11,10 @@ var FolderModel            = require('girder/models/FolderModel');
 var HierarchyWidget        = require('girder/views/widgets/HierarchyWidget');
 var MiscFunctions          = require('girder/utilities/MiscFunctions');
 var Rest                   = require('girder/rest');
+var Router                 = require('girder/router');
 var View                   = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tooltip');
 
 /**
@@ -37,7 +38,7 @@ var CollectionView = View.extend({
                             type: 'success',
                             timeout: 4000
                         });
-                        girder.router.navigate('collections', {trigger: true});
+                        Router.navigate('collections', {trigger: true});
                     });
                 }, this)
             });
@@ -179,7 +180,7 @@ var _fetchAndInit = function (collectionId, params) {
     }, this).fetch();
 };
 
-girder.router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
+Router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
     _fetchAndInit(collectionId, {
         access: params.dialog === 'access',
         edit: params.dialog === 'edit',
@@ -188,7 +189,7 @@ girder.router.route('collection/:id', 'collectionAccess', function (collectionId
     });
 });
 
-girder.router.route('collection/:id/folder/:id', 'collectionFolder',
+Router.route('collection/:id/folder/:id', 'collectionFolder',
     function (collectionId, folderId, params) {
         _fetchAndInit(collectionId, {
             folderId: folderId,

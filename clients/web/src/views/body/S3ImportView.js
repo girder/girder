@@ -1,6 +1,6 @@
-var girder           = require('girder/init');
 var AssetstoreModel  = require('girder/models/AssetstoreModel');
 var Events           = require('girder/events');
+var Router           = require('girder/router');
 var S3ImportTemplate = require('girder/templates/body/s3Import.jade');
 var View             = require('girder/view');
 
@@ -15,7 +15,7 @@ var S3ImportView = View.extend({
             this.$('.g-validation-failed-message').empty();
 
             this.assetstore.off('g:imported').on('g:imported', function () {
-                girder.router.navigate(destType + '/' + destId, {trigger: true});
+                Router.navigate(destType + '/' + destId, {trigger: true});
             }, this).on('g:error', function (resp) {
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
@@ -43,7 +43,7 @@ module.exports = S3ImportView;
 
 // This route is only preserved for backward compatibility. The generic route
 // "assetstore/:id/import" is preferred, and is defined in AssetstoresView.js.
-girder.router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
+Router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
     var assetstore = new AssetstoreModel({
         _id: assetstoreId
     });

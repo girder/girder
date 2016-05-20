@@ -3,6 +3,8 @@ var Constants             = require('girder/constants');
 var NewAssetstoreTemplate = require('girder/templates/widgets/newAssetstore.jade');
 var View                  = require('girder/view');
 
+require('bootstrap/js/collapse');
+
 /**
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.

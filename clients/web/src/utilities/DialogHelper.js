@@ -1,8 +1,8 @@
 var $             = require('jquery');
 var Backbone      = require('backbone');
 
-var girder        = require('girder/init');
 var MiscFunctions = require('girder/utilities/MiscFunctions');
+var Router        = require('girder/router');
 
 var dialogs = {
 
@@ -31,7 +31,7 @@ var dialogs = {
     },
 
     handleClose: function (name, options, nameId) {
-        if (!girder.router.enabled()) {
+        if (!Router.enabled()) {
             return;
         }
         var curRoute = Backbone.history.fragment,
@@ -46,12 +46,12 @@ var dialogs = {
             unparsedQueryString = '?' + unparsedQueryString;
         }
         if (dialogName === name && dialogId === nameId) {
-            girder.router.navigate(routeParts.base + unparsedQueryString, options);
+            Router.navigate(routeParts.base + unparsedQueryString, options);
         }
     },
 
     handleOpen: function (name, options, nameId) {
-        if (!girder.router.enabled()) {
+        if (!Router.enabled()) {
             return;
         }
         var curRoute = Backbone.history.fragment,
@@ -69,7 +69,7 @@ var dialogs = {
             if (unparsedQueryString.length > 0) {
                 unparsedQueryString = '?' + unparsedQueryString;
             }
-            girder.router.navigate(routeParts.base + unparsedQueryString, options);
+            Router.navigate(routeParts.base + unparsedQueryString, options);
         }
     }
 

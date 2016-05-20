@@ -1,6 +1,5 @@
 var $                 = require('jquery');
 
-var girder            = require('girder/init');
 var Auth              = require('girder/auth');
 var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
 var Events            = require('girder/events');
@@ -10,6 +9,7 @@ var GroupModel        = require('girder/models/GroupModel');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var Rest              = require('girder/rest');
+var Router            = require('girder/router');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var View              = require('girder/view');
 
@@ -20,7 +20,7 @@ var GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
-            girder.router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
+            Router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-group-search-form': function (event) {
             event.preventDefault();
@@ -37,12 +37,12 @@ var GroupsView = View.extend({
             this.render();
         }, this).fetch();
 
-        this.paginateWidget = PaginateWidget({
+        this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this
         });
 
-        this.searchWidget = SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Search groups...',
             types: ['group'],
             parentView: this
@@ -83,7 +83,7 @@ var GroupsView = View.extend({
             userGroups.push(group.get('_id'));
             Auth.getCurrentUser().set('groups', userGroups);
 
-            girder.router.navigate('group/' + group.get('_id'), {trigger: true});
+            Router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).render();
     },
 
@@ -94,7 +94,7 @@ var GroupsView = View.extend({
     _gotoGroup: function (result) {
         var group = new GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('group/' + group.get('_id'), {trigger: true});
+            Router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).fetch();
     }
 
@@ -102,7 +102,7 @@ var GroupsView = View.extend({
 
 module.exports = GroupsView;
 
-girder.router.route('groups', 'groups', function (params) {
+Router.route('groups', 'groups', function (params) {
     Events.trigger('g:navigateTo', GroupsView, params || {});
     Events.trigger('g:highlightItem', 'GroupsView');
 });

@@ -1,8 +1,8 @@
-var girder               = require('girder/init');
 var AdminConsoleTemplate = require('girder/templates/body/adminConsole.jade');
 var Auth                 = require('girder/auth');
 var Events               = require('girder/events');
 var Rest                 = require('girder/rest');
+var Router               = require('girder/router');
 var View                 = require('girder/view');
 
 /**
@@ -11,13 +11,13 @@ var View                 = require('girder/view');
 var AdminView = View.extend({
     events: {
         'click .g-server-config': function () {
-            girder.router.navigate('settings', {trigger: true});
+            Router.navigate('settings', {trigger: true});
         },
         'click .g-assetstore-config': function () {
-            girder.router.navigate('assetstores', {trigger: true});
+            Router.navigate('assetstores', {trigger: true});
         },
         'click .g-plugins-config': function () {
-            girder.router.navigate('plugins', {trigger: true});
+            Router.navigate('plugins', {trigger: true});
         }
     },
 
@@ -39,6 +39,6 @@ var AdminView = View.extend({
 
 module.exports = AdminView;
 
-girder.router.route('admin', 'admin', function () {
+Router.route('admin', 'admin', function () {
     Events.trigger('g:navigateTo', AdminView);
 });

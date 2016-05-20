@@ -9,6 +9,7 @@ var UserModel              = require('girder/models/UserModel');
 var UserView               = require('girder/views/body/UserView');
 var View                   = require('girder/view');
 
+require('bootstrap/js/dropdown');
 require('bootstrap/js/tooltip');
 
 /**

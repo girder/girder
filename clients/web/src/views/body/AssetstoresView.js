@@ -1,7 +1,6 @@
 var $                    = require('jquery');
 var _                    = require('underscore');
 
-var girder               = require('girder/init');
 var AssetstoreCollection = require('girder/collections/AssetstoreCollection');
 var AssetstoreModel      = require('girder/models/AssetstoreModel');
 var AssetstoresTemplate  = require('girder/templates/body/assetstores.jade');
@@ -12,6 +11,7 @@ var Events               = require('girder/events');
 var MiscFunctions        = require('girder/utilities/MiscFunctions');
 var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
 var Rest                 = require('girder/rest');
+var Router               = require('girder/router');
 var View                 = require('girder/view');
 
 require('as-jqplot/dist/jquery.jqplot.js');
@@ -200,14 +200,14 @@ var assetstoreImportViewMap = {};
 assetstoreImportViewMap[Constants.AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
 assetstoreImportViewMap[Constants.AssetstoreType.S3] = 'S3ImportView';
 
-girder.router.route('assetstores', 'assetstores', function (params) {
+Router.route('assetstores', 'assetstores', function (params) {
     Events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit'
                         ? params.dialogid : false
     });
 });
 
-girder.router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
+Router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
     var assetstore = AssetstoreModel({
         _id: assetstoreId
     });

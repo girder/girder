@@ -1,12 +1,12 @@
 var $                 = require('jquery');
 
-var girder            = require('girder/init');
 var Auth              = require('girder/auth');
 var Events            = require('girder/events');
 var MiscFunctions     = require('girder/utilities/MiscFunctions');
 var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
 var RegisterView      = require('girder/views/layout/RegisterView');
 var Rest              = require('girder/rest');
+var Router            = require('girder/router');
 var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
 var UserCollection    = require('girder/collections/UserCollection');
 var UserListTemplate  = require('girder/templates/body/userList.jade');
@@ -20,7 +20,7 @@ var UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
-            girder.router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
+            Router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-user-create-button': 'createUserDialog',
         'submit .g-user-search-form': function (event) {
@@ -75,7 +75,7 @@ var UsersView = View.extend({
     _gotoUser: function (result) {
         var user = new UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
+            Router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
     },
 
@@ -86,14 +86,14 @@ var UsersView = View.extend({
             el: container,
             parentView: this
         }).on('g:userCreated', function (info) {
-            girder.router.navigate('user/' + info.user.id, {trigger: true});
+            Router.navigate('user/' + info.user.id, {trigger: true});
         }, this).render();
     }
 });
 
 module.exports = UsersView;
 
-girder.router.route('users', 'users', function (params) {
+Router.route('users', 'users', function (params) {
     Events.trigger('g:navigateTo', UsersView, params || {});
     Events.trigger('g:highlightItem', 'UsersView');
 });

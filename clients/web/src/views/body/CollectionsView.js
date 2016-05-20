@@ -1,6 +1,5 @@
 var $                      = require('jquery');
 
-var girder                 = require('girder/init');
 var Auth                   = require('girder/auth');
 var CollectionCollection   = require('girder/collections/CollectionCollection');
 var CollectionListTemplate = require('girder/templates/body/collectionList.jade');
@@ -10,6 +9,7 @@ var Events                 = require('girder/events');
 var MiscFunctions          = require('girder/utilities/MiscFunctions');
 var PaginateWidget         = require('girder/views/widgets/PaginateWidget');
 var Rest                   = require('girder/rest');
+var Router                 = require('girder/router');
 var SearchFieldWidget      = require('girder/views/widgets/SearchFieldWidget');
 var View                   = require('girder/view');
 
@@ -20,7 +20,7 @@ var CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
+            Router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
@@ -59,7 +59,7 @@ var CollectionsView = View.extend({
             el: container,
             parentView: this
         }).on('g:saved', function (collection) {
-            girder.router.navigate('collection/' + collection.get('_id'),
+            Router.navigate('collection/' + collection.get('_id'),
                                    {trigger: true});
         }, this).render();
     },
@@ -88,14 +88,14 @@ var CollectionsView = View.extend({
     _gotoCollection: function (result) {
         var collection = new CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('/collection/' + collection.get('_id'), {trigger: true});
+            Router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });
 
 module.exports = CollectionsView;
 
-girder.router.route('collections', 'collections', function (params) {
+Router.route('collections', 'collections', function (params) {
     Events.trigger('g:navigateTo', CollectionsView, params || {});
     Events.trigger('g:highlightItem', 'CollectionsView');
 });

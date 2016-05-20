@@ -1,6 +1,6 @@
-var girder                   = require('girder/init');
-var View                     = require('girder/view');
 var FilesystemImportTemplate = require('girder/templates/body/filesystemImport.jade');
+var Router                   = require('girder/router');
+var View                     = require('girder/view');
 
 var FilesystemImportView = View.extend({
     events: {
@@ -13,7 +13,7 @@ var FilesystemImportView = View.extend({
             this.$('.g-validation-failed-message').empty();
 
             this.assetstore.off('g:imported').on('g:imported', function () {
-                girder.router.navigate(destType + '/' + destId, {trigger: true});
+                Router.navigate(destType + '/' + destId, {trigger: true});
             }, this).on('g:error', function (resp) {
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
