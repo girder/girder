@@ -90,7 +90,7 @@ class PythonClientTestCase(base.TestCase):
 
     def getPublicFolder(self, user):
             folders = self.client.listFolder(
-            parentId=user['_id'], parentFolderType='user', name='Public')
+                parentId=user['_id'], parentFolderType='user', name='Public')
             self.assertEqual(len(folders), 1)
 
             return folders[0]
@@ -110,7 +110,8 @@ class PythonClientTestCase(base.TestCase):
         # Test authentication failure
         flag = False
         try:
-            self.client.authenticate(username=self.user['login'], password='wrong')
+            self.client.authenticate(username=self.user['login'],
+                                     password='wrong')
         except girder_client.AuthenticationError:
             flag = True
 
@@ -155,14 +156,15 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(privateFolder, None)
         self.assertNotEqual(publicFolder, None)
 
-        self.assertEqual(self.client.getFolder(privateFolder['_id']), privateFolder)
+        self.assertEqual(self.client.getFolder(privateFolder['_id']),
+                         privateFolder)
 
         acl = self.client.getFolderAccess(privateFolder['_id'])
         self.assertIn('users', acl)
         self.assertIn('groups', acl)
 
         self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl),
-                               public=False)
+                                    public=False)
         self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
 
         # Test recursive ACL propagation (not very robust test yet)
@@ -215,7 +217,7 @@ class PythonClientTestCase(base.TestCase):
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
         self.client.upload(self.libTestDir, callbackPublicFolder['_id'],
-                      reuse_existing=True)
+                           reuse_existing=True)
         newList = list(self.model('folder').childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
@@ -292,9 +294,9 @@ class PythonClientTestCase(base.TestCase):
 
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        self.client.uploadFile(self.publicFolder['_id'], open(path), name='test1',
-                          size=size, parentType='folder',
-                          reference='test1_reference')
+        self.client.uploadFile(self.publicFolder['_id'], open(path),
+                               name='test1', size=size, parentType='folder',
+                               reference='test1_reference')
         starttime = time.time()
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
@@ -303,7 +305,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(eventList[0]['reference'], 'test1_reference')
 
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                reference='test2_reference')
+                                     reference='test2_reference')
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
             time.sleep(0.05)
@@ -315,7 +317,7 @@ class PythonClientTestCase(base.TestCase):
         open(path, 'ab').write(b'test')
         size = os.path.getsize(path)
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                reference='test3_reference')
+                                     reference='test3_reference')
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
             time.sleep(0.05)
@@ -328,7 +330,8 @@ class PythonClientTestCase(base.TestCase):
 
         item = self.client.createItem(self.publicFolder['_id'], 'a second item')
         # Test explicit MIME type setting
-        file = self.client.uploadFileToItem(item['_id'], path, mimeType='image/jpeg')
+        file = self.client.uploadFileToItem(item['_id'], path,
+                                            mimeType='image/jpeg')
         self.assertEqual(file['mimeType'], 'image/jpeg')
 
         # Test guessing of MIME type
@@ -340,9 +343,10 @@ class PythonClientTestCase(base.TestCase):
     def testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        file = self.client.uploadFile(self.publicFolder['_id'], open(path), name='test1',
-                                 size=size, parentType='folder',
-                                 reference='test1_reference')
+        file = self.client.uploadFile(self.publicFolder['_id'], open(path),
+                                      name='test1',
+                                      size=size, parentType='folder',
+                                      reference='test1_reference')
 
         contents = 'you\'ve changed!'
         size = len(contents)
@@ -355,8 +359,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(file['sha512'], sha.hexdigest())
 
     def testAddMetadataToItem(self):
-        item = self.client.createItem(self.publicFolder['_id'], 'Item McItemFace',
-                                      '')
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'Itemty McItemFace', '')
         meta = {
             'nothing': 'to see here!'
         }
@@ -369,5 +373,6 @@ class PythonClientTestCase(base.TestCase):
             'nothing': 'to see here!'
         }
         self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
-        updatedFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
+        updatedFolder = self.model('folder').load(self.publicFolder['_id'],
+                                                  force=True)
         self.assertEqual(updatedFolder['meta'], meta)

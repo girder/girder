@@ -248,9 +248,7 @@ class GirderClient(object):
 
         # Make the request, passing parameters and authentication info
         result = f(url, params=parameters, data=data, files=files, json=json,
-                   headers={
-            'Girder-Token': self.token
-        })
+                   headers={'Girder-Token': self.token})
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in [200, 201]:
