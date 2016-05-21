@@ -50,7 +50,7 @@ class StreamTestResource(Resource):
     def inputStream(self, params):
         # Read body 8 bytes at a time so we can test chunking a small body
         for chunk in iterBody(8):
-            _chunks.append(chunk)
+            _chunks.append(chunk.decode())
         return _chunks
 
 
@@ -77,20 +77,24 @@ class StreamTestCase(base.TestCase):
             """
             for i in range(1, 4):
                 buf = 'chunk%d' % i
-                yield buf
+                yield buf.encode()
                 start = time.time()
                 while len(_chunks) != i:
                     time.sleep(.1)
                     # Wait for server thread to read the chunk
                     if time.time() - start > 5:
-                        raise Exception('Timeout waiting for chunk')
+                        print('ERROR: Timeout waiting for chunk %d' % i)
+                        return
 
                 self.assertEqual(len(_chunks), i)
                 self.assertEqual(_chunks[-1], buf)
 
         resp = requests.post(self.apiUrl + '/stream_test/input_stream',
                              data=genChunks())
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            print(resp.json())
+            raise Exception('Server returned exception status %s' %
+                            resp.status_code)
         self.assertEqual(resp.json(), ['chunk1', 'chunk2', 'chunk3'])
 
     def testKnownLengthBodyReady(self):

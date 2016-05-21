@@ -96,7 +96,7 @@ def iterBody(length=READ_BUFFER_LEN):
             if cherrypy.request.rfile.closed:
                 break
             buf = cherrypy.request.rfile.buffer
-            cherrypy.request.rfile.buffer = ''
+            cherrypy.request.rfile.buffer = b''
             yield buf
     elif 'Content-Length' in cherrypy.request.headers:
         while True:
