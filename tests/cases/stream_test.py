@@ -49,7 +49,7 @@ class StreamTestResource(Resource):
     @access.public
     def inputStream(self, params):
         # Read body 8 bytes at a time so we can test chunking a small body
-        for chunk in iterBody(8):
+        for chunk in iterBody(5):
             _chunks.append(chunk.decode())
         return _chunks
 
@@ -103,6 +103,6 @@ class StreamTestCase(base.TestCase):
         Content-Length passed.
         """
         resp = requests.post(self.apiUrl + '/stream_test/input_stream',
-                             data='a normal request body')
+                             data='hello world')
         resp.raise_for_status()
-        self.assertEqual(resp.json(), ['a normal', ' request', ' body'])
+        self.assertEqual(resp.json(), ['hello', ' worl', 'd'])

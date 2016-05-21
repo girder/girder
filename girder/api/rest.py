@@ -79,18 +79,23 @@ def getApiUrl(url=None):
 def iterBody(length=READ_BUFFER_LEN):
     """
     This is a generator that will read the request body a chunk at a time and
-    yield each chunk, abstracting details of the underlying HTTP server. Data
-    is returned as soon as it is available, so it may be less than the specified
-    buffer length.
+    yield each chunk, abstracting details of the underlying HTTP server. This
+    function works regardless of whether the body was sent with a Content-Length
+    or using Transfer-Encoding: chunked, but the behavior is slightly different
+    in each case.
 
-    This works regardless of whether the body was sent with a Content-Length
-    or using Transfer-Encoding: chunked.
+    If `Content-Length` is provided, the `length` parameter is used to read the
+    body in chunks up to size `length`.
 
-    :param length: Max buffer size to read per iteration.
+    If `Transfer-Encoding: chunked` is used, the `length` parameter is ignored,
+    and the generator yields each chunk that is sent in the request, regardless
+    of its length.
+
+    :param length: Max buffer size to read per iteration if the request has a
+        known `Content-Length`.
     :type length: int
     """
     if cherrypy.request.headers.get('Transfer-Encoding') == 'chunked':
-        cherrypy.request.rfile.bufsize = length
         while True:
             cherrypy.request.rfile._fetch()
             if cherrypy.request.rfile.closed:
