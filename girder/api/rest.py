@@ -34,6 +34,8 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility import config, JsonEncoder
 from six.moves import range, urllib
 
+READ_BUFFER_LEN = 65536
+
 
 def getUrlParts(url=None):
     """
@@ -71,6 +73,36 @@ def getApiUrl(url=None):
         raise GirderException('Could not determine API root in %s.' % url)
 
     return url[:idx + 7]
+
+
+def iterBody(length=READ_BUFFER_LEN):
+    """
+    This is a generator that will read the request body a chunk at a time and
+    yield each chunk, abstracting details of the underlying HTTP server. Data
+    is returned as soon as it is available, so it may be less than the specified
+    buffer length.
+
+    This works regardless of whether the body was sent with a Content-Length
+    or using Transfer-Encoding: chunked.
+
+    :param length: Max buffer size to read per iteration.
+    :type length: int
+    """
+    if cherrypy.request.headers.get('Transfer-Encoding') == 'chunked':
+        cherrypy.request.rfile.bufsize = length
+        while True:
+            cherrypy.request.rfile._fetch()
+            if cherrypy.request.rfile.closed:
+                break
+            buf = cherrypy.request.rfile.buffer
+            cherrypy.request.rfile.buffer = ''
+            yield buf
+    elif 'Content-Length' in cherrypy.request.headers:
+        while True:
+            buf = cherrypy.request.body.read(length)
+            if not buf:
+                break
+            yield buf
 
 
 def _cacheAuthUser(fun):
