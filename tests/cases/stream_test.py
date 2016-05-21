@@ -48,7 +48,8 @@ class StreamTestResource(Resource):
 
     @access.public
     def inputStream(self, params):
-        for chunk in iterBody(8):  # Read body 8 bytes at a time
+        # Read body 8 bytes at a time so we can test chunking a small body
+        for chunk in iterBody(8):
             _chunks.append(chunk)
         return _chunks
 
@@ -78,12 +79,11 @@ class StreamTestCase(base.TestCase):
                 buf = 'chunk%d' % i
                 yield buf
                 start = time.time()
-                while True:  # Wait for server thread to get the chunk
-                    if len(_chunks) == i:
-                        break
+                while len(_chunks) != i:
+                    time.sleep(.1)
+                    # Wait for server thread to read the chunk
                     if time.time() - start > 5:
                         raise Exception('Timeout waiting for chunk')
-                    time.sleep(.1)
 
                 self.assertEqual(len(_chunks), i)
                 self.assertEqual(_chunks[-1], buf)
