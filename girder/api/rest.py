@@ -34,6 +34,7 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility import config, JsonEncoder
 from six.moves import range, urllib
 
+# Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
 
 
