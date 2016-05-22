@@ -2,7 +2,6 @@ var $                               = require('jquery');
 var _                               = require('underscore');
 var JSONEditor                      = require('jsoneditor/dist/jsoneditor.js'); // can not use require('jsoneditor')
 
-var girder                          = require('girder/init');
 var Constants                       = require('girder/constants');
 var Events                          = require('girder/events');
 var JsonMetadatumEditWidgetTemplate = require('girder/templates/widgets/jsonMetadatumEditWidget.jade');
@@ -451,7 +450,6 @@ var MetadataWidget = View.extend({
             fieldName: this.fieldName,
             apiPath: this.apiPath,
             accessLevel: this.accessLevel,
-            girder: girder,
             parentView: this,
             onMetadataEdited: this.onMetadataEdited,
             onMetadataAdded: this.onMetadataAdded
@@ -494,7 +492,6 @@ var MetadataWidget = View.extend({
                 key: metaKey,
                 value: metaDict[metaKey],
                 accessLevel: this.accessLevel,
-                girder: girder,
                 parentView: this,
                 fieldName: this.fieldName,
                 apiPath: this.apiPath,

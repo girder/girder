@@ -1,8 +1,8 @@
-var _        = require('underscore');
-var Backbone = require('backbone');
+var _           = require('underscore');
+var Backbone    = require('backbone');
 
-var girder   = require('girder/init');
-var Events   = require('girder/events');
+var Events      = require('girder/events');
+var EventStream = require('girder/eventStream');
 
 var View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor
@@ -32,7 +32,7 @@ var View = Backbone.View.extend({
         this.stopListening();
         this.off();
         Events.off(null, null, this);
-        girder.eventStream.off(null, null, this);
+        EventStream.off(null, null, this);
 
         if (this.parentView) {
             this.parentView.unregisterChildView(this);

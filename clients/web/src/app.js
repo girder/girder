@@ -7,8 +7,7 @@ var Auth                = require('girder/auth');
 var Constants           = require('girder/constants');
 var DialogHelper        = require('girder/utilities/DialogHelper');
 var Events              = require('girder/events');
-var EventStream         = require('girder/utilities/EventStream');
-var girder              = require('girder/init');
+var EventStream         = require('girder/eventStream');
 var LayoutFooterView    = require('girder/views/layout/FooterView');
 var LayoutGlobalNavView = require('girder/views/layout/GlobalNavView');
 var LayoutHeaderView    = require('girder/views/layout/HeaderView');
@@ -27,10 +26,6 @@ var App = View.extend({
     initialize: function () {
         Auth.fetchCurrentUser()
             .done(_.bind(function (user) {
-                girder.eventStream = new EventStream({
-                    timeout: girder.sseTimeout || null
-                });
-
                 this.headerView = new LayoutHeaderView({
                     parentView: this
                 });
@@ -44,13 +39,13 @@ var App = View.extend({
                 });
 
                 this.progressListView = new ProgressListView({
-                    eventStream: girder.eventStream,
+                    eventStream: EventStream,
                     parentView: this
                 });
 
                 if (user) {
                     Auth.setCurrentUser(new UserModel(user));
-                    girder.eventStream.open();
+                    EventStream.open();
                 }
 
                 this.layoutRenderMap = {};
@@ -248,10 +243,10 @@ var App = View.extend({
     login: function () {
         var route = DialogHelper.splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
-        girder.eventStream.close();
+        EventStream.close();
 
         if (Auth.getCurrentUser()) {
-            girder.eventStream.open();
+            EventStream.open();
             Router.navigate(route, {trigger: true});
         } else {
             Router.navigate('/', {trigger: true});

@@ -1,10 +1,10 @@
 var $                    = require('jquery');
 var _                    = require('underscore');
 
-var girder               = require('girder/init');
 var Auth                 = require('girder/auth');
 var Constants            = require('girder/constants');
 var Events               = require('girder/events');
+var EventStream          = require('girder/eventStream');
 var Rest                 = require('girder/rest');
 var Router               = require('girder/router');
 var UserModel            = require('girder/models/UserModel');
@@ -164,9 +164,9 @@ Router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
         error: null
     }).done(_.bind(function (resp) {
         resp.user.token = resp.authToken.token;
-        girder.eventStream.close();
+        EventStream.close();
         Auth.setCurrentUser(new UserModel(resp.user));
-        girder.eventStream.open();
+        EventStream.open();
         Events.trigger('g:login-changed');
         Events.trigger('g:navigateTo', UserAccountView, {
             user: Auth.getCurrentUser(),
