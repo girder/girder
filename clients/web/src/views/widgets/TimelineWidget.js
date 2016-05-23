@@ -1,9 +1,9 @@
-var _                = require('underscore');
+import _                from 'underscore';
 
-var TimelineTemplate = require('girder/templates/widgets/timeline.jade');
-var View             = require('girder/view');
+import TimelineTemplate from 'girder/templates/widgets/timeline.jade';
+import View             from 'girder/view';
 
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/tooltip';
 
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)
@@ -20,7 +20,7 @@ require('bootstrap/js/tooltip');
  * this widget, it is not possible to mix the numeric/relative values with datestamp
  * values.
  */
-var TimelineWidget = View.extend({
+export var TimelineWidget = View.extend({
     /**
      * Initialize the timeline widget.
      *
@@ -159,5 +159,3 @@ var TimelineWidget = View.extend({
         return this;
     }
 });
-
-module.exports = TimelineWidget;

@@ -1,8 +1,8 @@
-var FilesystemImportTemplate = require('girder/templates/body/filesystemImport.jade');
-var Router                   = require('girder/router');
-var View                     = require('girder/view');
+import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jade';
+import router                   from 'girder/router';
+import View                     from 'girder/view';
 
-var FilesystemImportView = View.extend({
+export var FilesystemImportView = View.extend({
     events: {
         'submit .g-filesystem-import-form': function (e) {
             e.preventDefault();
@@ -13,7 +13,7 @@ var FilesystemImportView = View.extend({
             this.$('.g-validation-failed-message').empty();
 
             this.assetstore.off('g:imported').on('g:imported', function () {
-                Router.navigate(destType + '/' + destId, {trigger: true});
+                router.navigate(destType + '/' + destId, {trigger: true});
             }, this).on('g:error', function (resp) {
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
@@ -36,5 +36,3 @@ var FilesystemImportView = View.extend({
         }));
     }
 });
-
-module.exports = FilesystemImportView;

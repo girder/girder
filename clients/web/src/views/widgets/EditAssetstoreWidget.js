@@ -1,18 +1,18 @@
-var $                            = require('jquery');
-var _                            = require('underscore');
+import $                            from 'jquery';
+import _                            from 'underscore';
 
-var Constants                    = require('girder/constants');
-var DialogHelper                 = require('girder/utilities/DialogHelper');
-var EditAssetstoreWidgetTemplate = require('girder/templates/widgets/editAssetstoreWidget.jade');
-var View                         = require('girder/view');
+import { AssetstoreType }           from 'girder/constants';
+import { handleClose, handleOpen }  from 'girder/utilities/DialogHelper';
+import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
+import View                         from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to edit an existing assetstore.
  */
-var EditAssetstoreWidget = View.extend({
+export var EditAssetstoreWidget = View.extend({
     events: {
         'submit #g-assetstore-edit-form': function (e) {
             e.preventDefault();
@@ -52,14 +52,14 @@ var EditAssetstoreWidget = View.extend({
         var view = this;
         var modal = this.$el.html(EditAssetstoreWidgetTemplate({
             assetstore: view.model,
-            types: Constants.AssetstoreType
+            types: AssetstoreType
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-edit-name').focus();
-            DialogHelper.handleOpen('assetstoreedit', undefined, view.model.get('id'));
+            handleOpen('assetstoreedit', undefined, view.model.get('id'));
             view.$('#g-edit-name').val(view.model.get('name'));
             view.fieldsMap[view.model.get('type')].set.call(view);
         }).on('hidden.bs.modal', function () {
-            DialogHelper.handleClose('assetstoreedit', undefined, view.model.get('id'));
+            handleClose('assetstoreedit', undefined, view.model.get('id'));
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;
@@ -86,7 +86,7 @@ var EditAssetstoreWidget = View.extend({
 
 var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
 
-fieldsMap[Constants.AssetstoreType.FILESYSTEM] = {
+fieldsMap[AssetstoreType.FILESYSTEM] = {
     get: function () {
         return {
             root: this.$('#g-edit-fs-root').val()
@@ -97,7 +97,7 @@ fieldsMap[Constants.AssetstoreType.FILESYSTEM] = {
     }
 };
 
-fieldsMap[Constants.AssetstoreType.GRIDFS] = {
+fieldsMap[AssetstoreType.GRIDFS] = {
     get: function () {
         return {
             db: this.$('#g-edit-gridfs-db').val(),
@@ -112,7 +112,7 @@ fieldsMap[Constants.AssetstoreType.GRIDFS] = {
     }
 };
 
-fieldsMap[Constants.AssetstoreType.S3] = {
+fieldsMap[AssetstoreType.S3] = {
     get: function () {
         return {
             bucket: this.$('#g-edit-s3-bucket').val(),
@@ -132,5 +132,3 @@ fieldsMap[Constants.AssetstoreType.S3] = {
         this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
     }
 };
-
-module.exports = EditAssetstoreWidget;

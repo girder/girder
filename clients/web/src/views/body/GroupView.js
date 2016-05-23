@@ -1,31 +1,31 @@
-var $                  = require('jquery');
-var _                  = require('underscore');
+import $                  from 'jquery';
+import _                  from 'underscore';
 
-var Auth               = require('girder/auth');
-var Constants          = require('girder/constants');
-var EditGroupWidget    = require('girder/views/widgets/EditGroupWidget');
-var Events             = require('girder/events');
-var GroupAdminsWidget  = require('girder/views/widgets/GroupAdminsWidget');
-var GroupInvitesWidget = require('girder/views/widgets/GroupInvitesWidget');
-var GroupMembersWidget = require('girder/views/widgets/GroupMembersWidget');
-var GroupModel         = require('girder/models/GroupModel');
-var GroupModsWidget    = require('girder/views/widgets/GroupModsWidget');
-var GroupPageTemplate  = require('girder/templates/body/groupPage.jade');
-var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
-var MiscFunctions      = require('girder/utilities/MiscFunctions');
-var Rest               = require('girder/rest');
-var Router             = require('girder/router');
-var UserCollection     = require('girder/collections/UserCollection');
-var View               = require('girder/view');
+import Auth               from 'girder/auth';
+import { AccessType }     from 'girder/constants';
+import EditGroupWidget    from 'girder/views/widgets/EditGroupWidget';
+import Events             from 'girder/events';
+import GroupAdminsWidget  from 'girder/views/widgets/GroupAdminsWidget';
+import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
+import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
+import GroupModel         from 'girder/models/GroupModel';
+import GroupModsWidget    from 'girder/views/widgets/GroupModsWidget';
+import GroupPageTemplate  from 'girder/templates/body/groupPage.jade';
+import LoadingAnimation   from 'girder/views/widgets/LoadingAnimation';
+import { confirm }        from 'girder/utilities/MiscFunctions';
+import Rest               from 'girder/rest';
+import router             from 'girder/router';
+import UserCollection     from 'girder/collections/UserCollection';
+import View               from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tab');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tab';
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a single group's page.
  */
-var GroupView = View.extend({
+export var GroupView = View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
         'click .g-group-join': 'joinGroup',
@@ -37,7 +37,7 @@ var GroupView = View.extend({
 
         'click #g-group-tab-pending a.g-member-name': function (e) {
             var userId = $(e.currentTarget).parents('li').attr('userid');
-            Router.navigate('user/' + userId, {trigger: true});
+            router.navigate('user/' + userId, {trigger: true});
         }
     },
 
@@ -81,13 +81,13 @@ var GroupView = View.extend({
 
     deleteGroup: function () {
         var view = this;
-        MiscFunctions.confirm({
+        confirm({
             text: 'Are you sure you want to delete the group <b>' +
                 view.model.escape('name') + '</b>?',
             escapedHtml: true,
             confirmCallback: function () {
                 view.model.on('g:deleted', function () {
-                    Router.navigate('groups', {trigger: true});
+                    router.navigate('groups', {trigger: true});
                 }).destroy();
             }
         });
@@ -129,9 +129,9 @@ var GroupView = View.extend({
         if (this.isMember) {
             _.every(this.model.get('access').users || [], function (access) {
                 if (access.id === Auth.getCurrentUser().get('_id')) {
-                    if (access.level === Constants.AccessType.WRITE) {
+                    if (access.level === AccessType.WRITE) {
                         this.isModerator = true;
-                    } else if (access.level === Constants.AccessType.ADMIN) {
+                    } else if (access.level === AccessType.ADMIN) {
                         this.isAdmin = true;
                     }
                     return false; // 'break';
@@ -142,7 +142,7 @@ var GroupView = View.extend({
         this.$el.html(GroupPageTemplate({
             group: this.model,
             Auth: Auth,
-            Constants: Constants,
+            AccessType: AccessType,
             isInvited: this.isInvited,
             isRequested: this.isRequested,
             isMember: this.isMember,
@@ -184,11 +184,11 @@ var GroupView = View.extend({
             delay: {show: 100}
         });
 
-        Router.navigate('group/' + this.model.get('_id') + '/' +
+        router.navigate('group/' + this.model.get('_id') + '/' +
                                this.tab, {replace: true});
 
         if (this.edit) {
-            if (this.model.get('_accessLevel') >= Constants.AccessType.ADMIN) {
+            if (this.model.get('_accessLevel') >= AccessType.ADMIN) {
                 this.editGroup();
             }
             this.edit = false;
@@ -199,7 +199,7 @@ var GroupView = View.extend({
             var view = this;
             tabLink.tab().on('shown.bs.tab', function (e) {
                 view.tab = $(e.currentTarget).attr('name');
-                Router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
+                router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
             });
 
             if (tabLink.attr('name') === this.tab) {
@@ -234,7 +234,7 @@ var GroupView = View.extend({
 
     leaveGroup: function () {
         var view = this;
-        MiscFunctions.confirm({
+        confirm({
             text: 'Are you sure you want to leave this group?',
             confirmCallback: function () {
                 view.model.off('g:removed').on('g:removed', function () {
@@ -263,7 +263,7 @@ var GroupView = View.extend({
     acceptMembershipRequest: function (e) {
         var userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:invited').on('g:invited', this.render, this)
-                  .sendInvitation(userId, Constants.AccessType.READ, true);
+                  .sendInvitation(userId, AccessType.READ, true);
     },
 
     denyMembershipRequest: function (e) {
@@ -277,9 +277,9 @@ var GroupView = View.extend({
             admins = [];
 
         _.each(this.model.get('access').users, function (userAccess) {
-            if (userAccess.level === Constants.AccessType.WRITE) {
+            if (userAccess.level === AccessType.WRITE) {
                 mods.push(userAccess);
-            } else if (userAccess.level === Constants.AccessType.ADMIN) {
+            } else if (userAccess.level === AccessType.ADMIN) {
                 admins.push(userAccess);
             }
         }, this);
@@ -291,7 +291,7 @@ var GroupView = View.extend({
             parentView: this
         }).off().on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
-                      .demoteUser(userId, Constants.AccessType.ADMIN);
+                      .demoteUser(userId, AccessType.ADMIN);
         }, this).on('g:removeMember', this.removeMember, this)
                 .on('g:moderatorAdded', this.render, this)
                 .render();
@@ -303,7 +303,7 @@ var GroupView = View.extend({
             parentView: this
         }).on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
-                      .demoteUser(userId, Constants.AccessType.WRITE);
+                      .demoteUser(userId, AccessType.WRITE);
         }, this).on('g:removeMember', this.removeMember, this)
                 .on('g:adminAdded', this.render, this)
                 .render();
@@ -333,8 +333,6 @@ var GroupView = View.extend({
     }
 });
 
-module.exports = GroupView;
-
 /**
  * Helper function for fetching the user and rendering the view with
  * an arbitrary set of extra parameters.
@@ -350,13 +348,13 @@ var _fetchAndInit = function (groupId, params) {
     }, this).fetch();
 };
 
-Router.route('group/:id', 'groupView', function (groupId, params) {
+router.route('group/:id', 'groupView', function (groupId, params) {
     _fetchAndInit(groupId, {
         edit: params.dialog === 'edit'
     });
 });
 
-Router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
+router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
     _fetchAndInit(groupId, {
         edit: params.dialog === 'edit',
         tab: tab

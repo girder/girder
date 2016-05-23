@@ -1,13 +1,13 @@
-var MiscFunctions            = require('girder/utilities/MiscFunctions');
-var FolderInfoDialogTemplate = require('girder/templates/widgets/folderInfoDialog.jade');
-var View                     = require('girder/view');
+import { formatDate, formatSize, DATE_SECOND, renderMarkdown } from 'girder/utilities/MiscFunctions';
+import FolderInfoDialogTemplate from 'girder/templates/widgets/folderInfoDialog.jade';
+import View                     from 'girder/view';
 
-require('girder/utilities/jQuery'); // $.girderModal
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This view shows a dialog container detailed folder information.
  */
-var FolderInfoWidget = View.extend({
+export var FolderInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nItems') || !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -25,9 +25,10 @@ var FolderInfoWidget = View.extend({
 
         this.$el.html(FolderInfoDialogTemplate({
             folder: this.model,
-            MiscFunctions: MiscFunctions
+            formatDate: formatDate,
+            formatSize: formatSize,
+            renderMarkdown: renderMarkdown,
+            DATE_SECOND: DATE_SECOND
         })).girderModal(this);
     }
 });
-
-module.exports = FolderInfoWidget;

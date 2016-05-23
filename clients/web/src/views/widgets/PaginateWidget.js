@@ -1,11 +1,11 @@
-var PaginateWidgetTemplate = require('girder/templates/widgets/paginateWidget.jade');
-var View                   = require('girder/view');
+import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.jade';
+import View                   from 'girder/view';
 
 /**
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a Collection.
  */
-var PaginateWidget = View.extend({
+export var PaginateWidget = View.extend({
     events: {
         'click .g-page-next': function (e) {
             if (!$(e.currentTarget).hasClass('disabled')) {
@@ -45,5 +45,3 @@ var PaginateWidget = View.extend({
         return this;
     }
 });
-
-module.exports = PaginateWidget;

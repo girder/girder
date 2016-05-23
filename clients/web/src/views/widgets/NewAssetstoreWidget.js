@@ -1,19 +1,19 @@
-var AssetstoreModel       = require('girder/models/AssetstoreModel');
-var Constants             = require('girder/constants');
-var NewAssetstoreTemplate = require('girder/templates/widgets/newAssetstore.jade');
-var View                  = require('girder/view');
+import AssetstoreModel       from 'girder/models/AssetstoreModel';
+import { AssetstoreType }    from 'girder/constants';
+import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.jade';
+import View                  from 'girder/view';
 
-require('bootstrap/js/collapse');
+import 'bootstrap/js/collapse';
 
 /**
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
  */
-var NewAssetstoreWidget = View.extend({
+export var NewAssetstoreWidget = View.extend({
     events: {
         'submit #g-new-fs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-fs-error'), {
-                type: Constants.AssetstoreType.FILESYSTEM,
+                type: AssetstoreType.FILESYSTEM,
                 name: this.$('#g-new-fs-name').val(),
                 root: this.$('#g-new-fs-root').val()
             });
@@ -21,7 +21,7 @@ var NewAssetstoreWidget = View.extend({
 
         'submit #g-new-gridfs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-gridfs-error'), {
-                type: Constants.AssetstoreType.GRIDFS,
+                type: AssetstoreType.GRIDFS,
                 name: this.$('#g-new-gridfs-name').val(),
                 db: this.$('#g-new-gridfs-db').val(),
                 mongohost: this.$('#g-new-gridfs-mongohost').val(),
@@ -31,7 +31,7 @@ var NewAssetstoreWidget = View.extend({
 
         'submit #g-new-s3-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-s3-error'), {
-                type: Constants.AssetstoreType.S3,
+                type: AssetstoreType.S3,
                 name: this.$('#g-new-s3-name').val(),
                 bucket: this.$('#g-new-s3-bucket').val(),
                 prefix: this.$('#g-new-s3-prefix').val(),
@@ -70,5 +70,3 @@ var NewAssetstoreWidget = View.extend({
         }, this).save();
     }
 });
-
-module.exports = NewAssetstoreWidget;

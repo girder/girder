@@ -1,6 +1,4 @@
-var _        = require('underscore');
-var Backbone = require('backbone');
+import _        from 'underscore';
+import Backbone from 'backbone';
 
-var events = _.clone(Backbone.Events);
-
-module.exports = events;
+export var events = _.clone(Backbone.Events);

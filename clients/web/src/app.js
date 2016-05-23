@@ -1,28 +1,28 @@
-var $                   = require('jquery');
-var _                   = require('underscore');
-var Backbone            = require('backbone');
+import $                   from 'jquery';
+import _                   from 'underscore';
+import Backbone            from 'backbone';
 
-var AlertTemplate       = require('girder/templates/layout/alert.jade');
-var Auth                = require('girder/auth');
-var Constants           = require('girder/constants');
-var DialogHelper        = require('girder/utilities/DialogHelper');
-var Events              = require('girder/events');
-var EventStream         = require('girder/eventStream');
-var LayoutFooterView    = require('girder/views/layout/FooterView');
-var LayoutGlobalNavView = require('girder/views/layout/GlobalNavView');
-var LayoutHeaderView    = require('girder/views/layout/HeaderView');
-var LayoutTemplate      = require('girder/templates/layout/layout.jade');
-var LoginView           = require('girder/views/layout/LoginView');
-var ProgressListView    = require('girder/views/layout/ProgressListView');
-var RegisterView        = require('girder/views/layout/RegisterView');
-var ResetPasswordView   = require('girder/views/layout/ResetPasswordView');
-var Router              = require('girder/router');
-var UserModel           = require('girder/models/UserModel');
-var View                = require('girder/view');
+import AlertTemplate       from 'girder/templates/layout/alert.jade';
+import Auth                from 'girder/auth';
+import { Layout }          from 'girder/constants';
+import { splitRoute }      from 'girder/utilities/DialogHelper';
+import Events              from 'girder/events';
+import EventStream         from 'girder/eventStream';
+import LayoutFooterView    from 'girder/views/layout/FooterView';
+import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
+import LayoutHeaderView    from 'girder/views/layout/HeaderView';
+import LayoutTemplate      from 'girder/templates/layout/layout.jade';
+import LoginView           from 'girder/views/layout/LoginView';
+import ProgressListView    from 'girder/views/layout/ProgressListView';
+import RegisterView        from 'girder/views/layout/RegisterView';
+import ResetPasswordView   from 'girder/views/layout/ResetPasswordView';
+import router              from 'girder/router';
+import UserModel           from 'girder/models/UserModel';
+import View                from 'girder/view';
 
-require('girder/utilities/jQuery'); // $.girderModal
+import 'girder/utilities/jQuery'; // $.girderModal
 
-var App = View.extend({
+export var App = View.extend({
     initialize: function () {
         Auth.fetchCurrentUser()
             .done(_.bind(function (user) {
@@ -49,8 +49,8 @@ var App = View.extend({
                 }
 
                 this.layoutRenderMap = {};
-                this.layoutRenderMap[Constants.Layout.DEFAULT] = this._defaultLayout;
-                this.layoutRenderMap[Constants.Layout.EMPTY] = this._emptyLayout;
+                this.layoutRenderMap[Layout.DEFAULT] = this._defaultLayout;
+                this.layoutRenderMap[Layout.EMPTY] = this._emptyLayout;
                 this.render();
 
                 // Once we've rendered the layout, we can start up the routing.
@@ -125,10 +125,10 @@ var App = View.extend({
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
             }
-        } else if (this._layout !== Constants.Layout.DEFAULT) {
+        } else if (this._layout !== Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
             this.layoutRenderMap[this._layout].hide.call(this, opts);
-            this._layout = Constants.Layout.DEFAULT;
+            this._layout = Layout.DEFAULT;
             this.layoutRenderMap[this._layout].show.call(this, opts);
         }
 
@@ -241,17 +241,15 @@ var App = View.extend({
      * logout, we redirect to the front page.
      */
     login: function () {
-        var route = DialogHelper.splitRoute(Backbone.history.fragment).base;
+        var route = splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         EventStream.close();
 
         if (Auth.getCurrentUser()) {
             EventStream.open();
-            Router.navigate(route, {trigger: true});
+            router.navigate(route, {trigger: true});
         } else {
-            Router.navigate('/', {trigger: true});
+            router.navigate('/', {trigger: true});
         }
     }
 });
-
-module.exports = App;

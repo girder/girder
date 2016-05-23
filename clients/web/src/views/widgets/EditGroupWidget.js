@@ -1,18 +1,18 @@
-var $                       = require('jquery');
+import $                           from 'jquery';
 
-var Auth                    = require('girder/auth');
-var DialogHelper            = require('girder/utilities/DialogHelper');
-var EditGroupWidgetTemplate = require('girder/templates/widgets/editGroupWidget.jade');
-var GroupModel              = require('girder/models/GroupModel');
-var View                    = require('girder/view');
+import Auth                        from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import EditGroupWidgetTemplate     from 'girder/templates/widgets/editGroupWidget.jade';
+import GroupModel                  from 'girder/models/GroupModel';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-var EditGroupWidget = View.extend({
+export var EditGroupWidget = View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();
@@ -64,15 +64,15 @@ var EditGroupWidget = View.extend({
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.model) {
-                DialogHelper.handleOpen('edit');
+                handleOpen('edit');
             } else {
-                DialogHelper.handleOpen('create');
+                handleOpen('create');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                DialogHelper.handleClose('create');
+                handleClose('create');
             } else {
-                DialogHelper.handleClose('edit');
+                handleClose('edit');
             }
         }).on('ready.girder.modal', function () {
             if (view.model) {
@@ -122,5 +122,3 @@ var EditGroupWidget = View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
-
-module.exports = EditGroupWidget;

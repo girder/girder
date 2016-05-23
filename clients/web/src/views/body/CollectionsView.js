@@ -1,26 +1,26 @@
-var $                      = require('jquery');
+import $                      from 'jquery';
 
-var Auth                   = require('girder/auth');
-var CollectionCollection   = require('girder/collections/CollectionCollection');
-var CollectionListTemplate = require('girder/templates/body/collectionList.jade');
-var CollectionModel        = require('girder/models/CollectionModel');
-var EditCollectionWidget   = require('girder/views/widgets/EditCollectionWidget');
-var Events                 = require('girder/events');
-var MiscFunctions          = require('girder/utilities/MiscFunctions');
-var PaginateWidget         = require('girder/views/widgets/PaginateWidget');
-var Rest                   = require('girder/rest');
-var Router                 = require('girder/router');
-var SearchFieldWidget      = require('girder/views/widgets/SearchFieldWidget');
-var View                   = require('girder/view');
+import Auth                   from 'girder/auth';
+import CollectionCollection   from 'girder/collections/CollectionCollection';
+import CollectionListTemplate from 'girder/templates/body/collectionList.jade';
+import CollectionModel        from 'girder/models/CollectionModel';
+import EditCollectionWidget   from 'girder/views/widgets/EditCollectionWidget';
+import Events                 from 'girder/events';
+import { formatDate, formatSize, DATE_MINUTE } from 'girder/utilities/MiscFunctions';
+import PaginateWidget         from 'girder/views/widgets/PaginateWidget';
+import Rest                   from 'girder/rest';
+import router                 from 'girder/router';
+import SearchFieldWidget      from 'girder/views/widgets/SearchFieldWidget';
+import View                   from 'girder/view';
 
 /**
  * This view lists the collections.
  */
-var CollectionsView = View.extend({
+export var CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            Router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
@@ -59,7 +59,7 @@ var CollectionsView = View.extend({
             el: container,
             parentView: this
         }).on('g:saved', function (collection) {
-            Router.navigate('collection/' + collection.get('_id'),
+            router.navigate('collection/' + collection.get('_id'),
                                    {trigger: true});
         }, this).render();
     },
@@ -68,7 +68,9 @@ var CollectionsView = View.extend({
         this.$el.html(CollectionListTemplate({
             collections: this.collection.toArray(),
             Auth: Auth,
-            MiscFunctions: MiscFunctions
+            formatDate: formatDate,
+            DATE_MINUTE: DATE_MINUTE,
+            formatSize: formatSize
         }));
 
         this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
@@ -88,14 +90,12 @@ var CollectionsView = View.extend({
     _gotoCollection: function (result) {
         var collection = new CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            Router.navigate('/collection/' + collection.get('_id'), {trigger: true});
+            router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });
 
-module.exports = CollectionsView;
-
-Router.route('collections', 'collections', function (params) {
+router.route('collections', 'collections', function (params) {
     Events.trigger('g:navigateTo', CollectionsView, params || {});
     Events.trigger('g:highlightItem', 'CollectionsView');
 });

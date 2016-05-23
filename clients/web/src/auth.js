@@ -1,12 +1,13 @@
-var _      = require('underscore');
+import _         from 'underscore';
 
-var Events = require('girder/events');
+import Events    from 'girder/events';
+import UserModel from 'girder/models/UserModel';
 
 // This definitely need some fixing/testing, as it seems that
 // girder.corsAuth could be an override. See login doc below.
 var corsAuth = false;
 
-var cookie = {
+export var cookie = {
     findAll: function () {
         var cookies = {};
         _(document.cookie.split(';'))
@@ -43,20 +44,27 @@ var cookie = {
 var currentUser = null;
 var currentToken = cookie.find('girderToken');
 
-var getCurrentUser = function () {
+export var getCurrentUser = function () {
     return currentUser;
 };
 
-var setCurrentUser = function (user) {
+export var setCurrentUser = function (user) {
     currentUser = user;
 };
 
-var getCurrentToken = function () {
+export var getCurrentToken = function () {
     return currentToken;
 };
 
-var setCurrentToken = function (token) {
+export var setCurrentToken = function (token) {
     currentToken = token;
+};
+
+export var fetchCurrentUser = function () {
+    return Rest.restRequest({
+        method: 'GET',
+        path: '/user/me'
+    });
 };
 
 /**
@@ -70,7 +78,7 @@ var setCurrentToken = function (token) {
  *        to "true" to save the auth cookie on the current domain. Alternatively,
  *        you may set the global option "girder.corsAuth = true".
  */
-var login = function (username, password, cors) {
+export var login = function (username, password, cors) {
     var auth = 'Basic ' + window.btoa(username + ':' + password);
     if (cors === undefined) {
         cors = corsAuth;
@@ -86,7 +94,6 @@ var login = function (username, password, cors) {
     }).then(function (response) {
         response.user.token = response.authToken;
 
-        var UserModel = require('girder/models/UserModel'); // hmmmm, probably need async
         setCurrentUser(new UserModel(response.user));
         setCurrentToken(response.user.token.token);
 
@@ -106,7 +113,7 @@ var login = function (username, password, cors) {
     });
 };
 
-var logout = function () {
+export var logout = function () {
     return Rest.restRequest({
         method: 'DELETE',
         path: '/user/authentication'
@@ -121,24 +128,6 @@ var logout = function () {
     });
 };
 
-var fetchCurrentUser = function () {
-    return Rest.restRequest({
-        method: 'GET',
-        path: '/user/me'
-    });
-};
-
-module.exports = {
-    getCurrentUser: getCurrentUser,
-    setCurrentUser: setCurrentUser,
-    getCurrentToken: getCurrentToken,
-    setCurrentToken: setCurrentToken,
-    login: login,
-    logout: logout,
-    fetchCurrentUser: fetchCurrentUser,
-    cookie: cookie
-};
-
 // Alleviate a circular dependency for now
 // http://stackoverflow.com/a/30390378/250457
-var Rest   = require('girder/rest');
+import Rest   from 'girder/rest';

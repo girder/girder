@@ -113,7 +113,7 @@ module.exports = function (grunt) {
                     var include = module.resource &&
                         module.resource.indexOf(clients_web_dir) === -1;
                     if (include) {
-                        console.log('[girder.ext] <=', module.resource.replace(node_modules_dir, ''));
+                        // console.log('[girder.ext] <=', module.resource.replace(node_modules_dir, ''));
                     }
                     return include;
                 }

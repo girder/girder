@@ -1,16 +1,16 @@
-var $                 = require('jquery');
-var _                 = require('underscore');
+import $                 from 'jquery';
+import _                 from 'underscore';
 
-var ItemListTemplate = require('girder/templates/widgets/itemList.jade');
-var ItemCollection    = require('girder/collections/ItemCollection');
-var LoadingAnimation  = require('girder/views/widgets/LoadingAnimation');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
-var View              = require('girder/view');
+import ItemListTemplate  from 'girder/templates/widgets/itemList.jade';
+import ItemCollection    from 'girder/collections/ItemCollection';
+import LoadingAnimation  from 'girder/views/widgets/LoadingAnimation';
+import { formatSize }    from 'girder/utilities/MiscFunctions';
+import View              from 'girder/view';
 
 /**
  * This widget shows a list of items under a given folder.
  */
-var ItemListWidget = View.extend({
+export var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
@@ -45,7 +45,7 @@ var ItemListWidget = View.extend({
         this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            MiscFunctions: MiscFunctions,
+            formatSize: formatSize,
             checkboxes: this._checkboxes
         }));
 
@@ -120,5 +120,3 @@ var ItemListWidget = View.extend({
         }, this);
     }
 });
-
-module.exports = ItemListWidget;

@@ -1,13 +1,13 @@
-var CollectionInfoDialogTemplate = require('girder/templates/widgets/collectionInfoDialog.jade');
-var MiscFunctions                = require('girder/utilities/MiscFunctions');
-var View                         = require('girder/view');
+import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
+import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
+import View                         from 'girder/view';
 
-require('girder/utilities/jQuery'); // $.girderModal
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This view shows a dialog containing detailed collection information.
  */
-var CollectionInfoWidget = View.extend({
+export var CollectionInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -25,9 +25,10 @@ var CollectionInfoWidget = View.extend({
 
         this.$el.html(CollectionInfoDialogTemplate({
             collection: this.model,
-            MiscFunctions: MiscFunctions
+            formatDate: formatDate,
+            formatSize: formatSize,
+            DATE_SECOND: DATE_SECOND,
+            renderMarkdown: renderMarkdown
         })).girderModal(this);
     }
 });
-
-module.exports = CollectionInfoWidget;

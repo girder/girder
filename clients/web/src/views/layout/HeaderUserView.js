@@ -1,16 +1,16 @@
-var Auth                     = require('girder/auth');
-var Events                   = require('girder/events');
-var LayoutHeaderUserTemplate = require('girder/templates/layout/layoutHeaderUser.jade');
-var Router                   = require('girder/router');
-var View                     = require('girder/view');
+import Auth                     from 'girder/auth';
+import Events                   from 'girder/events';
+import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.jade';
+import router                   from 'girder/router';
+import View                     from 'girder/view';
 
-require('bootstrap/js/dropdown');
+import 'bootstrap/js/dropdown';
 
 /**
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
  */
-var LayoutHeaderUserView = View.extend({
+export var LayoutHeaderUserView = View.extend({
     events: {
         'click a.g-login': function () {
             Events.trigger('g:loginUi');
@@ -23,11 +23,11 @@ var LayoutHeaderUserView = View.extend({
         'click a.g-logout': Auth.logout,
 
         'click a.g-my-folders': function () {
-            Router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
+            router.navigate('user/' + Auth.getCurrentUser().get('_id'), {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            Router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
+            router.navigate('useraccount/' + Auth.getCurrentUser().get('_id') +
                                    '/info', {trigger: true});
         }
     },
@@ -45,5 +45,3 @@ var LayoutHeaderUserView = View.extend({
         return this;
     }
 });
-
-module.exports = LayoutHeaderUserView;

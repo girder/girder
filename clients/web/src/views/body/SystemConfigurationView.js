@@ -1,19 +1,19 @@
-var _                           = require('underscore');
+import _                           from 'underscore';
 
-var Events                      = require('girder/events');
-var Rest                        = require('girder/rest');
-var Router                      = require('girder/router');
-var SearchFieldWidget           = require('girder/views/widgets/SearchFieldWidget');
-var SystemConfigurationTemplate = require('girder/templates/body/systemConfiguration.jade');
-var View                        = require('girder/view');
+import Events                      from 'girder/events';
+import Rest                        from 'girder/rest';
+import router                      from 'girder/router';
+import SearchFieldWidget           from 'girder/views/widgets/SearchFieldWidget';
+import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
+import View                        from 'girder/view';
 
-require('bootstrap/js/collapse');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/collapse';
+import 'bootstrap/js/tooltip';
 
 /**
  * The system config page for administrators.
  */
-var SystemConfigurationView = View.extend({
+export var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
@@ -164,8 +164,6 @@ var SystemConfigurationView = View.extend({
     }
 });
 
-module.exports = SystemConfigurationView;
-
-Router.route('settings', 'settings', function () {
+router.route('settings', 'settings', function () {
     Events.trigger('g:navigateTo', SystemConfigurationView);
 });

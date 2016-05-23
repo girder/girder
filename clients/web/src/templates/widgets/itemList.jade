@@ -6,7 +6,7 @@ ul.g-item-list
       a.g-item-list-link(g-item-cid="#{item.cid}")
         i.icon-doc-text-inv
         | #{item.get('name')}
-      .g-item-size #{MiscFunctions.formatSize(item.get('size'))}
+      .g-item-size #{formatSize(item.get('size'))}
   if (hasMore)
     li.g-show-more
       a.g-show-more-items

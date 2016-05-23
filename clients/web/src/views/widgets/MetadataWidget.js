@@ -1,19 +1,19 @@
-var $                               = require('jquery');
-var _                               = require('underscore');
-var JSONEditor                      = require('jsoneditor/dist/jsoneditor.js'); // can not use require('jsoneditor')
+import $                               from 'jquery';
+import _                               from 'underscore';
+import JSONEditor                      from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
 
-var Constants                       = require('girder/constants');
-var Events                          = require('girder/events');
-var JsonMetadatumEditWidgetTemplate = require('girder/templates/widgets/jsonMetadatumEditWidget.jade');
-var JsonMetadatumViewTemplate       = require('girder/templates/widgets/jsonMetadatumView.jade');
-var MetadataWidgetTemplate          = require('girder/templates/widgets/metadataWidget.jade');
-var MetadatumEditWidgetTemplate     = require('girder/templates/widgets/metadatumEditWidget.jade');
-var MetadatumViewTemplate           = require('girder/templates/widgets/metadatumView.jade');
-var MiscFunctions                   = require('girder/utilities/MiscFunctions');
-var View                            = require('girder/view');
+import { AccessType }                  from 'girder/constants';
+import Events                          from 'girder/events';
+import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
+import JsonMetadatumViewTemplate       from 'girder/templates/widgets/jsonMetadatumView.jade';
+import MetadataWidgetTemplate          from 'girder/templates/widgets/metadataWidget.jade';
+import MetadatumEditWidgetTemplate     from 'girder/templates/widgets/metadatumEditWidget.jade';
+import MetadatumViewTemplate           from 'girder/templates/widgets/metadatumView.jade';
+import { localeSort, confirm }         from 'girder/utilities/MiscFunctions';
+import View                            from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
 var MetadatumWidget = View.extend({
     events: {
@@ -133,7 +133,7 @@ var MetadatumWidget = View.extend({
             key: this.key,
             value: _.bind(this.parentView.modes[this.mode].displayValue, this)(),
             accessLevel: this.accessLevel,
-            Constants: Constants
+            AccessType: AccessType
         }));
 
         return this;
@@ -199,7 +199,7 @@ var MetadatumEditWidget = View.extend({
                 });
             }, this)
         };
-        MiscFunctions.confirm(params);
+        confirm(params);
     },
 
     cancelEdit: function (event) {
@@ -279,7 +279,7 @@ var MetadatumEditWidget = View.extend({
             value: this.value,
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
-            Constants: Constants
+            AccessType: AccessType
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
 
@@ -339,7 +339,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
 /**
  * This widget shows a list of metadata in a given item.
  */
-var MetadataWidget = View.extend({
+export var MetadataWidget = View.extend({
     events: {
         'click .g-add-json-metadata': function (event) {
             this.addMetadata(event, 'json');
@@ -360,7 +360,7 @@ var MetadataWidget = View.extend({
      * @param [settings.title='Metadata'] {string} Title for the widget.
      * @param [settings.apiPath] {string} The relative API path to use when editing
      *    metadata keys for this model. Defaults to using the MetadataMixin default path.
-     * @param [settings.accessLevel=Constants.AccessType.READ] {Constants.AccessType} The
+     * @param [settings.accessLevel=AccessType.READ] {AccessType} The
      *    access level for this widget. Use READ for read-only, or WRITE (or greater)
      *    for adding editing capabilities as well.
      * @param [settings.onMetadataAdded] {Function} A custom callback for when a
@@ -475,14 +475,14 @@ var MetadataWidget = View.extend({
     render: function () {
         var metaDict = this.item.get(this.fieldName) || {};
         var metaKeys = Object.keys(metaDict);
-        metaKeys.sort(MiscFunctions.localeSort);
+        metaKeys.sort(localeSort);
 
         // Metadata header
         this.$el.html(MetadataWidgetTemplate({
             item: this.item,
             title: this.title,
             accessLevel: this.accessLevel,
-            Constants: Constants
+            AccessType: AccessType
         }));
 
         // Append each metadatum
@@ -510,5 +510,3 @@ var MetadataWidget = View.extend({
         return this;
     }
 });
-
-module.exports = MetadataWidget;

@@ -1,10 +1,10 @@
-var _             = require('underscore');
+import _             from 'underscore';
 
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var Model         = require('girder/model').Model;
-var Rest          = require('girder/rest');
+import { formatSize } from 'girder/utilities/MiscFunctions';
+import { Model }      from 'girder/model';
+import Rest           from 'girder/rest';
 
-var AssetstoreModel = Model.extend({
+export var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',
 
     capacityKnown: function () {
@@ -14,8 +14,8 @@ var AssetstoreModel = Model.extend({
 
     capacityString: function () {
         var cap = this.get('capacity');
-        return MiscFunctions.formatSize(cap.free) + ' free of ' +
-            MiscFunctions.formatSize(cap.total) + ' total';
+        return formatSize(cap.free) + ' free of ' +
+            formatSize(cap.total) + ' total';
     },
 
     import: function (params) {
@@ -33,5 +33,3 @@ var AssetstoreModel = Model.extend({
         return this;
     }
 });
-
-module.exports = AssetstoreModel;

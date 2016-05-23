@@ -1,12 +1,12 @@
-var _           = require('underscore');
+import _           from 'underscore';
 
-var Constants   = require('girder/constants');
-var FolderModel = require('girder/models/FolderModel');
-var ItemModel   = require('girder/models/ItemModel');
-var Model       = require('girder/model').Model;
-var Rest        = require('girder/rest');
+import { UPLOAD_CHUNK_SIZE } from 'girder/constants';
+import FolderModel           from 'girder/models/FolderModel';
+import ItemModel             from 'girder/models/ItemModel';
+import { Model }             from 'girder/model';
+import Rest                  from 'girder/rest';
 
-var FileModel = Model.extend({
+export var FileModel = Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
@@ -221,7 +221,7 @@ var FileModel = Model.extend({
     },
 
     _uploadChunk: function (file, uploadId) {
-        var endByte = Math.min(this.startByte + Constants.UPLOAD_CHUNK_SIZE,
+        var endByte = Math.min(this.startByte + UPLOAD_CHUNK_SIZE,
                                file.size);
 
         this.chunkLength = endByte - this.startByte;
@@ -312,6 +312,3 @@ var FileModel = Model.extend({
         }
     }
 });
-
-module.exports = FileModel;
-

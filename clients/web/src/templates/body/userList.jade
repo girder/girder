@@ -13,12 +13,12 @@ each user in users
       .g-user-joined
         i.icon-clock
         | Joined on
-        span.g-user-joined-date  #{MiscFunctions.formatDate(user.get('created'), MiscFunctions.DATE_DAY)}
+        span.g-user-joined-date  #{formatDate(user.get('created'), DATE_DAY)}
       if (user.get('size') !== undefined)
         .g-space-used
           i.icon-floppy
           | Currently using
-          span.g-user-space-used  #{MiscFunctions.formatSize(user.get('size'))}
+          span.g-user-space-used  #{formatSize(user.get('size'))}
     .g-user-title
       a.g-user-link(g-user-cid=user.cid)
         b= user.name()

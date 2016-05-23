@@ -1,38 +1,38 @@
-var _                = require('underscore');
+import _                from 'underscore';
 
-var Constants        = require('girder/constants');
-var Events           = require('girder/events');
-var FolderModel      = require('girder/models/FolderModel');
-var HierarchyWidget  = require('girder/views/widgets/HierarchyWidget');
-var MiscFunctions    = require('girder/utilities/MiscFunctions');
-var Rest             = require('girder/rest');
-var Router           = require('girder/router');
-var UserModel        = require('girder/models/UserModel');
-var UserPageTemplate = require('girder/templates/body/userPage.jade');
-var UsersView        = require('girder/views/body/UsersView');
-var View             = require('girder/view');
+import { AccessType }   from 'girder/constants';
+import Events           from 'girder/events';
+import FolderModel      from 'girder/models/FolderModel';
+import HierarchyWidget  from 'girder/views/widgets/HierarchyWidget';
+import { confirm }      from 'girder/utilities/MiscFunctions';
+import Rest             from 'girder/rest';
+import router           from 'girder/router';
+import UserModel        from 'girder/models/UserModel';
+import UserPageTemplate from 'girder/templates/body/userPage.jade';
+import UsersView        from 'girder/views/body/UsersView';
+import View             from 'girder/view';
 
-require('bootstrap/js/dropdown');
+import 'bootstrap/js/dropdown';
 
 /**
  * This view shows a single user's page.
  */
-var UserView = View.extend({
+export var UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
             var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
-            Router.navigate(editUrl, {trigger: true});
+            router.navigate(editUrl, {trigger: true});
         },
 
         'click a.g-delete-user': function () {
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to delete the user <b>' +
                       this.model.escape('login') + '</b>?',
                 yesText: 'Delete',
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
                     this.model.destroy().on('g:deleted', function () {
-                        Router.navigate('users', {trigger: true});
+                        router.navigate('users', {trigger: true});
                     });
                 }, this)
             });
@@ -94,7 +94,7 @@ var UserView = View.extend({
     render: function () {
         this.$el.html(UserPageTemplate({
             user: this.model,
-            Constants: Constants
+            AccessType: AccessType
         }));
 
         this.hierarchyWidget.setElement(this.$('.g-user-hierarchy-container')).render();
@@ -108,8 +108,6 @@ var UserView = View.extend({
         return this;
     }
 });
-
-module.exports = UserView;
 
 /**
  * Helper function for fetching the user and rendering the view with
@@ -128,14 +126,14 @@ var _fetchAndInit = function (userId, params) {
     }, this).fetch();
 };
 
-Router.route('user/:id', 'user', function (userId, params) {
+router.route('user/:id', 'user', function (userId, params) {
     _fetchAndInit(userId, {
         folderCreate: params.dialog === 'foldercreate',
         dialog: params.dialog
     });
 });
 
-Router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
+router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
     _fetchAndInit(userId, {
         folderId: folderId,
         upload: params.dialog === 'upload',

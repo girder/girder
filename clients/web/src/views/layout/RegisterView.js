@@ -1,17 +1,17 @@
-var Auth                   = require('girder/auth');
-var DialogHelper           = require('girder/utilities/DialogHelper');
-var Events                 = require('girder/events');
-var RegisterDialogTemplate = require('girder/templates/layout/registerDialog.jade');
-var UserModel              = require('girder/models/UserModel');
-var View                   = require('girder/view');
+import Auth                        from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import Events                      from 'girder/events';
+import RegisterDialogTemplate      from 'girder/templates/layout/registerDialog.jade';
+import UserModel                   from 'girder/models/UserModel';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This view shows a register modal dialog.
  */
-var RegisterView = View.extend({
+export var RegisterView = View.extend({
     events: {
         'submit #g-register-form': function (e) {
             e.preventDefault();
@@ -47,7 +47,7 @@ var RegisterView = View.extend({
                         document.cookie = 'girderToken=' + Auth.getCurrentToken();
                     }
 
-                    DialogHelper.handleClose('register', {replace: true});
+                    handleClose('register', {replace: true});
                     Events.trigger('g:login');
                 }
 
@@ -80,15 +80,13 @@ var RegisterView = View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                DialogHelper.handleClose('register', {replace: true});
+                handleClose('register', {replace: true});
             });
         this.$('#g-login').focus();
 
-        DialogHelper.handleOpen('register', {replace: true});
+        handleOpen('register', {replace: true});
 
         return this;
     }
 
 });
-
-module.exports = RegisterView;

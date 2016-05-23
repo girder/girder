@@ -1,7 +1,7 @@
-var jQuery = require('jquery');
+import jQuery from 'jquery';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * Define jQuery plugins within this scope.

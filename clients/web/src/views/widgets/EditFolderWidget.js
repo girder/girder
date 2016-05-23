@@ -1,19 +1,19 @@
-var $                        = require('jquery');
-var _                        = require('underscore');
+import $                           from 'jquery';
+import _                           from 'underscore';
 
-var DialogHelper             = require('girder/utilities/DialogHelper');
-var EditFolderWidgetTemplate = require('girder/templates/widgets/editFolderWidget.jade');
-var FolderModel              = require('girder/models/FolderModel');
-var MarkdownWidget           = require('girder/views/widgets/MarkdownWidget');
-var View                     = require('girder/view');
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import EditFolderWidgetTemplate    from 'girder/templates/widgets/editFolderWidget.jade';
+import FolderModel                 from 'girder/models/FolderModel';
+import MarkdownWidget              from 'girder/views/widgets/MarkdownWidget';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-var EditFolderWidget = View.extend({
+export var EditFolderWidget = View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();
@@ -56,15 +56,15 @@ var EditFolderWidget = View.extend({
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.folder) {
-                DialogHelper.handleOpen('folderedit');
+                handleOpen('folderedit');
             } else {
-                DialogHelper.handleOpen('foldercreate');
+                handleOpen('foldercreate');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                DialogHelper.handleClose('foldercreate');
+                handleClose('foldercreate');
             } else {
-                DialogHelper.handleClose('folderedit');
+                handleClose('folderedit');
             }
         }).on('ready.girder.modal', function () {
             if (view.folder) {
@@ -111,6 +111,4 @@ var EditFolderWidget = View.extend({
         }, this).save();
     }
 });
-
-module.exports = EditFolderWidget;
 

@@ -1,13 +1,13 @@
-var $             = require('jquery');
-var _             = require('underscore');
-var Backbone      = require('backbone');
+import $             from 'jquery';
+import _             from 'underscore';
+import Backbone      from 'backbone';
 
-var Auth          = require('girder/auth');
-var Events        = require('girder/events');
+import Auth          from 'girder/auth';
+import Events        from 'girder/events';
 
-var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
-var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
-var uploadHandlers = {};
+export var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
+export var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
+export var uploadHandlers = {};
 
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
@@ -24,7 +24,7 @@ var uploadHandlers = {};
  * @param [type='GET'] The HTTP method to invoke.
  * @param [girderToken] An alternative auth token to use for this request.
  */
-var restRequest = function (opts) {
+export var restRequest = function (opts) {
     opts = opts || {};
     var defaults = {
         dataType: 'json',
@@ -118,7 +118,7 @@ $(document).ajaxComplete(function (event, xhr) {
  *                  xhr.girder[category] set to a truthy value.
  * :returns: the number of outstanding requests.
  */
-var numberOutstandingRestRequests = function (category) {
+export var numberOutstandingRestRequests = function (category) {
     if (category) {
         return _.filter(restXhrPool, function (xhr) {
             return xhr.girder && xhr.girder[category];
@@ -131,7 +131,7 @@ var numberOutstandingRestRequests = function (category) {
  * :param category: if specified, only abort those requests that have
  *                  xhr.girder[category] set to a truthy value.
  */
-var cancelRestRequests = function (category) {
+export var cancelRestRequests = function (category) {
     _.each(restXhrPool, function (xhr) {
         if (category && (!xhr.girder || !xhr.girder[category])) {
             return;
@@ -140,13 +140,4 @@ var cancelRestRequests = function (category) {
             xhr.abort();
         }
     });
-};
-
-module.exports = {
-    apiRoot: apiRoot,
-    staticRoot: staticRoot,
-    uploadHandlers: uploadHandlers,
-    restRequest: restRequest,
-    cancelRestRequests: cancelRestRequests,
-    numberOutstandingRestRequests: numberOutstandingRestRequests
 };

@@ -1,22 +1,22 @@
-var $                        = require('jquery');
-var _                        = require('underscore');
+import $                        from 'jquery';
+import _                        from 'underscore';
 
-var Rest                     = require('girder/rest');
-var SearchFieldTemplate      = require('girder/templates/widgets/searchField.jade');
-var SearchHelpTemplate       = require('girder/templates/widgets/searchHelp.jade');
-var SearchModeSelectTemplate = require('girder/templates/widgets/searchModeSelect.jade');
-var SearchResultsTemplate    = require('girder/templates/widgets/searchResults.jade');
-var View                     = require('girder/view');
+import Rest                     from 'girder/rest';
+import SearchFieldTemplate      from 'girder/templates/widgets/searchField.jade';
+import SearchHelpTemplate       from 'girder/templates/widgets/searchHelp.jade';
+import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.jade';
+import SearchResultsTemplate    from 'girder/templates/widgets/searchResults.jade';
+import View                     from 'girder/view';
 
-require('bootstrap/js/tooltip');
-require('bootstrap/js/popover');
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
 
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-var SearchFieldWidget = View.extend({
+export var SearchFieldWidget = View.extend({
     events: {
         'input .g-search-field': 'search',
 
@@ -254,5 +254,3 @@ var SearchFieldWidget = View.extend({
         }, this));
     }
 });
-
-module.exports = SearchFieldWidget;

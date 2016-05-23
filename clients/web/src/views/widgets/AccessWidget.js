@@ -1,25 +1,25 @@
-var $                            = require('jquery');
-var _                            = require('underscore');
+import $                            from 'jquery';
+import _                            from 'underscore';
 
-var accessEditorNonModalTemplate = require('girder/templates/widgets/accessEditorNonModal.jade');
-var accessEditorTemplate         = require('girder/templates/widgets/accessEditor.jade');
-var accessEntryTemplate          = require('girder/templates/widgets/accessEntry.jade');
-var Constants                    = require('girder/constants');
-var DialogHelper                 = require('girder/utilities/DialogHelper');
-var GroupModel                   = require('girder/models/GroupModel');
-var LoadingAnimation             = require('girder/views/widgets/LoadingAnimation');
-var SearchFieldWidget            = require('girder/views/widgets/SearchFieldWidget');
-var UserModel                    = require('girder/models/UserModel');
-var View                         = require('girder/view');
+import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.jade';
+import accessEditorTemplate         from 'girder/templates/widgets/accessEditor.jade';
+import accessEntryTemplate          from 'girder/templates/widgets/accessEntry.jade';
+import { AccessType }               from 'girder/constants';
+import { handleClose, handleOpen }  from 'girder/utilities/DialogHelper';
+import GroupModel                   from 'girder/models/GroupModel';
+import LoadingAnimation             from 'girder/views/widgets/LoadingAnimation';
+import SearchFieldWidget            from 'girder/views/widgets/SearchFieldWidget';
+import UserModel                    from 'girder/models/UserModel';
+import View                         from 'girder/view';
 
-require('bootstrap/js/tooltip');
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This view allows users to see and control access on a resource.
  */
-var AccessWidget = View.extend({
+export var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
             $(e.currentTarget).attr('disabled', 'disabled');
@@ -74,14 +74,14 @@ var AccessWidget = View.extend({
 
         var closeFunction;
         if (this.modal && this.modelType === 'folder') {
-            DialogHelper.handleOpen('folderaccess');
+            handleOpen('folderaccess');
             closeFunction = function () {
-                DialogHelper.handleClose('folderaccess');
+                handleClose('folderaccess');
             };
         } else if (this.modal) {
-            DialogHelper.handleOpen('access');
+            handleOpen('access');
             closeFunction = function () {
-                DialogHelper.handleClose('access');
+                handleClose('access');
             };
         }
 
@@ -101,7 +101,7 @@ var AccessWidget = View.extend({
 
         _.each(this.model.get('access').groups, function (groupAccess) {
             this.$('#g-ac-list-groups').append(accessEntryTemplate({
-                accessTypes: Constants.AccessType,
+                accessTypes: AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
                     title: groupAccess.name,
@@ -112,7 +112,7 @@ var AccessWidget = View.extend({
 
         _.each(this.model.get('access').users, function (userAccess) {
             this.$('#g-ac-list-users').append(accessEntryTemplate({
-                accessTypes: Constants.AccessType,
+                accessTypes: AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
                     title: userAccess.name,
@@ -164,13 +164,13 @@ var AccessWidget = View.extend({
             var model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-users').append(accessEntryTemplate({
-                    accessTypes: Constants.AccessType,
+                    accessTypes: AccessType,
                     type: 'user',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('login'),
                         id: entry.id,
-                        level: Constants.AccessType.READ
+                        level: AccessType.READ
                     }
                 }));
 
@@ -192,13 +192,13 @@ var AccessWidget = View.extend({
             var model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-groups').append(accessEntryTemplate({
-                    accessTypes: Constants.AccessType,
+                    accessTypes: AccessType,
                     type: 'group',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('description'),
                         id: entry.id,
-                        level: Constants.AccessType.READ
+                        level: AccessType.READ
                     }
                 }));
 
@@ -272,5 +272,3 @@ var AccessWidget = View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
-
-module.exports = AccessWidget;

@@ -15,7 +15,7 @@ each group in groups
       .g-group-created
         i.icon-clock
         | Created on
-        span.g-group-created-date  #{MiscFunctions.formatDate(group.get('created'), MiscFunctions.DATE_DAY)}
+        span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
       .g-group-privacy
         if (group.get('public'))
           i.icon-globe

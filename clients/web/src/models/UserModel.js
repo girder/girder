@@ -1,10 +1,10 @@
-var _      = require('underscore');
+import _         from 'underscore';
 
-var Auth   = require('girder/auth');
-var Model  = require('girder/model').Model;
-var Rest   = require('girder/rest');
+import Auth      from 'girder/auth';
+import { Model } from 'girder/model';
+import Rest      from 'girder/rest';
 
-var UserModel = Model.extend({
+export var UserModel = Model.extend({
     resourceName: 'user',
 
     /**
@@ -126,6 +126,3 @@ var UserModel = Model.extend({
         }, this));
     }
 });
-
-module.exports = UserModel;
-

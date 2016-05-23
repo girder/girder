@@ -1,16 +1,16 @@
-var LayoutHeaderTemplate = require('girder/templates/layout/layoutHeader.jade');
-var LayoutHeaderUserView = require('girder/views/layout/HeaderUserView');
-var Router               = require('girder/router');
-var SearchFieldWidget    = require('girder/views/widgets/SearchFieldWidget');
-var View                 = require('girder/view');
+import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.jade';
+import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
+import router               from 'girder/router';
+import SearchFieldWidget    from 'girder/views/widgets/SearchFieldWidget';
+import View                 from 'girder/view';
 
 /**
  * This view shows the header in the layout.
  */
-var LayoutHeaderView = View.extend({
+export var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
-            Router.navigate('', {trigger: true});
+            router.navigate('', {trigger: true});
         }
     },
 
@@ -25,7 +25,7 @@ var LayoutHeaderView = View.extend({
             parentView: this
         }).on('g:resultClicked', function (result) {
             this.searchWidget.resetState();
-            Router.navigate(result.type + '/' + result.id, {
+            router.navigate(result.type + '/' + result.id, {
                 trigger: true
             });
         }, this);
@@ -38,5 +38,3 @@ var LayoutHeaderView = View.extend({
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
     }
 });
-
-module.exports = LayoutHeaderView;

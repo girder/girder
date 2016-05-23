@@ -1,21 +1,21 @@
-var $                = require('jquery');
-var _                = require('underscore');
+import $                       from 'jquery';
+import _                       from 'underscore';
 
-var Constants        = require('girder/constants')
-var EditFileWidget   = require('girder/views/widgets/EditFileWidget');
-var Events           = require('girder/events');
-var FileCollection   = require('girder/collections/FileCollection');
-var FileListTemplate = require('girder/templates/widgets/fileList.jade');
-var MiscFunctions    = require('girder/utilities/MiscFunctions');
-var UploadWidget     = require('girder/views/widgets/UploadWidget');
-var View             = require('girder/view');
+import { AccessType }          from 'girder/constants';
+import EditFileWidget          from 'girder/views/widgets/EditFileWidget';
+import Events                  from 'girder/events';
+import FileCollection          from 'girder/collections/FileCollection';
+import FileListTemplate        from 'girder/templates/widgets/fileList.jade';
+import { confirm, formatSize } from 'girder/utilities/MiscFunctions';
+import UploadWidget            from 'girder/views/widgets/UploadWidget';
+import View                    from 'girder/view';
 
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/tooltip';
 
 /**
  * This widget shows a list of files in a given item.
  */
-var FileListWidget = View.extend({
+export var FileListWidget = View.extend({
     events: {
         'click a.g-show-more-files': function () {
             this.collection.fetchNextPage();
@@ -35,7 +35,7 @@ var FileListWidget = View.extend({
             var cid = $(e.currentTarget).parent().attr('file-cid');
             var file = this.collection.get(cid);
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to delete the file <b>' +
                       file.escape('name') + '</b>?',
                 yesText: 'Delete',
@@ -112,8 +112,8 @@ var FileListWidget = View.extend({
         this.$el.html(FileListTemplate({
             files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            Constants: Constants,
-            MiscFunctions: MiscFunctions,
+            AccessType: AccessType,
+            formatSize: formatSize,
             parentItem: this.parentItem
         }));
 
@@ -143,5 +143,3 @@ var FileListWidget = View.extend({
         this.trigger('g:changed');
     }
 });
-
-module.exports = FileListWidget;

@@ -1,31 +1,31 @@
-var $                      = require('jquery');
-var _                      = require('underscore');
+import $                      from 'jquery';
+import _                      from 'underscore';
 
-var AccessWidget           = require('girder/views/widgets/AccessWidget');
-var CollectionModel        = require('girder/models/CollectionModel');
-var CollectionPageTemplate = require('girder/templates/body/collectionPage.jade');
-var Constants              = require('girder/constants');
-var EditCollectionWidget   = require('girder/views/widgets/EditCollectionWidget');
-var Events                 = require('girder/events');
-var FolderModel            = require('girder/models/FolderModel');
-var HierarchyWidget        = require('girder/views/widgets/HierarchyWidget');
-var MiscFunctions          = require('girder/utilities/MiscFunctions');
-var Rest                   = require('girder/rest');
-var Router                 = require('girder/router');
-var View                   = require('girder/view');
+import AccessWidget           from 'girder/views/widgets/AccessWidget';
+import CollectionModel        from 'girder/models/CollectionModel';
+import CollectionPageTemplate from 'girder/templates/body/collectionPage.jade';
+import { AccessType }         from 'girder/constants';
+import EditCollectionWidget   from 'girder/views/widgets/EditCollectionWidget';
+import Events                 from 'girder/events';
+import FolderModel            from 'girder/models/FolderModel';
+import HierarchyWidget        from 'girder/views/widgets/HierarchyWidget';
+import { confirm }            from 'girder/utilities/MiscFunctions';
+import Rest                   from 'girder/rest';
+import router                 from 'girder/router';
+import View                   from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a single collection's page.
  */
-var CollectionView = View.extend({
+export var CollectionView = View.extend({
     events: {
         'click .g-edit-collection': 'editCollection',
         'click .g-collection-access-control': 'editAccess',
         'click .g-delete-collection': function () {
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to delete the collection <b>' +
                       this.model.escape('name') + '</b>?',
                 yesText: 'Delete',
@@ -38,7 +38,7 @@ var CollectionView = View.extend({
                             type: 'success',
                             timeout: 4000
                         });
-                        Router.navigate('collections', {trigger: true});
+                        router.navigate('collections', {trigger: true});
                     });
                 }, this)
             });
@@ -121,7 +121,7 @@ var CollectionView = View.extend({
     render: function () {
         this.$el.html(CollectionPageTemplate({
             collection: this.model,
-            Constants: Constants
+            AccessType: AccessType
         }));
 
         this.hierarchyWidget.setElement(
@@ -163,8 +163,6 @@ var CollectionView = View.extend({
     }
 });
 
-module.exports = CollectionView;
-
 /**
  * Helper function for fetching the user and rendering the view with
  * an arbitrary set of extra parameters.
@@ -180,7 +178,7 @@ var _fetchAndInit = function (collectionId, params) {
     }, this).fetch();
 };
 
-Router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
+router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
     _fetchAndInit(collectionId, {
         access: params.dialog === 'access',
         edit: params.dialog === 'edit',
@@ -189,7 +187,7 @@ Router.route('collection/:id', 'collectionAccess', function (collectionId, param
     });
 });
 
-Router.route('collection/:id/folder/:id', 'collectionFolder',
+router.route('collection/:id/folder/:id', 'collectionFolder',
     function (collectionId, folderId, params) {
         _fetchAndInit(collectionId, {
             folderId: folderId,

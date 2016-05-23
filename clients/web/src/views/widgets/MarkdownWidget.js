@@ -1,20 +1,20 @@
-var _                      = require('underscore');
+import _                              from 'underscore';
 
-var Events                 = require('girder/events');
-var FileModel              = require('girder/models/FileModel');
-var View                   = require('girder/view');
-var MiscFunctions          = require('girder/utilities/MiscFunctions');
-var MarkdownWidgetTemplate = require('girder/templates/widgets/markdownWidget.jade');
+import Events                         from 'girder/events';
+import FileModel                      from 'girder/models/FileModel';
+import View                           from 'girder/view';
+import { renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
+import MarkdownWidgetTemplate         from 'girder/templates/widgets/markdownWidget.jade';
 
-require('bootstrap/js/tab');
+import 'bootstrap/js/tab';
 
 /**
  * A simple widget for editing markdown text with a preview tab.
  */
-var MarkdownWidget = View.extend({
+export var MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
-            MiscFunctions.renderMarkdown(this.val().trim() || 'Nothing to show',
+            renderMarkdown(this.val().trim() || 'Nothing to show',
                                   this.$('.g-markdown-preview'));
         },
 
@@ -120,8 +120,8 @@ var MarkdownWidget = View.extend({
                 Math.ceil(100 * currentProgress / info.total) + '%');
             this.$('.g-markdown-upload-progress-message').text(
                 'Uploading ' + info.file.name + ' - ' +
-                   MiscFunctions.formatSize(currentProgress) + ' / ' +
-                   MiscFunctions.formatSize(info.total)
+                   formatSize(currentProgress) + ' / ' +
+                   formatSize(info.total)
             );
         }, this).on('g:upload.error', function (info) {
             Events.trigger('g:alert', {
@@ -164,7 +164,7 @@ var MarkdownWidget = View.extend({
         if (this.maxUploadSize && file.size > this.maxUploadSize) {
             throw {
                 message: 'That file is too large. You may only attach files ' +
-                         'up to ' + MiscFunctions.formatSize(this.maxUploadSize) + '.'
+                         'up to ' + formatSize(this.maxUploadSize) + '.'
             };
         }
 
@@ -199,5 +199,3 @@ var MarkdownWidget = View.extend({
         }
     }
 });
-
-module.exports = MarkdownWidget;

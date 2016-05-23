@@ -1,13 +1,13 @@
-var CheckedActionsMenuTemplate = require('girder/templates/widgets/checkedActionsMenu.jade');
-var Constants                  = require('girder/constants');
-var HierarchyWidget            = require('girder/views/widgets/HierarchyWidget');
-var View                       = require('girder/view');
+import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
+import { AccessType }             from 'girder/constants';
+import HierarchyWidget            from 'girder/views/widgets/HierarchyWidget';
+import View                       from 'girder/view';
 
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
  */
-var CheckedMenuWidget = View.extend({
+export var CheckedMenuWidget = View.extend({
 
     initialize: function (params) {
         this._fetchAndInit(params);
@@ -27,7 +27,7 @@ var CheckedMenuWidget = View.extend({
             minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,
             itemCount: this.itemCount,
-            AccessType: Constants.AccessType,
+            AccessType: AccessType,
             pickedCount: this.pickedCount,
             pickedCopyAllowed: this.pickedCopyAllowed,
             pickedMoveAllowed: this.pickedMoveAllowed,
@@ -49,8 +49,8 @@ var CheckedMenuWidget = View.extend({
     },
 
     _fetchAndInit: function (params) {
-        this.minFolderLevel = params.minFolderLevel || Constants.AccessType.READ;
-        this.minItemLevel = params.minItemLevel || Constants.AccessType.READ;
+        this.minFolderLevel = params.minFolderLevel || AccessType.READ;
+        this.minItemLevel = params.minItemLevel || AccessType.READ;
         this.folderCount = params.folderCount || 0;
         this.itemCount = params.itemCount || 0;
         this.pickedCount = params.pickedCount || 0;
@@ -59,5 +59,3 @@ var CheckedMenuWidget = View.extend({
         this.pickedDesc = params.pickedDesc || '';
     }
 });
-
-module.exports = CheckedMenuWidget;

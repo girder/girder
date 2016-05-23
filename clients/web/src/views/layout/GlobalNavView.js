@@ -1,24 +1,24 @@
-var $               = require('jquery');
+import $               from 'jquery';
 
-var Auth            = require('girder/auth');
-var Backbone        = require('backbone');
-var Events          = require('girder/events');
-var LayoutGlobalNav = require('girder/templates/layout/layoutGlobalNav.jade');
-var Router          = require('girder/router');
-var View            = require('girder/view');
+import Auth            from 'girder/auth';
+import Backbone        from 'backbone';
+import Events          from 'girder/events';
+import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
+import router          from 'girder/router';
+import View            from 'girder/view';
 
 /**
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-var LayoutGlobalNavView = View.extend({
+export var LayoutGlobalNavView = View.extend({
     events: {
         'click .g-nav-link': function (event) {
             event.preventDefault(); // so we can keep the href
 
             var link = $(event.currentTarget);
 
-            Router.navigate(link.attr('g-target'), {trigger: true});
+            router.navigate(link.attr('g-target'), {trigger: true});
 
             // Must call this after calling navigateTo, since that
             // deactivates all global nav links.
@@ -93,5 +93,3 @@ var LayoutGlobalNavView = View.extend({
         this.$('.g-global-nav-li').removeClass('g-active');
     }
 });
-
-module.exports = LayoutGlobalNavView;

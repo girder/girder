@@ -15,12 +15,12 @@ each collection in collections
       .g-collection-created
         i.icon-clock
         | Created on
-        span.g-collection-created-date  #{MiscFunctions.formatDate(collection.get('created'), MiscFunctions.DATE_MINUTE)}
+        span.g-collection-created-date  #{formatDate(collection.get('created'), DATE_MINUTE)}
       if (collection.get('size') !== undefined)
         .g-space-used
           i.icon-floppy
           | Currently using
-          span.g-user-space-used  #{MiscFunctions.formatSize(collection.get('size'))}
+          span.g-user-space-used  #{formatSize(collection.get('size'))}
     .g-collection-title
       a.g-collection-link(g-collection-cid="#{collection.cid}")
         b #{collection.get('name')}

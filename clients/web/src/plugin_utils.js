@@ -1,4 +1,4 @@
-var _ = require('underscore');
+import _ from 'underscore';
 
 /**
  * Wrap the prototype method of a given object.
@@ -10,10 +10,6 @@ var _ = require('underscore');
  *     should be called with .call(this[, arguments]) inside of the wrapper in
  *     order to preserve "this" semantics.
  */
-var wrap = function (obj, funcName, wrapper) {
+export var wrap = function (obj, funcName, wrapper) {
     obj.prototype[funcName] = _.wrap(obj.prototype[funcName], wrapper);
-};
-
-module.exports = {
-    wrap: wrap
 };

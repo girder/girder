@@ -1,34 +1,34 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
+import $                    from 'jquery';
+import _                    from 'underscore';
 
-var Constants            = require('girder/constants');
-var Events               = require('girder/events');
-var GroupModListTemplate = require('girder/templates/widgets/groupModList.jade');
-var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var UserModel            = require('girder/models/UserModel');
-var UserView             = require('girder/views/body/UserView');
-var View                 = require('girder/view');
+import { AccessType }       from 'girder/constants';
+import Events               from 'girder/events';
+import GroupModListTemplate from 'girder/templates/widgets/groupModList.jade';
+import { confirm }          from 'girder/utilities/MiscFunctions';
+import UserModel            from 'girder/models/UserModel';
+import UserView             from 'girder/views/body/UserView';
+import View                 from 'girder/view';
 
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a list of moderators of a group.
  */
-var GroupModsWidget = View.extend({
+export var GroupModsWidget = View.extend({
     events: {
         'click .g-group-mod-promote': function (e) {
             var userid = $(e.currentTarget).parents('li').attr('userid');
             var user = new UserModel({_id: userid});
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
-            }, this).promoteUser(user, Constants.AccessType.ADMIN);
+            }, this).promoteUser(user, AccessType.ADMIN);
         },
 
         'click .g-group-mod-demote': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -42,7 +42,7 @@ var GroupModsWidget = View.extend({
             var view = this;
             var li = $(e.currentTarget).parents('li');
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove <b> ' +
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
@@ -70,7 +70,7 @@ var GroupModsWidget = View.extend({
             group: this.model,
             level: this.model.get('_accessLevel'),
             moderators: this.moderators,
-            accessType: Constants.AccessType
+            accessType: AccessType
         }));
 
         this.$('.g-group-mod-demote.g-group-mod-promote,.g-group-mod-remove').tooltip({
@@ -83,6 +83,4 @@ var GroupModsWidget = View.extend({
         return this;
     }
 });
-
-module.exports = GroupModsWidget;
 

@@ -1,27 +1,27 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
+import $                       from 'jquery';
+import _                       from 'underscore';
 
-var AssetstoreCollection = require('girder/collections/AssetstoreCollection');
-var AssetstoreModel      = require('girder/models/AssetstoreModel');
-var AssetstoresTemplate  = require('girder/templates/body/assetstores.jade');
-var Auth                 = require('girder/auth');
-var Constants            = require('girder/constants');
-var EditAssetstoreWidget = require('girder/views/widgets/EditAssetstoreWidget');
-var Events               = require('girder/events');
-var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var NewAssetstoreWidget  = require('girder/views/widgets/NewAssetstoreWidget');
-var Rest                 = require('girder/rest');
-var Router               = require('girder/router');
-var View                 = require('girder/view');
+import AssetstoreCollection    from 'girder/collections/AssetstoreCollection';
+import AssetstoreModel         from 'girder/models/AssetstoreModel';
+import AssetstoresTemplate     from 'girder/templates/body/assetstores.jade';
+import Auth                    from 'girder/auth';
+import { AssetstoreType }      from 'girder/constants';
+import EditAssetstoreWidget    from 'girder/views/widgets/EditAssetstoreWidget';
+import Events                  from 'girder/events';
+import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
+import NewAssetstoreWidget     from 'girder/views/widgets/NewAssetstoreWidget';
+import Rest                    from 'girder/rest';
+import router                  from 'girder/router';
+import View                    from 'girder/view';
 
-require('as-jqplot/dist/jquery.jqplot.js');
-require('as-jqplot/dist/plugins/jqplot.pieRenderer.js');
-require('bootstrap/js/tooltip');
+import 'as-jqplot/dist/jquery.jqplot.js';
+import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-var AssetstoresView = View.extend({
+export var AssetstoresView = View.extend({
     events: {
         'click .g-set-current': 'setCurrentAssetstore',
         'click .g-delete-assetstore': 'deleteAssetstore',
@@ -32,8 +32,8 @@ var AssetstoresView = View.extend({
         Rest.cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
         this.importableTypes = [
-            Constants.AssetstoreType.FILESYSTEM,
-            Constants.AssetstoreType.S3
+            AssetstoreType.FILESYSTEM,
+            AssetstoreType.S3
         ].concat(settings.importableTypes || []);
 
         this.newAssetstoreWidget = new NewAssetstoreWidget({
@@ -54,7 +54,7 @@ var AssetstoresView = View.extend({
         }
         this.$el.html(AssetstoresTemplate({
             assetstores: this.collection.toArray(),
-            types: Constants.AssetstoreType,
+            types: AssetstoreType,
             importableTypes: this.importableTypes,
             getAssetstoreImportRoute: this.getAssetstoreImportRoute
         }));
@@ -87,8 +87,8 @@ var AssetstoresView = View.extend({
         var capacity = assetstore.get('capacity');
         var used = capacity.total - capacity.free;
         var data = [
-            ['Used (' + MiscFunctions.formatSize(used) + ')', used],
-            ['Free (' + MiscFunctions.formatSize(capacity.free) + ')', capacity.free]
+            ['Used (' + formatSize(used) + ')', used],
+            ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
         $(el).jqplot([data], {
             seriesDefaults: {
@@ -143,7 +143,7 @@ var AssetstoresView = View.extend({
         var el = $(evt.currentTarget);
         var assetstore = this.collection.get(el.attr('cid'));
 
-        MiscFunctions.confirm({
+        confirm({
             text: 'Are you sure you want to delete the assetstore <b>' +
                   assetstore.escape('name') + '</b>?  There are no files ' +
                   'stored in it, and no data will be lost.',
@@ -190,33 +190,41 @@ var AssetstoresView = View.extend({
     }
 });
 
-module.exports = AssetstoresView;
-
 /**
  * This private data structure is a dynamic way to map assetstore types to the views
  * that should be rendered to import data into them.
  */
 var assetstoreImportViewMap = {};
-assetstoreImportViewMap[Constants.AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
-assetstoreImportViewMap[Constants.AssetstoreType.S3] = 'S3ImportView';
+assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
+assetstoreImportViewMap[AssetstoreType.S3] = 'S3ImportView';
 
-Router.route('assetstores', 'assetstores', function (params) {
+router.route('assetstores', 'assetstores', function (params) {
     Events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit'
                         ? params.dialogid : false
     });
 });
 
-Router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
+router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
     var assetstore = AssetstoreModel({
         _id: assetstoreId
     });
 
     assetstore.once('g:fetched', function () {
-        var viewName = assetstoreImportViewMap[assetstore.get('type')],
-            // Webpack supports dynamic requires: https://webpack.github.io/docs/context.html
-            view = require('girder/views/body/' + viewName);
-
+        var viewName = assetstoreImportViewMap[assetstore.get('type')];
+        // Webpack supports dynamic import: https://webpack.github.io/docs/context.html
+        // UNFORTUNATELY does not seem to be working, using context module or require/ensure.
+        // https://webpack.github.io/docs/context.html
+        // https://webpack.github.io/docs/code-splitting.html
+        // System.import('girder/views/body/' + viewName).then(function (view) {
+        //     Events.trigger('g:navigateTo', view, {
+        //         assetstore: assetstore
+        //     });
+        // }).catch(function (error) {
+        //     throw 'No such view: ' + viewName + ' (' + error + ')';
+        // });
+        console.log(viewName);
+        var view = require('girder/views/body/' + viewName);
         if (!view) {
             throw 'No such view: ' + viewName;
         }

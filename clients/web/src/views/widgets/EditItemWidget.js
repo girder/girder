@@ -1,18 +1,18 @@
-var $                      = require('jquery');
-var _                      = require('underscore');
+import $                           from 'jquery';
+import _                           from 'underscore';
 
-var DialogHelper           = require('girder/utilities/DialogHelper');
-var EditItemWidgetTemplate = require('girder/templates/widgets/editItemWidget.jade');
-var ItemModel              = require('girder/models/ItemModel');
-var View                   = require('girder/view');
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import EditItemWidgetTemplate      from 'girder/templates/widgets/editItemWidget.jade';
+import ItemModel                   from 'girder/models/ItemModel';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-var EditItemWidget = View.extend({
+export var EditItemWidget = View.extend({
     events: {
         'submit #g-item-edit-form': function () {
             var fields = {
@@ -45,15 +45,15 @@ var EditItemWidget = View.extend({
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();
                 if (view.item) {
-                    DialogHelper.handleOpen('itemedit');
+                    handleOpen('itemedit');
                 } else {
-                    DialogHelper.handleOpen('itemcreate');
+                    handleOpen('itemcreate');
                 }
             }).on('hidden.bs.modal', function () {
                 if (view.create) {
-                    DialogHelper.handleClose('itemcreate');
+                    handleClose('itemcreate');
                 } else {
-                    DialogHelper.handleClose('itemedit');
+                    handleClose('itemedit');
                 }
             }).on('ready.girder.modal', function () {
                 if (view.item) {
@@ -96,6 +96,4 @@ var EditItemWidget = View.extend({
         }, this).save();
     }
 });
-
-module.exports = EditItemWidget;
 

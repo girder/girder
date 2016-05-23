@@ -1,26 +1,26 @@
-var $                 = require('jquery');
+import $                 from 'jquery';
 
-var Auth              = require('girder/auth');
-var EditGroupWidget   = require('girder/views/widgets/EditGroupWidget');
-var Events            = require('girder/events');
-var GroupCollection   = require('girder/collections/GroupCollection');
-var GroupListTemplate = require('girder/templates/body/groupList.jade');
-var GroupModel        = require('girder/models/GroupModel');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
-var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
-var Rest              = require('girder/rest');
-var Router            = require('girder/router');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var View              = require('girder/view');
+import Auth              from 'girder/auth';
+import EditGroupWidget   from 'girder/views/widgets/EditGroupWidget';
+import Events            from 'girder/events';
+import GroupCollection   from 'girder/collections/GroupCollection';
+import GroupListTemplate from 'girder/templates/body/groupList.jade';
+import GroupModel        from 'girder/models/GroupModel';
+import { formatDate, DATE_DAY } from 'girder/utilities/MiscFunctions';
+import PaginateWidget    from 'girder/views/widgets/PaginateWidget';
+import Rest              from 'girder/rest';
+import router            from 'girder/router';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View              from 'girder/view';
 
 /**
  * This view lists groups.
  */
-var GroupsView = View.extend({
+export var GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
-            Router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
         },
         'submit .g-group-search-form': function (event) {
             event.preventDefault();
@@ -55,7 +55,8 @@ var GroupsView = View.extend({
         this.$el.html(GroupListTemplate({
             groups: this.collection.toArray(),
             Auth: Auth,
-            MiscFunctions: MiscFunctions
+            formatDate: formatDate,
+            DATE_DAY: DATE_DAY
         }));
 
         this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
@@ -83,7 +84,7 @@ var GroupsView = View.extend({
             userGroups.push(group.get('_id'));
             Auth.getCurrentUser().set('groups', userGroups);
 
-            Router.navigate('group/' + group.get('_id'), {trigger: true});
+            router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).render();
     },
 
@@ -94,15 +95,13 @@ var GroupsView = View.extend({
     _gotoGroup: function (result) {
         var group = new GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            Router.navigate('group/' + group.get('_id'), {trigger: true});
+            router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).fetch();
     }
 
 });
 
-module.exports = GroupsView;
-
-Router.route('groups', 'groups', function (params) {
+router.route('groups', 'groups', function (params) {
     Events.trigger('g:navigateTo', GroupsView, params || {});
     Events.trigger('g:highlightItem', 'GroupsView');
 });

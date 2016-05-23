@@ -1,13 +1,13 @@
-var _        = require('underscore');
-var Backbone = require('backbone');
+import _        from 'underscore';
+import Backbone from 'backbone';
 
-var Rest     = require('girder/rest');
+import Rest     from 'girder/rest';
 
 /**
  * All models should descend from this base model, which provides a number
  * of utilities for synchronization.
  */
-var Model = Backbone.Model.extend({
+export var Model = Backbone.Model.extend({
     resourceName: null,
     altUrl: null,
     idAttribute: '_id',
@@ -185,7 +185,7 @@ var Model = Backbone.Model.extend({
  * from this object. It provides utilities for managing and storing the
  * access control list on
  */
-var AccessControlledModel = Model.extend({
+export var AccessControlledModel = Model.extend({
     /**
      * Saves the access control list on this model to the server. Saves the
      * state of whatever this model's "access" parameter is set to, which
@@ -252,7 +252,7 @@ var AccessControlledModel = Model.extend({
     }
 });
 
-var MetadataMixin = {
+export var MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
         Rest.restRequest({
@@ -315,10 +315,4 @@ var MetadataMixin = {
             }
         }
     }
-};
-
-module.exports = {
-    Model: Model,
-    AccessControlledModel: AccessControlledModel,
-    MetadataMixin: MetadataMixin
 };

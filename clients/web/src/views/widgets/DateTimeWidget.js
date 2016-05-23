@@ -1,17 +1,17 @@
-var _                           = require('underscore');
-var moment                      = require('moment');
+import _                           from 'underscore';
+import moment                      from 'moment';
 
-var View                        = require('girder/view');
-var dateTimeWidgetTemplate      = require('girder/templates/widgets/dateTimeWidget.jade');
-var dateTimeRangeWidgetTemplate = require('girder/templates/widgets/dateTimeRangeWidget.jade');
+import View                        from 'girder/view';
+import dateTimeWidgetTemplate      from 'girder/templates/widgets/dateTimeWidget.jade';
+import dateTimeRangeWidgetTemplate from 'girder/templates/widgets/dateTimeRangeWidget.jade';
 
-require('eonasdan-bootstrap-datetimepicker'); // /src/js/bootstrap-datetimepicker.js'
+import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
 
 /**
  * This widget provides a text input field to specify a date/time. The user
  * chooses the date/time using a popup picker.
  */
-var DateTimeWidget = View.extend({
+export var DateTimeWidget = View.extend({
 
     /**
      * @param [settings.defaultDate=false] The default date/time when not set
@@ -110,7 +110,7 @@ var DateTimeWidget = View.extend({
  * That is, the first field specifies "from" and the second field specifies
  * "to." The user chooses each date/time using a popup picker.
  */
-var DateTimeRangeWidget = View.extend({
+export var DateTimeRangeWidget = View.extend({
 
     /**
      * @param [settings.defaultFromDate=false] The default "from" date/time when
@@ -272,9 +272,3 @@ var DateTimeRangeWidget = View.extend({
         return date.format();
     }
 });
-
-
-module.exports = {
-    DateTimeWidget: DateTimeWidget,
-    DateTimeRangeWidget: DateTimeRangeWidget
-};

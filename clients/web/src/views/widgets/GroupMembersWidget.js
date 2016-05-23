@@ -1,47 +1,47 @@
-var $                         = require('jquery');
-var _                         = require('underscore');
+import $                         from 'jquery';
+import _                         from 'underscore';
 
-var Constants                 = require('girder/constants');
-var GroupInviteDialogTemplate = require('girder/templates/widgets/groupInviteDialog.jade');
-var GroupMemberListTemplate   = require('girder/templates/widgets/groupMemberList.jade');
-var MiscFunctions             = require('girder/utilities/MiscFunctions');
-var PaginateWidget            = require('girder/views/widgets/PaginateWidget');
-var Router                    = require('girder/router');
-var SearchFieldWidget         = require('girder/views/widgets/SearchFieldWidget');
-var UserCollection            = require('girder/collections/UserCollection');
-var View                      = require('girder/view');
+import { AccessType }            from 'girder/constants';
+import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.jade';
+import GroupMemberListTemplate   from 'girder/templates/widgets/groupMemberList.jade';
+import { confirm }               from 'girder/utilities/MiscFunctions';
+import PaginateWidget            from 'girder/views/widgets/PaginateWidget';
+import router                    from 'girder/router';
+import SearchFieldWidget         from 'girder/views/widgets/SearchFieldWidget';
+import UserCollection            from 'girder/collections/UserCollection';
+import View                      from 'girder/view';
 
-require('bootstrap/js/collapse');
-require('bootstrap/js/dropdown');
-require('bootstrap/js/modal');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/collapse';
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/modal';
+import 'bootstrap/js/tooltip';
 
-require('girder/utilities/jQuery'); // $.girderModal
+import 'girder/utilities/jQuery'; // $.girderModal
 
 var InviteUserDialog = View.extend({
     events: {
         'click .g-invite-as-member': function () {
-            this._sendInvitation(Constants.AccessType.READ);
+            this._sendInvitation(AccessType.READ);
         },
 
         'click .g-invite-as-moderator': function () {
-            this._sendInvitation(Constants.AccessType.WRITE);
+            this._sendInvitation(AccessType.WRITE);
         },
 
         'click .g-invite-as-admin': function () {
-            this._sendInvitation(Constants.AccessType.ADMIN);
+            this._sendInvitation(AccessType.ADMIN);
         },
 
         'click .g-add-as-member': function () {
-            this._sendInvitation(Constants.AccessType.READ, true);
+            this._sendInvitation(AccessType.READ, true);
         },
 
         'click .g-add-as-moderator': function () {
-            this._sendInvitation(Constants.AccessType.WRITE, true);
+            this._sendInvitation(AccessType.WRITE, true);
         },
 
         'click .g-add-as-admin': function () {
-            this._sendInvitation(Constants.AccessType.ADMIN, true);
+            this._sendInvitation(AccessType.ADMIN, true);
         }
     },
 
@@ -55,7 +55,7 @@ var InviteUserDialog = View.extend({
             group: this.group,
             user: this.user,
             level: this.group.get('_accessLevel'),
-            accessType: Constants.AccessType,
+            accessType: AccessType,
             mayAdd: this.group.mayAddMembers()
         })).girderModal(this);
 
@@ -76,13 +76,13 @@ var InviteUserDialog = View.extend({
 /**
  * This view shows a list of members of a group.
  */
-var GroupMembersWidget = View.extend({
+export var GroupMembersWidget = View.extend({
     events: {
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
-            Router.navigate('user/' + model.get('_id'), {trigger: true});
+            router.navigate('user/' + model.get('_id'), {trigger: true});
         },
 
         'click a.g-group-member-remove': function (e) {
@@ -91,7 +91,7 @@ var GroupMembersWidget = View.extend({
                 $(e.currentTarget).parents('li').attr('cid')
             );
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove <b> ' + _.escape(user.name()) +
                     '</b> from this group?',
                 escapedHtml: true,
@@ -107,7 +107,7 @@ var GroupMembersWidget = View.extend({
             var user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:moderatorAdded');
-            }, this).promoteUser(user, Constants.AccessType.WRITE);
+            }, this).promoteUser(user, AccessType.WRITE);
         },
 
         'click .g-promote-admin': function (e) {
@@ -116,7 +116,7 @@ var GroupMembersWidget = View.extend({
             var user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
-            }, this).promoteUser(user, Constants.AccessType.ADMIN);
+            }, this).promoteUser(user, AccessType.ADMIN);
         }
     },
 
@@ -150,7 +150,7 @@ var GroupMembersWidget = View.extend({
             group: this.model,
             members: members,
             level: this.model.get('_accessLevel'),
-            accessType: Constants.AccessType
+            accessType: AccessType
         }));
 
         new PaginateWidget({
@@ -193,6 +193,4 @@ var GroupMembersWidget = View.extend({
         }, this).render();
     }
 });
-
-module.exports = GroupMembersWidget;
 

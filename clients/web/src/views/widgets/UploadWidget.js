@@ -1,15 +1,15 @@
-var $                            = require('jquery');
-var _                            = require('underscore');
+import $                            from 'jquery';
+import _                            from 'underscore';
 
-var DialogHelper                 = require('girder/utilities/DialogHelper');
-var FileModel                    = require('girder/models/FileModel');
-var MiscFunctions                = require('girder/utilities/MiscFunctions');
-var UploadWidgetNonModalTemplate = require('girder/templates/widgets/uploadWidgetNonModal.jade');
-var UploadWidgetTemplate         = require('girder/templates/widgets/uploadWidget.jade');
-var View                         = require('girder/view');
+import { handleClose, handleOpen }  from 'girder/utilities/DialogHelper';
+import FileModel                    from 'girder/models/FileModel';
+import { formatSize }               from 'girder/utilities/MiscFunctions';
+import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.jade';
+import UploadWidgetTemplate         from 'girder/templates/widgets/uploadWidget.jade';
+import View                         from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to upload files to a folder. Pass a folder model
@@ -18,7 +18,7 @@ require('girder/utilities/jQuery'); // $.girderModal
  *   itemComplete: Triggered each time an individual item is finished uploading.
  *   finished: Triggered when the entire set of items is uploaded.
  */
-var UploadWidget = View.extend({
+export var UploadWidget = View.extend({
     events: {
         'submit #g-upload-form': function (e) {
             e.preventDefault();
@@ -133,10 +133,10 @@ var UploadWidget = View.extend({
                 if ($('.g-resume-upload').length && base.currentFile) {
                     base.currentFile.abortUpload();
                 }
-                DialogHelper.handleClose('upload', undefined, dialogid);
+                handleClose('upload', undefined, dialogid);
             });
 
-            DialogHelper.handleOpen('upload', undefined, dialogid);
+            handleOpen('upload', undefined, dialogid);
         } else {
             this.$el.html(UploadWidgetNonModalTemplate({
                 parent: this.parent,
@@ -175,7 +175,7 @@ var UploadWidget = View.extend({
                 msg = 'Selected <b>' + this.files[0].name + '</b>';
             }
             this.$('.g-overall-progress-message').html('<i class="icon-ok"/> ' +
-                msg + '  (' + MiscFunctions.formatSize(this.totalSize) +
+                msg + '  (' + formatSize(this.totalSize) +
                 ') -- Press start button');
             this.setUploadEnabled(true);
             this.$('.g-progress-overall,.g-progress-current').addClass('hide');
@@ -251,12 +251,12 @@ var UploadWidget = View.extend({
             this.$('.g-current-progress-message').html(
                 '<i class="icon-doc-text"/>' + (this.currentIndex + 1) + ' of ' +
                     this.files.length + ' - <b>' + info.file.name + '</b>: ' +
-                    MiscFunctions.formatSize(currentProgress) + ' / ' +
-                    MiscFunctions.formatSize(info.total)
+                    formatSize(currentProgress) + ' / ' +
+                    formatSize(info.total)
             );
             this.$('.g-overall-progress-message').html('Overall progress: ' +
-                MiscFunctions.formatSize(this.overallProgress + info.loaded) + ' / ' +
-                MiscFunctions.formatSize(this.totalSize));
+                formatSize(this.overallProgress + info.loaded) + ' / ' +
+                formatSize(this.totalSize));
         }, this).on('g:upload.error', function (info) {
             var html = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
@@ -274,5 +274,3 @@ var UploadWidget = View.extend({
         }
     }
 });
-
-module.exports = UploadWidget;

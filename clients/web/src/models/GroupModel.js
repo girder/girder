@@ -1,11 +1,11 @@
-var _                     = require('underscore');
+import _ from 'underscore';
 
-var AccessControlledModel = require('girder/model').AccessControlledModel;
-var Auth                  = require('girder/auth');
-var Constants             = require('girder/constants');
-var Rest                  = require('girder/rest');
+import { AccessControlledModel } from 'girder/model';
+import Auth                      from 'girder/auth';
+import { AccessType }            from 'girder/constants';
+import Rest                      from 'girder/rest';
 
-var GroupModel = AccessControlledModel.extend({
+export var GroupModel = AccessControlledModel.extend({
     resourceName: 'group',
 
     /**
@@ -88,9 +88,9 @@ var GroupModel = AccessControlledModel.extend({
      */
     promoteUser: function (user, level) {
         var role;
-        if (level === Constants.AccessType.WRITE) {
+        if (level === AccessType.WRITE) {
             role = 'moderator';
-        } else if (level === Constants.AccessType.ADMIN) {
+        } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
         Rest.restRequest({
@@ -116,9 +116,9 @@ var GroupModel = AccessControlledModel.extend({
      */
     demoteUser: function (userId, level) {
         var role;
-        if (level === Constants.AccessType.WRITE) {
+        if (level === AccessType.WRITE) {
             role = 'moderator';
-        } else if (level === Constants.AccessType.ADMIN) {
+        } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
         Rest.restRequest({
@@ -185,15 +185,13 @@ var GroupModel = AccessControlledModel.extend({
             groupAddAllowed = 'admin';
         }
         if (groupAddAllowed === 'admin' &&
-                this.get('_accessLevel') >= Constants.AccessType.ADMIN) {
+                this.get('_accessLevel') >= AccessType.ADMIN) {
             return true;
         }
         if (groupAddAllowed === 'mod' &&
-                this.get('_accessLevel') >= Constants.AccessType.WRITE) {
+                this.get('_accessLevel') >= AccessType.WRITE) {
             return true;
         }
         return false;
     }
 });
-
-module.exports = GroupModel;

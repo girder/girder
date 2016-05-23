@@ -1,6 +1,6 @@
 .g-group-header
   .btn-group.pull-right
-    if (isMember || isInvited || Auth.getCurrentUser() || group.get('_accessLevel') >= Constants.AccessType.ADMIN)
+    if (isMember || isInvited || Auth.getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
       button.g-group-actions-button.btn.btn-default.dropdown-toggle(
           data-toggle="dropdown", title="Group actions")
           i.icon-users
@@ -22,13 +22,13 @@
             a.g-group-request-invite(role="menuitem")
               i.icon-export
               | Request membership
-        if (group.get('_accessLevel') >= Constants.AccessType.ADMIN)
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-edit-group(role="menuitem")
               i.icon-edit
               | Edit group
-        if (group.get('_accessLevel') >= Constants.AccessType.ADMIN)
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-group-delete(role="menuitem")
@@ -63,7 +63,7 @@ if (Auth.getCurrentUser())
         i.icon-minus-circled
         |  You are not a member of this group.
         a.g-group-request-invite  Request membership
-    if (group.get('_accessLevel') >= Constants.AccessType.ADMIN && !isAdmin)
+    if (group.get('_accessLevel') >= AccessType.ADMIN && !isAdmin)
       .g-group-status-container.g-admin
         i.icon-star
         |  You have <b>administrator</b> privileges.
@@ -98,7 +98,7 @@ ul.g-group-tabs.nav.nav-tabs
                 i.icon-user
                 |  #{user.name} (#{user.login})
               .g-group-member-controls.pull-right
-                if group.get('_accessLevel') >= Constants.AccessType.WRITE
+                if group.get('_accessLevel') >= AccessType.WRITE
                   a.g-group-request-accept(title="Add to group")
                     i.icon-thumbs-up
                   a.g-group-request-deny(title="Deny request")

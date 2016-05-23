@@ -1,7 +1,5 @@
-var AccessControlledModel = require('girder/model').AccessControlledModel;
+import { AccessControlledModel } from 'girder/model';
 
-var CollectionModel = AccessControlledModel.extend({
+export var CollectionModel = AccessControlledModel.extend({
     resourceName: 'collection'
 });
-
-module.exports = CollectionModel;

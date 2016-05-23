@@ -1,30 +1,30 @@
-var $                           = require('jquery');
-var _                           = require('underscore');
+import $                           from 'jquery';
+import _                           from 'underscore';
 
-var AccessWidget                = require('girder/views/widgets/AccessWidget');
-var CheckedMenuWidget           = require('girder/views/widgets/CheckedMenuWidget');
-var CollectionInfoWidget        = require('girder/views/widgets/CollectionInfoWidget');
-var Constants                   = require('girder/constants');
-var DialogHelper                = require('girder/utilities/DialogHelper');
-var EditCollectionWidget        = require('girder/views/widgets/EditCollectionWidget');
-var EditFolderWidget            = require('girder/views/widgets/EditFolderWidget');
-var EditItemWidget              = require('girder/views/widgets/EditItemWidget');
-var Events                      = require('girder/events');
-var FolderInfoWidget            = require('girder/views/widgets/FolderInfoWidget');
-var FolderListWidget            = require('girder/views/widgets/FolderListWidget');
-var HierarchyBreadcrumbTemplate = require('girder/templates/widgets/hierarchyBreadcrumb.jade');
-var HierarchyWidgetTemplate     = require('girder/templates/widgets/hierarchyWidget.jade');
-var ItemListWidget              = require('girder/views/widgets/ItemListWidget');
-var ItemModel                   = require('girder/models/ItemModel');
-var MetadataWidget              = require('girder/views/widgets/MetadataWidget');
-var MiscFunctions               = require('girder/utilities/MiscFunctions');
-var Rest                        = require('girder/rest');
-var Router                      = require('girder/router');
-var UploadWidget                = require('girder/views/widgets/UploadWidget');
-var View                        = require('girder/view');
+import AccessWidget                from 'girder/views/widgets/AccessWidget';
+import CheckedMenuWidget           from 'girder/views/widgets/CheckedMenuWidget';
+import CollectionInfoWidget        from 'girder/views/widgets/CollectionInfoWidget';
+import { AccessType }              from 'girder/constants';
+import { handleClose }             from 'girder/utilities/DialogHelper';
+import EditCollectionWidget        from 'girder/views/widgets/EditCollectionWidget';
+import EditFolderWidget            from 'girder/views/widgets/EditFolderWidget';
+import EditItemWidget              from 'girder/views/widgets/EditItemWidget';
+import Events                      from 'girder/events';
+import FolderInfoWidget            from 'girder/views/widgets/FolderInfoWidget';
+import FolderListWidget            from 'girder/views/widgets/FolderListWidget';
+import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
+import HierarchyWidgetTemplate     from 'girder/templates/widgets/hierarchyWidget.jade';
+import ItemListWidget              from 'girder/views/widgets/ItemListWidget';
+import ItemModel                   from 'girder/models/ItemModel';
+import MetadataWidget              from 'girder/views/widgets/MetadataWidget';
+import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
+import Rest               from 'girder/rest';
+import router             from 'girder/router';
+import UploadWidget       from 'girder/views/widgets/UploadWidget';
+import View               from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
 var pickedResources = null;
 
@@ -51,7 +51,7 @@ var HierarchyBreadcrumbView = View.extend({
         // object and should be the "active" class, and not a link.
         var active = objects.pop();
 
-        var descriptionText = $(MiscFunctions.renderMarkdown(
+        var descriptionText = $(renderMarkdown(
             active.get('description') || '')).text();
 
         this.$el.html(HierarchyBreadcrumbTemplate({
@@ -65,7 +65,7 @@ var HierarchyBreadcrumbView = View.extend({
 /**
  * This widget is used to navigate the data hierarchy of folders and items.
  */
-var HierarchyWidget = View.extend({
+export var HierarchyWidget = View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
@@ -117,7 +117,7 @@ var HierarchyWidget = View.extend({
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || function (item) {
-            Router.navigate('item/' + item.get('_id'), {trigger: true});
+            router.navigate('item/' + item.get('_id'), {trigger: true});
         };
 
         this.folderAccess = settings.folderAccess;
@@ -222,7 +222,7 @@ var HierarchyWidget = View.extend({
             if (this.parentModel.resourceName === 'folder') {
                 route += '/folder/' + this.parentModel.get('_id');
             }
-            Router.navigate(route);
+            router.navigate(route);
             Events.trigger('g:hierarchy.route', {route: route});
         }
     },
@@ -230,14 +230,31 @@ var HierarchyWidget = View.extend({
     _fetchToRoot: function (folder) {
         var parentId = folder.get('parentId');
         var parentType = folder.get('parentCollection');
-        // Webpack supports dynamic requires: https://webpack.github.io/docs/context.html
-        var Model = require('girder/models/' + MiscFunctions.getModelClassByName(parentType));
+        var modelName = getModelClassByName(parentType);
+        // Webpack supports dynamic import: https://webpack.github.io/docs/context.html
+        // UNFORTUNATELY does not seem to be working, using context module or require/ensure.
+        // https://webpack.github.io/docs/context.html
+        // https://webpack.github.io/docs/code-splitting.html
+        // System.import('girder/models/' + modelName).then(function (Model) {
+        //     var parent = new Model();
+        //     parent.set({
+        //         _id: parentId
+        //     }).once('g:fetched', function () {
+        //         this.breadcrumbs.push(parent);
+        //         if (parentType === 'folder') {
+        //             this._fetchToRoot(parent);
+        //         } else {
+        //             this.breadcrumbs.reverse();
+        //             this.render();
+        //         }
+        //     }, this).fetch();
+        // });
+        var Model = require('girder/models/' + modelName);
         var parent = new Model();
         parent.set({
             _id: parentId
         }).once('g:fetched', function () {
             this.breadcrumbs.push(parent);
-
             if (parentType === 'folder') {
                 this._fetchToRoot(parent);
             } else {
@@ -255,10 +272,10 @@ var HierarchyWidget = View.extend({
             type: this.parentModel.resourceName,
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
-            AccessType: Constants.AccessType,
+            AccessType: AccessType,
             showActions: this._showActions,
             checkboxes: this._checkboxes,
-            MiscFunctions: MiscFunctions
+            capitalize: capitalize
         }));
 
         if (this.$('.g-folder-actions-menu>li>a').length === 0) {
@@ -414,7 +431,7 @@ var HierarchyWidget = View.extend({
                     progress: true
                 }).on('g:deleted', function () {
                     if (type === 'collection') {
-                        Router.navigate('collections', {trigger: true});
+                        router.navigate('collections', {trigger: true});
                     } else if (type === 'folder') {
                         this.breadcrumbs.pop();
                         this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);
@@ -422,7 +439,7 @@ var HierarchyWidget = View.extend({
                 }, this);
             }, this)
         };
-        MiscFunctions.confirm(params);
+        confirm(params);
     },
 
     /**
@@ -453,10 +470,10 @@ var HierarchyWidget = View.extend({
         var showCounts = _.bind(function () {
             this.$('.g-child-count-container').removeClass('hide');
             this.$('.g-subfolder-count').text(
-                MiscFunctions.formatCount(this.parentModel.get('nFolders')));
+                formatCount(this.parentModel.get('nFolders')));
             if (this.parentModel.has('nItems')) {
                 this.$('.g-item-count').text(
-                    MiscFunctions.formatCount(this.parentModel.get('nItems')));
+                    formatCount(this.parentModel.get('nItems')));
             }
         }, this);
 
@@ -587,7 +604,7 @@ var HierarchyWidget = View.extend({
                 });
             }
         };
-        MiscFunctions.confirm(params);
+        confirm(params);
     },
 
     /**
@@ -602,7 +619,7 @@ var HierarchyWidget = View.extend({
             parentType: this.parentType,
             parentView: this
         }).on('g:uploadFinished', function (info) {
-            DialogHelper.handleClose('upload');
+            handleClose('upload');
             this.upload = false;
             if (this.parentModel.has('nItems')) {
                 this.parentModel.increment('nItems', info.files.length);
@@ -624,14 +641,14 @@ var HierarchyWidget = View.extend({
 
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.
-        var minFolderLevel = Constants.AccessType.ADMIN;
+        var minFolderLevel = AccessType.ADMIN;
         _.every(folders, function (cid) {
             var folder = this.folderListView.collection.get(cid);
             minFolderLevel = Math.min(minFolderLevel, folder.getAccessLevel());
-            return minFolderLevel > Constants.AccessType.READ; // acts as 'break'
+            return minFolderLevel > AccessType.READ; // acts as 'break'
         }, this);
 
-        var minItemLevel = Constants.AccessType.ADMIN;
+        var minItemLevel = AccessType.ADMIN;
         if (this.itemListView) {
             items = this.itemListView.checked;
             if (items.length) {
@@ -683,7 +700,7 @@ var HierarchyWidget = View.extend({
         }
         /* We must have permission to write to this folder to be allowed to
          * copy. */
-        if (this.parentModel.getAccessLevel() < Constants.AccessType.WRITE) {
+        if (this.parentModel.getAccessLevel() < AccessType.WRITE) {
             return false;
         }
         return true;
@@ -697,10 +714,10 @@ var HierarchyWidget = View.extend({
         /* We also can't move an item or folder if we don't have permission to
          * delete that item or folder (since a move deletes it from the
          * original spot). */
-        if (pickedResources.minFolderLevel < Constants.AccessType.ADMIN) {
+        if (pickedResources.minFolderLevel < AccessType.ADMIN) {
             return false;
         }
-        if (pickedResources.minItemLevel < Constants.AccessType.WRITE) {
+        if (pickedResources.minItemLevel < AccessType.WRITE) {
             return false;
         }
         return true;
@@ -754,8 +771,8 @@ var HierarchyWidget = View.extend({
         if (!pickedResources) {
             pickedResources = {
                 resources: {},
-                minItemLevel: Constants.AccessType.ADMIN,
-                minFolderLevel: Constants.AccessType.ADMIN
+                minItemLevel: AccessType.ADMIN,
+                minFolderLevel: AccessType.ADMIN
             };
         }
         /* Maintain our minimum permissions.  It is expensive to compute them
@@ -767,7 +784,7 @@ var HierarchyWidget = View.extend({
                 pickedResources.minFolderLevel,
                 folder.getAccessLevel());
             return (pickedResources.minFolderLevel >
-                    Constants.AccessType.READ); // acts as 'break'
+                    AccessType.READ); // acts as 'break'
         }, this);
         if (this.itemListView) {
             var items = this.itemListView.checked;
@@ -962,5 +979,3 @@ var HierarchyWidget = View.extend({
         return pickedResources;
     }
 });
-
-module.exports = HierarchyWidget;

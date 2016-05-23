@@ -1,22 +1,22 @@
-var _             = require('underscore');
-var Backbone      = require('backbone');
+import _                    from 'underscore';
+import Backbone             from 'backbone';
 
-var Constants     = require('girder/constants');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
-var Model         = require('girder/model').Model;
-var Rest          = require('girder/rest');
+import { SORT_ASC }         from 'girder/constants';
+import { localeComparator } from 'girder/utilities/MiscFunctions';
+import { Model }            from 'girder/model';
+import Rest                 from 'girder/rest';
 
 /**
  * All collections should descend from this collection base class, which
  * provides nice utilities for pagination and sorting.
  */
-var Collection = Backbone.Collection.extend({
+export var Collection = Backbone.Collection.extend({
     model: Model,
     resourceName: null,
 
     sortField: 'name',
-    sortDir: Constants.SORT_ASC,
-    comparator: MiscFunctions.localeComparator,
+    sortDir: SORT_ASC,
+    comparator: localeComparator,
 
     // Number of records to fetch per page
     pageLimit: 25,
@@ -126,6 +126,4 @@ var Collection = Backbone.Collection.extend({
         xhr.girder = {fetch: true};
     }
 });
-
-module.exports = Collection;
 

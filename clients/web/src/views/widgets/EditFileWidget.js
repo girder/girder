@@ -1,14 +1,14 @@
-var DialogHelper           = require('girder/utilities/DialogHelper');
-var EditFileWidgetTemplate = require('girder/templates/widgets/editFileWidget.jade');
-var View                   = require('girder/view');
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import EditFileWidgetTemplate      from 'girder/templates/widgets/editFileWidget.jade';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This widget is used to edit file information.
  */
-var EditFileWidget = View.extend({
+export var EditFileWidget = View.extend({
     events: {
         'submit #g-file-edit-form': function () {
             var fields = {
@@ -46,12 +46,10 @@ var EditFileWidget = View.extend({
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').select().focus();
             }).on('hidden.bs.modal', function () {
-                DialogHelper.handleClose('fileedit', undefined,
+                handleClose('fileedit', undefined,
                                            view.file.get('_id'));
             });
-        DialogHelper.handleOpen('fileedit', undefined, this.file.get('_id'));
+        handleOpen('fileedit', undefined, this.file.get('_id'));
         return this;
     }
 });
-
-module.exports = EditFileWidget;

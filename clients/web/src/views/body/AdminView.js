@@ -1,23 +1,23 @@
-var AdminConsoleTemplate = require('girder/templates/body/adminConsole.jade');
-var Auth                 = require('girder/auth');
-var Events               = require('girder/events');
-var Rest                 = require('girder/rest');
-var Router               = require('girder/router');
-var View                 = require('girder/view');
+import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
+import Auth                 from 'girder/auth';
+import Events               from 'girder/events';
+import Rest                 from 'girder/rest';
+import router               from 'girder/router';
+import View                 from 'girder/view';
 
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-var AdminView = View.extend({
+export var AdminView = View.extend({
     events: {
         'click .g-server-config': function () {
-            Router.navigate('settings', {trigger: true});
+            router.navigate('settings', {trigger: true});
         },
         'click .g-assetstore-config': function () {
-            Router.navigate('assetstores', {trigger: true});
+            router.navigate('assetstores', {trigger: true});
         },
         'click .g-plugins-config': function () {
-            Router.navigate('plugins', {trigger: true});
+            router.navigate('plugins', {trigger: true});
         }
     },
 
@@ -37,8 +37,6 @@ var AdminView = View.extend({
     }
 });
 
-module.exports = AdminView;
-
-Router.route('admin', 'admin', function () {
+router.route('admin', 'admin', function () {
     Events.trigger('g:navigateTo', AdminView);
 });

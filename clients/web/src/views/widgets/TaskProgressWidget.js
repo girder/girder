@@ -1,12 +1,12 @@
-var sprintf              = require('sprintf-js');
+import sprintf              from 'sprintf-js';
 
-var TaskProgressTemplate = require('girder/templates/widgets/taskProgress.jade');
-var View                 = require('girder/view');
+import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.jade';
+import View                 from 'girder/view';
 
 /**
  * This widget renders the state of a progress notification.
  */
-var TaskProgressWidget = View.extend({
+export var TaskProgressWidget = View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;
@@ -85,6 +85,4 @@ var TaskProgressWidget = View.extend({
         }, ms);
     }
 });
-
-module.exports = TaskProgressWidget;
 

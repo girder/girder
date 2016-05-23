@@ -1,7 +1,7 @@
-var _        = require('underscore');
-var Backbone = require('backbone');
+import _        from 'underscore';
+import Backbone from 'backbone';
 
-var Rest     = require('girder/rest');
+import Rest     from 'girder/rest';
 
 /**
  * The EventStream type wraps window.EventSource to listen to the unified
@@ -10,7 +10,7 @@ var Rest     = require('girder/rest');
  * 'g:event.<type>' where <type> is the value of the event type field.
  * Listeners can bind to specific event types on the channel.
  */
-var EventStream = function (settings) {
+export var EventStream = function (settings) {
     var defaults = {
         timeout: null,
         streamPath: '/notification/stream'
@@ -56,5 +56,3 @@ prototype.close = function () {
         this._eventSource = null;
     }
 };
-
-module.exports = EventStream;

@@ -1,22 +1,22 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
+import $                    from 'jquery';
+import _                    from 'underscore';
 
-var Auth                 = require('girder/auth');
-var Constants            = require('girder/constants');
-var Events               = require('girder/events');
-var EventStream          = require('girder/eventStream');
-var Rest                 = require('girder/rest');
-var Router               = require('girder/router');
-var UserModel            = require('girder/models/UserModel');
-var UserSettingsTemplate = require('girder/templates/body/userSettings.jade');
-var View                 = require('girder/view');
+import Auth                 from 'girder/auth';
+import { AccessType }       from 'girder/constants';
+import Events               from 'girder/events';
+import EventStream          from 'girder/eventStream';
+import Rest                 from 'girder/rest';
+import router               from 'girder/router';
+import UserModel            from 'girder/models/UserModel';
+import UserSettingsTemplate from 'girder/templates/body/userSettings.jade';
+import View                 from 'girder/view';
 
-require('bootstrap/js/tab');
+import 'bootstrap/js/tab';
 
 /**
  * This is the view for the user account (profile) page.
  */
-var UserAccountView = View.extend({
+export var UserAccountView = View.extend({
     events: {
         'submit #g-user-info-form': function (event) {
             event.preventDefault();
@@ -100,8 +100,8 @@ var UserAccountView = View.extend({
         this.temporary = settings.temporary;
 
         if (!this.user ||
-                this.user.getAccessLevel() < Constants.AccessType.WRITE) {
-            Router.navigate('users', {trigger: true});
+                this.user.getAccessLevel() < AccessType.WRITE) {
+            router.navigate('users', {trigger: true});
             return;
         }
 
@@ -111,7 +111,7 @@ var UserAccountView = View.extend({
 
     render: function () {
         if (Auth.getCurrentUser() === null) {
-            Router.navigate('users', {trigger: true});
+            router.navigate('users', {trigger: true});
             return;
         }
 
@@ -127,7 +127,7 @@ var UserAccountView = View.extend({
             var view = this;
             tabLink.tab().on('shown.bs.tab', function (e) {
                 view.tab = $(e.currentTarget).attr('name');
-                Router.navigate('useraccount/' +
+                router.navigate('useraccount/' +
                     view.model.get('_id') + '/' + view.tab);
             });
 
@@ -140,9 +140,7 @@ var UserAccountView = View.extend({
     }
 });
 
-module.exports = UserAccountView;
-
-Router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
+router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     var user = new UserModel();
     user.set({
         _id: id
@@ -152,11 +150,11 @@ Router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
             tab: tab
         });
     }, this).on('g:error', function () {
-        Router.navigate('users', {trigger: true});
+        router.navigate('users', {trigger: true});
     }, this).fetch();
 });
 
-Router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
+router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
     Rest.restRequest({
         path: 'user/password/temporary/' + id,
         type: 'GET',
@@ -174,6 +172,6 @@ Router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
             temporary: token
         });
     }, this)).error(_.bind(function () {
-        Router.navigate('users', {trigger: true});
+        router.navigate('users', {trigger: true});
     }, this));
 });

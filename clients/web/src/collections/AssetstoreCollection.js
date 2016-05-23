@@ -1,9 +1,7 @@
-var AssetstoreModel = require('girder/models/AssetstoreModel');
-var Collection      = require('girder/collection');
+import AssetstoreModel from 'girder/models/AssetstoreModel';
+import Collection      from 'girder/collection';
 
-var AssetstoreCollection = Collection.extend({
+export var AssetstoreCollection = Collection.extend({
     resourceName: 'assetstore',
     model: AssetstoreModel
 });
-
-module.exports = AssetstoreCollection;

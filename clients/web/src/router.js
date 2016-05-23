@@ -1,7 +1,7 @@
-var Backbone      = require('backbone');
+import Backbone             from 'backbone';
 
-var Events        = require('girder/events');
-var MiscFunctions = require('girder/utilities/MiscFunctions');
+import Events               from 'girder/events';
+import { parseQueryString } from 'girder/utilities/MiscFunctions';
 
 var Router = Backbone.Router.extend({
     initialize: function () {
@@ -9,7 +9,7 @@ var Router = Backbone.Router.extend({
     },
 
     execute: function (callback, args) {
-        args.push(MiscFunctions.parseQueryString(args.pop()));
+        args.push(parseQueryString(args.pop()));
         var queryString = args[args.length - 1];
         if (callback) {
             callback.apply(this, args);
@@ -43,6 +43,4 @@ var Router = Backbone.Router.extend({
     }
 });
 
-var router = new Router();
-
-module.exports = router;
+export var router = new Router();

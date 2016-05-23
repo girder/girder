@@ -1,7 +1,7 @@
-var _        = require('underscore');
-var Backbone = require('backbone');
+import _        from 'underscore';
+import Backbone from 'backbone';
 
-var Rest     = require('girder/rest');
+import Rest     from 'girder/rest';
 
 /**
  * This is the upload handler for the "s3" behavior, which is responsible for

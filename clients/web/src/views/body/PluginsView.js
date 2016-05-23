@@ -1,34 +1,34 @@
-var $               = require('jquery');
-var _               = require('underscore');
+import $                 from 'jquery';
+import _                 from 'underscore';
 
-var Events          = require('girder/events');
-var MiscFunctions   = require('girder/utilities/MiscFunctions');
-var PluginsTemplate = require('girder/templates/body/plugins.jade');
-var Rest            = require('girder/rest');
-var Router          = require('girder/router');
-var UsersView       = require('girder/views/body/UsersView');
-var View            = require('girder/view');
+import Events            from 'girder/events';
+import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
+import PluginsTemplate   from 'girder/templates/body/plugins.jade';
+import Rest              from 'girder/rest';
+import router            from 'girder/router';
+import UsersView         from 'girder/views/body/UsersView';
+import View              from 'girder/view';
 
-require('bootstrap/js/tooltip');
-require('bootstrap-switch'); // /dist/js/bootstrap-switch.js',
+import 'bootstrap/js/tooltip';
+import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 
 /**
  * This is the plugin management page for administrators.
  */
-var PluginsView = View.extend({
+export var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
-            Router.navigate(route, {trigger: true});
+            router.navigate(route, {trigger: true});
         },
         'click .g-plugin-restart-button': function () {
             var params = {
                 text: 'Are you sure you want to restart the server?  This ' +
                       'will interrupt all running tasks for all users.',
                 yesText: 'Restart',
-                confirmCallback: MiscFunctions.restartServer
+                confirmCallback: restartServer
             };
-            MiscFunctions.confirm(params);
+            confirm(params);
         }
     },
 
@@ -62,7 +62,7 @@ var PluginsView = View.extend({
 
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
-                info.configRoute = MiscFunctions.getPluginConfigRoute(name);
+                info.configRoute = getPluginConfigRoute(name);
             }
         }, this);
 
@@ -160,9 +160,7 @@ var PluginsView = View.extend({
     }
 });
 
-module.exports = PluginsView;
-
-Router.route('plugins', 'plugins', function () {
+router.route('plugins', 'plugins', function () {
     // Fetch the plugin list
     Rest.restRequest({
         path: 'system/plugins',

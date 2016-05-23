@@ -1,28 +1,28 @@
-var $                    = require('jquery');
-var _                    = require('underscore');
+import $                    from 'jquery';
+import _                    from 'underscore';
 
-var Constants            = require('girder/constants');
-var DialogHelper         = require('girder/utilities/DialogHelper');
-var EditItemWidget       = require('girder/views/widgets/EditItemWidget');
-var Events               = require('girder/events');
-var FileListWidget       = require('girder/views/widgets/FileListWidget');
-var ItemBreadcrumbWidget = require('girder/views/widgets/ItemBreadcrumbWidget');
-var ItemModel            = require('girder/models/ItemModel');
-var ItemPageTemplate     = require('girder/templates/body/itemPage.jade');
-var MetadataWidget       = require('girder/views/widgets/MetadataWidget');
-var MiscFunctions        = require('girder/utilities/MiscFunctions');
-var Rest                 = require('girder/rest');
-var Router               = require('girder/router');
-var UploadWidget         = require('girder/views/widgets/UploadWidget');
-var View                 = require('girder/view');
+import { AccessType }       from 'girder/constants';
+import { handleClose }      from 'girder/utilities/DialogHelper';
+import EditItemWidget       from 'girder/views/widgets/EditItemWidget';
+import Events               from 'girder/events';
+import FileListWidget       from 'girder/views/widgets/FileListWidget';
+import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
+import ItemModel            from 'girder/models/ItemModel';
+import ItemPageTemplate     from 'girder/templates/body/itemPage.jade';
+import MetadataWidget       from 'girder/views/widgets/MetadataWidget';
+import { confirm, formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+import Rest                 from 'girder/rest';
+import router               from 'girder/router';
+import UploadWidget         from 'girder/views/widgets/UploadWidget';
+import View                 from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a single item's page.
  */
-var ItemView = View.extend({
+export var ItemView = View.extend({
     events: {
         'click .g-edit-item': 'editItem',
         'click .g-delete-item': 'deleteItem',
@@ -51,7 +51,7 @@ var ItemView = View.extend({
             parentType: 'item',
             parentView: this
         }).on('g:uploadFinished', function () {
-            DialogHelper.handleClose('upload');
+            handleClose('upload');
             this.upload = false;
 
             Events.trigger('g:alert', {
@@ -85,13 +85,13 @@ var ItemView = View.extend({
         var parentRoute = this.model.get('baseParentType') + '/' +
             this.model.get('baseParentId') + '/folder/' + folderId;
         var page = this;
-        MiscFunctions.confirm({
+        confirm({
             text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
             yesText: 'Delete',
             escapedHtml: true,
             confirmCallback: _.bind(function () {
                 this.model.destroy().on('g:deleted', function () {
-                    Router.navigate(parentRoute, {trigger: true});
+                    router.navigate(parentRoute, {trigger: true});
                 }).off('g:error').on('g:error', function () {
                     page.render();
                     Events.trigger('g:alert', {
@@ -113,8 +113,10 @@ var ItemView = View.extend({
             this.$el.html(ItemPageTemplate({
                 item: this.model,
                 accessLevel: accessLevel,
-                Constants: Constants,
-                MiscFunctions: MiscFunctions
+                AccessType: AccessType,
+                formatSize: formatSize,
+                formatDate: formatDate,
+                DATE_SECOND: DATE_SECOND
             }));
 
             this.$('.g-item-actions-button,.g-upload-into-item').tooltip({
@@ -163,8 +165,6 @@ var ItemView = View.extend({
     }
 });
 
-module.exports = ItemView;
-
 /**
  * Helper function for fetching the user and rendering the view with
  * an arbitrary set of extra parameters.
@@ -180,7 +180,7 @@ var _fetchAndInit = function (itemId, params) {
     }, this).fetch();
 };
 
-Router.route('item/:id', 'item', function (itemId, params) {
+router.route('item/:id', 'item', function (itemId, params) {
     _fetchAndInit(itemId, {
         edit: params.dialog === 'itemedit',
         fileEdit: params.dialog === 'fileedit' ? params.dialogid : false,

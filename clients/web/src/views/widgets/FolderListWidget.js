@@ -1,17 +1,17 @@
-var $                  = require('jquery');
-var _                  = require('underscore');
+import $                  from 'jquery';
+import _                  from 'underscore';
 
-var FolderCollection   = require('girder/collections/FolderCollection');
-var FolderListTemplate = require('girder/templates/widgets/folderList.jade');
-var LoadingAnimation   = require('girder/views/widgets/LoadingAnimation');
-var View               = require('girder/view');
+import FolderCollection   from 'girder/collections/FolderCollection';
+import FolderListTemplate from 'girder/templates/widgets/folderList.jade';
+import LoadingAnimation   from 'girder/views/widgets/LoadingAnimation';
+import View               from 'girder/view';
 
 /**
  * This widget shows a list of folders under a given parent.
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-var FolderListWidget = View.extend({
+export var FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');
@@ -99,6 +99,4 @@ var FolderListWidget = View.extend({
         }, this);
     }
 });
-
-module.exports = FolderListWidget;
 

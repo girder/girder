@@ -1,24 +1,24 @@
-var $                       = require('jquery');
-var _                       = require('underscore');
+import $                       from 'jquery';
+import _                       from 'underscore';
 
-var Constants               = require('girder/constants');
-var GroupInviteListTemplate = require('girder/templates/widgets/groupInviteList.jade');
-var MiscFunctions           = require('girder/utilities/MiscFunctions');
-var Router                  = require('girder/router');
-var View                    = require('girder/view');
+import { AccessType }          from 'girder/constants';
+import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
+import { confirm }             from 'girder/utilities/MiscFunctions';
+import router                  from 'girder/router';
+import View                    from 'girder/view';
 
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a list of pending invitations to the group.
  */
-var GroupInvitesWidget = View.extend({
+export var GroupInvitesWidget = View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove the invitation ' +
                     'for <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -35,7 +35,7 @@ var GroupInvitesWidget = View.extend({
 
         'click a.g-member-name': function (e) {
             var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
-            Router.navigate('user/' + user.get('_id'), {trigger: true});
+            router.navigate('user/' + user.get('_id'), {trigger: true});
         }
     },
 
@@ -48,7 +48,7 @@ var GroupInvitesWidget = View.extend({
         this.$el.html(GroupInviteListTemplate({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.toArray(),
-            accessType: Constants.AccessType
+            accessType: AccessType
         }));
 
         this.$('a[title]').tooltip({
@@ -61,5 +61,3 @@ var GroupInvitesWidget = View.extend({
         return this;
     }
 });
-
-module.exports = GroupInvitesWidget;

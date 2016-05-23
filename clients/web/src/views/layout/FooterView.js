@@ -1,11 +1,11 @@
-var LayoutFooterTemplate = require('girder/templates/layout/layoutFooter.jade');
-var Rest                 = require('girder/rest');
-var View                 = require('girder/view');
+import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.jade';
+import Rest                 from 'girder/rest';
+import View                 from 'girder/view';
 
 /**
  * This view shows the footer in the layout.
  */
-var LayoutFooterView = View.extend({
+export var LayoutFooterView = View.extend({
     render: function () {
         this.$el.html(LayoutFooterTemplate({
             apiRoot: Rest.apiRoot
@@ -13,6 +13,4 @@ var LayoutFooterView = View.extend({
         return this;
     }
 });
-
-module.exports = LayoutFooterView;
 

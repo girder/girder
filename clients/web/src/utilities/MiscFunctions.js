@@ -1,32 +1,32 @@
-var $                     = require('jquery');
-var _                     = require('underscore');
-var Remarkable            = require('remarkable');
+import $                     from 'jquery';
+import _                     from 'underscore';
+import Remarkable            from 'remarkable';
 
-var ConfirmDialogTemplate = require('girder/templates/widgets/confirmDialog.jade');
-var Constants             = require('girder/constants');
-var Events                = require('girder/events');
-var Rest                  = require('girder/rest');
+import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
+import { MONTHS }            from 'girder/constants';
+import Events                from 'girder/events';
+import Rest                  from 'girder/rest';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This file contains utility functions for general use in the application
  */
-var DATE_MONTH = 0;
-var DATE_DAY = 1;
-var DATE_MINUTE = 2;
-var DATE_SECOND = 3;
+export var DATE_MONTH = 0;
+export var DATE_DAY = 1;
+export var DATE_MINUTE = 2;
+export var DATE_SECOND = 3;
 
 /**
  * Format a date string to the given resolution.
  * @param datestr The date string to format.
  * @param resolution The resolution, defaults to 'day'. Minimum is month.
  */
-var formatDate = function (datestr, resolution) {
+export var formatDate = function (datestr, resolution) {
     datestr = datestr.replace(' ', 'T'); // Cross-browser accepted date format
     var date = new Date(datestr);
-    var output = Constants.MONTHS[date.getMonth()];
+    var output = MONTHS[date.getMonth()];
 
     resolution = resolution || DATE_MONTH;
 
@@ -51,7 +51,7 @@ var formatDate = function (datestr, resolution) {
  * Format a size in bytes into a human-readable string with metric unit
  * prefixes.
  */
-var formatSize = function (sizeBytes) {
+export var formatSize = function (sizeBytes) {
     if (sizeBytes < 20000) {
         return sizeBytes + ' B';
     }
@@ -80,7 +80,7 @@ var formatSize = function (sizeBytes) {
  *   - {integer} [base=1000] Base for the prefixes (usually 1000 or 1024).
  *   - {string} [sep=''] Separator between numeric value and metric prefix.
  */
-var formatCount = function (n, opts) {
+export var formatCount = function (n, opts) {
     n = n || 0;
     opts = opts || {};
 
@@ -117,7 +117,7 @@ var formatCount = function (n, opts) {
  *        user-created data within the text to prevent XSS exploits.
  * @param confirmCallback Callback function when the user confirms the action.
  */
-var confirm = function (params) {
+export var confirm = function (params) {
     params = _.extend({
         text: 'Are you sure?',
         yesText: 'Yes',
@@ -146,7 +146,7 @@ var confirm = function (params) {
  * This comparator can be used by collections that wish to support locale-based
  * sorting.  The locale specifies how upper and lower case are compared.
  */
-var localeComparator = function (model1, model2) {
+export var localeComparator = function (model1, model2) {
     var a1 = model1.get(this.sortField),
         a2 = model2.get(this.sortField);
 
@@ -166,7 +166,7 @@ var localeComparator = function (model1, model2) {
 /**
  * This comparator can be passed to the sort function on javascript arrays.
  */
-var localeSort = function (a1, a2) {
+export var localeSort = function (a1, a2) {
     if (a1 !== undefined && a1.localeCompare) {
         return a1.localeCompare(a2);
     }
@@ -177,12 +177,12 @@ var localeSort = function (a1, a2) {
  * Return the model class name given its collection name.
  * @param name Collection name, e.g. 'user'
  */
-var getModelClassByName = function (name) {
+export var getModelClassByName = function (name) {
     var className = name.charAt(0).toUpperCase();
     return className + name.substr(1) + 'Model';
 };
 
-var parseQueryString = function (queryString) {
+export var parseQueryString = function (queryString) {
     var params = {};
     if (queryString) {
         _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el) {
@@ -200,7 +200,7 @@ var parseQueryString = function (queryString) {
  * Restart the server, wait until it has restarted, then reload the current
  * page.
  */
-var restartServer = function () {
+export var restartServer = function () {
     function waitForServer() {
         Rest.restRequest({
             type: 'GET',
@@ -249,7 +249,7 @@ restartServer._reloadWindow = function () {
  *                 pass its name as this parameter.
  * @return {Object} An object mapping the names of options to values.
  */
-var defineFlags = function (options, allOption) {
+export var defineFlags = function (options, allOption) {
     var i = 0,
         obj = {};
 
@@ -277,7 +277,7 @@ var defineFlags = function (options, allOption) {
  * @param el The element to render the output HTML into, or falsy to simply
  *        return the HTML value.
  */
-var renderMarkdown = (function () {
+export var renderMarkdown = (function () {
     var md = new Remarkable({
         linkify: true
     });
@@ -293,7 +293,7 @@ var renderMarkdown = (function () {
 /**
  * Capitalize the first character of a string.
  */
-var capitalize = function (str) {
+export var capitalize = function (str) {
     return str.charAt(0).toUpperCase() + str.substring(1);
 };
 
@@ -304,32 +304,10 @@ var _pluginConfigRoutes = {};
  * @param pluginName The canonical plugin name, i.e. its directory name
  * @param route The route to trigger that will render the plugin config.
  */
-var exposePluginConfig = function (pluginName, route) {
+export var exposePluginConfig = function (pluginName, route) {
     _pluginConfigRoutes[pluginName] = route;
 };
 
-var getPluginConfigRoute = function (pluginName) {
+export var getPluginConfigRoute = function (pluginName) {
     return _pluginConfigRoutes[pluginName];
 };
-
-module.exports = {
-    DATE_MONTH: DATE_MONTH,
-    DATE_DAY: DATE_DAY,
-    DATE_MINUTE: DATE_MINUTE,
-    DATE_SECOND: DATE_SECOND,
-    formatDate: formatDate,
-    formatSize: formatSize,
-    formatCount: formatCount,
-    confirm: confirm,
-    localeComparator: localeComparator,
-    localeSort: localeSort,
-    getModelClassByName: getModelClassByName,
-    parseQueryString: parseQueryString,
-    restartServer: restartServer,
-    defineFlags: defineFlags,
-    renderMarkdown: renderMarkdown,
-    capitalize: capitalize,
-    exposePluginConfig: exposePluginConfig,
-    getPluginConfigRoute: getPluginConfigRoute
-};
-

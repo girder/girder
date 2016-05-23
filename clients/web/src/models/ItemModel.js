@@ -1,12 +1,11 @@
-var $             = require('jquery');
-var _             = require('underscore');
+import $                        from 'jquery';
+import _                        from 'underscore';
 
-var FolderModel   = require('girder/models/FolderModel');
-var MetadataMixin = require('girder/model').MetadataMixin;
-var Model         = require('girder/model').Model;
-var Rest          = require('girder/rest');
+import FolderModel              from 'girder/models/FolderModel';
+import { Model, MetadataMixin } from 'girder/model';
+import Rest                     from 'girder/rest';
 
-var ItemModel = Model.extend({
+export var ItemModel = Model.extend({
     resourceName: 'item',
 
     /**
@@ -51,5 +50,3 @@ var ItemModel = Model.extend({
 });
 
 _.extend(ItemModel.prototype, MetadataMixin);
-
-module.exports = ItemModel;

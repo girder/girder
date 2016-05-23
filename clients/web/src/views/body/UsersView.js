@@ -1,26 +1,26 @@
-var $                 = require('jquery');
+import $                 from 'jquery';
 
-var Auth              = require('girder/auth');
-var Events            = require('girder/events');
-var MiscFunctions     = require('girder/utilities/MiscFunctions');
-var PaginateWidget    = require('girder/views/widgets/PaginateWidget');
-var RegisterView      = require('girder/views/layout/RegisterView');
-var Rest              = require('girder/rest');
-var Router            = require('girder/router');
-var SearchFieldWidget = require('girder/views/widgets/SearchFieldWidget');
-var UserCollection    = require('girder/collections/UserCollection');
-var UserListTemplate  = require('girder/templates/body/userList.jade');
-var UserModel         = require('girder/models/UserModel');
-var View              = require('girder/view');
+import Auth              from 'girder/auth';
+import Events            from 'girder/events';
+import { formatDate, formatSize, DATE_DAY } from 'girder/utilities/MiscFunctions';
+import PaginateWidget    from 'girder/views/widgets/PaginateWidget';
+import RegisterView      from 'girder/views/layout/RegisterView';
+import Rest              from 'girder/rest';
+import router            from 'girder/router';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import UserCollection    from 'girder/collections/UserCollection';
+import UserListTemplate  from 'girder/templates/body/userList.jade';
+import UserModel         from 'girder/models/UserModel';
+import View              from 'girder/view';
 
 /**
  * This view lists users.
  */
-var UsersView = View.extend({
+export var UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
-            Router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-user-create-button': 'createUserDialog',
         'submit .g-user-search-form': function (event) {
@@ -55,7 +55,9 @@ var UsersView = View.extend({
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
             Auth: Auth,
-            MiscFunctions: MiscFunctions
+            formatDate: formatDate,
+            formatSize: formatSize,
+            DATE_DAY: DATE_DAY
         }));
 
         this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
@@ -75,7 +77,7 @@ var UsersView = View.extend({
     _gotoUser: function (result) {
         var user = new UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
-            Router.navigate('user/' + user.get('_id'), {trigger: true});
+            router.navigate('user/' + user.get('_id'), {trigger: true});
         }, this).fetch();
     },
 
@@ -86,14 +88,12 @@ var UsersView = View.extend({
             el: container,
             parentView: this
         }).on('g:userCreated', function (info) {
-            Router.navigate('user/' + info.user.id, {trigger: true});
+            router.navigate('user/' + info.user.id, {trigger: true});
         }, this).render();
     }
 });
 
-module.exports = UsersView;
-
-Router.route('users', 'users', function (params) {
+router.route('users', 'users', function (params) {
     Events.trigger('g:navigateTo', UsersView, params || {});
     Events.trigger('g:highlightItem', 'UsersView');
 });

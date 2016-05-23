@@ -1,10 +1,10 @@
-var _           = require('underscore');
-var Backbone    = require('backbone');
+import _           from 'underscore';
+import Backbone    from 'backbone';
 
-var Events      = require('girder/events');
-var EventStream = require('girder/eventStream');
+import Events      from 'girder/events';
+import EventStream from 'girder/eventStream';
 
-var View = Backbone.View.extend({
+export var View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
@@ -74,5 +74,3 @@ var View = Backbone.View.extend({
         this._childViews = _.without(this._childViews, child);
     }
 });
-
-module.exports = View;

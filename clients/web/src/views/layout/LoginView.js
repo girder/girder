@@ -1,16 +1,16 @@
-var Auth                = require('girder/auth');
-var DialogHelper        = require('girder/utilities/DialogHelper');
-var Events              = require('girder/events');
-var LoginDialogTemplate = require('girder/templates/layout/loginDialog.jade');
-var View                = require('girder/view');
+import Auth                        from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import Events                      from 'girder/events';
+import LoginDialogTemplate         from 'girder/templates/layout/loginDialog.jade';
+import View                        from 'girder/view';
 
-require('bootstrap/js/modal');
-require('girder/utilities/jQuery'); // $.girderModal
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This view shows a login modal dialog.
  */
-var LoginView = View.extend({
+export var LoginView = View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();
@@ -45,15 +45,13 @@ var LoginView = View.extend({
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                DialogHelper.handleClose('login', {replace: true});
+                handleClose('login', {replace: true});
             });
 
-        DialogHelper.handleOpen('login', {replace: true});
+        handleOpen('login', {replace: true});
         this.$('#g-login').focus();
 
         return this;
     }
 
 });
-
-module.exports = LoginView;

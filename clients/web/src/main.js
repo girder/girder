@@ -1,10 +1,10 @@
-var $      = require('jquery');
+import $      from 'jquery';
 
-var App    = require('girder/app');
-var Events = require('girder/events');
-var Router = require('girder/router');
+import App    from 'girder/app';
+import Events from 'girder/events';
+import router from 'girder/router';
 
-require('girder/utilities/jQuery'); // $.girderModal
+import 'girder/utilities/jQuery'; // $.girderModal
 
 // Some cross-browser globals
 if (!window.console) {
@@ -17,7 +17,7 @@ if (!window.console) {
 // When all scripts are loaded, we invoke the application
 $(function () {
     // When the back button is pressed, we want to close open modals.
-    Router.on('route', function (route, params) {
+    router.on('route', function (route, params) {
         if (!params.slice(-1)[0].dialog) {
             $('.modal').girderModal('close');
         }

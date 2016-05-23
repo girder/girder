@@ -1,16 +1,16 @@
-var _               = require('underscore');
+import _               from 'underscore';
 
-var Events          = require('girder/events');
-var FolderModel     = require('girder/models/FolderModel');
-var HierarchyWidget = require('girder/views/widgets/HierarchyWidget');
-var Rest            = require('girder/rest');
-var Router          = require('girder/router');
-var View            = require('girder/view');
+import Events          from 'girder/events';
+import FolderModel     from 'girder/models/FolderModel';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import Rest            from 'girder/rest';
+import router          from 'girder/router';
+import View            from 'girder/view';
 
 /**
  * This view shows a single folder as a hierarchy widget.
  */
-var FolderView = View.extend({
+export var FolderView = View.extend({
     initialize: function (settings) {
         Rest.cancelRestRequests('fetch');
         this.folder = settings.folder;
@@ -39,9 +39,7 @@ var FolderView = View.extend({
     }
 });
 
-module.exports = FolderView;
-
-Router.route('folder/:id', 'folder', function (id, params) {
+router.route('folder/:id', 'folder', function (id, params) {
     // Fetch the folder by id, then render the view.
     var folder = new FolderModel();
     folder.set({

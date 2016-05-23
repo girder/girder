@@ -1,18 +1,18 @@
-var PluginConfigBreadcrumbTemplate = require('girder/templates/widgets/pluginConfigBreadcrumb.jade');
-var Router                         = require('girder/router');
-var View                           = require('girder/view');
+import PluginConfigBreadcrumbTemplate from 'girder/templates/widgets/pluginConfigBreadcrumb.jade';
+import router                         from 'girder/router';
+import View                           from 'girder/view';
 
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
  */
-var PluginConfigBreadcrumbWidget = View.extend({
+export var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
-            Router.navigate('admin', {trigger: true});
+            router.navigate('admin', {trigger: true});
         },
         'click a.g-plugins-link': function () {
-            Router.navigate('plugins', {trigger: true});
+            router.navigate('plugins', {trigger: true});
         }
     },
 
@@ -28,5 +28,3 @@ var PluginConfigBreadcrumbWidget = View.extend({
         return this;
     }
 });
-
-module.exports = PluginConfigBreadcrumbWidget;

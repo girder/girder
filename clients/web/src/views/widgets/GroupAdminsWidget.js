@@ -1,28 +1,28 @@
-var $                      = require('jquery');
-var _                      = require('underscore');
+import $                      from 'jquery';
+import _                      from 'underscore';
 
-var Constants              = require('girder/constants');
-var Events                 = require('girder/events');
-var GroupAdminListTemplate = require('girder/templates/widgets/groupAdminList.jade');
-var MiscFunctions          = require('girder/utilities/MiscFunctions');
-var UserModel              = require('girder/models/UserModel');
-var UserView               = require('girder/views/body/UserView');
-var View                   = require('girder/view');
+import { AccessType }         from 'girder/constants';
+import Events                 from 'girder/events';
+import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
+import { confirm }            from 'girder/utilities/MiscFunctions';
+import UserModel              from 'girder/models/UserModel';
+import UserView               from 'girder/views/body/UserView';
+import View                   from 'girder/view';
 
-require('bootstrap/js/dropdown');
-require('bootstrap/js/tooltip');
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a list of administrators of a group.
  */
-var GroupAdminsWidget = View.extend({
+export var GroupAdminsWidget = View.extend({
     events: {
         'click .g-demote-moderator': function (e) {
             var li = $(e.currentTarget).parents('.g-group-admins>li');
             var userid = li.attr('userid');
             var view = this;
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to demote <b>' +
                     _.escape(li.attr('username')) + '</b> to a moderator?',
                 escapedHtml: true,
@@ -30,7 +30,7 @@ var GroupAdminsWidget = View.extend({
                     var user = new UserModel({_id: userid});
                     view.model.off('g:promoted').on('g:promoted', function () {
                         this.trigger('g:moderatorAdded');
-                    }, view).promoteUser(user, Constants.AccessType.WRITE);
+                    }, view).promoteUser(user, AccessType.WRITE);
                 }
             });
         },
@@ -39,7 +39,7 @@ var GroupAdminsWidget = View.extend({
             var li = $(e.currentTarget).parents('.g-group-admins>li');
             var view = this;
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove admin privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -53,7 +53,7 @@ var GroupAdminsWidget = View.extend({
             var view = this;
             var li = $(e.currentTarget).parents('li');
 
-            MiscFunctions.confirm({
+            confirm({
                 text: 'Are you sure you want to remove <b> ' +
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
@@ -81,7 +81,7 @@ var GroupAdminsWidget = View.extend({
             group: this.model,
             level: this.model.get('_accessLevel'),
             admins: this.admins,
-            accessType: Constants.AccessType
+            accessType: AccessType
         }));
 
         this.$('.g-group-admin-demote').tooltip({
@@ -94,5 +94,3 @@ var GroupAdminsWidget = View.extend({
         return this;
     }
 });
-
-module.exports = GroupAdminsWidget;

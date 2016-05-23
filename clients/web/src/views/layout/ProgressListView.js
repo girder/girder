@@ -1,15 +1,15 @@
-var $                          = require('jquery');
-var _                          = require('underscore');
+import $                          from 'jquery';
+import _                          from 'underscore';
 
-var LayoutProgressAreaTemplate = require('girder/templates/layout/layoutProgressArea.jade');
-var TaskProgressWidget         = require('girder/views/widgets/TaskProgressWidget');
-var View                       = require('girder/view');
+import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.jade';
+import TaskProgressWidget         from 'girder/views/widgets/TaskProgressWidget';
+import View                       from 'girder/view';
 
 /**
  * Container showing list of active tasks that are reporting progress
  * via a EventStream object.
  */
-var ProgressListView = View.extend({
+export var ProgressListView = View.extend({
 
     initialize: function (settings) {
         this.eventStream = settings.eventStream;
@@ -56,5 +56,3 @@ var ProgressListView = View.extend({
         }
     }
 });
-
-module.exports = ProgressListView;
