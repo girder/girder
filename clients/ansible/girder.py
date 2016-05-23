@@ -17,12 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
+import os
+from inspect import getmembers, ismethod, getargspec
+
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
 # https://github.com/ansible/ansible/blob/v1.9.4-1/lib/ansible/module_common.py#L41-L59
 # For more information on this magic. For now we noqa to prevent flake8 errors
 from ansible.module_utils.basic import *  # noqa
-from inspect import getmembers, ismethod, getargspec
 
 try:
     from girder_client import GirderClient, AuthenticationError, HttpError
@@ -31,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 DOCUMENTATION = '''
 ---
@@ -899,7 +902,7 @@ class Resource(object):
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
-                ret = self.resource_by_name[args['name']]
+                ret = self.resource_by_name[kwargs['name']]
             except KeyError:
                 raise htErr
         return ret
@@ -1733,7 +1736,7 @@ def main():
     for method in gcm.required_one_of:
         argument_spec[method] = dict(type=gcm.spec[method]['type'])
 
-    module = AnsibleModule(
+    module = AnsibleModule(  # noqa
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
                          ["token", "username", "user"]],
