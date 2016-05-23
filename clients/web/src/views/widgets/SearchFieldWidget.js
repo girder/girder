@@ -1,7 +1,7 @@
 import $                        from 'jquery';
 import _                        from 'underscore';
 
-import Rest                     from 'girder/rest';
+import { restRequest }          from 'girder/rest';
 import SearchFieldTemplate      from 'girder/templates/widgets/searchField.jade';
 import SearchHelpTemplate       from 'girder/templates/widgets/searchHelp.jade';
 import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.jade';
@@ -16,7 +16,7 @@ import 'bootstrap/js/popover';
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-export var SearchFieldWidget = View.extend({
+var SearchFieldWidget = View.extend({
     events: {
         'input .g-search-field': 'search',
 
@@ -190,7 +190,7 @@ export var SearchFieldWidget = View.extend({
         this.ajaxLock = true;
         this.pending = null;
 
-        Rest.restRequest({
+        restRequest({
             path: 'resource/search',
             data: {
                 q: q,
@@ -254,3 +254,5 @@ export var SearchFieldWidget = View.extend({
         }, this));
     }
 });
+
+export default SearchFieldWidget;

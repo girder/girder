@@ -7,7 +7,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view shows a dialog containing detailed collection information.
  */
-export var CollectionInfoWidget = View.extend({
+var CollectionInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -32,3 +32,5 @@ export var CollectionInfoWidget = View.extend({
         })).girderModal(this);
     }
 });
+
+export default CollectionInfoWidget;

@@ -7,7 +7,7 @@ import View                 from 'girder/view';
 /**
  * This view shows the header in the layout.
  */
-export var LayoutHeaderView = View.extend({
+var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
             router.navigate('', {trigger: true});
@@ -38,3 +38,5 @@ export var LayoutHeaderView = View.extend({
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
     }
 });
+
+export default LayoutHeaderView;

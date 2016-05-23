@@ -11,7 +11,7 @@ import View               from 'girder/view';
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-export var FolderListWidget = View.extend({
+var FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');
@@ -99,4 +99,6 @@ export var FolderListWidget = View.extend({
         }, this);
     }
 });
+
+export default FolderListWidget;
 

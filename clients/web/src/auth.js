@@ -1,13 +1,14 @@
-import _         from 'underscore';
+import _               from 'underscore';
 
-import Events    from 'girder/events';
-import UserModel from 'girder/models/UserModel';
+import { events }      from 'girder/events';
+import UserModel       from 'girder/models/UserModel';
+import { restRequest } from 'girder/rest';
 
 // This definitely need some fixing/testing, as it seems that
 // girder.corsAuth could be an override. See login doc below.
 var corsAuth = false;
 
-export var cookie = {
+var cookie = {
     findAll: function () {
         var cookies = {};
         _(document.cookie.split(';'))
@@ -29,43 +30,43 @@ export var cookie = {
     },
 
     find: function (name) {
-        var cookie = null,
+        var found_cookie = null,
             list = this.findAll();
 
         _.each(list, function (value, key) {
             if (key === name) {
-                cookie = value;
+                found_cookie = value;
             }
         });
-        return cookie;
+        return found_cookie;
     }
 };
 
 var currentUser = null;
 var currentToken = cookie.find('girderToken');
 
-export var getCurrentUser = function () {
+function getCurrentUser() {
     return currentUser;
-};
+}
 
-export var setCurrentUser = function (user) {
+function setCurrentUser(user) {
     currentUser = user;
-};
+}
 
-export var getCurrentToken = function () {
+function getCurrentToken() {
     return currentToken;
-};
+}
 
-export var setCurrentToken = function (token) {
+function setCurrentToken(token) {
     currentToken = token;
-};
+}
 
-export var fetchCurrentUser = function () {
-    return Rest.restRequest({
+function fetchCurrentUser() {
+    return restRequest({
         method: 'GET',
         path: '/user/me'
     });
-};
+}
 
 /**
  * Log in to the server. If successful, sets the value of currentUser
@@ -78,13 +79,13 @@ export var fetchCurrentUser = function () {
  *        to "true" to save the auth cookie on the current domain. Alternatively,
  *        you may set the global option "girder.corsAuth = true".
  */
-export var login = function (username, password, cors) {
+function login(username, password, cors) {
     var auth = 'Basic ' + window.btoa(username + ':' + password);
     if (cors === undefined) {
         cors = corsAuth;
     }
 
-    return Rest.restRequest({
+    return restRequest({
         method: 'GET',
         path: '/user/authentication',
         headers: {
@@ -103,31 +104,43 @@ export var login = function (username, password, cors) {
             document.cookie = 'girderToken=' + getCurrentToken();
         }
 
-        Events.trigger('g:login.success', response.user);
-        Events.trigger('g:login', response);
+        events.trigger('g:login.success', response.user);
+        events.trigger('g:login', response);
 
         return response.user;
     }, function (jqxhr) {
-        Events.trigger('g:login.error', jqxhr.status, jqxhr);
+        events.trigger('g:login.error', jqxhr.status, jqxhr);
         return jqxhr;
     });
-};
+}
 
-export var logout = function () {
-    return Rest.restRequest({
+function logout() {
+    return restRequest({
         method: 'DELETE',
         path: '/user/authentication'
     }).then(function () {
         setCurrentUser(null);
         setCurrentToken(null);
 
-        Events.trigger('g:login', null);
-        Events.trigger('g:logout.success');
+        events.trigger('g:login', null);
+        events.trigger('g:logout.success');
     }, function (jqxhr) {
-        Events.trigger('g:logout.error', jqxhr.status, jqxhr);
+        events.trigger('g:logout.error', jqxhr.status, jqxhr);
     });
+}
+
+export {
+    cookie,
+    corsAuth,
+    getCurrentUser,
+    setCurrentUser,
+    getCurrentToken,
+    setCurrentToken,
+    fetchCurrentUser,
+    login,
+    logout
 };
 
 // Alleviate a circular dependency for now
 // http://stackoverflow.com/a/30390378/250457
-import Rest   from 'girder/rest';
+// import { restRequest } from 'girder/rest';

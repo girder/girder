@@ -1,30 +1,29 @@
-import $                   from 'jquery';
-import _                   from 'underscore';
-import Backbone            from 'backbone';
+import $                        from 'jquery';
+import _                        from 'underscore';
+import Backbone                 from 'backbone';
 
-import AlertTemplate       from 'girder/templates/layout/alert.jade';
-import Auth                from 'girder/auth';
-import { Layout }          from 'girder/constants';
-import { splitRoute }      from 'girder/utilities/DialogHelper';
-import Events              from 'girder/events';
-import EventStream         from 'girder/eventStream';
-import LayoutFooterView    from 'girder/views/layout/FooterView';
-import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
-import LayoutHeaderView    from 'girder/views/layout/HeaderView';
-import LayoutTemplate      from 'girder/templates/layout/layout.jade';
-import LoginView           from 'girder/views/layout/LoginView';
-import ProgressListView    from 'girder/views/layout/ProgressListView';
-import RegisterView        from 'girder/views/layout/RegisterView';
-import ResetPasswordView   from 'girder/views/layout/ResetPasswordView';
-import router              from 'girder/router';
-import UserModel           from 'girder/models/UserModel';
-import View                from 'girder/view';
+import AlertTemplate            from 'girder/templates/layout/alert.jade';
+import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
+import { Layout }               from 'girder/constants';
+import { splitRoute }           from 'girder/utilities/DialogHelper';
+import { events, eventStream }  from 'girder/events';
+import LayoutFooterView         from 'girder/views/layout/FooterView';
+import LayoutGlobalNavView      from 'girder/views/layout/GlobalNavView';
+import LayoutHeaderView         from 'girder/views/layout/HeaderView';
+import LayoutTemplate           from 'girder/templates/layout/layout.jade';
+import LoginView                from 'girder/views/layout/LoginView';
+import ProgressListView         from 'girder/views/layout/ProgressListView';
+import RegisterView             from 'girder/views/layout/RegisterView';
+import ResetPasswordView        from 'girder/views/layout/ResetPasswordView';
+import router                   from 'girder/router';
+import UserModel                from 'girder/models/UserModel';
+import View                     from 'girder/view';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 
-export var App = View.extend({
+var App = View.extend({
     initialize: function () {
-        Auth.fetchCurrentUser()
+        fetchCurrentUser()
             .done(_.bind(function (user) {
                 this.headerView = new LayoutHeaderView({
                     parentView: this
@@ -39,13 +38,13 @@ export var App = View.extend({
                 });
 
                 this.progressListView = new ProgressListView({
-                    eventStream: EventStream,
+                    eventStream: eventStream,
                     parentView: this
                 });
 
                 if (user) {
-                    Auth.setCurrentUser(new UserModel(user));
-                    EventStream.open();
+                    setCurrentUser(new UserModel(user));
+                    eventStream.open();
                 }
 
                 this.layoutRenderMap = {};
@@ -59,12 +58,12 @@ export var App = View.extend({
                 });
             }, this));
 
-        Events.on('g:navigateTo', this.navigateTo, this);
-        Events.on('g:loginUi', this.loginDialog, this);
-        Events.on('g:registerUi', this.registerDialog, this);
-        Events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
-        Events.on('g:alert', this.alert, this);
-        Events.on('g:login', this.login, this);
+        events.on('g:navigateTo', this.navigateTo, this);
+        events.on('g:loginUi', this.loginDialog, this);
+        events.on('g:registerUi', this.registerDialog, this);
+        events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
+        events.on('g:alert', this.alert, this);
+        events.on('g:login', this.login, this);
     },
 
     _layout: 'default',
@@ -157,7 +156,7 @@ export var App = View.extend({
      * :returns: true if we have a current user.
      */
     closeDialogIfUser: function () {
-        if (Auth.getCurrentUser()) {
+        if (getCurrentUser()) {
             $('.modal').girderModal('close');
             return true;
         }
@@ -243,13 +242,15 @@ export var App = View.extend({
     login: function () {
         var route = splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
-        EventStream.close();
+        eventStream.close();
 
-        if (Auth.getCurrentUser()) {
-            EventStream.open();
+        if (getCurrentUser()) {
+            eventStream.open();
             router.navigate(route, {trigger: true});
         } else {
             router.navigate('/', {trigger: true});
         }
     }
 });
+
+export default App;

@@ -5,7 +5,7 @@ import View                   from 'girder/view';
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a Collection.
  */
-export var PaginateWidget = View.extend({
+var PaginateWidget = View.extend({
     events: {
         'click .g-page-next': function (e) {
             if (!$(e.currentTarget).hasClass('disabled')) {
@@ -45,3 +45,5 @@ export var PaginateWidget = View.extend({
         return this;
     }
 });
+
+export default PaginateWidget;

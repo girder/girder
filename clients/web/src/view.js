@@ -1,10 +1,9 @@
-import _           from 'underscore';
-import Backbone    from 'backbone';
+import _                        from 'underscore';
+import Backbone                 from 'backbone';
 
-import Events      from 'girder/events';
-import EventStream from 'girder/eventStream';
+import {  events, eventStream } from 'girder/events';
 
-export var View = Backbone.View.extend({
+var View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
@@ -20,7 +19,7 @@ export var View = Backbone.View.extend({
 
     /**
      * Remove a view, unbinding its events and removing its listeners on
-     * Events so that it can be garbage collected.
+     * events so that it can be garbage collected.
      */
     destroy: function () {
         _.each(this._childViews, function (child) {
@@ -31,8 +30,8 @@ export var View = Backbone.View.extend({
         this.undelegateEvents();
         this.stopListening();
         this.off();
-        Events.off(null, null, this);
-        EventStream.off(null, null, this);
+        events.off(null, null, this);
+        eventStream.off(null, null, this);
 
         if (this.parentView) {
             this.parentView.unregisterChildView(this);
@@ -74,3 +73,6 @@ export var View = Backbone.View.extend({
         this._childViews = _.without(this._childViews, child);
     }
 });
+
+export default View;
+

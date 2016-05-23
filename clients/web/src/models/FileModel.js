@@ -1,12 +1,12 @@
-import _           from 'underscore';
+import _                     from 'underscore';
 
 import { UPLOAD_CHUNK_SIZE } from 'girder/constants';
 import FolderModel           from 'girder/models/FolderModel';
 import ItemModel             from 'girder/models/ItemModel';
 import { Model }             from 'girder/model';
-import Rest                  from 'girder/rest';
+import { restRequest, uploadHandlers } from 'girder/rest';
 
-export var FileModel = Model.extend({
+var FileModel = Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
@@ -110,10 +110,10 @@ export var FileModel = Model.extend({
         };
 
         // Authenticate and generate the upload token for this file
-        Rest.restRequest(_restParams).done(_.bind(function (upload) {
+        restRequest(_restParams).done(_.bind(function (upload) {
             var behavior = upload.behavior;
-            if (behavior && Rest.uploadHandlers[behavior]) {
-                this.uploadHandler = new Rest.uploadHandlers[behavior]({
+            if (behavior && uploadHandlers[behavior]) {
+                this.uploadHandler = new uploadHandlers[behavior]({
                     upload: upload,
                     parentModel: parentModel,
                     file: file
@@ -180,7 +180,7 @@ export var FileModel = Model.extend({
         }
 
         // Request the actual offset we need to resume at
-        Rest.restRequest({
+        restRequest({
             path: 'file/offset',
             type: 'GET',
             data: {
@@ -209,7 +209,7 @@ export var FileModel = Model.extend({
         if (!this.resumeInfo || !this.resumeInfo.uploadId) {
             return;
         }
-        Rest.restRequest({
+        restRequest({
             path: 'system/uploads',
             type: 'DELETE',
             data: {
@@ -234,7 +234,7 @@ export var FileModel = Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
-        Rest.restRequest({
+        restRequest({
             path: 'file/chunk',
             type: 'POST',
             dataType: 'json',
@@ -312,3 +312,5 @@ export var FileModel = Model.extend({
         }
     }
 });
+
+export default FileModel;

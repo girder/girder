@@ -1,14 +1,14 @@
 import $                      from 'jquery';
 
-import Auth                   from 'girder/auth';
+import { getCurrentUser }     from 'girder/auth';
 import CollectionCollection   from 'girder/collections/CollectionCollection';
 import CollectionListTemplate from 'girder/templates/body/collectionList.jade';
 import CollectionModel        from 'girder/models/CollectionModel';
 import EditCollectionWidget   from 'girder/views/widgets/EditCollectionWidget';
-import Events                 from 'girder/events';
+import { events }             from 'girder/events';
 import { formatDate, formatSize, DATE_MINUTE } from 'girder/utilities/MiscFunctions';
 import PaginateWidget         from 'girder/views/widgets/PaginateWidget';
-import Rest                   from 'girder/rest';
+import { cancelRestRequests } from 'girder/rest';
 import router                 from 'girder/router';
 import SearchFieldWidget      from 'girder/views/widgets/SearchFieldWidget';
 import View                   from 'girder/view';
@@ -16,7 +16,7 @@ import View                   from 'girder/view';
 /**
  * This view lists the collections.
  */
-export var CollectionsView = View.extend({
+var CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
@@ -29,7 +29,7 @@ export var CollectionsView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.collection = new CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -67,7 +67,7 @@ export var CollectionsView = View.extend({
     render: function () {
         this.$el.html(CollectionListTemplate({
             collections: this.collection.toArray(),
-            Auth: Auth,
+            getCurrentUser: getCurrentUser,
             formatDate: formatDate,
             DATE_MINUTE: DATE_MINUTE,
             formatSize: formatSize
@@ -96,6 +96,8 @@ export var CollectionsView = View.extend({
 });
 
 router.route('collections', 'collections', function (params) {
-    Events.trigger('g:navigateTo', CollectionsView, params || {});
-    Events.trigger('g:highlightItem', 'CollectionsView');
+    events.trigger('g:navigateTo', CollectionsView, params || {});
+    events.trigger('g:highlightItem', 'CollectionsView');
 });
+
+export default CollectionsView;

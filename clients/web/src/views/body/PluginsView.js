@@ -1,13 +1,13 @@
-import $                 from 'jquery';
-import _                 from 'underscore';
+import $                      from 'jquery';
+import _                      from 'underscore';
 
-import Events            from 'girder/events';
+import { events }             from 'girder/events';
 import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
-import PluginsTemplate   from 'girder/templates/body/plugins.jade';
-import Rest              from 'girder/rest';
-import router            from 'girder/router';
-import UsersView         from 'girder/views/body/UsersView';
-import View              from 'girder/view';
+import PluginsTemplate        from 'girder/templates/body/plugins.jade';
+import { restRequest, cancelRestRequests } from 'girder/rest';
+import router                 from 'girder/router';
+import UsersView              from 'girder/views/body/UsersView';
+import View                   from 'girder/view';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
@@ -15,7 +15,7 @@ import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 /**
  * This is the plugin management page for administrators.
  */
-export var PluginsView = View.extend({
+var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
@@ -33,14 +33,14 @@ export var PluginsView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.render();
         } else {
             // Fetch the plugin list
-            Rest.restRequest({
+            restRequest({
                 path: 'system/plugins',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -143,7 +143,7 @@ export var PluginsView = View.extend({
         // if the directory of an enabled plugin disappears.
         this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
 
-        Rest.restRequest({
+        restRequest({
             path: 'system/plugins',
             type: 'PUT',
             data: {
@@ -162,12 +162,14 @@ export var PluginsView = View.extend({
 
 router.route('plugins', 'plugins', function () {
     // Fetch the plugin list
-    Rest.restRequest({
+    restRequest({
         path: 'system/plugins',
         type: 'GET'
     }).done(_.bind(function (resp) {
-        Events.trigger('g:navigateTo', PluginsView, resp);
+        events.trigger('g:navigateTo', PluginsView, resp);
     }, this)).error(_.bind(function () {
-        Events.trigger('g:navigateTo', UsersView);
+        events.trigger('g:navigateTo', UsersView);
     }, this));
 });
+
+export default PluginsView;

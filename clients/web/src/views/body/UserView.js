@@ -1,11 +1,11 @@
 import _                from 'underscore';
 
 import { AccessType }   from 'girder/constants';
-import Events           from 'girder/events';
+import { events }       from 'girder/events';
 import FolderModel      from 'girder/models/FolderModel';
 import HierarchyWidget  from 'girder/views/widgets/HierarchyWidget';
 import { confirm }      from 'girder/utilities/MiscFunctions';
-import Rest             from 'girder/rest';
+import { cancelRestRequests } from 'girder/rest';
 import router           from 'girder/router';
 import UserModel        from 'girder/models/UserModel';
 import UserPageTemplate from 'girder/templates/body/userPage.jade';
@@ -17,7 +17,7 @@ import 'bootstrap/js/dropdown';
 /**
  * This view shows a single user's page.
  */
-export var UserView = View.extend({
+var UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
             var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
@@ -40,7 +40,7 @@ export var UserView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.folderId = settings.folderId || null;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;
@@ -118,11 +118,11 @@ var _fetchAndInit = function (userId, params) {
     user.set({
         _id: userId
     }).on('g:fetched', function () {
-        Events.trigger('g:navigateTo', UserView, _.extend({
+        events.trigger('g:navigateTo', UserView, _.extend({
             user: user
         }, params || {}));
     }, this).on('g:error', function () {
-        Events.trigger('g:navigateTo', UsersView);
+        events.trigger('g:navigateTo', UsersView);
     }, this).fetch();
 };
 
@@ -143,3 +143,5 @@ router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, pa
         itemCreate: params.dialog === 'itemcreate'
     });
 });
+
+export default UserView;

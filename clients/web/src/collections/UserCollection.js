@@ -1,7 +1,7 @@
 import Collection from 'girder/collection';
 import UserModel  from 'girder/models/UserModel';
 
-export var UserCollection = Collection.extend({
+var UserCollection = Collection.extend({
     resourceName: 'user',
     model: UserModel,
 
@@ -9,3 +9,5 @@ export var UserCollection = Collection.extend({
     sortField: 'lastName',
     secondarySortField: 'firstName'
 });
+
+export default UserCollection;

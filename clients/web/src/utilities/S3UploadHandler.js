@@ -1,7 +1,7 @@
 import _        from 'underscore';
 import Backbone from 'backbone';
 
-import Rest     from 'girder/rest';
+import { restRequest, uploadHandlers } from 'girder/rest';
 
 /**
  * This is the upload handler for the "s3" behavior, which is responsible for
@@ -16,13 +16,13 @@ import Rest     from 'girder/rest';
  * sent in order to create the final unified record in S3.
  */
 // Constructor
-Rest.uploadHandlers.s3 = function (params) {
+uploadHandlers.s3 = function (params) {
     this.params = params;
     this.startByte = 0;
     return _.extend(this, Backbone.Events);
 };
 
-var prototype = Rest.uploadHandlers.s3.prototype;
+var prototype = uploadHandlers.s3.prototype;
 
 prototype._xhrProgress = function (event) {
     if (!event.lengthComputable) {
@@ -64,7 +64,7 @@ prototype.execute = function () {
                     bytes: handler.payloadLength
                 });
 
-                Rest.restRequest({
+                restRequest({
                     path: 'file/completion',
                     type: 'POST',
                     data: {
@@ -115,7 +115,7 @@ prototype.resume = function () {
 
     // If this is a single-chunk upload, we have to use the offset method
     // to re-generate the initial request with a new timestamp.
-    Rest.restRequest({
+    restRequest({
         path: 'file/offset',
         type: 'GET',
         data: {
@@ -184,7 +184,7 @@ prototype._sendNextChunk = function () {
     this.payloadLength = data.size;
 
     // Get the authorized request from Girder
-    Rest.restRequest({
+    restRequest({
         path: 'file/chunk',
         type: 'POST',
         data: {
@@ -251,7 +251,7 @@ prototype._sendNextChunk = function () {
  * called in order to finalize the upload.
  */
 prototype._finalizeMultiChunkUpload = function () {
-    Rest.restRequest({
+    restRequest({
         path: 'file/completion',
         type: 'POST',
         data: {

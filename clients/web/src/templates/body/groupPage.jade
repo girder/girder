@@ -1,6 +1,6 @@
 .g-group-header
   .btn-group.pull-right
-    if (isMember || isInvited || Auth.getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
+    if (isMember || isInvited || getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
       button.g-group-actions-button.btn.btn-default.dropdown-toggle(
           data-toggle="dropdown", title="Group actions")
           i.icon-users
@@ -17,7 +17,7 @@
             a.g-group-join(role="menuitem")
               i.icon-login
               | Join group
-        else if (Auth.getCurrentUser())
+        else if (getCurrentUser())
           li(role="presentation")
             a.g-group-request-invite(role="menuitem")
               i.icon-export
@@ -39,7 +39,7 @@
   .g-group-description.g-body-subtitle #{group.get('description')}
   .g-clear-right
 
-if (Auth.getCurrentUser())
+if (getCurrentUser())
     if (isMember)
       .g-group-status-container.g-member
         i.icon-ok

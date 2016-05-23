@@ -6,7 +6,7 @@ import View                           from 'girder/view';
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
  */
-export var PluginConfigBreadcrumbWidget = View.extend({
+var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
             router.navigate('admin', {trigger: true});
@@ -28,3 +28,5 @@ export var PluginConfigBreadcrumbWidget = View.extend({
         return this;
     }
 });
+
+export default PluginConfigBreadcrumbWidget;

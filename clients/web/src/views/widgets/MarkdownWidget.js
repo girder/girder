@@ -1,6 +1,6 @@
 import _                              from 'underscore';
 
-import Events                         from 'girder/events';
+import { events }                     from 'girder/events';
 import FileModel                      from 'girder/models/FileModel';
 import View                           from 'girder/view';
 import { renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
@@ -11,7 +11,7 @@ import 'bootstrap/js/tab';
 /**
  * A simple widget for editing markdown text with a preview tab.
  */
-export var MarkdownWidget = View.extend({
+var MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
             renderMarkdown(this.val().trim() || 'Nothing to show',
@@ -91,7 +91,7 @@ export var MarkdownWidget = View.extend({
         try {
             this.validateFiles();
         } catch (err) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: err.message,
                 icon: 'cancel',
@@ -124,7 +124,7 @@ export var MarkdownWidget = View.extend({
                    formatSize(info.total)
             );
         }, this).on('g:upload.error', function (info) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
@@ -133,7 +133,7 @@ export var MarkdownWidget = View.extend({
             this.$('.g-upload-overlay').addClass('hide');
             this.$('.g-markdown-text').removeAttr('disabled');
         }, this).on('g:upload.errorStarting', function (info) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
@@ -199,3 +199,5 @@ export var MarkdownWidget = View.extend({
         }
     }
 });
+
+export default MarkdownWidget;

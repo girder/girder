@@ -1,22 +1,21 @@
-import $                    from 'jquery';
-import _                    from 'underscore';
+import $                        from 'jquery';
+import _                        from 'underscore';
 
-import Auth                 from 'girder/auth';
-import { AccessType }       from 'girder/constants';
-import Events               from 'girder/events';
-import EventStream          from 'girder/eventStream';
-import Rest                 from 'girder/rest';
-import router               from 'girder/router';
-import UserModel            from 'girder/models/UserModel';
-import UserSettingsTemplate from 'girder/templates/body/userSettings.jade';
-import View                 from 'girder/view';
+import { getCurrentUser, setCurrentUser } from 'girder/auth';
+import { AccessType }           from 'girder/constants';
+import {  events, eventStream } from 'girder/events';
+import { restRequest, cancelRestRequests } from 'girder/rest';
+import router                   from 'girder/router';
+import UserModel                from 'girder/models/UserModel';
+import UserSettingsTemplate     from 'girder/templates/body/userSettings.jade';
+import View                     from 'girder/view';
 
 import 'bootstrap/js/tab';
 
 /**
  * This is the view for the user account (profile) page.
  */
-export var UserAccountView = View.extend({
+var UserAccountView = View.extend({
     events: {
         'submit #g-user-info-form': function (event) {
             event.preventDefault();
@@ -40,7 +39,7 @@ export var UserAccountView = View.extend({
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                     .on('g:saved', function () {
-                        Events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Info saved.',
                             type: 'success',
@@ -67,7 +66,7 @@ export var UserAccountView = View.extend({
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
                     .on('g:passwordChanged', function () {
-                        Events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Password changed.',
                             type: 'success',
@@ -92,9 +91,9 @@ export var UserAccountView = View.extend({
 
     initialize: function (settings) {
         this.tab = settings.tab || 'info';
-        this.user = settings.user || Auth.getCurrentUser();
-        this.isCurrentUser = Auth.getCurrentUser() &&
-            settings.user.get('_id') === Auth.getCurrentUser().get('_id');
+        this.user = settings.user || getCurrentUser();
+        this.isCurrentUser = getCurrentUser() &&
+            settings.user.get('_id') === getCurrentUser().get('_id');
 
         this.model = this.user;
         this.temporary = settings.temporary;
@@ -105,12 +104,12 @@ export var UserAccountView = View.extend({
             return;
         }
 
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.render();
     },
 
     render: function () {
-        if (Auth.getCurrentUser() === null) {
+        if (getCurrentUser() === null) {
             router.navigate('users', {trigger: true});
             return;
         }
@@ -118,7 +117,7 @@ export var UserAccountView = View.extend({
         this.$el.html(UserSettingsTemplate({
             user: this.model,
             isCurrentUser: this.isCurrentUser,
-            Auth: Auth,
+            getCurrentUser: getCurrentUser,
             temporaryToken: this.temporary
         }));
 
@@ -145,7 +144,7 @@ router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     user.set({
         _id: id
     }).on('g:fetched', function () {
-        Events.trigger('g:navigateTo', UserAccountView, {
+        events.trigger('g:navigateTo', UserAccountView, {
             user: user,
             tab: tab
         });
@@ -155,19 +154,19 @@ router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
 });
 
 router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
-    Rest.restRequest({
+    restRequest({
         path: 'user/password/temporary/' + id,
         type: 'GET',
         data: {token: token},
         error: null
     }).done(_.bind(function (resp) {
         resp.user.token = resp.authToken.token;
-        EventStream.close();
-        Auth.setCurrentUser(new UserModel(resp.user));
-        EventStream.open();
-        Events.trigger('g:login-changed');
-        Events.trigger('g:navigateTo', UserAccountView, {
-            user: Auth.getCurrentUser(),
+        eventStream.close();
+        setCurrentUser(new UserModel(resp.user));
+        eventStream.open();
+        events.trigger('g:login-changed');
+        events.trigger('g:navigateTo', UserAccountView, {
+            user: getCurrentUser(),
             tab: 'password',
             temporary: token
         });
@@ -175,3 +174,6 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
         router.navigate('users', {trigger: true});
     }, this));
 });
+
+export default UserAccountView;
+

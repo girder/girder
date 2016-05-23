@@ -3,7 +3,7 @@ import _                               from 'underscore';
 import JSONEditor                      from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
 
 import { AccessType }                  from 'girder/constants';
-import Events                          from 'girder/events';
+import { events }                      from 'girder/events';
 import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
 import JsonMetadatumViewTemplate       from 'girder/templates/widgets/jsonMetadatumView.jade';
 import MetadataWidgetTemplate          from 'girder/templates/widgets/metadataWidget.jade';
@@ -46,7 +46,7 @@ var MetadatumWidget = View.extend({
             var msg = newMode.validation.from[from][1];
 
             if (!validate(value)) {
-                Events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     text: msg,
                     type: 'warning'
                 });
@@ -219,7 +219,7 @@ var MetadatumEditWidget = View.extend({
             tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
 
         if (this.newDatum && tempKey === '') {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: 'A key is required for all metadata.',
                 type: 'warning'
             });
@@ -245,7 +245,7 @@ var MetadatumEditWidget = View.extend({
         }, this);
 
         var errorCallback = function (out) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: out.message,
                 type: 'danger'
             });
@@ -306,7 +306,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
             MetadatumEditWidget.prototype.save.call(
                 this, event, this.editor.get());
         } catch (err) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: 'The field contains invalid JSON and can not be saved.',
                 type: 'warning'
             });
@@ -320,7 +320,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
             mode: 'tree',
             modes: ['code', 'tree'],
             error: function () {
-                Events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
                     type: 'warning'
                 });
@@ -339,7 +339,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
 /**
  * This widget shows a list of metadata in a given item.
  */
-export var MetadataWidget = View.extend({
+var MetadataWidget = View.extend({
     events: {
         'click .g-add-json-metadata': function (event) {
             this.addMetadata(event, 'json');
@@ -510,3 +510,5 @@ export var MetadataWidget = View.extend({
         return this;
     }
 });
+
+export default MetadataWidget;

@@ -1,13 +1,13 @@
-import $             from 'jquery';
-import _             from 'underscore';
-import Backbone      from 'backbone';
+import $                           from 'jquery';
+import _                           from 'underscore';
+import Backbone                    from 'backbone';
 
-import Auth          from 'girder/auth';
-import Events        from 'girder/events';
+import { getCurrentToken, cookie } from 'girder/auth';
+import { events }                  from 'girder/events';
 
-export var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
-export var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
-export var uploadHandlers = {};
+var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
+var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
+var uploadHandlers = {};
 
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
@@ -24,7 +24,7 @@ export var uploadHandlers = {};
  * @param [type='GET'] The HTTP method to invoke.
  * @param [girderToken] An alternative auth token to use for this request.
  */
-export var restRequest = function (opts) {
+function restRequest(opts) {
     opts = opts || {};
     var defaults = {
         dataType: 'json',
@@ -33,7 +33,7 @@ export var restRequest = function (opts) {
         error: function (error, status) {
             var info;
             if (error.status === 401) {
-                Events.trigger('g:loginUi');
+                events.trigger('g:loginUi');
                 info = {
                     text: 'You must log in to view this resource',
                     type: 'warning',
@@ -76,7 +76,7 @@ export var restRequest = function (opts) {
                     icon: 'attention'
                 };
             }
-            Events.trigger('g:alert', info);
+            events.trigger('g:alert', info);
             console.error(error.status + ' ' + error.statusText, error.responseText);
         }
     };
@@ -89,14 +89,14 @@ export var restRequest = function (opts) {
     opts = _.extend(defaults, opts);
 
     var token = opts.girderToken ||
-                Auth.getCurrentToken() ||
-                Auth.cookie.find('girderToken');
+                getCurrentToken() ||
+                cookie.find('girderToken');
     if (token) {
         opts.headers = opts.headers || {};
         opts.headers['Girder-Token'] = token;
     }
     return Backbone.ajax(opts);
-};
+}
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
 * checked if still processing. */
@@ -118,20 +118,20 @@ $(document).ajaxComplete(function (event, xhr) {
  *                  xhr.girder[category] set to a truthy value.
  * :returns: the number of outstanding requests.
  */
-export var numberOutstandingRestRequests = function (category) {
+function numberOutstandingRestRequests(category) {
     if (category) {
         return _.filter(restXhrPool, function (xhr) {
             return xhr.girder && xhr.girder[category];
         }).length;
     }
     return _.size(restXhrPool);
-};
+}
 
 /* Cancel outstanding rest requests.
  * :param category: if specified, only abort those requests that have
  *                  xhr.girder[category] set to a truthy value.
  */
-export var cancelRestRequests = function (category) {
+function cancelRestRequests(category) {
     _.each(restXhrPool, function (xhr) {
         if (category && (!xhr.girder || !xhr.girder[category])) {
             return;
@@ -140,4 +140,13 @@ export var cancelRestRequests = function (category) {
             xhr.abort();
         }
     });
+}
+
+export {
+    apiRoot,
+    staticRoot,
+    uploadHandlers,
+    restRequest,
+    numberOutstandingRestRequests,
+    cancelRestRequests
 };

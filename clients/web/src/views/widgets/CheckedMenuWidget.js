@@ -7,7 +7,7 @@ import View                       from 'girder/view';
  * This widget presents a list of available batch actions
  * on a set of selected resources.
  */
-export var CheckedMenuWidget = View.extend({
+var CheckedMenuWidget = View.extend({
 
     initialize: function (params) {
         this._fetchAndInit(params);
@@ -59,3 +59,5 @@ export var CheckedMenuWidget = View.extend({
         this.pickedDesc = params.pickedDesc || '';
     }
 });
+
+export default CheckedMenuWidget;

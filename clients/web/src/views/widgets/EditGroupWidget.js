@@ -1,6 +1,6 @@
 import $                           from 'jquery';
 
-import Auth                        from 'girder/auth';
+import { getCurrentUser }          from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditGroupWidgetTemplate     from 'girder/templates/widgets/editGroupWidget.jade';
 import GroupModel                  from 'girder/models/GroupModel';
@@ -12,7 +12,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-export var EditGroupWidget = View.extend({
+var EditGroupWidget = View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();
@@ -48,7 +48,7 @@ export var EditGroupWidget = View.extend({
         var pub = this.model ? this.model.get('public') : false;
         var groupAddAllowed;
         var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
-        if (Auth.getCurrentUser().get('admin')) {
+        if (getCurrentUser().get('admin')) {
             if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
                 groupAddAllowed = 'mod';
             } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
@@ -122,3 +122,5 @@ export var EditGroupWidget = View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+export default EditGroupWidget;

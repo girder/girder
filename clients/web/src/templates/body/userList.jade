@@ -2,7 +2,7 @@
   .g-user-pagination
   form.g-user-search-form.form-inline(role="form")
     .form-group.g-users-search-container
-  if Auth.getCurrentUser() && Auth.getCurrentUser().get('admin')
+  if getCurrentUser() && getCurrentUser().get('admin')
     button.g-user-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create user

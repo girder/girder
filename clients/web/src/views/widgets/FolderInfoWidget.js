@@ -7,7 +7,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view shows a dialog container detailed folder information.
  */
-export var FolderInfoWidget = View.extend({
+var FolderInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nItems') || !this.model.has('nFolders');
         if (this.needToFetch) {
@@ -32,3 +32,5 @@ export var FolderInfoWidget = View.extend({
         })).girderModal(this);
     }
 });
+
+export default FolderInfoWidget;

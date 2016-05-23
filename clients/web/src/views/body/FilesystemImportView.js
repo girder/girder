@@ -2,7 +2,7 @@ import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jad
 import router                   from 'girder/router';
 import View                     from 'girder/view';
 
-export var FilesystemImportView = View.extend({
+var FilesystemImportView = View.extend({
     events: {
         'submit .g-filesystem-import-form': function (e) {
             e.preventDefault();
@@ -36,3 +36,5 @@ export var FilesystemImportView = View.extend({
         }));
     }
 });
+
+export default FilesystemImportView;

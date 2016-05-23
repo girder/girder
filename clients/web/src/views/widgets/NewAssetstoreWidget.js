@@ -9,7 +9,7 @@ import 'bootstrap/js/collapse';
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
  */
-export var NewAssetstoreWidget = View.extend({
+var NewAssetstoreWidget = View.extend({
     events: {
         'submit #g-new-fs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-fs-error'), {
@@ -70,3 +70,6 @@ export var NewAssetstoreWidget = View.extend({
         }, this).save();
     }
 });
+
+export default NewAssetstoreWidget;
+

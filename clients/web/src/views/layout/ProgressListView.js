@@ -9,7 +9,7 @@ import View                       from 'girder/view';
  * Container showing list of active tasks that are reporting progress
  * via a EventStream object.
  */
-export var ProgressListView = View.extend({
+var ProgressListView = View.extend({
 
     initialize: function (settings) {
         this.eventStream = settings.eventStream;
@@ -56,3 +56,5 @@ export var ProgressListView = View.extend({
         }
     }
 });
+
+export default ProgressListView;

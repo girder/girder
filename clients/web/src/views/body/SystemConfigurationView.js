@@ -1,7 +1,7 @@
 import _                           from 'underscore';
 
-import Events                      from 'girder/events';
-import Rest                        from 'girder/rest';
+import { events }                  from 'girder/events';
+import { restRequest, cancelRestRequests } from 'girder/rest';
 import router                      from 'girder/router';
 import SearchFieldWidget           from 'girder/views/widgets/SearchFieldWidget';
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
@@ -13,7 +13,7 @@ import 'bootstrap/js/tooltip';
 /**
  * The system config page for administrators.
  */
-export var SystemConfigurationView = View.extend({
+var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
@@ -27,7 +27,7 @@ export var SystemConfigurationView = View.extend({
                 };
             }, this);
 
-            Rest.restRequest({
+            restRequest({
                 type: 'PUT',
                 path: 'system/setting',
                 data: {
@@ -36,7 +36,7 @@ export var SystemConfigurationView = View.extend({
                 error: null
             }).done(_.bind(function () {
                 this.$('.g-submit-settings').removeClass('disabled');
-                Events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Settings saved.',
                     type: 'success',
@@ -53,7 +53,7 @@ export var SystemConfigurationView = View.extend({
     },
 
     initialize: function () {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
 
         var keys = [
             'core.cookie_lifetime',
@@ -74,7 +74,7 @@ export var SystemConfigurationView = View.extend({
             'core.user_default_folders'
         ];
         this.settingsKeys = keys;
-        Rest.restRequest({
+        restRequest({
             path: 'system/setting',
             type: 'GET',
             data: {
@@ -83,7 +83,7 @@ export var SystemConfigurationView = View.extend({
             }
         }).done(_.bind(function (resp) {
             this.settings = resp;
-            Rest.restRequest({
+            restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {
@@ -135,7 +135,7 @@ export var SystemConfigurationView = View.extend({
                 if (!_.contains(settingValue.users, result.id)) {
                     settingValue.users.push(result.id);
                 } else {
-                    Events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'User already exists in current policy.',
                         type: 'warning',
@@ -147,7 +147,7 @@ export var SystemConfigurationView = View.extend({
                 if (!_.contains(settingValue.groups, result.id)) {
                     settingValue.groups.push(result.id);
                 } else {
-                    Events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'Group already exists in current policy.',
                         type: 'warning',
@@ -165,5 +165,8 @@ export var SystemConfigurationView = View.extend({
 });
 
 router.route('settings', 'settings', function () {
-    Events.trigger('g:navigateTo', SystemConfigurationView);
+    events.trigger('g:navigateTo', SystemConfigurationView);
 });
+
+export default SystemConfigurationView;
+

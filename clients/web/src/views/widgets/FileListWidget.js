@@ -3,7 +3,7 @@ import _                       from 'underscore';
 
 import { AccessType }          from 'girder/constants';
 import EditFileWidget          from 'girder/views/widgets/EditFileWidget';
-import Events                  from 'girder/events';
+import { events }              from 'girder/events';
 import FileCollection          from 'girder/collections/FileCollection';
 import FileListTemplate        from 'girder/templates/widgets/fileList.jade';
 import { confirm, formatSize } from 'girder/utilities/MiscFunctions';
@@ -15,7 +15,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This widget shows a list of files in a given item.
  */
-export var FileListWidget = View.extend({
+var FileListWidget = View.extend({
     events: {
         'click a.g-show-more-files': function () {
             this.collection.fetchNextPage();
@@ -42,7 +42,7 @@ export var FileListWidget = View.extend({
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
                     file.once('g:deleted', function () {
-                        Events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'ok',
                             type: 'success',
                             text: 'File deleted.',
@@ -51,7 +51,7 @@ export var FileListWidget = View.extend({
 
                         this.render();
                     }, this).once('g:error', function () {
-                        Events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'cancel',
                             text: 'Failed to delete file.',
                             type: 'danger',
@@ -98,7 +98,7 @@ export var FileListWidget = View.extend({
             parentType: 'file',
             parentView: this
         }).on('g:uploadFinished', function () {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'File contents updated.',
                 type: 'success',
@@ -143,3 +143,6 @@ export var FileListWidget = View.extend({
         this.trigger('g:changed');
     }
 });
+
+export default FileListWidget;
+

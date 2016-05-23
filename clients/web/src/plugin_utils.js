@@ -10,6 +10,8 @@ import _ from 'underscore';
  *     should be called with .call(this[, arguments]) inside of the wrapper in
  *     order to preserve "this" semantics.
  */
-export var wrap = function (obj, funcName, wrapper) {
+function wrap(obj, funcName, wrapper) {
     obj.prototype[funcName] = _.wrap(obj.prototype[funcName], wrapper);
-};
+}
+
+export default wrap;

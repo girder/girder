@@ -9,7 +9,7 @@ import 'bootstrap/js/tooltip';
 /**
  * Renders the a breadcrumb for the item page
  */
-export var ItemBreadcrumbWidget = View.extend({
+var ItemBreadcrumbWidget = View.extend({
     events: {
         'click a.g-item-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
@@ -40,3 +40,5 @@ export var ItemBreadcrumbWidget = View.extend({
         });
     }
 });
+
+export default ItemBreadcrumbWidget;

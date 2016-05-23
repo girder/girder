@@ -13,7 +13,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-export var EditFolderWidget = View.extend({
+var EditFolderWidget = View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();
@@ -112,3 +112,4 @@ export var EditFolderWidget = View.extend({
     }
 });
 
+export default EditFolderWidget;

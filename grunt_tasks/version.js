@@ -55,9 +55,10 @@ module.exports = function (grunt) {
                     fs.writeSync(
                         fd, [
                             '/*eslint-disable */',
-                            'export var versionInfo = ',
+                            'var versionInfo = ',
                             girderVersion,
                             ';',
+                            'export default versionInfo;',
                             '/*eslint-enable */'
                         ].join('\n') + '\n'
                     );

@@ -1,10 +1,10 @@
 import AssetstoreModel  from 'girder/models/AssetstoreModel';
-import Events           from 'girder/events';
+import { events }       from 'girder/events';
 import router           from 'girder/router';
 import S3ImportTemplate from 'girder/templates/body/s3Import.jade';
 import View             from 'girder/view';
 
-export var S3ImportView = View.extend({
+var S3ImportView = View.extend({
     events: {
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
@@ -47,8 +47,10 @@ router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
     });
 
     assetstore.once('g:fetched', function () {
-        Events.trigger('g:navigateTo', S3ImportView, {
+        events.trigger('g:navigateTo', S3ImportView, {
             assetstore: assetstore
         });
     }).fetch();
 });
+
+export default S3ImportView;

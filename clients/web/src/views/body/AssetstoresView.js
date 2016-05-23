@@ -4,13 +4,13 @@ import _                       from 'underscore';
 import AssetstoreCollection    from 'girder/collections/AssetstoreCollection';
 import AssetstoreModel         from 'girder/models/AssetstoreModel';
 import AssetstoresTemplate     from 'girder/templates/body/assetstores.jade';
-import Auth                    from 'girder/auth';
+import { getCurrentUser }      from 'girder/auth';
 import { AssetstoreType }      from 'girder/constants';
 import EditAssetstoreWidget    from 'girder/views/widgets/EditAssetstoreWidget';
-import Events                  from 'girder/events';
+import { events }              from 'girder/events';
 import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
 import NewAssetstoreWidget     from 'girder/views/widgets/NewAssetstoreWidget';
-import Rest                    from 'girder/rest';
+import { cancelRestRequests }  from 'girder/rest';
 import router                  from 'girder/router';
 import View                    from 'girder/view';
 
@@ -21,7 +21,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-export var AssetstoresView = View.extend({
+var AssetstoresView = View.extend({
     events: {
         'click .g-set-current': 'setCurrentAssetstore',
         'click .g-delete-assetstore': 'deleteAssetstore',
@@ -29,7 +29,7 @@ export var AssetstoresView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
         this.importableTypes = [
             AssetstoreType.FILESYSTEM,
@@ -48,7 +48,7 @@ export var AssetstoresView = View.extend({
     },
 
     render: function () {
-        if (!Auth.getCurrentUser() || !Auth.getCurrentUser().get('admin')) {
+        if (!getCurrentUser() || !getCurrentUser().get('admin')) {
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
@@ -123,7 +123,7 @@ export var AssetstoresView = View.extend({
         var assetstore = this.collection.get(el.attr('cid'));
         assetstore.set({current: true});
         assetstore.off('g:saved').on('g:saved', function () {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Changed current assetstore.',
                 type: 'success',
@@ -131,7 +131,7 @@ export var AssetstoresView = View.extend({
             });
             this.collection.fetch({}, true);
         }, this).off('g:error').on('g:error', function (err) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'cancel',
                 text: err.responseJSON.message,
                 type: 'danger'
@@ -151,7 +151,7 @@ export var AssetstoresView = View.extend({
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 assetstore.on('g:deleted', function () {
-                    Events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'Assetstore deleted.',
                         type: 'success',
@@ -159,7 +159,7 @@ export var AssetstoresView = View.extend({
                     });
                     this.collection.fetch({}, true);
                 }, this).off('g:error').on('g:error', function (resp) {
-                    Events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'attention',
                         text: resp.responseJSON.message,
                         type: 'danger',
@@ -199,7 +199,7 @@ assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
 assetstoreImportViewMap[AssetstoreType.S3] = 'S3ImportView';
 
 router.route('assetstores', 'assetstores', function (params) {
-    Events.trigger('g:navigateTo', AssetstoresView, {
+    events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit'
                         ? params.dialogid : false
     });
@@ -212,24 +212,18 @@ router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId
 
     assetstore.once('g:fetched', function () {
         var viewName = assetstoreImportViewMap[assetstore.get('type')];
-        // Webpack supports dynamic import: https://webpack.github.io/docs/context.html
-        // UNFORTUNATELY does not seem to be working, using context module or require/ensure.
-        // https://webpack.github.io/docs/context.html
-        // https://webpack.github.io/docs/code-splitting.html
-        // System.import('girder/views/body/' + viewName).then(function (view) {
-        //     Events.trigger('g:navigateTo', view, {
-        //         assetstore: assetstore
-        //     });
-        // }).catch(function (error) {
-        //     throw 'No such view: ' + viewName + ' (' + error + ')';
-        // });
-        console.log(viewName);
-        var view = require('girder/views/body/' + viewName);
-        if (!view) {
-            throw 'No such view: ' + viewName;
-        }
-        Events.trigger('g:navigateTo', view, {
-            assetstore: assetstore
+        // Webpack supports context import: https://webpack.github.io/docs/context.html
+        System.import('girder/views/body/' + viewName).then(function (View) {
+            // Note: have to use View.default for now, see:
+            // https://github.com/webpack/webpack/issues/2443#issuecomment-221410800
+            events.trigger('g:navigateTo', View.default, {
+                assetstore: assetstore
+            });
+        }).catch(function (error) {
+            throw 'No such view: ' + viewName + ' (' + error + ')';
         });
     }).fetch();
 });
+
+export default AssetstoresView;
+

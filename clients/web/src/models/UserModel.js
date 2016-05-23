@@ -1,10 +1,10 @@
-import _         from 'underscore';
+import _                    from 'underscore';
 
-import Auth      from 'girder/auth';
-import { Model } from 'girder/model';
-import Rest      from 'girder/rest';
+import { fetchCurrentUser } from 'girder/auth';
+import { Model }            from 'girder/model';
+import { restRequest }      from 'girder/rest';
 
-export var UserModel = Model.extend({
+var UserModel = Model.extend({
     resourceName: 'user',
 
     /**
@@ -15,12 +15,12 @@ export var UserModel = Model.extend({
      * for the model's change event.  In that handler, calling isNew() on the
      * model will tell if you if a user is logged in (false) or not (true).
      *
-     * This is equivalent to invoking Auth.fetchCurrentUser(), then calling
+     * This is equivalent to invoking fetchCurrentUser(), then calling
      * clear() or set() on the model depending on whether the result of the call
      * is null or not.
      */
     current: function () {
-        Auth.fetchCurrentUser()
+        fetchCurrentUser()
             .then(_.bind(function (user) {
                 if (user) {
                     this.set(user);
@@ -93,7 +93,7 @@ export var UserModel = Model.extend({
      * Change the password for this user.
      */
     changePassword: function (oldPassword, newPassword) {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/password',
             data: {
                 old: oldPassword,
@@ -112,7 +112,7 @@ export var UserModel = Model.extend({
      * Change the password for another user (as an admin).
      */
     adminChangePassword: function (newPassword) {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.id + '/password',
             data: {
                 password: newPassword
@@ -126,3 +126,6 @@ export var UserModel = Model.extend({
         }, this));
     }
 });
+
+export default UserModel;
+

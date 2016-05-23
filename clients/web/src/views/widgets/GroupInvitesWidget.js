@@ -12,7 +12,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a list of pending invitations to the group.
  */
-export var GroupInvitesWidget = View.extend({
+var GroupInvitesWidget = View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');
@@ -61,3 +61,5 @@ export var GroupInvitesWidget = View.extend({
         return this;
     }
 });
+
+export default GroupInvitesWidget;

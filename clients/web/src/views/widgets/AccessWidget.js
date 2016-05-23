@@ -19,7 +19,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view allows users to see and control access on a resource.
  */
-export var AccessWidget = View.extend({
+var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
             $(e.currentTarget).attr('disabled', 'disabled');
@@ -272,3 +272,6 @@ export var AccessWidget = View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+export default AccessWidget;
+

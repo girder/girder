@@ -4,13 +4,13 @@ import Backbone             from 'backbone';
 import { SORT_ASC }         from 'girder/constants';
 import { localeComparator } from 'girder/utilities/MiscFunctions';
 import { Model }            from 'girder/model';
-import Rest                 from 'girder/rest';
+import { restRequest }      from 'girder/rest';
 
 /**
  * All collections should descend from this collection base class, which
  * provides nice utilities for pagination and sorting.
  */
-export var Collection = Backbone.Collection.extend({
+var Collection = Backbone.Collection.extend({
     model: Model,
     resourceName: null,
 
@@ -93,7 +93,7 @@ export var Collection = Backbone.Collection.extend({
             this.params = params || {};
         }
 
-        var xhr = Rest.restRequest({
+        var xhr = restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
                 limit: this.pageLimit + 1,
@@ -127,3 +127,4 @@ export var Collection = Backbone.Collection.extend({
     }
 });
 
+export default Collection;

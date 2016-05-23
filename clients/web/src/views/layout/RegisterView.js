@@ -1,6 +1,6 @@
-import Auth                        from 'girder/auth';
+import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import Events                      from 'girder/events';
+import { events }                  from 'girder/events';
 import RegisterDialogTemplate      from 'girder/templates/layout/registerDialog.jade';
 import UserModel                   from 'girder/models/UserModel';
 import View                        from 'girder/view';
@@ -11,7 +11,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view shows a register modal dialog.
  */
-export var RegisterView = View.extend({
+var RegisterView = View.extend({
     events: {
         'submit #g-register-form': function (e) {
             e.preventDefault();
@@ -33,22 +33,22 @@ export var RegisterView = View.extend({
                 lastName: this.$('#g-lastName').val()
             });
             user.on('g:saved', function () {
-                if (Auth.getCurrentUser()) {
+                if (getCurrentUser()) {
                     this.trigger('g:userCreated', {
                         user: user
                     });
                 } else {
                     var authToken = user.get('authToken') || {};
 
-                    Auth.setCurrentUser(user);
-                    Auth.setCurrentToken(authToken.token);
+                    setCurrentUser(user);
+                    setCurrentToken(authToken.token);
 
-                    if (Auth.corsAuth) {
-                        document.cookie = 'girderToken=' + Auth.getCurrentToken();
+                    if (corsAuth) {
+                        document.cookie = 'girderToken=' + getCurrentToken();
                     }
 
                     handleClose('register', {replace: true});
-                    Events.trigger('g:login');
+                    events.trigger('g:login');
                 }
 
                 this.$el.modal('hide');
@@ -67,15 +67,15 @@ export var RegisterView = View.extend({
         },
 
         'click a.g-login-link': function () {
-            Events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         }
     },
 
     render: function () {
         var view = this;
         this.$el.html(RegisterDialogTemplate({
-            currentUser: Auth.getCurrentUser(),
-            title: Auth.getCurrentUser() ? 'Create new user' : 'Sign up'
+            currentUser: getCurrentUser(),
+            title: getCurrentUser() ? 'Create new user' : 'Sign up'
         })).girderModal(this)
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
@@ -90,3 +90,5 @@ export var RegisterView = View.extend({
     }
 
 });
+
+export default RegisterView;

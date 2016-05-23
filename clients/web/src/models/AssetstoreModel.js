@@ -1,10 +1,10 @@
-import _             from 'underscore';
+import _               from 'underscore';
 
-import { formatSize } from 'girder/utilities/MiscFunctions';
-import { Model }      from 'girder/model';
-import Rest           from 'girder/rest';
+import { formatSize }  from 'girder/utilities/MiscFunctions';
+import { Model }       from 'girder/model';
+import { restRequest } from 'girder/rest';
 
-export var AssetstoreModel = Model.extend({
+var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',
 
     capacityKnown: function () {
@@ -19,7 +19,7 @@ export var AssetstoreModel = Model.extend({
     },
 
     import: function (params) {
-        Rest.restRequest({
+        restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
@@ -33,3 +33,5 @@ export var AssetstoreModel = Model.extend({
         return this;
     }
 });
+
+export default AssetstoreModel;

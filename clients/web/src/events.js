@@ -1,4 +1,15 @@
-import _        from 'underscore';
-import Backbone from 'backbone';
+import _           from 'underscore';
+import Backbone    from 'backbone';
+import EventStream from 'girder/utilities/EventStream';
 
-export var events = _.clone(Backbone.Events);
+var events = _.clone(Backbone.Events);
+
+var eventStream = new EventStream({
+  // TODO: this needs to be fixed, maybe by check for an environment variable?
+  // timeout: girder[sseTimeout] || null
+});
+
+export {
+  events,
+  eventStream
+}

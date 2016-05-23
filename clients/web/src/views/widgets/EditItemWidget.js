@@ -12,7 +12,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-export var EditItemWidget = View.extend({
+var EditItemWidget = View.extend({
     events: {
         'submit #g-item-edit-form': function () {
             var fields = {
@@ -96,4 +96,7 @@ export var EditItemWidget = View.extend({
         }, this).save();
     }
 });
+
+export default EditItemWidget;
+
 

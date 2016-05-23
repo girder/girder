@@ -2,7 +2,7 @@ import $                    from 'jquery';
 import _                    from 'underscore';
 
 import { AccessType }       from 'girder/constants';
-import Events               from 'girder/events';
+import { events }           from 'girder/events';
 import GroupModListTemplate from 'girder/templates/widgets/groupModList.jade';
 import { confirm }          from 'girder/utilities/MiscFunctions';
 import UserModel            from 'girder/models/UserModel';
@@ -14,7 +14,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a list of moderators of a group.
  */
-export var GroupModsWidget = View.extend({
+var GroupModsWidget = View.extend({
     events: {
         'click .g-group-mod-promote': function (e) {
             var userid = $(e.currentTarget).parents('li').attr('userid');
@@ -54,7 +54,7 @@ export var GroupModsWidget = View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            Events.trigger('g:navigateTo', UserView, {
+            events.trigger('g:navigateTo', UserView, {
                 id: $(e.currentTarget).parents('li').attr('userid')
             });
         }
@@ -83,4 +83,7 @@ export var GroupModsWidget = View.extend({
         return this;
     }
 });
+
+export default GroupModsWidget;
+
 

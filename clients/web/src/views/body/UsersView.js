@@ -1,22 +1,22 @@
-import $                 from 'jquery';
+import $                  from 'jquery';
 
-import Auth              from 'girder/auth';
-import Events            from 'girder/events';
+import { getCurrentUser } from 'girder/auth';
+import { events }         from 'girder/events';
 import { formatDate, formatSize, DATE_DAY } from 'girder/utilities/MiscFunctions';
-import PaginateWidget    from 'girder/views/widgets/PaginateWidget';
-import RegisterView      from 'girder/views/layout/RegisterView';
-import Rest              from 'girder/rest';
-import router            from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import UserCollection    from 'girder/collections/UserCollection';
-import UserListTemplate  from 'girder/templates/body/userList.jade';
-import UserModel         from 'girder/models/UserModel';
-import View              from 'girder/view';
+import PaginateWidget     from 'girder/views/widgets/PaginateWidget';
+import RegisterView       from 'girder/views/layout/RegisterView';
+import { cancelRestRequests } from 'girder/rest';
+import router             from 'girder/router';
+import SearchFieldWidget  from 'girder/views/widgets/SearchFieldWidget';
+import UserCollection     from 'girder/collections/UserCollection';
+import UserListTemplate   from 'girder/templates/body/userList.jade';
+import UserModel          from 'girder/models/UserModel';
+import View               from 'girder/view';
 
 /**
  * This view lists users.
  */
-export var UsersView = View.extend({
+var UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
@@ -29,7 +29,7 @@ export var UsersView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.collection = new UserCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -47,14 +47,14 @@ export var UsersView = View.extend({
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
-        this.register = settings.dialog === 'register' && Auth.getCurrentUser() &&
-                        Auth.getCurrentUser().get('admin');
+        this.register = settings.dialog === 'register' && getCurrentUser() &&
+                        getCurrentUser().get('admin');
     },
 
     render: function () {
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
-            Auth: Auth,
+            getCurrentUser: getCurrentUser,
             formatDate: formatDate,
             formatSize: formatSize,
             DATE_DAY: DATE_DAY
@@ -94,6 +94,9 @@ export var UsersView = View.extend({
 });
 
 router.route('users', 'users', function (params) {
-    Events.trigger('g:navigateTo', UsersView, params || {});
-    Events.trigger('g:highlightItem', 'UsersView');
+    events.trigger('g:navigateTo', UsersView, params || {});
+    events.trigger('g:highlightItem', 'UsersView');
 });
+
+export default UsersView;
+

@@ -2,7 +2,7 @@ import $                      from 'jquery';
 import _                      from 'underscore';
 
 import { AccessType }         from 'girder/constants';
-import Events                 from 'girder/events';
+import { events }             from 'girder/events';
 import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
 import { confirm }            from 'girder/utilities/MiscFunctions';
 import UserModel              from 'girder/models/UserModel';
@@ -15,7 +15,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a list of administrators of a group.
  */
-export var GroupAdminsWidget = View.extend({
+var GroupAdminsWidget = View.extend({
     events: {
         'click .g-demote-moderator': function (e) {
             var li = $(e.currentTarget).parents('.g-group-admins>li');
@@ -65,7 +65,7 @@ export var GroupAdminsWidget = View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            Events.trigger('g:navigateTo', UserView, {
+            events.trigger('g:navigateTo', UserView, {
                 id: $(e.currentTarget).parents('li').attr('userid')
             });
         }
@@ -94,3 +94,5 @@ export var GroupAdminsWidget = View.extend({
         return this;
     }
 });
+
+export default GroupAdminsWidget;

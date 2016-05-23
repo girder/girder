@@ -12,7 +12,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to edit an existing assetstore.
  */
-export var EditAssetstoreWidget = View.extend({
+var EditAssetstoreWidget = View.extend({
     events: {
         'submit #g-assetstore-edit-form': function (e) {
             e.preventDefault();
@@ -132,3 +132,6 @@ fieldsMap[AssetstoreType.S3] = {
         this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
     }
 };
+
+export default EditAssetstoreWidget;
+

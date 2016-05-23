@@ -8,7 +8,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to edit file information.
  */
-export var EditFileWidget = View.extend({
+var EditFileWidget = View.extend({
     events: {
         'submit #g-file-edit-form': function () {
             var fields = {
@@ -53,3 +53,5 @@ export var EditFileWidget = View.extend({
         return this;
     }
 });
+
+export default EditFileWidget;

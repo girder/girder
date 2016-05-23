@@ -1,11 +1,11 @@
-import _ from 'underscore';
+import _                         from 'underscore';
 
 import { AccessControlledModel } from 'girder/model';
-import Auth                      from 'girder/auth';
+import { getCurrentUser }        from 'girder/auth';
 import { AccessType }            from 'girder/constants';
-import Rest                      from 'girder/rest';
+import { restRequest }           from 'girder/rest';
 
-export var GroupModel = AccessControlledModel.extend({
+var GroupModel = AccessControlledModel.extend({
     resourceName: 'group',
 
     /**
@@ -18,7 +18,7 @@ export var GroupModel = AccessControlledModel.extend({
      */
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
                 userId: userId,
@@ -29,11 +29,11 @@ export var GroupModel = AccessControlledModel.extend({
         }).done(_.bind(function (resp) {
             this.set(resp);
 
-            if (!request && userId === Auth.getCurrentUser().get('_id')) {
+            if (!request && userId === getCurrentUser().get('_id')) {
                 if (params.force) {
-                    Auth.getCurrentUser().addToGroup(this.get('_id'));
+                    getCurrentUser().addToGroup(this.get('_id'));
                 } else {
-                    Auth.getCurrentUser().addInvitation(this.get('_id'), accessType);
+                    getCurrentUser().addInvitation(this.get('_id'), accessType);
                 }
             }
             this.trigger('g:invited');
@@ -47,12 +47,12 @@ export var GroupModel = AccessControlledModel.extend({
      * already been invited to the group.
      */
     joinGroup: function () {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
-            Auth.getCurrentUser().addToGroup(this.get('_id'));
-            Auth.getCurrentUser().removeInvitation(this.get('_id'));
+            getCurrentUser().addToGroup(this.get('_id'));
+            getCurrentUser().removeInvitation(this.get('_id'));
 
             this.set(resp);
 
@@ -68,7 +68,7 @@ export var GroupModel = AccessControlledModel.extend({
      * outstanding invitation to this group, call joinGroup instead.
      */
     requestInvitation: function () {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -93,7 +93,7 @@ export var GroupModel = AccessControlledModel.extend({
         } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role,
             data: {
                 userId: user.get('_id')
@@ -121,7 +121,7 @@ export var GroupModel = AccessControlledModel.extend({
         } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role +
                 '?userId=' + userId,
             type: 'DELETE'
@@ -141,13 +141,13 @@ export var GroupModel = AccessControlledModel.extend({
      * @param userId The ID of the user to remove.
      */
     removeMember: function (userId) {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'
         }).done(_.bind(function (resp) {
-            if (userId === Auth.getCurrentUser().get('_id')) {
-                Auth.getCurrentUser().removeFromGroup(this.get('_id'));
+            if (userId === getCurrentUser().get('_id')) {
+                getCurrentUser().removeFromGroup(this.get('_id'));
             }
 
             this.set(resp);
@@ -164,7 +164,7 @@ export var GroupModel = AccessControlledModel.extend({
      * @returns: true if adding members is allowed.
      */
     mayAddMembers: function () {
-        if (Auth.getCurrentUser().get('admin')) {
+        if (getCurrentUser().get('admin')) {
             return true;
         }
         var groupAddAllowed;
@@ -195,3 +195,6 @@ export var GroupModel = AccessControlledModel.extend({
         return false;
     }
 });
+
+export default GroupModel;
+

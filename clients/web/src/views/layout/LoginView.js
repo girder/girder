@@ -1,6 +1,6 @@
-import Auth                        from 'girder/auth';
+import { login }                   from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import Events                      from 'girder/events';
+import { events }                  from 'girder/events';
 import LoginDialogTemplate         from 'girder/templates/layout/loginDialog.jade';
 import View                        from 'girder/view';
 
@@ -10,18 +10,18 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view shows a login modal dialog.
  */
-export var LoginView = View.extend({
+var LoginView = View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            Auth.login(this.$('#g-login').val(), this.$('#g-password').val());
+            login(this.$('#g-login').val(), this.$('#g-password').val());
 
-            Events.once('g:login.success', function () {
+            events.once('g:login.success', function () {
                 this.$el.modal('hide');
             }, this);
 
-            Events.once('g:login.error', function (status, err) {
+            events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
             }, this);
@@ -31,11 +31,11 @@ export var LoginView = View.extend({
         },
 
         'click a.g-register-link': function () {
-            Events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         },
 
         'click a.g-forgot-password': function () {
-            Events.trigger('g:resetPasswordUi');
+            events.trigger('g:resetPasswordUi');
         }
     },
 
@@ -53,5 +53,6 @@ export var LoginView = View.extend({
 
         return this;
     }
-
 });
+
+export default LoginView;

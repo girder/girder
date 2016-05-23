@@ -6,11 +6,11 @@ import CollectionModel        from 'girder/models/CollectionModel';
 import CollectionPageTemplate from 'girder/templates/body/collectionPage.jade';
 import { AccessType }         from 'girder/constants';
 import EditCollectionWidget   from 'girder/views/widgets/EditCollectionWidget';
-import Events                 from 'girder/events';
+import { events }             from 'girder/events';
 import FolderModel            from 'girder/models/FolderModel';
 import HierarchyWidget        from 'girder/views/widgets/HierarchyWidget';
 import { confirm }            from 'girder/utilities/MiscFunctions';
-import Rest                   from 'girder/rest';
+import { cancelRestRequests } from 'girder/rest';
 import router                 from 'girder/router';
 import View                   from 'girder/view';
 
@@ -20,7 +20,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a single collection's page.
  */
-export var CollectionView = View.extend({
+var CollectionView = View.extend({
     events: {
         'click .g-edit-collection': 'editCollection',
         'click .g-collection-access-control': 'editAccess',
@@ -32,7 +32,7 @@ export var CollectionView = View.extend({
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
                     this.model.destroy().on('g:deleted', function () {
-                        Events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Collection deleted.',
                             type: 'success',
@@ -46,7 +46,7 @@ export var CollectionView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
 
         this.upload = settings.upload || false;
         this.access = settings.access || false;
@@ -172,7 +172,7 @@ var _fetchAndInit = function (collectionId, params) {
     collection.set({
         _id: collectionId
     }).on('g:fetched', function () {
-        Events.trigger('g:navigateTo', CollectionView, _.extend({
+        events.trigger('g:navigateTo', CollectionView, _.extend({
             collection: collection
         }, params || {}));
     }, this).fetch();
@@ -200,3 +200,5 @@ router.route('collection/:id/folder/:id', 'collectionFolder',
             itemCreate: params.dialog === 'itemcreate'
         });
     });
+
+export default CollectionView;

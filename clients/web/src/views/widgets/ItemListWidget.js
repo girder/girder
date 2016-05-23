@@ -10,7 +10,7 @@ import View              from 'girder/view';
 /**
  * This widget shows a list of items under a given folder.
  */
-export var ItemListWidget = View.extend({
+var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
@@ -120,3 +120,5 @@ export var ItemListWidget = View.extend({
         }, this);
     }
 });
+
+export default ItemListWidget;

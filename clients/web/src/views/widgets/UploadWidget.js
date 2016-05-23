@@ -14,11 +14,11 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to upload files to a folder. Pass a folder model
  * to its constructor as the parent folder that will be uploaded into.
- * Events:
+ * The events:
  *   itemComplete: Triggered each time an individual item is finished uploading.
  *   finished: Triggered when the entire set of items is uploaded.
  */
-export var UploadWidget = View.extend({
+var UploadWidget = View.extend({
     events: {
         'submit #g-upload-form': function (e) {
             e.preventDefault();
@@ -274,3 +274,6 @@ export var UploadWidget = View.extend({
         }
     }
 });
+
+export default UploadWidget;
+

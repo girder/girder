@@ -9,7 +9,7 @@ import { handleClose }             from 'girder/utilities/DialogHelper';
 import EditCollectionWidget        from 'girder/views/widgets/EditCollectionWidget';
 import EditFolderWidget            from 'girder/views/widgets/EditFolderWidget';
 import EditItemWidget              from 'girder/views/widgets/EditItemWidget';
-import Events                      from 'girder/events';
+import { events }                  from 'girder/events';
 import FolderInfoWidget            from 'girder/views/widgets/FolderInfoWidget';
 import FolderListWidget            from 'girder/views/widgets/FolderListWidget';
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
@@ -18,10 +18,10 @@ import ItemListWidget              from 'girder/views/widgets/ItemListWidget';
 import ItemModel                   from 'girder/models/ItemModel';
 import MetadataWidget              from 'girder/views/widgets/MetadataWidget';
 import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
-import Rest               from 'girder/rest';
-import router             from 'girder/router';
-import UploadWidget       from 'girder/views/widgets/UploadWidget';
-import View               from 'girder/view';
+import { restRequest, apiRoot }    from 'girder/rest';
+import router                      from 'girder/router';
+import UploadWidget                from 'girder/views/widgets/UploadWidget';
+import View                        from 'girder/view';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
@@ -65,7 +65,7 @@ var HierarchyBreadcrumbView = View.extend({
 /**
  * This widget is used to navigate the data hierarchy of folders and items.
  */
-export var HierarchyWidget = View.extend({
+var HierarchyWidget = View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
@@ -175,7 +175,7 @@ export var HierarchyWidget = View.extend({
         } else {
             this.render();
         }
-        Events.on('g:login', this.constructor.resetPickedResources, this);
+        events.on('g:login', this.constructor.resetPickedResources, this);
     },
 
     /**
@@ -223,7 +223,7 @@ export var HierarchyWidget = View.extend({
                 route += '/folder/' + this.parentModel.get('_id');
             }
             router.navigate(route);
-            Events.trigger('g:hierarchy.route', {route: route});
+            events.trigger('g:hierarchy.route', {route: route});
         }
     },
 
@@ -231,37 +231,25 @@ export var HierarchyWidget = View.extend({
         var parentId = folder.get('parentId');
         var parentType = folder.get('parentCollection');
         var modelName = getModelClassByName(parentType);
-        // Webpack supports dynamic import: https://webpack.github.io/docs/context.html
-        // UNFORTUNATELY does not seem to be working, using context module or require/ensure.
-        // https://webpack.github.io/docs/context.html
-        // https://webpack.github.io/docs/code-splitting.html
-        // System.import('girder/models/' + modelName).then(function (Model) {
-        //     var parent = new Model();
-        //     parent.set({
-        //         _id: parentId
-        //     }).once('g:fetched', function () {
-        //         this.breadcrumbs.push(parent);
-        //         if (parentType === 'folder') {
-        //             this._fetchToRoot(parent);
-        //         } else {
-        //             this.breadcrumbs.reverse();
-        //             this.render();
-        //         }
-        //     }, this).fetch();
-        // });
-        var Model = require('girder/models/' + modelName);
-        var parent = new Model();
-        parent.set({
-            _id: parentId
-        }).once('g:fetched', function () {
-            this.breadcrumbs.push(parent);
-            if (parentType === 'folder') {
-                this._fetchToRoot(parent);
-            } else {
-                this.breadcrumbs.reverse();
-                this.render();
-            }
-        }, this).fetch();
+        // Webpack supports context import: https://webpack.github.io/docs/context.html
+        System.import('girder/models/' + modelName).then(function (Model) {
+            // Note: have to use Model.default for now, see:
+            // https://github.com/webpack/webpack/issues/2443#issuecomment-221410800
+            var parent = new Model.default();
+            parent.set({
+                _id: parentId
+            }).once('g:fetched', function () {
+                this.breadcrumbs.push(parent);
+                if (parentType === 'folder') {
+                    this._fetchToRoot(parent);
+                } else {
+                    this.breadcrumbs.reverse();
+                    this.render();
+                }
+            }, this).fetch();
+        }.bind(this)).catch(function (error) {
+            throw 'No such model: ' + modelName + ' (' + error + ')';
+        });
     },
 
     render: function () {
@@ -383,7 +371,7 @@ export var HierarchyWidget = View.extend({
                 folder: this.parentModel,
                 parentView: this
             }).on('g:saved', function () {
-                Events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Folder info updated.',
                     type: 'success',
@@ -587,7 +575,7 @@ export var HierarchyWidget = View.extend({
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
-                Rest.restRequest({
+                restRequest({
                     path: 'resource',
                     type: 'POST',
                     data: {resources: resources, progress: true},
@@ -760,7 +748,7 @@ export var HierarchyWidget = View.extend({
     },
 
     downloadChecked: function () {
-        var url = Rest.apiRoot + '/resource/download';
+        var url = apiRoot + '/resource/download';
         var resources = this._getCheckedResourceParam();
         var data = {resources: resources};
 
@@ -812,7 +800,7 @@ export var HierarchyWidget = View.extend({
         if (pickDesc !== totalPickDesc) {
             desc = pickDesc + ' added to picked resources.  Now ' + desc;
         }
-        Events.trigger('g:alert', {
+        events.trigger('g:alert', {
             icon: 'ok',
             text: desc,
             type: 'info',
@@ -836,7 +824,7 @@ export var HierarchyWidget = View.extend({
         var resources = JSON.stringify(pickedResources.resources);
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
-        Rest.restRequest({
+        restRequest({
             path: 'resource/move',
             type: 'PUT',
             data: {
@@ -859,7 +847,7 @@ export var HierarchyWidget = View.extend({
         var resources = JSON.stringify(pickedResources.resources);
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
-        Rest.restRequest({
+        restRequest({
             path: 'resource/copy',
             type: 'POST',
             data: {
@@ -879,7 +867,7 @@ export var HierarchyWidget = View.extend({
         this.constructor.resetPickedResources();
         this.updateChecked();
         if (event) {
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Cleared picked resources',
                 type: 'info',
@@ -979,3 +967,5 @@ export var HierarchyWidget = View.extend({
         return pickedResources;
     }
 });
+
+export default HierarchyWidget;

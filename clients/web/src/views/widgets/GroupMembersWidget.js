@@ -76,7 +76,7 @@ var InviteUserDialog = View.extend({
 /**
  * This view shows a list of members of a group.
  */
-export var GroupMembersWidget = View.extend({
+var GroupMembersWidget = View.extend({
     events: {
         'click a.g-member-name': function (e) {
             var model = this.membersColl.get(
@@ -193,4 +193,6 @@ export var GroupMembersWidget = View.extend({
         }, this).render();
     }
 });
+
+export default GroupMembersWidget;
 

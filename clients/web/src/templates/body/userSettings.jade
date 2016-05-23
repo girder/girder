@@ -28,7 +28,7 @@ ul.g-account-tabs.nav.nav-tabs
         .form-group
           label(for="g-lastName") Last name
           input.input-sm.form-control#g-lastName(type="text", value="#{user.get('lastName')}")
-        if Auth.getCurrentUser().get('admin')
+        if getCurrentUser().get('admin')
           .form-group
             label(for="g-admin") User is site admin
             if user.get('admin')

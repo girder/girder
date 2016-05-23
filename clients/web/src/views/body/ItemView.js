@@ -1,20 +1,20 @@
-import $                    from 'jquery';
-import _                    from 'underscore';
+import $                      from 'jquery';
+import _                      from 'underscore';
 
-import { AccessType }       from 'girder/constants';
-import { handleClose }      from 'girder/utilities/DialogHelper';
-import EditItemWidget       from 'girder/views/widgets/EditItemWidget';
-import Events               from 'girder/events';
-import FileListWidget       from 'girder/views/widgets/FileListWidget';
-import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
-import ItemModel            from 'girder/models/ItemModel';
-import ItemPageTemplate     from 'girder/templates/body/itemPage.jade';
-import MetadataWidget       from 'girder/views/widgets/MetadataWidget';
+import { AccessType }         from 'girder/constants';
+import { handleClose }        from 'girder/utilities/DialogHelper';
+import EditItemWidget         from 'girder/views/widgets/EditItemWidget';
+import { events }             from 'girder/events';
+import FileListWidget         from 'girder/views/widgets/FileListWidget';
+import ItemBreadcrumbWidget   from 'girder/views/widgets/ItemBreadcrumbWidget';
+import ItemModel              from 'girder/models/ItemModel';
+import ItemPageTemplate       from 'girder/templates/body/itemPage.jade';
+import MetadataWidget         from 'girder/views/widgets/MetadataWidget';
 import { confirm, formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
-import Rest                 from 'girder/rest';
-import router               from 'girder/router';
-import UploadWidget         from 'girder/views/widgets/UploadWidget';
-import View                 from 'girder/view';
+import { cancelRestRequests } from 'girder/rest';
+import router                 from 'girder/router';
+import UploadWidget           from 'girder/views/widgets/UploadWidget';
+import View                   from 'girder/view';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
@@ -22,7 +22,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a single item's page.
  */
-export var ItemView = View.extend({
+var ItemView = View.extend({
     events: {
         'click .g-edit-item': 'editItem',
         'click .g-delete-item': 'deleteItem',
@@ -30,7 +30,7 @@ export var ItemView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.edit = settings.edit || false;
         this.fileEdit = settings.fileEdit || false;
         this.upload = settings.upload || false;
@@ -54,7 +54,7 @@ export var ItemView = View.extend({
             handleClose('upload');
             this.upload = false;
 
-            Events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Files added.',
                 type: 'success',
@@ -94,7 +94,7 @@ export var ItemView = View.extend({
                     router.navigate(parentRoute, {trigger: true});
                 }).off('g:error').on('g:error', function () {
                     page.render();
-                    Events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'cancel',
                         text: 'Failed to delete item.',
                         type: 'danger',
@@ -174,7 +174,7 @@ var _fetchAndInit = function (itemId, params) {
     item.set({
         _id: itemId
     }).on('g:fetched', function () {
-        Events.trigger('g:navigateTo', ItemView, _.extend({
+        events.trigger('g:navigateTo', ItemView, _.extend({
             item: item
         }, params || {}));
     }, this).fetch();
@@ -187,3 +187,5 @@ router.route('item/:id', 'item', function (itemId, params) {
         upload: params.dialog === 'upload' ? params.dialogid : false
     });
 });
+
+export default ItemView;

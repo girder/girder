@@ -1,7 +1,7 @@
-import _        from 'underscore';
-import Backbone from 'backbone';
+import _           from 'underscore';
+import Backbone    from 'backbone';
 
-import Rest     from 'girder/rest';
+import { apiRoot } from 'girder/rest';
 
 /**
  * The EventStream type wraps window.EventSource to listen to the unified
@@ -10,7 +10,7 @@ import Rest     from 'girder/rest';
  * 'g:event.<type>' where <type> is the value of the event type field.
  * Listeners can bind to specific event types on the channel.
  */
-export var EventStream = function (settings) {
+function EventStream(settings) {
     var defaults = {
         timeout: null,
         streamPath: '/notification/stream'
@@ -19,14 +19,14 @@ export var EventStream = function (settings) {
     this.settings = _.extend(defaults, settings);
 
     return _.extend(this, Backbone.Events);
-};
+}
 
 var prototype = EventStream.prototype;
 
 prototype.open = function () {
     if (window.EventSource) {
         var stream = this,
-            url = Rest.apiRoot + this.settings.streamPath;
+            url = apiRoot + this.settings.streamPath;
 
         if (this.settings.timeout) {
             url += '?timeout=' + this.settings.timeout;
@@ -56,3 +56,5 @@ prototype.close = function () {
         this._eventSource = null;
     }
 };
+
+export default EventStream;

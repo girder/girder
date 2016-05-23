@@ -11,7 +11,7 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This widget is used to create a new collection or edit an existing one.
  */
-export var EditCollectionWidget = View.extend({
+var EditCollectionWidget = View.extend({
     events: {
         'submit #g-collection-edit-form': function (e) {
             e.preventDefault();
@@ -94,3 +94,6 @@ export var EditCollectionWidget = View.extend({
         }, this).save();
     }
 });
+
+export default EditCollectionWidget;
+

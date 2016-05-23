@@ -3,9 +3,9 @@ import _                        from 'underscore';
 
 import FolderModel              from 'girder/models/FolderModel';
 import { Model, MetadataMixin } from 'girder/model';
-import Rest                     from 'girder/rest';
+import { restRequest }          from 'girder/rest';
 
-export var ItemModel = Model.extend({
+var ItemModel = Model.extend({
     resourceName: 'item',
 
     /**
@@ -39,7 +39,7 @@ export var ItemModel = Model.extend({
      * Get the path to the root of the hierarchy
      */
     getRootPath: function (callback) {
-        Rest.restRequest({
+        restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/rootpath'
         }).done(_.bind(function (resp) {
             callback(resp);
@@ -50,3 +50,5 @@ export var ItemModel = Model.extend({
 });
 
 _.extend(ItemModel.prototype, MetadataMixin);
+
+export default ItemModel;

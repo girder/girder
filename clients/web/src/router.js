@@ -1,6 +1,6 @@
 import Backbone             from 'backbone';
 
-import Events               from 'girder/events';
+import { events }           from 'girder/events';
 import { parseQueryString } from 'girder/utilities/MiscFunctions';
 
 var Router = Backbone.Router.extend({
@@ -17,11 +17,11 @@ var Router = Backbone.Router.extend({
 
         // handle "top level" dialogs
         if (queryString.dialog === 'login') {
-            Events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         } else if (queryString.dialog === 'register') {
-            Events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         } else if (queryString.dialog === 'resetpassword') {
-            Events.trigger('g:resetPasswordUi');
+            events.trigger('g:resetPasswordUi');
         }
     },
 
@@ -43,4 +43,6 @@ var Router = Backbone.Router.extend({
     }
 });
 
-export var router = new Router();
+var router = new Router();
+
+export default router;

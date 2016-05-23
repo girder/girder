@@ -4,7 +4,7 @@ import Backbone             from 'backbone';
 import { parseQueryString } from 'girder/utilities/MiscFunctions';
 import router               from 'girder/router';
 
-export function splitRoute(route) {
+function splitRoute(route) {
     if (!route) {
         return {base: '', name: ''};
     }
@@ -28,12 +28,12 @@ export function splitRoute(route) {
     return {name: dialogName, base: baseRoute};
 }
 
-export function handleClose(name, options, nameId) {
+function handleClose(name, options, nameId) {
     if (!router.enabled()) {
         return;
     }
     var curRoute = Backbone.history.fragment,
-        routeParts = this.splitRoute(curRoute),
+        routeParts = splitRoute(curRoute),
         queryString = parseQueryString(routeParts.name),
         dialogName = queryString.dialog,
         dialogId = queryString.dialogid;
@@ -48,12 +48,12 @@ export function handleClose(name, options, nameId) {
     }
 }
 
-export function handleOpen(name, options, nameId) {
+function handleOpen(name, options, nameId) {
     if (!router.enabled()) {
         return;
     }
     var curRoute = Backbone.history.fragment,
-        routeParts = this.splitRoute(curRoute),
+        routeParts = splitRoute(curRoute),
         queryString = parseQueryString(routeParts.name),
         dialogName = queryString.dialog,
         dialogId = queryString.dialogid;
@@ -70,3 +70,9 @@ export function handleOpen(name, options, nameId) {
         router.navigate(routeParts.base + unparsedQueryString, options);
     }
 }
+
+export {
+    splitRoute,
+    handleClose,
+    handleOpen
+};

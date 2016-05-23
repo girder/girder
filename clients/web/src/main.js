@@ -1,8 +1,8 @@
 import $      from 'jquery';
 
-import App    from 'girder/app';
-import Events from 'girder/events';
-import router from 'girder/router';
+import App        from 'girder/app';
+import { events } from 'girder/events';
+import router     from 'girder/router';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 
@@ -25,10 +25,10 @@ $(function () {
         $('.tooltip').remove();
     });
 
-    Events.trigger('g:appload.before');
+    events.trigger('g:appload.before');
     var mainApp = new App({
         el: 'body',
         parentView: null
     });
-    Events.trigger('g:appload.after', mainApp);
+    events.trigger('g:appload.after', mainApp);
 });

@@ -49,6 +49,7 @@ module.exports = function (grunt) {
             path: 'clients/web/static/built/',
             filename: '[name].min.js'
         },
+        // context: __dirname,
         module: {
             loaders: [
                 // { // CSS
@@ -79,6 +80,7 @@ module.exports = function (grunt) {
             alias: {
                 'girder': web_src_dir
             },
+            modules: [clients_web_dir, node_modules_dir],
             extensions: ['.js', '.styl', '.css', '.jade', '']
             // modulesDirectories: [
             //     web_src_dir,

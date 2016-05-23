@@ -1,13 +1,13 @@
 import _        from 'underscore';
 import Backbone from 'backbone';
 
-import Rest     from 'girder/rest';
+import { restRequest, apiRoot } from 'girder/rest';
 
 /**
  * All models should descend from this base model, which provides a number
  * of utilities for synchronization.
  */
-export var Model = Backbone.Model.extend({
+var Model = Backbone.Model.extend({
     resourceName: null,
     altUrl: null,
     idAttribute: '_id',
@@ -64,7 +64,7 @@ export var Model = Backbone.Model.extend({
             }
         }, this);
 
-        Rest.restRequest({
+        restRequest({
             path: path,
             type: type,
             data: data,
@@ -102,7 +102,7 @@ export var Model = Backbone.Model.extend({
         if (opts.ignoreError) {
             restOpts.error = null;
         }
-        Rest.restRequest(restOpts).done(_.bind(function (resp) {
+        restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
             if (opts.extraPath) {
                 this.trigger('g:fetched.' + opts.extraPath);
@@ -121,7 +121,7 @@ export var Model = Backbone.Model.extend({
      * as the href property of a direct download link.
      */
     downloadUrl: function () {
-        return Rest.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
+        return apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
             this.get('_id') + '/download';
     },
 
@@ -159,7 +159,7 @@ export var Model = Backbone.Model.extend({
             args.error = null;
         }
 
-        Rest.restRequest(args).done(_.bind(function () {
+        restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }
@@ -185,7 +185,7 @@ export var Model = Backbone.Model.extend({
  * from this object. It provides utilities for managing and storing the
  * access control list on
  */
-export var AccessControlledModel = Model.extend({
+var AccessControlledModel = Model.extend({
     /**
      * Saves the access control list on this model to the server. Saves the
      * state of whatever this model's "access" parameter is set to, which
@@ -201,7 +201,7 @@ export var AccessControlledModel = Model.extend({
             return;
         }
 
-        Rest.restRequest({
+        restRequest({
             path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: _.extend({
@@ -231,7 +231,7 @@ export var AccessControlledModel = Model.extend({
         }
 
         if (!this.get('access') || force) {
-            Rest.restRequest({
+            restRequest({
                 path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -252,10 +252,10 @@ export var AccessControlledModel = Model.extend({
     }
 });
 
-export var MetadataMixin = {
+var MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
-        Rest.restRequest({
+        restRequest({
             path: opts.path ||
                 ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
             contentType: 'application/json',
@@ -316,3 +316,10 @@ export var MetadataMixin = {
         }
     }
 };
+
+export {
+    Model,
+    AccessControlledModel,
+    MetadataMixin
+};
+

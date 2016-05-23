@@ -1,17 +1,17 @@
-import $               from 'jquery';
+import $                  from 'jquery';
 
-import Auth            from 'girder/auth';
-import Backbone        from 'backbone';
-import Events          from 'girder/events';
-import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
-import router          from 'girder/router';
-import View            from 'girder/view';
+import { getCurrentUser } from 'girder/auth';
+import Backbone           from 'backbone';
+import { events }         from 'girder/events';
+import LayoutGlobalNav    from 'girder/templates/layout/layoutGlobalNav.jade';
+import router             from 'girder/router';
+import View               from 'girder/view';
 
 /**
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-export var LayoutGlobalNavView = View.extend({
+var LayoutGlobalNavView = View.extend({
     events: {
         'click .g-nav-link': function (event) {
             event.preventDefault(); // so we can keep the href
@@ -27,10 +27,10 @@ export var LayoutGlobalNavView = View.extend({
     },
 
     initialize: function (settings) {
-        Events.on('g:highlightItem', this.selectForView, this);
-        Events.on('g:login', this.render, this);
-        Events.on('g:logout', this.render, this);
-        Events.on('g:login-changed', this.render, this);
+        events.on('g:highlightItem', this.selectForView, this);
+        events.on('g:login', this.render, this);
+        events.on('g:logout', this.render, this);
+        events.on('g:login-changed', this.render, this);
 
         settings = settings || {};
         if (settings.navItems) {
@@ -58,7 +58,7 @@ export var LayoutGlobalNavView = View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            if (Auth.getCurrentUser() && Auth.getCurrentUser().get('admin')) {
+            if (getCurrentUser() && getCurrentUser().get('admin')) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
                 navItems.push({
@@ -93,3 +93,5 @@ export var LayoutGlobalNavView = View.extend({
         this.$('.g-global-nav-li').removeClass('g-active');
     }
 });
+
+export default LayoutGlobalNavView;

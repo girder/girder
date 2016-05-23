@@ -1,22 +1,22 @@
-import $                  from 'jquery';
-import _                  from 'underscore';
+import $                      from 'jquery';
+import _                      from 'underscore';
 
-import Auth               from 'girder/auth';
-import { AccessType }     from 'girder/constants';
-import EditGroupWidget    from 'girder/views/widgets/EditGroupWidget';
-import Events             from 'girder/events';
-import GroupAdminsWidget  from 'girder/views/widgets/GroupAdminsWidget';
-import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
-import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
-import GroupModel         from 'girder/models/GroupModel';
-import GroupModsWidget    from 'girder/views/widgets/GroupModsWidget';
-import GroupPageTemplate  from 'girder/templates/body/groupPage.jade';
-import LoadingAnimation   from 'girder/views/widgets/LoadingAnimation';
-import { confirm }        from 'girder/utilities/MiscFunctions';
-import Rest               from 'girder/rest';
-import router             from 'girder/router';
-import UserCollection     from 'girder/collections/UserCollection';
-import View               from 'girder/view';
+import { getCurrentUser }     from 'girder/auth';
+import { AccessType }         from 'girder/constants';
+import EditGroupWidget        from 'girder/views/widgets/EditGroupWidget';
+import { events }             from 'girder/events';
+import GroupAdminsWidget      from 'girder/views/widgets/GroupAdminsWidget';
+import GroupInvitesWidget     from 'girder/views/widgets/GroupInvitesWidget';
+import GroupMembersWidget     from 'girder/views/widgets/GroupMembersWidget';
+import GroupModel             from 'girder/models/GroupModel';
+import GroupModsWidget        from 'girder/views/widgets/GroupModsWidget';
+import GroupPageTemplate      from 'girder/templates/body/groupPage.jade';
+import LoadingAnimation       from 'girder/views/widgets/LoadingAnimation';
+import { confirm }            from 'girder/utilities/MiscFunctions';
+import { cancelRestRequests } from 'girder/rest';
+import router                 from 'girder/router';
+import UserCollection         from 'girder/collections/UserCollection';
+import View                   from 'girder/view';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tab';
@@ -25,7 +25,7 @@ import 'bootstrap/js/tooltip';
 /**
  * This view shows a single group's page.
  */
-export var GroupView = View.extend({
+var GroupView = View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
         'click .g-group-join': 'joinGroup',
@@ -42,7 +42,7 @@ export var GroupView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.tab = settings.tab || 'roles';
         this.edit = settings.edit || false;
 
@@ -100,8 +100,8 @@ export var GroupView = View.extend({
         this.isModerator = false;
         this.isAdmin = false;
 
-        if (Auth.getCurrentUser()) {
-            _.every(Auth.getCurrentUser().get('groups'), function (groupId) {
+        if (getCurrentUser()) {
+            _.every(getCurrentUser().get('groups'), function (groupId) {
                 if (groupId === this.model.get('_id')) {
                     this.isMember = true;
                     return false; // 'break;'
@@ -109,7 +109,7 @@ export var GroupView = View.extend({
                 return true;
             }, this);
 
-            _.every(Auth.getCurrentUser().get('groupInvites'), function (inv) {
+            _.every(getCurrentUser().get('groupInvites'), function (inv) {
                 if (inv.groupId === this.model.get('_id')) {
                     this.isInvited = true;
                     return false; // 'break;'
@@ -118,7 +118,7 @@ export var GroupView = View.extend({
             }, this);
 
             _.every(this.model.get('requests') || [], function (user) {
-                if (user.id === Auth.getCurrentUser().get('_id')) {
+                if (user.id === getCurrentUser().get('_id')) {
                     this.isRequested = true;
                     return false; // 'break;'
                 }
@@ -128,7 +128,7 @@ export var GroupView = View.extend({
 
         if (this.isMember) {
             _.every(this.model.get('access').users || [], function (access) {
-                if (access.id === Auth.getCurrentUser().get('_id')) {
+                if (access.id === getCurrentUser().get('_id')) {
                     if (access.level === AccessType.WRITE) {
                         this.isModerator = true;
                     } else if (access.level === AccessType.ADMIN) {
@@ -141,7 +141,7 @@ export var GroupView = View.extend({
         }
         this.$el.html(GroupPageTemplate({
             group: this.model,
-            Auth: Auth,
+            getCurrentUser: getCurrentUser,
             AccessType: AccessType,
             isInvited: this.isInvited,
             isRequested: this.isRequested,
@@ -239,7 +239,7 @@ export var GroupView = View.extend({
             confirmCallback: function () {
                 view.model.off('g:removed').on('g:removed', function () {
                     view.render();
-                }).removeMember(Auth.getCurrentUser().get('_id'));
+                }).removeMember(getCurrentUser().get('_id'));
             }
         });
     },
@@ -342,7 +342,7 @@ var _fetchAndInit = function (groupId, params) {
     group.set({
         _id: groupId
     }).once('g:fetched', function () {
-        Events.trigger('g:navigateTo', GroupView, _.extend({
+        events.trigger('g:navigateTo', GroupView, _.extend({
             group: group
         }, params || {}));
     }, this).fetch();
@@ -360,3 +360,6 @@ router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
         tab: tab
     });
 });
+
+export default GroupView;
+

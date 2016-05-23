@@ -6,7 +6,7 @@ import View                 from 'girder/view';
 /**
  * This widget renders the state of a progress notification.
  */
-export var TaskProgressWidget = View.extend({
+var TaskProgressWidget = View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;
@@ -86,3 +86,4 @@ export var TaskProgressWidget = View.extend({
     }
 });
 
+export default TaskProgressWidget;

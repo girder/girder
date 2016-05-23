@@ -11,7 +11,7 @@ import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.
  * This widget provides a text input field to specify a date/time. The user
  * chooses the date/time using a popup picker.
  */
-export var DateTimeWidget = View.extend({
+var DateTimeWidget = View.extend({
 
     /**
      * @param [settings.defaultDate=false] The default date/time when not set
@@ -110,7 +110,7 @@ export var DateTimeWidget = View.extend({
  * That is, the first field specifies "from" and the second field specifies
  * "to." The user chooses each date/time using a popup picker.
  */
-export var DateTimeRangeWidget = View.extend({
+var DateTimeRangeWidget = View.extend({
 
     /**
      * @param [settings.defaultFromDate=false] The default "from" date/time when
@@ -272,3 +272,9 @@ export var DateTimeRangeWidget = View.extend({
         return date.format();
     }
 });
+
+export {
+    DateTimeWidget,
+    DateTimeRangeWidget
+};
+

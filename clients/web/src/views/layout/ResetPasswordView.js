@@ -1,9 +1,9 @@
 import _                           from 'underscore';
 
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import Events                      from 'girder/events';
+import { events }                  from 'girder/events';
 import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
-import Rest                        from 'girder/rest';
+import { restRequest }             from 'girder/rest';
 import View                        from 'girder/view';
 
 import 'bootstrap/js/modal';
@@ -12,18 +12,18 @@ import 'girder/utilities/jQuery'; // $.girderModal
 /**
  * This view shows a modal dialog for resetting a forgotten password.
  */
-export var ResetPasswordView = View.extend({
+var ResetPasswordView = View.extend({
     events: {
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
-            Rest.restRequest({
+            restRequest({
                 path: 'user/password/temporary?email=' + this.$('#g-email')
                     .val().trim(),
                 type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function () {
                 this.$el.modal('hide');
-                Events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     icon: 'mail-alt',
                     text: 'Password reset email sent.',
                     type: 'success'
@@ -38,11 +38,11 @@ export var ResetPasswordView = View.extend({
         },
 
         'click a.g-register-link': function () {
-            Events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         },
 
         'click a.g-login-link': function () {
-            Events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         }
     },
 
@@ -61,3 +61,5 @@ export var ResetPasswordView = View.extend({
         return this;
     }
 });
+
+export default ResetPasswordView;

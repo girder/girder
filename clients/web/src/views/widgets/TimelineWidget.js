@@ -20,7 +20,7 @@ import 'bootstrap/js/tooltip';
  * this widget, it is not possible to mix the numeric/relative values with datestamp
  * values.
  */
-export var TimelineWidget = View.extend({
+var TimelineWidget = View.extend({
     /**
      * Initialize the timeline widget.
      *
@@ -159,3 +159,6 @@ export var TimelineWidget = View.extend({
         return this;
     }
 });
+
+export default TimelineWidget;
+

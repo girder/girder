@@ -1,22 +1,22 @@
-import $                 from 'jquery';
+import $                  from 'jquery';
 
-import Auth              from 'girder/auth';
-import EditGroupWidget   from 'girder/views/widgets/EditGroupWidget';
-import Events            from 'girder/events';
-import GroupCollection   from 'girder/collections/GroupCollection';
-import GroupListTemplate from 'girder/templates/body/groupList.jade';
-import GroupModel        from 'girder/models/GroupModel';
+import { getCurrentUser }       from 'girder/auth';
+import EditGroupWidget          from 'girder/views/widgets/EditGroupWidget';
+import { events }               from 'girder/events';
+import GroupCollection          from 'girder/collections/GroupCollection';
+import GroupListTemplate        from 'girder/templates/body/groupList.jade';
+import GroupModel               from 'girder/models/GroupModel';
 import { formatDate, DATE_DAY } from 'girder/utilities/MiscFunctions';
-import PaginateWidget    from 'girder/views/widgets/PaginateWidget';
-import Rest              from 'girder/rest';
-import router            from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import View              from 'girder/view';
+import PaginateWidget           from 'girder/views/widgets/PaginateWidget';
+import { cancelRestRequests }   from 'girder/rest';
+import router                   from 'girder/router';
+import SearchFieldWidget        from 'girder/views/widgets/SearchFieldWidget';
+import View                     from 'girder/view';
 
 /**
  * This view lists groups.
  */
-export var GroupsView = View.extend({
+var GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
@@ -31,7 +31,7 @@ export var GroupsView = View.extend({
     },
 
     initialize: function (settings) {
-        Rest.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.collection = new GroupCollection();
         this.collection.on('g:changed', function () {
             this.render();
@@ -54,7 +54,7 @@ export var GroupsView = View.extend({
     render: function () {
         this.$el.html(GroupListTemplate({
             groups: this.collection.toArray(),
-            Auth: Auth,
+            getCurrentUser: getCurrentUser,
             formatDate: formatDate,
             DATE_DAY: DATE_DAY
         }));
@@ -80,9 +80,9 @@ export var GroupsView = View.extend({
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list
-            var userGroups = Auth.getCurrentUser().get('groups') || [];
+            var userGroups = getCurrentUser().get('groups') || [];
             userGroups.push(group.get('_id'));
-            Auth.getCurrentUser().set('groups', userGroups);
+            getCurrentUser().set('groups', userGroups);
 
             router.navigate('group/' + group.get('_id'), {trigger: true});
         }, this).render();
@@ -102,6 +102,8 @@ export var GroupsView = View.extend({
 });
 
 router.route('groups', 'groups', function (params) {
-    Events.trigger('g:navigateTo', GroupsView, params || {});
-    Events.trigger('g:highlightItem', 'GroupsView');
+    events.trigger('g:navigateTo', GroupsView, params || {});
+    events.trigger('g:highlightItem', 'GroupsView');
 });
+
+export default GroupsView;
