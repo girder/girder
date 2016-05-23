@@ -31,7 +31,7 @@ import six
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 
-def _compare_items(x, y):
+def _compareDicts(x, y):
     """
     Compare two dictionaries with metadata.
 
@@ -157,8 +157,8 @@ class GirderClient(object):
             self.blacklist = []
         self.folder_upload_callbacks = []
         self.item_upload_callbacks = []
-        self.incoming_metadata = {}
-        self.local_metadata = {}
+        self.incomingMetadata = {}
+        self.localMetadata = {}
 
     def authenticate(self, username=None, password=None, interactive=False,
                      apiKey=None):
@@ -854,9 +854,9 @@ class GirderClient(object):
 
             for item in items:
                 _id = item['_id']
-                self.incoming_metadata[_id] = item
-                if sync and _id in self.local_metadata and \
-                        _compare_items(item, self.local_metadata[_id]):
+                self.incomingMetadata[_id] = item
+                if sync and _id in self.localMetadata and \
+                        _compareDicts(item, self.localMetadata[_id]):
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
@@ -872,7 +872,7 @@ class GirderClient(object):
         """
 
         with open(os.path.join(dest, ".girder_metadata"), "w") as fh:
-            fh.write(json.dumps(self.incoming_metadata))
+            fh.write(json.dumps(self.incomingMetadata))
 
     def loadLocalMetadata(self, dest):
         """
@@ -883,7 +883,7 @@ class GirderClient(object):
 
         try:
             with open(os.path.join(dest, ".girder_metadata"), "r") as fh:
-                self.local_metadata = json.loads(fh.read())
+                self.localMetadata = json.loads(fh.read())
         except OSError:
             print("Local metadata does not exists. Falling back to download.")
 

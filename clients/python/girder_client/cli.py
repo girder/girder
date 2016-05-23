@@ -101,7 +101,6 @@ def main():
             print('download command only accepts parent-type of folder')
         else:
             g.downloadFolderRecursive(args.parent_id, args.local_folder)
-            g.saveLocalMetadata(args.local_folder)
     elif args.c == 'localsync':
         if args.parent_type != 'folder':
             print('localsync command only accepts parent-type of folder')
