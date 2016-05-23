@@ -289,7 +289,7 @@ class GirderClient(object):
         """
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def patch(self, path, parameters=None, data=None, json=json):
+    def patch(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
         HTTP method.

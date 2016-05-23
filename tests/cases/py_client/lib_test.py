@@ -26,6 +26,7 @@ import six
 import time
 from six import StringIO
 import hashlib
+import httmock
 
 from girder import config, events
 from tests import base
@@ -376,3 +377,48 @@ class PythonClientTestCase(base.TestCase):
         updatedFolder = self.model('folder').load(self.publicFolder['_id'],
                                                   force=True)
         self.assertEqual(updatedFolder['meta'], meta)
+
+    def testPatch(self):
+        patchUrl = 'patch'
+        patchRequest = {
+            'valid': False
+        }
+
+        # Test json request
+        jsonBody = {
+            'foo': 'bar'
+        }
+
+        def _patchJson(url, request):
+            patchRequest['valid'] = json.loads(request.body) == jsonBody
+
+            return httmock.response(200, {}, {}, request=request)
+
+        patch = httmock.urlmatch(
+            path=r'^.*%s$' % patchUrl, method='PUT')(_patchJson)
+
+        with httmock.HTTMock(patch):
+            client = girder_client.GirderClient()
+            client.put(patchUrl, json=jsonBody)
+
+        # Check we got the right request
+        self.assertTrue(patchRequest['valid'])
+
+        # Now try raw message body
+        patchRequest['valid'] = False
+        rawBody = 'raw'
+
+        def _patchRaw(url, request):
+            patchRequest['valid'] = request.body == rawBody
+
+            return httmock.response(200, {}, {}, request=request)
+
+        patch = httmock.urlmatch(
+            path=r'^.*%s$' % patchUrl, method='PUT')(_patchRaw)
+
+        with httmock.HTTMock(patch):
+            client = girder_client.GirderClient()
+            client.put(patchUrl, data=rawBody)
+
+        # Check we got the right request
+        self.assertTrue(patchRequest['valid'])
