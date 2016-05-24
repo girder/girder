@@ -9,6 +9,15 @@ girder.views.ItemPreviewWidget = girder.View.extend({
         'click a.g-item-preview-link': function (event) {
             var id = this.$(event.currentTarget).data('id');
             this.parentView.itemListView.trigger('g:itemClicked', this.collection.get(id));
+        },
+        'click .g-widget-item-previews-wrap': function (event) {
+            this.wrapPreviews = !this.wrapPreviews;
+            this.render();
+            if (this.wrapPreviews) {
+                this.$('.g-widget-item-previews-container')[0].style.whiteSpace = 'normal';
+            } else {
+                this.$('.g-widget-item-previews-container')[0].style.whiteSpace = 'nowrap';
+            }
         }
     },
 
@@ -21,6 +30,8 @@ girder.views.ItemPreviewWidget = girder.View.extend({
         }, this).fetch({
             folderId: settings.folderId
         });
+
+        this.wrapPreviews = false;
     },
 
     _MAX_JSON_SIZE: 2e6 /* bytes */,
@@ -44,6 +55,7 @@ girder.views.ItemPreviewWidget = girder.View.extend({
 
         view.$el.html(girder.templates.itemPreviews({
             items: supportedItems,
+            wrapPreviews: view.wrapPreviews,
             hasMore: this.collection.hasNextPage(),
             isImageItem: this._isImageItem,
             isJSONItem: this._isJSONItem,
@@ -70,6 +82,13 @@ girder.views.ItemPreviewWidget = girder.View.extend({
             }).error(function (err) {
                 console.error('Could not preview item', err);
             });
+        });
+
+        this.$('.g-widget-item-previews-wrap').tooltip({
+            container: this.$el,
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
         });
 
         return this;
