@@ -62,11 +62,11 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('a.g-create-item:visible').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return Backbone.history.fragment.slice(-18) === '?dialog=itemcreate';
         }, 'the URL state to change');
+        girderTest.waitForDialog();
         waitsFor(function () {
             return $('button.g-save-item:visible').text() === 'Create';
         }, 'the create item dialog to appear');
@@ -121,7 +121,6 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('.g-edit-item').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
@@ -165,6 +164,7 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('.g-upload-into-item').click();
         });
+
         waitsFor(function () {
             return Backbone.history.fragment.slice(-14) === '?dialog=upload';
         }, 'the url state to change');
@@ -201,6 +201,7 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('.g-upload-here-button').click();
         });
+
         waitsFor(function () {
             return Backbone.history.fragment.slice(-14) === '?dialog=upload';
         }, 'the url state to change');
@@ -279,7 +280,6 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('a.g-create-item:visible').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return Backbone.history.fragment.slice(-18) === '?dialog=itemcreate';
@@ -287,6 +287,7 @@ describe('item_licenses plugin test', function () {
         waitsFor(function () {
             return $('button.g-save-item:visible').text() === 'Create';
         }, 'the create item dialog to appear');
+        girderTest.waitForDialog();
         runs(function () {
             // Should list groups of licenses, plus "Unspecified" in dropdown
             expect($('#g-license optgroup').length).toBe(2);
@@ -334,7 +335,6 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('.g-edit-item').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
@@ -386,7 +386,6 @@ describe('item_licenses plugin test', function () {
         runs(function () {
             $('.g-edit-item').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return Backbone.history.fragment.slice(-16) === '?dialog=itemedit';
