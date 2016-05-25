@@ -14,9 +14,9 @@ girder.views.ItemPreviewWidget = girder.View.extend({
             this.wrapPreviews = !this.wrapPreviews;
             this.render();
             if (this.wrapPreviews) {
-                this.$('.g-widget-item-previews-container')[0].style.whiteSpace = 'normal';
+                this.$('.g-widget-item-previews-container').addClass('g-wrap');
             } else {
-                this.$('.g-widget-item-previews-container')[0].style.whiteSpace = 'nowrap';
+                this.$('.g-widget-item-previews-container').removeClass('g-wrap');
             }
         }
     },
