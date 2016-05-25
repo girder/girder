@@ -30,15 +30,15 @@ from .rest import getLicenses
 
 def validateString(value):
     """
-    Make sure a value is a string.
+    Make sure a value is a unicode string.
 
-    :param value: the value to coerce into a string if it isn't already.
-    :returns: the string version of the value.
+    :param value: the value to coerce into a unicode string if it isn't already.
+    :returns: the unicode string version of the value.
     """
     if value is None:
-        value = ''
-    if not isinstance(value, six.string_types):
-        value = str(value)
+        value = six.u('')
+    if not isinstance(value, six.text_type):
+        value = six.text_type(value)
     return value
 
 
