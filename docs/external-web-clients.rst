@@ -47,20 +47,66 @@ assuming Girder is hosted at ``/girder``:
    Bootstrap, Underscore, and Backbone. You may wish to use your own versions
    of these separately and not include ``girder.ext.min.js``.
 
-Initializing Girder
-^^^^^^^^^^^^^^^^^^^
 
-The following code will initialize the Girder environment and should
-be set before performing any Girder API calls:
+Extending Girder's Backbone application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder defines a top-level class at ``girder.App``.  This object is responsible
+for bootstraping the application, setting up the overall layout, and responding
+to global events like ``g:login`` and ``g:navigateTo``.  Developers can choose
+to derive their own application from this class to use the functionality that
+it provides.  For example, the following derivation would modify the normal
+application bootstrapping
 
 .. code-block:: javascript
 
-    $(document).ready(function () {
-        girder.apiRoot = '/girder/api/v1';
-        girder.router.enabled(false);
+   // set the path where girder's API is mounted
+   girder.apiRoot = '/girder/api/v1';
 
-        // Your app code here
-    });
+   var App = girder.App.extend({
+      start: function () {
+
+         // disable girder's router
+         girder.router.enabled(false);
+
+         // call the super method
+         return girder.App.prototype.start.call(this, {
+             fetch: false,  // disable automatic fetching of the user model
+             history: false,// disable initialization of Backbone's router
+             render: false  // disable automatic rendering on start
+         }).then(_.bind(function () {
+
+            // set the current user somehow
+            girder.currentUser = new girder.models.UserModel({...});
+            girder.eventStream.open();
+
+            // replace the header with a customized class
+            this.headerView = new MyHeaderView({parentView: this});
+
+            // render the main page
+            this.render();
+
+            // start up the router with the `pushState` option enabled
+            Backbone.history.start({pushState: true});
+         }, this));
+      }
+   });
+
+   // initialize the application without starting it
+   var app = new App({start: false});
+
+   // start your application after the page loads
+   $(document).ready(function () {
+      app.start();
+   });
+
+Other methods that one may need to override include the following:
+
+``bindGirderEvents``
+   Bind handlers to the global ``girder.events`` object.
+
+``render``
+   Render (or re-render) the entire page.
 
 .. note::
    ``girder.router.enabled(false)`` must be set to false to disable URL routing
