@@ -1,43 +1,82 @@
 girder.App = girder.View.extend({
-    initialize: function () {
-        girder.fetchCurrentUser()
-            .done(_.bind(function (user) {
-                girder.eventStream = new girder.EventStream({
-                    timeout: girder.sseTimeout || null
-                });
+    /**
+     * @param {object} [settings]
+     * @param {bool} [settings.start=true] Run start after initialization
+     */
+    initialize: function (settings) {
+        this._started = false;
+        settings = settings || {};
+        if (settings.start === undefined || settings.start) {
+            this.start();
+        }
+    },
 
-                this.headerView = new girder.views.LayoutHeaderView({
-                    parentView: this
-                });
+    /**
+     * Start the application with optional components.
+     * @param {object} [settings]
+     * @param {bool} [settings.fetch=true] Fetch the current user modal
+     * @param {bool} [settings.render=true] Render the layout after starting
+     * @param {bool} [settings.history=true] Start backbone's history api
+     * @returns {$.Deferred} A promise-like object that resolves when the app is ready
+     */
+    start: function (settings) {
+        // start is a noop if the app is already running
+        var promise = new $.Deferred().resolve(null).promise();
+        if (this._started) {
+            return promise;
+        }
+        this._started = true;
 
-                this.globalNavView = new girder.views.LayoutGlobalNavView({
-                    parentView: this
-                });
+        // set defaults
+        settings = _.defaults(settings || {}, {
+            fetch: true,
+            render: true,
+            history: true
+        });
 
-                this.footerView = new girder.views.LayoutFooterView({
-                    parentView: this
-                });
+        // define a function to be run after fetching the user model
+        var afterFetch = _.bind(function (user) {
+            girder.eventStream = new girder.EventStream({
+                timeout: girder.sseTimeout || null
+            });
 
-                this.progressListView = new girder.views.ProgressListView({
-                    eventStream: girder.eventStream,
-                    parentView: this
-                });
+            this._createLayout();
 
-                if (user) {
-                    girder.currentUser = new girder.models.UserModel(user);
-                    girder.eventStream.open();
-                }
+            if (user) {
+                girder.currentUser = new girder.models.UserModel(user);
+                girder.eventStream.open();
+            }
 
-                this.layoutRenderMap = {};
-                this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
-                this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
+            if (settings.render) {
                 this.render();
+            }
 
-                // Once we've rendered the layout, we can start up the routing.
+            if (settings.history) {
                 Backbone.history.start({
                     pushState: false
                 });
-            }, this));
+            }
+        }, this);
+
+        // If fetching the user from the server then we return the jqxhr object
+        // from the request, otherwise just call the callback.
+        if (settings.fetch) {
+            promise = girder.fetchCurrentUser()
+                .done(afterFetch);
+        } else {
+            afterFetch(null);
+        }
+
+        this.bindGirderEvents();
+        return promise;
+    },
+
+    /**
+     * Bind the application to the global event object.
+     */
+    bindGirderEvents: function () {
+        // Unbind any current handlers in case this happens to be called twice.
+        girder.events.off(null, null, this);
 
         girder.events.on('g:navigateTo', this.navigateTo, this);
         girder.events.on('g:loginUi', this.loginDialog, this);
@@ -45,6 +84,33 @@ girder.App = girder.View.extend({
         girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         girder.events.on('g:alert', this.alert, this);
         girder.events.on('g:login', this.login, this);
+    },
+
+    /**
+     * Create the main layout views.
+     * @private
+     */
+    _createLayout: function () {
+        this.headerView = new girder.views.LayoutHeaderView({
+            parentView: this
+        });
+
+        this.globalNavView = new girder.views.LayoutGlobalNavView({
+            parentView: this
+        });
+
+        this.footerView = new girder.views.LayoutFooterView({
+            parentView: this
+        });
+
+        this.progressListView = new girder.views.ProgressListView({
+            eventStream: girder.eventStream,
+            parentView: this
+        });
+
+        this.layoutRenderMap = {};
+        this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
+        this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
     },
 
     _defaultLayout: {
