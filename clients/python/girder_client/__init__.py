@@ -322,6 +322,18 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
+    def listFile(self, itemId):
+        """
+        Retrieves a file set from this item ID.
+
+        :param itemId: the item's ID
+        """
+
+        params = {
+            'id': itemId,
+        }
+        return self.listResource('item/%s/files' % itemId, params)
+
     def createItem(self, parentFolderId, name, description=''):
         """
         Creates and returns an item.
@@ -718,15 +730,19 @@ class GirderClient(object):
         Download a file to the given local path.
 
         :param fileId: The ID of the Girder file to download.
-        :param path: The local path to write the file to.
+        :param path: The local path to write the file to, or 
+            a file-like object.
         """
-        _safeMakedirs(os.path.dirname(path))
+        req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
+                           headers={'Girder-Token': self.token})
+        if type(path) is str:
+            _safeMakedirs(os.path.dirname(path))
 
-        with open(path, 'wb') as fd:
-            req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
-                               headers={'Girder-Token': self.token})
-            for chunk in req.iter_content(chunk_size=65536):
-                fd.write(chunk)
+            with open(path, 'wb') as fd:
+                for chunk in req.iter_content(chunk_size=65536):
+                    fd.write(chunk)
+        else:
+            path.write(req.content)
 
     def downloadItem(self, itemId, dest, name=None):
         """
