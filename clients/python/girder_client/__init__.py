@@ -322,7 +322,7 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
-    def listFile(self, itemId):
+    def listFiles(self, itemId, limit=50):
         """
         Retrieves a file set from this item ID.
 
@@ -331,6 +331,7 @@ class GirderClient(object):
 
         params = {
             'id': itemId,
+            'limit': limit
         }
         return self.listResource('item/%s/files' % itemId, params)
 
@@ -354,7 +355,7 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None, name=None):
+    def listItem(self, folderId, text=None, name=None, limit=50):
         """
         Retrieves a item set from this folder ID.
 
@@ -364,6 +365,7 @@ class GirderClient(object):
         """
         params = {
             'folderId': folderId,
+            'limit': limit
         }
         if text:
             params['text'] = text
@@ -395,7 +397,7 @@ class GirderClient(object):
         """
         return self.getResource('folder', folderId)
 
-    def listFolder(self, parentId, parentFolderType='folder', name=None):
+    def listFolder(self, parentId, parentFolderType='folder', name=None, limit=50):
         """
         Retrieves a folder set from this parent ID.
 
@@ -404,7 +406,8 @@ class GirderClient(object):
         """
         params = {
             'parentId': parentId,
-            'parentType': parentFolderType
+            'parentType': parentFolderType,
+            'limit': limit
         }
 
         if name:
@@ -742,7 +745,20 @@ class GirderClient(object):
                 for chunk in req.iter_content(chunk_size=65536):
                     fd.write(chunk)
         else:
-            path.write(req.content)
+            for chunk in req.iter_content(chunk_size=65536):
+                path.write(chunk)
+
+    def downloadFileInline(self, fileId):
+        """
+        Download a file inline. The binary response content is returned
+
+        :param fileId: The ID of the girder file to download.
+        """
+
+        req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
+                               headers={'Girder-Token': self.token})
+        if req:
+            return req.content
 
     def downloadItem(self, itemId, dest, name=None):
         """
