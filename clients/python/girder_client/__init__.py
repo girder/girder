@@ -288,17 +288,19 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
-    def listFiles(self, itemId, limit=50):
+    def listFiles(self, itemId, limit=None):
         """
         Retrieves a file set from this item ID.
 
         :param itemId: the item's ID
+        :param limit: the result set size limit.
         """
 
         params = {
             'id': itemId,
-            'limit': limit
         }
+        if limit:
+            params['limit'] = limit
         return self.listResource('item/%s/files' % itemId, params)
 
     def createItem(self, parentFolderId, name, description=''):
@@ -321,22 +323,24 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None, name=None, limit=50):
+    def listItem(self, folderId, text=None, name=None, limit=None):
         """
         Retrieves a item set from this folder ID.
 
         :param folderId: the parent folder's ID.
         :param text: query for full text search of items.
         :param name: query for exact name match of items.
+        :param limit: the result set size limit.
         """
         params = {
-            'folderId': folderId,
-            'limit': limit
+            'folderId': folderId
         }
         if text:
             params['text'] = text
         if name:
             params['name'] = name
+        if limit:
+            params['limit'] = limit
 
         return self.listResource('item', params)
 
@@ -363,21 +367,24 @@ class GirderClient(object):
         """
         return self.getResource('folder', folderId)
 
-    def listFolder(self, parentId, parentFolderType='folder', name=None, limit=50):
+    def listFolder(self, parentId, parentFolderType='folder', name=None, limit=None):
         """
         Retrieves a folder set from this parent ID.
 
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
+        :param name: query for exact name match of items.
+        :param limit: the result set size limit.
         """
         params = {
             'parentId': parentId,
-            'parentType': parentFolderType,
-            'limit': limit
+            'parentType': parentFolderType
         }
 
         if name:
             params['name'] = name
+        if limit:
+            params['limit'] = limit
 
         return self.listResource('folder', params)
 
@@ -713,6 +720,18 @@ class GirderClient(object):
         else:
             for chunk in req.iter_content(chunk_size=65536):
                 path.write(chunk)
+
+    def downloadFileInline(self, fileId):
+        """
+        Download a file inline. The binary response content is returned
+
+        :param fileId: The ID of the girder file to download.
+        """
+
+        req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
+                               headers={'Girder-Token': self.token})
+        if req:
+            return req.content
 
     def downloadItem(self, itemId, dest, name=None):
         """
