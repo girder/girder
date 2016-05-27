@@ -721,18 +721,6 @@ class GirderClient(object):
             for chunk in req.iter_content(chunk_size=65536):
                 path.write(chunk)
 
-    def downloadFileInline(self, fileId):
-        """
-        Download a file inline. The binary response content is returned
-
-        :param fileId: The ID of the girder file to download.
-        """
-
-        req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
-                               headers={'Girder-Token': self.token})
-        if req:
-            return req.content
-
     def downloadItem(self, itemId, dest, name=None):
         """
         Download an item from Girder into a local folder. Each file in the
