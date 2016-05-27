@@ -1,16 +1,16 @@
-import _                from 'underscore';
+import _ from 'underscore';
 
-import { AccessType }   from 'girder/constants';
-import { events }       from 'girder/events';
-import FolderModel      from 'girder/models/FolderModel';
-import HierarchyWidget  from 'girder/views/widgets/HierarchyWidget';
-import { confirm }      from 'girder/utilities/MiscFunctions';
+import { AccessType } from 'girder/constants';
+import { events } from 'girder/events';
+import FolderModel from 'girder/models/FolderModel';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import { confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
-import router           from 'girder/router';
-import UserModel        from 'girder/models/UserModel';
+import router from 'girder/router';
+import UserModel from 'girder/models/UserModel';
 import UserPageTemplate from 'girder/templates/body/userPage.jade';
-import UsersView        from 'girder/views/body/UsersView';
-import View             from 'girder/view';
+import UsersView from 'girder/views/body/UsersView';
+import View from 'girder/view';
 
 import 'bootstrap/js/dropdown';
 

@@ -1,11 +1,11 @@
-import _                      from 'underscore';
+import _ from 'underscore';
 
-import { events }             from 'girder/events';
-import FolderModel            from 'girder/models/FolderModel';
-import HierarchyWidget        from 'girder/views/widgets/HierarchyWidget';
+import { events } from 'girder/events';
+import FolderModel from 'girder/models/FolderModel';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import { cancelRestRequests } from 'girder/rest';
-import router                 from 'girder/router';
-import View                   from 'girder/view';
+import router from 'girder/router';
+import View from 'girder/view';
 
 /**
  * This view shows a single folder as a hierarchy widget.

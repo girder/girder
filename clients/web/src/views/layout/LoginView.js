@@ -1,8 +1,8 @@
-import { login }                   from 'girder/auth';
+import { login } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import { events }                  from 'girder/events';
-import LoginDialogTemplate         from 'girder/templates/layout/loginDialog.jade';
-import View                        from 'girder/view';
+import { events } from 'girder/events';
+import LoginDialogTemplate from 'girder/templates/layout/loginDialog.jade';
+import View from 'girder/view';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

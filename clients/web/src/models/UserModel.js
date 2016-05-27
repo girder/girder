@@ -1,8 +1,8 @@
-import _                    from 'underscore';
+import _ from 'underscore';
 
 import { fetchCurrentUser } from 'girder/auth';
-import { Model }            from 'girder/model';
-import { restRequest }      from 'girder/rest';
+import { Model } from 'girder/model';
+import { restRequest } from 'girder/rest';
 
 var UserModel = Model.extend({
     resourceName: 'user',

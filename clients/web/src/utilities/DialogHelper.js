@@ -1,8 +1,8 @@
-import $                    from 'jquery';
-import Backbone             from 'backbone';
+import $ from 'jquery';
+import Backbone from 'backbone';
 
 import { parseQueryString } from 'girder/utilities/MiscFunctions';
-import router               from 'girder/router';
+import router from 'girder/router';
 
 function splitRoute(route) {
     if (!route) {

@@ -1,13 +1,13 @@
-import $                    from 'jquery';
-import _                    from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import { AccessType }       from 'girder/constants';
-import { events }           from 'girder/events';
+import { AccessType } from 'girder/constants';
+import { events } from 'girder/events';
 import GroupModListTemplate from 'girder/templates/widgets/groupModList.jade';
-import { confirm }          from 'girder/utilities/MiscFunctions';
-import UserModel            from 'girder/models/UserModel';
-import UserView             from 'girder/views/body/UserView';
-import View                 from 'girder/view';
+import { confirm } from 'girder/utilities/MiscFunctions';
+import UserModel from 'girder/models/UserModel';
+import UserView from 'girder/views/body/UserView';
+import View from 'girder/view';
 
 import 'bootstrap/js/tooltip';
 

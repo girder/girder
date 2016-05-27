@@ -1,5 +1,5 @@
-import _                        from 'underscore';
-import Backbone                 from 'backbone';
+import _ from 'underscore';
+import Backbone from 'backbone';
 
 import {  events, eventStream } from 'girder/events';
 

@@ -1,5 +1,5 @@
-import _           from 'underscore';
-import Backbone    from 'backbone';
+import _ from 'underscore';
+import Backbone from 'backbone';
 
 import { apiRoot } from 'girder/rest';
 

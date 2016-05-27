@@ -1,14 +1,14 @@
-import $                       from 'jquery';
-import _                       from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import { AccessType }          from 'girder/constants';
-import EditFileWidget          from 'girder/views/widgets/EditFileWidget';
-import { events }              from 'girder/events';
-import FileCollection          from 'girder/collections/FileCollection';
-import FileListTemplate        from 'girder/templates/widgets/fileList.jade';
+import { AccessType } from 'girder/constants';
+import EditFileWidget from 'girder/views/widgets/EditFileWidget';
+import { events } from 'girder/events';
+import FileCollection from 'girder/collections/FileCollection';
+import FileListTemplate from 'girder/templates/widgets/fileList.jade';
 import { confirm, formatSize } from 'girder/utilities/MiscFunctions';
-import UploadWidget            from 'girder/views/widgets/UploadWidget';
-import View                    from 'girder/view';
+import UploadWidget from 'girder/views/widgets/UploadWidget';
+import View from 'girder/view';
 
 import 'bootstrap/js/tooltip';
 

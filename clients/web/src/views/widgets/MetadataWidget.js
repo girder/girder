@@ -1,16 +1,16 @@
-import $                               from 'jquery';
-import _                               from 'underscore';
-import JSONEditor                      from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
+import $ from 'jquery';
+import _ from 'underscore';
+import JSONEditor from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
 
-import { AccessType }                  from 'girder/constants';
-import { events }                      from 'girder/events';
+import { AccessType } from 'girder/constants';
+import { events } from 'girder/events';
 import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
-import JsonMetadatumViewTemplate       from 'girder/templates/widgets/jsonMetadatumView.jade';
-import MetadataWidgetTemplate          from 'girder/templates/widgets/metadataWidget.jade';
-import MetadatumEditWidgetTemplate     from 'girder/templates/widgets/metadatumEditWidget.jade';
-import MetadatumViewTemplate           from 'girder/templates/widgets/metadatumView.jade';
-import { localeSort, confirm }         from 'girder/utilities/MiscFunctions';
-import View                            from 'girder/view';
+import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.jade';
+import MetadataWidgetTemplate from 'girder/templates/widgets/metadataWidget.jade';
+import MetadatumEditWidgetTemplate from 'girder/templates/widgets/metadatumEditWidget.jade';
+import MetadatumViewTemplate from 'girder/templates/widgets/metadatumView.jade';
+import { localeSort, confirm } from 'girder/utilities/MiscFunctions';
+import View from 'girder/view';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';

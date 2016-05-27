@@ -1,6 +1,6 @@
 import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.jade';
-import { apiRoot }          from 'girder/rest';
-import View                 from 'girder/view';
+import { apiRoot } from 'girder/rest';
+import View from 'girder/view';
 
 /**
  * This view shows the footer in the layout.

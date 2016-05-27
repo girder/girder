@@ -1,9 +1,9 @@
-import AdminConsoleTemplate   from 'girder/templates/body/adminConsole.jade';
-import { getCurrentUser }     from 'girder/auth';
-import { events }             from 'girder/events';
+import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
+import { getCurrentUser } from 'girder/auth';
+import { events } from 'girder/events';
 import { cancelRestRequests } from 'girder/rest';
-import router                 from 'girder/router';
-import View                   from 'girder/view';
+import router from 'girder/router';
+import View from 'girder/view';
 
 /**
  * This view shows the admin console, which links to all available admin pages.

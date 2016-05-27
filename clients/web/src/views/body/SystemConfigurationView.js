@@ -1,11 +1,11 @@
-import _                           from 'underscore';
+import _ from 'underscore';
 
-import { events }                  from 'girder/events';
+import { events } from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
-import router                      from 'girder/router';
-import SearchFieldWidget           from 'girder/views/widgets/SearchFieldWidget';
+import router from 'girder/router';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
-import View                        from 'girder/view';
+import View from 'girder/view';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/tooltip';

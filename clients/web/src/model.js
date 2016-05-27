@@ -1,4 +1,4 @@
-import _        from 'underscore';
+import _ from 'underscore';
 import Backbone from 'backbone';
 
 import { restRequest, apiRoot } from 'girder/rest';

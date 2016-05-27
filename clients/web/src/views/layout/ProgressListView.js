@@ -1,9 +1,9 @@
-import $                          from 'jquery';
-import _                          from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
 import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.jade';
-import TaskProgressWidget         from 'girder/views/widgets/TaskProgressWidget';
-import View                       from 'girder/view';
+import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
+import View from 'girder/view';
 
 /**
  * Container showing list of active tasks that are reporting progress

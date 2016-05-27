@@ -1,5 +1,5 @@
 import Collection from 'girder/collection';
-import UserModel  from 'girder/models/UserModel';
+import UserModel from 'girder/models/UserModel';
 
 var UserCollection = Collection.extend({
     resourceName: 'user',

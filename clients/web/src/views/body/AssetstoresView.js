@@ -1,18 +1,18 @@
-import $                       from 'jquery';
-import _                       from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import AssetstoreCollection    from 'girder/collections/AssetstoreCollection';
-import AssetstoreModel         from 'girder/models/AssetstoreModel';
-import AssetstoresTemplate     from 'girder/templates/body/assetstores.jade';
-import { getCurrentUser }      from 'girder/auth';
-import { AssetstoreType }      from 'girder/constants';
-import EditAssetstoreWidget    from 'girder/views/widgets/EditAssetstoreWidget';
-import { events }              from 'girder/events';
+import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
+import AssetstoreModel from 'girder/models/AssetstoreModel';
+import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
+import { getCurrentUser } from 'girder/auth';
+import { AssetstoreType } from 'girder/constants';
+import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
+import { events } from 'girder/events';
 import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
-import NewAssetstoreWidget     from 'girder/views/widgets/NewAssetstoreWidget';
-import { cancelRestRequests }  from 'girder/rest';
-import router                  from 'girder/router';
-import View                    from 'girder/view';
+import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
+import { cancelRestRequests } from 'girder/rest';
+import router from 'girder/router';
+import View from 'girder/view';
 
 import 'as-jqplot/dist/jquery.jqplot.js';
 import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';

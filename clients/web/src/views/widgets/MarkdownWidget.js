@@ -1,10 +1,10 @@
-import _                              from 'underscore';
+import _ from 'underscore';
 
-import { events }                     from 'girder/events';
-import FileModel                      from 'girder/models/FileModel';
-import View                           from 'girder/view';
+import { events } from 'girder/events';
+import FileModel from 'girder/models/FileModel';
+import View from 'girder/view';
 import { renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
-import MarkdownWidgetTemplate         from 'girder/templates/widgets/markdownWidget.jade';
+import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.jade';
 
 import 'bootstrap/js/tab';
 

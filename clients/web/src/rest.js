@@ -1,9 +1,9 @@
-import $                           from 'jquery';
-import _                           from 'underscore';
-import Backbone                    from 'backbone';
+import $ from 'jquery';
+import _ from 'underscore';
+import Backbone from 'backbone';
 
 import { getCurrentToken, cookie } from 'girder/auth';
-import { events }                  from 'girder/events';
+import { events } from 'girder/events';
 
 var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
 var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);

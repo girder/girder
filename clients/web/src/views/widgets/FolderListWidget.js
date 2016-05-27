@@ -1,10 +1,10 @@
-import $                  from 'jquery';
-import _                  from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import FolderCollection   from 'girder/collections/FolderCollection';
+import FolderCollection from 'girder/collections/FolderCollection';
 import FolderListTemplate from 'girder/templates/widgets/folderList.jade';
-import LoadingAnimation   from 'girder/views/widgets/LoadingAnimation';
-import View               from 'girder/view';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import View from 'girder/view';
 
 /**
  * This widget shows a list of folders under a given parent.

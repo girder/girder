@@ -1,9 +1,9 @@
-import $                            from 'jquery';
+import $ from 'jquery';
 
-import CollectionModel              from 'girder/models/CollectionModel';
-import { handleClose, handleOpen }  from 'girder/utilities/DialogHelper';
+import CollectionModel from 'girder/models/CollectionModel';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.jade';
-import View                         from 'girder/view';
+import View from 'girder/view';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

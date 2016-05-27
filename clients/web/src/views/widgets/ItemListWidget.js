@@ -1,11 +1,11 @@
-import $                 from 'jquery';
-import _                 from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import ItemListTemplate  from 'girder/templates/widgets/itemList.jade';
-import ItemCollection    from 'girder/collections/ItemCollection';
-import LoadingAnimation  from 'girder/views/widgets/LoadingAnimation';
-import { formatSize }    from 'girder/utilities/MiscFunctions';
-import View              from 'girder/view';
+import ItemListTemplate from 'girder/templates/widgets/itemList.jade';
+import ItemCollection from 'girder/collections/ItemCollection';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import { formatSize } from 'girder/utilities/MiscFunctions';
+import View from 'girder/view';
 
 /**
  * This widget shows a list of items under a given folder.

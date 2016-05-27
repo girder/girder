@@ -1,13 +1,13 @@
-import $                      from 'jquery';
-import _                      from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import { events }             from 'girder/events';
+import { events } from 'girder/events';
 import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
-import PluginsTemplate        from 'girder/templates/body/plugins.jade';
+import PluginsTemplate from 'girder/templates/body/plugins.jade';
 import { restRequest, cancelRestRequests } from 'girder/rest';
-import router                 from 'girder/router';
-import UsersView              from 'girder/views/body/UsersView';
-import View                   from 'girder/view';
+import router from 'girder/router';
+import UsersView from 'girder/views/body/UsersView';
+import View from 'girder/view';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',

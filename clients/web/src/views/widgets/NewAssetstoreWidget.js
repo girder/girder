@@ -1,7 +1,7 @@
-import AssetstoreModel       from 'girder/models/AssetstoreModel';
-import { AssetstoreType }    from 'girder/constants';
+import AssetstoreModel from 'girder/models/AssetstoreModel';
+import { AssetstoreType } from 'girder/constants';
 import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.jade';
-import View                  from 'girder/view';
+import View from 'girder/view';
 
 import 'bootstrap/js/collapse';
 

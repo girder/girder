@@ -1,5 +1,5 @@
 import Collection from 'girder/collection';
-import FileModel  from 'girder/models/FileModel';
+import FileModel from 'girder/models/FileModel';
 
 var FileCollection = Collection.extend({
     resourceName: 'file',

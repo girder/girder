@@ -1,10 +1,10 @@
-import $                            from 'jquery';
-import _                            from 'underscore';
+import $ from 'jquery';
+import _ from 'underscore';
 
-import { AssetstoreType }           from 'girder/constants';
-import { handleClose, handleOpen }  from 'girder/utilities/DialogHelper';
+import { AssetstoreType } from 'girder/constants';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
-import View                         from 'girder/view';
+import View from 'girder/view';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

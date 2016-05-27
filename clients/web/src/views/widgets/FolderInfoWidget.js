@@ -1,6 +1,6 @@
 import { formatDate, formatSize, DATE_SECOND, renderMarkdown } from 'girder/utilities/MiscFunctions';
 import FolderInfoDialogTemplate from 'girder/templates/widgets/folderInfoDialog.jade';
-import View                     from 'girder/view';
+import View from 'girder/view';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 

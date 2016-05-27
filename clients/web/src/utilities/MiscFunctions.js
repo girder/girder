@@ -1,11 +1,11 @@
-import $                     from 'jquery';
-import _                     from 'underscore';
-import Remarkable            from 'remarkable';
+import $ from 'jquery';
+import _ from 'underscore';
+import Remarkable from 'remarkable';
 
 import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
-import { MONTHS }            from 'girder/constants';
-import { events }            from 'girder/events';
-import { restRequest }       from 'girder/rest';
+import { MONTHS } from 'girder/constants';
+import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
