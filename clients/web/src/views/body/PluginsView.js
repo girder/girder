@@ -15,6 +15,7 @@ import 'girder/stylesheets/body/plugins.styl';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
+import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
 
 /**
  * This is the plugin management page for administrators.

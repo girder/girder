@@ -15,17 +15,19 @@
  */
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var glob              = require('glob');
+var path              = require('path');
+var webpack           = require('webpack');
 
 /**
  * Define tasks that bundle and compile files for deployment.
  */
 module.exports = function (grunt) {
-    var path = require('path');
-    var glob = require('glob');
-    var clients_web_dir = path.join(__dirname, '../clients/web');
-    var node_modules_dir = path.join(__dirname, '../node_modules');
-    var web_src_dir = path.join(clients_web_dir, 'src');
-    var webpack = require('webpack');
+    var paths = {
+        clients_web: path.join(__dirname, '../clients/web'),
+        node_modules: path.join(__dirname, '../node_modules'),
+        web_src: path.join(__dirname, '../clients/web/src')
+    };
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
     // vvvvvv TESTING
@@ -37,6 +39,27 @@ module.exports = function (grunt) {
         sourceMapIncludeSources: true,
         report: 'min'
     };
+    function fileLoader() {
+        return {
+            loader: 'file-loader',
+            query: {
+                name: 'assets/[name]-[hash:8].[ext]'
+            }
+        };
+    }
+    function urlLoader(options) {
+        options = options || {};
+        var loader = {
+            loader: 'url-loader',
+            query: {
+                limit: 4096
+            }
+        };
+        if (options.mimetype) {
+            loader.query.mimetype = options.mimetype;
+        }
+        return loader;
+    }
     var webpackOptions = {
         watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
         keepalive: false,  // don't finish the grunt task (in combination with the watch option)
@@ -51,13 +74,16 @@ module.exports = function (grunt) {
             path: 'clients/web/static/built/',
             filename: '[name].min.js'
         },
+        stats: {
+            children: false
+        },
         // context: __dirname,
         module: {
             loaders: [
                 { // Stylus
                     test: /\.styl$/,
                     loaders: [
-                        'style-loader',
+                        ExtractTextPlugin.extract('style-loader'),
                         'css-loader',
                         {
                             loader: 'stylus-loader',
@@ -69,7 +95,7 @@ module.exports = function (grunt) {
                 },
                 { // CSS
                     test: /\.css$/,
-                    loaders: ['style-loader', 'css-loader']
+                    loaders: [ExtractTextPlugin.extract('style-loader'), 'css-loader']
                 },
                 { // Jade
                     test: /\.jade$/,
@@ -77,12 +103,27 @@ module.exports = function (grunt) {
                 },
                 { // PNG, JPEG
                     test: /\.(png|jpg)$/,
-                    loaders: [{
-                        loader: 'url-loader',
-                        query: {
-                            limit: 8192 * 2
-                        }
-                    }]
+                    loaders: [urlLoader(), fileLoader()]
+                },
+                { // WOFF
+                    test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/font-woff' })]
+                },
+                { // WOFF2
+                    test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/font-woff2' })]
+                },
+                { // TTF
+                    test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/octet-stream' })]
+                },
+                { // EOT
+                    test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                    loaders: [fileLoader()]
+                },
+                { // SVG
+                    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                    loaders: [urlLoader(), fileLoader({ mimetype: 'image/svg+xml' })]
                 }
             ],
             noParse: [
@@ -98,11 +139,11 @@ module.exports = function (grunt) {
         // context: path.resolve(__dirname, 'web_external', 'src'),
         resolve: {
             alias: {
-                'girder': web_src_dir
+                'girder': paths.web_src
             },
             extensions: ['.styl', '.css', '.jade', '.js', ''],
-            modules: [clients_web_dir, node_modules_dir],
-            modulesDirectories: [web_src_dir, node_modules_dir]
+            modules: [paths.clients_web, paths.node_modules],
+            modulesDirectories: [paths.web_src, paths.node_modules]
         },
         node: {
             canvas: 'empty',
@@ -125,20 +166,21 @@ module.exports = function (grunt) {
                 $: 'jquery',
                 'window.jQuery': 'jquery'
             }),
-            new ExtractTextPlugin('[name].css', {
-                allChunks: true
-            }),
             new webpack.optimize.CommonsChunkPlugin({
                 name: 'girder.ext',
                 // See http://stackoverflow.com/a/29087883/250457
                 minChunks: function (module) {
                     var include = module.resource &&
-                        module.resource.indexOf(clients_web_dir) === -1;
+                        module.resource.indexOf(paths.clients_web) === -1;
                     if (include) {
-                        // console.log('[girder.ext] <=', module.resource.replace(node_modules_dir, ''));
+                        // console.log('[girder.ext] <=', module.resource.replace(paths.node_modules, ''));
                     }
                     return include;
                 }
+            }),
+            new ExtractTextPlugin('[name].min.css', {
+                allChunks: true,
+                disable: false
             })
         ]
     };
@@ -147,6 +189,14 @@ module.exports = function (grunt) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
 
+    // new webpack.LoaderOptionsPlugin({
+    //     test: /\.css$/, // optionally pass test, include and exclude, default affects all loaders
+    //     minimize: true,
+    //     debug: false,
+    //     options: {
+    //         // pass stuff to the loader
+    //     }
+    // })
     if (debugJs) {
         console.log('Building JS in debug mode'.yellow);
         uglifyOptions.beautify = {
@@ -211,25 +261,6 @@ module.exports = function (grunt) {
             }
         },
 
-        concat: {
-            options: {
-                stripBanners: {
-                    block: true,
-                    line: true
-                }
-            },
-            ext_css: {
-                files: {
-                    'clients/web/static/built/girder.ext.min.css': [
-                        'node_modules/bootstrap/dist/css/bootstrap.min.css',
-                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
-                        'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
-                    ]
-                }
-            }
-        },
-
         webpack: {
             options: webpackOptions,
             app: {
@@ -242,47 +273,6 @@ module.exports = function (grunt) {
                     ]
                     .concat(glob.sync('./clients/web/src/views/**/*.js'))
                 }
-            }
-        },
-
-        symlink: {
-            options: {
-                overwrite: true
-            },
-            legacy_names: {
-                // Provide static files under old names, for compatibility
-                files: [{
-                    src: ['clients/web/static/built/girder.app.min.js'],
-                    dest: 'clients/web/static/built/app.min.js'
-                }, {
-                    src: ['clients/web/static/built/girder.app.min.css'],
-                    dest: 'clients/web/static/built/app.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.main.min.js'],
-                    dest: 'clients/web/static/built/main.min.js'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.js'],
-                    dest: 'clients/web/static/built/libs.min.js'
-                }, {
-                    // This provides more than just Bootstrap, but that no
-                    // longer exists as a standalone file
-                    // Note, girder.ext.min.css was never released as another
-                    // name
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
-                }, {
-                    src: ['clients/web/static/built/fontello'],
-                    dest: 'clients/web/static/lib/fontello'
-                }]
             }
         },
 
@@ -306,9 +296,7 @@ module.exports = function (grunt) {
 
         init: {
             'copy:swagger': {},
-            'copy:jsoneditor': {},
             'copy:fontello_config': {},
-            'concat:ext_css': {},
             'fontello:ext_font': {}
         },
 
@@ -316,9 +304,6 @@ module.exports = function (grunt) {
             'stylus:core': {},
             'webpack:app': {
                 dependencies: ['version-info']
-            },
-            'symlink:legacy_names': {
-                dependencies: ['uglify:app']
             }
         }
     });

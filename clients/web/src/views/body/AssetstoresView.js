@@ -19,6 +19,7 @@ import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
 import 'girder/stylesheets/body/assetstores.styl';
 
 import 'as-jqplot/dist/jquery.jqplot.js';
+import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
 import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
 import 'bootstrap/js/tooltip';
 

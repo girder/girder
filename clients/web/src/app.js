@@ -26,6 +26,8 @@ import 'girder/stylesheets/layout/layout.styl';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 
+import 'bootstrap/dist/css/bootstrap.css';
+
 var App = View.extend({
     initialize: function () {
         fetchCurrentUser()

@@ -57,13 +57,16 @@ module.exports = function (grunt) {
 
         default: {
             'test-env-html': {
-                dependencies: ['uglify:app']
+                dependencies: ['webpack:app']
             },
             'uglify:test': {}
         }
     });
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
+// DISABLE FOR NOW
+        return;
+// DISABLE FOR NOW
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];

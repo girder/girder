@@ -7,6 +7,7 @@ import dateTimeRangeWidgetTemplate from 'girder/templates/widgets/dateTimeRangeW
 import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.jade';
 
 import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
+import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css';
 
 /**
  * This widget provides a text input field to specify a date/time. The user
