@@ -1,6 +1,12 @@
 .g-widget-item-previews-header
   i.icon-eye
   |  Item Previews
+  .btn-group.pull-right
+    button.g-widget-item-previews-wrap.btn.btn-sm.btn-primary.btn-default(title="Wrap Previews")
+      if (wrapPreviews)
+        i.icon-left
+      else
+        i.icon-down
 
 .g-widget-item-previews-container
 
