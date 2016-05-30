@@ -3,11 +3,13 @@ import _ from 'underscore';
 
 import { AccessType } from 'girder/constants';
 import { events } from 'girder/events';
-import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import UserModel from 'girder/models/UserModel';
-import UserView from 'girder/views/body/UserView';
 import View from 'girder/view';
+
+import UserView from 'girder/views/body/UserView';
+
+import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';

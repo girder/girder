@@ -1,9 +1,10 @@
-import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
 import { getCurrentUser } from 'girder/auth';
 import { events } from 'girder/events';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
 
 import 'girder/stylesheets/body/adminConsole.styl';
 

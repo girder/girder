@@ -3,12 +3,15 @@ import _ from 'underscore';
 
 import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
-import {  events, eventStream } from 'girder/events';
+import { events, eventStream } from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
-import UserSettingsTemplate from 'girder/templates/body/userSettings.jade';
 import View from 'girder/view';
+
+import UserSettingsTemplate from 'girder/templates/body/userSettings.jade';
+
+import 'girder/stylesheets/body/userSettings.styl';
 
 import 'bootstrap/js/tab';
 

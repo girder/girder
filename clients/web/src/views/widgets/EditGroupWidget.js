@@ -2,9 +2,10 @@ import $ from 'jquery';
 
 import { getCurrentUser } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
 import GroupModel from 'girder/models/GroupModel';
 import View from 'girder/view';
+
+import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

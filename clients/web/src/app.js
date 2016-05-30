@@ -2,22 +2,27 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import AlertTemplate from 'girder/templates/layout/alert.jade';
 import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
 import { Layout } from 'girder/constants';
 import { splitRoute } from 'girder/utilities/DialogHelper';
 import { events, eventStream } from 'girder/events';
+import router from 'girder/router';
+import UserModel from 'girder/models/UserModel';
+import View from 'girder/view';
+
 import LayoutFooterView from 'girder/views/layout/FooterView';
 import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
 import LayoutHeaderView from 'girder/views/layout/HeaderView';
-import LayoutTemplate from 'girder/templates/layout/layout.jade';
 import LoginView from 'girder/views/layout/LoginView';
 import ProgressListView from 'girder/views/layout/ProgressListView';
 import RegisterView from 'girder/views/layout/RegisterView';
 import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
-import router from 'girder/router';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+
+import AlertTemplate from 'girder/templates/layout/alert.jade';
+import LayoutTemplate from 'girder/templates/layout/layout.jade';
+
+import 'girder/stylesheets/layout/global.styl';
+import 'girder/stylesheets/layout/layout.styl';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 

@@ -2,9 +2,10 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
 import ItemModel from 'girder/models/ItemModel';
 import View from 'girder/view';
+
+import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

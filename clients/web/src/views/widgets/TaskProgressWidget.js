@@ -1,7 +1,10 @@
 import sprintf from 'sprintf-js';
 
-import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.jade';
 import View from 'girder/view';
+
+import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.jade';
+
+import 'girder/stylesheets/widgets/taskProgress.styl';
 
 /**
  * This widget renders the state of a progress notification.

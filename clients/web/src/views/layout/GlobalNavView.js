@@ -3,9 +3,12 @@ import $ from 'jquery';
 import { getCurrentUser } from 'girder/auth';
 import Backbone from 'backbone';
 import { events } from 'girder/events';
-import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
+
+import 'girder/stylesheets/layout/globalNav.styl';
 
 /**
  * This view shows a list of global navigation links that should be

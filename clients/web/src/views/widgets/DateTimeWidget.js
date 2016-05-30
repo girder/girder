@@ -2,8 +2,9 @@ import _ from 'underscore';
 import moment from 'moment';
 
 import View from 'girder/view';
-import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.jade';
+
 import dateTimeRangeWidgetTemplate from 'girder/templates/widgets/dateTimeRangeWidget.jade';
+import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.jade';
 
 import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
 

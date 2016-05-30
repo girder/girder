@@ -3,18 +3,22 @@ import _ from 'underscore';
 
 import { AccessType } from 'girder/constants';
 import { handleClose } from 'girder/utilities/DialogHelper';
-import EditItemWidget from 'girder/views/widgets/EditItemWidget';
 import { events } from 'girder/events';
-import FileListWidget from 'girder/views/widgets/FileListWidget';
-import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
 import ItemModel from 'girder/models/ItemModel';
-import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
-import MetadataWidget from 'girder/views/widgets/MetadataWidget';
 import { confirm, formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/view';
+
+import EditItemWidget from 'girder/views/widgets/EditItemWidget';
+import FileListWidget from 'girder/views/widgets/FileListWidget';
+import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
+import MetadataWidget from 'girder/views/widgets/MetadataWidget';
+import UploadWidget from 'girder/views/widgets/UploadWidget';
+
+import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
+
+import 'girder/stylesheets/body/itemPage.styl';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';

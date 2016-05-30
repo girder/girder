@@ -54,17 +54,35 @@ module.exports = function (grunt) {
         // context: __dirname,
         module: {
             loaders: [
+                { // Stylus
+                    test: /\.styl$/,
+                    loaders: [
+                        'style-loader',
+                        'css-loader',
+                        {
+                            loader: 'stylus-loader',
+                            query: {
+                                'resolve url': true
+                            }
+                        }
+                    ]
+                },
                 { // CSS
                     test: /\.css$/,
                     loaders: ['style-loader', 'css-loader']
                 },
-                { // Stylus
-                    test: /\.styl$/,
-                    loaders: ['style-loader', 'css-loader', 'stylus-loader']
-                },
                 { // Jade
                     test: /\.jade$/,
                     loader: 'jade-loader'
+                },
+                { // PNG, JPEG
+                    test: /\.(png|jpg)$/,
+                    loaders: [{
+                        loader: 'url-loader',
+                        query: {
+                            limit: 8192 * 2
+                        }
+                    }]
                 }
             ],
             noParse: [
@@ -82,12 +100,9 @@ module.exports = function (grunt) {
             alias: {
                 'girder': web_src_dir
             },
+            extensions: ['.styl', '.css', '.jade', '.js', ''],
             modules: [clients_web_dir, node_modules_dir],
-            extensions: ['.js', '.styl', '.css', '.jade', '']
-            // modulesDirectories: [
-            //     web_src_dir,
-            //     node_modules_dir
-            // ]
+            modulesDirectories: [web_src_dir, node_modules_dir]
         },
         node: {
             canvas: 'empty',
@@ -166,14 +181,6 @@ module.exports = function (grunt) {
                     dest: 'clients/web/static/built/swagger'
                 }]
             },
-            jsoneditor: {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/jsoneditor/dist',
-                    src: ['img/**'],
-                    dest: 'clients/web/static/built/jsoneditor'
-                }]
-            },
             fontello_config: {
                 files: [{
                     src: 'clients/web/fontello.config.json',
@@ -185,10 +192,6 @@ module.exports = function (grunt) {
         stylus: {
             core: {
                 files: {
-                    'clients/web/static/built/girder.app.min.css': [
-                        'clients/web/src/stylesheets/**/*.styl',
-                        '!clients/web/src/stylesheets/apidocs/*.styl'
-                    ],
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
                     ]
@@ -221,7 +224,6 @@ module.exports = function (grunt) {
                         'node_modules/bootstrap/dist/css/bootstrap.min.css',
                         'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
                         'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
-                        'node_modules/jsoneditor/dist/jsoneditor.min.css',
                         'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
                     ]
                 }

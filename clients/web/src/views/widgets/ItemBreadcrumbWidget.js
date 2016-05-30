@@ -1,8 +1,9 @@
 import $ from 'jquery';
 
-import IteamBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.jade';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import IteamBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.jade';
 
 import 'bootstrap/js/tooltip';
 

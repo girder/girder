@@ -1,8 +1,9 @@
 import AssetstoreModel from 'girder/models/AssetstoreModel';
 import { events } from 'girder/events';
 import router from 'girder/router';
-import S3ImportTemplate from 'girder/templates/body/s3Import.jade';
 import View from 'girder/view';
+
+import S3ImportTemplate from 'girder/templates/body/s3Import.jade';
 
 var S3ImportView = View.extend({
     events: {

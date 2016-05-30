@@ -1,8 +1,11 @@
 import { logout, getCurrentUser } from 'girder/auth';
 import { events } from 'girder/events';
-import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.jade';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.jade';
+
+import 'girder/stylesheets/layout/headerUser.styl';
 
 import 'bootstrap/js/dropdown';
 

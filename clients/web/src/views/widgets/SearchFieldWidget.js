@@ -2,11 +2,14 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { restRequest } from 'girder/rest';
+import View from 'girder/view';
+
 import SearchFieldTemplate from 'girder/templates/widgets/searchField.jade';
 import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.jade';
 import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.jade';
 import SearchResultsTemplate from 'girder/templates/widgets/searchResults.jade';
-import View from 'girder/view';
+
+import 'girder/stylesheets/widgets/searchFieldWidget.styl';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';

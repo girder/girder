@@ -2,11 +2,14 @@ import $ from 'jquery';
 
 import { getCurrentUser } from 'girder/auth';
 import { events } from 'girder/events';
-import FrontPageTemplate from 'girder/templates/body/frontPage.jade';
 import { cancelRestRequests, apiRoot, staticRoot } from 'girder/rest';
 import router from 'girder/router';
 import versionInfo from 'girder/girder-version';
 import View from 'girder/view';
+
+import FrontPageTemplate from 'girder/templates/body/frontPage.jade';
+
+import 'girder/stylesheets/body/frontPage.styl';
 
 /**
  * This is the view for the front page of the app.

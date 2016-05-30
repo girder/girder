@@ -2,14 +2,16 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { AccessType } from 'girder/constants';
-import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.jade';
-import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.jade';
 import { confirm } from 'girder/utilities/MiscFunctions';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import UserCollection from 'girder/collections/UserCollection';
 import View from 'girder/view';
+
+import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.jade';
+import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.jade';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';

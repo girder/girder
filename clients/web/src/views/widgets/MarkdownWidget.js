@@ -4,7 +4,10 @@ import { events } from 'girder/events';
 import FileModel from 'girder/models/FileModel';
 import View from 'girder/view';
 import { renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
+
 import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.jade';
+
+import 'girder/stylesheets/widgets/markdownWidget.styl';
 
 import 'bootstrap/js/tab';
 

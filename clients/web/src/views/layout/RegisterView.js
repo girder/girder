@@ -1,9 +1,10 @@
 import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import { events } from 'girder/events';
-import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/view';
+
+import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

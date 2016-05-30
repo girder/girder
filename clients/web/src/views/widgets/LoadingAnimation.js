@@ -1,5 +1,8 @@
-import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.jade';
 import View from 'girder/view';
+
+import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.jade';
+
+import 'girder/stylesheets/layout/loading.styl';
 
 /**
  * This widget can be used to display a small loading animation.

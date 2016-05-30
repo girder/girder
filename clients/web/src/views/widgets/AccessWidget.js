@@ -1,16 +1,20 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.jade';
-import accessEditorTemplate from 'girder/templates/widgets/accessEditor.jade';
-import accessEntryTemplate from 'girder/templates/widgets/accessEntry.jade';
 import { AccessType } from 'girder/constants';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import GroupModel from 'girder/models/GroupModel';
-import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/view';
+
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.jade';
+import accessEditorTemplate from 'girder/templates/widgets/accessEditor.jade';
+import accessEntryTemplate from 'girder/templates/widgets/accessEntry.jade';
+
+import 'girder/stylesheets/widgets/accessWidget.styl';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/modal';

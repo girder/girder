@@ -1,7 +1,9 @@
-import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
 import { AccessType } from 'girder/constants';
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import View from 'girder/view';
+
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+
+import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
 
 /**
  * This widget presents a list of available batch actions

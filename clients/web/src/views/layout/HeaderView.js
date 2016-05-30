@@ -1,8 +1,12 @@
-import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.jade';
-import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
 import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/view';
+
+import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.jade';
+
+import 'girder/stylesheets/layout/header.styl';
 
 /**
  * This view shows the header in the layout.

@@ -3,16 +3,20 @@ import _ from 'underscore';
 
 import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
 import AssetstoreModel from 'girder/models/AssetstoreModel';
-import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
 import { getCurrentUser } from 'girder/auth';
 import { AssetstoreType } from 'girder/constants';
-import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
 import { events } from 'girder/events';
 import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
-import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
+import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
+
+import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
+
+import 'girder/stylesheets/body/assetstores.styl';
 
 import 'as-jqplot/dist/jquery.jqplot.js';
 import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';

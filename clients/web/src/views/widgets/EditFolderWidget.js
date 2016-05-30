@@ -2,10 +2,12 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 import FolderModel from 'girder/models/FolderModel';
-import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import View from 'girder/view';
+
+import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
+
+import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

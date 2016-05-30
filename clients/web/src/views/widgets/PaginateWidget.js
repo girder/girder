@@ -1,5 +1,6 @@
-import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.jade';
 import View from 'girder/view';
+
+import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.jade';
 
 /**
  * This widget is used to provide a consistent widget for iterating amongst

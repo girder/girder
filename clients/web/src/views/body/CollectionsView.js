@@ -2,16 +2,20 @@ import $ from 'jquery';
 
 import { getCurrentUser } from 'girder/auth';
 import CollectionCollection from 'girder/collections/CollectionCollection';
-import CollectionListTemplate from 'girder/templates/body/collectionList.jade';
 import CollectionModel from 'girder/models/CollectionModel';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
 import { events } from 'girder/events';
 import { formatDate, formatSize, DATE_MINUTE } from 'girder/utilities/MiscFunctions';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/view';
+
+import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
+import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import CollectionListTemplate from 'girder/templates/body/collectionList.jade';
+
+import 'girder/stylesheets/body/collectionList.styl';
 
 /**
  * This view lists the collections.

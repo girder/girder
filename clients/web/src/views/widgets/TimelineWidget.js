@@ -1,7 +1,10 @@
 import _ from 'underscore';
 
-import TimelineTemplate from 'girder/templates/widgets/timeline.jade';
 import View from 'girder/view';
+
+import TimelineTemplate from 'girder/templates/widgets/timeline.jade';
+
+import 'girder/stylesheets/widgets/timelineWidget.styl';
 
 import 'bootstrap/js/tooltip';
 

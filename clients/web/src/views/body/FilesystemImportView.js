@@ -1,6 +1,7 @@
-import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jade';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jade';
 
 var FilesystemImportView = View.extend({
     events: {

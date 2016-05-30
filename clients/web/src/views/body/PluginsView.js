@@ -3,11 +3,15 @@ import _ from 'underscore';
 
 import { events } from 'girder/events';
 import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
-import PluginsTemplate from 'girder/templates/body/plugins.jade';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import UsersView from 'girder/views/body/UsersView';
 import View from 'girder/view';
+
+import UsersView from 'girder/views/body/UsersView';
+
+import PluginsTemplate from 'girder/templates/body/plugins.jade';
+
+import 'girder/stylesheets/body/plugins.styl';
 
 import 'bootstrap/js/tooltip';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',

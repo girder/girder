@@ -2,9 +2,10 @@ import _ from 'underscore';
 
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import { events } from 'girder/events';
-import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 import { restRequest } from 'girder/rest';
 import View from 'girder/view';
+
+import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

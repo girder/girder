@@ -2,10 +2,11 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { AccessType } from 'girder/constants';
-import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import router from 'girder/router';
 import View from 'girder/view';
+
+import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
 
 import 'bootstrap/js/tooltip';
 

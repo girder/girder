@@ -3,20 +3,24 @@ import _ from 'underscore';
 
 import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
-import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import { events } from 'girder/events';
-import GroupAdminsWidget from 'girder/views/widgets/GroupAdminsWidget';
-import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
-import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
 import GroupModel from 'girder/models/GroupModel';
-import GroupModsWidget from 'girder/views/widgets/GroupModsWidget';
-import GroupPageTemplate from 'girder/templates/body/groupPage.jade';
-import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import UserCollection from 'girder/collections/UserCollection';
 import View from 'girder/view';
+
+import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
+import GroupAdminsWidget from 'girder/views/widgets/GroupAdminsWidget';
+import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
+import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
+import GroupModsWidget from 'girder/views/widgets/GroupModsWidget';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+
+import GroupPageTemplate from 'girder/templates/body/groupPage.jade';
+
+import 'girder/stylesheets/body/groupPage.styl';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tab';

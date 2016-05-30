@@ -1,6 +1,7 @@
-import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
 import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
 import View from 'girder/view';
+
+import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 

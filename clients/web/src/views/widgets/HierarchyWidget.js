@@ -1,27 +1,31 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
-import CollectionInfoWidget from 'girder/views/widgets/CollectionInfoWidget';
 import { AccessType } from 'girder/constants';
 import { handleClose } from 'girder/utilities/DialogHelper';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import EditFolderWidget from 'girder/views/widgets/EditFolderWidget';
-import EditItemWidget from 'girder/views/widgets/EditItemWidget';
 import { events } from 'girder/events';
-import FolderInfoWidget from 'girder/views/widgets/FolderInfoWidget';
-import FolderListWidget from 'girder/views/widgets/FolderListWidget';
-import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
-import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.jade';
-import ItemListWidget from 'girder/views/widgets/ItemListWidget';
 import ItemModel from 'girder/models/ItemModel';
-import MetadataWidget from 'girder/views/widgets/MetadataWidget';
 import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
 import { restRequest, apiRoot } from 'girder/rest';
 import router from 'girder/router';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/view';
+
+import AccessWidget from 'girder/views/widgets/AccessWidget';
+import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
+import CollectionInfoWidget from 'girder/views/widgets/CollectionInfoWidget';
+import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
+import EditFolderWidget from 'girder/views/widgets/EditFolderWidget';
+import EditItemWidget from 'girder/views/widgets/EditItemWidget';
+import FolderInfoWidget from 'girder/views/widgets/FolderInfoWidget';
+import FolderListWidget from 'girder/views/widgets/FolderListWidget';
+import ItemListWidget from 'girder/views/widgets/ItemListWidget';
+import MetadataWidget from 'girder/views/widgets/MetadataWidget';
+import UploadWidget from 'girder/views/widgets/UploadWidget';
+
+import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
+import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.jade';
+
+import 'girder/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
