@@ -397,7 +397,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return newItem
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, mimeFilter=None):
         """
         Generate a list of files within this item.
 
@@ -417,6 +417,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
                         metadata, or the sole file is not named the same as the
                         item, then the returned paths include the item name.
         :type subpath: bool
+        :param mimeFilter: Optional list of MIME types to filter by. Set to
+            None to include all files.
+        :type mimeFilter: list or tuple
         :returns: Iterable over files in this item, where each element is a
                   tuple of (path name of the file, stream function with file
                   data).
@@ -427,8 +430,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
                     (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
-        metadataFile = "girder-item-metadata.json"
+        metadataFile = 'girder-item-metadata.json'
         for file in self.childFiles(item=doc):
+            if not self._mimeFilter(file, mimeFilter):
+                continue
             if file['name'] == metadataFile:
                 metadataFile = None
             yield (os.path.join(path, file['name']),
@@ -437,6 +442,15 @@ class Item(acl_mixin.AccessControlMixin, Model):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
+
+    def _mimeFilter(self, file, mimeFilter):
+        """
+        Returns whether or not the given file should be passed through the given
+        MIME filter. If no MIME filter is specified, all files are allowed.
+        """
+        if not mimeFilter:
+            return True
+        return file['mimeType'] in mimeFilter
 
     def checkConsistency(self, stage, progress=None):
         """
