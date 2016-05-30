@@ -322,7 +322,7 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
-    def listFiles(self, itemId, limit=None):
+    def listFile(self, itemId, limit=None):
         """
         Retrieves a file set from this item ID.
 
