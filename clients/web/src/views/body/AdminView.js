@@ -5,6 +5,8 @@ import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/view';
 
+import 'girder/stylesheets/body/adminConsole.styl';
+
 /**
  * This view shows the admin console, which links to all available admin pages.
  */

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+
 /**
  * Define tasks that bundle and compile files for deployment.
  */
@@ -52,17 +54,17 @@ module.exports = function (grunt) {
         // context: __dirname,
         module: {
             loaders: [
-                // { // CSS
-                //     test: /\.css$/,
-                //     loader: 'style-loader!css-loader'
-                // },
-                // { // Stylus
-                //     test: /\.styl$/,
-                //     loader: 'style-loader!css-loader!stylus-loader'
-                // },
+                { // CSS
+                    test: /\.css$/,
+                    loaders: ['style-loader', 'css-loader']
+                },
+                { // Stylus
+                    test: /\.styl$/,
+                    loaders: ['style-loader', 'css-loader', 'stylus-loader']
+                },
                 { // Jade
                     test: /\.jade$/,
-                    loader: 'jade'
+                    loader: 'jade-loader'
                 }
             ],
             noParse: [
@@ -108,6 +110,9 @@ module.exports = function (grunt) {
                 $: 'jquery',
                 'window.jQuery': 'jquery'
             }),
+            new ExtractTextPlugin('[name].css', {
+                allChunks: true
+            }),
             new webpack.optimize.CommonsChunkPlugin({
                 name: 'girder.ext',
                 // See http://stackoverflow.com/a/29087883/250457
@@ -152,24 +157,6 @@ module.exports = function (grunt) {
     }
 
     grunt.config.merge({
-        jade: {
-            options: {
-                client: true,
-                compileDebug: false,
-                namespace: 'girder.templates',
-                processName: function (filename) {
-                    return path.basename(filename, '.jade');
-                }
-            },
-            core: {
-                files: {
-                    'clients/web/static/built/templates.js': [
-                        'clients/web/src/templates/**/*.jade'
-                    ]
-                }
-            }
-        },
-
         copy: {
             swagger: {
                 files: [{
@@ -236,52 +223,6 @@ module.exports = function (grunt) {
                         'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
                         'node_modules/jsoneditor/dist/jsoneditor.min.css',
                         'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
-                    ]
-                }
-            }
-        },
-
-        uglify: {
-            options: uglifyOptions,
-            app: {
-                files: {
-                    'clients/web/static/built/girder.app.min.js': [
-                        'clients/web/static/built/templates.js',
-                        'clients/web/src/init.js',
-                        'clients/web/src/girder-version.js',
-                        'clients/web/src/view.js',
-                        'clients/web/src/app.js',
-                        'clients/web/src/router.js',
-                        'clients/web/src/utilities/**/*.js',
-                        'clients/web/src/plugin_utils.js',
-                        'clients/web/src/collection.js',
-                        'clients/web/src/model.js',
-                        'clients/web/src/models/**/*.js',
-                        'clients/web/src/collections/**/*.js',
-                        'clients/web/src/views/**/*.js'
-                    ],
-                    'clients/web/static/built/girder.main.min.js': [
-                        'clients/web/src/main.js'
-                    ]
-                }
-            },
-            ext_js: {
-                files: {
-                    'clients/web/static/built/girder.ext.min.js': [
-                        'node_modules/jquery/dist/jquery.js',
-                        'node_modules/jade/runtime.js',
-                        'node_modules/underscore/underscore.js',
-                        'node_modules/backbone/backbone.js',
-                        'node_modules/remarkable/dist/remarkable.js',
-                        'node_modules/jsoneditor/dist/jsoneditor.js',
-                        'node_modules/bootstrap/dist/js/bootstrap.js',
-                        'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
-                        'node_modules/d3/d3.js',
-                        'node_modules/as-jqplot/dist/jquery.jqplot.js',
-                        'node_modules/as-jqplot/dist/plugins/jqplot.pieRenderer.js',
-                        'node_modules/sprintf-js/src/sprintf.js'
                     ]
                 }
             }
@@ -362,8 +303,6 @@ module.exports = function (grunt) {
         },
 
         init: {
-            // 'uglify:ext_js': {},
-            // 'webpack:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
             'copy:fontello_config': {},
@@ -373,12 +312,8 @@ module.exports = function (grunt) {
 
         default: {
             'stylus:core': {},
-            'jade:core': {
-                dependencies: ['version-info']
-            },
-            // 'uglify:app': {
             'webpack:app': {
-                dependencies: ['jade:core']
+                dependencies: ['version-info']
             },
             'symlink:legacy_names': {
                 dependencies: ['uglify:app']
