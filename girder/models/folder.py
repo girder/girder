@@ -624,7 +624,7 @@ class Folder(AccessControlledModel):
         return count
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, mimeFilter=None):
         """
         Generate a list of files within this folder.
 
@@ -640,6 +640,9 @@ class Folder(AccessControlledModel):
         :type includeMetadata: bool
         :param subpath: if True, add the folder's name to the path.
         :type subpath: bool
+        :param mimeFilter: Optional list of MIME types to filter by. Set to
+            None to include all files.
+        :type mimeFilter: list or tuple
         :returns: Iterable over files in this folder, where each element is a
                   tuple of (path name of the file, stream function with file
                   data).
@@ -647,19 +650,20 @@ class Folder(AccessControlledModel):
         """
         if subpath:
             path = os.path.join(path, doc['name'])
-        metadataFile = "girder-folder-metadata.json"
+        metadataFile = 'girder-folder-metadata.json'
         for sub in self.childFolders(parentType='folder', parent=doc,
                                      user=user):
             if sub['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.fileList(
-                    sub, user, path, includeMetadata, subpath=True):
+                    sub, user, path, includeMetadata, subpath=True,
+                    mimeFilter=mimeFilter):
                 yield (filepath, file)
         for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.model('item').fileList(
-                    item, user, path, includeMetadata):
+                    item, user, path, includeMetadata, mimeFilter=mimeFilter):
                 yield (filepath, file)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
