@@ -8,8 +8,7 @@ import { AssetstoreType } from 'girder/constants';
 import { events } from 'girder/events';
 import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
 import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
@@ -22,6 +21,16 @@ import 'as-jqplot/dist/jquery.jqplot.js';
 import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
 import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
 import 'bootstrap/js/tooltip';
+
+/**
+ * This private data structure is a dynamic way to map assetstore types to the views
+ * that should be rendered to import data into them.
+ */
+import FilesystemImportView from 'girder/views/body/FilesystemImportView';
+import S3ImportView from 'girder/views/body/S3ImportView';
+var assetstoreImportViewMap = {};
+assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = FilesystemImportView;
+assetstoreImportViewMap[AssetstoreType.S3] = S3ImportView;
 
 /**
  * This view shows the admin console, which links to all available admin pages.
@@ -193,41 +202,20 @@ var AssetstoresView = View.extend({
         }, this);
         editAssetstoreWidget.render();
     }
-});
-
-/**
- * This private data structure is a dynamic way to map assetstore types to the views
- * that should be rendered to import data into them.
- */
-var assetstoreImportViewMap = {};
-assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
-assetstoreImportViewMap[AssetstoreType.S3] = 'S3ImportView';
-
-router.route('assetstores', 'assetstores', function (params) {
-    events.trigger('g:navigateTo', AssetstoresView, {
-        assetstoreEdit: params.dialog === 'assetstoreedit'
-                        ? params.dialogid : false
-    });
-});
-
-router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
-    var assetstore = AssetstoreModel({
-        _id: assetstoreId
-    });
-
-    assetstore.once('g:fetched', function () {
-        var viewName = assetstoreImportViewMap[assetstore.get('type')];
-        // Webpack supports context import: https://webpack.github.io/docs/context.html
-        System.import('girder/views/body/' + viewName).then(function (View) {
-            // Note: have to use View.default for now, see:
-            // https://github.com/webpack/webpack/issues/2443#issuecomment-221410800
-            events.trigger('g:navigateTo', View.default, {
-                assetstore: assetstore
-            });
-        }).catch(function (error) {
-            throw 'No such view: ' + viewName + ' (' + error + ')';
-        });
-    }).fetch();
+}, {
+    import: function (assetstoreId) {
+        var assetstore = AssetstoreModel({ _id: assetstoreId });
+        assetstore.once('g:fetched', function () {
+            var View = assetstoreImportViewMap[assetstore.get('type')];
+            if (View) {
+                events.trigger('g:navigateTo', View.default, {
+                    assetstore: assetstore
+                });
+            } else {
+                throw 'No such view';
+            }
+        }).fetch();
+    }
 });
 
 export default AssetstoresView;

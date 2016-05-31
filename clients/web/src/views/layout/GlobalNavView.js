@@ -4,7 +4,7 @@ import { getCurrentUser } from 'girder/auth';
 import Backbone from 'backbone';
 import { events } from 'girder/events';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
 

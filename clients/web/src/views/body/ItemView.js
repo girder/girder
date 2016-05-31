@@ -8,7 +8,7 @@ import ItemModel from 'girder/models/ItemModel';
 import { confirm, formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditItemWidget from 'girder/views/widgets/EditItemWidget';
 import FileListWidget from 'girder/views/widgets/FileListWidget';
@@ -167,29 +167,19 @@ var ItemView = View.extend({
 
         return this;
     }
-});
-
-/**
- * Helper function for fetching the user and rendering the view with
- * an arbitrary set of extra parameters.
- */
-var _fetchAndInit = function (itemId, params) {
-    var item = new ItemModel();
-    item.set({
-        _id: itemId
-    }).on('g:fetched', function () {
-        events.trigger('g:navigateTo', ItemView, _.extend({
-            item: item
-        }, params || {}));
-    }, this).fetch();
-};
-
-router.route('item/:id', 'item', function (itemId, params) {
-    _fetchAndInit(itemId, {
-        edit: params.dialog === 'itemedit',
-        fileEdit: params.dialog === 'fileedit' ? params.dialogid : false,
-        upload: params.dialog === 'upload' ? params.dialogid : false
-    });
+}, {
+    /**
+     * Helper function for fetching the user and rendering the view with
+     * an arbitrary set of extra parameters.
+     */
+    fetchAndInit: function (itemId, params) {
+        var item = new ItemModel();
+        item.set({ _id: itemId }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', ItemView, _.extend({
+                item: item
+            }, params || {}));
+        }, this).fetch();
+    }
 });
 
 export default ItemView;

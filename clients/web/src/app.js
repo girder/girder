@@ -8,7 +8,7 @@ import { splitRoute } from 'girder/utilities/DialogHelper';
 import { events, eventStream } from 'girder/events';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LayoutFooterView from 'girder/views/layout/FooterView';
 import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
@@ -20,6 +20,8 @@ import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
 
 import AlertTemplate from 'girder/templates/layout/alert.jade';
 import LayoutTemplate from 'girder/templates/layout/layout.jade';
+
+import 'girder/routes';
 
 import 'girder/stylesheets/layout/global.styl';
 import 'girder/stylesheets/layout/layout.styl';

@@ -1,4 +1,4 @@
-import Collection from 'girder/collection';
+import Collection from 'girder/collections/Collection';
 import GroupModel from 'girder/models/GroupModel';
 
 var GroupCollection = Collection.extend({

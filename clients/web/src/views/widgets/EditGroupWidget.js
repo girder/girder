@@ -3,7 +3,7 @@ import $ from 'jquery';
 import { getCurrentUser } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import GroupModel from 'girder/models/GroupModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
 

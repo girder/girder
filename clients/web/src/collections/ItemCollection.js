@@ -1,4 +1,4 @@
-import Collection from 'girder/collection';
+import Collection from 'girder/collections/Collection';
 import ItemModel from 'girder/models/ItemModel';
 
 var ItemCollection = Collection.extend({

@@ -3,7 +3,7 @@ import Backbone from 'backbone';
 
 import { SORT_ASC } from 'girder/constants';
 import { localeComparator } from 'girder/utilities/MiscFunctions';
-import { Model } from 'girder/model';
+import { Model } from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
 
 /**

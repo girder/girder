@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import { MetadataMixin, AccessControlledModel } from 'girder/model';
+import { MetadataMixin, AccessControlledModel } from 'girder/models/Model';
 
 var FolderModel = AccessControlledModel.extend({
     resourceName: 'folder'

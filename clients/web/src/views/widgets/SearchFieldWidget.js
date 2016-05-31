@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import { restRequest } from 'girder/rest';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import SearchFieldTemplate from 'girder/templates/widgets/searchField.jade';
 import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.jade';

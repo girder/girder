@@ -7,7 +7,7 @@ import { confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import UsersView from 'girder/views/body/UsersView';
@@ -111,41 +111,23 @@ var UserView = View.extend({
 
         return this;
     }
-});
-
-/**
- * Helper function for fetching the user and rendering the view with
- * an arbitrary set of extra parameters.
- */
-var _fetchAndInit = function (userId, params) {
-    var user = new UserModel();
-    user.set({
-        _id: userId
-    }).on('g:fetched', function () {
-        events.trigger('g:navigateTo', UserView, _.extend({
-            user: user
-        }, params || {}));
-    }, this).on('g:error', function () {
-        events.trigger('g:navigateTo', UsersView);
-    }, this).fetch();
-};
-
-router.route('user/:id', 'user', function (userId, params) {
-    _fetchAndInit(userId, {
-        folderCreate: params.dialog === 'foldercreate',
-        dialog: params.dialog
-    });
-});
-
-router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, params) {
-    _fetchAndInit(userId, {
-        folderId: folderId,
-        upload: params.dialog === 'upload',
-        folderAccess: params.dialog === 'folderaccess',
-        folderCreate: params.dialog === 'foldercreate',
-        folderEdit: params.dialog === 'folderedit',
-        itemCreate: params.dialog === 'itemcreate'
-    });
+}, {
+    /**
+     * Helper function for fetching the user and rendering the view with
+     * an arbitrary set of extra parameters.
+     */
+    fetchAndInit: function (userId, params) {
+        var user = new UserModel();
+        user.set({
+            _id: userId
+        }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', UserView, _.extend({
+                user: user
+            }, params || {}));
+        }, this).on('g:error', function () {
+            events.trigger('g:navigateTo', UsersView);
+        }, this).fetch();
+    }
 });
 
 export default UserView;

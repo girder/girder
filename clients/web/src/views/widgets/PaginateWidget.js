@@ -1,4 +1,4 @@
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.jade';
 

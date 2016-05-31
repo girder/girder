@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import CollectionModel from 'girder/models/CollectionModel';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.jade';
 

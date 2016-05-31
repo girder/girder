@@ -9,7 +9,7 @@ import { confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import GroupAdminsWidget from 'girder/views/widgets/GroupAdminsWidget';
@@ -335,35 +335,19 @@ var GroupView = View.extend({
                 .on('g:moderatorAdded', this.render, this)
                 .on('g:adminAdded', this.render, this);
     }
-});
-
-/**
- * Helper function for fetching the user and rendering the view with
- * an arbitrary set of extra parameters.
- */
-var _fetchAndInit = function (groupId, params) {
-    var group = new GroupModel();
-    group.set({
-        _id: groupId
-    }).once('g:fetched', function () {
-        events.trigger('g:navigateTo', GroupView, _.extend({
-            group: group
-        }, params || {}));
-    }, this).fetch();
-};
-
-router.route('group/:id', 'groupView', function (groupId, params) {
-    _fetchAndInit(groupId, {
-        edit: params.dialog === 'edit'
-    });
-});
-
-router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
-    _fetchAndInit(groupId, {
-        edit: params.dialog === 'edit',
-        tab: tab
-    });
+}, {
+    /**
+     * Helper function for fetching the user and rendering the view with
+     * an arbitrary set of extra parameters.
+     */
+    fetchAndInit: function (groupId, params) {
+        var group = new GroupModel();
+        group.set({ _id: groupId }).once('g:fetched', function () {
+            events.trigger('g:navigateTo', GroupView, _.extend({
+                group: group
+            }, params || {}));
+        }, this).fetch();
+    }
 });
 
 export default GroupView;
-

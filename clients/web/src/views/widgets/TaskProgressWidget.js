@@ -1,6 +1,6 @@
 import sprintf from 'sprintf-js';
 
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.jade';
 

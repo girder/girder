@@ -5,7 +5,7 @@ import { AccessType } from 'girder/constants';
 import { events } from 'girder/events';
 import FileCollection from 'girder/collections/FileCollection';
 import { confirm, formatSize } from 'girder/utilities/MiscFunctions';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditFileWidget from 'girder/views/widgets/EditFileWidget';
 import UploadWidget from 'girder/views/widgets/UploadWidget';

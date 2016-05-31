@@ -8,7 +8,7 @@ import ItemModel from 'girder/models/ItemModel';
 import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
 import { restRequest, apiRoot } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import AccessWidget from 'girder/views/widgets/AccessWidget';
 import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
@@ -239,7 +239,8 @@ var HierarchyWidget = View.extend({
         System.import('girder/models/' + modelName).then(function (Model) {
             // Note: have to use Model.default for now, see:
             // https://github.com/webpack/webpack/issues/2443#issuecomment-221410800
-            var parent = new Model.default();
+            Model = Model.default;
+            var parent = new Model();
             parent.set({
                 _id: parentId
             }).once('g:fetched', function () {

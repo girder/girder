@@ -8,7 +8,7 @@ import FolderModel from 'girder/models/FolderModel';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import AccessWidget from 'girder/views/widgets/AccessWidget';
 import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
@@ -165,44 +165,19 @@ var CollectionView = View.extend({
             }
         }, this);
     }
+}, {
+    /**
+     * Helper function for fetching the user and rendering the view with
+     * an arbitrary set of extra parameters.
+     */
+    fetchAndInit: function (cid, params) {
+        var collection = new CollectionModel();
+        collection.set({ _id: cid }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', CollectionView, _.extend({
+                collection: collection
+            }, params || {}));
+        }, this).fetch();
+    }
 });
-
-/**
- * Helper function for fetching the user and rendering the view with
- * an arbitrary set of extra parameters.
- */
-var _fetchAndInit = function (collectionId, params) {
-    var collection = new CollectionModel();
-    collection.set({
-        _id: collectionId
-    }).on('g:fetched', function () {
-        events.trigger('g:navigateTo', CollectionView, _.extend({
-            collection: collection
-        }, params || {}));
-    }, this).fetch();
-};
-
-router.route('collection/:id', 'collectionAccess', function (collectionId, params) {
-    _fetchAndInit(collectionId, {
-        access: params.dialog === 'access',
-        edit: params.dialog === 'edit',
-        folderCreate: params.dialog === 'foldercreate',
-        dialog: params.dialog
-    });
-});
-
-router.route('collection/:id/folder/:id', 'collectionFolder',
-    function (collectionId, folderId, params) {
-        _fetchAndInit(collectionId, {
-            folderId: folderId,
-            upload: params.dialog === 'upload',
-            access: params.dialog === 'access',
-            edit: params.dialog === 'edit',
-            folderAccess: params.dialog === 'folderaccess',
-            folderCreate: params.dialog === 'foldercreate',
-            folderEdit: params.dialog === 'folderedit',
-            itemCreate: params.dialog === 'itemcreate'
-        });
-    });
 
 export default CollectionView;

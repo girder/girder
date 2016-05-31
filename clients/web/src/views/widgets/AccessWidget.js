@@ -5,7 +5,7 @@ import { AccessType } from 'girder/constants';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import GroupModel from 'girder/models/GroupModel';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';

@@ -4,14 +4,14 @@ import _ from 'underscore';
 import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import { events, eventStream } from 'girder/events';
-import { restRequest, cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import { cancelRestRequests } from 'girder/rest';
+import router from 'girder/router';
+import View from 'girder/views/View';
 
-import UserSettingsTemplate from 'girder/templates/body/userSettings.jade';
+import UserAccountTemplate from 'girder/templates/body/userAccount.jade';
 
-import 'girder/stylesheets/body/userSettings.styl';
+import 'girder/stylesheets/body/userAccount.styl';
 
 import 'bootstrap/js/tab';
 
@@ -117,7 +117,7 @@ var UserAccountView = View.extend({
             return;
         }
 
-        this.$el.html(UserSettingsTemplate({
+        this.$el.html(UserAccountTemplate({
             user: this.model,
             isCurrentUser: this.isCurrentUser,
             getCurrentUser: getCurrentUser,
@@ -140,43 +140,43 @@ var UserAccountView = View.extend({
 
         return this;
     }
-});
+}, {
+    /**
+     * Helper function for fetching the user by id, then render the view.
+     */
+    fetchAndInit: function (id, tab) {
+        var user = new UserModel();
+        user.set({ _id: id }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', UserAccountView, {
+                user: user,
+                tab: tab
+            });
+        }, this).on('g:error', function () {
+            router.navigate('users', {trigger: true});
+        }, this).fetch();
+    },
 
-router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
-    var user = new UserModel();
-    user.set({
-        _id: id
-    }).on('g:fetched', function () {
-        events.trigger('g:navigateTo', UserAccountView, {
-            user: user,
-            tab: tab
-        });
-    }, this).on('g:error', function () {
-        router.navigate('users', {trigger: true});
-    }, this).fetch();
-});
-
-router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
-    restRequest({
-        path: 'user/password/temporary/' + id,
-        type: 'GET',
-        data: {token: token},
-        error: null
-    }).done(_.bind(function (resp) {
-        resp.user.token = resp.authToken.token;
-        eventStream.close();
-        setCurrentUser(new UserModel(resp.user));
-        eventStream.open();
-        events.trigger('g:login-changed');
-        events.trigger('g:navigateTo', UserAccountView, {
-            user: getCurrentUser(),
-            tab: 'password',
-            temporary: token
-        });
-    }, this)).error(_.bind(function () {
-        router.navigate('users', {trigger: true});
-    }, this));
+    temporaryPassword: function (id, token) {
+        restRequest({
+            path: 'user/password/temporary/' + id,
+            type: 'GET',
+            data: {token: token},
+            error: null
+        }).done(_.bind(function (resp) {
+            resp.user.token = resp.authToken.token;
+            eventStream.close();
+            setCurrentUser(new UserModel(resp.user));
+            eventStream.open();
+            events.trigger('g:login-changed');
+            events.trigger('g:navigateTo', UserAccountView, {
+                user: getCurrentUser(),
+                tab: 'password',
+                temporary: token
+            });
+        }, this)).error(_.bind(function () {
+            router.navigate('users', {trigger: true});
+        }, this));
+    }
 });
 
 export default UserAccountView;
-

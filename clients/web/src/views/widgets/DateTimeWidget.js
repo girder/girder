@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import moment from 'moment';
 
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import dateTimeRangeWidgetTemplate from 'girder/templates/widgets/dateTimeRangeWidget.jade';
 import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.jade';

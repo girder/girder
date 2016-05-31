@@ -3,7 +3,7 @@ import _ from 'underscore';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 

@@ -271,7 +271,7 @@ module.exports = function (grunt) {
                     'girder.app': [
                         './clients/web/src/main.js'
                     ]
-                    .concat(glob.sync('./clients/web/src/views/**/*.js'))
+                    // .concat(glob.sync('./clients/web/src/views/**/*.js'))
                 }
             }
         },

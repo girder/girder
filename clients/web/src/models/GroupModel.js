@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import { AccessControlledModel } from 'girder/model';
+import { AccessControlledModel } from 'girder/models/Model';
 import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import { restRequest } from 'girder/rest';

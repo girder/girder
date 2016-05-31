@@ -1,10 +1,8 @@
-import _ from 'underscore';
-
-import { events } from 'girder/events';
-import FolderModel from 'girder/models/FolderModel';
 import { cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/view';
+import { events } from 'girder/events';
+import View from 'girder/views/View';
+
+import FolderModel from 'girder/models/FolderModel';
 
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 
@@ -38,23 +36,19 @@ var FolderView = View.extend({
         this.hierarchyWidget.setElement(this.$el).render();
         return this;
     }
-});
+}, {
+    /**
+     * Helper function for fetching the folder by id, then render the view.
+     */
+    fetchAndInit: function (id, params) {
+        var folder = new FolderModel();
+        folder.set({ _id: id }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', FolderView, _.extend({
+                folder: folder
+            }, params || {}));
+        }, this).fetch();
+    }
 
-router.route('folder/:id', 'folder', function (id, params) {
-    // Fetch the folder by id, then render the view.
-    var folder = new FolderModel();
-    folder.set({
-        _id: id
-    }).on('g:fetched', function () {
-        events.trigger('g:navigateTo', FolderView, _.extend({
-            folder: folder,
-            upload: params.dialog === 'upload',
-            folderAccess: params.dialog === 'folderaccess',
-            folderCreate: params.dialog === 'foldercreate',
-            folderEdit: params.dialog === 'folderedit',
-            itemCreate: params.dialog === 'itemcreate'
-        }, params || {}));
-    }, this).fetch();
 });
 
 export default FolderView;

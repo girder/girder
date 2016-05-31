@@ -3,11 +3,10 @@ import $ from 'jquery';
 import { getCurrentUser } from 'girder/auth';
 import CollectionCollection from 'girder/collections/CollectionCollection';
 import CollectionModel from 'girder/models/CollectionModel';
-import { events } from 'girder/events';
 import { formatDate, formatSize, DATE_MINUTE } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
@@ -97,11 +96,6 @@ var CollectionsView = View.extend({
             router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
-});
-
-router.route('collections', 'collections', function (params) {
-    events.trigger('g:navigateTo', CollectionsView, params || {});
-    events.trigger('g:highlightItem', 'CollectionsView');
 });
 
 export default CollectionsView;

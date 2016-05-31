@@ -2,7 +2,7 @@ import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsA
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import { events } from 'girder/events';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 

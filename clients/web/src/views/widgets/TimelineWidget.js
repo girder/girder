@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import TimelineTemplate from 'girder/templates/widgets/timeline.jade';
 

@@ -1,8 +1,7 @@
 import { getCurrentUser } from 'girder/auth';
-import { events } from 'girder/events';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
 
@@ -38,10 +37,6 @@ var AdminView = View.extend({
 
         return this;
     }
-});
-
-router.route('admin', 'admin', function () {
-    events.trigger('g:navigateTo', AdminView);
 });
 
 export default AdminView;

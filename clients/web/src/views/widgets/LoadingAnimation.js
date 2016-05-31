@@ -1,4 +1,4 @@
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.jade';
 

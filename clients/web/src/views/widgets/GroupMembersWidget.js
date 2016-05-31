@@ -5,7 +5,7 @@ import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import router from 'girder/router';
 import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';

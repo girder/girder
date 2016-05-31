@@ -1,5 +1,5 @@
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';

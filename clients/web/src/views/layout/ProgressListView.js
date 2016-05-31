@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
 

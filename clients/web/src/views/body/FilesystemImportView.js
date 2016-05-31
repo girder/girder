@@ -1,5 +1,5 @@
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jade';
 

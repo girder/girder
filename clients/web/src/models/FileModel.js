@@ -3,7 +3,7 @@ import _ from 'underscore';
 import { UPLOAD_CHUNK_SIZE } from 'girder/constants';
 import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
-import { Model } from 'girder/model';
+import { Model } from 'girder/models/Model';
 import { restRequest, uploadHandlers } from 'girder/rest';
 
 var FileModel = Model.extend({

@@ -3,7 +3,7 @@ import _ from 'underscore';
 import { events } from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
@@ -166,10 +166,6 @@ var SystemConfigurationView = View.extend({
 
         return this;
     }
-});
-
-router.route('settings', 'settings', function () {
-    events.trigger('g:navigateTo', SystemConfigurationView);
 });
 
 export default SystemConfigurationView;

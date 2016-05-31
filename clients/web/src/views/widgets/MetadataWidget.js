@@ -4,7 +4,7 @@ import _ from 'underscore';
 import { AccessType } from 'girder/constants';
 import { events } from 'girder/events';
 import { localeSort, confirm } from 'girder/utilities/MiscFunctions';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
 import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.jade';

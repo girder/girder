@@ -1,7 +1,5 @@
-import AssetstoreModel from 'girder/models/AssetstoreModel';
-import { events } from 'girder/events';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import S3ImportTemplate from 'girder/templates/body/s3Import.jade';
 
@@ -38,20 +36,6 @@ var S3ImportView = View.extend({
             assetstore: this.assetstore
         }));
     }
-});
-
-// This route is only preserved for backward compatibility. The generic route
-// "assetstore/:id/import" is preferred, and is defined in AssetstoresView.js.
-router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
-    var assetstore = new AssetstoreModel({
-        _id: assetstoreId
-    });
-
-    assetstore.once('g:fetched', function () {
-        events.trigger('g:navigateTo', S3ImportView, {
-            assetstore: assetstore
-        });
-    }).fetch();
 });
 
 export default S3ImportView;

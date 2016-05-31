@@ -5,7 +5,7 @@ import { AccessType } from 'girder/constants';
 import { events } from 'girder/events';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import UserView from 'girder/views/body/UserView';
 

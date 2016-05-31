@@ -1,13 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { events } from 'girder/events';
 import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
-
-import UsersView from 'girder/views/body/UsersView';
+import View from 'girder/views/View';
 
 import PluginsTemplate from 'girder/templates/body/plugins.jade';
 
@@ -163,18 +160,6 @@ var PluginsView = View.extend({
             }, this);
         }, this));  // TODO acknowledge?
     }
-});
-
-router.route('plugins', 'plugins', function () {
-    // Fetch the plugin list
-    restRequest({
-        path: 'system/plugins',
-        type: 'GET'
-    }).done(_.bind(function (resp) {
-        events.trigger('g:navigateTo', PluginsView, resp);
-    }, this)).error(_.bind(function () {
-        events.trigger('g:navigateTo', UsersView);
-    }, this));
 });
 
 export default PluginsView;

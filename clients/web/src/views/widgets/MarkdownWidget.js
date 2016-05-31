@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import { events } from 'girder/events';
 import FileModel from 'girder/models/FileModel';
-import View from 'girder/view';
+import View from 'girder/views/View';
 import { renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
 
 import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.jade';

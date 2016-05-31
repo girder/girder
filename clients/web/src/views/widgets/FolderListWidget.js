@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import FolderCollection from 'girder/collections/FolderCollection';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 

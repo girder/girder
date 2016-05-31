@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import ItemCollection from 'girder/collections/ItemCollection';
 import { formatSize } from 'girder/utilities/MiscFunctions';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 

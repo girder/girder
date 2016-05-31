@@ -5,7 +5,7 @@ import { events } from 'girder/events';
 import { cancelRestRequests, apiRoot, staticRoot } from 'girder/rest';
 import router from 'girder/router';
 import versionInfo from 'girder/girder-version';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import FrontPageTemplate from 'girder/templates/body/frontPage.jade';
 
@@ -52,10 +52,6 @@ var FrontPageView = View.extend({
 
         return this;
     }
-});
-
-router.route('', 'index', function () {
-    events.trigger('g:navigateTo', FrontPageView);
 });
 
 export default FrontPageView;

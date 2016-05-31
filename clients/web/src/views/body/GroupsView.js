@@ -1,13 +1,12 @@
 import $ from 'jquery';
 
 import { getCurrentUser } from 'girder/auth';
-import { events } from 'girder/events';
 import GroupCollection from 'girder/collections/GroupCollection';
 import GroupModel from 'girder/models/GroupModel';
 import { formatDate, DATE_DAY } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
-import View from 'girder/view';
+import View from 'girder/views/View';
 
 import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
@@ -103,11 +102,6 @@ var GroupsView = View.extend({
         }, this).fetch();
     }
 
-});
-
-router.route('groups', 'groups', function (params) {
-    events.trigger('g:navigateTo', GroupsView, params || {});
-    events.trigger('g:highlightItem', 'GroupsView');
 });
 
 export default GroupsView;
