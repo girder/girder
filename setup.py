@@ -63,7 +63,7 @@ with open('package.json') as f:
 install_reqs = [
     'bcrypt',
     'boto',
-    'CherryPy',
+    'CherryPy<5.4.0',
     'Mako',
     'pymongo>=3',
     'PyYAML',
@@ -77,6 +77,7 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
+    'worker': ['celery'],
     'plugins': ['celery', 'geojson', 'Pillow']
 }
 

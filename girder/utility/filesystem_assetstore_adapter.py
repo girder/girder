@@ -144,8 +144,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if self.requestOffset(upload) > upload['received']:
             # This probably means the server died midway through writing last
-            # chunk to disk, and the database record was not updated. This means
-            # we need to update the sha512 state with the difference.
+            # chunk to disk, and the database record was not updated. This
+            # means we need to update the sha512 state with the difference.
             with open(upload['tempFile'], 'rb') as tempFile:
                 tempFile.seek(upload['received'])
                 while True:
@@ -320,31 +320,59 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['imported'] = True
         return self.model('file').save(file)
 
-    def importData(self, parent, parentType, params, progress, user):
+    def _importDataAsItem(self, name, user, folder, path, files,
+                          reuseExisting=True):
+        item = self.model('item').createItem(
+            name=name, creator=user, folder=folder,
+            reuseExisting=reuseExisting)
+        for fname in files:
+            self.importFile(item, os.path.join(path, fname),
+                            user, name=fname)
+
+    def importData(self, parent, parentType, params, progress, user,
+                   leafFoldersAsItems):
         importPath = params['importPath']
 
         if not os.path.isdir(importPath):
             raise ValidationException('No such directory: %s.' % importPath)
 
-        for name in os.listdir(importPath):
+        def hasOnlyFiles(path, files):
+            return all(map(os.path.isfile, (os.path.join(path, fname)
+                                            for fname in files)))
+
+        listDir = os.listdir(importPath)
+        if leafFoldersAsItems and hasOnlyFiles(importPath, listDir):
+            self._importDataAsItem(os.path.basename(importPath.rstrip(os.sep)),
+                                   user, parent, importPath, listDir)
+            return
+
+        for name in listDir:
             progress.update(message=name)
             path = os.path.join(importPath, name)
 
             if os.path.isdir(path):
-                folder = self.model('folder').createFolder(
-                    parent=parent, name=name, parentType=parentType,
-                    creator=user, reuseExisting=True)
-                self.importData(folder, 'folder', params={
-                    'importPath': os.path.join(importPath, name)
-                }, progress=progress, user=user)
+                localListDir = os.listdir(path)
+                if leafFoldersAsItems and hasOnlyFiles(path, localListDir):
+                    self._importDataAsItem(name, user, parent, path,
+                                           localListDir)
+                else:
+                    folder = self.model('folder').createFolder(
+                        parent=parent, name=name, parentType=parentType,
+                        creator=user, reuseExisting=True)
+                    self.importData(folder, 'folder', params={
+                        'importPath': os.path.join(importPath, name)},
+                        progress=progress, user=user,
+                        leafFoldersAsItems=leafFoldersAsItems)
             else:
                 if parentType != 'folder':
                     raise ValidationException(
-                        'Files cannot be imported directly underneath a %s.' %
+                        'Files cannot be imported directly'
+                        'underneath a %s.' %
                         parentType)
 
                 item = self.model('item').createItem(
-                    name=name, creator=user, folder=parent, reuseExisting=True)
+                    name=name, creator=user, folder=parent,
+                    reuseExisting=True)
                 self.importFile(item, path, user, name=name)
 
     def findInvalidFiles(self, progress=progress.noProgress, filters=None,

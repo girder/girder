@@ -148,10 +148,28 @@ class GirderClient(object):
         self.folder_upload_callbacks = []
         self.item_upload_callbacks = []
 
-    def authenticate(self, username=None, password=None, interactive=False):
+    def authenticate(self, username=None, password=None, interactive=False,
+                     apiKey=None):
         """
         Authenticate to Girder, storing the token that comes back to be used in
-        future requests.
+        future requests. This method can be used in two modes, either username
+        and password authentication, or using an API key. Username example:
+
+        .. code-block:: python
+
+            gc.authenticate(username='myname', password='mypass')
+
+        Note that you may also pass ``interactive=True`` and omit either the
+        username or password argument to be prompted for them in the shell. The
+        second mode is using an API key:
+
+        .. code-block::python
+
+            gc.authenticate(apiKey='J77R3rsLYYqFXXwQ4YquQtek1N26VEJ7IAVz9IpU')
+
+        API keys can be created and managed on your user account page in the
+        Girder web client, and can be used to provide limited access to the
+        Girder web API.
 
         :param username: A string containing the username to use in basic
             authentication.
@@ -160,30 +178,40 @@ class GirderClient(object):
         :param interactive: If you want the user to type their username or
             password in the shell rather than passing it in as an argument,
             set this to True. If you pass a username in interactive mode, the
-            user will only be prompted for a password.
+            user will only be prompted for a password. This option only works
+            in username/password mode, not API key mode.
+        :param apiKey: Pass this to use an API key instead of username/password
+            authentication.
+        :type apiKey: str
         """
-        if interactive:
-            if username is None:
-                username = six.moves.input('Login or email: ')
-            password = getpass.getpass('Password for %s: ' % username)
+        if apiKey:
+            resp = self.post('api_key/token', parameters={
+                'key': apiKey
+            })
+            self.token = resp['authToken']['token']
+        else:
+            if interactive:
+                if username is None:
+                    username = six.moves.input('Login or email: ')
+                password = getpass.getpass('Password for %s: ' % username)
 
-        if username is None or password is None:
-            raise Exception('A user name and password are required')
+            if username is None or password is None:
+                raise Exception('A user name and password are required')
 
-        url = self.urlBase + 'user/authentication'
-        authResponse = requests.get(url, auth=(username, password))
+            url = self.urlBase + 'user/authentication'
+            authResponse = requests.get(url, auth=(username, password))
 
-        if authResponse.status_code == 404:
-            raise HttpError(404, authResponse.text, url, "GET")
+            if authResponse.status_code == 404:
+                raise HttpError(404, authResponse.text, url, "GET")
 
-        resp = authResponse.json()
-        if 'authToken' not in resp:
-            raise AuthenticationError()
+            resp = authResponse.json()
+            if 'authToken' not in resp:
+                raise AuthenticationError()
 
-        self.token = resp['authToken']['token']
+            self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
-                        files=None):
+                        files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -199,7 +227,16 @@ class GirderClient(object):
             Note that the path string should not begin or end with the path
             separator, '/'.
         :param parameters: A dictionary mapping strings to strings, to be used
+<<<<<<< HEAD
             as the key/value pairs in the request parameters.
+=======
+            as the key/value pairs in the request parameters
+        :param data: A dictionary, bytes or file-like object to send in the
+            body.
+        :param files: A dictonary of 'name' => file-like-objects
+            for multipart encoding upload.
+        :param json: A dictionary to send in the body as a JSON object.
+>>>>>>> upstream/master
         """
         if not parameters:
             parameters = {}
@@ -214,9 +251,8 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters, data=data, files=files, headers={
-            'Girder-Token': self.token
-        })
+        result = f(url, params=parameters, data=data, files=files, json=json,
+                   headers={'Girder-Token': self.token})
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in [200, 201]:
@@ -234,20 +270,21 @@ class GirderClient(object):
         """
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None, data=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST'
         HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data)
+                                    data=data, json=json)
 
-    def put(self, path, parameters=None, data=None):
+    def put(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
         HTTP method.
         """
-        return self.sendRestRequest('PUT', path, parameters, data=data)
+        return self.sendRestRequest('PUT', path, parameters, data=data,
+                                    json=json)
 
     def delete(self, path, parameters=None):
         """
@@ -256,12 +293,13 @@ class GirderClient(object):
         """
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def patch(self, path, parameters=None, data=None):
+    def patch(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
         HTTP method.
         """
-        return self.sendRestRequest('PATCH', path, parameters, data=data)
+        return self.sendRestRequest('PATCH', path, parameters, data=data,
+                                    json=json)
 
     def createResource(self, path, params):
         """
@@ -676,7 +714,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def addMetadataToFolder(self, folderId, metadata):
@@ -687,7 +725,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def _transformFilename(self, name):

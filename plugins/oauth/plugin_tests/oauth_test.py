@@ -70,7 +70,7 @@ class OauthTest(base.TestCase):
         login = ProviderBase._deriveLogin('1234@mail.com', 'John', 'Doe')
         self.assertEqual(login, 'johndoe')
 
-        login = ProviderBase._deriveLogin('hello.world.foo@mail.com', 'A', 'B')
+        login = ProviderBase._deriveLogin('hello#world#foo@mail.com', 'A', 'B')
         self.assertEqual(login, 'helloworldfoo')
 
         login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B',
