@@ -749,7 +749,7 @@ class GirderClient(object):
         """
         req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
                            headers={'Girder-Token': self.token})
-        if type(path) is str:
+        if isinstance(path, six.string_types):
             _safeMakedirs(os.path.dirname(path))
 
             with open(path, 'wb') as fd:
