@@ -63,7 +63,7 @@ with open('package.json') as f:
 install_reqs = [
     'bcrypt',
     'boto',
-    'CherryPy',
+    'CherryPy<5.4.0',
     'Mako',
     'pymongo>=3',
     'PyYAML',
