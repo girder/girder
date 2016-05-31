@@ -55,7 +55,7 @@
     "eslint-plugin-underscore": "0.0.4",
     "jscs": "2.5.1",
     "jshint": "2.5.5",
-    "phantomjs": "1.9.18",
+    "phantomjs": "1.9.20",
     "phantomjs-polyfill": "0.0.1"
   },
   "scripts": {
