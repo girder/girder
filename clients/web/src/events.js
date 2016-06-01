@@ -12,4 +12,4 @@ var eventStream = new EventStream({
 export {
   events,
   eventStream
-}
+};

@@ -140,7 +140,3 @@ export {
     login,
     logout
 };
-
-// Alleviate a circular dependency for now
-// http://stackoverflow.com/a/30390378/250457
-// import { restRequest } from 'girder/rest';

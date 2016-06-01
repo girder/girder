@@ -1,7 +1,6 @@
 import jQuery from 'jquery';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * Define jQuery plugins within this scope.
