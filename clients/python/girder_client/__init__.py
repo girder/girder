@@ -227,16 +227,12 @@ class GirderClient(object):
             Note that the path string should not begin or end with the path
             separator, '/'.
         :param parameters: A dictionary mapping strings to strings, to be used
-<<<<<<< HEAD
             as the key/value pairs in the request parameters.
-=======
-            as the key/value pairs in the request parameters
         :param data: A dictionary, bytes or file-like object to send in the
             body.
         :param files: A dictonary of 'name' => file-like-objects
             for multipart encoding upload.
         :param json: A dictionary to send in the body as a JSON object.
->>>>>>> upstream/master
         """
         if not parameters:
             parameters = {}
@@ -405,7 +401,8 @@ class GirderClient(object):
         """
         return self.getResource('folder', folderId)
 
-    def listFolder(self, parentId, parentFolderType='folder', name=None, limit=None):
+    def listFolder(self, parentId, parentFolderType='folder', name=None,
+                   limit=None):
         """
         Retrieves a folder set from this parent ID.
 
@@ -744,7 +741,7 @@ class GirderClient(object):
         Download a file to the given local path.
 
         :param fileId: The ID of the Girder file to download.
-        :param path: The local path to write the file to, or 
+        :param path: The local path to write the file to, or
             a file-like object.
         """
         req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
