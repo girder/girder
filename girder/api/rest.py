@@ -76,7 +76,7 @@ def getApiUrl(url=None):
     return url[:idx + 7]
 
 
-def iterBody(length=READ_BUFFER_LEN):
+def iterBody(length=READ_BUFFER_LEN, strictLength=False):
     """
     This is a generator that will read the request body a chunk at a time and
     yield each chunk, abstracting details of the underlying HTTP server. This
@@ -85,11 +85,13 @@ def iterBody(length=READ_BUFFER_LEN):
     in each case.
 
     If `Content-Length` is provided, the `length` parameter is used to read the
-    body in chunks up to size `length`.
+    body in chunks up to size `length`. This will block until end of stream or
+    the specified number of bytes is ready.
 
-    If `Transfer-Encoding: chunked` is used, the `length` parameter is ignored,
-    and the generator yields each chunk that is sent in the request, regardless
-    of its length.
+    If `Transfer-Encoding: chunked` is used, the `length` parameter is ignored
+    by default the generator yields each chunk that is sent in the request,
+    regardless of its length. However, if `strictLength` is set to True, it will
+    block until `length` bytes have been read or the end of the request.
 
     :param length: Max buffer size to read per iteration if the request has a
         known `Content-Length`.
@@ -97,11 +99,16 @@ def iterBody(length=READ_BUFFER_LEN):
     """
     if cherrypy.request.headers.get('Transfer-Encoding') == 'chunked':
         while True:
-            cherrypy.request.rfile._fetch()
-            if cherrypy.request.rfile.closed:
-                break
-            buf = cherrypy.request.rfile.buffer
-            cherrypy.request.rfile.buffer = b''
+            if strictLength:
+                buf = cherrypy.request.rfile.read(length)
+                if not buf:
+                    break
+            else:
+                cherrypy.request.rfile._fetch()
+                if cherrypy.request.rfile.closed:
+                    break
+                buf = cherrypy.request.rfile.buffer
+                cherrypy.request.rfile.buffer = b''
             yield buf
     elif 'Content-Length' in cherrypy.request.headers:
         while True:
