@@ -99,17 +99,10 @@ class StreamTestCase(base.TestCase):
                             resp.status_code)
         self.assertEqual(resp.json(), ['chunk1', 'chunk2', 'chunk3'])
 
-    def testKnownLengthBodyReady(self):
-        """
-        This exercises the behavior of iterBody in the case of requests with
-        Content-Length passed.
-        """
-        resp = requests.post(self.apiUrl + '/stream_test/input_stream',
-                             data='hello world')
-        resp.raise_for_status()
-        self.assertEqual(resp.json(), ['hello', ' worl', 'd'])
-
     def testStrictLength(self):
+        """
+        Tests the strictLength=True behavior using a chunked transfer encoding.
+        """
         resp = requests.post(
             self.apiUrl + '/stream_test/input_stream', params={
                 'strictLength': True
@@ -119,3 +112,13 @@ class StreamTestCase(base.TestCase):
             raise Exception('Server returned exception status %s' %
                             resp.status_code)
         self.assertEqual(resp.json(), ['chunk', '1chun', 'k2chu', 'nk3'])
+
+    def testKnownLengthBodyReady(self):
+        """
+        This exercises the behavior of iterBody in the case of requests with
+        Content-Length passed.
+        """
+        resp = requests.post(self.apiUrl + '/stream_test/input_stream',
+                             data='hello world')
+        resp.raise_for_status()
+        self.assertEqual(resp.json(), ['hello', ' worl', 'd'])
