@@ -364,11 +364,11 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(file['sha512'], sha.hexdigest())
 
     def testListFile(self):
-        #creating item
+        # Creating item
         item = self.client.createItem(self.publicFolder['_id'],
                                       'SomethingUnique')
 
-        #upload 2 different files to item
+        # Upload 2 different files to item
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
         file1 = self.client.uploadFileToItem(item['_id'], path)
@@ -377,7 +377,7 @@ class PythonClientTestCase(base.TestCase):
         size = os.path.getsize(path)
         file2 = self.client.uploadFileToItem(item['_id'], path)
 
-        #get files from item
+        # Get files from item
         files = self.client.listFile(item['_id'])
 
         file1Id = files[0]['_id']
