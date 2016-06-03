@@ -370,11 +370,9 @@ class PythonClientTestCase(base.TestCase):
 
         # Upload 2 different files to item
         path = os.path.join(self.libTestDir, 'sub0', 'f')
-        size = os.path.getsize(path)
         file1 = self.client.uploadFileToItem(item['_id'], path)
 
         path = os.path.join(self.libTestDir, 'sub1', 'f1')
-        size = os.path.getsize(path)
         file2 = self.client.uploadFileToItem(item['_id'], path)
 
         # Get files from item
