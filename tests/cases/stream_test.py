@@ -112,8 +112,8 @@ class StreamTestCase(base.TestCase):
     def testStrictLength(self):
         resp = requests.post(
             self.apiUrl + '/stream_test/input_stream', params={
-               'strictLength': True
-           }, data=self._genChunks(True))
+                'strictLength': True
+            }, data=self._genChunks(True))
         if resp.status_code != 200:
             print(resp.json())
             raise Exception('Server returned exception status %s' %
