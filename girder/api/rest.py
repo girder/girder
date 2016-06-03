@@ -96,6 +96,9 @@ def iterBody(length=READ_BUFFER_LEN, strictLength=False):
     :param length: Max buffer size to read per iteration if the request has a
         known `Content-Length`.
     :type length: int
+    :param strictLength: If the request is chunked, set this to True to block
+        until ``length`` bytes have been read or end-of-stream.
+    :type strictLength: bool
     """
     if cherrypy.request.headers.get('Transfer-Encoding') == 'chunked':
         while True:
