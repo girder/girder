@@ -89,7 +89,7 @@ def iterBody(length=READ_BUFFER_LEN, strictLength=False):
     the specified number of bytes is ready.
 
     If `Transfer-Encoding: chunked` is used, the `length` parameter is ignored
-    by default the generator yields each chunk that is sent in the request,
+    by default, and the generator yields each chunk that is sent in the request
     regardless of its length. However, if `strictLength` is set to True, it will
     block until `length` bytes have been read or the end of the request.
 

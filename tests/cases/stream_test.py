@@ -48,7 +48,7 @@ class StreamTestResource(Resource):
 
     @access.public
     def inputStream(self, params):
-        # Read body 8 bytes at a time so we can test chunking a small body
+        # Read body 5 bytes at a time so we can test chunking a small body
         strictLength = self.boolParam('strictLength', params, False)
         for chunk in iterBody(5, strictLength=strictLength):
             _chunks.append(chunk.decode())
