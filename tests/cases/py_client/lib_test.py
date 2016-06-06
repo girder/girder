@@ -385,6 +385,25 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(file1['_id'], file1Id)
         self.assertEqual(file2['_id'], file2Id)
 
+    def testDownloadInline(self):
+        # Creating item
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'SomethingMoreUnique')
+        # Upload file to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        obj = six.BytesIO()
+
+        # Download file to object stream
+        self.client.downloadFile(file['_id'], obj)
+        obj.seek(0)
+
+        # Open file at path uloaded from, compare
+        # to file downloaded to stream
+        with open(path, 'r') as f:
+            self.assertEqual(f.read(), obj.read())
+
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
                                       'Itemty McItemFace', '')
