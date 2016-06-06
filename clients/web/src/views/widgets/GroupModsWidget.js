@@ -87,5 +87,3 @@ var GroupModsWidget = View.extend({
 });
 
 export default GroupModsWidget;
-
-

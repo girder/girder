@@ -1,11 +1,11 @@
-import * as AssetstoreCollection from './AssetstoreCollection';
-import * as Collection from './Collection';
-import * as CollectionCollection from './CollectionCollection';
-import * as FileCollection from './FileCollection';
-import * as FolderCollection from './FolderCollection';
-import * as GroupCollection from './GroupCollection';
-import * as ItemCollection from './ItemCollection';
-import * as UserCollection from './UserCollection';
+import AssetstoreCollection from './AssetstoreCollection';
+import Collection from './Collection';
+import CollectionCollection from './CollectionCollection';
+import FileCollection from './FileCollection';
+import FolderCollection from './FolderCollection';
+import GroupCollection from './GroupCollection';
+import ItemCollection from './ItemCollection';
+import UserCollection from './UserCollection';
 
 export {
   AssetstoreCollection,

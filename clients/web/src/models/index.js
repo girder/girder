@@ -1,11 +1,11 @@
-import * as AssetstoreModel from './AssetstoreModel';
-import * as CollectionModel from './CollectionModel';
-import * as FileModel from './FileModel';
-import * as FolderModel from './FolderModel';
-import * as GroupModel from './GroupModel';
-import * as ItemModel from './ItemModel';
+import AssetstoreModel from './AssetstoreModel';
+import CollectionModel from './CollectionModel';
+import FileModel from './FileModel';
+import FolderModel from './FolderModel';
+import GroupModel from './GroupModel';
+import ItemModel from './ItemModel';
 import * as Model from './Model';
-import * as UserModel from './UserModel';
+import UserModel from './UserModel';
 
 export {
   AssetstoreModel,

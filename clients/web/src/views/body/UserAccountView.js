@@ -5,7 +5,7 @@ import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import { events, eventStream } from 'girder/events';
 import UserModel from 'girder/models/UserModel';
-import { cancelRestRequests } from 'girder/rest';
+import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/views/View';
 

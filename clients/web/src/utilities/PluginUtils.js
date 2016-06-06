@@ -14,4 +14,6 @@ function wrap(obj, funcName, wrapper) {
     obj.prototype[funcName] = _.wrap(obj.prototype[funcName], wrapper);
 }
 
-export default wrap;
+export {
+  wrap
+};

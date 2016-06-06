@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 import { cancelRestRequests } from 'girder/rest';
 import { events } from 'girder/events';
 import View from 'girder/views/View';

@@ -68,7 +68,7 @@
     "stylus": "^0.54.5",
     "stylus-loader": "^2.1.0",
     "url-loader": "^0.5.7",
-    "webpack": "^2.1.0-beta.8",
+    "webpack": "^2.1.0-beta.12",
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {

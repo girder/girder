@@ -15,7 +15,6 @@
  */
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var glob              = require('glob');
 var path              = require('path');
 var webpack           = require('webpack');
 
@@ -107,15 +106,15 @@ module.exports = function (grunt) {
                 },
                 { // WOFF
                     test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/font-woff' })]
+                    loaders: [urlLoader({ mimetype: 'application/font-woff' }), fileLoader()]
                 },
                 { // WOFF2
                     test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/font-woff2' })]
+                    loaders: [urlLoader({ mimetype: 'application/font-woff2' }), fileLoader()]
                 },
                 { // TTF
                     test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                    loaders: [urlLoader(), fileLoader({ mimetype: 'application/octet-stream' })]
+                    loaders: [urlLoader({ mimetype: 'application/octet-stream' }), fileLoader()]
                 },
                 { // EOT
                     test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
@@ -123,7 +122,7 @@ module.exports = function (grunt) {
                 },
                 { // SVG
                     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                    loaders: [urlLoader(), fileLoader({ mimetype: 'image/svg+xml' })]
+                    loaders: [urlLoader({ mimetype: 'image/svg+xml' }), fileLoader()]
                 }
             ],
             noParse: [
@@ -271,7 +270,6 @@ module.exports = function (grunt) {
                     'girder.app': [
                         './clients/web/src/main.js'
                     ]
-                    // .concat(glob.sync('./clients/web/src/views/**/*.js'))
                 }
             }
         },

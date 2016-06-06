@@ -1,11 +1,11 @@
-import * as FooterView from './FooterView';
-import * as GlobalNavView from './GlobalNavView';
-import * as HeaderUserView from './HeaderUserView';
-import * as HeaderView from './HeaderView';
-import * as LoginView from './LoginView';
-import * as ProgressListView from './ProgressListView';
-import * as RegisterView from './RegisterView';
-import * as ResetPasswordView from './ResetPasswordView';
+import FooterView from './FooterView';
+import GlobalNavView from './GlobalNavView';
+import HeaderUserView from './HeaderUserView';
+import HeaderView from './HeaderView';
+import LoginView from './LoginView';
+import ProgressListView from './ProgressListView';
+import RegisterView from './RegisterView';
+import ResetPasswordView from './ResetPasswordView';
 
 export {
   FooterView,

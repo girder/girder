@@ -1,7 +1,6 @@
 import $ from 'jquery';
 
 import { getCurrentUser } from 'girder/auth';
-import { events } from 'girder/events';
 import { formatDate, formatSize, DATE_DAY } from 'girder/utilities/MiscFunctions';
 import { cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';

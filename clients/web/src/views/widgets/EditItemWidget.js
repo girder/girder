@@ -99,5 +99,3 @@ var EditItemWidget = View.extend({
 });
 
 export default EditItemWidget;
-
-

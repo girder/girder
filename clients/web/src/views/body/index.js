@@ -1,19 +1,19 @@
-import * as AdminView from './AdminView';
-import * as AssetstoresView from './AssetstoresView';
-import * as CollectionView from './CollectionView';
-import * as CollectionsView from './CollectionsView';
-import * as FilesystemImportView from './FilesystemImportView';
-import * as FolderView from './FolderView';
-import * as FrontPageView from './FrontPageView';
-import * as GroupView from './GroupView';
-import * as GroupsView from './GroupsView';
-import * as ItemView from './ItemView';
-import * as PluginsView from './PluginsView';
-import * as S3ImportView from './S3ImportView';
-import * as SystemConfigurationView from './SystemConfigurationView';
-import * as UserAccountView from './UserAccountView';
-import * as UserView from './UserView';
-import * as UsersView from './UsersView';
+import AdminView from './AdminView';
+import AssetstoresView from './AssetstoresView';
+import CollectionView from './CollectionView';
+import CollectionsView from './CollectionsView';
+import FilesystemImportView from './FilesystemImportView';
+import FolderView from './FolderView';
+import FrontPageView from './FrontPageView';
+import GroupView from './GroupView';
+import GroupsView from './GroupsView';
+import ItemView from './ItemView';
+import PluginsView from './PluginsView';
+import S3ImportView from './S3ImportView';
+import SystemConfigurationView from './SystemConfigurationView';
+import UserAccountView from './UserAccountView';
+import UserView from './UserView';
+import UsersView from './UsersView';
 
 export {
   AdminView,

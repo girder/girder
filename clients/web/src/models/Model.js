@@ -317,6 +317,7 @@ var MetadataMixin = {
     }
 };
 
+export default Model;
 export {
     Model,
     AccessControlledModel,

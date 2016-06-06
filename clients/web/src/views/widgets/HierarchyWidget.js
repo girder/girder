@@ -9,6 +9,7 @@ import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize }
 import { restRequest, apiRoot } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import * as allModels from 'girder/models';
 
 import AccessWidget from 'girder/views/widgets/AccessWidget';
 import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
@@ -235,12 +236,8 @@ var HierarchyWidget = View.extend({
         var parentId = folder.get('parentId');
         var parentType = folder.get('parentCollection');
         var modelName = getModelClassByName(parentType);
-        // Webpack supports context import: https://webpack.github.io/docs/context.html
-        System.import('girder/models/' + modelName).then(function (Model) {
-            // Note: have to use Model.default for now, see:
-            // https://github.com/webpack/webpack/issues/2443#issuecomment-221410800
-            Model = Model.default;
-            var parent = new Model();
+        if (allModels[modelName]) {
+            var parent = new allModels[modelName]();
             parent.set({
                 _id: parentId
             }).once('g:fetched', function () {
@@ -252,9 +249,9 @@ var HierarchyWidget = View.extend({
                     this.render();
                 }
             }, this).fetch();
-        }.bind(this)).catch(function (error) {
-            throw 'No such model: ' + modelName + ' (' + error + ')';
-        });
+        } else {
+            throw 'No such model: ' + modelName;
+        }
     },
 
     render: function () {
