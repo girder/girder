@@ -401,7 +401,7 @@ class PythonClientTestCase(base.TestCase):
 
         # Open file at path uloaded from, compare
         # to file downloaded to stream
-        with open(path, 'r') as f:
+        with open(path, 'rb') as f:
             self.assertEqual(f.read(), obj.read())
 
     def testAddMetadataToItem(self):
