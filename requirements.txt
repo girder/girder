@@ -2,8 +2,7 @@
 bcrypt==2.0.0
 boto==2.40.0
 cffi==1.6.0
-# Version 5.4.0 of CherryPy contains a bug with Python 3
-CherryPy==5.3.0
+CherryPy==6.0.1
 Mako==1.0.4
 pymongo==3.2.2
 PyYAML==3.11

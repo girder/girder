@@ -7,7 +7,7 @@ httmock==1.2.5
 mock==2.0.0
 # Versions >0.4.0 of moto cause test failures
 moto==0.4.0
-Sphinx==1.4.2
+Sphinx==1.4.3
 sphinx_rtd_theme==0.1.9
 virtualenv==15.0.2
 
