@@ -304,3 +304,15 @@ class File(acl_mixin.AccessControlMixin, Model):
             file['linkUrl'] = srcFile['linkUrl']
 
         return self.save(file)
+
+    def isOrphan(self, file, user=None):
+        if file.get('attachedToId'):
+            return not self.model(file.get('attachedToType')).load(
+                file.get('attachedToId'), user=user)
+        else:
+            return not self.model('item').load(
+                file.get('itemId'), user=user)
+
+    def updateSize(self, file):
+        # TODO: check underlying assetstore for size?
+        return file.get('size', 0), 0

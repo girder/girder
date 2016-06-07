@@ -822,3 +822,25 @@ class Folder(AccessControlledModel):
                     progress=progress, setPublic=setPublic)
 
         return doc
+
+    def isOrphan(self, folder, user=None):
+        return not self.model(folder.get('parentCollection')).load(
+            folder.get('parentId'), user=user)
+
+    def updateSize(self, doc, user):
+        # recursively fix child folders but don't include their size
+        children = self.childFolders(doc, 'folder', user)
+        for child in children:
+            self.model('folder').updateSize(child, user)
+        # get correct size from child items
+        size = 0
+        fixes = 0
+        for item in self.childItems(doc):
+            s, f = self.model('item').updateSize(item, user)
+            size += s
+            fixes += f
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes
