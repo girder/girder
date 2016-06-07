@@ -347,46 +347,24 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def systemConsistencyCheck(self, params):
-        results = {}
         progress = self.boolParam('progress', params, default=False)
-        models = ('item', )
-        steps = 0
-        if progress:
-            for model in models:
-                count, changed = self.model(model).checkConsistency(
-                    stage='count')
-                steps += count
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Checking system', total=steps,
-                             message='Checking system...') as ctx:
-            for model in models:
-                count, removed = self.model(model).checkConsistency(
-                    stage='remove', progress=ctx)
-                if removed:
-                    results[model+'Removed'] = removed
-            revmodels = list(models)
-            revmodels.reverse()
-            for model in revmodels:
-                count, corrected = self.model(model).checkConsistency(
-                    stage='verify', progress=ctx)
-                if count:
-                    results[model+'Count'] = count
-                if corrected:
-                    results[model+'Corrected'] = corrected
-            # TODO:
-            # * check that all files are associated with an existing item
-            # * check that all files exist within their assetstore and are the
-            #   expected size
-            # * check that all folders have a valid ancestor tree leading to a
-            #   user or collection
-            # * check that all folders have the correct baseParentId and
-            #   baseParentType
-            # * check that all groups contain valid users
-            # * check that all resources validate
-            # * for filesystem assetstores, find files that are not tracked.
-            # * for gridfs assetstores, find chunks that are not tracked.
-            # * for s3 assetstores, find elements that are not tracked.
+        results = {}
+        results['orphansRemoved'] = self._pruneOrphans(progress)
+        results['sizesChanged'] = self._recalculateSizes(progress)
         return results
+        # TODO:
+        # * check that all files are associated with an existing item
+        # * check that all files exist within their assetstore and are the
+        #   expected size
+        # * check that all folders have a valid ancestor tree leading to a
+        #   user or collection
+        # * check that all folders have the correct baseParentId and
+        #   baseParentType
+        # * check that all groups contain valid users
+        # * check that all resources validate
+        # * for filesystem assetstores, find files that are not tracked.
+        # * for gridfs assetstores, find chunks that are not tracked.
+        # * for s3 assetstores, find elements that are not tracked.
 
     @access.admin
     @describeRoute(
@@ -422,3 +400,32 @@ class System(Resource):
                         break
                     yield data
         return stream
+
+    def _pruneOrphans(self, progress):
+        count = 0
+        user = self.getCurrentUser()
+        models = ['folder', 'item', 'file']
+        steps = sum(self.model(model).find().count() for model in models)
+        with ProgressContext(progress, user=user,
+                title='Checking for orphaned records', total=steps) as ctx:
+            for model in models:
+                for doc in self.model(model).find():
+                    ctx.update(increment=1)
+                    if self.model(model).isOrphan(doc, user=user):
+                        self.model(model).remove(doc)
+                        count += 1
+        return count
+
+    def _recalculateSizes(self, progress):
+        fixes = 0
+        user = self.getCurrentUser()
+        models = ['collection', 'user']
+        steps = sum(self.model(model).find().count() for model in models)
+        with ProgressContext(progress, user=user,
+                title='Checking for incorrect sizes', total=steps) as ctx:
+            for model in models:
+                for doc in self.model(model).find():
+                    ctx.update(increment=1)
+                    _, f = self.model(model).updateSize(doc, user)
+                    fixes += f
+        return fixes

@@ -519,3 +519,21 @@ class Item(acl_mixin.AccessControlMixin, Model):
                     progress.update(increment=1, message='Checking items (%d '
                                     'left)' % itemsLeft)
             return numItems, itemsCorrected
+
+    def isOrphan(self, item, user=None):
+        return not self.model('folder').load(
+            item.get('folderId'), user=user)
+
+    def updateSize(self, doc, user):
+        # get correct size from child files
+        size = 0
+        fixes = 0
+        for file in self.childFiles(doc):
+            s, f = self.model('file').updateSize(file)
+            size += s
+            fixes += f
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

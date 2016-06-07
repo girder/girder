@@ -353,3 +353,19 @@ class User(AccessControlledModel):
         else:
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=filterUser, level=level))
+
+    def updateSize(self, doc, user):
+        size = 0
+        fixes = 0
+        folders = self.model('folder').childFolders(doc, 'user', user)
+        for folder in folders:
+            # fix folder size if needed
+            _, f = self.model('folder').updateSize(folder, user)
+            fixes += f
+            # get total recursive folder size
+            size += self.model('folder').getSizeRecursive(folder)
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes
