@@ -337,8 +337,6 @@ class SystemTestCase(base.TestCase):
         self.model('file').createFile(user, i2, 'foo', 19, assetstore)
         self.model('file').createFile(user, i4, 'foo', 23, assetstore)
 
-        # self.assertEqual(
-        #     39, self.model('folder').getSizeRecursive(f1))
         self.assertEqual(
             39, self.model('collection').load(c1['_id'], force=True)['size'])
         self.assertEqual(
