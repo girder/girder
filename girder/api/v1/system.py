@@ -348,10 +348,14 @@ class System(Resource):
     )
     def systemConsistencyCheck(self, params):
         progress = self.boolParam('progress', params, default=False)
-        results = {}
-        results['orphansRemoved'] = self._pruneOrphans(progress)
-        results['sizesChanged'] = self._recalculateSizes(progress)
-        return results
+        user = self.getCurrentUser()
+        title = 'Running system consistency check'
+        with ProgressContext(progress, user=user, title=title) as pc:
+            results = {}
+            results['orphansRemoved'] = self.pruneOrphans(pc)
+            results['baseParentsFixed'] = self.fixBaseParents(pc)
+            results['sizesChanged'] = self.recalculateSizes(pc)
+            return results
         # TODO:
         # * check that all files are associated with an existing item
         # * check that all files exist within their assetstore and are the
@@ -401,31 +405,54 @@ class System(Resource):
                     yield data
         return stream
 
-    def _pruneOrphans(self, progress):
+    def fixBaseParents(self, progress):
+        fixes = 0
+        user = self.getCurrentUser()
+        models = ['folder', 'item']
+        steps = sum(self.model(model).find().count() for model in models)
+        progress.update(
+            total=steps, current=0, title='Checking for incorrect base parents')
+        for model in models:
+            for doc in self.model(model).find():
+                progress.update(increment=1)
+                baseParent = self.model(model).parentsToRoot(doc, user=user)[0]
+                baseParentType = baseParent['type']
+                baseParentId = baseParent['object']['_id']
+                if (doc['baseParentType'] != baseParentType or
+                    doc['baseParentId'] != baseParentId):
+                    self.model(model).update({'_id': doc['_id']}, update={
+                        '$set': {
+                            'baseParentType': baseParentType,
+                            'baseParentId': baseParentId
+                        }})
+                    fixes += 1
+        return fixes
+
+    def pruneOrphans(self, progress):
         count = 0
         user = self.getCurrentUser()
         models = ['folder', 'item', 'file']
         steps = sum(self.model(model).find().count() for model in models)
-        with ProgressContext(progress, user=user,
-                title='Checking for orphaned records', total=steps) as ctx:
-            for model in models:
-                for doc in self.model(model).find():
-                    ctx.update(increment=1)
-                    if self.model(model).isOrphan(doc, user=user):
-                        self.model(model).remove(doc)
-                        count += 1
+        progress.update(
+            total=steps, current=0, title='Checking for orphaned records')
+        for model in models:
+            for doc in self.model(model).find():
+                progress.update(increment=1)
+                if self.model(model).isOrphan(doc, user=user):
+                    self.model(model).remove(doc)
+                    count += 1
         return count
 
-    def _recalculateSizes(self, progress):
+    def recalculateSizes(self, progress):
         fixes = 0
         user = self.getCurrentUser()
         models = ['collection', 'user']
         steps = sum(self.model(model).find().count() for model in models)
-        with ProgressContext(progress, user=user,
-                title='Checking for incorrect sizes', total=steps) as ctx:
-            for model in models:
-                for doc in self.model(model).find():
-                    ctx.update(increment=1)
-                    _, f = self.model(model).updateSize(doc, user)
-                    fixes += f
+        progress.update(
+            total=steps, current=0, title='Checking for incorrect sizes')
+        for model in models:
+            for doc in self.model(model).find():
+                progress.update(increment=1)
+                _, f = self.model(model).updateSize(doc, user)
+                fixes += f
         return fixes
