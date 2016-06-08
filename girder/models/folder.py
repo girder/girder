@@ -824,10 +824,27 @@ class Folder(AccessControlledModel):
         return doc
 
     def isOrphan(self, folder, user=None):
+        """
+        Returns True if this folder is orphaned (its parent is missing).
+
+        :param folder: The folder to check.
+        :type folder: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
         return not self.model(folder.get('parentCollection')).load(
             folder.get('parentId'), user=user)
 
     def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this folder and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The folder.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
         size = 0
         fixes = 0
         # recursively fix child folders but don't include their size
