@@ -411,7 +411,8 @@ class System(Resource):
         models = ['folder', 'item']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(
-            total=steps, current=0, title='Checking for incorrect base parents')
+            total=steps, current=0,
+            title='Checking for incorrect base parents (Step 2 of 3)')
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
@@ -434,7 +435,8 @@ class System(Resource):
         models = ['folder', 'item', 'file']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(
-            total=steps, current=0, title='Checking for orphaned records')
+            total=steps, current=0,
+            title='Checking for orphaned records (Step 1 of 3)')
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
@@ -449,7 +451,8 @@ class System(Resource):
         models = ['collection', 'user']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(
-            total=steps, current=0, title='Checking for incorrect sizes')
+            total=steps, current=0,
+            title='Checking for incorrect sizes (Step 3 of 3)')
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
