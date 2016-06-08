@@ -828,13 +828,14 @@ class Folder(AccessControlledModel):
             folder.get('parentId'), user=user)
 
     def updateSize(self, doc, user):
+        size = 0
+        fixes = 0
         # recursively fix child folders but don't include their size
         children = self.childFolders(doc, 'folder', user)
         for child in children:
-            self.model('folder').updateSize(child, user)
+            _, f = self.model('folder').updateSize(child, user)
+            fixes += f
         # get correct size from child items
-        size = 0
-        fixes = 0
         for item in self.childItems(doc):
             s, f = self.model('item').updateSize(item, user)
             size += s
