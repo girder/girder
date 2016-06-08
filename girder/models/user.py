@@ -363,6 +363,7 @@ class User(AccessControlledModel):
             _, f = self.model('folder').updateSize(folder, user)
             fixes += f
             # get total recursive folder size
+            folder = self.model('folder').load(folder['_id'], user=user)
             size += self.model('folder').getSizeRecursive(folder)
         # fix value if incorrect
         if size != doc.get('size'):
