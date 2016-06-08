@@ -636,44 +636,6 @@ class ItemTestCase(base.TestCase):
             self.assertNotEqual(origFiles[index]['_id'],
                                 newFiles[index]['_id'])
 
-    def testSystemCheck(self):
-        # Create an item in a non existent folder and then use the check to
-        # remove it.  Also, create an item and set that the size is some value
-        # other than what it is; this should be corrected.
-        item1 = self._createItem(self.publicFolder['_id'],
-                                 'test_for_no_folder', 'description',
-                                 self.users[0])
-        item2 = self._createItem(self.publicFolder['_id'],
-                                 'test_for_bad_size', 'description',
-                                 self.users[0])
-        self._testUploadFileToItem(item2, 'file_1', self.users[0], 'foobar')
-        # break the folder for item1
-        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
-        item['folderId'] = 'not_a_folder'
-        self.model('item').save(item, validate=False)
-        # break the size, baseParentId, and baseParentType for item2
-        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
-        item['size'] += 1
-        item['baseParentType'] = 'collection'
-        item['baseParentId'] = ObjectId()
-        self.model('item').save(item, validate=False)
-        # Use the system check to repair this.  item1 should vanish, item2's
-        # size should be fized.
-        resp = self.request(path='/system/check', method='PUT',
-                            user=self.users[0], params={'progress': True})
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['itemCorrected'], 1)
-        self.assertEqual(resp.json['itemCount'], 1)
-        self.assertEqual(resp.json['itemRemoved'], 1)
-        item = self.model('item').findOne({'_id': ObjectId(item1['_id'])})
-        self.assertIsNone(item)
-        item = self.model('item').findOne({'_id': ObjectId(item2['_id'])})
-        self.assertEqual(item['size'], len('foobar'))
-        self.assertEqual(item['baseParentType'],
-                         self.publicFolder['baseParentType'])
-        self.assertEqual(item['baseParentId'],
-                         self.publicFolder['baseParentId'])
-
     def testCookieAuth(self):
         """
         We make sure a cookie is sufficient for authentication for the item
