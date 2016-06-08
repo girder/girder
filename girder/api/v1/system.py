@@ -352,9 +352,9 @@ class System(Resource):
         title = 'Running system consistency check'
         with ProgressContext(progress, user=user, title=title) as pc:
             results = {}
-            results['orphansRemoved'] = self.pruneOrphans(pc)
-            results['baseParentsFixed'] = self.fixBaseParents(pc)
-            results['sizesChanged'] = self.recalculateSizes(pc)
+            results['orphansRemoved'] = self._pruneOrphans(pc)
+            results['baseParentsFixed'] = self._fixBaseParents(pc)
+            results['sizesChanged'] = self._recalculateSizes(pc)
             return results
         # TODO:
         # * check that all files are associated with an existing item
@@ -405,7 +405,7 @@ class System(Resource):
                     yield data
         return stream
 
-    def fixBaseParents(self, progress):
+    def _fixBaseParents(self, progress):
         fixes = 0
         user = self.getCurrentUser()
         models = ['folder', 'item']
@@ -428,7 +428,7 @@ class System(Resource):
                     fixes += 1
         return fixes
 
-    def pruneOrphans(self, progress):
+    def _pruneOrphans(self, progress):
         count = 0
         user = self.getCurrentUser()
         models = ['folder', 'item', 'file']
@@ -443,7 +443,7 @@ class System(Resource):
                     count += 1
         return count
 
-    def recalculateSizes(self, progress):
+    def _recalculateSizes(self, progress):
         fixes = 0
         user = self.getCurrentUser()
         models = ['collection', 'user']
