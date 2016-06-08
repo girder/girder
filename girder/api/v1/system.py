@@ -419,7 +419,7 @@ class System(Resource):
                 baseParentType = baseParent['type']
                 baseParentId = baseParent['object']['_id']
                 if (doc['baseParentType'] != baseParentType or
-                    doc['baseParentId'] != baseParentId):
+                        doc['baseParentId'] != baseParentId):
                     self.model(model).update({'_id': doc['_id']}, update={
                         '$set': {
                             'baseParentType': baseParentType,

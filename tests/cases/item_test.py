@@ -24,8 +24,6 @@ import shutil
 import six
 import zipfile
 
-from bson.objectid import ObjectId
-
 from .. import base
 
 from girder.constants import AccessType

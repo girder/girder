@@ -29,7 +29,6 @@ from girder import events
 from girder import logger
 from girder.constants import AccessType
 from girder.utility import acl_mixin
-from girder.utility.progress import setResponseTimeLimit
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
