@@ -298,6 +298,15 @@ class Collection(AccessControlledModel):
                 cursor=folders, user=user, level=level))
 
     def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this collection and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The collection.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
         size = 0
         fixes = 0
         folders = self.model('folder').childFolders(doc, 'collection', user)

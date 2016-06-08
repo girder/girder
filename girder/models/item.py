@@ -452,10 +452,27 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return file['mimeType'] in mimeFilter
 
     def isOrphan(self, item, user=None):
+        """
+        Returns True if this item is orphaned (its folder is missing).
+
+        :param item: The item to check.
+        :type item: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
         return not self.model('folder').load(
             item.get('folderId'), user=user)
 
     def updateSize(self, doc, user):
+        """
+        Recomputes the size of this item and its underlying
+        files and fixes the sizes as needed.
+
+        :param doc: The item.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
         # get correct size from child files
         size = 0
         fixes = 0

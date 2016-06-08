@@ -355,6 +355,15 @@ class User(AccessControlledModel):
                 cursor=folders, user=filterUser, level=level))
 
     def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this user and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The user.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
         size = 0
         fixes = 0
         folders = self.model('folder').childFolders(doc, 'user', user)
