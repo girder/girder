@@ -352,8 +352,14 @@ class System(Resource):
         title = 'Running system consistency check'
         with ProgressContext(progress, user=user, title=title) as pc:
             results = {}
+            pc.update(
+                title='Checking for orphaned records (Step 1 of 3)')
             results['orphansRemoved'] = self._pruneOrphans(pc)
+            pc.update(
+                title='Checking for incorrect base parents (Step 2 of 3)')
             results['baseParentsFixed'] = self._fixBaseParents(pc)
+            pc.update(
+                title='Checking for incorrect sizes (Step 3 of 3)')
             results['sizesChanged'] = self._recalculateSizes(pc)
             return results
         # TODO:
@@ -410,9 +416,7 @@ class System(Resource):
         user = self.getCurrentUser()
         models = ['folder', 'item']
         steps = sum(self.model(model).find().count() for model in models)
-        progress.update(
-            total=steps, current=0,
-            title='Checking for incorrect base parents (Step 2 of 3)')
+        progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
@@ -434,9 +438,7 @@ class System(Resource):
         user = self.getCurrentUser()
         models = ['folder', 'item', 'file']
         steps = sum(self.model(model).find().count() for model in models)
-        progress.update(
-            total=steps, current=0,
-            title='Checking for orphaned records (Step 1 of 3)')
+        progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
@@ -450,9 +452,7 @@ class System(Resource):
         user = self.getCurrentUser()
         models = ['collection', 'user']
         steps = sum(self.model(model).find().count() for model in models)
-        progress.update(
-            total=steps, current=0,
-            title='Checking for incorrect sizes (Step 3 of 3)')
+        progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
