@@ -14,15 +14,11 @@ girder.views.homepage_ConfigView = girder.View.extend({
 
     initialize: function () {
         this.editor = new girder.views.MarkdownWidget({
-            text: '',
             prefix: 'homepage',
             placeholder: 'Enter Markdown for the homepage',
-            allowedExtensions: ['png', 'jpg', 'jpeg', 'gif'],
             enableUploads: false,
             parentView: this
-        }).on('g:fileUploaded', function (args) {
-            // this.trigger('g:fileUploaded', args);
-        }, this);
+        });
 
         girder.restRequest({
             type: 'GET',
