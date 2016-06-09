@@ -18,14 +18,30 @@
 ###############################################################################
 
 from girder import events
+from girder.api import access
+from girder.api.describe import Description, describeRoute
+from girder.api.rest import Resource
 
+KEY = 'homepage.markdown'
+
+class Homepage(Resource):
+    def __init__(self):
+        super(Homepage, self).__init__()
+        self.resourceName = 'homepage'
+        self.route('GET', ('markdown',), self.getMarkdown)
+
+    @access.public
+    @describeRoute(
+        Description('Public url for getting the homepage markdown.')
+    )
+    def getMarkdown(self, params):
+        return {KEY: self.model('setting').get(KEY)}
 
 def validateSettings(event):
     key, val = event.info['key'], event.info['value']
-    if key == 'homepage.markdown':
+    if key == KEY:
         event.preventDefault().stopPropagation()
-
 
 def load(info):
     events.bind('model.setting.validate', 'homepage', validateSettings)
-    # info['apiRoot'].homepage = rest.GoogleAnalytics()
+    info['apiRoot'].homepage = Homepage()
