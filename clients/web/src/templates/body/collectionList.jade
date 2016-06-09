@@ -12,6 +12,13 @@
 each collection in collections
   .g-collection-list-entry
     .g-collection-right-column
+      .g-folder-privacy
+        if collection.get('public')
+          i.icon-globe
+          | Public
+        else
+          i.icon-lock
+          | Private
       .g-collection-created
         i.icon-clock
         | Created on
