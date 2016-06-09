@@ -29,7 +29,6 @@ from girder import events
 from girder import logger
 from girder.constants import AccessType
 from girder.utility import acl_mixin
-from girder.utility.progress import setResponseTimeLimit
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -452,70 +451,37 @@ class Item(acl_mixin.AccessControlMixin, Model):
             return True
         return file['mimeType'] in mimeFilter
 
-    def checkConsistency(self, stage, progress=None):
+    def isOrphan(self, item, user=None):
         """
-        Check all of the items and make sure they are valid.  This operates in
-        stages, since some actions should be done before other models that rely
-        on items and some need to be done after.  The stages are:
-        * count - count how many items need to be checked.
-        * remove - remove lost items
-        * verify - verify and fix existing items
+        Returns True if this item is orphaned (its folder is missing).
 
-        :param stage: which stage of the check to run.  See above.
-        :param progress: an optional progress context to update.
-        :returns: numItems: number of items to check or processed,
-                  numChanged: number of items changed.
+        :param item: The item to check.
+        :type item: dict
+        :param user: The user for permissions.
+        :type user: dict or None
         """
-        if stage == 'count':
-            numItems = self.find(limit=1).count()
-            return numItems, 0
-        elif stage == 'remove':
-            # Check that all items are in existing folders.  Any that are not
-            # can be deleted.  Perhaps we should put them in a lost+found
-            # instead
-            folderIds = self.model('folder').collection.distinct('_id')
-            lostItems = self.find({
-                '$or': [{'folderId': {'$nin': folderIds}},
-                        {'folderId': {'$exists': False}}]})
-            numItems = itemsLeft = lostItems.count()
-            if numItems:
-                if progress is not None:
-                    progress.update(message='Removing orphaned items')
-                for item in lostItems:
-                    setResponseTimeLimit()
-                    self.collection.delete_one({'_id': item['_id']})
-                    if progress is not None:
-                        itemsLeft -= 1
-                        progress.update(increment=1, message='Removing '
-                                        'orphaned items (%d left)' % itemsLeft)
-            return numItems, numItems
-        elif stage == 'verify':
-            # Check items sizes
-            items = self.find()
-            numItems = itemsLeft = items.count()
-            itemsCorrected = 0
-            if progress is not None:
-                progress.update(message='Checking items')
-            for item in items:
-                itemCorrected = False
-                setResponseTimeLimit()
-                oldSize = item.get('size', 0)
-                newSize = self.recalculateSize(item)
-                if newSize != oldSize:
-                    itemCorrected = True
-                newBaseParent = self.parentsToRoot(item, force=True)[0]
-                if item['baseParentType'] != newBaseParent['type'] or \
-                   item['baseParentId'] != newBaseParent['object']['_id']:
-                    self.update(
-                        {'_id': item['_id']}, update={'$set': {
-                            'baseParentType': newBaseParent['type'],
-                            'baseParentId': newBaseParent['object']['_id']
-                        }})
-                    itemCorrected = True
-                if itemCorrected:
-                    itemsCorrected += 1
-                if progress is not None:
-                    itemsLeft -= 1
-                    progress.update(increment=1, message='Checking items (%d '
-                                    'left)' % itemsLeft)
-            return numItems, itemsCorrected
+        return not self.model('folder').load(
+            item.get('folderId'), user=user)
+
+    def updateSize(self, doc, user):
+        """
+        Recomputes the size of this item and its underlying
+        files and fixes the sizes as needed.
+
+        :param doc: The item.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
+        # get correct size from child files
+        size = 0
+        fixes = 0
+        for file in self.childFiles(doc):
+            s, f = self.model('file').updateSize(file)
+            size += s
+            fixes += f
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

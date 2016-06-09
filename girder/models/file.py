@@ -304,3 +304,31 @@ class File(acl_mixin.AccessControlMixin, Model):
             file['linkUrl'] = srcFile['linkUrl']
 
         return self.save(file)
+
+    def isOrphan(self, file, user=None):
+        """
+        Returns True if this file is orphaned (its item or attached entity is
+        missing).
+
+        :param file: The file to check.
+        :type file: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
+        if file.get('attachedToId'):
+            return not self.model(file.get('attachedToType')).load(
+                file.get('attachedToId'), user=user)
+        else:
+            return not self.model('item').load(
+                file.get('itemId'), user=user)
+
+    def updateSize(self, file):
+        """
+        Returns the size of this file. Does not currently check the underlying
+        assetstore to verify the size.
+
+        :param file: The file.
+        :type file: dict
+        """
+        # TODO: check underlying assetstore for size?
+        return file.get('size', 0), 0
