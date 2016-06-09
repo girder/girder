@@ -59,6 +59,15 @@ def getAssetstoreAdapter(assetstore, instance=True):
         return cls
 
 
+def setAssetstoreAdapter(storeType, cls):
+    global assetstoreTable
+
+    if storeType not in assetstoreTable:
+        raise Exception('Illegal assetstore type code: "%s"' % (storeType))
+
+    assetstoreTable[storeType] = cls
+
+
 def fileIndexFields():
     """
     This will return a set of all required index fields from all of the
