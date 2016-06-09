@@ -24,6 +24,7 @@ from girder.api.rest import Resource
 
 KEY = 'homepage.markdown'
 
+
 class Homepage(Resource):
     def __init__(self):
         super(Homepage, self).__init__()
@@ -37,10 +38,11 @@ class Homepage(Resource):
     def getMarkdown(self, params):
         return {KEY: self.model('setting').get(KEY)}
 
+
 def validateSettings(event):
-    key, val = event.info['key'], event.info['value']
-    if key == KEY:
+    if event.info['key'] == KEY:
         event.preventDefault().stopPropagation()
+
 
 def load(info):
     events.bind('model.setting.validate', 'homepage', validateSettings)
