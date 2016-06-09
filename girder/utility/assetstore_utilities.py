@@ -24,6 +24,11 @@ from girder.constants import AssetstoreType
 from girder import events
 
 
+assetstoreTable = {AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
+                   AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
+                   AssetstoreType.S3: S3AssetstoreAdapter}
+
+
 def getAssetstoreAdapter(assetstore, instance=True):
     """
     This is a factory method that will return the appropriate assetstore adapter
@@ -38,16 +43,10 @@ def getAssetstoreAdapter(assetstore, instance=True):
     :type instance: bool
     :returns: An adapter descending from AbstractAssetstoreAdapter
     """
-    cls = None
     storeType = assetstore['type']
 
-    if storeType == AssetstoreType.FILESYSTEM:
-        cls = FilesystemAssetstoreAdapter
-    elif storeType == AssetstoreType.GRIDFS:
-        cls = GridFsAssetstoreAdapter
-    elif storeType == AssetstoreType.S3:
-        cls = S3AssetstoreAdapter
-    else:
+    cls = assetstoreTable.get(storeType)
+    if cls is None:
         e = events.trigger('assetstore.adapter.get', assetstore)
         if len(e.responses) > 0:
             cls = e.responses[-1]
