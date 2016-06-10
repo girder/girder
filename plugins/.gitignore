@@ -1,6 +1,7 @@
 /*
 !.gitignore
 !celery_jobs/
+!curation/
 !geospatial/
 !google_analytics/
 !gravatar/
