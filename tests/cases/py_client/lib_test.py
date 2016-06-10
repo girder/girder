@@ -56,6 +56,10 @@ class PythonClientTestCase(base.TestCase):
             f = open(filename, 'w')
             f.write(filename)
             f.close()
+            filename = os.path.join(dirName, 'f1')
+            f = open(filename, 'w')
+            f.write(filename)
+            f.close()
 
         # make some temp dirs and files
         self.libTestDir = os.path.join(os.path.dirname(__file__),
@@ -358,6 +362,47 @@ class PythonClientTestCase(base.TestCase):
         sha = hashlib.sha512()
         sha.update(contents.encode('utf8'))
         self.assertEqual(file['sha512'], sha.hexdigest())
+
+    def testListFile(self):
+        # Creating item
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'SomethingUnique')
+
+        # Upload 2 different files to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file1 = self.client.uploadFileToItem(item['_id'], path)
+
+        path = os.path.join(self.libTestDir, 'sub1', 'f1')
+        file2 = self.client.uploadFileToItem(item['_id'], path)
+
+        # Get files from item
+        files = self.client.listFile(item['_id'])
+
+        file1Id = files[0]['_id']
+        file2Id = files[1]['_id']
+
+        self.assertEqual(len(files), 2)
+        self.assertEqual(file1['_id'], file1Id)
+        self.assertEqual(file2['_id'], file2Id)
+
+    def testDownloadInline(self):
+        # Creating item
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'SomethingMoreUnique')
+        # Upload file to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        obj = six.BytesIO()
+
+        # Download file to object stream
+        self.client.downloadFile(file['_id'], obj)
+        obj.seek(0)
+
+        # Open file at path uloaded from, compare
+        # to file downloaded to stream
+        with open(path, 'rb') as f:
+            self.assertEqual(f.read(), obj.read())
 
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
