@@ -26,6 +26,14 @@ from girder.utility.server import staticFile
 
 
 @access.public
+@boundHandler
+@describeRoute(None)
+def unboundHandlerDefaultNoArgs(self, params):
+    self.requireParams('val', params)
+    return not self.boolParam('val', params)
+
+
+@access.public
 @boundHandler()
 @describeRoute(None)
 def unboundHandlerDefault(self, params):
@@ -88,6 +96,8 @@ def load(info):
     info['serverRoot'].api = info['serverRoot'].girder.api
     del info['serverRoot'].girder.api
 
+    info['apiRoot'].collection.route('GET', ('unbound', 'default', 'noargs'),
+                                     unboundHandlerDefaultNoArgs)
     info['apiRoot'].collection.route('GET', ('unbound', 'default'),
                                      unboundHandlerDefault)
     info['apiRoot'].collection.route('GET', ('unbound', 'explicit'),

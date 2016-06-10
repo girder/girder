@@ -70,6 +70,13 @@ class TestEndpointDecoratorException(base.TestCase):
         self.assertEqual(obj['type'], 'internal')
 
     def testBoundHandlerDecorator(self):
+
+        resp = self.request('/collection/unbound/default/noargs', params={
+            'val': False
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, True)
+
         resp = self.request('/collection/unbound/default', params={
             'val': False
         })
