@@ -211,8 +211,7 @@ def unbindAll():
        necessary for normal Girder functionality. This function should generally
        never be called outside of testing.
     """
-    global _mapping
-    _mapping = {}
+    _mapping.clear()
 
 
 @contextlib.contextmanager
