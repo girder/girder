@@ -89,6 +89,7 @@ Python package, which may be installed using **pip**: ::
 
 Once the package is installed, the plugin may be enabled via the admin console.
 
+
 Google Analytics
 ----------------
 
@@ -100,6 +101,15 @@ it does not technically trigger routing events for hierarchy navigation).
 
 To use this plugin, simply copy your tracking ID from Google Analytics into the
 plugin configuration page.
+
+
+Homepage
+--------
+
+The Homepage plugin allows the default Girder front page to be replaced by
+content written in [Markdown](https://daringfireball.net/projects/markdown/)
+format. After enabling this plugin, visit the plugin configuration page
+to edit and preview the Markdown.
 
 
 Metadata Extractor

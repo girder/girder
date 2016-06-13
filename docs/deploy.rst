@@ -73,6 +73,15 @@ Nginx can be used by adding a block such as:
         proxy_send_timeout 600s;
     }
 
+And under the containing ``server`` block, make sure to add the following rule:
+
+.. code-block:: nginx
+
+    server {
+        client_max_body_size 500M;
+        ...
+    }
+
 Girder Settings
 +++++++++++++++
 
