@@ -24,7 +24,7 @@ from girder.constants import AssetstoreType
 from girder import events
 
 
-assetstoreTable = {
+_assetstoreTable = {
     AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
     AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter
@@ -47,7 +47,7 @@ def getAssetstoreAdapter(assetstore, instance=True):
     """
     storeType = assetstore['type']
 
-    cls = assetstoreTable.get(storeType)
+    cls = _assetstoreTable.get(storeType)
     if cls is None:
         e = events.trigger('assetstore.adapter.get', assetstore)
         if len(e.responses) > 0:
@@ -62,10 +62,10 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
 
 def setAssetstoreAdapter(storeType, cls):
-    if storeType not in assetstoreTable:
+    if storeType not in _assetstoreTable:
         raise Exception('Illegal assetstore type code: "%s"' % (storeType))
 
-    assetstoreTable[storeType] = cls
+    _assetstoreTable[storeType] = cls
 
 
 def fileIndexFields():
