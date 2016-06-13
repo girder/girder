@@ -62,9 +62,6 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
 
 def setAssetstoreAdapter(storeType, cls):
-    if storeType not in _assetstoreTable:
-        raise Exception('Illegal assetstore type code: "%s"' % (storeType))
-
     _assetstoreTable[storeType] = cls
 
 
