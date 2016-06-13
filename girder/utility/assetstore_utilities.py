@@ -24,9 +24,11 @@ from girder.constants import AssetstoreType
 from girder import events
 
 
-assetstoreTable = {AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
-                   AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
-                   AssetstoreType.S3: S3AssetstoreAdapter}
+assetstoreTable = {
+    AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
+    AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
+    AssetstoreType.S3: S3AssetstoreAdapter
+}
 
 
 def getAssetstoreAdapter(assetstore, instance=True):
