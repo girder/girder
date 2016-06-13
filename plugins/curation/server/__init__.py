@@ -21,6 +21,8 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType
+from girder.utility import mail_utils
+import posixpath
 
 
 CURATION = 'curation'
@@ -98,29 +100,52 @@ class CuratedFolder(Resource):
 
         # user requesting approval
         if enabled and oldStatus == CONSTRUCTION and status == REQUESTED:
-            # TODO: email ENABLE_USER_ID
             curation[REQUEST_USER_ID] = user.get('_id')
             for doc in folder['access']['users'] + folder['access']['groups']:
                 if doc['level'] == AccessType.WRITE:
                     doc['level'] = AccessType.READ
+            # send email to admin requesting approval
+            self._sendMail(
+                [self._getEmail(curation[ENABLE_USER_ID])],
+                'REQUEST FOR APPROVAL: ' + folder['name'],
+                'curation.requested.mako',
+                dict(folder=folder, curation=curation))
 
         # admin approving request
         if enabled and oldStatus == REQUESTED and status == APPROVED:
-            # TODO: email REQUEST_USER_ID
             folder['public'] = True
             curation[REVIEW_USER_ID] = user.get('_id')
+            # send approval notification to requestor
+            self._sendMail(
+                [self._getEmail(curation[REQUEST_USER_ID])],
+                'APPROVED: ' + folder['name'],
+                'curation.approved.mako',
+                dict(folder=folder, curation=curation))
 
         # admin rejecting request
         if enabled and oldStatus == REQUESTED and status == CONSTRUCTION:
-            # TODO: email REQUEST_USER_ID
             curation[REVIEW_USER_ID] = user.get('_id')
             curation[REASON] = params.get(REASON, '')
             for doc in folder['access']['users'] + folder['access']['groups']:
                 if doc['level'] == AccessType.READ:
                     doc['level'] = AccessType.WRITE
+            # send rejection notification to requestor
+            self._sendMail(
+                [self._getEmail(curation[REQUEST_USER_ID])],
+                'REJECTED: ' + folder['name'],
+                'curation.rejected.mako',
+                dict(folder=folder, curation=curation))
 
         self.model('folder').save(folder)
         return curation
+
+    def _getEmail(self, _id):
+        return self.model('user').load(_id, force=True).get('email')
+
+    def _sendMail(self, emails, subject, template, data):
+        data['host'] = posixpath.dirname(mail_utils.getEmailUrlPrefix())
+        text = mail_utils.renderTemplate(template, data)
+        mail_utils.sendEmail(emails, subject, text)
 
 
 def load(info):
