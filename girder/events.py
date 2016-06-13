@@ -177,7 +177,8 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        logger.warning('event "%s" is deprecated; %s' % (eventName, _deprecated[eventName]))
+        logger.warning('event "%s" is deprecated; %s'
+                       % (eventName, _deprecated[eventName]))
 
     global _mapping
     if eventName not in _mapping:
