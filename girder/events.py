@@ -176,6 +176,10 @@ def bind(eventName, handlerName, handler):
                     the Event.
     :type handler: function
     """
+    if eventName in _deprecated:
+        logger.warning('event "%s" is deprecated; %s'
+                       % (eventName, _deprecated[eventName]))
+
     if eventName not in _mapping:
         _mapping[eventName] = []
 
@@ -260,6 +264,11 @@ def trigger(eventName, info=None, pre=None, async=False):
 
     return e
 
+
+_deprecated = {
+    'assetstore.adapter.get':
+        'use girder.utility.assetstore_utilities.setAssetstoreAdapter instead'
+}
 
 _mapping = {}
 daemon = AsyncEventsThread()
