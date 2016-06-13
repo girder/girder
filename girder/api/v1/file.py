@@ -251,8 +251,8 @@ class File(Resource):
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value', required=False,
                enum=['inline', 'attachment'], default='attachment')
-        .param('extraParameters', 'Arbitrary data to send along with the download '
-               'request.', required=False)
+        .param('extraParameters', 'Arbitrary data to send along with the '
+               'download request.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
