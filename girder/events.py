@@ -176,7 +176,6 @@ def bind(eventName, handlerName, handler):
                     the Event.
     :type handler: function
     """
-    global _mapping
     if eventName not in _mapping:
         _mapping[eventName] = []
 
@@ -195,7 +194,6 @@ def unbind(eventName, handlerName):
     :param handlerName: The name that identifies the handler calling bind().
     :type handlerName: str
     """
-    global _mapping
     if eventName not in _mapping:
         return
 
@@ -250,7 +248,6 @@ def trigger(eventName, info=None, pre=None, async=False):
         (True) or on the request thread (False).
     :type async: bool
     """
-    global _mapping
     e = Event(eventName, info, async=async)
     for handler in _mapping.get(eventName, ()):
         e.currentHandlerName = handler['name']
