@@ -3,12 +3,7 @@ girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
     render.call(this);
 
     if (this.parentModel.get('_modelType') === 'folder') {
-        this.$('.g-folder-header-buttons').prepend(girder.templates.curation_button());
-        this.$('.g-curation-button').tooltip({
-            container: 'body',
-            placement: 'auto',
-            delay: 100
-        });
+        this.$('.g-folder-actions-menu').append(girder.templates.curation_button());
     }
 
     return this;
@@ -26,6 +21,9 @@ girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = func
 // curation dialog
 girder.views.curation_CurationDialog = girder.View.extend({
     events: {
+        'change input': function (event) {
+            $('#g-curation-submit').attr('disabled', false);
+        },
         'click #g-curation-submit': function (event) {
             event.preventDefault();
             var enabled = $('input[name="curation_enabled"]:checked').val();
@@ -96,8 +94,9 @@ girder.views.curation_CurationDialog = girder.View.extend({
         if (!girder.currentUser.get('admin')) {
             $('.g-curation-enabled-container input').attr('disabled', true);
             $('.g-curation-status-container input').attr('disabled', true);
-            $('#g-curation-submit').attr('disabled', true);
+            $('#g-curation-submit').hide();
         }
+        $('#g-curation-submit').attr('disabled', true);
 
         // show only relevant action buttons
         $('.g-curation-action-container button').hide();

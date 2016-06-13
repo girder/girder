@@ -42,7 +42,8 @@
                 type="radio", name="curation_status", value="approved",
                 checked=(curation.status == "approved" ? "checked" : undefined))
               | #[b Approved] &mdash; The folder has been approved
-        | Curation Actions
+        #g-curation-error-message.g-validation-failed-message
+      .modal-footer
         .g-curation-action-container
           button#g-curation-enable.btn.btn-small.btn-primary
             | Enable Curation
@@ -54,8 +55,6 @@
             | Reject Request
           button#g-curation-disable.btn.btn-small.btn-warning
             | Disable Curation
-        #g-curation-error-message.g-validation-failed-message
-      .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Close
         button#g-curation-submit.btn.btn-small.btn-primary(type="submit")
           i.icon-ok

@@ -38,6 +38,11 @@ CONSTRUCTION = 'construction'
 REQUESTED = 'requested'
 APPROVED = 'approved'
 
+DEFAULTS = {
+    ENABLED: False,
+    STATUS: CONSTRUCTION,
+}
+
 
 class CuratedFolder(Resource):
 
@@ -50,10 +55,7 @@ class CuratedFolder(Resource):
         .errorResponse('Read permission denied on the folder.', 403)
     )
     def getCuration(self, folder, params):
-        result = {
-            ENABLED: False,
-            STATUS: CONSTRUCTION,
-        }
+        result = dict(DEFAULTS)
         result.update(folder.get(CURATION, {}))
         return result
 
@@ -74,7 +76,7 @@ class CuratedFolder(Resource):
     def setCuration(self, folder, params):
         user = self.getCurrentUser()
         if CURATION not in folder:
-            folder[CURATION] = {}
+            folder[CURATION] = dict(DEFAULTS)
         curation = folder[CURATION]
 
         oldEnabled = curation.get(ENABLED, False)
@@ -105,22 +107,24 @@ class CuratedFolder(Resource):
                 if doc['level'] == AccessType.WRITE:
                     doc['level'] = AccessType.READ
             # send email to admin requesting approval
-            self._sendMail(
-                [self._getEmail(curation[ENABLE_USER_ID])],
-                'REQUEST FOR APPROVAL: ' + folder['name'],
-                'curation.requested.mako',
-                dict(folder=folder, curation=curation))
+            if ENABLE_USER_ID in curation:
+                self._sendMail(
+                    [self._getEmail(curation[ENABLE_USER_ID])],
+                    'REQUEST FOR APPROVAL: ' + folder['name'],
+                    'curation.requested.mako',
+                    dict(folder=folder, curation=curation))
 
         # admin approving request
-        if enabled and oldStatus == REQUESTED and status == APPROVED:
+        if enabled and oldStatus != APPROVED and status == APPROVED:
             folder['public'] = True
             curation[REVIEW_USER_ID] = user.get('_id')
             # send approval notification to requestor
-            self._sendMail(
-                [self._getEmail(curation[REQUEST_USER_ID])],
-                'APPROVED: ' + folder['name'],
-                'curation.approved.mako',
-                dict(folder=folder, curation=curation))
+            if REQUEST_USER_ID in curation:
+                self._sendMail(
+                    [self._getEmail(curation[REQUEST_USER_ID])],
+                    'APPROVED: ' + folder['name'],
+                    'curation.approved.mako',
+                    dict(folder=folder, curation=curation))
 
         # admin rejecting request
         if enabled and oldStatus == REQUESTED and status == CONSTRUCTION:
@@ -130,11 +134,12 @@ class CuratedFolder(Resource):
                 if doc['level'] == AccessType.READ:
                     doc['level'] = AccessType.WRITE
             # send rejection notification to requestor
-            self._sendMail(
-                [self._getEmail(curation[REQUEST_USER_ID])],
-                'REJECTED: ' + folder['name'],
-                'curation.rejected.mako',
-                dict(folder=folder, curation=curation))
+            if REQUEST_USER_ID in curation:
+                self._sendMail(
+                    [self._getEmail(curation[REQUEST_USER_ID])],
+                    'REJECTED: ' + folder['name'],
+                    'curation.rejected.mako',
+                    dict(folder=folder, curation=curation))
 
         self.model('folder').save(folder)
         return curation
