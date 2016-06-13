@@ -63,11 +63,11 @@ class CuratedFolder(Resource):
         Description('Set curation details for the folder.')
         .param('id', 'The folder ID', paramType='path')
         .param('enabled', 'Enable or disable folder curation.',
-            required=False, dataType='boolean')
+               required=False, dataType='boolean')
         .param('status', 'Set the folder curation status.',
-            required=False, dataType='string')
+               required=False, dataType='string')
         .param('reason', 'Set the reason for rejecting approval.',
-            required=False, dataType='string')
+               required=False, dataType='string')
         .errorResponse('ID was invalid.')
         .errorResponse('Write permission denied on the folder.', 403)
     )

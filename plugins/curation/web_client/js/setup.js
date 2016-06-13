@@ -2,7 +2,7 @@
 girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
     render.call(this);
 
-    if (this.parentModel.get('_modelType') == 'folder') {
+    if (this.parentModel.get('_modelType') === 'folder') {
         this.$('.g-folder-header-buttons').prepend(girder.templates.curation_button());
         this.$('.g-curation-button').tooltip({
             container: 'body',
@@ -102,12 +102,12 @@ girder.views.curation_CurationDialog = girder.View.extend({
         // show only relevant action buttons
         $('.g-curation-action-container button').hide();
         if (this.curation.enabled) {
-            if (this.curation.status == 'construction') {
+            if (this.curation.status === 'construction') {
                 $('#g-curation-request').show();
             }
             if (girder.currentUser.get('admin')) {
                 $('#g-curation-disable').show();
-                if (this.curation.status == 'requested') {
+                if (this.curation.status === 'requested') {
                     $('#g-curation-approve').show();
                     $('#g-curation-reject').show();
                 }
@@ -127,7 +127,7 @@ girder.views.curation_CurationDialog = girder.View.extend({
             path: 'folder/' + this.folder.get('_id') + '/curation',
             data: data
         }).done(_.bind(function () {
-            this.$el.modal('hide')
+            this.$el.modal('hide');
             girder.events.trigger('g:alert', {
                 icon: 'ok',
                 text: successText,
