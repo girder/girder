@@ -8,8 +8,55 @@
           i.icon-folder
           |  #{folder.get('name')}
       .modal-body
+        | Curation Toggle
+        .g-curation-enabled-container
+          .radio
+            label
+              input#g-curation-disabled(
+                type="radio", name="curation_enabled", value="false",
+                checked=(curation.enabled ? undefined : "checked"))
+              | #[b Disabled] &mdash; Curation is disabled for this folder
+          .radio
+            label
+              input#g-curation-enabled(
+                type="radio", name="curation_enabled", value="true",
+                checked=(curation.enabled ? "checked" : undefined))
+              | #[b Enabled] &mdash; Curation is enabled for this folder
+        | Curation Status
+        .g-curation-status-container
+          .radio
+            label
+              input#g-curation-construction(
+                type="radio", name="curation_status", value="construction",
+                checked=(curation.status == "construction" ? "checked" : undefined))
+              | #[b Construction] &mdash; The folder is being edited
+          .radio
+            label
+              input#g-curation-requested(
+                type="radio", name="curation_status", value="requested",
+                checked=(curation.status == "requested" ? "checked" : undefined))
+              | #[b Requested] &mdash; The folder is waiting for admin approval
+          .radio
+            label
+              input#g-curation-approved(
+                type="radio", name="curation_status", value="approved",
+                checked=(curation.status == "approved" ? "checked" : undefined))
+              | #[b Approved] &mdash; The folder has been approved
+        | Curation Actions
+        .g-curation-action-container
+          button#g-curation-enable.btn.btn-small.btn-primary
+            | Enable Curation
+          button#g-curation-request.btn.btn-small.btn-primary
+            | Request Approval
+          button#g-curation-approve.btn.btn-small.btn-success
+            | Approve Request
+          button#g-curation-reject.btn.btn-small.btn-danger
+            | Reject Request
+          button#g-curation-disable.btn.btn-small.btn-warning
+            | Disable Curation
+        #g-curation-error-message.g-validation-failed-message
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Close
-        button.g-submit-curation.btn.btn-small.btn-primary(type="submit")
+        button#g-curation-submit.btn.btn-small.btn-primary(type="submit")
           i.icon-ok
           |  Save

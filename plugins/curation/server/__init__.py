@@ -28,7 +28,7 @@ CURATION = 'curation'
 ENABLED = 'enabled'
 STATUS = 'status'
 REASON = 'reason'
-ENABLE_USER_ID = 'adminUserId'
+ENABLE_USER_ID = 'enableUserId'
 REQUEST_USER_ID = 'requestUserId'
 REVIEW_USER_ID = 'reviewUserId'
 
@@ -48,10 +48,15 @@ class CuratedFolder(Resource):
         .errorResponse('Read permission denied on the folder.', 403)
     )
     def getCuration(self, folder, params):
-        return folder.get(CURATION, {})
+        result = {
+            ENABLED: False,
+            STATUS: CONSTRUCTION,
+        }
+        result.update(folder.get(CURATION, {}))
+        return result
 
     @access.public
-    @loadmodel(model='folder', level=AccessType.WRITE)
+    @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Set curation details for the folder.')
         .param('id', 'The folder ID', paramType='path')
