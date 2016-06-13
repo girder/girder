@@ -62,6 +62,16 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
 
 def setAssetstoreAdapter(storeType, cls):
+
+    """
+    This updates the internal assetstore adapter table with either a new entry,
+    or a modification to an existing entry. Subsequent calls to
+    getAssetstoreAdapter() will return the modified class (or instance thereof),
+    allowing for dynamic updating of assetstore behavior at runtime.
+
+    :param storeType: The assetstore type to create/modify.
+    :type storeType: enum | any
+    """
     _assetstoreTable[storeType] = cls
 
 
