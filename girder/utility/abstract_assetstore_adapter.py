@@ -126,7 +126,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
                                   self.__class__.__name__)  # pragma: no cover
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, extraParameters=None):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
