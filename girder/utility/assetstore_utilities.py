@@ -71,6 +71,9 @@ def setAssetstoreAdapter(storeType, cls):
 
     :param storeType: The assetstore type to create/modify.
     :type storeType: enum | any
+    :param cls: The new assetstore adapter class to install in the table. This
+    should be an adapter descending from AbstractAssetstoreAdapter.
+    :type cls: AbstractAssetstoreAdapter
     """
     _assetstoreTable[storeType] = cls
 
