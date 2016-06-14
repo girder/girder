@@ -112,18 +112,13 @@ class CuratedFolder(Resource):
         # user requesting approval
         if enabled and oldStatus == CONSTRUCTION and status == REQUESTED:
             curation[REQUEST_USER_ID] = user.get('_id')
-            # read-only access
-            for doc in folder['access']['users'] + folder['access']['groups']:
-                if doc['level'] == AccessType.WRITE:
-                    doc['level'] = AccessType.READ
+            self._makeReadOnly(folder)
             self._addTimeline(oldCuration, curation, 'requested approval')
             # send email to admin requesting approval
-            if ENABLE_USER_ID in curation:
-                self._sendMail(
-                    [self._getEmail(curation[ENABLE_USER_ID])],
-                    'REQUEST FOR APPROVAL: ' + folder['name'],
-                    'curation.requested.mako',
-                    dict(folder=folder, curation=curation))
+            self._sendMail(
+                folder, curation.get(ENABLE_USER_ID),
+                'REQUEST FOR APPROVAL: ' + folder['name'],
+                'curation.requested.mako')
 
         # admin approving request
         if enabled and oldStatus == REQUESTED and status == APPROVED:
@@ -131,40 +126,40 @@ class CuratedFolder(Resource):
             curation[REVIEW_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'approved request')
             # send approval notification to requestor
-            if REQUEST_USER_ID in curation:
-                self._sendMail(
-                    [self._getEmail(curation[REQUEST_USER_ID])],
-                    'APPROVED: ' + folder['name'],
-                    'curation.approved.mako',
-                    dict(folder=folder, curation=curation))
+            self._sendMail(
+                folder, curation.get(REQUEST_USER_ID),
+                'APPROVED: ' + folder['name'],
+                'curation.approved.mako')
 
         # admin rejecting request
         if enabled and oldStatus == REQUESTED and status == CONSTRUCTION:
             curation[REVIEW_USER_ID] = user.get('_id')
-            # restore write access
-            for doc in folder['access']['users'] + folder['access']['groups']:
-                if doc['level'] == AccessType.READ:
-                    doc['level'] = AccessType.WRITE
+            self._makeWriteable(folder)
             self._addTimeline(oldCuration, curation, 'rejected request')
             # send rejection notification to requestor
-            if REQUEST_USER_ID in curation:
-                self._sendMail(
-                    [self._getEmail(curation[REQUEST_USER_ID])],
-                    'REJECTED: ' + folder['name'],
-                    'curation.rejected.mako',
-                    dict(folder=folder, curation=curation))
+            self._sendMail(
+                folder, curation.get(REQUEST_USER_ID),
+                'REJECTED: ' + folder['name'],
+                'curation.rejected.mako')
 
         # admin reopening folder
         if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
             folder['public'] = False
-            # restore write access
-            for doc in folder['access']['users'] + folder['access']['groups']:
-                if doc['level'] == AccessType.READ:
-                    doc['level'] = AccessType.WRITE
+            self._makeWriteable(folder)
             self._addTimeline(oldCuration, curation, 'reopened folder')
 
         self.model('folder').save(folder)
         return curation
+
+    def _makeReadOnly(self, folder):
+        for doc in folder['access']['users'] + folder['access']['groups']:
+            if doc['level'] == AccessType.WRITE:
+                doc['level'] = AccessType.READ
+
+    def _makeWriteable(self, folder):
+        for doc in folder['access']['users'] + folder['access']['groups']:
+            if doc['level'] == AccessType.READ:
+                doc['level'] = AccessType.WRITE
 
     def _addTimeline(self, oldCuration, curation, text):
         user = self.getCurrentUser()
@@ -182,9 +177,15 @@ class CuratedFolder(Resource):
     def _getEmail(self, userId):
         return self.model('user').load(userId, force=True).get('email')
 
-    def _sendMail(self, emails, subject, template, data):
-        data['host'] = posixpath.dirname(mail_utils.getEmailUrlPrefix())
+    def _sendMail(self, folder, userId, subject, template):
+        if not userId:
+            return
+        data = dict(
+            folder=folder,
+            curation=folder[CURATION],
+            host=posixpath.dirname(mail_utils.getEmailUrlPrefix()))
         text = mail_utils.renderTemplate(template, data)
+        emails = [self._getEmail(userId)]
         mail_utils.sendEmail(emails, subject, text)
 
 
