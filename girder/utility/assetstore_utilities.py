@@ -24,6 +24,13 @@ from girder.constants import AssetstoreType
 from girder import events
 
 
+_assetstoreTable = {
+    AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
+    AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
+    AssetstoreType.S3: S3AssetstoreAdapter
+}
+
+
 def getAssetstoreAdapter(assetstore, instance=True):
     """
     This is a factory method that will return the appropriate assetstore adapter
@@ -38,16 +45,10 @@ def getAssetstoreAdapter(assetstore, instance=True):
     :type instance: bool
     :returns: An adapter descending from AbstractAssetstoreAdapter
     """
-    cls = None
     storeType = assetstore['type']
 
-    if storeType == AssetstoreType.FILESYSTEM:
-        cls = FilesystemAssetstoreAdapter
-    elif storeType == AssetstoreType.GRIDFS:
-        cls = GridFsAssetstoreAdapter
-    elif storeType == AssetstoreType.S3:
-        cls = S3AssetstoreAdapter
-    else:
+    cls = _assetstoreTable.get(storeType)
+    if cls is None:
         e = events.trigger('assetstore.adapter.get', assetstore)
         if len(e.responses) > 0:
             cls = e.responses[-1]
@@ -58,6 +59,23 @@ def getAssetstoreAdapter(assetstore, instance=True):
         return cls(assetstore)
     else:
         return cls
+
+
+def setAssetstoreAdapter(storeType, cls):
+
+    """
+    This updates the internal assetstore adapter table with either a new entry,
+    or a modification to an existing entry. Subsequent calls to
+    getAssetstoreAdapter() will return the modified class (or instance thereof),
+    allowing for dynamic updating of assetstore behavior at runtime.
+
+    :param storeType: The assetstore type to create/modify.
+    :type storeType: enum | any
+    :param cls: The new assetstore adapter class to install in the table. This
+    should be an adapter descending from AbstractAssetstoreAdapter.
+    :type cls: AbstractAssetstoreAdapter
+    """
+    _assetstoreTable[storeType] = cls
 
 
 def fileIndexFields():
