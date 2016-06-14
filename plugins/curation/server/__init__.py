@@ -105,6 +105,13 @@ class CuratedFolder(Resource):
             curation[ENABLE_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'enabled curation')
 
+        # admin reopening folder
+        if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
+            folder['public'] = False
+            curation[ENABLE_USER_ID] = user.get('_id')
+            self._makeWriteable(folder)
+            self._addTimeline(oldCuration, curation, 'reopened folder')
+
         # admin disabling curation
         if not enabled and oldEnabled:
             self._addTimeline(oldCuration, curation, 'disabled curation')
@@ -141,12 +148,6 @@ class CuratedFolder(Resource):
                 folder, curation.get(REQUEST_USER_ID),
                 'REJECTED: ' + folder['name'],
                 'curation.rejected.mako')
-
-        # admin reopening folder
-        if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
-            folder['public'] = False
-            self._makeWriteable(folder)
-            self._addTimeline(oldCuration, curation, 'reopened folder')
 
         self.model('folder').save(folder)
         return curation
