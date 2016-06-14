@@ -3,7 +3,7 @@ girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
     render.call(this);
 
     if (this.parentModel.get('_modelType') === 'folder') {
-        this.$('.g-folder-actions-menu').append(girder.templates.curation_button());
+        $('.g-folder-actions-menu').append(girder.templates.curation_button());
     }
 
     return this;
@@ -81,9 +81,7 @@ girder.views.CurationDialog = girder.View.extend({
             folder: this.folder,
             curation: this.curation,
             moment: window.moment
-        })).girderModal(this).on('shown.bs.modal', function () {
-            // TODO?
-        });
+        })).girderModal(this);
 
         // show only relevant action buttons
         $('.g-curation-action-container button').hide();
