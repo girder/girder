@@ -6,6 +6,8 @@
 !gravatar/
 !hashsum_download/
 !hdfs_assetstore/
+!homepage/
+!item_previews/
 !jobs/
 !jquery_widgets/
 !metadata_extractor/

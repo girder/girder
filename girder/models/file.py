@@ -73,7 +73,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         Model.remove(self, file)
 
     def download(self, file, offset=0, headers=True, endByte=None,
-                 contentDisposition=None):
+                 contentDisposition=None, extraParameters=None):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call downloadFile on it. If the file is a link
@@ -91,13 +91,15 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param contentDisposition: Content-Disposition response header
             disposition-type value.
         :type contentDisposition: str or None
+        :type extraParameters: str or None
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             return adapter.downloadFile(
                 file, offset=offset, headers=headers, endByte=endByte,
-                contentDisposition=contentDisposition)
+                contentDisposition=contentDisposition,
+                extraParameters=extraParameters)
         elif file.get('linkUrl'):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
@@ -304,3 +306,31 @@ class File(acl_mixin.AccessControlMixin, Model):
             file['linkUrl'] = srcFile['linkUrl']
 
         return self.save(file)
+
+    def isOrphan(self, file, user=None):
+        """
+        Returns True if this file is orphaned (its item or attached entity is
+        missing).
+
+        :param file: The file to check.
+        :type file: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
+        if file.get('attachedToId'):
+            return not self.model(file.get('attachedToType')).load(
+                file.get('attachedToId'), user=user)
+        else:
+            return not self.model('item').load(
+                file.get('itemId'), user=user)
+
+    def updateSize(self, file):
+        """
+        Returns the size of this file. Does not currently check the underlying
+        assetstore to verify the size.
+
+        :param file: The file.
+        :type file: dict
+        """
+        # TODO: check underlying assetstore for size?
+        return file.get('size', 0), 0

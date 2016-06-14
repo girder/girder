@@ -59,7 +59,7 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
 
 
 def girderOutputSpec(parent, token, parentType='folder', name=None,
-                     dataType='string', dataFormat='text'):
+                     dataType='string', dataFormat='text', reference=None):
     """
     Downstream plugins that are building worker jobs that use Girder IO
     should use this to generate the output specs more easily.
@@ -79,6 +79,10 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
     :type dataType: str
     :param dataFormat: The worker `format` field.
     :type dataFormat: str
+    :param reference: Optional "reference" string to pass back to the server
+        during the upload. This can be used to attach arbitrary data to this
+        for tracking purposes, e.g., referring back to related inputs.
+    :type reference: str
     """
     if isinstance(token, dict):
         token = token['_id']
@@ -91,7 +95,8 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
         'parent_id': str(parent['_id']),
         'parent_type': parentType,
         'type': dataType,
-        'format': dataFormat
+        'format': dataFormat,
+        'reference': reference
     }
 
 

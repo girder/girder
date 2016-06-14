@@ -314,6 +314,90 @@ class SystemTestCase(base.TestCase):
         # tests that check repair of different models are convered in the
         # individual models' tests
 
+    def testConsistencyCheck(self):
+        user = self.users[0]
+        c1 = self.model('collection').createCollection('c1', user)
+        f1 = self.model('folder').createFolder(
+            c1, 'f1', parentType='collection')
+        self.model('folder').createFolder(
+            c1, 'f2', parentType='collection')
+        f3 = self.model('folder').createFolder(
+            user, 'f3', parentType='user')
+        self.model('folder').createFolder(
+            user, 'f4', parentType='user')
+        i1 = self.model('item').createItem('i1', user, f1)
+        i2 = self.model('item').createItem('i2', user, f1)
+        self.model('item').createItem('i3', user, f1)
+        i4 = self.model('item').createItem('i4', user, f3)
+        self.model('item').createItem('i5', user, f3)
+        self.model('item').createItem('i6', user, f3)
+        assetstore = {'_id': 0}
+        self.model('file').createFile(user, i1, 'foo', 7, assetstore)
+        self.model('file').createFile(user, i1, 'foo', 13, assetstore)
+        self.model('file').createFile(user, i2, 'foo', 19, assetstore)
+        self.model('file').createFile(user, i4, 'foo', 23, assetstore)
+
+        self.assertEqual(
+            39, self.model('collection').load(c1['_id'], force=True)['size'])
+        self.assertEqual(
+            39, self.model('folder').load(f1['_id'], force=True)['size'])
+        self.assertEqual(
+            23, self.model('folder').load(f3['_id'], force=True)['size'])
+        self.assertEqual(
+            20, self.model('item').load(i1['_id'], force=True)['size'])
+        self.assertEqual(
+            23, self.model('user').load(user['_id'], force=True)['size'])
+
+        resp = self.request(path='/system/check', user=user, method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['baseParentsFixed'], 0)
+        self.assertEqual(resp.json['orphansRemoved'], 0)
+        self.assertEqual(resp.json['sizesChanged'], 0)
+
+        self.model('item').update(
+            {'_id': i1['_id']}, update={'$set': {'baseParentId': None}})
+
+        resp = self.request(path='/system/check', user=user, method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['baseParentsFixed'], 1)
+        self.assertEqual(resp.json['orphansRemoved'], 0)
+        self.assertEqual(resp.json['sizesChanged'], 0)
+
+        self.model('collection').update(
+            {'_id': c1['_id']}, update={'$set': {'size': 0}})
+        self.model('folder').update(
+            {'_id': f1['_id']}, update={'$set': {'size': 0}})
+        self.model('item').update(
+            {'_id': i1['_id']}, update={'$set': {'size': 0}})
+
+        resp = self.request(path='/system/check', user=user, method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['baseParentsFixed'], 0)
+        self.assertEqual(resp.json['orphansRemoved'], 0)
+        self.assertEqual(resp.json['sizesChanged'], 3)
+
+        self.assertEqual(
+            39, self.model('collection').load(c1['_id'], force=True)['size'])
+        self.assertEqual(
+            39, self.model('folder').load(f1['_id'], force=True)['size'])
+        self.assertEqual(
+            23, self.model('folder').load(f3['_id'], force=True)['size'])
+        self.assertEqual(
+            20, self.model('item').load(i1['_id'], force=True)['size'])
+        self.assertEqual(
+            23, self.model('user').load(user['_id'], force=True)['size'])
+
+        self.model('folder').collection.delete_one({'_id': f3['_id']})
+
+        resp = self.request(path='/system/check', user=user, method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['baseParentsFixed'], 0)
+        self.assertEqual(resp.json['orphansRemoved'], 3)
+        self.assertEqual(resp.json['sizesChanged'], 0)
+
+        self.assertEqual(
+            0, self.model('user').load(user['_id'], force=True)['size'])
+
     def testLogRoute(self):
         logRoot = os.path.join(ROOT_DIR, 'tests', 'cases', 'dummylogs')
         config.getConfig()['logging'] = {'log_root': logRoot}

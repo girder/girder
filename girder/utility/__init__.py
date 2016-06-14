@@ -23,6 +23,26 @@ import json
 import os
 import pytz
 import re
+import string
+
+from girder.constants import TerminalColor
+
+try:
+    from random import SystemRandom
+    random = SystemRandom()
+    random.random()  # potentially raises NotImplementedError
+except NotImplementedError:  # pragma: no cover
+    print(TerminalColor.warning(
+        'WARNING: using non-cryptographically secure PRNG.'))
+    import random
+
+
+def genToken(length=64):
+    """
+    Use this utility function to generate a random string of a desired length.
+    """
+    return ''.join(random.choice(string.ascii_letters + string.digits)
+                   for x in range(length))
 
 
 def camelcase(value):

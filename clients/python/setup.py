@@ -21,10 +21,10 @@
 from setuptools import setup, find_packages
 
 
-CLIENT_VERSION = '1.1.3'
+CLIENT_VERSION = '1.2.0'
 
 install_reqs = [
-    'requests',
+    'requests>=2.4.2',
     'six'
 ]
 with open('README.rst') as f:

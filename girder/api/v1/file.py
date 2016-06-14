@@ -23,7 +23,7 @@ import six
 
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
-from ...constants import AccessType
+from ...constants import AccessType, TokenScope
 from girder.models.model_base import AccessException, GirderException
 from girder.api import access
 
@@ -49,7 +49,7 @@ class File(Resource):
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='file', level=AccessType.READ)
     @filtermodel(model='file')
     @describeRoute(
@@ -61,7 +61,7 @@ class File(Resource):
     def getFile(self, file, params):
         return file
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Start a new upload or create an empty or link file.')
         .responseClass('Upload')
@@ -124,7 +124,7 @@ class File(Resource):
                 return self.model('file').filter(
                     self.model('upload').finalizeUpload(upload), user)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Finalize an upload explicitly if necessary.')
         .notes('This is only required in certain non-standard upload '
@@ -157,7 +157,7 @@ class File(Resource):
         extraKeys = file.get('additionalFinalizeKeys', ())
         return self.model('file').filter(file, user, additionalKeys=extraKeys)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Request required offset before resuming an upload.')
         .param('uploadId', 'The ID of the upload record.')
@@ -182,7 +182,7 @@ class File(Resource):
         else:
             return offset
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
@@ -233,7 +233,7 @@ class File(Resource):
             raise
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='file', level=AccessType.READ)
     @describeRoute(
         Description('Download a file.')
@@ -251,6 +251,8 @@ class File(Resource):
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value', required=False,
                enum=['inline', 'attachment'], default='attachment')
+        .param('extraParameters', 'Arbitrary data to send along with the '
+               'download request.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -279,11 +281,14 @@ class File(Resource):
             raise RestException('Unallowed contentDisposition type "%s".' %
                                 contentDisp)
 
+        extraParameters = params.get('extraParameters')
+
         return self.model('file').download(file, offset, endByte=endByte,
-                                           contentDisposition=contentDisp)
+                                           contentDisposition=contentDisp,
+                                           extraParameters=extraParameters)
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
@@ -300,7 +305,7 @@ class File(Resource):
     def downloadWithName(self, id, name, params):
         return self.download(id=id, params=params)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.WRITE)
     @describeRoute(
         Description('Delete a file by ID.')
@@ -311,7 +316,7 @@ class File(Resource):
     def deleteFile(self, file, params):
         self.model('file').remove(file)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='upload')
     @describeRoute(
         Description('Cancel a partially completed upload.')
@@ -328,7 +333,7 @@ class File(Resource):
         self.model('upload').cancelUpload(upload)
         return {'message': 'Upload canceled.'}
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.WRITE)
     @filtermodel(model='file')
     @describeRoute(
@@ -345,7 +350,7 @@ class File(Resource):
                                       (file.get('mimeType') or '').strip())
         return self.model('file').updateFile(file)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.WRITE)
     @describeRoute(
         Description('Change the contents of an existing file.')
@@ -372,7 +377,7 @@ class File(Resource):
             return self.model('file').filter(
                 self.model('upload').finalizeUpload(upload), user)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.READ)
     @loadmodel(model='item', map={'itemId': 'item'}, level=AccessType.WRITE)
     @filtermodel(model='file')

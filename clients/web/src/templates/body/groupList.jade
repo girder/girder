@@ -10,22 +10,21 @@
       |  Create Group
 
 each group in groups
-  .g-group-list-entry
+  .g-group-list-entry.g-top-level-list-entry(public=(group.get('public') ? "true" : "false"))
     .g-group-right-column
       .g-group-created
         i.icon-clock
         | Created on
         span.g-group-created-date  #{girder.formatDate(group.get('created'), girder.DATE_DAY)}
-      .g-group-privacy
-        if (group.get('public'))
-          i.icon-globe
-          | Public group
-        else
-          i.icon-lock
-          | Private group
-    .g-group-title
-      a.g-group-link(g-group-cid="#{group.cid}")
-        b #{group.get('name')}
-    .g-group-subtitle
-      span.g-group-description  #{group.get('description')}
+    .g-list-public-status-icon
+      if group.get('public')
+        i.icon-globe(title="Public group")
+      else
+        i.icon-lock(title="Private group")
+    .g-top-level-list-title-container
+      .g-group-title
+        a.g-group-link(g-group-cid=group.cid)
+          b= group.name()
+      .g-group-subtitle
+        span.g-group-description= group.get('description')
     .g-clear-right

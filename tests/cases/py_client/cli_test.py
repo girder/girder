@@ -56,11 +56,17 @@ def invokeCli(argv, username='', password='', useApiUrl=False):
     """
     if useApiUrl:
         apiUrl = 'http://localhost:%s/api/v1' % os.environ['GIRDER_PORT']
-        argsList = ['girder-client', '--api-url', apiUrl, '--username',
-                    username, '--password', password] + list(argv)
+        argsList = ['girder-client', '--api-url', apiUrl]
     else:
-        argsList = ['girder-client', '--port', os.environ['GIRDER_PORT'],
-                    '--username', username, '--password', password] + list(argv)
+        argsList = ['girder-client', '--port', os.environ['GIRDER_PORT']]
+
+    if username:
+        argsList += ['--username', username]
+    if password:
+        argsList += ['--password', password]
+
+    argsList += list(argv)
+
     exitVal = 0
     with mock.patch.object(sys, 'argv', argsList),\
             mock.patch('sys.exit', side_effect=SysExitException) as exit,\
@@ -98,6 +104,7 @@ class PythonCliTestCase(base.TestCase):
             password='password', email='email@email.com')
         self.publicFolder = six.next(self.model('folder').childFolders(
             parentType='user', parent=self.user, user=None, limit=1))
+        self.apiKey = self.model('api_key').createApiKey(self.user, name='')
 
         self.downloadDir = os.path.join(
             os.path.dirname(__file__), '_testDownload')
@@ -119,16 +126,13 @@ class PythonCliTestCase(base.TestCase):
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
         args = ['-c', 'upload', str(self.publicFolder['_id']), localDir]
-        flag = False
-        try:
+        with self.assertRaises(girder_client.HttpError):
             invokeCli(args)
-        except girder_client.AuthenticationError:
-            flag = True
 
-        self.assertTrue(flag)
+        with self.assertRaises(girder_client.HttpError):
+            invokeCli(['--api-key', '1234'] + args)
 
         # Test dry-run and blacklist options
-
         ret = invokeCli(args + ['--dryrun', '--blacklist=hello.txt'],
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
@@ -164,6 +168,14 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(('-c', 'download', str(subfolder['_id']), downloadDir),
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
+
+        # Try uploading using API key
+        ret = invokeCli(['--api-key', self.apiKey['key']] + args)
+        self.assertEqual(ret['exitVal'], 0)
+        six.assertRegex(
+            self, ret['stdout'],
+            'Creating Folder from .*tests/cases/py_client/testdata')
+        self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
