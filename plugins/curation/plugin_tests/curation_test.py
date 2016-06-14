@@ -121,6 +121,7 @@ class CurationTest(base.TestCase):
         path = '/folder/%s/curation' % f2.get('_id')
         resp = self.request(path=path, user=user)
         self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['timeline']), 3)
         self.assertEqual(resp.json['timeline'][0]['oldEnabled'], False)
         self.assertEqual(resp.json['timeline'][0]['enabled'], True)
         self.assertEqual(resp.json['timeline'][0]['oldStatus'], 'construction')
