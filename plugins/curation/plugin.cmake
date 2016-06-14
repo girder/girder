@@ -1,4 +1,4 @@
-# add_python_test(curation PLUGIN curation)
+add_python_test(curation PLUGIN curation)
 
 add_python_style_test(python_static_analysis_curation
     "${PROJECT_SOURCE_DIR}/plugins/curation/server")
