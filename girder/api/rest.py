@@ -1057,10 +1057,26 @@ class boundHandler(object):  # noqa: class name
     ``self.boolParam``, ``self.requireParams``, etc.
     """
     def __init__(self, ctx=None):
-        self.ctx = ctx or _sharedContext
 
-    def __call__(self, fn):
-        @six.wraps(fn)
-        def wrapped(*args, **kwargs):
-            return fn(self.ctx, *args, **kwargs)
-        return wrapped
+        if ctx is None or isinstance(ctx, Resource):  # Used with arguments
+            self.ctx = ctx or _sharedContext
+            self.func = None
+
+        elif callable(ctx):  # Used as a raw decorator
+            self.ctx = _sharedContext
+            self.func = ctx
+        else:
+            raise Exception('ctx in boundhandler must be an instance of '
+                            'Resource or a function to be wrapped')
+
+    def __call__(self, *args, **kwargs):
+        if self.func is not None:  # Used as a raw decorator
+            return self.func(self.ctx, *args, **kwargs)
+
+        else:  # Used with arguments
+            fn = args[0]
+
+            @six.wraps(fn)
+            def wrapped(*fargs, **fkwargs):
+                return fn(self.ctx, *fargs, **fkwargs)
+            return wrapped
