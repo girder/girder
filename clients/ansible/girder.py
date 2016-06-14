@@ -34,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 DOCUMENTATION = '''
 ---
@@ -68,6 +68,11 @@ options:
         default: None
         description:
             - full URL base of the girder instance API
+    apiKey:
+        required: false
+        default: None
+        description:
+            - pass in an apiKey instead of username/password
 
 
     scheme:
@@ -1054,7 +1059,7 @@ class GirderClientModule(GirderClient):
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
                ['host', 'port', 'apiRoot', 'apiUrl',
-                'scheme', 'dryrun', 'blacklist']
+                'apiKey', 'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
         # If a username and password are set
         if self.module.params['username'] is not None:
@@ -1069,6 +1074,9 @@ class GirderClientModule(GirderClient):
         # If a token is set
         elif self.module.params['token'] is not None:
             self.token = self.module.params['token']
+
+        elif self.module.params['apiKey'] is not None:
+            self.apiKey = self.module.params['apiKey']
 
         # Else error if we're not trying to create a user
         elif self.module.params['user'] is None:
@@ -1741,6 +1749,7 @@ def main():
         'username': dict(),
         'password': dict(),
         'token':    dict(),
+        'apiKey': dict(),
 
         # General
         'state': dict(default="present", choices=['present', 'absent'])
@@ -1754,7 +1763,7 @@ def main():
     module = AnsibleModule(  # noqa
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
-                         ["token", "username", "user"]],
+                         ["token", "username", "user", "apiKey"]],
         required_together=[["username", "password"]],
         mutually_exclusive=gcm.required_one_of,
         supports_check_mode=False)
