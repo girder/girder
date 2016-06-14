@@ -177,6 +177,27 @@ then be able to log in with their Google account when they click the log in page
 and select the option to log in with Google.
 
 
+Curation
+--------
+
+This plugin adds curation functionality to Girder, similar to that in MIDAS.
+The standard curation workflow works as follows.
+
+- Site admins can enable curation for any folder.
+- Users with write access can populate the folder with data.
+- When ready, a user can request approval from the admin. The folder becomes read-only at this point to avoid further changes being made while the admin is reviewing.
+- The admin can approve or reject the folder contents.
+- If approved, the folder becomes public.
+- If rejected, the folder becomes writeable again by the users who can make changes and resubmit for approval.
+
+The curation dialog is accessible from the Folder actions menu and shows the following information.
+
+- Whether curation is enabled or disabled for the folder.
+- The current curation status: construction, requested, or approved.
+- A timeline of status changes, who performed them and when.
+- Context-dependent action buttons to perform state transitions.
+
+
 Provenance Tracker
 ------------------
 
