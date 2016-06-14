@@ -11,7 +11,7 @@ girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
 
 // launch modal when curation button is clicked
 girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = function (e) {
-    new girder.views.curation_CurationDialog({
+    new girder.views.CurationDialog({
         el: $('#g-dialog-container'),
         parentView: this,
         folder: this.parentModel
@@ -19,7 +19,7 @@ girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = func
 };
 
 // curation dialog
-girder.views.curation_CurationDialog = girder.View.extend({
+girder.views.CurationDialog = girder.View.extend({
     events: {
         'click #g-curation-enable': function (event) {
             event.preventDefault();
