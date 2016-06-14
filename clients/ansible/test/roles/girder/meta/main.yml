@@ -1,7 +1,0 @@
----
-
-dependencies:
-  - role: girder-variables
-  - role: girder-install
-  - role: girder-service-install
-  - role: girder-service
