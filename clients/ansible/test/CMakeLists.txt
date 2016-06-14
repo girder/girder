@@ -29,17 +29,18 @@ function(add_ansible_test case)
 endfunction()
 
 add_ansible_test(user)
-add_ansible_test(resources)
-add_ansible_test(plugin)
 add_ansible_test(assetstore)
+add_ansible_test(resources)
+add_ansible_test(files)
+add_ansible_test(plugin)
 add_ansible_test(access)
 add_ansible_test(hierarchy)
 add_ansible_test(apikey)
 
-add_test(
-  NAME vagrant_destroy
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  COMMAND vagrant destroy -f
-  )
-get_property(vagrant_tests GLOBAL PROPERTY vagrant_tests)
-set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrannt_tests}")
+# add_test(
+#   NAME vagrant_destroy
+#   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+#   COMMAND vagrant destroy -f
+#   )
+# get_property(vagrant_tests GLOBAL PROPERTY vagrant_tests)
+# set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrannt_tests}")
