@@ -1059,7 +1059,7 @@ class GirderClientModule(GirderClient):
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
                ['host', 'port', 'apiRoot', 'apiUrl',
-                'apiKey', 'scheme', 'dryrun', 'blacklist']
+                'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
         # If a username and password are set
         if self.module.params['username'] is not None:
@@ -1071,12 +1071,17 @@ class GirderClientModule(GirderClient):
             except AuthenticationError:
                 self.fail("Could not Authenticate!")
 
+        elif self.module.params['apiKey'] is not None:
+            try:
+                self.authenticate(
+                    apiKey=self.module.params['apiKey'])
+
+            except AuthenticationError:
+                self.fail("Could not Authenticate!")
+
         # If a token is set
         elif self.module.params['token'] is not None:
             self.token = self.module.params['token']
-
-        elif self.module.params['apiKey'] is not None:
-            self.apiKey = self.module.params['apiKey']
 
         # Else error if we're not trying to create a user
         elif self.module.params['user'] is None:
