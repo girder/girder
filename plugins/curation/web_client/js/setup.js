@@ -21,19 +21,6 @@ girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = func
 // curation dialog
 girder.views.curation_CurationDialog = girder.View.extend({
     events: {
-        'change input': function (event) {
-            $('#g-curation-submit').attr('disabled', false);
-        },
-        'click #g-curation-submit': function (event) {
-            event.preventDefault();
-            var enabled = $('input[name="curation_enabled"]:checked').val();
-            var status = $('input[name="curation_status"]:checked').val();
-            this._save('Updated curation settings', {
-                id: this.folder.get('_id'),
-                enabled: enabled,
-                status: status
-            });
-        },
         'click #g-curation-enable': function (event) {
             event.preventDefault();
             this._save('Enabled folder curation', {
@@ -68,12 +55,19 @@ girder.views.curation_CurationDialog = girder.View.extend({
                 id: this.folder.get('_id'),
                 status: 'construction'
             });
+        },
+        'click #g-curation-reopen': function (event) {
+            event.preventDefault();
+            this._save('Reopened curated folder', {
+                id: this.folder.get('_id'),
+                status: 'construction'
+            });
         }
     },
 
     initialize: function (settings) {
         this.folder = this.parentView.parentModel;
-        this.curation = {};
+        this.curation = {timeline: []};
         girder.restRequest({
             path: 'folder/' + this.folder.get('_id') + '/curation'
         }).done(_.bind(function (resp) {
@@ -85,18 +79,11 @@ girder.views.curation_CurationDialog = girder.View.extend({
     render: function () {
         this.$el.html(girder.templates.curation_dialog({
             folder: this.folder,
-            curation: this.curation
+            curation: this.curation,
+            moment: window.moment
         })).girderModal(this).on('shown.bs.modal', function () {
-            // TODO
+            // TODO?
         });
-
-        // disable radio buttons for non-admins
-        if (!girder.currentUser.get('admin')) {
-            $('.g-curation-enabled-container input').attr('disabled', true);
-            $('.g-curation-status-container input').attr('disabled', true);
-            $('#g-curation-submit').hide();
-        }
-        $('#g-curation-submit').attr('disabled', true);
 
         // show only relevant action buttons
         $('.g-curation-action-container button').hide();
@@ -109,6 +96,9 @@ girder.views.curation_CurationDialog = girder.View.extend({
                 if (this.curation.status === 'requested') {
                     $('#g-curation-approve').show();
                     $('#g-curation-reject').show();
+                }
+                if (this.curation.status === 'approved') {
+                    $('#g-curation-reopen').show();
                 }
             }
         } else {
