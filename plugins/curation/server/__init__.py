@@ -22,6 +22,7 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType
 from girder.utility import mail_utils
+import datetime
 import posixpath
 
 
@@ -29,7 +30,7 @@ CURATION = 'curation'
 
 ENABLED = 'enabled'
 STATUS = 'status'
-REASON = 'reason'
+TIMELINE = 'timeline'
 ENABLE_USER_ID = 'enableUserId'
 REQUEST_USER_ID = 'requestUserId'
 REVIEW_USER_ID = 'reviewUserId'
@@ -56,6 +57,7 @@ class CuratedFolder(Resource):
     )
     def getCuration(self, folder, params):
         result = dict(DEFAULTS)
+        result[TIMELINE] = []
         result.update(folder.get(CURATION, {}))
         return result
 
@@ -68,8 +70,6 @@ class CuratedFolder(Resource):
                required=False, dataType='boolean')
         .param('status', 'Set the folder curation status.',
                required=False, dataType='string')
-        .param('reason', 'Set the reason for rejecting approval.',
-               required=False, dataType='string')
         .errorResponse('ID was invalid.')
         .errorResponse('Write permission denied on the folder.', 403)
     )
@@ -78,13 +78,16 @@ class CuratedFolder(Resource):
         if CURATION not in folder:
             folder[CURATION] = dict(DEFAULTS)
         curation = folder[CURATION]
+        oldCuration = dict(curation)
 
+        # update enabled
         oldEnabled = curation.get(ENABLED, False)
         if ENABLED in params:
             self.requireAdmin(user)
             curation[ENABLED] = self.boolParam(ENABLED, params)
         enabled = curation.get(ENABLED, False)
 
+        # update status
         oldStatus = curation.get(STATUS)
         if STATUS in params:
             # regular users can only do construction -> requested transition
@@ -96,16 +99,24 @@ class CuratedFolder(Resource):
 
         # admin enabling curation
         if enabled and not oldEnabled:
-            # TODO: check writers exist?
-            # TODO: email writers
+            # TODO: check if writers exist?
+            # TODO: email writers?
+            folder['public'] = False
             curation[ENABLE_USER_ID] = user.get('_id')
+            self._addTimeline(oldCuration, curation, 'enabled curation')
+
+        # admin disabling curation
+        if not enabled and oldEnabled:
+            self._addTimeline(oldCuration, curation, 'disabled curation')
 
         # user requesting approval
         if enabled and oldStatus == CONSTRUCTION and status == REQUESTED:
             curation[REQUEST_USER_ID] = user.get('_id')
+            # read-only access
             for doc in folder['access']['users'] + folder['access']['groups']:
                 if doc['level'] == AccessType.WRITE:
                     doc['level'] = AccessType.READ
+            self._addTimeline(oldCuration, curation, 'requested approval')
             # send email to admin requesting approval
             if ENABLE_USER_ID in curation:
                 self._sendMail(
@@ -115,9 +126,10 @@ class CuratedFolder(Resource):
                     dict(folder=folder, curation=curation))
 
         # admin approving request
-        if enabled and oldStatus != APPROVED and status == APPROVED:
+        if enabled and oldStatus == REQUESTED and status == APPROVED:
             folder['public'] = True
             curation[REVIEW_USER_ID] = user.get('_id')
+            self._addTimeline(oldCuration, curation, 'approved request')
             # send approval notification to requestor
             if REQUEST_USER_ID in curation:
                 self._sendMail(
@@ -129,10 +141,11 @@ class CuratedFolder(Resource):
         # admin rejecting request
         if enabled and oldStatus == REQUESTED and status == CONSTRUCTION:
             curation[REVIEW_USER_ID] = user.get('_id')
-            curation[REASON] = params.get(REASON, '')
+            # restore write access
             for doc in folder['access']['users'] + folder['access']['groups']:
                 if doc['level'] == AccessType.READ:
                     doc['level'] = AccessType.WRITE
+            self._addTimeline(oldCuration, curation, 'rejected request')
             # send rejection notification to requestor
             if REQUEST_USER_ID in curation:
                 self._sendMail(
@@ -141,11 +154,33 @@ class CuratedFolder(Resource):
                     'curation.rejected.mako',
                     dict(folder=folder, curation=curation))
 
+        # admin reopening folder
+        if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
+            folder['public'] = False
+            # restore write access
+            for doc in folder['access']['users'] + folder['access']['groups']:
+                if doc['level'] == AccessType.READ:
+                    doc['level'] = AccessType.WRITE
+            self._addTimeline(oldCuration, curation, 'reopened folder')
+
         self.model('folder').save(folder)
         return curation
 
-    def _getEmail(self, _id):
-        return self.model('user').load(_id, force=True).get('email')
+    def _addTimeline(self, oldCuration, curation, text):
+        user = self.getCurrentUser()
+        data = dict(
+            userId=user.get('_id'),
+            userLogin=user.get('login'),
+            text=text,
+            oldEnabled=oldCuration[ENABLED],
+            oldStatus=oldCuration[STATUS],
+            enabled=curation[ENABLED],
+            status=curation[STATUS],
+            timestamp=datetime.datetime.utcnow())
+        curation.setdefault(TIMELINE, []).append(data)
+
+    def _getEmail(self, userId):
+        return self.model('user').load(userId, force=True).get('email')
 
     def _sendMail(self, emails, subject, template, data):
         data['host'] = posixpath.dirname(mail_utils.getEmailUrlPrefix())
