@@ -8,13 +8,14 @@
           i.icon-folder
           | #{folder.get('name')}
       .modal-body
-        | Curation is 
-        b= curation.enabled ? "enabled" : "disabled"
-        | . 
-        if curation.enabled
-          | Curation status is 
-          b= curation.status
-          | .
+        .g-curation-summary
+          | Curation is 
+          b= curation.enabled ? "enabled" : "disabled"
+          | . 
+          if curation.enabled
+            | Curation status is 
+            b= curation.status
+            | .
         if curation.timeline.length > 0
           .g-curation-timeline-container
             table.table.table-hover.table-condensed
