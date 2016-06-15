@@ -179,7 +179,12 @@ class PythonCliTestCase(base.TestCase):
             'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
-        # Test localsync, it shouldn't touch files
+        # Test localsync, it shouldn't touch files on 2nd pass
+        ret = invokeCli(('-c', 'localsync', str(subfolder['_id']),
+                         downloadDir), username='mylogin',
+                        password='password')
+        self.assertEqual(ret['exitVal'], 0)
+
         old_mtimes = {}
         for fname in os.listdir(downloadDir):
             filename = os.path.join(downloadDir, fname)
