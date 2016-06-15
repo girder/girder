@@ -509,6 +509,27 @@ class Model(ModelImporter):
         """
         return 1
 
+    def _isInclusionProjection(self, fields):
+        """
+        Test whether a projection filter is an inclusion filter (whitelist) or
+        exclusion projection (blacklist) of fields.
+        """
+        if fields is None:
+            return False
+
+        if not isinstance(fields, dict):
+            # If this is a list/tuple/set, that means inclusion
+            return True
+
+        for k, v in six.viewitems(fields):
+            if k != '_id':
+                # We are only allowed either an inclusion list or an exclusion
+                # list except for the _id key.
+                return v
+
+        # Empty dict or just _id field
+        return fields.get('_id', True)
+
 
 class AccessControlledModel(Model):
     """
@@ -938,10 +959,14 @@ class AccessControlledModel(Model):
         :returns: The matching document, or None if no match exists.
         """
 
-        # Ensure we load access and public, these are needed by requireAccess
-        loadFields = fields
-        if not force and fields:
-            loadFields = list(set(fields) | {'access', 'public'})
+        # Ensure we include access and public, they are needed by requireAccess
+        loadFields = copy.copy(fields)
+        if not force and self._isInclusionProjection(fields):
+            if isinstance(loadFields, dict):
+                loadFields['access'] = True
+                loadFields['public'] = True
+            else:
+                loadFields = list(set(loadFields) | {'access', 'public'})
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields,
                          exc=exc)
