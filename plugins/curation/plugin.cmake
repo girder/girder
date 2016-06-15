@@ -8,3 +8,7 @@ add_python_style_test(python_static_analysis_curation
 
 add_eslint_test(curation
     "${PROJECT_SOURCE_DIR}/plugins/curation/web_client/js")
+
+add_web_client_test(curation
+    "${PROJECT_SOURCE_DIR}/plugins/curation/plugin_tests/curationSpec.js"
+    PLUGIN curation)
