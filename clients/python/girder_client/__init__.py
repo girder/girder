@@ -871,7 +871,7 @@ class GirderClient(object):
         :param dest: The local download destination.
         """
 
-        with open(os.path.join(dest, ".girder_metadata"), "w") as fh:
+        with open(os.path.join(dest, '.girder_metadata'), 'w') as fh:
             fh.write(json.dumps(self.incomingMetadata))
 
     def loadLocalMetadata(self, dest):
@@ -882,10 +882,10 @@ class GirderClient(object):
         """
 
         try:
-            with open(os.path.join(dest, ".girder_metadata"), "r") as fh:
+            with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
                 self.localMetadata = json.loads(fh.read())
-        except OSError:
-            print("Local metadata does not exists. Falling back to download.")
+        except (IOError, OSError):
+            print('Local metadata does not exists. Falling back to download.')
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
                                       public=None):
