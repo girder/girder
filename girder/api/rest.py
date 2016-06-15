@@ -260,6 +260,7 @@ class loadmodel(ModelImporter):  # noqa: class name
     For access controlled models, it will check authorization for the current
     user. The underlying function is called with a modified set of keyword
     arguments that is transformed by the "map" parameter of this decorator.
+    Any additional kwargs will be passed to the underlying model's `load`.
 
     :param map: Map of incoming parameter name to corresponding model arg name.
         If None is passed, this will map the parameter named "id" to a kwarg
@@ -278,7 +279,7 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
-                 force=False, exc=True):
+                 force=False, exc=True, **kwargs):
         if map is None:
             self.map = {'id': model}
         else:
@@ -289,6 +290,7 @@ class loadmodel(ModelImporter):  # noqa: class name
         self.modelName = model
         self.plugin = plugin
         self.exc = exc
+        self.kwargs = kwargs
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -307,12 +309,14 @@ class loadmodel(ModelImporter):  # noqa: class name
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
-                    kwargs[converted] = model.load(id, force=True)
+                    kwargs[converted] = model.load(
+                        id, force=True, **self.kwargs)
                 elif self.level is not None:
                     kwargs[converted] = model.load(
-                        id=id, level=self.level, user=getCurrentUser())
+                        id=id, level=self.level, user=getCurrentUser(),
+                        **self.kwargs)
                 else:
-                    kwargs[converted] = model.load(id)
+                    kwargs[converted] = model.load(id, **self.kwargs)
 
                 if kwargs[converted] is None and self.exc:
                     raise RestException(
