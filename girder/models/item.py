@@ -396,7 +396,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return newItem
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None):
+                 subpath=True, mimeFilter=None, streamCallback=None):
         """
         Generate a list of files within this item.
 
@@ -419,6 +419,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
+        :param streamCallback: Optional function with args and kwargs that
+            will be called for each file instead of streaming raw data.
+        :type streamCallback: tuple
         :returns: Iterable over files in this item, where each element is a
                   tuple of (path name of the file, stream function with file
                   data).
@@ -430,13 +433,23 @@ class Item(acl_mixin.AccessControlMixin, Model):
                     (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = 'girder-item-metadata.json'
+
+        try:
+            streamCallbackFunc, streamCallbackArgs, streamCallbackKwargs = \
+                streamCallback
+        except (TypeError, ValueError):
+            streamCallbackFunc = self.model('file').download
+            streamCallbackArgs = []
+            streamCallbackKwargs = {'headers': False}
+
         for file in self.childFiles(item=doc):
             if not self._mimeFilter(file, mimeFilter):
                 continue
             if file['name'] == metadataFile:
                 metadataFile = None
             yield (os.path.join(path, file['name']),
-                   self.model('file').download(file, headers=False))
+                   streamCallbackFunc(file, *streamCallbackArgs,
+                                      **streamCallbackKwargs))
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
