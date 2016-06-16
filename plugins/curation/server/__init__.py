@@ -159,16 +159,31 @@ class CuratedFolder(Resource):
         return curation
 
     def _makeReadOnly(self, folder):
+        """
+        Updates folder permissions so that anyone with write access now has
+        read-only access.
+        """
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.WRITE:
                 doc['level'] = AccessType.READ
 
     def _makeWriteable(self, folder):
+        """
+        Updates folder permissions so that anyone with read access now has
+        write access.
+        """
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.READ:
                 doc['level'] = AccessType.WRITE
 
     def _addTimeline(self, oldCuration, curation, text):
+        """
+        Adds a new entry to the curation timeline.
+
+        :param oldCuration: the curation values before the last change
+        :param curation: the curation values after the last change
+        :param text: a short human-readable description of the change
+        """
         user = self.getCurrentUser()
         data = dict(
             userId=user.get('_id'),
@@ -182,9 +197,20 @@ class CuratedFolder(Resource):
         curation.setdefault(TIMELINE, []).append(data)
 
     def _getEmail(self, userId):
+        """
+        Loads and returns the email address for the specified user.
+        """
         return self.model('user').load(userId, force=True).get('email')
 
     def _sendMail(self, folder, userId, subject, template):
+        """
+        Sends the specified email template to a single user.
+
+        :param folder: the curated folder
+        :param userId: the id of the user to email
+        :param subject: the email subject
+        :param template: the name of the mako template to use
+        """
         if not userId:
             return
         data = dict(
