@@ -624,7 +624,7 @@ class Folder(AccessControlledModel):
         return count
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None):
+                 subpath=True, mimeFilter=None, streamCallback=None):
         """
         Generate a list of files within this folder.
 
@@ -643,6 +643,9 @@ class Folder(AccessControlledModel):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
+        :param streamCallback: Optional function with args and kwargs that
+            will be called for each file instead of streaming raw data.
+        :type streamCallback: tuple
         :returns: Iterable over files in this folder, where each element is a
                   tuple of (path name of the file, stream function with file
                   data).
@@ -655,16 +658,17 @@ class Folder(AccessControlledModel):
                                      user=user):
             if sub['name'] == metadataFile:
                 metadataFile = None
-            for (filepath, file) in self.fileList(
+            for (filepath, func) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter):
-                yield (filepath, file)
+                    mimeFilter=mimeFilter, streamCallback=streamCallback):
+                yield (filepath, func)
         for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
-            for (filepath, file) in self.model('item').fileList(
-                    item, user, path, includeMetadata, mimeFilter=mimeFilter):
-                yield (filepath, file)
+            for (filepath, func) in self.model('item').fileList(
+                    item, user, path, includeMetadata, mimeFilter=mimeFilter,
+                    streamCallback=streamCallback):
+                yield (filepath, func)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
