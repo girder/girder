@@ -15,7 +15,10 @@
           if curation.enabled
             | Curation status is 
             b= curation.status
-            | .
+            | . 
+          | Folder is 
+          b= curation.public ? "public" : "private"
+          | .
         if curation.timeline.length > 0
           .g-curation-timeline-container
             table.table.table-hover.table-condensed

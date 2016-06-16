@@ -59,6 +59,7 @@ class CuratedFolder(Resource):
         result = dict(DEFAULTS)
         result[TIMELINE] = []
         result.update(folder.get(CURATION, {}))
+        result['public'] = folder.get('public')
         return result
 
     @access.user(scope=TokenScope.DATA_READ)
@@ -154,6 +155,7 @@ class CuratedFolder(Resource):
                 'curation.rejected.mako')
 
         self.model('folder').save(folder)
+        curation['public'] = folder.get('public')
         return curation
 
     def _makeReadOnly(self, folder):
