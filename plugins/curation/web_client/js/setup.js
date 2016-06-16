@@ -91,12 +91,16 @@ girder.views.CurationDialog = girder.View.extend({
         }, this));
     },
 
-    render: function () {
-        this.$el.html(girder.templates.curation_dialog({
+    render: function (refresh) {
+        var q = this.$el.html(girder.templates.curation_dialog({
             folder: this.folder,
             curation: this.curation,
             moment: window.moment
-        })).girderModal(this);
+        }));
+
+        if (!refresh) {
+            q.girderModal(this);
+        }
 
         // show only relevant action buttons
         $('.g-curation-action-container button').hide();
@@ -128,8 +132,9 @@ girder.views.CurationDialog = girder.View.extend({
             type: 'PUT',
             path: 'folder/' + this.folder.get('_id') + '/curation',
             data: data
-        }).done(_.bind(function () {
-            this.$el.modal('hide');
+        }).done(_.bind(function (resp) {
+            this.curation = resp;
+            this.render(true);
             girder.events.trigger('g:alert', {
                 icon: 'ok',
                 text: successText,
