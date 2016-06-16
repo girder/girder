@@ -43,7 +43,6 @@ receive the Event object as its only argument.
 
 import contextlib
 import threading
-import types
 
 from .constants import TerminalColor
 from girder import logger
@@ -133,7 +132,7 @@ class AsyncEventsThread(threading.Thread):
             eventName, info, callback = self.eventQueue.get(block=True)
             try:
                 event = trigger(eventName, info, async=True)
-                if isinstance(callback, types.FunctionType):
+                if callable(callback):
                     callback(event)
             except Exception:
                 logger.exception('In handler for event "%s":' % eventName)

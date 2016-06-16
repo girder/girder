@@ -85,8 +85,9 @@ def schedule(event):
 
         # Set the job status to queued and record the task ID from celery.
         job['celeryTaskId'] = asyncResult.task_id
-        ModelImporter.model('job', 'jobs').updateJob(
-            job, status=JobStatus.QUEUED)
+        jobModel = ModelImporter.model('job', 'jobs')
+        job = jobModel.save(job)
+        jobModel.updateJob(job, status=JobStatus.QUEUED)
 
 
 def validateSettings(event):
