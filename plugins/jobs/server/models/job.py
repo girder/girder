@@ -45,11 +45,14 @@ class Job(AccessControlledModel):
             'args', 'kwargs'})
 
     def validate(self, job):
-        if not JobStatus.isValid(job['status']):
-            raise ValidationException(
-                'Invalid job status %s.' % job['status'], field='status')
+        self._validateStatus(job['status'])
 
         return job
+
+    def _validateStatus(self, status):
+        if not JobStatus.isValid(status):
+            raise ValidationException(
+                'Invalid job status %s.' % status, field='status')
 
     def list(self, user=None, limit=0, offset=0, sort=None, currentUser=None):
         """
@@ -166,7 +169,7 @@ class Job(AccessControlledModel):
             'interval': interval,
             'status': JobStatus.INACTIVE,
             'progress': None,
-            'log': '',
+            'log': [],
             'meta': {},
             'handler': handler,
             'async': async,
@@ -196,15 +199,33 @@ class Job(AccessControlledModel):
         job['kwargs'] = deserialized
         return job
 
+    def find(self, *args, **kwargs):
+        """
+        Overrides the default find behavior to exclude the log by default.
+
+        :param includeLog: Whether to include the log field in the documents.
+        :type includeLog: bool
+        """
+        kwargs['fields'] = self._computeFields(kwargs)
+        return super(Job, self).find(*args, **kwargs)
+
     def load(self, *args, **kwargs):
         """
         We extend load to deserialize the kwargs back into a dict since we
         serialized them on the way into the database.
+
+        :param includeLog: Whether to include the log field in the document.
+        :type includeLog: bool
         """
-        job = AccessControlledModel.load(self, *args, **kwargs)
+        kwargs['fields'] = self._computeFields(kwargs)
+        job = super(Job, self).load(*args, **kwargs)
 
         if job and isinstance(job['kwargs'], six.string_types):
             job['kwargs'] = json_util.loads(job['kwargs'])
+        if job and isinstance(job.get('log'), six.string_types):
+            # Legacy support: log used to be just a string, but we want to
+            # consistently return a list of strings now.
+            job['log'] = [job['log']]
 
         return job
 
@@ -247,48 +268,73 @@ class Job(AccessControlledModel):
         :type status: JobStatus
         :param progressTotal: Max progress value for this job.
         """
-        changed = False
         now = datetime.datetime.utcnow()
+        user = None
+
+        if job['userId']:
+            user = self.model('user').load(job['userId'], force=True)
+
+        updates = {
+            '$push': {},
+            '$set': {}
+        }
 
         if log is not None:
-            changed = True
-            if overwrite:
-                job['log'] = log
-            else:
-                job['log'] += log
+            self._updateLog(job, log, overwrite, now, notify, user, updates)
         if status is not None:
-            status = int(status)
-
-            if status != job['status']:
-                changed = True
-                job['status'] = status
-                job['timestamps'] = job.get('timestamps', [])
-                job['timestamps'].append({
-                    'status': status,
-                    'time': now
-                })
-
-                if notify and job['userId']:
-                    user = self.model('user').load(job['userId'], force=True)
-                    expires = now + datetime.timedelta(seconds=30)
-                    filtered = self.filter(job, user)
-                    filtered.pop('kwargs', None)
-                    self.model('notification').createNotification(
-                        type='job_status', data=filtered, user=user,
-                        expires=expires)
+            self._updateStatus(job, status, now, notify, user, updates)
         if (progressMessage is not None or progressCurrent is not None or
                 progressTotal is not None):
-            changed = True
-            self._updateJobProgress(job, progressTotal, progressCurrent,
-                                    progressMessage, notify)
+            self._updateProgress(job, progressTotal, progressCurrent,
+                                 progressMessage, notify, user, updates)
 
-        if changed:
-            job['updated'] = now
-            job = self.save(job)
+        if updates['$set'] or updates['$push']:
+            updates['$set']['updated'] = now
+
+            self.update({'_id': job['_id']}, update=updates, multi=False)
 
         return job
 
-    def _updateJobProgress(self, job, total, current, message, notify):
+    def _updateLog(self, job, log, overwrite, now, notify, user, updates):
+        """Helper for updating a job's log."""
+        if overwrite:
+            updates['$set']['log'] = [log]
+        else:
+            updates['$push']['log'] = log
+        if notify and user:
+            expires = now + datetime.timedelta(seconds=30)
+            self.model('notification').createNotification(
+                type='job_log', data={
+                    '_id': job['_id'],
+                    'overwrite': overwrite,
+                    'text': log
+                }, user=user, expires=expires)
+
+    def _updateStatus(self, job, status, now, notify, user, updates):
+        """Helper for updating job progress information."""
+        status = int(status)
+        self._validateStatus(status)
+
+        if status != job['status']:
+            job['status'] = status
+            updates['$set']['status'] = status
+            ts = {
+                'status': status,
+                'time': now
+            }
+            job['timestamps'].append(ts)
+            updates['$push']['timestamps'] = ts
+
+            if notify and user:
+                expires = now + datetime.timedelta(seconds=30)
+                filtered = self.filter(job, user)
+                filtered.pop('kwargs', None)
+                self.model('notification').createNotification(
+                    type='job_status', data=filtered, user=user,
+                    expires=expires)
+
+    def _updateProgress(self, job, total, current, message, notify, user,
+                        updates):
         """Helper for updating job progress information."""
         state = JobStatus.toNotificationStatus(job['status'])
 
@@ -310,20 +356,25 @@ class Job(AccessControlledModel):
                 'current': current,
                 'notificationId': notificationId
             }
+            updates['$set']['progress'] = job['progress']
         else:
             if total is not None:
                 job['progress']['total'] = total
+                updates['$set']['progress.total'] = total
             if current is not None:
                 job['progress']['current'] = current
+                updates['$set']['progress.current'] = current
             if message is not None:
                 job['progress']['message'] = message
+                updates['$set']['progress.message'] = message
 
-            if notify and job['userId']:
+            if notify and user:
                 if job['progress']['notificationId'] is None:
                     notification = self._createProgressNotification(
-                        job, total, current, state, message)
-                    job['progress']['notificationId'] = notification['_id']
-                    self.save(job)
+                        job, total, current, state, message, user)
+                    nid = notification['_id']
+                    job['progress']['notificationId'] = nid
+                    updates['$set']['progress.notificationId'] = nid
                 else:
                     notification = self.model('notification').load(
                         job['progress']['notificationId'])
@@ -334,8 +385,10 @@ class Job(AccessControlledModel):
                     current=job['progress']['current'],
                     total=job['progress']['total'])
 
-    def _createProgressNotification(self, job, total, current, state, message):
-        user = self.model('user').load(job['userId'], force=True)
+    def _createProgressNotification(self, job, total, current, state, message,
+                                    user=None):
+        if not user:
+            user = self.model('user').load(job['userId'], force=True)
         # TODO support channel-based notifications for jobs. For
         # right now we'll just go through the user.
         return self.model('notification').initProgress(
@@ -388,3 +441,12 @@ class Job(AccessControlledModel):
                 del doc[field]
 
         return doc
+
+    def _computeFields(self, kwargs, includeLogDefault=False):
+        """
+        Helper to compute the projection operator for default log exclusion.
+        """
+        fields = kwargs.get('fields')
+        if fields is None and not kwargs.pop('includeLog', includeLogDefault):
+            fields = {'log': False}
+        return fields
