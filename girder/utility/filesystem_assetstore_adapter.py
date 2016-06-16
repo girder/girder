@@ -325,7 +325,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         item = self.model('item').createItem(
             name=name, creator=user, folder=folder,
             reuseExisting=reuseExisting)
-        events.trigger('_filesystem_assetstore_imported_item',
+        events.trigger('filesystem_assetstore_imported',
                        {'id': item['_id'], 'type': 'item',
                         'importPath': path})
         for fname in files:
@@ -363,7 +363,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                         parent=parent, name=name, parentType=parentType,
                         creator=user, reuseExisting=True)
                     events.trigger(
-                        '_filesystem_assetstore_imported_folder',
+                        'filesystem_assetstore_imported',
                         {'id': folder['_id'], 'type': 'folder',
                          'importPath': path})
                     self.importData(folder, 'folder', params={
@@ -380,7 +380,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 item = self.model('item').createItem(
                     name=name, creator=user, folder=parent,
                     reuseExisting=True)
-                events.trigger('_filesystem_assetstore_imported_item',
+                events.trigger('filesystem_assetstore_imported',
                                {'id': item['_id'], 'type': 'item',
                                 'importPath': path})
                 self.importFile(item, path, user, name=name)
