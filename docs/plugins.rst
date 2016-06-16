@@ -180,17 +180,27 @@ and select the option to log in with Google.
 Curation
 --------
 
-This plugin adds curation functionality to Girder, similar to that in MIDAS.
+This plugin adds curation functionality to Girder, allowing content to be
+assembled and approved prior to publication. Admin users can activate curation
+for any folder, and users who are then granted permission can compose content
+under that folder. The users can request publication of the content when it is
+ready, which admins may approve or reject. The plugin provides a UI along with
+workflow management, notification, and permission support for these actions.
+
 The standard curation workflow works as follows.
 
 - Site admins can enable curation for any folder.
 - Users with write access can populate the folder with data.
-- When ready, a user can request approval from the admin. The folder becomes read-only at this point to avoid further changes being made while the admin is reviewing.
+- When ready, a user can request approval from the admin. The folder becomes
+  read-only at this point to avoid further changes being made while the admin
+  is reviewing.
 - The admin can approve or reject the folder contents.
 - If approved, the folder becomes public.
-- If rejected, the folder becomes writeable again by the users who can make changes and resubmit for approval.
+- If rejected, the folder becomes writeable again by the users who can make
+  changes and resubmit for approval.
 
-The curation dialog is accessible from the Folder actions menu and shows the following information.
+The curation dialog is accessible from the Folder actions menu and shows the
+following information.
 
 - Whether curation is enabled or disabled for the folder.
 - The current curation status: construction, requested, or approved.

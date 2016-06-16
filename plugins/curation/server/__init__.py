@@ -19,8 +19,8 @@
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, loadmodel
-from girder.constants import AccessType
+from girder.api.rest import Resource, loadmodel, RestException
+from girder.constants import AccessType, TokenScope
 from girder.utility import mail_utils
 import datetime
 import posixpath
@@ -47,7 +47,7 @@ DEFAULTS = {
 
 class CuratedFolder(Resource):
 
-    @access.public
+    @access.user(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Get curation details for the folder.')
@@ -61,7 +61,7 @@ class CuratedFolder(Resource):
         result.update(folder.get(CURATION, {}))
         return result
 
-    @access.public
+    @access.user(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Set curation details for the folder.')
@@ -69,7 +69,8 @@ class CuratedFolder(Resource):
         .param('enabled', 'Enable or disable folder curation.',
                required=False, dataType='boolean')
         .param('status', 'Set the folder curation status.',
-               required=False, dataType='string')
+               required=False, dataType='string',
+               enum=[CONSTRUCTION, REQUESTED, APPROVED])
         .errorResponse('ID was invalid.')
         .errorResponse('Write permission denied on the folder.', 403)
     )
@@ -90,6 +91,9 @@ class CuratedFolder(Resource):
         # update status
         oldStatus = curation.get(STATUS)
         if STATUS in params:
+            # verify valid status
+            if params[STATUS] not in [CONSTRUCTION, REQUESTED, APPROVED]:
+                raise RestException('Invalid status parameter')
             # regular users can only do construction -> requested transition
             if curation.get(STATUS) != CONSTRUCTION or \
                params[STATUS] != REQUESTED:

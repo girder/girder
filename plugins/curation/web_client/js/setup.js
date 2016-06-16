@@ -1,9 +1,24 @@
+function _addCurationButton() {
+    $('.g-folder-actions-menu').append(girder.templates.curation_button());
+}
+
 // add curation button to hiearchy widget
 girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
     render.call(this);
 
     if (this.parentModel.get('_modelType') === 'folder') {
-        $('.g-folder-actions-menu').append(girder.templates.curation_button());
+        // add button if an admin or if curation is enabled
+        if (girder.currentUser.get('admin')) {
+            _addCurationButton();
+        } else {
+            girder.restRequest({
+                path: 'folder/' + this.parentModel.get('_id') + '/curation'
+            }).done(_.bind(function (resp) {
+                if (resp.enabled) {
+                    _addCurationButton();
+                }
+            }, this));
+        }
     }
 
     return this;
