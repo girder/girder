@@ -147,7 +147,7 @@ class Collection(AccessControlledModel):
         return self.save(collection)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None):
+                 subpath=True, mimeFilter=None, stream=True):
         """
         Generate a list of files within this collection's folders.
 
@@ -163,6 +163,9 @@ class Collection(AccessControlledModel):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
+        :param stream: Return stream function with file data or file model
+            object if False
+        :type stream: bool
         """
         if subpath:
             path = os.path.join(path, doc['name'])
@@ -171,7 +174,7 @@ class Collection(AccessControlledModel):
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter):
+                    mimeFilter=mimeFilter, stream=stream):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):

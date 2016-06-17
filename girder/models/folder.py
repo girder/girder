@@ -624,7 +624,7 @@ class Folder(AccessControlledModel):
         return count
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None, streamCallback=None):
+                 subpath=True, mimeFilter=None, stream=True):
         """
         Generate a list of files within this folder.
 
@@ -643,9 +643,9 @@ class Folder(AccessControlledModel):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
-        :param streamCallback: Optional function with args and kwargs that
-            will be called for each file instead of streaming raw data.
-        :type streamCallback: tuple
+        :param stream: Return stream function with file data or file model
+            object if False
+        :type stream: bool
         :returns: Iterable over files in this folder, where each element is a
                   tuple of (path name of the file, stream function with file
                   data).
@@ -660,14 +660,14 @@ class Folder(AccessControlledModel):
                 metadataFile = None
             for (filepath, func) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter, streamCallback=streamCallback):
+                    mimeFilter=mimeFilter, stream=stream):
                 yield (filepath, func)
         for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, func) in self.model('item').fileList(
                     item, user, path, includeMetadata, mimeFilter=mimeFilter,
-                    streamCallback=streamCallback):
+                    stream=stream):
                 yield (filepath, func)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():

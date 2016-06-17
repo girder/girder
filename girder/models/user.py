@@ -278,7 +278,7 @@ class User(AccessControlledModel):
                 privateFolder, user, AccessType.ADMIN, save=True)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, stream=True):
         """
         Generate a list of files within this user's folders.
 
@@ -291,13 +291,17 @@ class User(AccessControlledModel):
                                 metadata[-(number).json that is distinct from
                                 any file within the item.
         :param subpath: if True, add the user's name to the path.
+        :param stream: Return stream function with file data or file model
+            object if False
+        :type stream: bool
         """
         if subpath:
             path = os.path.join(path, doc['login'])
         for folder in self.model('folder').childFolders(parentType='user',
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True):
+                    folder, user, path, includeMetadata, subpath=True,
+                    stream=stream):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
