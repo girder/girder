@@ -22,7 +22,6 @@ import datetime
 import json
 import os
 import six
-import functools
 
 from bson.objectid import ObjectId
 from .model_base import Model, ValidationException, GirderException
@@ -435,19 +434,16 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 path = os.path.join(path, doc['name'])
         metadataFile = 'girder-item-metadata.json'
 
-        if stream:
-            returnFunc = functools.partial(self.model('file').download,
-                                           headers=False)
-        else:
-            def returnFunc(item):
-                return item
-
         for file in self.childFiles(item=doc):
             if not self._mimeFilter(file, mimeFilter):
                 continue
             if file['name'] == metadataFile:
                 metadataFile = None
-            yield (os.path.join(path, file['name']), returnFunc(file))
+            if stream:
+                val = self.model('file').download(file, headers=False)
+            else:
+                val = file
+            yield (os.path.join(path, file['name']), val)
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
