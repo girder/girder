@@ -106,13 +106,13 @@ class CuratedFolder(Resource):
         if enabled and not oldEnabled:
             # TODO: check if writers exist?
             # TODO: email writers?
-            folder['public'] = False
+            self._setPublic(folder, False)
             curation[ENABLE_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'enabled curation')
 
         # admin reopening folder
         if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
-            folder['public'] = False
+            self._setPublic(folder, False)
             curation[ENABLE_USER_ID] = user.get('_id')
             self._makeWriteable(folder)
             self._addTimeline(oldCuration, curation, 'reopened folder')
@@ -134,7 +134,7 @@ class CuratedFolder(Resource):
 
         # admin approving request
         if enabled and oldStatus == REQUESTED and status == APPROVED:
-            folder['public'] = True
+            self._setPublic(folder, True)
             curation[REVIEW_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'approved request')
             # send approval notification to requestor
@@ -158,23 +158,50 @@ class CuratedFolder(Resource):
         curation['public'] = folder.get('public')
         return curation
 
+    def _setPublic(self, folder, public):
+        """
+        Recursively updates folder's public setting.
+        """
+        folder['public'] = public
+        self.model('folder').save(folder)
+        subfolders = self.model('folder').find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for folder in subfolders:
+            self._setPublic(folder, public)
+
     def _makeReadOnly(self, folder):
         """
-        Updates folder permissions so that anyone with write access now has
-        read-only access.
+        Recursively updates folder permissions so that anyone with write access
+        now has read-only access.
         """
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.WRITE:
                 doc['level'] = AccessType.READ
+        self.model('folder').save(folder)
+        subfolders = self.model('folder').find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for folder in subfolders:
+            self._makeReadOnly(folder)
 
     def _makeWriteable(self, folder):
         """
-        Updates folder permissions so that anyone with read access now has
-        write access.
+        Recursively updates folder permissions so that anyone with read access
+        now has write access.
         """
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.READ:
                 doc['level'] = AccessType.WRITE
+        self.model('folder').save(folder)
+        subfolders = self.model('folder').find({
+            'parentId': folder['_id'],
+            'parentCollection': 'folder'
+        })
+        for folder in subfolders:
+            self._makeWriteable(folder)
 
     def _addTimeline(self, oldCuration, curation, text):
         """
