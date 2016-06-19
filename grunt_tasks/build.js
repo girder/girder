@@ -221,45 +221,6 @@ module.exports = function (grunt) {
     }
 
     grunt.config.merge({
-        copy: {
-            swagger: {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/swagger-ui/dist',
-                    src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
-                    dest: 'clients/web/static/built/swagger'
-                }]
-            },
-            fontello_config: {
-                files: [{
-                    src: 'clients/web/fontello.config.json',
-                    dest: 'clients/web/static/built/fontello.config.json'
-                }]
-            }
-        },
-
-        stylus: {
-            core: {
-                files: {
-                    'clients/web/static/built/swagger/docs.css': [
-                        'clients/web/src/stylesheets/apidocs/*.styl'
-                    ]
-                }
-            }
-        },
-
-        fontello: {
-            ext_font: {
-                options: {
-                    config: 'clients/web/static/built/fontello.config.json',
-                    fonts: 'clients/web/static/built/fontello/font',
-                    styles: 'clients/web/static/built/fontello/css',
-                    // Create output directories
-                    force: true
-                }
-            }
-        },
-
         webpack: {
             options: webpackOptions,
             app: {
@@ -274,34 +235,22 @@ module.exports = function (grunt) {
             }
         },
 
+        // This should be replaced by webpack's own watch/hot-reload
         watch: {
-            stylus_core: {
-                files: ['clients/web/src/stylesheets/**/*.styl'],
-                tasks: ['stylus:core']
-            },
-            js_core: {
+            core: {
                 files: [
                     'clients/web/src/**/*.js',
-                    'clients/static/built/templates.js'
+                    'clients/static/built/templates.js',
+                    'clients/web/src/stylesheets/**/*.styl',
+                    'clients/web/src/templates/**/*.jade'
                 ],
-                tasks: ['uglify:app']
-            },
-            jade_core: {
-                files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['jade:core']
+                tasks: ['webpack:app']
             }
         },
 
-        init: {
-            'copy:swagger': {},
-            'copy:fontello_config': {},
-            'fontello:ext_font': {}
-        },
-
         default: {
-            'stylus:core': {},
             'webpack:app': {
-                dependencies: ['version-info']
+                dependencies: ['version-info'] // which generates clients/web/src/version.js
             }
         }
     });

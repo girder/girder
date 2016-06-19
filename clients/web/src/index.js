@@ -6,6 +6,7 @@ import * as models from './models';
 import * as rest from './rest';
 import * as router from './router';
 import * as utilities from './utilities';
+import * as version from './version';
 import * as views from './views';
 
 export {
@@ -17,5 +18,6 @@ export {
   rest,
   router,
   utilities,
+  version,
   views
 };
