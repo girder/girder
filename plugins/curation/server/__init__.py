@@ -22,6 +22,7 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel, RestException
 from girder.constants import AccessType, TokenScope
 from girder.utility import mail_utils
+from girder.utility.progress import ProgressContext
 import datetime
 
 
@@ -43,6 +44,11 @@ DEFAULTS = {
     STATUS: CONSTRUCTION,
 }
 
+TITLE_PUBLIC = 'Making curated folder public...'
+TITLE_PRIVATE = 'Making curated folder private...'
+TITLE_WRITEABLE = 'Making curated folder writeable...'
+TITLE_READ_ONLY = 'Making curated folder read-only...'
+
 
 class CuratedFolder(Resource):
 
@@ -61,8 +67,8 @@ class CuratedFolder(Resource):
         result['public'] = folder.get('public')
         return result
 
-    @access.user(scope=TokenScope.DATA_READ)
-    @loadmodel(model='folder', level=AccessType.READ)
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @loadmodel(model='folder', level=AccessType.WRITE)
     @describeRoute(
         Description('Set curation details for the folder.')
         .param('id', 'The folder ID', paramType='path')
@@ -105,15 +111,18 @@ class CuratedFolder(Resource):
         if enabled and not oldEnabled:
             # TODO: check if writers exist?
             # TODO: email writers?
-            self._setPublic(folder, False)
+            with self._progressContext(folder, TITLE_PRIVATE) as pc:
+                self._setPublic(folder, False, pc)
             curation[ENABLE_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'enabled curation')
 
         # admin reopening folder
         if enabled and oldStatus == APPROVED and status == CONSTRUCTION:
-            self._setPublic(folder, False)
+            with self._progressContext(folder, TITLE_PRIVATE) as pc:
+                self._setPublic(folder, False, pc)
             curation[ENABLE_USER_ID] = user.get('_id')
-            self._makeWriteable(folder)
+            with self._progressContext(folder, TITLE_WRITEABLE) as pc:
+                self._makeWriteable(folder, pc)
             self._addTimeline(oldCuration, curation, 'reopened folder')
 
         # admin disabling curation
@@ -123,7 +132,8 @@ class CuratedFolder(Resource):
         # user requesting approval
         if enabled and oldStatus == CONSTRUCTION and status == REQUESTED:
             curation[REQUEST_USER_ID] = user.get('_id')
-            self._makeReadOnly(folder)
+            with self._progressContext(folder, TITLE_READ_ONLY) as pc:
+                self._makeReadOnly(folder, pc)
             self._addTimeline(oldCuration, curation, 'requested approval')
             # send email to admin requesting approval
             self._sendMail(
@@ -133,7 +143,8 @@ class CuratedFolder(Resource):
 
         # admin approving request
         if enabled and oldStatus == REQUESTED and status == APPROVED:
-            self._setPublic(folder, True)
+            with self._progressContext(folder, TITLE_PUBLIC) as pc:
+                self._setPublic(folder, True, pc)
             curation[REVIEW_USER_ID] = user.get('_id')
             self._addTimeline(oldCuration, curation, 'approved request')
             # send approval notification to requestor
@@ -145,7 +156,8 @@ class CuratedFolder(Resource):
         # admin rejecting request
         if enabled and oldStatus == REQUESTED and status == CONSTRUCTION:
             curation[REVIEW_USER_ID] = user.get('_id')
-            self._makeWriteable(folder)
+            with self._progressContext(folder, TITLE_WRITEABLE) as pc:
+                self._makeWriteable(folder, pc)
             self._addTimeline(oldCuration, curation, 'rejected request')
             # send rejection notification to requestor
             self._sendMail(
@@ -157,10 +169,16 @@ class CuratedFolder(Resource):
         curation['public'] = folder.get('public')
         return curation
 
-    def _setPublic(self, folder, public):
+    def _progressContext(self, folder, title):
+        user = self.getCurrentUser()
+        total = self.model('folder').subtreeCount(folder, includeItems=False)
+        return ProgressContext(True, user=user, total=total, title=title)
+
+    def _setPublic(self, folder, public, pc):
         """
         Recursively updates folder's public setting.
         """
+        pc.update(increment=1)
         folder['public'] = public
         self.model('folder').save(folder)
         subfolders = self.model('folder').find({
@@ -168,13 +186,14 @@ class CuratedFolder(Resource):
             'parentCollection': 'folder'
         })
         for folder in subfolders:
-            self._setPublic(folder, public)
+            self._setPublic(folder, public, pc)
 
-    def _makeReadOnly(self, folder):
+    def _makeReadOnly(self, folder, pc):
         """
         Recursively updates folder permissions so that anyone with write access
         now has read-only access.
         """
+        pc.update(increment=1)
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.WRITE:
                 doc['level'] = AccessType.READ
@@ -184,13 +203,14 @@ class CuratedFolder(Resource):
             'parentCollection': 'folder'
         })
         for folder in subfolders:
-            self._makeReadOnly(folder)
+            self._makeReadOnly(folder, pc)
 
-    def _makeWriteable(self, folder):
+    def _makeWriteable(self, folder, pc):
         """
         Recursively updates folder permissions so that anyone with read access
         now has write access.
         """
+        pc.update(increment=1)
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.READ:
                 doc['level'] = AccessType.WRITE
@@ -200,7 +220,7 @@ class CuratedFolder(Resource):
             'parentCollection': 'folder'
         })
         for folder in subfolders:
-            self._makeWriteable(folder)
+            self._makeWriteable(folder, pc)
 
     def _addTimeline(self, oldCuration, curation, text):
         """
