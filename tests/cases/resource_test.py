@@ -455,10 +455,20 @@ class ResourceTestCase(base.TestCase):
                 str(resp.json['_id']), str(item['_id']))
 
         # test bogus path
+        # test is set to false, response code should be 400
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
-                            params={'path': '/bogus/path'})
+                            params={'path': '/collection/bogus/path',
+                                    'test': False})
         self.assertStatus(resp, 400)
+
+        # test is set to true, response code should be 200 and response body
+        # should be null (None)
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/collection/bogus/path',
+                                    'test': True})
+        self.assertStatusOk(resp)
 
     def testMove(self):
         self._createFiles()
