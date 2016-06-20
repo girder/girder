@@ -180,7 +180,7 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookUpPath(self, path, user):
+    def _lookUpPath(self, path, test, user):
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
 
@@ -190,15 +190,21 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                raise RestException('User not found: %s' % username)
+                if test is False:
+                    raise RestException('User not found: %s' % username)
+                else:
+                    return None
 
         elif model == 'collection':
             collectionName = pathArray[1]
             parent = self.model('collection').findOne({'name': collectionName})
 
             if parent is None:
-                raise RestException(
-                    'Collection not found: %s' % collectionName)
+                if test is False:
+                    raise RestException(
+                        'Collection not found: %s' % collectionName)
+                else:
+                    return None
 
         else:
             raise RestException('Invalid path format')
@@ -210,7 +216,10 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            raise RestException('Path not found: %s' % path)
+            if test is False:
+                raise RestException('Path not found: %s' % path)
+            else:
+                return None
 
         result = self.model(model).filter(document, user)
         return result
@@ -223,13 +232,17 @@ class Resource(BaseResource):
                'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
+        .param('test',
+               'Specify whether to return null if path doesn\'t exist.',
+               required=False, dataType='boolean', default=False)
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def lookup(self, params):
         self.requireParams('path', params)
-        return self._lookUpPath(params['path'], self.getCurrentUser())
+        test = self.boolParam('test', params, default=False)
+        return self._lookUpPath(params['path'], test, self.getCurrentUser())
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
