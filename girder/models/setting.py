@@ -167,8 +167,8 @@ class Setting(Model):
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
-                'Email verification must be either "required" or "disabled".',
-                'value')
+                'Email verification must be "required", "optional", or '
+                '"disabled".', 'value')
 
     def validateCoreSmtpHost(self, doc):
         if not doc['value']:
