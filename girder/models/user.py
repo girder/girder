@@ -241,6 +241,12 @@ class User(AccessControlledModel):
         self.setPassword(user, password, save=False)
         self.setPublic(user, public, save=False)
 
+        verifyEmail = self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) == 'required'
+
+        if verifyEmail:
+            pass # send email
+
         return self.save(user)
 
     def _grantSelfAccess(self, event):

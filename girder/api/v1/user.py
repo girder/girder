@@ -200,7 +200,10 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
-        if currentUser is None:
+        verifyEmail = self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) == 'required'
+
+        if currentUser is None and not verifyEmail:
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {

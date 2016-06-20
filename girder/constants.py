@@ -135,7 +135,7 @@ class SettingKey:
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
-    EMAIL_VERIFICATION = 'email_verification'
+    EMAIL_VERIFICATION = 'core.email_verification'
     SMTP_HOST = 'core.smtp_host'
     SMTP_PORT = 'core.smtp.port'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
@@ -160,7 +160,7 @@ class SettingDefault:
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.REGISTRATION_POLICY: 'open',
-        SettingKey.EMAIL_VERIFICATION: 'required',
+        SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
         SettingKey.SMTP_ENCRYPTION: 'none',
