@@ -23,7 +23,6 @@ from girder.api.rest import Resource, loadmodel, RestException
 from girder.constants import AccessType, TokenScope
 from girder.utility import mail_utils
 import datetime
-import posixpath
 
 
 CURATION = 'curation'
