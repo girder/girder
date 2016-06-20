@@ -54,6 +54,7 @@ class User(Resource):
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
         self.route('GET', ('verify', ':id'), self.verifyEmail)
+        self.route('PUT', ('verify',), self.sendVerificationEmail)
 
     @access.public
     @filtermodel(model='user')
@@ -143,7 +144,8 @@ class User(Resource):
                     SettingKey.EMAIL_VERIFICATION) == 'required'
                 if emailVerificationRequired:
                     raise RestException(
-                        'Email verification required.', code=403)
+                        'Email verification required.', code=403,
+                        extra='emailVerification')
 
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
@@ -454,3 +456,21 @@ class User(Resource):
             },
             'message': 'Email verification succeeded.'
         }
+
+    @access.public
+    @describeRoute(
+        Description('Send verification email.')
+        .param('login', 'Your login or email address.')
+        .errorResponse('That login is not registered.', 401)
+    )
+    def sendVerificationEmail(self, params):
+        self.requireParams('login', params)
+        login = params['login'].lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+        user = self.model('user').findOne({loginField: login})
+
+        if not user:
+            raise RestException('That login is not registered.', 401)
+
+        self.model('user')._sendVerificationEmail(user)
+        return {'message': 'Sent verification email.'}
