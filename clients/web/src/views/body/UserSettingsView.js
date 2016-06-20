@@ -182,6 +182,12 @@ girder.router.route('useraccount/:id/verify/:token', 'accountVerify', function (
         girder.eventStream.open();
         girder.events.trigger('g:login-changed');
         girder.events.trigger('g:navigateTo', girder.views.FrontPageView);
+        girder.events.trigger('g:alert', {
+            icon: 'ok',
+            text: 'Email verified.',
+            type: 'success',
+            timeout: 4000
+        });
     }, this)).error(_.bind(function () {
         girder.router.navigate('users', {trigger: true});
     }, this));

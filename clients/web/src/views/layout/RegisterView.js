@@ -39,6 +39,13 @@ girder.views.RegisterView = girder.View.extend({
                         }
 
                         girder.events.trigger('g:login');
+                    } else {
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Check your email to verify registration.',
+                            type: 'success',
+                            timeout: 4000
+                        });
                     }
 
                     girder.dialogs.handleClose('register', {replace: true});
