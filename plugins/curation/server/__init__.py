@@ -242,8 +242,7 @@ class CuratedFolder(Resource):
             return
         data = dict(
             folder=folder,
-            curation=folder[CURATION],
-            host=posixpath.dirname(mail_utils.getEmailUrlPrefix()))
+            curation=folder[CURATION])
         text = mail_utils.renderTemplate(template, data)
         emails = [self._getEmail(userId)]
         mail_utils.sendEmail(emails, subject, text)
