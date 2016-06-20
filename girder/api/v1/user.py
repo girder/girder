@@ -137,6 +137,13 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            if not user.get('emailVerified', False):
+                emailVerificationRequired = self.model('setting').get(
+                    SettingKey.EMAIL_VERIFICATION) == 'required'
+                if emailVerificationRequired:
+                    raise RestException(
+                        'Email verification required.', code=403)
+
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
 
