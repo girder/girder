@@ -242,7 +242,7 @@ class User(AccessControlledModel):
         self.setPublic(user, public, save=False)
 
         verifyEmail = self.model('setting').get(
-            SettingKey.EMAIL_VERIFICATION) == 'required'
+            SettingKey.EMAIL_VERIFICATION) != 'disabled'
 
         if verifyEmail:
             pass # send email

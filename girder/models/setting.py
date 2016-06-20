@@ -165,7 +165,7 @@ class Setting(Model):
 
     def validateCoreEmailVerification(self, doc):
         doc['value'] = doc['value'].lower()
-        if doc['value'] not in ('required', 'disabled'):
+        if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
                 'Email verification must be either "required" or "disabled".',
                 'value')

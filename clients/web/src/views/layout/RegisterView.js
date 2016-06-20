@@ -30,15 +30,18 @@ girder.views.RegisterView = girder.View.extend({
                 } else {
                     var authToken = user.get('authToken') || {};
 
-                    girder.currentUser = user;
-                    girder.currentToken = authToken.token;
+                    if (authToken.token) {
+                        girder.currentUser = user;
+                        girder.currentToken = authToken.token;
 
-                    if (girder.corsAuth) {
-                        document.cookie = 'girderToken=' + girder.currentToken;
+                        if (girder.corsAuth) {
+                            document.cookie = 'girderToken=' + girder.currentToken;
+                        }
+
+                        girder.events.trigger('g:login');
                     }
 
                     girder.dialogs.handleClose('register', {replace: true});
-                    girder.events.trigger('g:login');
                 }
 
                 this.$el.modal('hide');

@@ -26,6 +26,10 @@ form.g-settings-form(role="form")
           selected=((settings['core.email_verification'] ||
           defaults['core.email_verification']) === "required")
           ) Required
+        option(value="optional",
+          selected=((settings['core.email_verification'] ||
+          defaults['core.email_verification']) === "optional")
+          ) Optional
         option(value="disabled",
           selected=((settings['core.email_verification'] ||
           defaults['core.email_verification']) === "disabled")
