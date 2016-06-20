@@ -53,6 +53,7 @@ class User(Resource):
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
+        self.route('GET', ('verify', ':id'), self.verifyEmail)
 
     @access.public
     @filtermodel(model='user')
@@ -420,4 +421,36 @@ class User(Resource):
         return {
             'nFolders': self.model('user').countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
+        }
+
+    @access.public
+    @loadmodel(model='user', force=True)
+    @describeRoute(
+        Description('Verify an email address using a token.')
+        .param('id', 'The user ID to check.', paramType='path')
+        .param('token', 'The token to check.')
+        .errorResponse('The token is invalid or expired.', 401)
+    )
+    def verifyEmail(self, user, params):
+        self.requireParams('token', params)
+        token = self.model('token').load(
+            params['token'], force=True, objectId=False, exc=True)
+        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        hasScope = self.model('token').hasScope(
+            token, TokenScope.EMAIL_VERIFICATION)
+
+        if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
+            raise AccessException('The token is invalid or expired.')
+
+        user['emailVerified'] = True
+        authToken = self.sendAuthTokenCookie(user)
+
+        return {
+            'user': self.model('user').save(user),
+            'authToken': {
+                'token': authToken['_id'],
+                'expires': authToken['expires'],
+                'scope': authToken['scope']
+            },
+            'message': 'Email verification succeeded.'
         }
