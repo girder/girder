@@ -15,7 +15,7 @@ girder.views.LoginView = girder.View.extend({
             girder.events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
-                if (err.responseJSON.extra == 'emailVerification') {
+                if (err.responseJSON.extra === 'emailVerification') {
                     var html = err.responseJSON.message +
                         ' <a class="g-send-verification-email">Click here to send verification email.</a>';
                     $('.g-validation-failed-message').html(html);
