@@ -23,8 +23,9 @@ import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
-from girder.constants import AccessType, CoreEventHandler, SettingKey
-from girder.utility import config
+from girder.constants import AccessType, CoreEventHandler, SettingKey, \
+    TokenScope
+from girder.utility import config, mail_utils
 
 
 class User(AccessControlledModel):
@@ -241,13 +242,27 @@ class User(AccessControlledModel):
         self.setPassword(user, password, save=False)
         self.setPublic(user, public, save=False)
 
+        user = self.save(user)
+
         verifyEmail = self.model('setting').get(
             SettingKey.EMAIL_VERIFICATION) != 'disabled'
-
         if verifyEmail:
-            pass # send email
+            self._sendVerificationEmail(user)
 
-        return self.save(user)
+        return user
+
+    def _sendVerificationEmail(self, user):
+        token = self.model('token').createToken(
+            user, days=1, scope=TokenScope.EMAIL_VERIFICATION)
+        url = '%s/#useraccount/%s/token/%s' % (
+            mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
+        text = mail_utils.renderTemplate('emailVerification.mako', {
+            'url': url
+        })
+        mail_utils.sendEmail(
+            to=user.get('email'),
+            subject='Girder: Email verification',
+            text=text)
 
     def _grantSelfAccess(self, event):
         """

@@ -197,6 +197,7 @@ class TokenScope:
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
+    EMAIL_VERIFICATION = 'core.email_verification'
     PLUGINS_ENABLED_READ = 'core.plugins.read'
     SETTINGS_READ = 'core.setting.read'
     ASSETSTORES_READ = 'core.assetstore.read'
