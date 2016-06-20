@@ -624,9 +624,14 @@ class Folder(AccessControlledModel):
         return count
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None, stream=True):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this folder.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the folder's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: The folder to list.
         :param user: The user used for access.
@@ -643,12 +648,12 @@ class Folder(AccessControlledModel):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
-        :param stream: Return stream function with file data or file model
-            object if False
-        :type stream: bool
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         :returns: Iterable over files in this folder, where each element is a
                   tuple of (path name of the file, stream function with file
-                  data).
+                  data or file object).
         :rtype: generator(str, func)
         """
         if subpath:
@@ -660,14 +665,14 @@ class Folder(AccessControlledModel):
                 metadataFile = None
             for (filepath, file) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter, stream=stream):
+                    mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
         for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.model('item').fileList(
                     item, user, path, includeMetadata, mimeFilter=mimeFilter,
-                    stream=stream):
+                    data=data):
                 yield (filepath, file)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():

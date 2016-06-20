@@ -346,7 +346,7 @@ class FileTestCase(base.TestCase):
         fileList = [(path, file['name'])
                     for (path, file) in self.model('folder').fileList(
                         testFolder, user=self.user,
-                        subpath=True, stream=False)]
+                        subpath=True, data=False)]
         self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
 
         # Download the folder

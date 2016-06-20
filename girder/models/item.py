@@ -396,9 +396,14 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return newItem
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None, stream=True):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this item.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the item's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element will be the file document itself.
 
         :param doc: The item to list.
         :param user: A user used to validate data that is returned.  This isn't
@@ -419,9 +424,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
-        :param stream: Return stream function with file data or file model
-            object if False
-        :type stream: bool
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         :returns: Iterable over files in this item, where each element is a
                   tuple of (path name of the file, stream function with file
                   data or file object).
@@ -439,7 +444,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 continue
             if file['name'] == metadataFile:
                 metadataFile = None
-            if stream:
+            if data:
                 val = self.model('file').download(file, headers=False)
             else:
                 val = file
