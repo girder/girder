@@ -1,7 +1,7 @@
 ul.g-file-list
   each file in files
     li.g-file-list-entry
-      a.g-file-list-link(cid=file.cid,
+      a.g-file-list-link(cid=file.cid, title="Download file",
                          target=file.get('linkUrl') ? '_blank' : '_self',
                          href=file.downloadUrl())
         if file.get('linkUrl')
@@ -11,12 +11,12 @@ ul.g-file-list
         else
           i.icon-doc-inv
           = file.name()
+      a.g-view-inline(title="View in browser", target="_blank",
+                      href=file.downloadUrl({contentDisposition: 'inline'}))
+        i.icon-eye
       if file.has('size')
-        .g-file-size (#{girder.formatSize(file.get('size'))})
+        .g-file-size= girder.formatSize(file.get('size'))
       .g-file-actions-container(file-cid=file.cid)
-        a.g-view-inline(target="_blank", title="View in browser",
-                        href=file.downloadUrl({contentDisposition: 'inline'}))
-          i.icon-export
         if parentItem && parentItem.get('_accessLevel') >= girder.AccessType.WRITE
           a.g-update-info(title="Edit file info")
             i.icon-edit
