@@ -455,6 +455,11 @@ class ResourceTestCase(base.TestCase):
                 str(resp.json['_id']), str(item['_id']))
 
         # test bogus path
+        # test is not set
+        resp = self.request(path='/resource/lookup',
+                            method='GET', user=self.user,
+                            params={'path': '/collection/bogus/path'})
+        self.assertStatus(resp, 400)
         # test is set to false, response code should be 400
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,

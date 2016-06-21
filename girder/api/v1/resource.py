@@ -180,7 +180,15 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookUpPath(self, path, test, user):
+    def _lookUpPath(self, path, user, test=False):
+        """
+        Look up a resource in the data hierarchy by path.
+        :param path: path of the resource
+        :param user: user with correct privledges to access path
+        :param test: defaults to false, when set to true
+        will return None instead of throwing exception when
+        path doesn't exist
+        """
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
 
@@ -190,21 +198,21 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                if test is False:
-                    raise RestException('User not found: %s' % username)
-                else:
+                if test:
                     return None
+                else:
+                    raise RestException('User not found: %s' % username)
 
         elif model == 'collection':
             collectionName = pathArray[1]
             parent = self.model('collection').findOne({'name': collectionName})
 
             if parent is None:
-                if test is False:
+                if test:
+                    return None
+                else:
                     raise RestException(
                         'Collection not found: %s' % collectionName)
-                else:
-                    return None
 
         else:
             raise RestException('Invalid path format')
@@ -216,10 +224,10 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            if test is False:
-                raise RestException('Path not found: %s' % path)
-            else:
+            if test:
                 return None
+            else:
+                raise RestException('Path not found: %s' % path)
 
         result = self.model(model).filter(document, user)
         return result
@@ -233,7 +241,8 @@ class Resource(BaseResource):
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
         .param('test',
-               'Specify whether to return null if path doesn\'t exist.',
+               'Specify whether to return None instead of throwing an '
+               'exception when path doesn\'t exist.',
                required=False, dataType='boolean', default=False)
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
