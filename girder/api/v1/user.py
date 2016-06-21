@@ -147,6 +147,14 @@ class User(Resource):
                         'Email verification required.', code=403,
                         extra='emailVerification')
 
+            if user.get('status') != 'enabled':
+                approvalRequired = self.model('setting').get(
+                    SettingKey.REGISTRATION_POLICY) == 'approve'
+                if approvalRequired:
+                    raise RestException(
+                        'Account approval required.', code=403,
+                        extra='accountApproval')
+
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
 
@@ -194,13 +202,13 @@ class User(Resource):
 
         currentUser = self.getCurrentUser()
 
+        regPolicy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
+
         if currentUser is not None and currentUser['admin']:
             admin = self.boolParam('admin', params, default=False)
         else:
             admin = False
-            regPolicy = self.model('setting').get(
-                SettingKey.REGISTRATION_POLICY, default='open')
-            if regPolicy != 'open':
+            if regPolicy == 'closed':
                 raise RestException(
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
@@ -213,7 +221,10 @@ class User(Resource):
         emailVerificationRequired = self.model('setting').get(
             SettingKey.EMAIL_VERIFICATION) == 'required'
 
-        if currentUser is None and not emailVerificationRequired:
+        approvalRequired = regPolicy == 'approve'
+
+        if currentUser is None and not emailVerificationRequired \
+                and not approvalRequired:
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {

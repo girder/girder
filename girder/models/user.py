@@ -233,6 +233,7 @@ class User(AccessControlledModel):
             'lastName': lastName,
             'created': datetime.datetime.utcnow(),
             'emailVerified': False,
+            'status': 'pending',
             'admin': admin,
             'size': 0,
             'groups': [],

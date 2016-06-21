@@ -158,9 +158,9 @@ class Setting(Model):
 
     def validateCoreRegistrationPolicy(self, doc):
         doc['value'] = doc['value'].lower()
-        if doc['value'] not in ('open', 'closed'):
+        if doc['value'] not in ('open', 'closed', 'approve'):
             raise ValidationException(
-                'Registration policy must be either "open" or "closed".',
+                'Registration policy must be "open", "closed", or "approve".',
                 'value')
 
     def validateCoreEmailVerification(self, doc):
