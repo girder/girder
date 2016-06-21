@@ -183,11 +183,12 @@ class Resource(BaseResource):
     def _lookUpPath(self, path, user, test=False):
         """
         Look up a resource in the data hierarchy by path.
+
         :param path: path of the resource
-        :param user: user with correct privledges to access path
+        :param user: user with correct privileges to access path
         :param test: defaults to false, when set to true
-        will return None instead of throwing exception when
-        path doesn't exist
+            will return None instead of throwing exception when
+            path doesn't exist
         """
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
@@ -251,7 +252,7 @@ class Resource(BaseResource):
     def lookup(self, params):
         self.requireParams('path', params)
         test = self.boolParam('test', params, default=False)
-        return self._lookUpPath(params['path'], test, self.getCurrentUser())
+        return self._lookUpPath(params['path'], self.getCurrentUser(), test)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
