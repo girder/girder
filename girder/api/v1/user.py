@@ -54,7 +54,7 @@ class User(Resource):
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
         self.route('PUT', (':id', 'verification'), self.verifyEmail)
-        self.route('PUT', ('verification',), self.sendVerificationEmail)
+        self.route('POST', ('verification',), self.sendVerificationEmail)
 
     @access.public
     @filtermodel(model='user')
