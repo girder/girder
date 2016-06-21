@@ -463,7 +463,7 @@ class ResourceTestCase(base.TestCase):
         # test is set to false, response code should be 400
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
-                            params={'path': '/bogus/path',
+                            params={'path': /'collection/bogus/path',
                                     'test': False})
         self.assertStatus(resp, 400)
 
@@ -471,7 +471,7 @@ class ResourceTestCase(base.TestCase):
         # should be null (None)
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
-                            params={'path': '/bogus/path',
+                            params={'path': '/collection/bogus/path',
                                     'test': True})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, None)
