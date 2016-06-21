@@ -110,6 +110,7 @@ class Resource(BaseResource):
         Validate a JSON string listing resources.  The resources parameter is a
         JSON encoded dictionary with each key a model name and each value a
         list of ids that must be present in that model.
+
         :param params: a dictionary of parameters that must include 'resources'
         :param allowedModels: if present, an iterable of models that may be
                               included in the resources.
@@ -134,6 +135,7 @@ class Resource(BaseResource):
     def _getResourceModel(self, kind, funcName=None):
         """
         Load and return a model with a specific function or throw an exception.
+
         :param kind: the name of the model to load
         :param funcName: a function name to ensure that each model contains.
         :returns: the loaded model.
@@ -149,6 +151,7 @@ class Resource(BaseResource):
     def _lookUpToken(self, token, parentType, parent):
         """
         Find a particular child resource by name or throw an exception.
+
         :param token: the name of the child resource to find
         :param parentType: the type of the parent to search
         :param parent: the parent resource
