@@ -29,7 +29,7 @@ girder.views.LoginView = girder.View.extend({
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
             girder.restRequest({
-                path: 'user/verify',
+                path: 'user/verification',
                 type: 'PUT',
                 data: {login: this.$('#g-login').val()},
                 error: null

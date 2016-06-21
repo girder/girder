@@ -53,8 +53,8 @@ class User(Resource):
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
-        self.route('GET', ('verify', ':id'), self.verifyEmail)
-        self.route('PUT', ('verify',), self.sendVerificationEmail)
+        self.route('PUT', (':id', 'verification'), self.verifyEmail)
+        self.route('PUT', ('verification',), self.sendVerificationEmail)
 
     @access.public
     @filtermodel(model='user')
