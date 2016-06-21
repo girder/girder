@@ -474,6 +474,7 @@ class ResourceTestCase(base.TestCase):
                             params={'path': '/collection/bogus/path',
                                     'test': True})
         self.assertStatusOk(resp)
+        self.assertEqual(resp.json, None)
 
     def testMove(self):
         self._createFiles()
