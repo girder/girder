@@ -143,9 +143,13 @@ class ApiKey(Resource):
 
         user, token = self.model('api_key').createToken(key, days=days)
 
-        # Return the same structure as a normal user login
+        # Return the same structure as a normal user login, except do not
+        # include the full user document since the key may not authorize
+        # reading user information.
         return {
-            'user': self.model('user').filter(user, user),
+            'user': {
+                '_id': user['_id']
+            },
             'authToken': {
                 'token': token['_id'],
                 'expires': token['expires'],
