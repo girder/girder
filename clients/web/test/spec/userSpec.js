@@ -356,3 +356,62 @@ describe('test the API key management tab', function () {
         });
     });
 });
+
+describe('test email verification', function() {
+    it('Turn on email verification', function () {
+        girderTest.logout()();
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+        waitsFor(function () {
+            return $('.g-server-config').length > 0;
+        }, 'admin page to load');
+        girderTest.waitForLoad();
+        runs(function () {
+            $('.g-server-config').click();
+        });
+        waitsFor(function () {
+            return $('input#g-core-cookie-lifetime').length > 0;
+        }, 'settings page to load');
+        girderTest.waitForLoad();
+        runs(function () {
+            $('#g-core-email-verification').val('required');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-alerts-container .alert-success').length > 0;
+        }, 'settings to save');
+    });
+    it('Try to login without verifying email', function() {
+        girderTest.logout()();
+        runs(function () {
+            expect(girder.currentUser).toBe(null);
+        });
+
+        waitsFor(function () {
+            return $('.g-login').length > 0;
+        }, 'Girder app to render');
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            $('.g-login').click();
+        });
+
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('input#g-login').length > 0;
+        }, 'register dialog to appear');
+
+        runs(function () {
+            $('#g-login').val('nonadmin');
+            $('#g-password').val('password!');
+            $('#g-login-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message:visible').length > 0;
+        }, 'email verification message to appear');
+    });
+});
