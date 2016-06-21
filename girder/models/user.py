@@ -278,9 +278,14 @@ class User(AccessControlledModel):
                 privateFolder, user, AccessType.ADMIN, save=True)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, data=True):
         """
-        Generate a list of files within this user's folders.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the user's folders root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: the user to list.
         :param user: a user used to validate data that is returned.
@@ -291,13 +296,17 @@ class User(AccessControlledModel):
                                 metadata[-(number).json that is distinct from
                                 any file within the item.
         :param subpath: if True, add the user's name to the path.
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         """
         if subpath:
             path = os.path.join(path, doc['login'])
         for folder in self.model('folder').childFolders(parentType='user',
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True):
+                    folder, user, path, includeMetadata, subpath=True,
+                    data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):

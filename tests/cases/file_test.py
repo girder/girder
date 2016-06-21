@@ -341,6 +341,14 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
+        # List files in the folder
+        testFolder = self.model('folder').load(test['_id'], force=True)
+        fileList = [(path, file['name'])
+                    for (path, file) in self.model('folder').fileList(
+                        testFolder, user=self.user,
+                        subpath=True, data=False)]
+        self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
+
         # Download the folder
         resp = self.request(
             path='/folder/%s/download' % str(self.privateFolder['_id']),
