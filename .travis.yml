@@ -1,13 +1,20 @@
 language: python
 python:
-    - "2.7"
-    - "3.4"
+    - 2.7
+    - 3.4
 
 env:
     - GIRDER_TEST_GROUP=server
     - GIRDER_TEST_GROUP=client
     - GIRDER_TEST_GROUP=packaging
     - GIRDER_TEST_GROUP=other
+
+matrix:
+    exclude:
+        - python: 3.4
+          env: GIRDER_TEST_GROUP=client
+        - python: 3.4
+          env: GIRDER_TEST_GROUP=other
 
 cache:
     directories:
