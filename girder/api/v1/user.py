@@ -445,6 +445,7 @@ class User(Resource):
             raise AccessException('The token is invalid or expired.')
 
         user['emailVerified'] = True
+        self.model('token').remove(token)
         authToken = self.sendAuthTokenCookie(user)
 
         return {
